@@ -48,6 +48,8 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="edu.cmu.hcii.sugilite.MainActivity" />
         </activity>
+        <activity android:name=".RecodingPopUpActivity" >
+        </activity>
     </application>
 
 </manifest>

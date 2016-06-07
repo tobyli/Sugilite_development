@@ -24,85 +24,101 @@
 
         <TableRow
             android:layout_width="match_parent"
-            android:layout_height="match_parent">
+            android:layout_height="match_parent"
+            android:clickable="true">
 
-            <TextView
+            <CheckBox
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="New Text"
-                android:id="@+id/packageName" />
+                android:text="Package Name"
+                android:id="@+id/packageName"
+                android:onClick="entryOnSelect"
+                android:nestedScrollingEnabled="false" />
 
         </TableRow>
 
         <TableRow
             android:layout_width="match_parent"
-            android:layout_height="match_parent">
+            android:layout_height="match_parent"
+            android:clickable="true">
 
-            <TextView
+            <CheckBox
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="New Text"
-                android:id="@+id/className" />
+                android:text="Class Name"
+                android:id="@+id/className"
+                android:onClick="entryOnSelect" />
         </TableRow>
 
         <TableRow
             android:layout_width="match_parent"
-            android:layout_height="match_parent" >
+            android:layout_height="match_parent"
+            android:clickable="true">
 
-            <TextView
+            <CheckBox
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="New Text"
-                android:id="@+id/text" />
+                android:text="Text"
+                android:id="@+id/text"
+                android:onClick="entryOnSelect" />
         </TableRow>
 
         <TableRow
             android:layout_width="match_parent"
-            android:layout_height="match_parent" >
+            android:layout_height="match_parent"
+            android:clickable="true">
 
-            <TextView
+            <CheckBox
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="New Text"
-                android:id="@+id/contentDescription" />
+                android:text="ContentDescription"
+                android:id="@+id/contentDescription"
+                android:onClick="entryOnSelect" />
         </TableRow>
 
         <TableRow
             android:layout_width="match_parent"
-            android:layout_height="match_parent" >
+            android:layout_height="match_parent"
+            android:clickable="true">
 
-            <TextView
+            <CheckBox
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="New Text"
-                android:id="@+id/viewId" />
+                android:text="View ID"
+                android:id="@+id/viewId"
+                android:onClick="entryOnSelect" />
         </TableRow>
 
         <TableRow
             android:layout_width="match_parent"
-            android:layout_height="match_parent" >
+            android:layout_height="match_parent"
+            android:clickable="true">
 
-            <TextView
+            <CheckBox
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="New Text"
-                android:id="@+id/boundInScreen" />
+                android:text="Bounds in Screen"
+                android:id="@+id/boundsInScreen"
+                android:onClick="entryOnSelect" />
         </TableRow>
 
         <TableRow
             android:layout_width="match_parent"
-            android:layout_height="match_parent" >
+            android:layout_height="match_parent"
+            android:clickable="true">
 
-            <TextView
+            <CheckBox
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="New Text"
-                android:id="@+id/boundInParent" />
+                android:text="Bounds in Parent"
+                android:id="@+id/boundsInParent"
+                android:onClick="entryOnSelect" />
         </TableRow>
 
         <TableRow
             android:layout_width="match_parent"
-            android:layout_height="match_parent" >
+            android:layout_height="match_parent"
+            android:clickable="true">
 
             <TextView
                 android:layout_width="wrap_content"
@@ -119,9 +135,18 @@
         android:text="OK"
         android:id="@+id/nextButton"
         android:layout_column="0"
-        android:layout_alignParentBottom="true"
-        android:layout_centerHorizontal="true"
         android:nestedScrollingEnabled="false"
-        android:onClick="finishActivity" />
+        android:onClick="finishActivity"
+        android:layout_alignBottom="@+id/propertyTable"
+        android:layout_alignLeft="@+id/propertyTable" />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Turn off Recording"
+        android:id="@+id/button"
+        android:layout_alignBottom="@+id/propertyTable"
+        android:layout_alignRight="@+id/propertyTable"
+        android:onClick="turnOffRecording" />
 
 </RelativeLayout>

@@ -70,7 +70,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
         if (sharedPreferences.getBoolean("recording_in_process", false)) {
             //recording in progress
             AccessibilityNodeInfo sourceNode = event.getSource();
-            if (event.getEventType() == AccessibilityEvent.TYPE_VIEW_CLICKED) {
+            if (event.getEventType() == AccessibilityEvent.TYPE_VIEW_CLICKED && (!event.getPackageName().toString().contentEquals("edu.cmu.hcii.sugilite"))) {
                 startActivity(generatePopUpActivityIntentFromEvent(event));
             }
         }

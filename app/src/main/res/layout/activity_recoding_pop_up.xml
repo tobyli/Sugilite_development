@@ -10,10 +10,11 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Test VIEW_CLICK Listener Popup"
+        android:text="Select the identifying features for this element"
         android:id="@+id/promptTextView"
         android:layout_alignParentTop="true"
-        android:layout_alignParentStart="true" />
+        android:layout_alignParentStart="true"
+        android:textColor="#4b4b4b" />
 
     <TableLayout
         android:layout_width="match_parent"
@@ -117,14 +118,77 @@
 
         <TableRow
             android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <CheckBox
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Has parent that ..."
+                android:id="@+id/parentCheckbox"
+                android:layout_column="0"
+                android:checked="false" />
+        </TableRow>
+
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <CheckBox
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Has child(ren) that..."
+                android:id="@+id/childrenCheckbox"
+                android:layout_column="0"
+                android:checked="false" />
+        </TableRow>
+
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceMedium"
+                android:id="@+id/textView3"
+                android:layout_column="0" />
+        </TableRow>
+
+        <TableRow
+            android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:clickable="true">
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="New Text"
+                android:text="EVENT_TIME"
                 android:id="@+id/time" />
+        </TableRow>
+
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Description of the programmed operation"
+                android:id="@+id/descriptionPromptTextView"
+                android:layout_column="0"
+                android:textColor="#4b4b4b" />
+        </TableRow>
+
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="No feature selected!"
+                android:id="@+id/operationDescription"
+                android:layout_column="0" />
         </TableRow>
 
     </TableLayout>
@@ -136,17 +200,30 @@
         android:id="@+id/nextButton"
         android:layout_column="0"
         android:nestedScrollingEnabled="false"
-        android:onClick="finishActivity"
+        android:onClick="OKButtonOnClick"
         android:layout_alignBottom="@+id/propertyTable"
-        android:layout_alignLeft="@+id/propertyTable" />
+        android:layout_alignLeft="@+id/propertyTable"
+        android:textSize="12dp" />
 
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Turn off Recording"
+        android:text="Cancel"
         android:id="@+id/button"
+        android:layout_column="1"
+        android:layout_alignBottom="@+id/propertyTable"
+        android:textSize="12dp"
+        android:layout_centerHorizontal="true"
+        android:onClick="finishActivity" />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Recording OFF"
+        android:id="@+id/turnOffButton"
         android:layout_alignBottom="@+id/propertyTable"
         android:layout_alignRight="@+id/propertyTable"
-        android:onClick="turnOffRecording" />
+        android:onClick="turnOffRecording"
+        android:textSize="12dp" />
 
 </RelativeLayout>

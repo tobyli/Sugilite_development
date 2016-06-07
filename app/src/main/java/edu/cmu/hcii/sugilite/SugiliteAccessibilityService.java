@@ -16,9 +16,14 @@ import android.view.accessibility.AccessibilityNodeInfo;
 import android.widget.ImageView;
 import android.widget.Toast;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
+
+import edu.cmu.hcii.sugilite.model.AccessibilityNodeInfoList;
 
 public class SugiliteAccessibilityService extends AccessibilityService {
     private ImageView statusIcon;
@@ -70,7 +75,12 @@ public class SugiliteAccessibilityService extends AccessibilityService {
         if (sharedPreferences.getBoolean("recording_in_process", false)) {
             //recording in progress
             AccessibilityNodeInfo sourceNode = event.getSource();
-            if (event.getEventType() == AccessibilityEvent.TYPE_VIEW_CLICKED && (!event.getPackageName().toString().contentEquals("edu.cmu.hcii.sugilite"))) {
+            Set<String> exceptedPackages = new HashSet<>();
+            //skip internal interactions and interactions on system ui
+            exceptedPackages.add("edu.cmu.hcii.sugilite");
+            exceptedPackages.add("com.android.systemui");
+            if (event.getEventType() == AccessibilityEvent.TYPE_VIEW_CLICKED && (!exceptedPackages.contains(event.getPackageName()))) {
+                //start the popup activity
                 startActivity(generatePopUpActivityIntentFromEvent(event));
             }
         }
@@ -115,6 +125,13 @@ public class SugiliteAccessibilityService extends AccessibilityService {
         Rect boundsInScreen = new Rect();
         sourceNode.getBoundsInParent(boundsInParents);
         sourceNode.getBoundsInScreen(boundsInScreen);
+        AccessibilityNodeInfo parentNode = sourceNode.getParent();
+        AccessibilityNodeInfoList childrenNodes = new AccessibilityNodeInfoList();
+        for(int i = 0; i < sourceNode.getChildCount(); i++){
+            AccessibilityNodeInfo childNode = sourceNode.getChild(i);
+            if(childNode != null)
+                childrenNodes.list.add(childNode);
+        }
 
         //pop up the selection window
         Intent popUpIntent = new Intent(this, RecodingPopUpActivity.class);
@@ -126,8 +143,11 @@ public class SugiliteAccessibilityService extends AccessibilityService {
         popUpIntent.putExtra("viewId", sourceNode.getViewIdResourceName());
         popUpIntent.putExtra("boundsInParent", boundsInParents.toString());
         popUpIntent.putExtra("boundsInScreen", boundsInScreen.toString());
-        popUpIntent.putExtra("time", event.getEventTime());
+        popUpIntent.putExtra("time", Calendar.getInstance().getTimeInMillis());
         popUpIntent.putExtra("eventType", event.getEventType());
+        popUpIntent.putExtra("parentNode", parentNode);
+        popUpIntent.putExtra("childrenNodes", childrenNodes);
         return popUpIntent;
     }
 }
+

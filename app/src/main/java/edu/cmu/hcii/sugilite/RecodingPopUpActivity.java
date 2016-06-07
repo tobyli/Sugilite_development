@@ -1,18 +1,26 @@
 package edu.cmu.hcii.sugilite;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
+import android.view.accessibility.AccessibilityEvent;
+import android.view.accessibility.AccessibilityNodeInfo;
 import android.widget.CheckBox;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.HashMap;
 import java.util.Locale;
+import java.util.Map;
 import java.util.TimeZone;
+
+import edu.cmu.hcii.sugilite.model.AccessibilityNodeInfoList;
 
 public class RecodingPopUpActivity extends AppCompatActivity {
 
@@ -20,6 +28,11 @@ public class RecodingPopUpActivity extends AppCompatActivity {
     private long time;
     private int eventType;
     private SharedPreferences sharedPreferences;
+    private AccessibilityNodeInfo parentNode;
+    private AccessibilityNodeInfoList childNodes;
+    private Map<String, String> parentFeatures = new HashMap<>();
+    private Map<String, String> childFeatures = new HashMap<>();
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -40,6 +53,8 @@ public class RecodingPopUpActivity extends AppCompatActivity {
                 boundsInScreen = extras.getString("boundsInScreen", "NULL");
                 time = extras.getLong("time", -1);
                 eventType = extras.getInt("eventType", -1);
+                parentNode = (AccessibilityNodeInfo)extras.getSerializable("parentNode");
+                childNodes = (AccessibilityNodeInfoList)extras.getSerializable("childrenNodes");
             }
         }
         else{
@@ -52,6 +67,8 @@ public class RecodingPopUpActivity extends AppCompatActivity {
             boundsInScreen = savedInstanceState.getString("boundsInScreen", "NULL");
             time = savedInstanceState.getLong("time", -1);
             eventType = savedInstanceState.getInt("eventType", -1);
+            parentNode = (AccessibilityNodeInfo)savedInstanceState.getSerializable("parentNode");
+            childNodes = (AccessibilityNodeInfoList)savedInstanceState.getSerializable("childrenNodes");
         }
 
         Calendar c = Calendar.getInstance();
@@ -69,6 +86,28 @@ public class RecodingPopUpActivity extends AppCompatActivity {
         ((CheckBox)findViewById(R.id.boundsInScreen)).setText("Bounds in Screen: " + boundsInScreen);
         ((TextView)findViewById(R.id.time)).setText("Event Time: " + dateFormat.format(c.getTime()));
 
+        //populate parent features
+        if(parentNode != null){
+            if(parentNode.getText() != null)
+                parentFeatures.put("text", parentNode.getText().toString());
+            if(parentNode.getContentDescription() != null)
+                parentFeatures.put("contentDescription", parentNode.getContentDescription().toString());
+            if(parentNode.getViewIdResourceName() != null)
+                parentFeatures.put("viewId", parentNode.getViewIdResourceName());
+        }
+
+        //populate child features
+        for(AccessibilityNodeInfo childNode : childNodes.list){
+            if(childNode != null){
+                if(childNode.getText() != null)
+                    childFeatures.put("text", childNode.getText().toString());
+                if(childNode.getContentDescription() != null)
+                    childFeatures.put("contentDescription", childNode.getContentDescription().toString());
+                if(childNode.getViewIdResourceName() != null)
+                    childFeatures.put("viewId", childNode.getViewIdResourceName());
+            }
+        }
+
     }
 
     public void finishActivity(View view){
@@ -84,8 +123,18 @@ public class RecodingPopUpActivity extends AppCompatActivity {
         finish();
     }
 
-    public void saveSelection(){
-
+    public void OKButtonOnClick(View view){
+        new AlertDialog.Builder(this)
+                .setTitle("Operation Recorded")
+                .setMessage(generateDescription())
+                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        // continue with delete
+                        finish();
+                    }
+                })
+                .setIcon(android.R.drawable.ic_dialog_alert)
+                .show();
     }
 
     //TODO: change to check box
@@ -95,32 +144,67 @@ public class RecodingPopUpActivity extends AppCompatActivity {
 
         if(viewId == R.id.packageName){
             Toast.makeText(this, "Selected Package Name as Identifying Feature", Toast.LENGTH_SHORT).show();
-            finish();
         }
         if(viewId == R.id.className){
             Toast.makeText(this, "Selected Class Name as Identifying Feature", Toast.LENGTH_SHORT).show();
-            finish();
         }
         if(viewId == R.id.text){
             Toast.makeText(this, "Selected Text as Identifying Feature", Toast.LENGTH_SHORT).show();
-            finish();
         }
         if(viewId == R.id.contentDescription){
             Toast.makeText(this, "Selected Content Description as Identifying Feature", Toast.LENGTH_SHORT).show();
-            finish();
         }
         if(viewId == R.id.viewId){
             Toast.makeText(this, "Selected View ID as Identifying Feature", Toast.LENGTH_SHORT).show();
-            finish();
         }
         if(viewId == R.id.boundsInParent){
             Toast.makeText(this, "Selected Bound in Parent as Identifying Feature", Toast.LENGTH_SHORT).show();
-            finish();
         }
         if(viewId == R.id.boundsInScreen){
             Toast.makeText(this, "Selected Bount in Screen as Identifying Feature", Toast.LENGTH_SHORT).show();
-            finish();
         }
+        ((TextView)findViewById(R.id.operationDescription)).setText(generateDescription());
+    }
+
+    public String generateDescription(){
+        boolean notFirstCondition = false;
+        String retVal = "";
+        if (eventType == AccessibilityEvent.TYPE_VIEW_CLICKED){
+            retVal += "Click ";
+        }
+        retVal += "on UI element that ";
+        if(((CheckBox)findViewById(R.id.packageName)).isChecked()){
+            retVal += ((notFirstCondition? "and " : "") + "is within the package \"" + packageName + "\" ");
+            notFirstCondition = true;
+        }
+        if(((CheckBox)findViewById(R.id.className)).isChecked()){
+            retVal += ((notFirstCondition? "and " : "") + "is of the class type \"" + className + "\" ");
+            notFirstCondition = true;
+        }
+        if(((CheckBox)findViewById(R.id.text)).isChecked()){
+            retVal += ((notFirstCondition? "and " : "") + "has text \"" + text + "\" ");
+            notFirstCondition = true;
+        }
+        if(((CheckBox)findViewById(R.id.contentDescription)).isChecked()){
+            retVal += ((notFirstCondition? "and " : "") + "has contentDescription \"" + contentDescription + "\" ");
+            notFirstCondition = true;
+        }
+        if(((CheckBox)findViewById(R.id.viewId)).isChecked()){
+            retVal += ((notFirstCondition? "and " : "") + "has view ID \"" + viewId + "\" ");
+            notFirstCondition = true;
+        }
+        if(((CheckBox)findViewById(R.id.boundsInParent)).isChecked()){
+            retVal += ((notFirstCondition? "and " : "") + "has location relative to its parent element at \"" + boundsInParent + "\" ");
+            notFirstCondition = true;
+        }
+        if(((CheckBox)findViewById(R.id.boundsInScreen)).isChecked()){
+            retVal += ((notFirstCondition? "and " : "") + "has location on screen at \"" + boundsInScreen + "\" ");
+            notFirstCondition = true;
+        }
+        if(notFirstCondition)
+            return retVal;
+        else
+            return "No feature selected!";
     }
 
 

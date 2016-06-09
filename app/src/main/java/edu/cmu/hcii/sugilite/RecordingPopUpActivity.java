@@ -2,27 +2,37 @@ package edu.cmu.hcii.sugilite;
 
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.view.ContextMenu;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityNodeInfo;
 import android.widget.CheckBox;
+import android.widget.PopupMenu;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import java.text.SimpleDateFormat;
+import java.util.AbstractMap;
 import java.util.Calendar;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.TimeZone;
 
 import edu.cmu.hcii.sugilite.model.AccessibilityNodeInfoList;
+import edu.cmu.hcii.sugilite.model.SetMapEntrySerializableWrapper;
 
-public class RecodingPopUpActivity extends AppCompatActivity {
+public class RecordingPopUpActivity extends AppCompatActivity {
 
     private String packageName, className, text, contentDescription, viewId, boundsInParent, boundsInScreen;
     private long time;
@@ -30,9 +40,12 @@ public class RecodingPopUpActivity extends AppCompatActivity {
     private SharedPreferences sharedPreferences;
     private AccessibilityNodeInfo parentNode;
     private AccessibilityNodeInfoList childNodes;
-    private Map<String, String> parentFeatures = new HashMap<>();
-    private Map<String, String> childFeatures = new HashMap<>();
-
+    private Set<Map.Entry<String, String>> allParentFeatures = new HashSet<>();
+    private Set<Map.Entry<String, String>> allChildFeatures = new HashSet<>();
+    private Set<Map.Entry<String, String>> selectedParentFeatures = new HashSet<>();
+    private Set<Map.Entry<String, String>> selectedChildFeatures = new HashSet<>();
+    static final int PICK_CHILD_FEATURE = 1;
+    static final int PICK_PARENT_FEATURE = 2;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -53,8 +66,8 @@ public class RecodingPopUpActivity extends AppCompatActivity {
                 boundsInScreen = extras.getString("boundsInScreen", "NULL");
                 time = extras.getLong("time", -1);
                 eventType = extras.getInt("eventType", -1);
-                parentNode = (AccessibilityNodeInfo)extras.getSerializable("parentNode");
-                childNodes = (AccessibilityNodeInfoList)extras.getSerializable("childrenNodes");
+                parentNode = extras.getParcelable("parentNode");
+                childNodes = extras.getParcelable("childrenNodes");
             }
         }
         else{
@@ -67,8 +80,8 @@ public class RecodingPopUpActivity extends AppCompatActivity {
             boundsInScreen = savedInstanceState.getString("boundsInScreen", "NULL");
             time = savedInstanceState.getLong("time", -1);
             eventType = savedInstanceState.getInt("eventType", -1);
-            parentNode = (AccessibilityNodeInfo)savedInstanceState.getSerializable("parentNode");
-            childNodes = (AccessibilityNodeInfoList)savedInstanceState.getSerializable("childrenNodes");
+            parentNode = savedInstanceState.getParcelable("parentNode");
+            childNodes = savedInstanceState.getParcelable("childrenNodes");
         }
 
         Calendar c = Calendar.getInstance();
@@ -89,22 +102,22 @@ public class RecodingPopUpActivity extends AppCompatActivity {
         //populate parent features
         if(parentNode != null){
             if(parentNode.getText() != null)
-                parentFeatures.put("text", parentNode.getText().toString());
+                allParentFeatures.add(new AbstractMap.SimpleEntry<>("text", parentNode.getText().toString()));
             if(parentNode.getContentDescription() != null)
-                parentFeatures.put("contentDescription", parentNode.getContentDescription().toString());
+                allParentFeatures.add(new AbstractMap.SimpleEntry<>("text", parentNode.getContentDescription().toString()));
             if(parentNode.getViewIdResourceName() != null)
-                parentFeatures.put("viewId", parentNode.getViewIdResourceName());
+                allParentFeatures.add(new AbstractMap.SimpleEntry<>("viewId", parentNode.getViewIdResourceName()));
         }
 
         //populate child features
-        for(AccessibilityNodeInfo childNode : childNodes.list){
+        for(AccessibilityNodeInfo childNode : childNodes.getList()){
             if(childNode != null){
                 if(childNode.getText() != null)
-                    childFeatures.put("text", childNode.getText().toString());
+                    allChildFeatures.add(new AbstractMap.SimpleEntry<>("text", childNode.getText().toString()));
                 if(childNode.getContentDescription() != null)
-                    childFeatures.put("contentDescription", childNode.getContentDescription().toString());
+                    allChildFeatures.add(new AbstractMap.SimpleEntry<>("text", childNode.getContentDescription().toString()));
                 if(childNode.getViewIdResourceName() != null)
-                    childFeatures.put("viewId", childNode.getViewIdResourceName());
+                    allChildFeatures.add(new AbstractMap.SimpleEntry<>("viewId", childNode.getViewIdResourceName()));
             }
         }
 
@@ -163,8 +176,65 @@ public class RecodingPopUpActivity extends AppCompatActivity {
         if(viewId == R.id.boundsInScreen){
             Toast.makeText(this, "Selected Bount in Screen as Identifying Feature", Toast.LENGTH_SHORT).show();
         }
+        if(viewId == R.id.childrenCheckbox){
+            Toast.makeText(this, "Selected Children as Identifying Feature", Toast.LENGTH_SHORT).show();
+            Intent popUpSubMenuIntent = new Intent(this, RecordingPopupSubMenuActivity.class);
+            popUpSubMenuIntent.putExtra("allFeatures", new SetMapEntrySerializableWrapper(allChildFeatures));
+            popUpSubMenuIntent.putExtra("selectedFeatures", new SetMapEntrySerializableWrapper(selectedChildFeatures));
+            startActivityForResult(popUpSubMenuIntent, PICK_CHILD_FEATURE);
+
+        }
+        if(viewId == R.id.parentCheckbox){
+            Toast.makeText(this, "Selected Parent as Identifying Feature", Toast.LENGTH_SHORT).show();
+            Intent popUpSubMenuIntent = new Intent(this, RecordingPopupSubMenuActivity.class);
+            popUpSubMenuIntent.putExtra("allFeatures", new SetMapEntrySerializableWrapper(allParentFeatures));
+            popUpSubMenuIntent.putExtra("selectedFeatures", new SetMapEntrySerializableWrapper(selectedParentFeatures));
+            startActivityForResult(popUpSubMenuIntent, PICK_PARENT_FEATURE);
+
+        }
         ((TextView)findViewById(R.id.operationDescription)).setText(generateDescription());
     }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if(requestCode == PICK_CHILD_FEATURE){
+            //get result from child feature picking
+            if(resultCode == RESULT_OK){
+                selectedChildFeatures = ((SetMapEntrySerializableWrapper)data.getSerializableExtra("result")).set;
+            }
+            else{
+
+            }
+        }
+        else if(requestCode == PICK_PARENT_FEATURE){
+            //get result from parent feature picking
+            if(resultCode == RESULT_OK){
+                selectedParentFeatures = ((SetMapEntrySerializableWrapper)data.getSerializableExtra("result")).set;
+            }
+            else{
+
+            }
+        }
+        ((CheckBox)findViewById(R.id.childrenCheckbox)).setChecked(selectedChildFeatures.size() > 0);
+        ((CheckBox)findViewById(R.id.parentCheckbox)).setChecked(selectedParentFeatures.size() > 0);
+        ((TextView)findViewById(R.id.operationDescription)).setText(generateDescription());
+    }
+
+    public void showParentPopup(View v) {
+        PopupMenu popup = new PopupMenu(this, v);
+        for(Map.Entry<String, String> entry : allParentFeatures){
+            popup.getMenu().add(entry.getKey() + " is " + entry.getValue()).setCheckable(true).setChecked(false);
+        }
+        popup.show();
+    }
+    public void showChildrenPopup(View v) {
+        PopupMenu popup = new PopupMenu(this, v);
+        for(Map.Entry<String, String> entry : allChildFeatures){
+            popup.getMenu().add(entry.getKey() + " is " + entry.getValue()).setCheckable(true).setChecked(false);
+        }
+        popup.show();
+    }
+
 
     public String generateDescription(){
         boolean notFirstCondition = false;
@@ -200,6 +270,24 @@ public class RecodingPopUpActivity extends AppCompatActivity {
         if(((CheckBox)findViewById(R.id.boundsInScreen)).isChecked()){
             retVal += ((notFirstCondition? "and " : "") + "has location on screen at \"" + boundsInScreen + "\" ");
             notFirstCondition = true;
+        }
+        if (selectedChildFeatures.size() > 0){
+            retVal += ((notFirstCondition? "and " : "") + "has a child that { ");
+            boolean notFirst = false;
+            for(Map.Entry<String, String> entry :selectedChildFeatures){
+                retVal += ((notFirst? "and " : "") + "has " + entry.getKey() + " == \"" + entry.getValue() + "\" ");
+                notFirst = true;
+            }
+            retVal += "} ";
+        }
+        if (selectedParentFeatures.size() > 0){
+            retVal += ((notFirstCondition? "and " : "") + "has the parent that { ");
+            boolean notFirst = false;
+            for(Map.Entry<String, String> entry :selectedParentFeatures){
+                retVal += ((notFirst? "and " : "") + "has " + entry.getKey() + " == \"" + entry.getValue() + "\" ");
+                notFirst = true;
+            }
+            retVal += "} ";
         }
         if(notFirstCondition)
             return retVal;

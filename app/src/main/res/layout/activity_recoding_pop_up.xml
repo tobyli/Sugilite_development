@@ -5,7 +5,7 @@
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
     android:paddingBottom="@dimen/activity_vertical_margin"
-    tools:context="edu.cmu.hcii.sugilite.RecodingPopUpActivity">
+    tools:context="edu.cmu.hcii.sugilite.RecordingPopUpActivity">
 
     <TextView
         android:layout_width="wrap_content"
@@ -15,183 +15,195 @@
         android:layout_alignParentTop="true"
         android:layout_alignParentStart="true"
         android:textColor="#4b4b4b" />
-
-    <TableLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
+    <ScrollView
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:scrollbars="none"
+        android:layout_weight="1"
         android:layout_below="@+id/promptTextView"
-        android:layout_alignParentEnd="true"
-        android:id="@+id/propertyTable">
-
-        <TableRow
+        android:layout_above="@+id/nextButton">
+        <TableLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:clickable="true">
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/promptTextView"
+            android:layout_alignParentEnd="false"
+            android:id="@+id/propertyTable"
+            android:layout_alignParentStart="true"
+            android:layout_above="@+id/nextButton">
 
-            <CheckBox
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Package Name"
-                android:id="@+id/packageName"
-                android:onClick="entryOnSelect"
-                android:nestedScrollingEnabled="false" />
+            <TableRow
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:clickable="true">
 
-        </TableRow>
+                <CheckBox
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Package Name"
+                    android:id="@+id/packageName"
+                    android:onClick="entryOnSelect"
+                    android:nestedScrollingEnabled="false" />
 
-        <TableRow
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:clickable="true">
+            </TableRow>
 
-            <CheckBox
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Class Name"
-                android:id="@+id/className"
-                android:onClick="entryOnSelect" />
-        </TableRow>
+            <TableRow
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:clickable="true">
 
-        <TableRow
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:clickable="true">
+                <CheckBox
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Class Name"
+                    android:id="@+id/className"
+                    android:onClick="entryOnSelect" />
+            </TableRow>
 
-            <CheckBox
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Text"
-                android:id="@+id/text"
-                android:onClick="entryOnSelect" />
-        </TableRow>
+            <TableRow
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:clickable="true">
 
-        <TableRow
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:clickable="true">
+                <CheckBox
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Text"
+                    android:id="@+id/text"
+                    android:onClick="entryOnSelect" />
+            </TableRow>
 
-            <CheckBox
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="ContentDescription"
-                android:id="@+id/contentDescription"
-                android:onClick="entryOnSelect" />
-        </TableRow>
+            <TableRow
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:clickable="true">
 
-        <TableRow
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:clickable="true">
+                <CheckBox
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="ContentDescription"
+                    android:id="@+id/contentDescription"
+                    android:onClick="entryOnSelect" />
+            </TableRow>
 
-            <CheckBox
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="View ID"
-                android:id="@+id/viewId"
-                android:onClick="entryOnSelect" />
-        </TableRow>
+            <TableRow
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:clickable="true">
 
-        <TableRow
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:clickable="true">
+                <CheckBox
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="View ID"
+                    android:id="@+id/viewId"
+                    android:onClick="entryOnSelect" />
+            </TableRow>
 
-            <CheckBox
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Bounds in Screen"
-                android:id="@+id/boundsInScreen"
-                android:onClick="entryOnSelect" />
-        </TableRow>
+            <TableRow
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:clickable="true">
 
-        <TableRow
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:clickable="true">
+                <CheckBox
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Bounds in Screen"
+                    android:id="@+id/boundsInScreen"
+                    android:onClick="entryOnSelect" />
+            </TableRow>
 
-            <CheckBox
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Bounds in Parent"
-                android:id="@+id/boundsInParent"
-                android:onClick="entryOnSelect" />
-        </TableRow>
+            <TableRow
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:clickable="true">
 
-        <TableRow
-            android:layout_width="match_parent"
-            android:layout_height="match_parent">
+                <CheckBox
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Bounds in Parent"
+                    android:id="@+id/boundsInParent"
+                    android:onClick="entryOnSelect" />
+            </TableRow>
 
-            <CheckBox
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Has parent that ..."
-                android:id="@+id/parentCheckbox"
-                android:layout_column="0"
-                android:checked="false" />
-        </TableRow>
+            <TableRow
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
 
-        <TableRow
-            android:layout_width="match_parent"
-            android:layout_height="match_parent">
+                <CheckBox
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Has parent that ..."
+                    android:id="@+id/parentCheckbox"
+                    android:layout_column="0"
+                    android:checked="false"
+                    android:onClick="entryOnSelect" />
+            </TableRow>
 
-            <CheckBox
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Has child(ren) that..."
-                android:id="@+id/childrenCheckbox"
-                android:layout_column="0"
-                android:checked="false" />
-        </TableRow>
+            <TableRow
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
 
-        <TableRow
-            android:layout_width="match_parent"
-            android:layout_height="match_parent">
+                <CheckBox
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Has child(ren) that..."
+                    android:id="@+id/childrenCheckbox"
+                    android:layout_column="0"
+                    android:checked="false"
+                    android:onClick="entryOnSelect" />
+            </TableRow>
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textAppearance="?android:attr/textAppearanceMedium"
-                android:id="@+id/textView3"
-                android:layout_column="0" />
-        </TableRow>
+            <TableRow
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
 
-        <TableRow
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:clickable="true">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="?android:attr/textAppearanceMedium"
+                    android:id="@+id/textView3"
+                    android:layout_column="0" />
+            </TableRow>
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="EVENT_TIME"
-                android:id="@+id/time" />
-        </TableRow>
+            <TableRow
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:clickable="true">
 
-        <TableRow
-            android:layout_width="match_parent"
-            android:layout_height="match_parent">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="EVENT_TIME"
+                    android:id="@+id/time" />
+            </TableRow>
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Description of the programmed operation"
-                android:id="@+id/descriptionPromptTextView"
-                android:layout_column="0"
-                android:textColor="#4b4b4b" />
-        </TableRow>
+            <TableRow
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
 
-        <TableRow
-            android:layout_width="match_parent"
-            android:layout_height="match_parent">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Description of the programmed operation"
+                    android:id="@+id/descriptionPromptTextView"
+                    android:layout_column="0"
+                    android:textColor="#4b4b4b" />
+            </TableRow>
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="No feature selected!"
-                android:id="@+id/operationDescription"
-                android:layout_column="0" />
-        </TableRow>
+            <TableRow
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
 
-    </TableLayout>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="No feature selected!"
+                    android:id="@+id/operationDescription"
+                    android:layout_column="0"
+                    android:maxLength="10000" />
+            </TableRow>
+
+        </TableLayout>
+    </ScrollView>>
 
     <Button
         android:layout_width="wrap_content"
@@ -201,9 +213,9 @@
         android:layout_column="0"
         android:nestedScrollingEnabled="false"
         android:onClick="OKButtonOnClick"
-        android:layout_alignBottom="@+id/propertyTable"
-        android:layout_alignLeft="@+id/propertyTable"
-        android:textSize="12dp" />
+        android:textSize="12dp"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentStart="true" />
 
     <Button
         android:layout_width="wrap_content"
@@ -211,19 +223,19 @@
         android:text="Cancel"
         android:id="@+id/button"
         android:layout_column="1"
-        android:layout_alignBottom="@+id/propertyTable"
         android:textSize="12dp"
-        android:layout_centerHorizontal="true"
-        android:onClick="finishActivity" />
+        android:onClick="finishActivity"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true" />
 
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Recording OFF"
         android:id="@+id/turnOffButton"
-        android:layout_alignBottom="@+id/propertyTable"
-        android:layout_alignRight="@+id/propertyTable"
         android:onClick="turnOffRecording"
-        android:textSize="12dp" />
+        android:textSize="12dp"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentEnd="true" />
 
 </RelativeLayout>

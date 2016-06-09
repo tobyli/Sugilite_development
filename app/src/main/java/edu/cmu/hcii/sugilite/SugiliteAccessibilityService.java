@@ -1,13 +1,10 @@
 package edu.cmu.hcii.sugilite;
 
 import android.accessibilityservice.AccessibilityService;
-import android.accessibilityservice.AccessibilityServiceInfo;
-import android.app.Service;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.PixelFormat;
 import android.graphics.Rect;
-import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.view.Gravity;
 import android.view.WindowManager;
@@ -20,7 +17,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 import edu.cmu.hcii.sugilite.model.AccessibilityNodeInfoList;
@@ -126,15 +122,16 @@ public class SugiliteAccessibilityService extends AccessibilityService {
         sourceNode.getBoundsInParent(boundsInParents);
         sourceNode.getBoundsInScreen(boundsInScreen);
         AccessibilityNodeInfo parentNode = sourceNode.getParent();
-        AccessibilityNodeInfoList childrenNodes = new AccessibilityNodeInfoList();
+        ArrayList<AccessibilityNodeInfo> childrenNodes = new ArrayList<>();
         for(int i = 0; i < sourceNode.getChildCount(); i++){
             AccessibilityNodeInfo childNode = sourceNode.getChild(i);
             if(childNode != null)
-                childrenNodes.list.add(childNode);
+                childrenNodes.add(childNode);
         }
+        //TODO:AccessibilityNodeInfo is not serializable
 
         //pop up the selection window
-        Intent popUpIntent = new Intent(this, RecodingPopUpActivity.class);
+        Intent popUpIntent = new Intent(this, RecordingPopUpActivity.class);
         popUpIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         popUpIntent.putExtra("packageName", sourceNode.getPackageName());
         popUpIntent.putExtra("className", sourceNode.getClassName());
@@ -146,7 +143,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
         popUpIntent.putExtra("time", Calendar.getInstance().getTimeInMillis());
         popUpIntent.putExtra("eventType", event.getEventType());
         popUpIntent.putExtra("parentNode", parentNode);
-        popUpIntent.putExtra("childrenNodes", childrenNodes);
+        popUpIntent.putExtra("childrenNodes", new AccessibilityNodeInfoList(childrenNodes));
         return popUpIntent;
     }
 }

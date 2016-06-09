@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <group android:id="@+id/parent_element_selection_group" android:checkableBehavior="all">
+        <item android:id="@+id/selecta"
+            android:title="Selection A" android:checked="true"/>
+        <item android:id="@+id/selectb"
+            android:title="Selection B" />
+        <item android:id="@+id/selectc"
+            android:title="Selection C" />
+    </group>
+</menu>

@@ -16,6 +16,7 @@
     <string name="pref_description_tracking_in_progress">Tracking UI Interactions in Background</string>
 
     <string name="pref_title_display_name">Participant ID</string>
+    <string name="pref_script_name_display_name">Script Name</string>
     <string name="pref_default_display_name">DEFAULT_ID</string>
 
     <string name="pref_title_add_friends_to_messages">Add friends to messages</string>

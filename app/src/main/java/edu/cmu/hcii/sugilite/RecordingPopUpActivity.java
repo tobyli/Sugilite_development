@@ -97,7 +97,7 @@ public class RecordingPopUpActivity extends AppCompatActivity {
         ((CheckBox)findViewById(R.id.viewId)).setText("ViewId: " + viewId);
         ((CheckBox)findViewById(R.id.boundsInParent)).setText("Bounds in Parent: " + boundsInParent);
         ((CheckBox)findViewById(R.id.boundsInScreen)).setText("Bounds in Screen: " + boundsInScreen);
-        ((TextView)findViewById(R.id.time)).setText("Event Time: " + dateFormat.format(c.getTime()));
+        ((TextView)findViewById(R.id.time)).setText("Event Time: " + dateFormat.format(c.getTime()) + "\nRecording script: " + sharedPreferences.getString("scriptName", "NULL"));
 
         //populate parent features
         if(parentNode != null){

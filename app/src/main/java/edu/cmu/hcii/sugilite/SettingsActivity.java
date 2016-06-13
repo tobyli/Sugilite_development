@@ -33,6 +33,9 @@ import android.widget.Toast;
 
 import java.util.List;
 
+import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
+import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
+
 /**
  * A {@link PreferenceActivity} that presents a set of application settings. On
  * handset devices, settings are presented as a single list. On tablets,
@@ -138,6 +141,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
                     AlertDialog dialog = builder.create();
                     dialog.show();
 
+
                 }
 
             }
@@ -229,6 +233,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
                 || NotificationPreferenceFragment.class.getName().equals(fragmentName);
     }
     private static EditTextPreference scriptNamePreference;
+
     /**
      * This fragment shows general preferences only. It is used when the
      * activity is showing a two-pane settings UI.

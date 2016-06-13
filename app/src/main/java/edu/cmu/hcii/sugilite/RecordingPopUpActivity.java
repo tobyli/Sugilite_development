@@ -31,6 +31,8 @@ import java.util.TimeZone;
 
 import edu.cmu.hcii.sugilite.model.AccessibilityNodeInfoList;
 import edu.cmu.hcii.sugilite.model.SetMapEntrySerializableWrapper;
+import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
+import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 
 public class RecordingPopUpActivity extends AppCompatActivity {
 
@@ -44,12 +46,14 @@ public class RecordingPopUpActivity extends AppCompatActivity {
     private Set<Map.Entry<String, String>> allChildFeatures = new HashSet<>();
     private Set<Map.Entry<String, String>> selectedParentFeatures = new HashSet<>();
     private Set<Map.Entry<String, String>> selectedChildFeatures = new HashSet<>();
+    private SugiliteData sugiliteData;
     static final int PICK_CHILD_FEATURE = 1;
     static final int PICK_PARENT_FEATURE = 2;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        sugiliteData = (SugiliteData)getApplication();
         setContentView(R.layout.activity_recoding_pop_up);
         if(savedInstanceState == null){
             Bundle extras = getIntent().getExtras();
@@ -137,6 +141,23 @@ public class RecordingPopUpActivity extends AppCompatActivity {
     }
 
     public void OKButtonOnClick(View view){
+        //add head if no one is present
+        if(sugiliteData.getScriptHead() == null ||
+                (!((SugiliteStartingBlock)sugiliteData.getScriptHead()).getScriptName().contentEquals(sharedPreferences.getString("scriptName", "defaultScript") + ".SugiliteScript"))){
+            sugiliteData.setScriptHead(new SugiliteStartingBlock(sharedPreferences.getString("scriptName", "defaultScript") + ".SugiliteScript"));
+            sugiliteData.setCurrentScriptBlock(sugiliteData.getScriptHead());
+        }
+        SugiliteOperationBlock operationBlock = new SugiliteOperationBlock();
+        operationBlock.setDescription(generateDescription());
+        operationBlock.setPreviousBlock(sugiliteData.getCurrentScriptBlock());
+        if(sugiliteData.getCurrentScriptBlock() instanceof SugiliteOperationBlock){
+            ((SugiliteOperationBlock)sugiliteData.getCurrentScriptBlock()).setNextBlock(operationBlock);
+        }
+        if(sugiliteData.getCurrentScriptBlock() instanceof SugiliteStartingBlock){
+            ((SugiliteStartingBlock)sugiliteData.getCurrentScriptBlock()).setNextBlock(operationBlock);
+        }
+        sugiliteData.setCurrentScriptBlock(operationBlock);
+        System.out.println("saved block");
         new AlertDialog.Builder(this)
                 .setTitle("Operation Recorded")
                 .setMessage(generateDescription())

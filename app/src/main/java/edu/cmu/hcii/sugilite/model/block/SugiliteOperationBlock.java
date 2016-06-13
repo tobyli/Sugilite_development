@@ -11,8 +11,10 @@ public class SugiliteOperationBlock extends SugiliteBlock {
     private SugiliteBlock nextBlock;
     private UIElementMatchingFilter elementMatchingFilter;
     private SugiliteOperation operation;
+    private String description;
 
     public SugiliteOperationBlock(){
+        super();
         this.blockType = SugiliteBlock.REGULAR_OPERATION;
     }
     public void setNextBlock(SugiliteBlock block){
@@ -24,6 +26,9 @@ public class SugiliteOperationBlock extends SugiliteBlock {
     public void setOperation(SugiliteOperation operation){
         this.operation = operation;
     }
+    public void setDescription(String description){
+        this.description = description;
+    }
 
     public SugiliteBlock getNextBlock(){
         return nextBlock;
@@ -34,7 +39,9 @@ public class SugiliteOperationBlock extends SugiliteBlock {
     public SugiliteOperation getOperation(){
         return operation;
     }
-
+    public String getDescription() {
+        return description;
+    }
 
     @Override
     public boolean run() throws Exception{

@@ -4,6 +4,7 @@ import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Rect;
 import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -33,6 +34,8 @@ import edu.cmu.hcii.sugilite.model.AccessibilityNodeInfoList;
 import edu.cmu.hcii.sugilite.model.SetMapEntrySerializableWrapper;
 import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
+import edu.cmu.hcii.sugilite.model.block.UIElementMatchingFilter;
+import edu.cmu.hcii.sugilite.model.operation.SugiliteOperation;
 
 public class RecordingPopUpActivity extends AppCompatActivity {
 
@@ -108,7 +111,7 @@ public class RecordingPopUpActivity extends AppCompatActivity {
             if(parentNode.getText() != null)
                 allParentFeatures.add(new AbstractMap.SimpleEntry<>("text", parentNode.getText().toString()));
             if(parentNode.getContentDescription() != null)
-                allParentFeatures.add(new AbstractMap.SimpleEntry<>("text", parentNode.getContentDescription().toString()));
+                allParentFeatures.add(new AbstractMap.SimpleEntry<>("contentDescription", parentNode.getContentDescription().toString()));
             if(parentNode.getViewIdResourceName() != null)
                 allParentFeatures.add(new AbstractMap.SimpleEntry<>("viewId", parentNode.getViewIdResourceName()));
         }
@@ -119,7 +122,7 @@ public class RecordingPopUpActivity extends AppCompatActivity {
                 if(childNode.getText() != null)
                     allChildFeatures.add(new AbstractMap.SimpleEntry<>("text", childNode.getText().toString()));
                 if(childNode.getContentDescription() != null)
-                    allChildFeatures.add(new AbstractMap.SimpleEntry<>("text", childNode.getContentDescription().toString()));
+                    allChildFeatures.add(new AbstractMap.SimpleEntry<>("contentDescription", childNode.getContentDescription().toString()));
                 if(childNode.getViewIdResourceName() != null)
                     allChildFeatures.add(new AbstractMap.SimpleEntry<>("viewId", childNode.getViewIdResourceName()));
             }
@@ -150,6 +153,8 @@ public class RecordingPopUpActivity extends AppCompatActivity {
         SugiliteOperationBlock operationBlock = new SugiliteOperationBlock();
         operationBlock.setDescription(generateDescription());
         operationBlock.setPreviousBlock(sugiliteData.getCurrentScriptBlock());
+        operationBlock.setElementMatchingFilter(generateFilter());
+        operationBlock.setOperation(new SugiliteOperation(SugiliteOperation.CLICK));
         if(sugiliteData.getCurrentScriptBlock() instanceof SugiliteOperationBlock){
             ((SugiliteOperationBlock)sugiliteData.getCurrentScriptBlock()).setNextBlock(operationBlock);
         }
@@ -256,7 +261,70 @@ public class RecordingPopUpActivity extends AppCompatActivity {
         popup.show();
     }
 
+    /**
+     * generate a UIElementMatchingFilter based on the selection
+     * @return
+     */
+    public UIElementMatchingFilter generateFilter(){
+        UIElementMatchingFilter filter = new UIElementMatchingFilter();
+        if(((CheckBox)findViewById(R.id.packageName)).isChecked()){
+            filter.setPackageName(packageName);
+        }
+        if(((CheckBox)findViewById(R.id.className)).isChecked()){
+            filter.setClassName(className);
+        }
+        if(((CheckBox)findViewById(R.id.text)).isChecked()){
+            filter.setText(text);
+        }
+        if(((CheckBox)findViewById(R.id.contentDescription)).isChecked()){
+            filter.setContentDescription(contentDescription);
+        }
+        if(((CheckBox)findViewById(R.id.viewId)).isChecked()){
+            filter.setViewId(viewId);
+        }
+        if(((CheckBox)findViewById(R.id.boundsInParent)).isChecked()){
+            filter.setBoundsInParent(Rect.unflattenFromString(boundsInParent));
+        }
+        if(((CheckBox)findViewById(R.id.boundsInScreen)).isChecked()){
+            filter.setBoundsInScreen(Rect.unflattenFromString(boundsInScreen));
+        }
+        if (selectedChildFeatures.size() > 0){
+            UIElementMatchingFilter childFilter = new UIElementMatchingFilter();
+            for(Map.Entry<String, String> entry : selectedChildFeatures){
+                if(entry.getKey().contentEquals("text")){
+                    childFilter.setText(entry.getValue());
+                }
+                if(entry.getKey().contentEquals("contentDescription")){
+                    childFilter.setContentDescription(entry.getValue());
+                }
+                if(entry.getKey().contentEquals("viewId")){
+                    childFilter.setViewId(entry.getValue());
+                }
+            }
+            filter.setChildFilter(childFilter);
+        }
+        if (selectedParentFeatures.size() > 0){
+            UIElementMatchingFilter parentFilter = new UIElementMatchingFilter();
+            for(Map.Entry<String, String> entry : selectedParentFeatures){
+                if(entry.getKey().contentEquals("text")){
+                    parentFilter.setText(entry.getValue());
+                }
+                if(entry.getKey().contentEquals("contentDescription")){
+                    parentFilter.setContentDescription(entry.getValue());
+                }
+                if(entry.getKey().contentEquals("viewId")){
+                    parentFilter.setViewId(entry.getValue());
+                }
+            }
+            filter.setParentFilter(parentFilter);
+        }
+        return filter;
+    }
 
+    /**
+     * generate a description string based on the selection
+     * @return a description string
+     */
     public String generateDescription(){
         boolean notFirstCondition = false;
         String retVal = "";

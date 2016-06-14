@@ -20,11 +20,14 @@ import java.util.HashSet;
 import java.util.Set;
 
 import edu.cmu.hcii.sugilite.model.AccessibilityNodeInfoList;
+import edu.cmu.hcii.sugilite.automation.*;
 
 public class SugiliteAccessibilityService extends AccessibilityService {
     private ImageView statusIcon;
     private WindowManager windowManager;
     private SharedPreferences sharedPreferences;
+    private Automator automator;
+    private SugiliteData sugiliteData;
 
     public SugiliteAccessibilityService() {
     }
@@ -34,6 +37,8 @@ public class SugiliteAccessibilityService extends AccessibilityService {
         super.onCreate();
         windowManager = (WindowManager) getSystemService(WINDOW_SERVICE);
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        sugiliteData = (SugiliteData)getApplication();
+        automator = new Automator(sugiliteData);
         try {
             Toast.makeText(this, "Sugilite Accessibility Service Started", Toast.LENGTH_SHORT).show();
             //addStatusIcon();
@@ -83,8 +88,9 @@ public class SugiliteAccessibilityService extends AccessibilityService {
 
         if (sharedPreferences.getBoolean("tracking_in_process", false)) {
             //background tracking in progress
-
         }
+
+        boolean retVal = automator.handleLiveEvent(this.getRootInActiveWindow(), getApplicationContext());
 
     }
 
@@ -138,8 +144,8 @@ public class SugiliteAccessibilityService extends AccessibilityService {
         popUpIntent.putExtra("text", sourceNode.getText());
         popUpIntent.putExtra("contentDescription", sourceNode.getContentDescription());
         popUpIntent.putExtra("viewId", sourceNode.getViewIdResourceName());
-        popUpIntent.putExtra("boundsInParent", boundsInParents.toString());
-        popUpIntent.putExtra("boundsInScreen", boundsInScreen.toString());
+        popUpIntent.putExtra("boundsInParent", boundsInParents.flattenToString());
+        popUpIntent.putExtra("boundsInScreen", boundsInScreen.flattenToString());
         popUpIntent.putExtra("time", Calendar.getInstance().getTimeInMillis());
         popUpIntent.putExtra("eventType", event.getEventType());
         popUpIntent.putExtra("parentNode", parentNode);

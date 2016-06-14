@@ -13,11 +13,13 @@ public class SugiliteStartingBlock extends SugiliteBlock {
     public SugiliteStartingBlock(){
         super();
         this.blockType = SugiliteBlock.REGULAR_OPERATION;
+        this.setDescription("Starting Block");
     }
     public SugiliteStartingBlock(String scriptName){
         super();
         this.scriptName = scriptName;
         this.blockType = SugiliteBlock.REGULAR_OPERATION;
+        this.setDescription("Starting Block");
     }
     public SugiliteBlock getNextBlock(){
         return nextBlock;

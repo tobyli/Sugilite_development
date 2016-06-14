@@ -1,6 +1,7 @@
 package edu.cmu.hcii.sugilite;
 
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -16,6 +17,7 @@ import android.view.View;
 import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityNodeInfo;
 import android.widget.CheckBox;
+import android.widget.EditText;
 import android.widget.PopupMenu;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -36,6 +38,7 @@ import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.model.block.UIElementMatchingFilter;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteOperation;
+import edu.cmu.hcii.sugilite.model.operation.SugiliteSetTextOperation;
 
 public class RecordingPopUpActivity extends AppCompatActivity {
 
@@ -58,6 +61,7 @@ public class RecordingPopUpActivity extends AppCompatActivity {
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         sugiliteData = (SugiliteData)getApplication();
         setContentView(R.layout.activity_recoding_pop_up);
+        //fetch the data capsuled in the intent
         if(savedInstanceState == null){
             Bundle extras = getIntent().getExtras();
             if(extras == null){
@@ -150,33 +154,129 @@ public class RecordingPopUpActivity extends AppCompatActivity {
             sugiliteData.setScriptHead(new SugiliteStartingBlock(sharedPreferences.getString("scriptName", "defaultScript") + ".SugiliteScript"));
             sugiliteData.setCurrentScriptBlock(sugiliteData.getScriptHead());
         }
-        SugiliteOperationBlock operationBlock = new SugiliteOperationBlock();
-        operationBlock.setDescription(generateDescription());
-        operationBlock.setPreviousBlock(sugiliteData.getCurrentScriptBlock());
-        operationBlock.setElementMatchingFilter(generateFilter());
-        operationBlock.setOperation(new SugiliteOperation(SugiliteOperation.CLICK));
-        if(sugiliteData.getCurrentScriptBlock() instanceof SugiliteOperationBlock){
-            ((SugiliteOperationBlock)sugiliteData.getCurrentScriptBlock()).setNextBlock(operationBlock);
-        }
-        if(sugiliteData.getCurrentScriptBlock() instanceof SugiliteStartingBlock){
-            ((SugiliteStartingBlock)sugiliteData.getCurrentScriptBlock()).setNextBlock(operationBlock);
-        }
-        sugiliteData.setCurrentScriptBlock(operationBlock);
-        System.out.println("saved block");
-        new AlertDialog.Builder(this)
-                .setTitle("Operation Recorded")
-                .setMessage(generateDescription())
-                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int which) {
-                        // continue with delete
-                        finish();
+        //use the dialog "builder" to ask the type of operation to take
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Choose Operation");
+        String[] operations = {};
+        if(className.contains("EditText"))
+            operations = new String[]{"CLICK", "RETURN", "SET TEXT"};
+        else
+            operations = new String[]{"CLICK", "RETURN"};
+        final SugiliteOperation sugiliteOperation = new SugiliteOperation();
+        sugiliteOperation.setOperationType(SugiliteOperation.CLICK);
+        final SugiliteOperationBlock operationBlock = new SugiliteOperationBlock();
+        operationBlock.setOperation(sugiliteOperation);
+        final Context activityContext = this;
+        builder.setItems(operations, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                switch (which) {
+                    case 0:
+                        Toast.makeText(getApplicationContext(), "CLICK REQUESTED", Toast.LENGTH_SHORT).show();
+                        sugiliteOperation.setOperationType(SugiliteOperation.CLICK);
+                        break;
+                    case 1:
+                        Toast.makeText(getApplicationContext(), "RETURN REQUESTED", Toast.LENGTH_SHORT).show();
+                        sugiliteOperation.setOperationType(SugiliteOperation.RETURN);
+                        break;
+                    case 2:
+                        Toast.makeText(getApplicationContext(), "SET_TEXT REQUESTED", Toast.LENGTH_SHORT).show();
+                        sugiliteOperation.setOperationType(SugiliteOperation.SET_TEXT);
+                        break;
+                }
+                operationBlock.setDescription(generateDescription());
+                operationBlock.setPreviousBlock(sugiliteData.getCurrentScriptBlock());
+                operationBlock.setElementMatchingFilter(generateFilter());
+                //genereate the block if the operation is click or return
+                if (sugiliteOperation.getOperationType() == SugiliteOperation.CLICK || sugiliteOperation.getOperationType() == SugiliteOperation.RETURN) {
+                    operationBlock.setOperation(sugiliteOperation);
+                    if(sugiliteData.getCurrentScriptBlock() instanceof SugiliteOperationBlock){
+                        ((SugiliteOperationBlock)sugiliteData.getCurrentScriptBlock()).setNextBlock(operationBlock);
                     }
-                })
-                .setIcon(android.R.drawable.ic_dialog_alert)
-                .show();
+                    if(sugiliteData.getCurrentScriptBlock() instanceof SugiliteStartingBlock){
+                        ((SugiliteStartingBlock)sugiliteData.getCurrentScriptBlock()).setNextBlock(operationBlock);
+                    }
+                    sugiliteData.setCurrentScriptBlock(operationBlock);
+                    System.out.println("saved block");
+                    String message = "";
+                    if (operationBlock.getOperation().getOperationType() == SugiliteOperation.CLICK){
+                        message += "Click ";
+                    }
+                    if (operationBlock.getOperation().getOperationType() == SugiliteOperation.RETURN){
+                        message += "Return";
+                    }
+                    if(operationBlock.getOperation().getOperationType() == SugiliteOperation.SET_TEXT){
+                        message += "Set text to \"" + ((SugiliteSetTextOperation)operationBlock.getOperation()).getText() + "\" ";
+                    }
+                    message += generateDescription();
+                    operationBlock.setDescription(message);
+                    new AlertDialog.Builder(activityContext)
+                            .setTitle("Operation Recorded")
+                            .setMessage(message)
+                            .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int which) {
+                                    // continue with delete
+                                    finish();
+                                }
+                            })
+                            .setIcon(android.R.drawable.ic_dialog_alert)
+                            .show();
+                }
+                // if the operation == text, add a new pop up to ask the text to set the content of the edittext widget to
+                //TODO: eliminate the duplicate code for the two branches
+                else if (sugiliteOperation.getOperationType() == SugiliteOperation.SET_TEXT) {
+                    final SugiliteSetTextOperation setTextOperation = new SugiliteSetTextOperation();
+                    AlertDialog.Builder textDialogBuilder = new AlertDialog.Builder(activityContext);
+                    textDialogBuilder.setTitle("Set Text Operation").setMessage("Enter the text to set to");
+                    final EditText editText = new EditText(activityContext);
+                    textDialogBuilder.setView(editText).setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            String text = editText.getText().toString();
+                            setTextOperation.setText(text);
+                            operationBlock.setOperation(setTextOperation);
+                            if(sugiliteData.getCurrentScriptBlock() instanceof SugiliteOperationBlock){
+                                ((SugiliteOperationBlock)sugiliteData.getCurrentScriptBlock()).setNextBlock(operationBlock);
+                            }
+                            if(sugiliteData.getCurrentScriptBlock() instanceof SugiliteStartingBlock){
+                                ((SugiliteStartingBlock)sugiliteData.getCurrentScriptBlock()).setNextBlock(operationBlock);
+                            }
+                            sugiliteData.setCurrentScriptBlock(operationBlock);
+                            System.out.println("saved block");
+                            String message = "";
+                            if (operationBlock.getOperation().getOperationType() == SugiliteOperation.CLICK){
+                                message += "Click ";
+                            }
+                            if (operationBlock.getOperation().getOperationType() == SugiliteOperation.RETURN){
+                                message += "Return";
+                            }
+                            if(operationBlock.getOperation().getOperationType() == SugiliteOperation.SET_TEXT){
+                                message += "Set text to \"" + ((SugiliteSetTextOperation)operationBlock.getOperation()).getText() + "\" ";
+                            }
+                            message += generateDescription();
+                            operationBlock.setDescription(message);
+                            new AlertDialog.Builder(activityContext)
+                                    .setTitle("Operation Recorded")
+                                    .setMessage(message)
+                                    .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                                        public void onClick(DialogInterface dialog, int which) {
+                                            sugiliteData.addInstruction(operationBlock);
+                                            // continue with delete
+                                            finish();
+                                        }
+                                    })
+                                    .setIcon(android.R.drawable.ic_dialog_alert)
+                                    .show();
+                        }
+                    });
+                    textDialogBuilder.show();
+
+                }
+            }
+        });
+        builder.show();
     }
 
-    //TODO: change to check box
     public void entryOnSelect(View view){
 
         int viewId = view.getId();
@@ -221,6 +321,7 @@ public class RecordingPopUpActivity extends AppCompatActivity {
         ((TextView)findViewById(R.id.operationDescription)).setText(generateDescription());
     }
 
+    //read and load the result from the child/parent sub activity
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if(requestCode == PICK_CHILD_FEATURE){
@@ -245,7 +346,7 @@ public class RecordingPopUpActivity extends AppCompatActivity {
         ((CheckBox)findViewById(R.id.parentCheckbox)).setChecked(selectedParentFeatures.size() > 0);
         ((TextView)findViewById(R.id.operationDescription)).setText(generateDescription());
     }
-
+    //show the parent popup when the parent checkbox is checked
     public void showParentPopup(View v) {
         PopupMenu popup = new PopupMenu(this, v);
         for(Map.Entry<String, String> entry : allParentFeatures){
@@ -253,6 +354,7 @@ public class RecordingPopUpActivity extends AppCompatActivity {
         }
         popup.show();
     }
+    //show the children popup when the children checkbox is checked
     public void showChildrenPopup(View v) {
         PopupMenu popup = new PopupMenu(this, v);
         for(Map.Entry<String, String> entry : allChildFeatures){
@@ -328,9 +430,11 @@ public class RecordingPopUpActivity extends AppCompatActivity {
     public String generateDescription(){
         boolean notFirstCondition = false;
         String retVal = "";
+        /*
         if (eventType == AccessibilityEvent.TYPE_VIEW_CLICKED){
             retVal += "Click ";
         }
+        */
         retVal += "on UI element that ";
         if(((CheckBox)findViewById(R.id.packageName)).isChecked()){
             retVal += ((notFirstCondition? "and " : "") + "is within the package \"" + packageName + "\" ");

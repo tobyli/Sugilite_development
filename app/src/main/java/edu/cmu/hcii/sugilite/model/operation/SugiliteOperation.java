@@ -8,7 +8,7 @@ package edu.cmu.hcii.sugilite.model.operation;
 public class SugiliteOperation {
     private int operationType;
     private String parameter;
-    public static int CLICK = 1, LONG_CLICK = 2, SET_TEXT = 3, CLEAR_TEXT = 4, CHECK = 5, UNCHECK = 6;
+    public static int CLICK = 1, LONG_CLICK = 2, SET_TEXT = 3, CLEAR_TEXT = 4, CHECK = 5, UNCHECK = 6, RETURN = 7;
     public SugiliteOperation(){
         operationType = 0;
     }

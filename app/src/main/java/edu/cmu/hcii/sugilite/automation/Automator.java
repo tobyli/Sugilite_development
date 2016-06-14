@@ -1,6 +1,7 @@
 package edu.cmu.hcii.sugilite.automation;
 
 import android.content.Context;
+import android.os.Bundle;
 import android.view.accessibility.AccessibilityNodeInfo;
 import android.widget.Toast;
 
@@ -12,6 +13,7 @@ import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteOperation;
+import edu.cmu.hcii.sugilite.model.operation.SugiliteSetTextOperation;
 
 /**
  * Created by toby on 6/13/16.
@@ -68,6 +70,13 @@ public class Automator {
 
         if(block.getOperation().getOperationType() == SugiliteOperation.CLICK){
             return nodeToAction.performAction(AccessibilityNodeInfo.ACTION_CLICK);
+        }
+        if(block.getOperation().getOperationType() == SugiliteOperation.SET_TEXT){
+            String text = ((SugiliteSetTextOperation)block.getOperation()).getText();
+            Bundle arguments = new Bundle();
+            arguments.putCharSequence(AccessibilityNodeInfo
+                    .ACTION_ARGUMENT_SET_TEXT_CHARSEQUENCE, text);
+            return nodeToAction.performAction(AccessibilityNodeInfo.ACTION_SET_TEXT, arguments);
         }
 
 

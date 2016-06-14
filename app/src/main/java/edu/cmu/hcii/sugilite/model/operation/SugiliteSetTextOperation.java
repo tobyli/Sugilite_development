@@ -9,6 +9,9 @@ import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
  */
 public class SugiliteSetTextOperation extends SugiliteOperation {
     private String text;
+    public SugiliteSetTextOperation(){
+        this.setOperationType(SET_TEXT);
+    }
     public String getText(){
         return text;
     }

@@ -54,6 +54,8 @@ public class ScriptDetailActivity extends AppCompatActivity {
                 .setMessage("Are you sure you want to run this script?")
                 .setPositiveButton("Run", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int which) {
+                        //clear the queue first before adding new instructions
+                        sugiliteData.clearInstructionQueue();
                         addItemsToInstructionQueue(traverseBlock((SugiliteStartingBlock)sugiliteData.getScriptHead()));
                         SharedPreferences.Editor prefEditor = sharedPreferences.edit();
                         prefEditor.putBoolean("recording_in_process", false);

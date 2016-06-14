@@ -89,8 +89,9 @@ public class SugiliteAccessibilityService extends AccessibilityService {
         if (sharedPreferences.getBoolean("tracking_in_process", false)) {
             //background tracking in progress
         }
-
-        boolean retVal = automator.handleLiveEvent(this.getRootInActiveWindow(), getApplicationContext());
+        boolean retVal = false;
+        if(sugiliteData.getInstructionQueueSize() > 0)
+            retVal = automator.handleLiveEvent(this.getRootInActiveWindow(), getApplicationContext());
 
     }
 

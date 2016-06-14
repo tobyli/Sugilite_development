@@ -141,13 +141,15 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
                     AlertDialog dialog = builder.create();
                     dialog.show();
 
-
                 }
 
             }
             return true;
         }
     };
+    public void onRecordinginProgressSwitchChecked(){
+
+    }
 
     /**
      * A preference value change listener that updates the preference's summary

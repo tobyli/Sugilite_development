@@ -1,6 +1,7 @@
 package edu.cmu.hcii.sugilite;
 
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -15,9 +16,12 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -39,6 +43,7 @@ public class MainActivity extends AppCompatActivity {
         View addButton = findViewById(R.id.addButton);
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         sugiliteScriptDao = new SugiliteScriptDao(this);
+        sugiliteData = (SugiliteData)getApplication();
         addButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(final View v) {
@@ -57,6 +62,7 @@ public class MainActivity extends AppCompatActivity {
                                     editor.putBoolean("recording_in_process", true);
                                     editor.commit();
                                     Toast.makeText(v.getContext(), "Changed script name to " + sharedPreferences.getString("scriptName", "NULL"), Toast.LENGTH_SHORT).show();
+                                    finish();
                                 }
                             }
                         })
@@ -73,24 +79,29 @@ public class MainActivity extends AppCompatActivity {
         });
 
         setSupportActionBar(toolbar);
+        setUpScriptList();
+    }
 
+    private void setUpScriptList(){
+        final ListView scriptList = (ListView)findViewById(R.id.scriptList);
+        List<String> names = sugiliteScriptDao.getAllNames();
+        scriptList.setAdapter(new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, names));
+        final Context activityContext = this;
+        scriptList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                String scriptName = (String)scriptList.getItemAtPosition(position);
+                final Intent scriptDetailIntent = new Intent(activityContext, ScriptDetailActivity.class);
+                scriptDetailIntent.putExtra("scriptName", scriptName);
+                startActivity(scriptDetailIntent);
+            }
+        });
+    }
 
-        LinearLayout listOfScripts = (LinearLayout)findViewById(R.id.listOfScripts);
-        sugiliteData = (SugiliteData)getApplication();
-        List<SugiliteStartingBlock> scripts = sugiliteScriptDao.getAllScripts();
-        for(SugiliteStartingBlock script : scripts){
-            TextView scriptItem = new TextView(this);
-            scriptItem.setText(script.getScriptName());
-            final Intent scriptDetailIntent = new Intent(this, ScriptDetailActivity.class);
-            scriptDetailIntent.putExtra("scriptName", script.getScriptName());
-            scriptItem.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    startActivity(scriptDetailIntent);
-                }
-            });
-            listOfScripts.addView(scriptItem);
-        }
+    @Override
+    public void onResume(){
+        super.onResume();
+        setUpScriptList();
     }
 
     @Override

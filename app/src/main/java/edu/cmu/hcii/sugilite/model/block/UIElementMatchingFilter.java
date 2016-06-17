@@ -22,8 +22,8 @@ public class UIElementMatchingFilter implements Serializable {
     String viewId;
     String packageName;
     String className;
-    Rect boundsInScreen;
-    Rect boundsInParent;
+    String boundsInScreen;
+    String boundsInParent;
     UIElementMatchingFilter parentFilter;
     UIElementMatchingFilter childFilter;
     Boolean isClickable;
@@ -119,7 +119,7 @@ public class UIElementMatchingFilter implements Serializable {
      * @return
      */
     public UIElementMatchingFilter setBoundsInParent(Rect boundsInParent){
-        this.boundsInParent = boundsInParent;
+        this.boundsInParent = boundsInParent.flattenToString();
         return this;
     }
 
@@ -129,7 +129,7 @@ public class UIElementMatchingFilter implements Serializable {
      * @return
      */
     public UIElementMatchingFilter setBoundsInScreen (Rect boundsInScreen){
-        this.boundsInScreen = boundsInScreen;
+        this.boundsInScreen = boundsInScreen.flattenToString();
         return this;
     }
 
@@ -154,9 +154,9 @@ public class UIElementMatchingFilter implements Serializable {
         nodeInfo.getBoundsInParent(boundsInParent);
         nodeInfo.getBoundsInScreen(boundsInScreen);
 
-        if (this.boundsInParent != null && (boundsInParent == null || (!this.boundsInParent.equals(boundsInParent))))
+        if (this.boundsInParent != null && (boundsInParent == null || (!this.boundsInParent.contentEquals(boundsInParent.flattenToString()))))
             return false;
-        if (this.boundsInScreen != null && (boundsInScreen == null || (!this.boundsInScreen.equals(boundsInScreen))))
+        if (this.boundsInScreen != null && (boundsInScreen == null || (!this.boundsInScreen.contentEquals(boundsInScreen.flattenToString()))))
             return false;
 
 

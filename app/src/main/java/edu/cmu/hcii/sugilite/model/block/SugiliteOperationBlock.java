@@ -1,5 +1,7 @@
 package edu.cmu.hcii.sugilite.model.block;
 
+import java.io.Serializable;
+
 import edu.cmu.hcii.sugilite.model.operation.SugiliteOperation;
 
 /**
@@ -7,7 +9,7 @@ import edu.cmu.hcii.sugilite.model.operation.SugiliteOperation;
  * @date 6/10/16
  * @time 2:10 PM
  */
-public class SugiliteOperationBlock extends SugiliteBlock {
+public class SugiliteOperationBlock extends SugiliteBlock implements Serializable{
     private SugiliteBlock nextBlock;
     private UIElementMatchingFilter elementMatchingFilter;
     private SugiliteOperation operation;

@@ -21,11 +21,15 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.util.List;
+
+import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 
 public class MainActivity extends AppCompatActivity {
     private SugiliteData sugiliteData;
     private SharedPreferences sharedPreferences;
+    private SugiliteScriptDao sugiliteScriptDao;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -34,6 +38,7 @@ public class MainActivity extends AppCompatActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         View addButton = findViewById(R.id.addButton);
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        sugiliteScriptDao = new SugiliteScriptDao(this);
         addButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(final View v) {
@@ -72,11 +77,12 @@ public class MainActivity extends AppCompatActivity {
 
         LinearLayout listOfScripts = (LinearLayout)findViewById(R.id.listOfScripts);
         sugiliteData = (SugiliteData)getApplication();
-        if(sugiliteData.getScriptHead() != null){
+        List<SugiliteStartingBlock> scripts = sugiliteScriptDao.getAllScripts();
+        for(SugiliteStartingBlock script : scripts){
             TextView scriptItem = new TextView(this);
-            scriptItem.setText(((SugiliteStartingBlock)sugiliteData.getScriptHead()).getScriptName());
+            scriptItem.setText(script.getScriptName());
             final Intent scriptDetailIntent = new Intent(this, ScriptDetailActivity.class);
-            scriptDetailIntent.putExtra("scriptName", ((SugiliteStartingBlock)sugiliteData.getScriptHead()).getScriptName());
+            scriptDetailIntent.putExtra("scriptName", script.getScriptName());
             scriptItem.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {

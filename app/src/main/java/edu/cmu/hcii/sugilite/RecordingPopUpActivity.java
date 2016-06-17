@@ -32,6 +32,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TimeZone;
 
+import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
 import edu.cmu.hcii.sugilite.model.AccessibilityNodeInfoList;
 import edu.cmu.hcii.sugilite.model.SetMapEntrySerializableWrapper;
 import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
@@ -48,6 +49,7 @@ public class RecordingPopUpActivity extends AppCompatActivity {
     private SharedPreferences sharedPreferences;
     private AccessibilityNodeInfo parentNode;
     private AccessibilityNodeInfoList childNodes;
+    private SugiliteScriptDao sugiliteScriptDao;
     private Set<Map.Entry<String, String>> allParentFeatures = new HashSet<>();
     private Set<Map.Entry<String, String>> allChildFeatures = new HashSet<>();
     private Set<Map.Entry<String, String>> selectedParentFeatures = new HashSet<>();
@@ -60,6 +62,7 @@ public class RecordingPopUpActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         sugiliteData = (SugiliteData)getApplication();
+        sugiliteScriptDao = new SugiliteScriptDao(this);
         setContentView(R.layout.activity_recoding_pop_up);
         //fetch the data capsuled in the intent
         if(savedInstanceState == null){
@@ -196,8 +199,6 @@ public class RecordingPopUpActivity extends AppCompatActivity {
                     if(sugiliteData.getCurrentScriptBlock() instanceof SugiliteStartingBlock){
                         ((SugiliteStartingBlock)sugiliteData.getCurrentScriptBlock()).setNextBlock(operationBlock);
                     }
-                    sugiliteData.setCurrentScriptBlock(operationBlock);
-                    System.out.println("saved block");
                     String message = "";
                     if (operationBlock.getOperation().getOperationType() == SugiliteOperation.CLICK){
                         message += "Click ";
@@ -210,6 +211,14 @@ public class RecordingPopUpActivity extends AppCompatActivity {
                     }
                     message += generateDescription();
                     operationBlock.setDescription(message);
+                    sugiliteData.setCurrentScriptBlock(operationBlock);
+                    try{
+                        sugiliteScriptDao.save((SugiliteStartingBlock)sugiliteData.getScriptHead());
+                    }
+                    catch (Exception e){
+                        e.printStackTrace();
+                    }
+                    System.out.println("saved block");
                     new AlertDialog.Builder(activityContext)
                             .setTitle("Operation Recorded")
                             .setMessage(message)
@@ -241,7 +250,6 @@ public class RecordingPopUpActivity extends AppCompatActivity {
                             if(sugiliteData.getCurrentScriptBlock() instanceof SugiliteStartingBlock){
                                 ((SugiliteStartingBlock)sugiliteData.getCurrentScriptBlock()).setNextBlock(operationBlock);
                             }
-                            sugiliteData.setCurrentScriptBlock(operationBlock);
                             System.out.println("saved block");
                             String message = "";
                             if (operationBlock.getOperation().getOperationType() == SugiliteOperation.CLICK){
@@ -255,6 +263,14 @@ public class RecordingPopUpActivity extends AppCompatActivity {
                             }
                             message += generateDescription();
                             operationBlock.setDescription(message);
+                            sugiliteData.setCurrentScriptBlock(operationBlock);
+                            try{
+                                sugiliteScriptDao.save((SugiliteStartingBlock)sugiliteData.getScriptHead());
+                            }
+                            catch (Exception e){
+                                e.printStackTrace();
+                            }
+
                             new AlertDialog.Builder(activityContext)
                                     .setTitle("Operation Recorded")
                                     .setMessage(message)

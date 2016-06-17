@@ -14,6 +14,7 @@ import android.widget.TextView;
 import java.util.ArrayList;
 import java.util.List;
 
+import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
 import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
@@ -24,6 +25,8 @@ public class ScriptDetailActivity extends AppCompatActivity {
     private SugiliteData sugiliteData;
     private String scriptName;
     private SharedPreferences sharedPreferences;
+    private SugiliteScriptDao sugiliteScriptDao;
+    private SugiliteStartingBlock script;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -36,17 +39,21 @@ public class ScriptDetailActivity extends AppCompatActivity {
         }
         operationStepList = (LinearLayout)findViewById(R.id.operationStepList);
         sugiliteData = (SugiliteData)getApplication();
-        /* find the script with scriptName */
-        if(((SugiliteStartingBlock)sugiliteData.getScriptHead()).getScriptName().contentEquals(scriptName)){
-            for(SugiliteBlock block : traverseBlock((SugiliteStartingBlock)sugiliteData.getScriptHead())) {
+        sugiliteScriptDao = new SugiliteScriptDao(this);
+        script = sugiliteScriptDao.read(scriptName);
+        if (script != null){
+            for(SugiliteBlock block : traverseBlock(script)) {
                 TextView operationStepItem = new TextView(this);
                 operationStepItem.setText(block.getDescription() + "\n");
                 operationStepList.addView(operationStepItem);
             }
         }
         else{
-            //do nothing
+            TextView operationStepItem = new TextView(this);
+            operationStepItem.setText("NULL SCRIPT!");
+            operationStepList.addView(operationStepItem);
         }
+
     }
     public void scriptDetailRunButtonOnClick (View view){
         new AlertDialog.Builder(this)
@@ -56,7 +63,7 @@ public class ScriptDetailActivity extends AppCompatActivity {
                     public void onClick(DialogInterface dialog, int which) {
                         //clear the queue first before adding new instructions
                         sugiliteData.clearInstructionQueue();
-                        addItemsToInstructionQueue(traverseBlock((SugiliteStartingBlock)sugiliteData.getScriptHead()));
+                        addItemsToInstructionQueue(traverseBlock(script));
                         SharedPreferences.Editor prefEditor = sharedPreferences.edit();
                         prefEditor.putBoolean("recording_in_process", false);
                         prefEditor.commit();
@@ -84,7 +91,15 @@ public class ScriptDetailActivity extends AppCompatActivity {
                 .setMessage("Are you sure you want to delete this script?")
                 .setPositiveButton("Delete", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int which) {
+                        SugiliteStartingBlock testBlock = new SugiliteStartingBlock();
                         // continue with delete
+                        try {
+                            sugiliteScriptDao.delete(scriptName);
+                        }
+                        catch (Exception e){
+                            e.printStackTrace();
+                            //error in saving the script
+                        }
                         finish();
                     }
                 })

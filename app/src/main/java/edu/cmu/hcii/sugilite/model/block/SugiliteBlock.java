@@ -1,11 +1,13 @@
 package edu.cmu.hcii.sugilite.model.block;
 
+import java.io.Serializable;
+
 /**
  * @author toby
  * @date 6/10/16
  * @time 2:02 PM
  */
-public abstract class SugiliteBlock {
+public abstract class SugiliteBlock implements Serializable{
     public int blockType;
     public static int REGULAR_OPERATION = 1, IF_CONDITION = 2, FOR_EACH_LOOP = 3, RETURN_VALUE = 4, END_BLOCK = 5, STARTING_BLOCK = 6;
     //each block can only have 1 previous block

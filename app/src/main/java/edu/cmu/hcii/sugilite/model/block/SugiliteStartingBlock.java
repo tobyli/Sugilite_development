@@ -1,5 +1,6 @@
 package edu.cmu.hcii.sugilite.model.block;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 
 /**
@@ -7,7 +8,7 @@ import java.util.ArrayList;
  * @date 6/13/16
  * @time 1:48 PM
  */
-public class SugiliteStartingBlock extends SugiliteBlock {
+public class SugiliteStartingBlock extends SugiliteBlock implements Serializable {
     private SugiliteBlock nextBlock;
     private String scriptName;
     public SugiliteStartingBlock(){

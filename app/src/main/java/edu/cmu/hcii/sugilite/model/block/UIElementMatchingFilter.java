@@ -3,6 +3,7 @@ package edu.cmu.hcii.sugilite.model.block;
 import android.graphics.Rect;
 import android.view.accessibility.AccessibilityNodeInfo;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -14,7 +15,7 @@ import java.util.List;
 
 //NOTE: only use this filter when AccessibilityNodeInfo.find...byText or find...byViewId can't be used, as this filter is slower.
 
-public class UIElementMatchingFilter {
+public class UIElementMatchingFilter implements Serializable {
 
     String text;
     String contentDescription;

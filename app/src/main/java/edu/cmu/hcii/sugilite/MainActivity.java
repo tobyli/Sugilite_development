@@ -8,6 +8,7 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.preference.SwitchPreference;
+import android.provider.Settings;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
@@ -27,6 +28,7 @@ import android.widget.Toast;
 
 import java.util.List;
 
+import edu.cmu.hcii.sugilite.automation.ServiceStatusManager;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 
@@ -34,6 +36,7 @@ public class MainActivity extends AppCompatActivity {
     private SugiliteData sugiliteData;
     private SharedPreferences sharedPreferences;
     private SugiliteScriptDao sugiliteScriptDao;
+    private ServiceStatusManager serviceStatusManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,9 +44,11 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         View addButton = findViewById(R.id.addButton);
+        serviceStatusManager = new ServiceStatusManager(this);
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         sugiliteScriptDao = new SugiliteScriptDao(this);
         sugiliteData = (SugiliteData)getApplication();
+        //TODO: confirm overwrite when duplicated name
         addButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(final View v) {
@@ -56,7 +61,20 @@ public class MainActivity extends AppCompatActivity {
                         .setPositiveButton("Start Recording", new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
-                                if (scriptName != null && scriptName.getText().toString().length() > 0) {
+                                if(!serviceStatusManager.isRunning()){
+                                    //prompt the user if the accessiblity service is not active
+                                    AlertDialog.Builder builder1 = new AlertDialog.Builder(v.getContext());
+                                    builder1.setTitle("Service not running")
+                                            .setMessage("The Sugilite accessiblity service is not enabled. Please enable the service in the phone settings before recording.")
+                                            .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                                                @Override
+                                                public void onClick(DialogInterface dialog, int which) {
+                                                    serviceStatusManager.promptEnabling();
+                                                    //do nothing
+                                                }
+                                            }).show();
+                                }
+                                else if (scriptName != null && scriptName.getText().toString().length() > 0) {
                                     SharedPreferences.Editor editor = sharedPreferences.edit();
                                     editor.putString("scriptName", scriptName.getText().toString());
                                     editor.putBoolean("recording_in_process", true);
@@ -90,7 +108,7 @@ public class MainActivity extends AppCompatActivity {
         scriptList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                String scriptName = (String)scriptList.getItemAtPosition(position);
+                String scriptName = (String) scriptList.getItemAtPosition(position);
                 final Intent scriptDetailIntent = new Intent(activityContext, ScriptDetailActivity.class);
                 scriptDetailIntent.putExtra("scriptName", scriptName);
                 startActivity(scriptDetailIntent);

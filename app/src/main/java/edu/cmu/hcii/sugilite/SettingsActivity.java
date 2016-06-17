@@ -19,6 +19,7 @@ import android.preference.ListPreference;
 import android.preference.Preference;
 import android.preference.PreferenceActivity;
 import android.preference.SwitchPreference;
+import android.provider.Settings;
 import android.support.v7.app.ActionBar;
 import android.preference.PreferenceFragment;
 import android.preference.PreferenceManager;
@@ -33,6 +34,7 @@ import android.widget.Toast;
 
 import java.util.List;
 
+import edu.cmu.hcii.sugilite.automation.ServiceStatusManager;
 import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 
@@ -49,13 +51,14 @@ import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
  */
 public class SettingsActivity extends AppCompatPreferenceActivity {
     private static SharedPreferences prefs;
+    private static ServiceStatusManager serviceStatusManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setupActionBar();
         prefs = PreferenceManager.getDefaultSharedPreferences(this);
-
+        serviceStatusManager = new ServiceStatusManager(this);
     }
 
     /**
@@ -124,7 +127,21 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
                             .setPositiveButton("Start Recording", new DialogInterface.OnClickListener() {
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {
-                                    if(scriptNamePreference != null && scriptName != null && scriptName.getText().toString().length() > 0) {
+                                    if(!serviceStatusManager.isRunning()){
+                                        ((SwitchPreference) preference).setChecked(false);
+                                        //prompt the user if the accessiblity service is not active
+                                        AlertDialog.Builder builder1 = new AlertDialog.Builder(preference.getContext());
+                                        builder1.setTitle("Service not running")
+                                                .setMessage("The Sugilite accessiblity service is not enabled. Please enable the service in the phone settings before recording.")
+                                                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                                                    @Override
+                                                    public void onClick(DialogInterface dialog, int which) {
+                                                        serviceStatusManager.promptEnabling();
+                                                        //do nothing
+                                                    }
+                                                }).show();
+                                    }
+                                    else if(scriptNamePreference != null && scriptName != null && scriptName.getText().toString().length() > 0) {
                                         scriptNamePreference.setText(scriptName.getText().toString());
                                         Toast.makeText(preference.getContext(), "Changed script name to " + sharedPreferences.getString("scriptName", "NULL"), Toast.LENGTH_SHORT).show();
                                         scriptNamePreference.setSummary(scriptName.getText().toString());

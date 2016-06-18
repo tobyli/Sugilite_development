@@ -65,6 +65,7 @@ public class ScriptDetailActivity extends AppCompatActivity {
                         sugiliteData.clearInstructionQueue();
                         addItemsToInstructionQueue(traverseBlock(script));
                         SharedPreferences.Editor prefEditor = sharedPreferences.edit();
+                        //turn off the recording before executing
                         prefEditor.putBoolean("recording_in_process", false);
                         prefEditor.commit();
                         //go to home screen for running the automation
@@ -72,6 +73,7 @@ public class ScriptDetailActivity extends AppCompatActivity {
                         startMain.addCategory(Intent.CATEGORY_HOME);
                         startMain.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                         startActivity(startMain);
+                        //TODO: kill the relevant apps before executing the script
                     }
                 })
                 .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {

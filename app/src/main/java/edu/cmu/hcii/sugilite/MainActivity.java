@@ -49,6 +49,7 @@ public class MainActivity extends AppCompatActivity {
         sugiliteScriptDao = new SugiliteScriptDao(this);
         sugiliteData = (SugiliteData)getApplication();
         //TODO: confirm overwrite when duplicated name
+        //TODO: combine the two instances of script creation
         addButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(final View v) {
@@ -79,7 +80,17 @@ public class MainActivity extends AppCompatActivity {
                                     editor.putString("scriptName", scriptName.getText().toString());
                                     editor.putBoolean("recording_in_process", true);
                                     editor.commit();
+                                    //set the active script to the newly created script
+                                    sugiliteData.initiateScript(scriptName.getText().toString() + ".SugiliteScript");
+                                    //save the newly created script to DB
+                                    try {
+                                        sugiliteScriptDao.save((SugiliteStartingBlock)sugiliteData.getScriptHead());
+                                    }
+                                    catch (Exception e){
+                                        e.printStackTrace();
+                                    }
                                     Toast.makeText(v.getContext(), "Changed script name to " + sharedPreferences.getString("scriptName", "NULL"), Toast.LENGTH_SHORT).show();
+                                    setUpScriptList();
                                     finish();
                                 }
                             }
@@ -100,6 +111,9 @@ public class MainActivity extends AppCompatActivity {
         setUpScriptList();
     }
 
+    /**
+     * update the script list displayed at the main activity according to the DB
+     */
     private void setUpScriptList(){
         final ListView scriptList = (ListView)findViewById(R.id.scriptList);
         List<String> names = sugiliteScriptDao.getAllNames();

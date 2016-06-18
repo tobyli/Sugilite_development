@@ -35,6 +35,7 @@ import android.widget.Toast;
 import java.util.List;
 
 import edu.cmu.hcii.sugilite.automation.ServiceStatusManager;
+import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
 import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 
@@ -52,6 +53,8 @@ import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 public class SettingsActivity extends AppCompatPreferenceActivity {
     private static SharedPreferences prefs;
     private static ServiceStatusManager serviceStatusManager;
+    private static SugiliteData sugiliteData;
+    private static SugiliteScriptDao sugiliteScriptDao;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,6 +62,8 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
         setupActionBar();
         prefs = PreferenceManager.getDefaultSharedPreferences(this);
         serviceStatusManager = new ServiceStatusManager(this);
+        sugiliteData = (SugiliteData)getApplication();
+        sugiliteScriptDao = new SugiliteScriptDao(this);
     }
 
     /**
@@ -145,6 +150,15 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
                                         scriptNamePreference.setText(scriptName.getText().toString());
                                         Toast.makeText(preference.getContext(), "Changed script name to " + sharedPreferences.getString("scriptName", "NULL"), Toast.LENGTH_SHORT).show();
                                         scriptNamePreference.setSummary(scriptName.getText().toString());
+                                        //set the active script to the newly created script
+                                        sugiliteData.initiateScript(scriptName.getText().toString() + ".SugiliteScript");
+                                        //save the newly created script to DB
+                                        try {
+                                            sugiliteScriptDao.save((SugiliteStartingBlock)sugiliteData.getScriptHead());
+                                        }
+                                        catch (Exception e){
+                                            e.printStackTrace();
+                                        }
                                     }
                                 }
                             })

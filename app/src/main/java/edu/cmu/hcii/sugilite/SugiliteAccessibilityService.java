@@ -81,7 +81,10 @@ public class SugiliteAccessibilityService extends AccessibilityService {
                 AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED,
                 AccessibilityEvent.TYPE_WINDOWS_CHANGED,
                 AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED};
+        Integer[] accessiblityEventArrayToSend = {AccessibilityEvent.TYPE_VIEW_CLICKED,
+                AccessibilityEvent.TYPE_VIEW_LONG_CLICKED};
         Set<Integer> accessibilityEventSetToHandle = new HashSet<>(Arrays.asList(accessibilityEventArrayToHandle));
+        Set<Integer> accessibilityEventSetToSend = new HashSet<>(Arrays.asList(accessiblityEventArrayToSend));
         //return if the event is not among the accessibilityEventArrayToHandle
         if(!accessibilityEventSetToHandle.contains(Integer.valueOf(event.getEventType())))
             return;
@@ -93,7 +96,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
             //skip internal interactions and interactions on system ui
             exceptedPackages.add("edu.cmu.hcii.sugilite");
             exceptedPackages.add("com.android.systemui");
-            if (event.getEventType() == AccessibilityEvent.TYPE_VIEW_CLICKED && (!exceptedPackages.contains(event.getPackageName()))) {
+            if (accessibilityEventSetToSend.contains(event.getEventType()) && (!exceptedPackages.contains(event.getPackageName()))) {
                 //start the popup activity
                 startActivity(generatePopUpActivityIntentFromEvent(event));
             }
@@ -253,6 +256,8 @@ public class SugiliteAccessibilityService extends AccessibilityService {
         popUpIntent.putExtra("eventType", event.getEventType());
         popUpIntent.putExtra("parentNode", parentNode);
         popUpIntent.putExtra("childrenNodes", new AccessibilityNodeInfoList(childrenNodes));
+        popUpIntent.putExtra("isEditable", sourceNode.isEditable());
+        popUpIntent.putExtra("eventType", event.getEventType());
         return popUpIntent;
     }
 }

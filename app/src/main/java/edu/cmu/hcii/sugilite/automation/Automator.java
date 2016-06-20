@@ -78,6 +78,12 @@ public class Automator {
                     .ACTION_ARGUMENT_SET_TEXT_CHARSEQUENCE, text);
             return nodeToAction.performAction(AccessibilityNodeInfo.ACTION_SET_TEXT, arguments);
         }
+        if(block.getOperation().getOperationType() == SugiliteOperation.LONG_CLICK){
+            return nodeToAction.performAction(AccessibilityNodeInfo.ACTION_LONG_CLICK);
+        }
+        if(block.getOperation().getOperationType() == SugiliteOperation.SELECT){
+            return nodeToAction.performAction(AccessibilityNodeInfo.ACTION_SELECT);
+        }
 
 
         return false;

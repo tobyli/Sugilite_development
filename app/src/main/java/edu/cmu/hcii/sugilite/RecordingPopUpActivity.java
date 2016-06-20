@@ -44,6 +44,7 @@ import edu.cmu.hcii.sugilite.model.operation.SugiliteSetTextOperation;
 public class RecordingPopUpActivity extends AppCompatActivity {
 
     private String packageName, className, text, contentDescription, viewId, boundsInParent, boundsInScreen;
+    private boolean isEditable;
     private long time;
     private int eventType;
     private SharedPreferences sharedPreferences;
@@ -82,6 +83,8 @@ public class RecordingPopUpActivity extends AppCompatActivity {
                 eventType = extras.getInt("eventType", -1);
                 parentNode = extras.getParcelable("parentNode");
                 childNodes = extras.getParcelable("childrenNodes");
+                isEditable = extras.getBoolean("isEditable");
+                eventType = extras.getInt("eventType");
             }
         }
         else{
@@ -96,6 +99,8 @@ public class RecordingPopUpActivity extends AppCompatActivity {
             eventType = savedInstanceState.getInt("eventType", -1);
             parentNode = savedInstanceState.getParcelable("parentNode");
             childNodes = savedInstanceState.getParcelable("childrenNodes");
+            isEditable = savedInstanceState.getBoolean("isEditable");
+            eventType = savedInstanceState.getInt("eventType");
         }
 
         Calendar c = Calendar.getInstance();
@@ -161,136 +166,189 @@ public class RecordingPopUpActivity extends AppCompatActivity {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Choose Operation");
         String[] operations = {};
-        if(className.contains("EditText"))
-            operations = new String[]{"CLICK", "RETURN", "SET TEXT"};
-        else
-            operations = new String[]{"CLICK", "RETURN"};
-        final SugiliteOperation sugiliteOperation = new SugiliteOperation();
-        sugiliteOperation.setOperationType(SugiliteOperation.CLICK);
-        final SugiliteOperationBlock operationBlock = new SugiliteOperationBlock();
-        operationBlock.setOperation(sugiliteOperation);
-        final Context activityContext = this;
-        builder.setItems(operations, new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                switch (which) {
-                    case 0:
-                        Toast.makeText(getApplicationContext(), "CLICK REQUESTED", Toast.LENGTH_SHORT).show();
-                        sugiliteOperation.setOperationType(SugiliteOperation.CLICK);
-                        break;
-                    case 1:
-                        Toast.makeText(getApplicationContext(), "RETURN REQUESTED", Toast.LENGTH_SHORT).show();
-                        sugiliteOperation.setOperationType(SugiliteOperation.RETURN);
-                        break;
-                    case 2:
-                        Toast.makeText(getApplicationContext(), "SET_TEXT REQUESTED", Toast.LENGTH_SHORT).show();
-                        sugiliteOperation.setOperationType(SugiliteOperation.SET_TEXT);
-                        break;
-                }
-                operationBlock.setDescription(generateDescription());
-                operationBlock.setPreviousBlock(sugiliteData.getCurrentScriptBlock());
-                operationBlock.setElementMatchingFilter(generateFilter());
-                //genereate the block if the operation is click or return
-                if (sugiliteOperation.getOperationType() == SugiliteOperation.CLICK || sugiliteOperation.getOperationType() == SugiliteOperation.RETURN) {
-                    operationBlock.setOperation(sugiliteOperation);
-                    if(sugiliteData.getCurrentScriptBlock() instanceof SugiliteOperationBlock){
-                        ((SugiliteOperationBlock)sugiliteData.getCurrentScriptBlock()).setNextBlock(operationBlock);
+        if(eventType == AccessibilityEvent.TYPE_VIEW_CLICKED) {
+            if (isEditable)
+                operations = new String[]{"CLICK", "RETURN", "SET TEXT"};
+            else
+                operations = new String[]{"CLICK", "RETURN"};
+            final SugiliteOperation sugiliteOperation = new SugiliteOperation();
+            sugiliteOperation.setOperationType(SugiliteOperation.CLICK);
+            final SugiliteOperationBlock operationBlock = new SugiliteOperationBlock();
+            operationBlock.setOperation(sugiliteOperation);
+            final Context activityContext = this;
+            builder.setItems(operations, new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    switch (which) {
+                        case 0:
+                            Toast.makeText(getApplicationContext(), "CLICK REQUESTED", Toast.LENGTH_SHORT).show();
+                            sugiliteOperation.setOperationType(SugiliteOperation.CLICK);
+                            break;
+                        case 1:
+                            Toast.makeText(getApplicationContext(), "RETURN REQUESTED", Toast.LENGTH_SHORT).show();
+                            sugiliteOperation.setOperationType(SugiliteOperation.RETURN);
+                            break;
+                        case 2:
+                            Toast.makeText(getApplicationContext(), "SET_TEXT REQUESTED", Toast.LENGTH_SHORT).show();
+                            sugiliteOperation.setOperationType(SugiliteOperation.SET_TEXT);
+                            break;
                     }
-                    if(sugiliteData.getCurrentScriptBlock() instanceof SugiliteStartingBlock){
-                        ((SugiliteStartingBlock)sugiliteData.getCurrentScriptBlock()).setNextBlock(operationBlock);
-                    }
-                    String message = "";
-                    if (operationBlock.getOperation().getOperationType() == SugiliteOperation.CLICK){
-                        message += "Click ";
-                    }
-                    if (operationBlock.getOperation().getOperationType() == SugiliteOperation.RETURN){
-                        message += "Return";
-                    }
-                    if(operationBlock.getOperation().getOperationType() == SugiliteOperation.SET_TEXT){
-                        message += "Set text to \"" + ((SugiliteSetTextOperation)operationBlock.getOperation()).getText() + "\" ";
-                    }
-                    message += generateDescription();
-                    operationBlock.setDescription(message);
-                    sugiliteData.setCurrentScriptBlock(operationBlock);
-                    try{
-                        sugiliteScriptDao.save((SugiliteStartingBlock)sugiliteData.getScriptHead());
-                    }
-                    catch (Exception e){
-                        e.printStackTrace();
-                    }
-                    System.out.println("saved block");
-                    new AlertDialog.Builder(activityContext)
-                            .setTitle("Operation Recorded")
-                            .setMessage(message)
-                            .setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                                public void onClick(DialogInterface dialog, int which) {
-                                    // continue with delete
-                                    finish();
-                                }
-                            })
-                            .setIcon(android.R.drawable.ic_dialog_alert)
-                            .show();
-                }
-                // if the operation == text, add a new pop up to ask the text to set the content of the edittext widget to
-                //TODO: eliminate the duplicate code for the two branches
-                else if (sugiliteOperation.getOperationType() == SugiliteOperation.SET_TEXT) {
-                    final SugiliteSetTextOperation setTextOperation = new SugiliteSetTextOperation();
-                    AlertDialog.Builder textDialogBuilder = new AlertDialog.Builder(activityContext);
-                    textDialogBuilder.setTitle("Set Text Operation").setMessage("Enter the text to set to");
-                    final EditText editText = new EditText(activityContext);
-                    textDialogBuilder.setView(editText).setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            String text = editText.getText().toString();
-                            setTextOperation.setText(text);
-                            operationBlock.setOperation(setTextOperation);
-                            if(sugiliteData.getCurrentScriptBlock() instanceof SugiliteOperationBlock){
-                                ((SugiliteOperationBlock)sugiliteData.getCurrentScriptBlock()).setNextBlock(operationBlock);
-                            }
-                            if(sugiliteData.getCurrentScriptBlock() instanceof SugiliteStartingBlock){
-                                ((SugiliteStartingBlock)sugiliteData.getCurrentScriptBlock()).setNextBlock(operationBlock);
-                            }
-                            System.out.println("saved block");
-                            String message = "";
-                            if (operationBlock.getOperation().getOperationType() == SugiliteOperation.CLICK){
-                                message += "Click ";
-                            }
-                            if (operationBlock.getOperation().getOperationType() == SugiliteOperation.RETURN){
-                                message += "Return";
-                            }
-                            if(operationBlock.getOperation().getOperationType() == SugiliteOperation.SET_TEXT){
-                                message += "Set text to \"" + ((SugiliteSetTextOperation)operationBlock.getOperation()).getText() + "\" ";
-                            }
-                            message += generateDescription();
-                            operationBlock.setDescription(message);
-                            sugiliteData.setCurrentScriptBlock(operationBlock);
-                            try{
-                                sugiliteScriptDao.save((SugiliteStartingBlock)sugiliteData.getScriptHead());
-                            }
-                            catch (Exception e){
-                                e.printStackTrace();
-                            }
-
-                            new AlertDialog.Builder(activityContext)
-                                    .setTitle("Operation Recorded")
-                                    .setMessage(message)
-                                    .setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                                        public void onClick(DialogInterface dialog, int which) {
-                                            sugiliteData.addInstruction(operationBlock);
-                                            // continue with delete
-                                            finish();
-                                        }
-                                    })
-                                    .setIcon(android.R.drawable.ic_dialog_alert)
-                                    .show();
+                    operationBlock.setDescription(generateDescription());
+                    operationBlock.setPreviousBlock(sugiliteData.getCurrentScriptBlock());
+                    operationBlock.setElementMatchingFilter(generateFilter());
+                    //genereate the block if the operation is click or return
+                    if (sugiliteOperation.getOperationType() == SugiliteOperation.CLICK || sugiliteOperation.getOperationType() == SugiliteOperation.RETURN) {
+                        operationBlock.setOperation(sugiliteOperation);
+                        if (sugiliteData.getCurrentScriptBlock() instanceof SugiliteOperationBlock) {
+                            ((SugiliteOperationBlock) sugiliteData.getCurrentScriptBlock()).setNextBlock(operationBlock);
                         }
-                    });
-                    textDialogBuilder.show();
+                        if (sugiliteData.getCurrentScriptBlock() instanceof SugiliteStartingBlock) {
+                            ((SugiliteStartingBlock) sugiliteData.getCurrentScriptBlock()).setNextBlock(operationBlock);
+                        }
+                        String message = "";
+                        if (operationBlock.getOperation().getOperationType() == SugiliteOperation.CLICK) {
+                            message += "Click ";
+                        }
+                        if (operationBlock.getOperation().getOperationType() == SugiliteOperation.RETURN) {
+                            message += "Return";
+                        }
+                        if (operationBlock.getOperation().getOperationType() == SugiliteOperation.SET_TEXT) {
+                            message += "Set text to \"" + ((SugiliteSetTextOperation) operationBlock.getOperation()).getText() + "\" ";
+                        }
+                        message += generateDescription();
+                        operationBlock.setDescription(message);
+                        sugiliteData.setCurrentScriptBlock(operationBlock);
+                        try {
+                            sugiliteScriptDao.save((SugiliteStartingBlock) sugiliteData.getScriptHead());
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                        System.out.println("saved block");
+                        new AlertDialog.Builder(activityContext)
+                                .setTitle("Operation Recorded")
+                                .setMessage(message)
+                                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        // continue with delete
+                                        finish();
+                                    }
+                                })
+                                .setIcon(android.R.drawable.ic_dialog_alert)
+                                .show();
+                    }
+                    // if the operation == text, add a new pop up to ask the text to set the content of the edittext widget to
+                    //TODO: eliminate the duplicate code for the two branches
+                    else if (sugiliteOperation.getOperationType() == SugiliteOperation.SET_TEXT) {
+                        final SugiliteSetTextOperation setTextOperation = new SugiliteSetTextOperation();
+                        AlertDialog.Builder textDialogBuilder = new AlertDialog.Builder(activityContext);
+                        textDialogBuilder.setTitle("Set Text Operation").setMessage("Enter the text to set to");
+                        final EditText editText = new EditText(activityContext);
+                        textDialogBuilder.setView(editText).setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                String text = editText.getText().toString();
+                                setTextOperation.setText(text);
+                                operationBlock.setOperation(setTextOperation);
+                                if (sugiliteData.getCurrentScriptBlock() instanceof SugiliteOperationBlock) {
+                                    ((SugiliteOperationBlock) sugiliteData.getCurrentScriptBlock()).setNextBlock(operationBlock);
+                                }
+                                if (sugiliteData.getCurrentScriptBlock() instanceof SugiliteStartingBlock) {
+                                    ((SugiliteStartingBlock) sugiliteData.getCurrentScriptBlock()).setNextBlock(operationBlock);
+                                }
+                                System.out.println("saved block");
+                                String message = "";
+                                if (operationBlock.getOperation().getOperationType() == SugiliteOperation.CLICK) {
+                                    message += "Click ";
+                                }
+                                if (operationBlock.getOperation().getOperationType() == SugiliteOperation.RETURN) {
+                                    message += "Return";
+                                }
+                                if (operationBlock.getOperation().getOperationType() == SugiliteOperation.SET_TEXT) {
+                                    message += "Set text to \"" + ((SugiliteSetTextOperation) operationBlock.getOperation()).getText() + "\" ";
+                                }
+                                message += generateDescription();
+                                operationBlock.setDescription(message);
+                                sugiliteData.setCurrentScriptBlock(operationBlock);
+                                try {
+                                    sugiliteScriptDao.save((SugiliteStartingBlock) sugiliteData.getScriptHead());
+                                } catch (Exception e) {
+                                    e.printStackTrace();
+                                }
 
+                                new AlertDialog.Builder(activityContext)
+                                        .setTitle("Operation Recorded")
+                                        .setMessage(message)
+                                        .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                                            public void onClick(DialogInterface dialog, int which) {
+                                                sugiliteData.addInstruction(operationBlock);
+                                                // continue with delete
+                                                finish();
+                                            }
+                                        })
+                                        .setIcon(android.R.drawable.ic_dialog_alert)
+                                        .show();
+                            }
+                        });
+                        textDialogBuilder.show();
+
+                    }
                 }
+            });
+            builder.show();
+        }
+        else{
+
+            String defaultOperationName = "NULL";
+            String message = "";
+            SugiliteOperation sugiliteOperation = new SugiliteOperation();
+            switch (eventType){
+                case AccessibilityEvent.TYPE_VIEW_SELECTED:
+                    defaultOperationName = "SELECT";
+                    sugiliteOperation.setOperationType(SugiliteOperation.SELECT);
+                    message += "Select ";
+                    break;
+                case AccessibilityEvent.TYPE_VIEW_LONG_CLICKED:
+                    defaultOperationName = "LONG CLICK";
+                    sugiliteOperation.setOperationType(SugiliteOperation.LONG_CLICK);
+                    message += "Long click ";
+                    break;
             }
-        });
-        builder.show();
+            operations = new String[]{defaultOperationName, "RETURN", "SET TEXT"};
+            final SugiliteOperationBlock operationBlock = new SugiliteOperationBlock();
+            operationBlock.setOperation(sugiliteOperation);
+            final Context activityContext = this;
+            operationBlock.setDescription(generateDescription());
+            operationBlock.setPreviousBlock(sugiliteData.getCurrentScriptBlock());
+            operationBlock.setElementMatchingFilter(generateFilter());
+            operationBlock.setOperation(sugiliteOperation);
+
+            if (sugiliteData.getCurrentScriptBlock() instanceof SugiliteOperationBlock) {
+                ((SugiliteOperationBlock) sugiliteData.getCurrentScriptBlock()).setNextBlock(operationBlock);
+            }
+            if (sugiliteData.getCurrentScriptBlock() instanceof SugiliteStartingBlock) {
+                ((SugiliteStartingBlock) sugiliteData.getCurrentScriptBlock()).setNextBlock(operationBlock);
+            }
+            message += generateDescription();
+            operationBlock.setDescription(message);
+            sugiliteData.setCurrentScriptBlock(operationBlock);
+            try {
+                sugiliteScriptDao.save((SugiliteStartingBlock) sugiliteData.getScriptHead());
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            System.out.println("saved block");
+            new AlertDialog.Builder(activityContext)
+                    .setTitle("Operation Recorded")
+                    .setMessage(message)
+                    .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int which) {
+                            // continue with delete
+                            finish();
+                        }
+                    })
+                    .setIcon(android.R.drawable.ic_dialog_alert)
+                    .show();
+        }
     }
 
     public void entryOnSelect(View view){

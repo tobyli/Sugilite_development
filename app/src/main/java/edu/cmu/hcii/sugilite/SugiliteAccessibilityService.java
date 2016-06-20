@@ -1,29 +1,13 @@
 package edu.cmu.hcii.sugilite;
 
 import android.accessibilityservice.AccessibilityService;
-import android.app.AlertDialog;
-import android.app.Dialog;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.graphics.PixelFormat;
 import android.graphics.Rect;
-import android.net.Uri;
-import android.os.IBinder;
 import android.preference.PreferenceManager;
-import android.provider.Settings;
-import android.util.DisplayMetrics;
-import android.view.GestureDetector;
-import android.view.Gravity;
-import android.view.MotionEvent;
-import android.view.View;
 import android.view.WindowManager;
 import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityNodeInfo;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
-import android.widget.ImageView;
-import android.widget.Spinner;
 import android.widget.Toast;
 
 import java.util.ArrayList;
@@ -34,15 +18,14 @@ import java.util.Set;
 
 import edu.cmu.hcii.sugilite.model.AccessibilityNodeInfoList;
 import edu.cmu.hcii.sugilite.automation.*;
-import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
-import edu.cmu.hcii.sugilite.ui.StatusIcon;
+import edu.cmu.hcii.sugilite.ui.StatusIconManager;
 
 public class SugiliteAccessibilityService extends AccessibilityService {
         private WindowManager windowManager;
     private SharedPreferences sharedPreferences;
     private Automator automator;
     private SugiliteData sugiliteData;
-    private StatusIcon statusIcon;
+    private StatusIconManager statusIconManager;
 
     public SugiliteAccessibilityService() {
     }
@@ -53,11 +36,11 @@ public class SugiliteAccessibilityService extends AccessibilityService {
         windowManager = (WindowManager) getSystemService(WINDOW_SERVICE);
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         sugiliteData = (SugiliteData)getApplication();
-        statusIcon = new StatusIcon(this, sugiliteData, sharedPreferences);
+        statusIconManager = new StatusIconManager(this, sugiliteData, sharedPreferences);
         automator = new Automator(sugiliteData);
         try {
             Toast.makeText(this, "Sugilite Accessibility Service Started", Toast.LENGTH_SHORT).show();
-            statusIcon.addStatusIcon();
+            statusIconManager.addStatusIcon();
         }
         catch (Exception e){
             e.printStackTrace();
@@ -126,9 +109,9 @@ public class SugiliteAccessibilityService extends AccessibilityService {
     public void onDestroy(){
         super.onDestroy();
         Toast.makeText(this, "Sugilite Accessibility Service Stopped", Toast.LENGTH_SHORT).show();
-        if(statusIcon != null)
+        if(statusIconManager != null)
             try {
-                statusIcon.removeStatusIcon();
+                statusIconManager.removeStatusIcon();
             }
             catch (Exception e){
                 //failed to remove status icon

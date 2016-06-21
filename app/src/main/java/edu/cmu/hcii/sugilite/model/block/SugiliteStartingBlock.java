@@ -13,13 +13,13 @@ public class SugiliteStartingBlock extends SugiliteBlock implements Serializable
     private String scriptName;
     public SugiliteStartingBlock(){
         super();
-        this.blockType = SugiliteBlock.REGULAR_OPERATION;
+        this.blockType = SugiliteBlock.STARTING_BLOCK;
         this.setDescription("Starting Block");
     }
     public SugiliteStartingBlock(String scriptName){
         super();
         this.scriptName = scriptName;
-        this.blockType = SugiliteBlock.REGULAR_OPERATION;
+        this.blockType = SugiliteBlock.STARTING_BLOCK;
         this.setDescription("Starting Block");
     }
     public SugiliteBlock getNextBlock(){

@@ -27,6 +27,7 @@ import java.util.AbstractMap;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
@@ -49,7 +50,7 @@ public class RecordingPopUpActivity extends AppCompatActivity {
     private int eventType;
     private SharedPreferences sharedPreferences;
     private AccessibilityNodeInfo parentNode;
-    private AccessibilityNodeInfoList childNodes;
+    private AccessibilityNodeInfoList childNodes, allNodes;
     private SugiliteScriptDao sugiliteScriptDao;
     private Set<Map.Entry<String, String>> allParentFeatures = new HashSet<>();
     private Set<Map.Entry<String, String>> allChildFeatures = new HashSet<>();
@@ -83,6 +84,7 @@ public class RecordingPopUpActivity extends AppCompatActivity {
                 eventType = extras.getInt("eventType", -1);
                 parentNode = extras.getParcelable("parentNode");
                 childNodes = extras.getParcelable("childrenNodes");
+                allNodes = extras.getParcelable("allNodes");
                 isEditable = extras.getBoolean("isEditable");
                 eventType = extras.getInt("eventType");
             }
@@ -99,6 +101,7 @@ public class RecordingPopUpActivity extends AppCompatActivity {
             eventType = savedInstanceState.getInt("eventType", -1);
             parentNode = savedInstanceState.getParcelable("parentNode");
             childNodes = savedInstanceState.getParcelable("childrenNodes");
+            allNodes = savedInstanceState.getParcelable("allNodes");
             isEditable = savedInstanceState.getBoolean("isEditable");
             eventType = savedInstanceState.getInt("eventType");
         }
@@ -139,6 +142,7 @@ public class RecordingPopUpActivity extends AppCompatActivity {
                     allChildFeatures.add(new AbstractMap.SimpleEntry<>("viewId", childNode.getViewIdResourceName()));
             }
         }
+        ((TextView)findViewById(R.id.filteredNodeCount)).setText(generateFilterCount());
 
     }
 
@@ -393,6 +397,7 @@ public class RecordingPopUpActivity extends AppCompatActivity {
 
         }
         ((TextView)findViewById(R.id.operationDescription)).setText(generateDescription());
+        ((TextView)findViewById(R.id.filteredNodeCount)).setText(generateFilterCount());
     }
 
     //read and load the result from the child/parent sub activity
@@ -419,6 +424,7 @@ public class RecordingPopUpActivity extends AppCompatActivity {
         ((CheckBox)findViewById(R.id.childrenCheckbox)).setChecked(selectedChildFeatures.size() > 0);
         ((CheckBox)findViewById(R.id.parentCheckbox)).setChecked(selectedParentFeatures.size() > 0);
         ((TextView)findViewById(R.id.operationDescription)).setText(generateDescription());
+        ((TextView)findViewById(R.id.filteredNodeCount)).setText(generateFilterCount());
     }
     //show the parent popup when the parent checkbox is checked
     public void showParentPopup(View v) {
@@ -495,6 +501,20 @@ public class RecordingPopUpActivity extends AppCompatActivity {
             filter.setParentFilter(parentFilter);
         }
         return filter;
+    }
+
+    public String generateFilterCount(){
+        UIElementMatchingFilter filter = generateFilter();
+        List<AccessibilityNodeInfo> nodes = allNodes.getList();
+        int count = 0, clickableCount = 0;
+        for(AccessibilityNodeInfo node : nodes){
+            if(filter.filter(node)){
+                count++;
+                if(node.isClickable())
+                    clickableCount++;
+            }
+        }
+        return "Filtered " + count + " elements on current screen, " + clickableCount + " clickable out of " + nodes.size();
     }
 
     /**

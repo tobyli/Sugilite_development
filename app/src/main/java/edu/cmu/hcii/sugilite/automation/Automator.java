@@ -48,8 +48,15 @@ public class Automator {
         if(filteredNodes.size() == 0)
             return false;
         for(AccessibilityNodeInfo node : filteredNodes){
+            //TODO: scrolling
             boolean retVal = performAction(node, operationBlock);
             if(retVal) {
+                try {
+                    Thread.sleep(2000);
+                }
+                catch (Exception e){
+                    // do nothing
+                }
                 sugiliteData.removeInstructionQueueItem();
                 return true;
             }
@@ -58,13 +65,7 @@ public class Automator {
     }
 
     public boolean performAction(AccessibilityNodeInfo node, SugiliteOperationBlock block) {
-        //TODO: scrolling
-        try {
-            Thread.sleep(1000);
-        }
-        catch (Exception e){
-            // do nothing
-        }
+
         AccessibilityNodeInfo nodeToAction = node;
 
 
@@ -100,5 +101,14 @@ public class Automator {
                 list.addAll(preOrderTraverse(root.getChild(i)));
         }
         return list;
+    }
+
+    public List<AccessibilityNodeInfo> getClickableList (List<AccessibilityNodeInfo> nodeInfos){
+        List<AccessibilityNodeInfo> retList = new ArrayList<>();
+        for(AccessibilityNodeInfo node : nodeInfos){
+            if(node.isClickable())
+                retList.add(node);
+        }
+        return retList;
     }
 }

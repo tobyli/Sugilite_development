@@ -7,6 +7,8 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+import edu.cmu.hcii.sugilite.automation.Automator;
+
 /**
  * @author toby
  * @date 4/21/16
@@ -165,9 +167,9 @@ public class UIElementMatchingFilter implements Serializable {
             childFilterFlag = true;
         }
         else {
-            int childCouint = nodeInfo.getChildCount();
-            for (int i = 0; i < childCouint; i++) {
-                if (childFilter.filter(nodeInfo.getChild(i))) {
+            List<AccessibilityNodeInfo> nodes = Automator.preOrderTraverse(nodeInfo);
+            for(AccessibilityNodeInfo node : nodes){
+                if(childFilter.filter(node)){
                     childFilterFlag = true;
                     break;
                 }
@@ -183,6 +185,15 @@ public class UIElementMatchingFilter implements Serializable {
         List<AccessibilityNodeInfo> retList = new ArrayList<>();
         for(AccessibilityNodeInfo node : nodeInfos){
             if(filter(node))
+                retList.add(node);
+        }
+        return retList;
+    }
+
+    public static List<AccessibilityNodeInfo> getClickableList (List<AccessibilityNodeInfo> nodeInfos){
+        List<AccessibilityNodeInfo> retList = new ArrayList<>();
+        for(AccessibilityNodeInfo node : nodeInfos){
+            if(node.isClickable())
                 retList.add(node);
         }
         return retList;

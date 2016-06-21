@@ -123,6 +123,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
                 //recording in progress status is changed
                 SwitchPreference recordingInProgressSwitch = (SwitchPreference) preference;
                 if(!recordingInProgressSwitch.isChecked()){
+                    sugiliteData.clearInstructionQueue();
                     AlertDialog.Builder builder = new AlertDialog.Builder(preference.getContext());
                     final EditText scriptName = new EditText(preference.getContext());
                     scriptName.setText("New Script");

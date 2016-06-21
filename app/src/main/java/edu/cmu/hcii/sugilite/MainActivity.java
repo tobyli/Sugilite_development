@@ -53,6 +53,7 @@ public class MainActivity extends AppCompatActivity {
         addButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(final View v) {
+                sugiliteData.clearInstructionQueue();
                 AlertDialog.Builder builder = new AlertDialog.Builder(v.getContext());
                 final EditText scriptName = new EditText(v.getContext());
                 scriptName.setText("New Script");
@@ -160,6 +161,22 @@ public class MainActivity extends AppCompatActivity {
         if (id == R.id.clear_automation_queue) {
             int count = sugiliteData.getInstructionQueueSize();
             sugiliteData.clearInstructionQueue();
+            new AlertDialog.Builder(this)
+                    .setTitle("Automation Queue Cleared")
+                    .setMessage("Cleared " + count + " operations from the automation queue")
+                    .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int which) {
+
+                        }
+                    })
+                    .setIcon(android.R.drawable.ic_dialog_alert)
+                    .show();
+            return true;
+        }
+
+        if (id == R.id.clear_script_list) {
+            int count = (int)sugiliteScriptDao.size();
+            sugiliteScriptDao.clear();
             new AlertDialog.Builder(this)
                     .setTitle("Automation Queue Cleared")
                     .setMessage("Cleared " + count + " operations from the automation queue")

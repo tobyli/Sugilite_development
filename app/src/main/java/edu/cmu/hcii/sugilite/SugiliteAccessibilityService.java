@@ -14,10 +14,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import edu.cmu.hcii.sugilite.model.AccessibilityNodeInfoList;
 import edu.cmu.hcii.sugilite.automation.*;
+import edu.cmu.hcii.sugilite.model.block.UIElementMatchingFilter;
 import edu.cmu.hcii.sugilite.ui.StatusIconManager;
 
 public class SugiliteAccessibilityService extends AccessibilityService {
@@ -58,7 +60,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
 
     @Override
     public void onAccessibilityEvent(AccessibilityEvent event) {
-
+        AccessibilityNodeInfo rootNode = getRootInActiveWindow();
         //Type of accessibility events to handle in this function
         Integer[] accessibilityEventArrayToHandle = {AccessibilityEvent.TYPE_VIEW_CLICKED,
                 AccessibilityEvent.TYPE_VIEW_LONG_CLICKED,
@@ -86,7 +88,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
             exceptedPackages.add("com.android.systemui");
             if (accessibilityEventSetToSend.contains(event.getEventType()) && (!exceptedPackages.contains(event.getPackageName()))) {
                 //start the popup activity
-                startActivity(generatePopUpActivityIntentFromEvent(event));
+                startActivity(generatePopUpActivityIntentFromEvent(event, rootNode));
             }
         }
 
@@ -95,7 +97,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
         }
         boolean retVal = false;
         if(sugiliteData.getInstructionQueueSize() > 0)
-            retVal = automator.handleLiveEvent(this.getRootInActiveWindow(), getApplicationContext());
+            retVal = automator.handleLiveEvent(rootNode, getApplicationContext());
 
     }
 
@@ -126,19 +128,18 @@ public class SugiliteAccessibilityService extends AccessibilityService {
 
 
 
-    private Intent generatePopUpActivityIntentFromEvent(AccessibilityEvent event){
+    private Intent generatePopUpActivityIntentFromEvent(AccessibilityEvent event, AccessibilityNodeInfo rootNode){
         AccessibilityNodeInfo sourceNode = event.getSource();
         Rect boundsInParents = new Rect();
         Rect boundsInScreen = new Rect();
         sourceNode.getBoundsInParent(boundsInParents);
         sourceNode.getBoundsInScreen(boundsInScreen);
         AccessibilityNodeInfo parentNode = sourceNode.getParent();
-        ArrayList<AccessibilityNodeInfo> childrenNodes = new ArrayList<>();
-        for(int i = 0; i < sourceNode.getChildCount(); i++){
-            AccessibilityNodeInfo childNode = sourceNode.getChild(i);
-            if(childNode != null)
-                childrenNodes.add(childNode);
-        }
+        //NOTE: NOT ONLY COUNTING THE IMMEDIATE CHILDREN NOW
+        ArrayList<AccessibilityNodeInfo> childrenNodes = new ArrayList<>(Automator.preOrderTraverse(sourceNode));
+        ArrayList<AccessibilityNodeInfo> allNodes = new ArrayList<>();
+        if(rootNode != null)
+             allNodes = new ArrayList<>(Automator.preOrderTraverse(rootNode));
         //TODO:AccessibilityNodeInfo is not serializable
 
         //pop up the selection window
@@ -155,6 +156,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
         popUpIntent.putExtra("eventType", event.getEventType());
         popUpIntent.putExtra("parentNode", parentNode);
         popUpIntent.putExtra("childrenNodes", new AccessibilityNodeInfoList(childrenNodes));
+        popUpIntent.putExtra("allNodes", new AccessibilityNodeInfoList(allNodes));
         popUpIntent.putExtra("isEditable", sourceNode.isEditable());
         popUpIntent.putExtra("eventType", event.getEventType());
         return popUpIntent;

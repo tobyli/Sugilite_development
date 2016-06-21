@@ -122,7 +122,7 @@ public class SugiliteScriptDao {
 
     public int clear(){
         SQLiteDatabase db = sugiliteScriptDbHelper.getWritableDatabase();
-        SQLiteStatement statement = db.compileStatement("DELETE * FROM " + SugiliteScriptDbContract.SugiliteScriptRecordEntry.TABLE_NAME + ";");
+        SQLiteStatement statement = db.compileStatement("DELETE FROM " + SugiliteScriptDbContract.SugiliteScriptRecordEntry.TABLE_NAME + ";");
         return statement.executeUpdateDelete();
     }
 

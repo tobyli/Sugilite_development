@@ -60,6 +60,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
 
     @Override
     public void onAccessibilityEvent(AccessibilityEvent event) {
+        //TODO problem: the status of "right after click" (try getParent()?)
         AccessibilityNodeInfo rootNode = getRootInActiveWindow();
         //Type of accessibility events to handle in this function
         Integer[] accessibilityEventArrayToHandle = {AccessibilityEvent.TYPE_VIEW_CLICKED,

@@ -178,8 +178,8 @@ public class MainActivity extends AppCompatActivity {
             int count = (int)sugiliteScriptDao.size();
             sugiliteScriptDao.clear();
             new AlertDialog.Builder(this)
-                    .setTitle("Automation Queue Cleared")
-                    .setMessage("Cleared " + count + " operations from the automation queue")
+                    .setTitle("Script List Cleared")
+                    .setMessage("Cleared " + count + " scripts")
                     .setPositiveButton("OK", new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int which) {
 

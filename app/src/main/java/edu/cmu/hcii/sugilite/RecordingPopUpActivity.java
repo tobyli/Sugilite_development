@@ -5,10 +5,13 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
 import android.graphics.Rect;
+import android.os.Environment;
 import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.text.Html;
 import android.view.View;
 import android.view.ViewManager;
 import android.view.accessibility.AccessibilityEvent;
@@ -19,6 +22,9 @@ import android.widget.PopupMenu;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.net.HttpCookie;
 import java.text.SimpleDateFormat;
 import java.util.AbstractMap;
 import java.util.Calendar;
@@ -63,7 +69,7 @@ public class RecordingPopUpActivity extends AppCompatActivity {
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         sugiliteData = (SugiliteData)getApplication();
         sugiliteScriptDao = new SugiliteScriptDao(this);
-        readableDescriptionGenerator = new ReadableDescriptionGenerator();
+        readableDescriptionGenerator = new ReadableDescriptionGenerator(getApplicationContext());
         setContentView(R.layout.activity_recoding_pop_up);
         //fetch the data capsuled in the intent
         if(savedInstanceState == null){
@@ -147,6 +153,9 @@ public class RecordingPopUpActivity extends AppCompatActivity {
             if(parentNode.getViewIdResourceName() != null)
                 allParentFeatures.add(new AbstractMap.SimpleEntry<>("viewId", parentNode.getViewIdResourceName()));
         }
+        if(allParentFeatures.size() == 0)
+            ((ViewManager)findViewById(R.id.parentCheckbox).getParent()).removeView(findViewById(R.id.parentCheckbox));
+
 
         //populate child features
         for(AccessibilityNodeInfo childNode : childNodes.getList()){
@@ -159,6 +168,10 @@ public class RecordingPopUpActivity extends AppCompatActivity {
                     allChildFeatures.add(new AbstractMap.SimpleEntry<>("viewId", childNode.getViewIdResourceName()));
             }
         }
+        if(allChildFeatures.size() == 0)
+            ((ViewManager)findViewById(R.id.childrenCheckbox).getParent()).removeView(findViewById(R.id.childrenCheckbox));
+
+
         ((TextView)findViewById(R.id.filteredNodeCount)).setText(generateFilterCount());
 
     }
@@ -177,6 +190,7 @@ public class RecordingPopUpActivity extends AppCompatActivity {
     }
 
     public void OKButtonOnClick(View view){
+
         //add head if no one is present
         if(sugiliteData.getScriptHead() == null ||
                 (!((SugiliteStartingBlock)sugiliteData.getScriptHead()).getScriptName().contentEquals(sharedPreferences.getString("scriptName", "defaultScript") + ".SugiliteScript"))){
@@ -240,7 +254,7 @@ public class RecordingPopUpActivity extends AppCompatActivity {
                         System.out.println("saved block");
                         new AlertDialog.Builder(activityContext)
                                 .setTitle("Operation Recorded")
-                                .setMessage(readableDescriptionGenerator.generateReadableDescription(operationBlock))
+                                .setMessage(Html.fromHtml(readableDescriptionGenerator.generateReadableDescription(operationBlock)))
                                 .setPositiveButton("OK", new DialogInterface.OnClickListener() {
                                     public void onClick(DialogInterface dialog, int which) {
                                         // continue with delete
@@ -288,7 +302,7 @@ public class RecordingPopUpActivity extends AppCompatActivity {
 
                                 new AlertDialog.Builder(activityContext)
                                         .setTitle("Operation Recorded")
-                                        .setMessage(readableDescriptionGenerator.generateReadableDescription(operationBlock))
+                                        .setMessage(Html.fromHtml(readableDescriptionGenerator.generateReadableDescription(operationBlock)))
                                         .setPositiveButton("OK", new DialogInterface.OnClickListener() {
                                             public void onClick(DialogInterface dialog, int which) {
                                                 sugiliteData.addInstruction(operationBlock);
@@ -350,7 +364,7 @@ public class RecordingPopUpActivity extends AppCompatActivity {
             System.out.println("saved block");
             new AlertDialog.Builder(activityContext)
                     .setTitle("Operation Recorded")
-                    .setMessage(readableDescriptionGenerator.generateReadableDescription(operationBlock))
+                    .setMessage(Html.fromHtml(readableDescriptionGenerator.generateReadableDescription(operationBlock)))
                     .setPositiveButton("OK", new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int which) {
                             // continue with delete
@@ -428,8 +442,14 @@ public class RecordingPopUpActivity extends AppCompatActivity {
 
             }
         }
-        ((CheckBox)findViewById(R.id.childrenCheckbox)).setChecked(selectedChildFeatures.size() > 0);
-        ((CheckBox)findViewById(R.id.parentCheckbox)).setChecked(selectedParentFeatures.size() > 0);
+
+        //NOTE: children/parent checkbox may have been removed if the current node has no child/parent label
+        if(findViewById(R.id.childrenCheckbox) != null)
+            ((CheckBox)findViewById(R.id.childrenCheckbox)).setChecked(selectedChildFeatures.size() > 0);
+        if(findViewById(R.id.parentCheckbox) != null)
+            ((CheckBox)findViewById(R.id.parentCheckbox)).setChecked(selectedParentFeatures.size() > 0);
+
+
         ((TextView)findViewById(R.id.operationDescription)).setText(generateDescription());
         ((TextView)findViewById(R.id.filteredNodeCount)).setText(generateFilterCount());
     }

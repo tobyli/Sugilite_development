@@ -7,7 +7,9 @@ import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.text.Html;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -44,8 +46,10 @@ public class ScriptDetailActivity extends AppCompatActivity {
         if (script != null){
             for(SugiliteBlock block : traverseBlock(script)) {
                 TextView operationStepItem = new TextView(this);
-                operationStepItem.setText(block.getDescription() + "\n");
-                operationStepList.addView(operationStepItem);
+                operationStepItem.setText(Html.fromHtml(block.getDescription()));
+                LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+                layoutParams.setMargins(0, 0, 0, 30);
+                operationStepList.addView(operationStepItem, layoutParams);
             }
         }
         else{

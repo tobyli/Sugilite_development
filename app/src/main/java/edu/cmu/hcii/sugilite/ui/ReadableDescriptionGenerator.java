@@ -11,6 +11,7 @@ import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteOperation;
+import edu.cmu.hcii.sugilite.model.operation.SugiliteSetTextOperation;
 
 /**
  * @author toby
@@ -28,7 +29,7 @@ public class ReadableDescriptionGenerator {
     public String generateReadableDescription(SugiliteBlock block){
         String message = "";
         if(block instanceof SugiliteStartingBlock)
-            return "Starting Block";
+            return "<b>STARTING BLOCK</b>";
         /**
          * structure: [OPERATION] + "the button/textbox/object" + [IDENTIFIER] + "that has [VIEWID]" + at [LOCATION] + in [PACKAGE]
          */
@@ -37,16 +38,16 @@ public class ReadableDescriptionGenerator {
 
             switch (operation.getOperationType()){
                 case SugiliteOperation.CLICK:
-                    message += "Click on ";
+                    message += setColor("Click ", "#ffa500") + "on ";
                     break;
                 case SugiliteOperation.SELECT:
-                    message += "Select ";
+                    message += setColor("Select ", "#ffa500");
                     break;
                 case SugiliteOperation.SET_TEXT:
-                    message += "Set Text to \"" + operation.getParameter() + "\" for ";
+                    message += setColor("Set Text ", "#ffa500") + "to \"" + setColor(((SugiliteSetTextOperation)((SugiliteOperationBlock) block).getOperation()).getText(), "#ff0000") + "\" for ";
                     break;
                 case SugiliteOperation.LONG_CLICK:
-                    message += "Long click on ";
+                    message += setColor("Long click ", "#ffa500") + "on ";
                     break;
             }
 
@@ -56,43 +57,43 @@ public class ReadableDescriptionGenerator {
                     case "android.widget.Button":
                     case "android.widget.TextView":
                     case "android.widget.ImageView":
-                        message += "the button ";
+                        message += setColor("the button ", "blue");
                         break;
                     case "android.widget.EditText":
-                        message += "the textbox ";
+                        message += setColor("the textbox ", "blue");
                         break;
                     default:
-                        message += "the object ";
+                        message += setColor("the object ", "blue");
                 }
             }
 
             if(((SugiliteOperationBlock) block).getElementMatchingFilter().getText() != null){
-                message += "\"" + ((SugiliteOperationBlock) block).getElementMatchingFilter().getText() + "\" ";
+                message += "\"" + setColor(((SugiliteOperationBlock) block).getElementMatchingFilter().getText(), "#006400")  + "\" ";
             }
             else if (((SugiliteOperationBlock) block).getElementMatchingFilter().getContentDescription() != null){
-                message += "\"" + ((SugiliteOperationBlock) block).getElementMatchingFilter().getContentDescription() + "\" ";
+                message += "\"" + setColor(((SugiliteOperationBlock) block).getElementMatchingFilter().getContentDescription(), "#006400") + "\" ";
             }
             else if (((SugiliteOperationBlock) block).getElementMatchingFilter().getChildFilter()!= null && ((SugiliteOperationBlock) block).getElementMatchingFilter().getChildFilter().getText() != null){
-                message += "\"" + ((SugiliteOperationBlock) block).getElementMatchingFilter().getChildFilter().getText() + "\" ";
+                message += "\"" + setColor(((SugiliteOperationBlock) block).getElementMatchingFilter().getChildFilter().getText(), "#006400") + "\" ";
             }
             else if (((SugiliteOperationBlock) block).getElementMatchingFilter().getChildFilter()!= null && ((SugiliteOperationBlock) block).getElementMatchingFilter().getChildFilter().getContentDescription() != null){
-                message += "\"" + ((SugiliteOperationBlock) block).getElementMatchingFilter().getChildFilter().getContentDescription() + "\" ";
+                message += "\"" + setColor(((SugiliteOperationBlock) block).getElementMatchingFilter().getChildFilter().getContentDescription(), "#006400") + "\" ";
             }
 
             if(((SugiliteOperationBlock) block).getElementMatchingFilter().getViewId() != null){
-                message += "that has the view ID \"" + ((SugiliteOperationBlock) block).getElementMatchingFilter().getViewId() + "\" ";
+                message += "that has the view ID \"" + setColor(((SugiliteOperationBlock) block).getElementMatchingFilter().getViewId(), "#800080") + "\" ";
             }
 
             if(((SugiliteOperationBlock) block).getElementMatchingFilter().getBoundsInScreen() != null){
-                message += "at the screen location (" + ((SugiliteOperationBlock) block).getElementMatchingFilter().getBoundsInScreen() + ") ";
+                message += "at the screen location (" + setColor(((SugiliteOperationBlock) block).getElementMatchingFilter().getBoundsInScreen(), "#006400") + ") ";
             }
 
             if(((SugiliteOperationBlock) block).getElementMatchingFilter().getBoundsInParent() != null){
-                message += "at the parent location (" + ((SugiliteOperationBlock) block).getElementMatchingFilter().getBoundsInParent() + ") ";
+                message += "at the parent location (" + setColor(((SugiliteOperationBlock) block).getElementMatchingFilter().getBoundsInParent(), "#006400") + ") ";
             }
 
             if(((SugiliteOperationBlock) block).getElementMatchingFilter().getPackageName() != null)
-                message += "in " + getReadableName(((SugiliteOperationBlock) block).getElementMatchingFilter().getPackageName()) + " ";
+                message += "in " + setColor(getReadableName(((SugiliteOperationBlock) block).getElementMatchingFilter().getPackageName()), "#ff00ff") + " ";
             return message;
         }
 
@@ -119,6 +120,10 @@ public class ReadableDescriptionGenerator {
             return (String)packageManager.getApplicationLabel(applicationInfo);
         else
             return packageName;
+    }
+
+    private String setColor(String message, String color){
+        return "<font color=\"" + color + "\"><b>" + message + "</b></font>";
     }
 
 }

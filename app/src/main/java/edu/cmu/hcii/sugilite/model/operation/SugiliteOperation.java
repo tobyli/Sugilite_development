@@ -10,7 +10,7 @@ import java.io.Serializable;
 public class SugiliteOperation implements Serializable {
     private int operationType;
     private String parameter;
-    public static int CLICK = 1, LONG_CLICK = 2, SET_TEXT = 3, CLEAR_TEXT = 4, CHECK = 5, UNCHECK = 6, RETURN = 7, SELECT = 8;
+    public static final int CLICK = 1, LONG_CLICK = 2, SET_TEXT = 3, CLEAR_TEXT = 4, CHECK = 5, UNCHECK = 6, RETURN = 7, SELECT = 8;
     public SugiliteOperation(){
         operationType = 0;
     }

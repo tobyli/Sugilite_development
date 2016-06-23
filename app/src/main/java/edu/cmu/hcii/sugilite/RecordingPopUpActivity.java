@@ -9,11 +9,8 @@ import android.graphics.Rect;
 import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.view.ContextMenu;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewManager;
 import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityNodeInfo;
 import android.widget.CheckBox;
@@ -25,7 +22,6 @@ import android.widget.Toast;
 import java.text.SimpleDateFormat;
 import java.util.AbstractMap;
 import java.util.Calendar;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
@@ -41,6 +37,7 @@ import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.model.block.UIElementMatchingFilter;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteOperation;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteSetTextOperation;
+import edu.cmu.hcii.sugilite.ui.ReadableDescriptionGenerator;
 
 public class RecordingPopUpActivity extends AppCompatActivity {
 
@@ -57,6 +54,7 @@ public class RecordingPopUpActivity extends AppCompatActivity {
     private Set<Map.Entry<String, String>> selectedParentFeatures = new HashSet<>();
     private Set<Map.Entry<String, String>> selectedChildFeatures = new HashSet<>();
     private SugiliteData sugiliteData;
+    private ReadableDescriptionGenerator readableDescriptionGenerator;
     static final int PICK_CHILD_FEATURE = 1;
     static final int PICK_PARENT_FEATURE = 2;
     @Override
@@ -65,12 +63,13 @@ public class RecordingPopUpActivity extends AppCompatActivity {
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         sugiliteData = (SugiliteData)getApplication();
         sugiliteScriptDao = new SugiliteScriptDao(this);
+        readableDescriptionGenerator = new ReadableDescriptionGenerator();
         setContentView(R.layout.activity_recoding_pop_up);
         //fetch the data capsuled in the intent
         if(savedInstanceState == null){
             Bundle extras = getIntent().getExtras();
             if(extras == null){
-
+                //something wrong here!
             }
             else{
                 packageName = extras.getString("packageName", "NULL");
@@ -112,11 +111,29 @@ public class RecordingPopUpActivity extends AppCompatActivity {
         dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ", Locale.US);
         dateFormat.setTimeZone(TimeZone.getTimeZone("US/Eastern"));
 
-        ((CheckBox) findViewById(R.id.packageName)).setText("Package Name: " + packageName);
+        ((CheckBox)findViewById(R.id.packageName)).setText("Package Name: " + packageName);
+        //by default: check package name & class name
+        ((CheckBox)findViewById(R.id.packageName)).setChecked(true);
         ((CheckBox)findViewById(R.id.className)).setText("Class Name: " + className);
-        ((CheckBox)findViewById(R.id.text)).setText("Text: " + text);
-        ((CheckBox)findViewById(R.id.contentDescription)).setText("Content Description: " + contentDescription);
-        ((CheckBox)findViewById(R.id.viewId)).setText("ViewId: " + viewId);
+        ((CheckBox)findViewById(R.id.className)).setChecked(true);
+
+
+        if(!text.contentEquals("NULL"))
+            ((CheckBox)findViewById(R.id.text)).setText("Text: " + text);
+        else
+            ((ViewManager)findViewById(R.id.text).getParent()).removeView(findViewById(R.id.text));
+
+        if(!contentDescription.contentEquals("NULL"))
+            ((CheckBox)findViewById(R.id.contentDescription)).setText("Content Description: " + contentDescription);
+        else
+            ((ViewManager)findViewById(R.id.contentDescription).getParent()).removeView(findViewById(R.id.contentDescription));
+
+        if(!viewId.contentEquals("NULL"))
+            ((CheckBox)findViewById(R.id.viewId)).setText("ViewId: " + viewId);
+        else
+            ((ViewManager)findViewById(R.id.viewId).getParent()).removeView(findViewById(R.id.viewId));
+
+
         ((CheckBox)findViewById(R.id.boundsInParent)).setText("Bounds in Parent: " + boundsInParent);
         ((CheckBox)findViewById(R.id.boundsInScreen)).setText("Bounds in Screen: " + boundsInScreen);
         ((TextView)findViewById(R.id.time)).setText("Event Time: " + dateFormat.format(c.getTime()) + "\nRecording script: " + sharedPreferences.getString("scriptName", "NULL"));
@@ -172,9 +189,9 @@ public class RecordingPopUpActivity extends AppCompatActivity {
         String[] operations = {};
         if(eventType == AccessibilityEvent.TYPE_VIEW_CLICKED) {
             if (isEditable)
-                operations = new String[]{"CLICK", "RETURN", "SET TEXT"};
+                operations = new String[]{"CLICK", "SET TEXT"};
             else
-                operations = new String[]{"CLICK", "RETURN"};
+                operations = new String[]{"CLICK"};
             final SugiliteOperation sugiliteOperation = new SugiliteOperation();
             sugiliteOperation.setOperationType(SugiliteOperation.CLICK);
             final SugiliteOperationBlock operationBlock = new SugiliteOperationBlock();
@@ -189,10 +206,6 @@ public class RecordingPopUpActivity extends AppCompatActivity {
                             sugiliteOperation.setOperationType(SugiliteOperation.CLICK);
                             break;
                         case 1:
-                            Toast.makeText(getApplicationContext(), "RETURN REQUESTED", Toast.LENGTH_SHORT).show();
-                            sugiliteOperation.setOperationType(SugiliteOperation.RETURN);
-                            break;
-                        case 2:
                             Toast.makeText(getApplicationContext(), "SET_TEXT REQUESTED", Toast.LENGTH_SHORT).show();
                             sugiliteOperation.setOperationType(SugiliteOperation.SET_TEXT);
                             break;
@@ -213,14 +226,11 @@ public class RecordingPopUpActivity extends AppCompatActivity {
                         if (operationBlock.getOperation().getOperationType() == SugiliteOperation.CLICK) {
                             message += "Click ";
                         }
-                        if (operationBlock.getOperation().getOperationType() == SugiliteOperation.RETURN) {
-                            message += "Return";
-                        }
                         if (operationBlock.getOperation().getOperationType() == SugiliteOperation.SET_TEXT) {
                             message += "Set text to \"" + ((SugiliteSetTextOperation) operationBlock.getOperation()).getText() + "\" ";
                         }
                         message += generateDescription();
-                        operationBlock.setDescription(message);
+                        operationBlock.setDescription(readableDescriptionGenerator.generateReadableDescription(operationBlock));
                         sugiliteData.setCurrentScriptBlock(operationBlock);
                         try {
                             sugiliteScriptDao.save((SugiliteStartingBlock) sugiliteData.getScriptHead());
@@ -230,7 +240,7 @@ public class RecordingPopUpActivity extends AppCompatActivity {
                         System.out.println("saved block");
                         new AlertDialog.Builder(activityContext)
                                 .setTitle("Operation Recorded")
-                                .setMessage(message)
+                                .setMessage(readableDescriptionGenerator.generateReadableDescription(operationBlock))
                                 .setPositiveButton("OK", new DialogInterface.OnClickListener() {
                                     public void onClick(DialogInterface dialog, int which) {
                                         // continue with delete
@@ -264,14 +274,11 @@ public class RecordingPopUpActivity extends AppCompatActivity {
                                 if (operationBlock.getOperation().getOperationType() == SugiliteOperation.CLICK) {
                                     message += "Click ";
                                 }
-                                if (operationBlock.getOperation().getOperationType() == SugiliteOperation.RETURN) {
-                                    message += "Return";
-                                }
                                 if (operationBlock.getOperation().getOperationType() == SugiliteOperation.SET_TEXT) {
                                     message += "Set text to \"" + ((SugiliteSetTextOperation) operationBlock.getOperation()).getText() + "\" ";
                                 }
                                 message += generateDescription();
-                                operationBlock.setDescription(message);
+                                operationBlock.setDescription(readableDescriptionGenerator.generateReadableDescription(operationBlock));
                                 sugiliteData.setCurrentScriptBlock(operationBlock);
                                 try {
                                     sugiliteScriptDao.save((SugiliteStartingBlock) sugiliteData.getScriptHead());
@@ -281,7 +288,7 @@ public class RecordingPopUpActivity extends AppCompatActivity {
 
                                 new AlertDialog.Builder(activityContext)
                                         .setTitle("Operation Recorded")
-                                        .setMessage(message)
+                                        .setMessage(readableDescriptionGenerator.generateReadableDescription(operationBlock))
                                         .setPositiveButton("OK", new DialogInterface.OnClickListener() {
                                             public void onClick(DialogInterface dialog, int which) {
                                                 sugiliteData.addInstruction(operationBlock);
@@ -300,8 +307,9 @@ public class RecordingPopUpActivity extends AppCompatActivity {
             });
             builder.show();
         }
-        else{
 
+
+        else{
             String defaultOperationName = "NULL";
             String message = "";
             SugiliteOperation sugiliteOperation = new SugiliteOperation();
@@ -317,7 +325,6 @@ public class RecordingPopUpActivity extends AppCompatActivity {
                     message += "Long click ";
                     break;
             }
-            operations = new String[]{defaultOperationName, "RETURN", "SET TEXT"};
             final SugiliteOperationBlock operationBlock = new SugiliteOperationBlock();
             operationBlock.setOperation(sugiliteOperation);
             final Context activityContext = this;
@@ -333,7 +340,7 @@ public class RecordingPopUpActivity extends AppCompatActivity {
                 ((SugiliteStartingBlock) sugiliteData.getCurrentScriptBlock()).setNextBlock(operationBlock);
             }
             message += generateDescription();
-            operationBlock.setDescription(message);
+            operationBlock.setDescription(readableDescriptionGenerator.generateReadableDescription(operationBlock));
             sugiliteData.setCurrentScriptBlock(operationBlock);
             try {
                 sugiliteScriptDao.save((SugiliteStartingBlock) sugiliteData.getScriptHead());
@@ -343,7 +350,7 @@ public class RecordingPopUpActivity extends AppCompatActivity {
             System.out.println("saved block");
             new AlertDialog.Builder(activityContext)
                     .setTitle("Operation Recorded")
-                    .setMessage(message)
+                    .setMessage(readableDescriptionGenerator.generateReadableDescription(operationBlock))
                     .setPositiveButton("OK", new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int which) {
                             // continue with delete
@@ -449,25 +456,25 @@ public class RecordingPopUpActivity extends AppCompatActivity {
      */
     public UIElementMatchingFilter generateFilter(){
         UIElementMatchingFilter filter = new UIElementMatchingFilter();
-        if(((CheckBox)findViewById(R.id.packageName)).isChecked()){
+        if((findViewById(R.id.packageName) != null) && (((CheckBox)findViewById(R.id.packageName)).isChecked())){
             filter.setPackageName(packageName);
         }
-        if(((CheckBox)findViewById(R.id.className)).isChecked()){
+        if((findViewById(R.id.className) != null) && ((CheckBox)findViewById(R.id.className)).isChecked()){
             filter.setClassName(className);
         }
-        if(((CheckBox)findViewById(R.id.text)).isChecked()){
+        if((findViewById(R.id.text) != null) && ((CheckBox)findViewById(R.id.text)).isChecked()){
             filter.setText(text);
         }
-        if(((CheckBox)findViewById(R.id.contentDescription)).isChecked()){
+        if((findViewById(R.id.contentDescription) != null) && ((CheckBox)findViewById(R.id.contentDescription)).isChecked()){
             filter.setContentDescription(contentDescription);
         }
-        if(((CheckBox)findViewById(R.id.viewId)).isChecked()){
+        if((findViewById(R.id.viewId) != null) && ((CheckBox)findViewById(R.id.viewId)).isChecked()){
             filter.setViewId(viewId);
         }
-        if(((CheckBox)findViewById(R.id.boundsInParent)).isChecked()){
+        if((findViewById(R.id.boundsInParent) != null) && ((CheckBox)findViewById(R.id.boundsInParent)).isChecked()){
             filter.setBoundsInParent(Rect.unflattenFromString(boundsInParent));
         }
-        if(((CheckBox)findViewById(R.id.boundsInScreen)).isChecked()){
+        if((findViewById(R.id.boundsInScreen) != null) && ((CheckBox)findViewById(R.id.boundsInScreen)).isChecked()){
             filter.setBoundsInScreen(Rect.unflattenFromString(boundsInScreen));
         }
         if (selectedChildFeatures.size() > 0){
@@ -530,31 +537,31 @@ public class RecordingPopUpActivity extends AppCompatActivity {
         }
         */
         retVal += "on UI element that ";
-        if(((CheckBox)findViewById(R.id.packageName)).isChecked()){
+        if((findViewById(R.id.packageName) != null) && ((CheckBox)findViewById(R.id.packageName)).isChecked()){
             retVal += ((notFirstCondition? "and " : "") + "is within the package \"" + packageName + "\" ");
             notFirstCondition = true;
         }
-        if(((CheckBox)findViewById(R.id.className)).isChecked()){
+        if((findViewById(R.id.className) != null) && ((CheckBox)findViewById(R.id.className)).isChecked()){
             retVal += ((notFirstCondition? "and " : "") + "is of the class type \"" + className + "\" ");
             notFirstCondition = true;
         }
-        if(((CheckBox)findViewById(R.id.text)).isChecked()){
+        if((findViewById(R.id.text) != null) && ((CheckBox)findViewById(R.id.text)).isChecked()){
             retVal += ((notFirstCondition? "and " : "") + "has text \"" + text + "\" ");
             notFirstCondition = true;
         }
-        if(((CheckBox)findViewById(R.id.contentDescription)).isChecked()){
+        if((findViewById(R.id.contentDescription) != null) && ((CheckBox)findViewById(R.id.contentDescription)).isChecked()){
             retVal += ((notFirstCondition? "and " : "") + "has contentDescription \"" + contentDescription + "\" ");
             notFirstCondition = true;
         }
-        if(((CheckBox)findViewById(R.id.viewId)).isChecked()){
+        if((findViewById(R.id.viewId) != null) && ((CheckBox)findViewById(R.id.viewId)).isChecked()){
             retVal += ((notFirstCondition? "and " : "") + "has view ID \"" + viewId + "\" ");
             notFirstCondition = true;
         }
-        if(((CheckBox)findViewById(R.id.boundsInParent)).isChecked()){
+        if((findViewById(R.id.boundsInParent) != null) && ((CheckBox)findViewById(R.id.boundsInParent)).isChecked()){
             retVal += ((notFirstCondition? "and " : "") + "has location relative to its parent element at \"" + boundsInParent + "\" ");
             notFirstCondition = true;
         }
-        if(((CheckBox)findViewById(R.id.boundsInScreen)).isChecked()){
+        if((findViewById(R.id.boundsInScreen) != null) && ((CheckBox)findViewById(R.id.boundsInScreen)).isChecked()){
             retVal += ((notFirstCondition? "and " : "") + "has location on screen at \"" + boundsInScreen + "\" ");
             notFirstCondition = true;
         }

@@ -135,6 +135,42 @@ public class UIElementMatchingFilter implements Serializable {
         return this;
     }
 
+    public String getText(){
+        return text;
+    }
+
+    public String getContentDescription(){
+        return contentDescription;
+    }
+
+    public String getViewId(){
+        return viewId;
+    }
+
+    public String getPackageName(){
+        return packageName;
+    }
+
+    public String getClassName(){
+        return className;
+    }
+
+    public String getBoundsInScreen(){
+        return boundsInScreen;
+    }
+
+    public String getBoundsInParent(){
+        return boundsInParent;
+    }
+
+    public UIElementMatchingFilter getParentFilter(){
+        return parentFilter;
+    }
+
+    public UIElementMatchingFilter getChildFilter(){
+        return childFilter;
+    }
+
     public boolean filter (AccessibilityNodeInfo nodeInfo) {
         if (nodeInfo == null)
             return false;

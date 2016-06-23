@@ -1,5 +1,9 @@
 package edu.cmu.hcii.sugilite.ui;
 
+import android.content.Context;
+import android.content.pm.ApplicationInfo;
+import android.content.pm.PackageManager;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -14,10 +18,12 @@ import edu.cmu.hcii.sugilite.model.operation.SugiliteOperation;
  * @time 4:03 PM
  */
 public class ReadableDescriptionGenerator {
-    Map<String, String> packageNameReadableNameMap;
-    public ReadableDescriptionGenerator(){
+    private Map<String, String> packageNameReadableNameMap;
+    private PackageManager packageManager;
+    public ReadableDescriptionGenerator(Context applicationContext){
         packageNameReadableNameMap = new HashMap<>();
         setupPackageNameReadableNameMap();
+        packageManager = applicationContext.getPackageManager();
     }
     public String generateReadableDescription(SugiliteBlock block){
         String message = "";
@@ -37,7 +43,7 @@ public class ReadableDescriptionGenerator {
                     message += "Select ";
                     break;
                 case SugiliteOperation.SET_TEXT:
-                    message += "Set Text to \"" + operation.getParameter() + "\" for";
+                    message += "Set Text to \"" + operation.getParameter() + "\" for ";
                     break;
                 case SugiliteOperation.LONG_CLICK:
                     message += "Long click on ";
@@ -56,7 +62,7 @@ public class ReadableDescriptionGenerator {
                         message += "the textbox ";
                         break;
                     default:
-                        message += "the object";
+                        message += "the object ";
                 }
             }
 
@@ -66,10 +72,10 @@ public class ReadableDescriptionGenerator {
             else if (((SugiliteOperationBlock) block).getElementMatchingFilter().getContentDescription() != null){
                 message += "\"" + ((SugiliteOperationBlock) block).getElementMatchingFilter().getContentDescription() + "\" ";
             }
-            else if (((SugiliteOperationBlock) block).getElementMatchingFilter().getChildFilter().getText() != null){
+            else if (((SugiliteOperationBlock) block).getElementMatchingFilter().getChildFilter()!= null && ((SugiliteOperationBlock) block).getElementMatchingFilter().getChildFilter().getText() != null){
                 message += "\"" + ((SugiliteOperationBlock) block).getElementMatchingFilter().getChildFilter().getText() + "\" ";
             }
-            else if (((SugiliteOperationBlock) block).getElementMatchingFilter().getChildFilter().getContentDescription() != null){
+            else if (((SugiliteOperationBlock) block).getElementMatchingFilter().getChildFilter()!= null && ((SugiliteOperationBlock) block).getElementMatchingFilter().getChildFilter().getContentDescription() != null){
                 message += "\"" + ((SugiliteOperationBlock) block).getElementMatchingFilter().getChildFilter().getContentDescription() + "\" ";
             }
 
@@ -78,11 +84,11 @@ public class ReadableDescriptionGenerator {
             }
 
             if(((SugiliteOperationBlock) block).getElementMatchingFilter().getBoundsInScreen() != null){
-                message += "at screen location (" + ((SugiliteOperationBlock) block).getElementMatchingFilter().getBoundsInScreen() + ") ";
+                message += "at the screen location (" + ((SugiliteOperationBlock) block).getElementMatchingFilter().getBoundsInScreen() + ") ";
             }
 
             if(((SugiliteOperationBlock) block).getElementMatchingFilter().getBoundsInParent() != null){
-                message += "at parent location (" + ((SugiliteOperationBlock) block).getElementMatchingFilter().getBoundsInParent() + ") ";
+                message += "at the parent location (" + ((SugiliteOperationBlock) block).getElementMatchingFilter().getBoundsInParent() + ") ";
             }
 
             if(((SugiliteOperationBlock) block).getElementMatchingFilter().getPackageName() != null)
@@ -96,12 +102,21 @@ public class ReadableDescriptionGenerator {
     }
 
     private void setupPackageNameReadableNameMap(){
-
+        packageNameReadableNameMap.put("com.google.android.googlequicksearchbox", "Home Screen");
     }
 
     private String getReadableName(String packageName){
+        ApplicationInfo applicationInfo;
+        try{
+            applicationInfo = packageManager.getApplicationInfo(packageName, 0);
+        }
+        catch (Exception e){
+            applicationInfo = null;
+        }
         if(packageNameReadableNameMap.containsKey(packageName))
             return packageNameReadableNameMap.get(packageName);
+        else if (applicationInfo != null)
+            return (String)packageManager.getApplicationLabel(applicationInfo);
         else
             return packageName;
     }

@@ -80,15 +80,17 @@ public class UIElementFeatureRecommender {
         return false;
     }
 
-    public Set<Map.Entry<String, String>> chooseAllParentFeatures(){
+    public Set<Map.Entry<String, String>> chooseParentFeatures(){
         return new HashSet<Map.Entry<String, String>>();
     }
 
-    public Set<Map.Entry<String, String>> chooseAllChildFeatures(){
+    public Set<Map.Entry<String, String>> chooseChildFeatures(){
         Set<Map.Entry<String, String>> retSet = new HashSet<>();
-        for(Map.Entry<String, String> key : retSet){
-            if(key.getKey().contentEquals("text")) {
-                retSet.add(key);
+        if(!(contentDescription.contentEquals("NULL") && text.contentEquals("NULL")))
+            return retSet;
+        for(Map.Entry<String, String> entry : allChildFeatures){
+            if(entry.getKey().contentEquals("text")) {
+                retSet.add(entry);
                 break;
             }
         }

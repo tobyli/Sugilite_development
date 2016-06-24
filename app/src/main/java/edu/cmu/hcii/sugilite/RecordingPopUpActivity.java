@@ -194,8 +194,8 @@ public class RecordingPopUpActivity extends AppCompatActivity {
 
         //populate selected child/parent features
         if(autoFillEnabled){
-            selectedChildFeatures.addAll(recommender.chooseAllChildFeatures());
-            selectedParentFeatures.addAll(recommender.chooseAllParentFeatures());
+            selectedChildFeatures.addAll(recommender.chooseChildFeatures());
+            selectedParentFeatures.addAll(recommender.chooseParentFeatures());
             if(findViewById(R.id.childrenCheckbox) != null)
                 ((CheckBox)findViewById(R.id.childrenCheckbox)).setChecked(selectedChildFeatures.size() > 0);
             if(findViewById(R.id.parentCheckbox) != null)
@@ -353,7 +353,7 @@ public class RecordingPopUpActivity extends AppCompatActivity {
                     }
                 }
             });
-            builder.show();
+            AlertDialog dialog = builder.show();
         }
 
 

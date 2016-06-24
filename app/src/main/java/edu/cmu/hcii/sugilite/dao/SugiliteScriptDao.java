@@ -66,7 +66,10 @@ public class SugiliteScriptDao {
     public long size(){
         SQLiteDatabase db = sugiliteScriptDbHelper.getReadableDatabase();
         SQLiteStatement statement = db.compileStatement("select count (*) from " + SugiliteScriptDbContract.SugiliteScriptRecordEntry.TABLE_NAME + ";");
-        return statement.simpleQueryForLong();    }
+        long size = statement.simpleQueryForLong();
+        db.close();
+        return size;
+    }
 
     /**
      *
@@ -74,7 +77,9 @@ public class SugiliteScriptDao {
      */
     public String getPath(){
         SQLiteDatabase db = sugiliteScriptDbHelper.getReadableDatabase();
-        return db.getPath();
+        String path = db.getPath();
+        db.close();
+        return path;
     }
 
     /**
@@ -85,22 +90,28 @@ public class SugiliteScriptDao {
     public SugiliteStartingBlock read(String key){
         SQLiteDatabase db = sugiliteScriptDbHelper.getReadableDatabase();
         Cursor cursor = db.rawQuery("SELECT * FROM " + SugiliteScriptDbContract.SugiliteScriptRecordEntry.TABLE_NAME + " WHERE " + SugiliteScriptDbContract.SugiliteScriptRecordEntry.COLUMN_NAME_SCRIPT_NAME + " = \'" + key + "\';", null);
-        if(cursor.getCount() == 0)
+        if(cursor.getCount() == 0) {
+            db.close();
             return null;
+        }
         cursor.moveToFirst();
         byte[] blob = cursor.getBlob(cursor.getColumnIndex(SugiliteScriptDbContract.SugiliteScriptRecordEntry.COLUMN_NAME_SCRIPT_BODY));
         SugiliteStartingBlock block = (SugiliteStartingBlock)SerializationUtils.deserialize(blob);
+        db.close();
         return block;
     }
 
     public SugiliteStartingBlock read(long id){
         SQLiteDatabase db = sugiliteScriptDbHelper.getReadableDatabase();
         Cursor cursor = db.rawQuery("SELECT * FROM " + SugiliteScriptDbContract.SugiliteScriptRecordEntry.TABLE_NAME + " WHERE " + SugiliteScriptDbContract.SugiliteScriptRecordEntry._ID + " = \'" + id + "\';", null);
-        if(cursor.getCount() == 0)
+        if(cursor.getCount() == 0) {
+            db.close();
             return null;
+        }
         cursor.moveToFirst();
         byte[] blob = cursor.getBlob(cursor.getColumnIndex(SugiliteScriptDbContract.SugiliteScriptRecordEntry.COLUMN_NAME_SCRIPT_BODY));
         SugiliteStartingBlock block = (SugiliteStartingBlock)SerializationUtils.deserialize(blob);
+        db.close();
         return block;
     }
 
@@ -112,7 +123,9 @@ public class SugiliteScriptDao {
     public int delete(String key){
         SQLiteDatabase db = sugiliteScriptDbHelper.getWritableDatabase();
         SQLiteStatement statement = db.compileStatement("DELETE FROM " + SugiliteScriptDbContract.SugiliteScriptRecordEntry.TABLE_NAME + " WHERE " + SugiliteScriptDbContract.SugiliteScriptRecordEntry.COLUMN_NAME_SCRIPT_NAME + " = \'" + key + "\';");
-        return statement.executeUpdateDelete();
+        int rowCount = statement.executeUpdateDelete();
+        db.close();
+        return rowCount;
     }
 
     /**
@@ -123,7 +136,9 @@ public class SugiliteScriptDao {
     public int clear(){
         SQLiteDatabase db = sugiliteScriptDbHelper.getWritableDatabase();
         SQLiteStatement statement = db.compileStatement("DELETE FROM " + SugiliteScriptDbContract.SugiliteScriptRecordEntry.TABLE_NAME + ";");
-        return statement.executeUpdateDelete();
+        int rowCount = statement.executeUpdateDelete();
+        db.close();
+        return rowCount;
     }
 
     /**
@@ -140,6 +155,7 @@ public class SugiliteScriptDao {
             names.add(name);
             cursor.moveToNext();
         }
+        db.close();
         return names;
     }
 
@@ -158,6 +174,7 @@ public class SugiliteScriptDao {
             scripts.add(block);
             cursor.moveToNext();
         }
+        db.close();
         return scripts;
     }
 

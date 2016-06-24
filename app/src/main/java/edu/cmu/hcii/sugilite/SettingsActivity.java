@@ -32,6 +32,8 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import com.stericson.RootTools.RootTools;
+
 import java.util.List;
 
 import edu.cmu.hcii.sugilite.automation.ServiceStatusManager;
@@ -176,22 +178,32 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
                     break;
 
                 case "root_enabled":
-                    SwitchPreference rootEnabledSwitch = (SwitchPreference) preference;
+                    final SwitchPreference rootEnabledSwitch = (SwitchPreference) preference;
                     if(!rootEnabledSwitch.isChecked()){
                         boolean rootEnabled = true;
+                        AlertDialog.Builder builder = new AlertDialog.Builder(preference.getContext());
+                        builder.setTitle("Root request failed").setMessage("Failed to get root access! Please check if your device has been rooted, or if the root access has been denied.");
+                        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                rootEnabledSwitch.setChecked(false);
+                            }
+                        });
                         //root access is enabled
                         try {
-                            Process p =  Runtime.getRuntime().exec("su");
+                            rootEnabled = RootTools.isAccessGiven();
                         }
                         catch (Exception e){
                             e.printStackTrace();
-                            Toast.makeText(preference.getContext(), "Failed to get root access", Toast.LENGTH_SHORT).show();
                             rootEnabled = false;
-                            rootEnabledSwitch.setChecked(false);
+                            builder.show();
                             //do nothing
                         }
                         if(rootEnabled)
                             Toast.makeText(preference.getContext(), "Root access is enabled", Toast.LENGTH_SHORT).show();
+                        else {
+                            builder.show();
+                        }
                     }
                     else {
                         //root access is disabled

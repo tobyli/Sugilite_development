@@ -44,6 +44,7 @@ import edu.cmu.hcii.sugilite.model.block.UIElementMatchingFilter;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteOperation;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteSetTextOperation;
 import edu.cmu.hcii.sugilite.ui.ReadableDescriptionGenerator;
+import edu.cmu.hcii.sugilite.ui.UIElementFeatureRecommender;
 
 public class RecordingPopUpActivity extends AppCompatActivity {
 
@@ -51,6 +52,7 @@ public class RecordingPopUpActivity extends AppCompatActivity {
     private boolean isEditable;
     private long time;
     private int eventType;
+    private File screenshot;
     private SharedPreferences sharedPreferences;
     private AccessibilityNodeInfo parentNode;
     private AccessibilityNodeInfoList childNodes, allNodes;
@@ -61,6 +63,7 @@ public class RecordingPopUpActivity extends AppCompatActivity {
     private Set<Map.Entry<String, String>> selectedChildFeatures = new HashSet<>();
     private SugiliteData sugiliteData;
     private ReadableDescriptionGenerator readableDescriptionGenerator;
+    private UIElementFeatureRecommender recommender;
     static final int PICK_CHILD_FEATURE = 1;
     static final int PICK_PARENT_FEATURE = 2;
     @Override
@@ -92,6 +95,7 @@ public class RecordingPopUpActivity extends AppCompatActivity {
                 allNodes = extras.getParcelable("allNodes");
                 isEditable = extras.getBoolean("isEditable");
                 eventType = extras.getInt("eventType");
+                screenshot = (File)extras.getSerializable("screenshot");
             }
         }
         else{
@@ -109,40 +113,8 @@ public class RecordingPopUpActivity extends AppCompatActivity {
             allNodes = savedInstanceState.getParcelable("allNodes");
             isEditable = savedInstanceState.getBoolean("isEditable");
             eventType = savedInstanceState.getInt("eventType");
+            screenshot = (File)savedInstanceState.getSerializable("screenshot");
         }
-
-        Calendar c = Calendar.getInstance();
-        c.setTimeInMillis(time);
-        SimpleDateFormat dateFormat;
-        dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ", Locale.US);
-        dateFormat.setTimeZone(TimeZone.getTimeZone("US/Eastern"));
-
-        ((CheckBox)findViewById(R.id.packageName)).setText("Package Name: " + packageName);
-        //by default: check package name & class name
-        ((CheckBox)findViewById(R.id.packageName)).setChecked(true);
-        ((CheckBox)findViewById(R.id.className)).setText("Class Name: " + className);
-        ((CheckBox)findViewById(R.id.className)).setChecked(true);
-
-
-        if(!text.contentEquals("NULL"))
-            ((CheckBox)findViewById(R.id.text)).setText("Text: " + text);
-        else
-            ((ViewManager)findViewById(R.id.text).getParent()).removeView(findViewById(R.id.text));
-
-        if(!contentDescription.contentEquals("NULL"))
-            ((CheckBox)findViewById(R.id.contentDescription)).setText("Content Description: " + contentDescription);
-        else
-            ((ViewManager)findViewById(R.id.contentDescription).getParent()).removeView(findViewById(R.id.contentDescription));
-
-        if(!viewId.contentEquals("NULL"))
-            ((CheckBox)findViewById(R.id.viewId)).setText("ViewId: " + viewId);
-        else
-            ((ViewManager)findViewById(R.id.viewId).getParent()).removeView(findViewById(R.id.viewId));
-
-
-        ((CheckBox)findViewById(R.id.boundsInParent)).setText("Bounds in Parent: " + boundsInParent);
-        ((CheckBox)findViewById(R.id.boundsInScreen)).setText("Bounds in Screen: " + boundsInScreen);
-        ((TextView)findViewById(R.id.time)).setText("Event Time: " + dateFormat.format(c.getTime()) + "\nRecording script: " + sharedPreferences.getString("scriptName", "NULL"));
 
         //populate parent features
         if(parentNode != null){
@@ -171,8 +143,69 @@ public class RecordingPopUpActivity extends AppCompatActivity {
         if(allChildFeatures.size() == 0)
             ((ViewManager)findViewById(R.id.childrenCheckbox).getParent()).removeView(findViewById(R.id.childrenCheckbox));
 
+        recommender = new UIElementFeatureRecommender(packageName, className, text, contentDescription, viewId, boundsInParent, boundsInScreen, isEditable, time, eventType, allParentFeatures, allChildFeatures);
 
+        Calendar c = Calendar.getInstance();
+        c.setTimeInMillis(time);
+        SimpleDateFormat dateFormat;
+        dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ", Locale.US);
+        dateFormat.setTimeZone(TimeZone.getTimeZone("US/Eastern"));
+        boolean autoFillEnabled = sharedPreferences.getBoolean("auto_fill_enabled", false);
+
+        ((CheckBox)findViewById(R.id.packageName)).setText("App Name: " + readableDescriptionGenerator.getReadableName(packageName));
+        //by default: check package name & class name
+        ((CheckBox)findViewById(R.id.packageName)).setChecked(true);
+        ((CheckBox)findViewById(R.id.className)).setText("Class Name: " + className);
+        ((CheckBox)findViewById(R.id.className)).setChecked(true);
+
+
+        if(!text.contentEquals("NULL")) {
+            ((CheckBox) findViewById(R.id.text)).setText("Text: " + text);
+            if(autoFillEnabled)
+                ((CheckBox) findViewById(R.id.text)).setChecked(recommender.chooseText());
+        }
+        else
+            ((ViewManager)findViewById(R.id.text).getParent()).removeView(findViewById(R.id.text));
+
+        if(!contentDescription.contentEquals("NULL")) {
+            ((CheckBox) findViewById(R.id.contentDescription)).setText("Content Description: " + contentDescription);
+            if(autoFillEnabled)
+                ((CheckBox) findViewById(R.id.contentDescription)).setChecked(recommender.chooseContentDescription());
+        }
+        else
+            ((ViewManager)findViewById(R.id.contentDescription).getParent()).removeView(findViewById(R.id.contentDescription));
+
+        if(!viewId.contentEquals("NULL")) {
+            ((CheckBox) findViewById(R.id.viewId)).setText("ViewId: " + viewId);
+            if(autoFillEnabled)
+                ((CheckBox) findViewById(R.id.viewId)).setChecked(recommender.chooseViewId());
+        }
+        else
+            ((ViewManager)findViewById(R.id.viewId).getParent()).removeView(findViewById(R.id.viewId));
+
+
+        ((CheckBox)findViewById(R.id.boundsInParent)).setText("Bounds in Parent: " + boundsInParent);
+        if(autoFillEnabled)
+            ((CheckBox) findViewById(R.id.boundsInParent)).setChecked(recommender.chooseBoundsInParent());
+
+        ((CheckBox)findViewById(R.id.boundsInScreen)).setText("Bounds in Screen: " + boundsInScreen);
+        if(autoFillEnabled)
+            ((CheckBox) findViewById(R.id.boundsInScreen)).setChecked(recommender.chooseBoundsInScreen());
+
+        //populate selected child/parent features
+        if(autoFillEnabled){
+            selectedChildFeatures.addAll(recommender.chooseAllChildFeatures());
+            selectedParentFeatures.addAll(recommender.chooseAllParentFeatures());
+            if(findViewById(R.id.childrenCheckbox) != null)
+                ((CheckBox)findViewById(R.id.childrenCheckbox)).setChecked(selectedChildFeatures.size() > 0);
+            if(findViewById(R.id.parentCheckbox) != null)
+                ((CheckBox)findViewById(R.id.parentCheckbox)).setChecked(selectedParentFeatures.size() > 0);
+        }
+
+
+        ((TextView)findViewById(R.id.time)).setText("Event Time: " + dateFormat.format(c.getTime()) + "\nRecording script: " + sharedPreferences.getString("scriptName", "NULL"));
         ((TextView)findViewById(R.id.filteredNodeCount)).setText(generateFilterCount());
+        ((TextView)findViewById(R.id.operationDescription)).setText(generateDescription());
 
     }
 
@@ -227,6 +260,7 @@ public class RecordingPopUpActivity extends AppCompatActivity {
                     operationBlock.setDescription(generateDescription());
                     operationBlock.setPreviousBlock(sugiliteData.getCurrentScriptBlock());
                     operationBlock.setElementMatchingFilter(generateFilter());
+                    operationBlock.setScreenshot(screenshot);
                     //genereate the block if the operation is click or return
                     if (sugiliteOperation.getOperationType() == SugiliteOperation.CLICK || sugiliteOperation.getOperationType() == SugiliteOperation.RETURN) {
                         operationBlock.setOperation(sugiliteOperation);
@@ -346,6 +380,8 @@ public class RecordingPopUpActivity extends AppCompatActivity {
             operationBlock.setPreviousBlock(sugiliteData.getCurrentScriptBlock());
             operationBlock.setElementMatchingFilter(generateFilter());
             operationBlock.setOperation(sugiliteOperation);
+            operationBlock.setScreenshot(screenshot);
+
 
             if (sugiliteData.getCurrentScriptBlock() instanceof SugiliteOperationBlock) {
                 ((SugiliteOperationBlock) sugiliteData.getCurrentScriptBlock()).setNextBlock(operationBlock);

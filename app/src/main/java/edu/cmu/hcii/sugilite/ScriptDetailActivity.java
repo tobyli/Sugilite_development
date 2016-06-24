@@ -4,6 +4,7 @@ import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.net.Uri;
 import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -12,6 +13,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -44,11 +46,26 @@ public class ScriptDetailActivity extends AppCompatActivity {
         sugiliteScriptDao = new SugiliteScriptDao(this);
         script = sugiliteScriptDao.read(scriptName);
         if (script != null){
-            for(SugiliteBlock block : traverseBlock(script)) {
+            for(final SugiliteBlock block : traverseBlock(script)) {
                 TextView operationStepItem = new TextView(this);
                 operationStepItem.setText(Html.fromHtml(block.getDescription()));
                 LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
                 layoutParams.setMargins(0, 0, 0, 30);
+                operationStepItem.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        //show screenshot
+                        if(block.getScreenshot() == null || (!block.getScreenshot().exists())){
+                            //no screenshot available
+                            Toast.makeText(v.getContext(), "No screenshot available!", Toast.LENGTH_SHORT).show();
+                            return;
+                        }
+                        Intent intent = new Intent();
+                        intent.setAction(Intent.ACTION_VIEW);
+                        intent.setDataAndType(Uri.fromFile(block.getScreenshot()), "image/*");
+                        startActivity(intent);
+                    }
+                });
                 operationStepList.addView(operationStepItem, layoutParams);
             }
         }

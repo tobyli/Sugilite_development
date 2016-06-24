@@ -1,5 +1,6 @@
 package edu.cmu.hcii.sugilite.model.block;
 
+import java.io.File;
 import java.io.Serializable;
 
 /**
@@ -13,6 +14,7 @@ public abstract class SugiliteBlock implements Serializable{
     //each block can only have 1 previous block
     SugiliteBlock previousBlock;
     private String description;
+    private File screenshot;
     public void setDescription(String description){
         this.description = description;
     }
@@ -24,6 +26,12 @@ public abstract class SugiliteBlock implements Serializable{
     }
     public void setPreviousBlock (SugiliteBlock block){
         this.previousBlock = block;
+    }
+    public void setScreenshot (File screenshot){
+        this.screenshot = screenshot;
+    }
+    public File getScreenshot(){
+        return screenshot;
     }
     //each "run" method should execute the task wrapped in the block, and call the "run" method of the next block
     public abstract boolean run() throws Exception;

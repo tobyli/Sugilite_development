@@ -106,7 +106,12 @@ public class ReadableDescriptionGenerator {
         packageNameReadableNameMap.put("com.google.android.googlequicksearchbox", "Home Screen");
     }
 
-    private String getReadableName(String packageName){
+    /**
+     * get readable app name from package name
+     * @param packageName
+     * @return
+     */
+    public String getReadableName(String packageName){
         ApplicationInfo applicationInfo;
         try{
             applicationInfo = packageManager.getApplicationInfo(packageName, 0);

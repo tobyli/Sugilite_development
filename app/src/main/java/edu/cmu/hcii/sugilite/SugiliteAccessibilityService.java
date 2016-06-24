@@ -10,6 +10,7 @@ import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityNodeInfo;
 import android.widget.Toast;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
@@ -17,6 +18,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import edu.cmu.hcii.sugilite.dao.SugiliteScreenshotManager;
 import edu.cmu.hcii.sugilite.model.AccessibilityNodeInfoList;
 import edu.cmu.hcii.sugilite.automation.*;
 import edu.cmu.hcii.sugilite.model.block.UIElementMatchingFilter;
@@ -28,6 +30,8 @@ public class SugiliteAccessibilityService extends AccessibilityService {
     private Automator automator;
     private SugiliteData sugiliteData;
     private StatusIconManager statusIconManager;
+    private SugiliteScreenshotManager screenshotManager;
+    private Set<Integer> accessibilityEventSetToHandle, accessibilityEventSetToSend;
 
     public SugiliteAccessibilityService() {
     }
@@ -39,7 +43,23 @@ public class SugiliteAccessibilityService extends AccessibilityService {
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         sugiliteData = (SugiliteData)getApplication();
         statusIconManager = new StatusIconManager(this, sugiliteData, sharedPreferences);
+        screenshotManager = new SugiliteScreenshotManager(sharedPreferences, getApplicationContext());
         automator = new Automator(sugiliteData);
+
+        Integer[] accessibilityEventArrayToHandle = {AccessibilityEvent.TYPE_VIEW_CLICKED,
+                AccessibilityEvent.TYPE_VIEW_LONG_CLICKED,
+                AccessibilityEvent.TYPE_VIEW_SELECTED,
+                AccessibilityEvent.TYPE_VIEW_FOCUSED,
+                AccessibilityEvent.TYPE_VIEW_TEXT_CHANGED,
+                AccessibilityEvent.TYPE_VIEW_TEXT_SELECTION_CHANGED,
+                AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED,
+                AccessibilityEvent.TYPE_WINDOWS_CHANGED,
+                AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED};
+        Integer[] accessiblityEventArrayToSend = {AccessibilityEvent.TYPE_VIEW_CLICKED,
+                AccessibilityEvent.TYPE_VIEW_LONG_CLICKED};
+        accessibilityEventSetToHandle = new HashSet<>(Arrays.asList(accessibilityEventArrayToHandle));
+        accessibilityEventSetToSend = new HashSet<>(Arrays.asList(accessiblityEventArrayToSend));
+
         try {
             Toast.makeText(this, "Sugilite Accessibility Service Started", Toast.LENGTH_SHORT).show();
             statusIconManager.addStatusIcon();
@@ -63,23 +83,9 @@ public class SugiliteAccessibilityService extends AccessibilityService {
         //TODO problem: the status of "right after click" (try getParent()?)
         AccessibilityNodeInfo rootNode = getRootInActiveWindow();
         //Type of accessibility events to handle in this function
-        Integer[] accessibilityEventArrayToHandle = {AccessibilityEvent.TYPE_VIEW_CLICKED,
-                AccessibilityEvent.TYPE_VIEW_LONG_CLICKED,
-                AccessibilityEvent.TYPE_VIEW_SELECTED,
-                AccessibilityEvent.TYPE_VIEW_FOCUSED,
-                AccessibilityEvent.TYPE_VIEW_TEXT_CHANGED,
-                AccessibilityEvent.TYPE_VIEW_TEXT_SELECTION_CHANGED,
-                AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED,
-                AccessibilityEvent.TYPE_WINDOWS_CHANGED,
-                AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED};
-        Integer[] accessiblityEventArrayToSend = {AccessibilityEvent.TYPE_VIEW_CLICKED,
-                AccessibilityEvent.TYPE_VIEW_LONG_CLICKED};
-        Set<Integer> accessibilityEventSetToHandle = new HashSet<>(Arrays.asList(accessibilityEventArrayToHandle));
-        Set<Integer> accessibilityEventSetToSend = new HashSet<>(Arrays.asList(accessiblityEventArrayToSend));
         //return if the event is not among the accessibilityEventArrayToHandle
         if(!accessibilityEventSetToHandle.contains(Integer.valueOf(event.getEventType())))
             return;
-        sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         if (sharedPreferences.getBoolean("recording_in_process", false)) {
             //recording in progress
             AccessibilityNodeInfo sourceNode = event.getSource();
@@ -88,8 +94,17 @@ public class SugiliteAccessibilityService extends AccessibilityService {
             exceptedPackages.add("edu.cmu.hcii.sugilite");
             exceptedPackages.add("com.android.systemui");
             if (accessibilityEventSetToSend.contains(event.getEventType()) && (!exceptedPackages.contains(event.getPackageName()))) {
+                File screenshot = null;
+                if(sharedPreferences.getBoolean("root_enabled", false)) {
+                    //take screenshot
+                    try {
+                        screenshot = screenshotManager.take(false);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
                 //start the popup activity
-                startActivity(generatePopUpActivityIntentFromEvent(event, rootNode));
+                startActivity(generatePopUpActivityIntentFromEvent(event, rootNode, screenshot));
             }
         }
 
@@ -97,6 +112,11 @@ public class SugiliteAccessibilityService extends AccessibilityService {
             //background tracking in progress
         }
         boolean retVal = false;
+
+
+
+
+
         if(sugiliteData.getInstructionQueueSize() > 0)
             retVal = automator.handleLiveEvent(rootNode, getApplicationContext());
 
@@ -129,7 +149,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
 
 
 
-    private Intent generatePopUpActivityIntentFromEvent(AccessibilityEvent event, AccessibilityNodeInfo rootNode){
+    private Intent generatePopUpActivityIntentFromEvent(AccessibilityEvent event, AccessibilityNodeInfo rootNode, File screenshot){
         AccessibilityNodeInfo sourceNode = event.getSource();
         Rect boundsInParents = new Rect();
         Rect boundsInScreen = new Rect();
@@ -160,6 +180,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
         popUpIntent.putExtra("allNodes", new AccessibilityNodeInfoList(allNodes));
         popUpIntent.putExtra("isEditable", sourceNode.isEditable());
         popUpIntent.putExtra("eventType", event.getEventType());
+        popUpIntent.putExtra("screenshot", screenshot);
         return popUpIntent;
     }
 }

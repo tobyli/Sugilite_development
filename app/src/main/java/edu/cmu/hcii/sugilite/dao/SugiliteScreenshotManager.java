@@ -1,12 +1,17 @@
 package edu.cmu.hcii.sugilite.dao;
 
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.os.Environment;
 import android.view.View;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
 import java.util.TimeZone;
@@ -18,44 +23,45 @@ import java.util.TimeZone;
  */
 public class SugiliteScreenshotManager {
     private SimpleDateFormat dateFormat;
-    public SugiliteScreenshotManager(){
+    private SharedPreferences sharedPreferences;
+    private Context appContext;
+    public SugiliteScreenshotManager(SharedPreferences sharedPreferences, Context appContext){
         this.dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ", Locale.US);
         dateFormat.setTimeZone(TimeZone.getTimeZone("US/Eastern"));
+        this.sharedPreferences = sharedPreferences;
+        this.appContext = appContext;
     }
 
     /**
-     *
-     * @param rootView pass in the rootView of activity
-     * @return
+     * Take a screenshot of the current screen
+     * @return the screenshot
      */
-    public File take(View rootView){
-        Date now = new Date();
-        String dateString = dateFormat.format(now);
-        try {
-            // image naming and path  to include sd card  appending name you choose for file
-            String mPath = Environment.getExternalStorageDirectory().toString() + "/" + now + ".jpg";
-
-            // create bitmap screen capture
-            //View v1 = getWindow().getDecorView().getRootView();
-            rootView.setDrawingCacheEnabled(true);
-            Bitmap bitmap = Bitmap.createBitmap(rootView.getDrawingCache());
-            rootView.setDrawingCacheEnabled(false);
-
-            File imageFile = new File(mPath);
-
-            FileOutputStream outputStream = new FileOutputStream(imageFile);
-            int quality = 100;
-            bitmap.compress(Bitmap.CompressFormat.JPEG, quality, outputStream);
-            outputStream.flush();
-            outputStream.close();
-            return imageFile;
-            //openScreenshot(imageFile);
-        } catch (Exception e) {
-            // Several error may come out with file handling or OOM
-            e.printStackTrace();
+    public File take(boolean waitForCompletion) throws RuntimeException, IOException, InterruptedException {
+        boolean rootEnabled = sharedPreferences.getBoolean("root_enabled", false);
+        if(!rootEnabled){
+            throw new RuntimeException("Root access denied!");
         }
 
-        return null;
+        Process sh = Runtime.getRuntime().exec("su", null,null);
+        OutputStream os = sh.getOutputStream();
+        Date date = Calendar.getInstance().getTime();
+        String fileName = "sugilite_screenshot_" + dateFormat.format(date) + ".png";
+        File screenshotDirectory = new File("/sdcard/sugilite_screenshot");
+        if(!screenshotDirectory.exists())
+            screenshotDirectory.mkdirs();
+        os.write(("/system/bin/screencap -p " + "/sdcard/sugilite_screenshot/" + fileName).getBytes("ASCII"));
+        os.flush();
+        os.close();
+        File retVal = new File("/sdcard/sugilite_screenshot/" + fileName);
+        if(waitForCompletion){
+            sh.waitFor();
+            if(retVal.exists())
+                return retVal;
+            else
+                throw new RuntimeException("Error in getting screenshot");
+        }
+        else
+            return retVal;
     }
 
 

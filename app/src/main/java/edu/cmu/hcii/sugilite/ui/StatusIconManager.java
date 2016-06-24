@@ -28,6 +28,7 @@ import edu.cmu.hcii.sugilite.MainActivity;
 import edu.cmu.hcii.sugilite.R;
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.automation.ServiceStatusManager;
+import edu.cmu.hcii.sugilite.dao.SugiliteScreenshotManager;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 
@@ -44,6 +45,7 @@ public class StatusIconManager {
     private SharedPreferences sharedPreferences;
     private SugiliteScriptDao sugiliteScriptDao;
     private ServiceStatusManager serviceStatusManager;
+    private SugiliteScreenshotManager screenshotManager;
 
     public StatusIconManager(Context context, SugiliteData sugiliteData, SharedPreferences sharedPreferences){
         this.context = context;
@@ -52,6 +54,7 @@ public class StatusIconManager {
         this.sharedPreferences = sharedPreferences;
         this.sugiliteScriptDao = new SugiliteScriptDao(context);
         this.serviceStatusManager = new ServiceStatusManager(context);
+        this.screenshotManager = new SugiliteScreenshotManager(sharedPreferences, context);
     }
 
     /**
@@ -233,6 +236,12 @@ public class StatusIconManager {
                                     break;
                                 case 2:
                                     Toast.makeText(context, "quit sugilite", Toast.LENGTH_SHORT).show();
+                                    try {
+                                        screenshotManager.take(false);
+                                    }
+                                    catch (Exception e){
+                                        e.printStackTrace();
+                                    }
                                     break;
                             }
                         }

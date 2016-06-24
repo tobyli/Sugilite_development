@@ -27,6 +27,7 @@ dependencies {
     compile 'com.android.support:support-v4:23.0.1'
     compile 'com.google.code.gson:gson:2.2.4'
     compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.4'
+    compile files('libs/RootTools.jar')
 
 }
 

@@ -119,65 +119,93 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
         @Override
         public boolean onPreferenceChange(final Preference preference, Object newValue) {
             final SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(preference.getContext());
-            if(preference.getKey().contentEquals("recording_in_process")){
-                //recording in progress status is changed
-                SwitchPreference recordingInProgressSwitch = (SwitchPreference) preference;
-                if(!recordingInProgressSwitch.isChecked()){
-                    sugiliteData.clearInstructionQueue();
-                    AlertDialog.Builder builder = new AlertDialog.Builder(preference.getContext());
-                    final EditText scriptName = new EditText(preference.getContext());
-                    scriptName.setText("New Script");
-                    scriptName.setSelectAllOnFocus(true);
-                    builder.setMessage("Specify the name for your new script")
-                            .setView(scriptName)
-                            .setPositiveButton("Start Recording", new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-                                    if(!serviceStatusManager.isRunning()){
+            switch (preference.getKey()) {
+                case "recording_in_process":
+                    //recording in progress status is changed
+                    SwitchPreference recordingInProgressSwitch = (SwitchPreference) preference;
+                    if (!recordingInProgressSwitch.isChecked()) {
+                        sugiliteData.clearInstructionQueue();
+                        AlertDialog.Builder builder = new AlertDialog.Builder(preference.getContext());
+                        final EditText scriptName = new EditText(preference.getContext());
+                        scriptName.setText("New Script");
+                        scriptName.setSelectAllOnFocus(true);
+                        builder.setMessage("Specify the name for your new script")
+                                .setView(scriptName)
+                                .setPositiveButton("Start Recording", new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        if (!serviceStatusManager.isRunning()) {
+                                            ((SwitchPreference) preference).setChecked(false);
+                                            //prompt the user if the accessiblity service is not active
+                                            AlertDialog.Builder builder1 = new AlertDialog.Builder(preference.getContext());
+                                            builder1.setTitle("Service not running")
+                                                    .setMessage("The Sugilite accessiblity service is not enabled. Please enable the service in the phone settings before recording.")
+                                                    .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                                                        @Override
+                                                        public void onClick(DialogInterface dialog, int which) {
+                                                            serviceStatusManager.promptEnabling();
+                                                            //do nothing
+                                                        }
+                                                    }).show();
+                                        } else if (scriptNamePreference != null && scriptName != null && scriptName.getText().toString().length() > 0) {
+                                            scriptNamePreference.setText(scriptName.getText().toString());
+                                            Toast.makeText(preference.getContext(), "Changed script name to " + sharedPreferences.getString("scriptName", "NULL"), Toast.LENGTH_SHORT).show();
+                                            scriptNamePreference.setSummary(scriptName.getText().toString());
+                                            //set the active script to the newly created script
+                                            sugiliteData.initiateScript(scriptName.getText().toString() + ".SugiliteScript");
+                                            //save the newly created script to DB
+                                            try {
+                                                sugiliteScriptDao.save((SugiliteStartingBlock) sugiliteData.getScriptHead());
+                                            } catch (Exception e) {
+                                                e.printStackTrace();
+                                            }
+                                        }
+                                    }
+                                })
+                                .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
                                         ((SwitchPreference) preference).setChecked(false);
-                                        //prompt the user if the accessiblity service is not active
-                                        AlertDialog.Builder builder1 = new AlertDialog.Builder(preference.getContext());
-                                        builder1.setTitle("Service not running")
-                                                .setMessage("The Sugilite accessiblity service is not enabled. Please enable the service in the phone settings before recording.")
-                                                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                                                    @Override
-                                                    public void onClick(DialogInterface dialog, int which) {
-                                                        serviceStatusManager.promptEnabling();
-                                                        //do nothing
-                                                    }
-                                                }).show();
                                     }
-                                    else if(scriptNamePreference != null && scriptName != null && scriptName.getText().toString().length() > 0) {
-                                        scriptNamePreference.setText(scriptName.getText().toString());
-                                        Toast.makeText(preference.getContext(), "Changed script name to " + sharedPreferences.getString("scriptName", "NULL"), Toast.LENGTH_SHORT).show();
-                                        scriptNamePreference.setSummary(scriptName.getText().toString());
-                                        //set the active script to the newly created script
-                                        sugiliteData.initiateScript(scriptName.getText().toString() + ".SugiliteScript");
-                                        //save the newly created script to DB
-                                        try {
-                                            sugiliteScriptDao.save((SugiliteStartingBlock)sugiliteData.getScriptHead());
-                                        }
-                                        catch (Exception e){
-                                            e.printStackTrace();
-                                        }
-                                    }
-                                }
-                            })
-                            .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-                                    ((SwitchPreference) preference).setChecked(false);
-                                }
-                            })
-                            .setTitle("New Script");
-                    AlertDialog dialog = builder.create();
-                    dialog.show();
+                                })
+                                .setTitle("New Script");
+                        AlertDialog dialog = builder.create();
+                        dialog.show();
 
-                }
+                    }
+                    break;
+
+                case "root_enabled":
+                    SwitchPreference rootEnabledSwitch = (SwitchPreference) preference;
+                    if(!rootEnabledSwitch.isChecked()){
+                        boolean rootEnabled = true;
+                        //root access is enabled
+                        try {
+                            Process p =  Runtime.getRuntime().exec("su");
+                        }
+                        catch (Exception e){
+                            e.printStackTrace();
+                            Toast.makeText(preference.getContext(), "Failed to get root access", Toast.LENGTH_SHORT).show();
+                            rootEnabled = false;
+                            rootEnabledSwitch.setChecked(false);
+                            //do nothing
+                        }
+                        if(rootEnabled)
+                            Toast.makeText(preference.getContext(), "Root access is enabled", Toast.LENGTH_SHORT).show();
+                    }
+                    else {
+                        //root access is disabled
+                        Toast.makeText(preference.getContext(), "Root access is disabled", Toast.LENGTH_SHORT).show();
+                    }
+                    break;
+
+                default:
+
 
             }
             return true;
         }
+
     };
     public void onRecordinginProgressSwitchChecked(){
 
@@ -288,6 +316,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
             bindPreferenceSummaryToValue(findPreference("scriptName"));
             bindPreferenceSummaryToValue(findPreference("example_list"));
             findPreference("recording_in_process").setOnPreferenceChangeListener(recordingInProgressPreferenceChangeListener);
+            findPreference("root_enabled").setOnPreferenceChangeListener(recordingInProgressPreferenceChangeListener);
         }
 
         @Override

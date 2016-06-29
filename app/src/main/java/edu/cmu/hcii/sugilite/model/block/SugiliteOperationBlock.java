@@ -13,6 +13,7 @@ public class SugiliteOperationBlock extends SugiliteBlock implements Serializabl
     private SugiliteBlock nextBlock;
     private UIElementMatchingFilter elementMatchingFilter;
     private SugiliteOperation operation;
+    private SugiliteAvailableFeaturePack featurePack;
 
     public SugiliteOperationBlock(){
         super();
@@ -28,6 +29,10 @@ public class SugiliteOperationBlock extends SugiliteBlock implements Serializabl
     public void setOperation(SugiliteOperation operation){
         this.operation = operation;
     }
+    public void setFeaturePack(SugiliteAvailableFeaturePack featurePack){
+        this.featurePack = featurePack;
+    }
+
 
     public SugiliteBlock getNextBlock(){
         return nextBlock;
@@ -37,6 +42,9 @@ public class SugiliteOperationBlock extends SugiliteBlock implements Serializabl
     }
     public SugiliteOperation getOperation(){
         return operation;
+    }
+    public SugiliteAvailableFeaturePack getFeaturePack(){
+        return featurePack;
     }
 
     public void delete(){

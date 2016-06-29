@@ -70,6 +70,7 @@ public class RecordingPopUpActivity extends AppCompatActivity {
         setContentView(R.layout.activity_recoding_pop_up);
         featurePack = new SugiliteAvailableFeaturePack();
         //fetch the data capsuled in the intent
+        //TODO: refactor so the service passes in a feature pack instead
         if(savedInstanceState == null){
             Bundle extras = getIntent().getExtras();
             if(extras == null){
@@ -238,6 +239,7 @@ public class RecordingPopUpActivity extends AppCompatActivity {
             sugiliteOperation.setOperationType(SugiliteOperation.CLICK);
             final SugiliteOperationBlock operationBlock = new SugiliteOperationBlock();
             operationBlock.setOperation(sugiliteOperation);
+            operationBlock.setFeaturePack(featurePack);
             final Context activityContext = this;
             builder.setItems(operations, new DialogInterface.OnClickListener() {
                 @Override
@@ -353,6 +355,7 @@ public class RecordingPopUpActivity extends AppCompatActivity {
 
 
         else{
+            //handle event other than VIEW_CLICK
             String defaultOperationName = "NULL";
             String message = "";
             SugiliteOperation sugiliteOperation = new SugiliteOperation();
@@ -375,6 +378,7 @@ public class RecordingPopUpActivity extends AppCompatActivity {
             operationBlock.setPreviousBlock(sugiliteData.getCurrentScriptBlock());
             operationBlock.setElementMatchingFilter(generateFilter());
             operationBlock.setOperation(sugiliteOperation);
+            operationBlock.setFeaturePack(featurePack);
             operationBlock.setScreenshot(featurePack.screenshot);
 
 

@@ -206,6 +206,8 @@ public class ScriptDetailActivity extends AppCompatActivity {
     private void editOperation(MenuItem item){
         TextView textView;
         AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
+        if(info == null)
+            return;
         if(info.targetView instanceof TextView){
             int index = info.position;
             textView = (TextView)info.targetView;
@@ -265,6 +267,8 @@ public class ScriptDetailActivity extends AppCompatActivity {
     private void deleteOperation(MenuItem item){
         TextView textView;
         AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
+        if(info == null)
+            return;
         if(info.targetView instanceof TextView){
             int index = info.position;
             textView = (TextView)info.targetView;

@@ -118,7 +118,6 @@ public class MainActivity extends AppCompatActivity {
      */
     private void setUpScriptList(){
         final ListView scriptList = (ListView)findViewById(R.id.scriptList);
-        scriptList.removeAllViews();
         List<String> names = sugiliteScriptDao.getAllNames();
         scriptList.setAdapter(new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, names));
         final Context activityContext = this;
@@ -156,10 +155,18 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public boolean onContextItemSelected(MenuItem item) {
         AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
+        if(info == null)
+            return super.onContextItemSelected(item);
         switch (item.getItemId()){
         case ITEM_1:
             Toast.makeText(this, "View Script", Toast.LENGTH_SHORT).show();
-            info.targetView.performClick();
+            //open the view script activity
+            if(info.targetView instanceof TextView && ((TextView) info.targetView).getText() != null) {
+                String scriptName = ((TextView) info.targetView).getText().toString();
+                final Intent scriptDetailIntent = new Intent(this, ScriptDetailActivity.class);
+                scriptDetailIntent.putExtra("scriptName", scriptName);
+                startActivity(scriptDetailIntent);
+            }
             break;
         case ITEM_2:
             Toast.makeText(this, "Rename Script", Toast.LENGTH_SHORT).show();

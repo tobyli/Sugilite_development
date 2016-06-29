@@ -72,19 +72,15 @@ public class ReadableDescriptionGenerator {
 
             if(((SugiliteOperationBlock) block).getElementMatchingFilter().getText() != null){
                 labels.put("text", ((SugiliteOperationBlock) block).getElementMatchingFilter().getText());
-                message += "\"" + setColor(((SugiliteOperationBlock) block).getElementMatchingFilter().getText(), "#006400")  + "\" ";
             }
             if (((SugiliteOperationBlock) block).getElementMatchingFilter().getContentDescription() != null){
                 labels.put("content description", ((SugiliteOperationBlock)block).getElementMatchingFilter().getContentDescription());
-                message += "\"" + setColor(((SugiliteOperationBlock) block).getElementMatchingFilter().getContentDescription(), "#006400") + "\" ";
             }
             if (((SugiliteOperationBlock) block).getElementMatchingFilter().getChildFilter()!= null && ((SugiliteOperationBlock) block).getElementMatchingFilter().getChildFilter().getText() != null){
                 labels.put("child text", ((SugiliteOperationBlock) block).getElementMatchingFilter().getChildFilter().getText());
-                message += "\"" + setColor(((SugiliteOperationBlock) block).getElementMatchingFilter().getChildFilter().getText(), "#006400") + "\" ";
             }
             if (((SugiliteOperationBlock) block).getElementMatchingFilter().getChildFilter()!= null && ((SugiliteOperationBlock) block).getElementMatchingFilter().getChildFilter().getContentDescription() != null){
                 labels.put("child content description", ((SugiliteOperationBlock) block).getElementMatchingFilter().getChildFilter().getContentDescription());
-                message += "\"" + setColor(((SugiliteOperationBlock) block).getElementMatchingFilter().getChildFilter().getContentDescription(), "#006400") + "\" ";
             }
 
             if(labels.size() == 1){
@@ -95,7 +91,8 @@ public class ReadableDescriptionGenerator {
             else if(labels.size() > 1){
                 int count = 0;
                 for(Map.Entry<String, String> entry : labels.entrySet()){
-                    message += (thatPrinted ? "" : "that ") + "has " + entry.getKey() + " \"" + setColor(entry.getValue(), "#006400") + "\"" + (count == labels.size() - 2 ? "and " : ", ");
+                    message += (thatPrinted ? "" : "that ") + "has " + entry.getKey() + " \"" + setColor(entry.getValue(), "#006400") + "\" " + (count == labels.size() - 2 ? "and " :(count == labels.size() - 1 ? ", " : " "));
+                    thatPrinted = true;
                     count ++;
                 }
             }
@@ -103,6 +100,7 @@ public class ReadableDescriptionGenerator {
 
             if(((SugiliteOperationBlock) block).getElementMatchingFilter().getViewId() != null){
                 message += (thatPrinted ? "" : "that ") + "has the view ID \"" + setColor(((SugiliteOperationBlock) block).getElementMatchingFilter().getViewId(), "#800080") + "\" ";
+                thatPrinted = true;
             }
 
             if(((SugiliteOperationBlock) block).getElementMatchingFilter().getBoundsInScreen() != null){

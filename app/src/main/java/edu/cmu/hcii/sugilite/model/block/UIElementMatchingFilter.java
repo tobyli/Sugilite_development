@@ -217,6 +217,21 @@ public class UIElementMatchingFilter implements Serializable {
         return true;
     }
 
+    public boolean filter (SerializableNodeInfo nodeInfo){
+        if (nodeInfo == null)
+            return false;
+        if (text != null && (nodeInfo.text == null || (!text.contentEquals(nodeInfo.text))))
+            return false;
+        if (contentDescription != null && (nodeInfo.contentDescription == null || (!contentDescription.contentEquals(nodeInfo.contentDescription))))
+            return false;
+        if (viewId != null && (nodeInfo.viewId == null || (!viewId.contentEquals(nodeInfo.viewId))))
+            return false;
+        if (isClickable != null && isClickable.booleanValue() != nodeInfo.isClickable)
+            return false;
+
+        return true;
+    }
+
     public List<AccessibilityNodeInfo> filter (List<AccessibilityNodeInfo> nodeInfos){
         List<AccessibilityNodeInfo> retList = new ArrayList<>();
         for(AccessibilityNodeInfo node : nodeInfos){

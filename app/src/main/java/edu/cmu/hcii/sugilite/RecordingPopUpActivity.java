@@ -38,6 +38,7 @@ import java.util.TimeZone;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
 import edu.cmu.hcii.sugilite.model.AccessibilityNodeInfoList;
 import edu.cmu.hcii.sugilite.model.SetMapEntrySerializableWrapper;
+import edu.cmu.hcii.sugilite.model.block.SerializableNodeInfo;
 import edu.cmu.hcii.sugilite.model.block.SugiliteAvailableFeaturePack;
 import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
@@ -124,8 +125,12 @@ public class RecordingPopUpActivity extends AppCompatActivity {
             final SugiliteOperation sugiliteOperation = new SugiliteOperation();
             sugiliteOperation.setOperationType(SugiliteOperation.CLICK);
             final SugiliteOperationBlock operationBlock = new SugiliteOperationBlock();
+
             operationBlock.setOperation(sugiliteOperation);
             operationBlock.setFeaturePack(featurePack);
+            operationBlock.setElementMatchingFilter(generateFilter());
+            operationBlock.setScreenshot(featurePack.screenshot);
+
             final Context activityContext = this;
             builder.setItems(operations, new DialogInterface.OnClickListener() {
                 @Override
@@ -140,15 +145,11 @@ public class RecordingPopUpActivity extends AppCompatActivity {
                             sugiliteOperation.setOperationType(SugiliteOperation.SET_TEXT);
                             break;
                     }
-                    operationBlock.setDescription(generateDescription());
-                    operationBlock.setElementMatchingFilter(generateFilter());
-                    operationBlock.setScreenshot(featurePack.screenshot);
                     //genereate the block if the operation is click or return
                     if (sugiliteOperation.getOperationType() == SugiliteOperation.CLICK || sugiliteOperation.getOperationType() == SugiliteOperation.RETURN) {
                         operationBlock.setOperation(sugiliteOperation);
                         operationBlock.setDescription(readableDescriptionGenerator.generateReadableDescription(operationBlock));
                         saveBlock(operationBlock, activityContext);
-
                     }
 
                     // if the operation == text, add a new pop up to ask the text to set the content of the edittext widget to
@@ -158,12 +159,14 @@ public class RecordingPopUpActivity extends AppCompatActivity {
                         AlertDialog.Builder textDialogBuilder = new AlertDialog.Builder(activityContext);
                         textDialogBuilder.setTitle("Set Text Operation").setMessage("Enter the text to set to");
                         final EditText editText = new EditText(activityContext);
+                        //text dialog to ask user to specify the content of set_text
                         textDialogBuilder.setView(editText).setPositiveButton("OK", new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
                                 String text = editText.getText().toString();
                                 setTextOperation.setText(text);
                                 operationBlock.setOperation(setTextOperation);
+                                operationBlock.setDescription(readableDescriptionGenerator.generateReadableDescription(operationBlock));
                                 saveBlock(operationBlock, activityContext);
 
                             }
@@ -191,11 +194,11 @@ public class RecordingPopUpActivity extends AppCompatActivity {
             final SugiliteOperationBlock operationBlock = new SugiliteOperationBlock();
             operationBlock.setOperation(sugiliteOperation);
             final Context activityContext = this;
-            operationBlock.setDescription(generateDescription());
             operationBlock.setElementMatchingFilter(generateFilter());
             operationBlock.setOperation(sugiliteOperation);
             operationBlock.setFeaturePack(featurePack);
             operationBlock.setScreenshot(featurePack.screenshot);
+            operationBlock.setDescription(readableDescriptionGenerator.generateReadableDescription(operationBlock));
             saveBlock(operationBlock, activityContext);
         }
     }
@@ -357,12 +360,12 @@ public class RecordingPopUpActivity extends AppCompatActivity {
 
     public String generateFilterCount(){
         UIElementMatchingFilter filter = generateFilter();
-        List<AccessibilityNodeInfo> nodes = featurePack.allNodes.getList();
+        List<SerializableNodeInfo> nodes = featurePack.allNodes;
         int count = 0, clickableCount = 0;
-        for(AccessibilityNodeInfo node : nodes){
+        for(SerializableNodeInfo node : nodes){
             if(filter.filter(node)){
                 count++;
-                if(node.isClickable())
+                if(node.isClickable)
                     clickableCount++;
             }
         }
@@ -452,9 +455,9 @@ public class RecordingPopUpActivity extends AppCompatActivity {
                     featurePack.boundsInScreen = extras.getString("boundsInScreen", "NULL");
                     featurePack.time = extras.getLong("time", -1);
                     featurePack.eventType = extras.getInt("eventType", -1);
-                    featurePack.parentNode = extras.getParcelable("parentNode");
-                    featurePack.childNodes = extras.getParcelable("childrenNodes");
-                    featurePack.allNodes = extras.getParcelable("allNodes");
+                    featurePack.parentNode = new SerializableNodeInfo((AccessibilityNodeInfo)extras.getParcelable("parentNode"));
+                    featurePack.childNodes = ((AccessibilityNodeInfoList)extras.getParcelable("childrenNodes")).getSerializableList();
+                    featurePack.allNodes = ((AccessibilityNodeInfoList)extras.getParcelable("allNodes")).getSerializableList();
                     featurePack.isEditable = extras.getBoolean("isEditable");
                     featurePack.eventType = extras.getInt("eventType");
                     featurePack.screenshot = (File) extras.getSerializable("screenshot");
@@ -486,6 +489,14 @@ public class RecordingPopUpActivity extends AppCompatActivity {
         featurePack.screenshot = (File)savedInstanceState.getSerializable("screenshot");
     }
 
+    /**
+     * save the block appropriately according the the trigger mode
+     * 1. set the "next block" of the previous block to the current block
+     * 2. set the "previous block" of the current block to the previous block
+     *
+     * @param operationBlock
+     * @param activityContext
+     */
     private void saveBlock(SugiliteOperationBlock operationBlock, Context activityContext){
         boolean success = false;
         switch (triggerMode){
@@ -497,7 +508,6 @@ public class RecordingPopUpActivity extends AppCompatActivity {
                 if (sugiliteData.getCurrentScriptBlock() instanceof SugiliteStartingBlock) {
                     ((SugiliteStartingBlock) sugiliteData.getCurrentScriptBlock()).setNextBlock(operationBlock);
                 }
-                operationBlock.setDescription(readableDescriptionGenerator.generateReadableDescription(operationBlock));
                 sugiliteData.setCurrentScriptBlock(operationBlock);
                 try {
                     sugiliteScriptDao.save(sugiliteData.getScriptHead());
@@ -578,26 +588,26 @@ public class RecordingPopUpActivity extends AppCompatActivity {
     private void setupSelections(){
         //populate parent features
         if(featurePack.parentNode != null){
-            if(featurePack.parentNode.getText() != null)
-                allParentFeatures.add(new AbstractMap.SimpleEntry<>("text", featurePack.parentNode.getText().toString()));
-            if(featurePack.parentNode.getContentDescription() != null)
-                allParentFeatures.add(new AbstractMap.SimpleEntry<>("contentDescription", featurePack.parentNode.getContentDescription().toString()));
-            if(featurePack.parentNode.getViewIdResourceName() != null)
-                allParentFeatures.add(new AbstractMap.SimpleEntry<>("viewId", featurePack.parentNode.getViewIdResourceName()));
+            if(featurePack.parentNode.text != null)
+                allParentFeatures.add(new AbstractMap.SimpleEntry<>("text", featurePack.parentNode.text.toString()));
+            if(featurePack.parentNode.contentDescription != null)
+                allParentFeatures.add(new AbstractMap.SimpleEntry<>("contentDescription", featurePack.parentNode.contentDescription.toString()));
+            if(featurePack.parentNode.viewId != null)
+                allParentFeatures.add(new AbstractMap.SimpleEntry<>("viewId", featurePack.parentNode.viewId));
         }
         if(allParentFeatures.size() == 0)
             ((ViewManager)findViewById(R.id.parentCheckbox).getParent()).removeView(findViewById(R.id.parentCheckbox));
 
 
         //populate child features
-        for(AccessibilityNodeInfo childNode : featurePack.childNodes.getList()){
+        for(SerializableNodeInfo childNode : featurePack.childNodes){
             if(childNode != null){
-                if(childNode.getText() != null)
-                    allChildFeatures.add(new AbstractMap.SimpleEntry<>("text", childNode.getText().toString()));
-                if(childNode.getContentDescription() != null)
-                    allChildFeatures.add(new AbstractMap.SimpleEntry<>("contentDescription", childNode.getContentDescription().toString()));
-                if(childNode.getViewIdResourceName() != null)
-                    allChildFeatures.add(new AbstractMap.SimpleEntry<>("viewId", childNode.getViewIdResourceName()));
+                if(childNode.text != null)
+                    allChildFeatures.add(new AbstractMap.SimpleEntry<>("text", childNode.text.toString()));
+                if(childNode.contentDescription != null)
+                    allChildFeatures.add(new AbstractMap.SimpleEntry<>("contentDescription", childNode.contentDescription.toString()));
+                if(childNode.viewId != null)
+                    allChildFeatures.add(new AbstractMap.SimpleEntry<>("viewId", childNode.viewId));
             }
         }
         if(allChildFeatures.size() == 0)

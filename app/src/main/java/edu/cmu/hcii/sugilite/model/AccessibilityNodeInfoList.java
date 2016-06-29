@@ -8,6 +8,8 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+import edu.cmu.hcii.sugilite.model.block.SerializableNodeInfo;
+
 /**
  * @author toby
  * @date 6/7/16
@@ -53,6 +55,13 @@ public class AccessibilityNodeInfoList implements Parcelable {
     }
     public void setList(ArrayList<AccessibilityNodeInfo> list){
         this.list = list;
+    }
+    public ArrayList<SerializableNodeInfo> getSerializableList(){
+        ArrayList<SerializableNodeInfo> retVal = new ArrayList<>();
+        for(AccessibilityNodeInfo info : list){
+            retVal.add(new SerializableNodeInfo((info.getText() == null ? null : info.getText().toString()), (info.getContentDescription() == null ? null : info.getContentDescription().toString()), info.getViewIdResourceName(), info.isClickable()));
+        }
+        return retVal;
     }
 
 }

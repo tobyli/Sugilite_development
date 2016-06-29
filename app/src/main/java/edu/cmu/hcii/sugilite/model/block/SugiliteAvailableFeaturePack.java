@@ -3,13 +3,15 @@ package edu.cmu.hcii.sugilite.model.block;
 import android.view.accessibility.AccessibilityNodeInfo;
 
 import java.io.File;
+import java.io.Serializable;
+import java.util.ArrayList;
 
 import edu.cmu.hcii.sugilite.model.AccessibilityNodeInfoList;
 
 /**
  * Created by toby on 6/28/16.
  */
-public class SugiliteAvailableFeaturePack {
+public class SugiliteAvailableFeaturePack implements Serializable{
     public SugiliteAvailableFeaturePack(){
         //do nothing
     }
@@ -34,6 +36,7 @@ public class SugiliteAvailableFeaturePack {
     public long time;
     public int eventType;
     public File screenshot;
-    public AccessibilityNodeInfo parentNode;
-    public AccessibilityNodeInfoList childNodes, allNodes;
+    public SerializableNodeInfo parentNode;
+    public ArrayList<SerializableNodeInfo> childNodes, allNodes;
+
 }

@@ -39,6 +39,7 @@ import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
 import edu.cmu.hcii.sugilite.model.AccessibilityNodeInfoList;
 import edu.cmu.hcii.sugilite.model.SetMapEntrySerializableWrapper;
 import edu.cmu.hcii.sugilite.model.block.SugiliteAvailableFeaturePack;
+import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.model.block.UIElementMatchingFilter;
@@ -48,6 +49,7 @@ import edu.cmu.hcii.sugilite.ui.ReadableDescriptionGenerator;
 import edu.cmu.hcii.sugilite.ui.UIElementFeatureRecommender;
 
 public class RecordingPopUpActivity extends AppCompatActivity {
+    private int triggerMode;
     private SugiliteAvailableFeaturePack featurePack;
     private SharedPreferences sharedPreferences;
     private SugiliteScriptDao sugiliteScriptDao;
@@ -58,8 +60,15 @@ public class RecordingPopUpActivity extends AppCompatActivity {
     private SugiliteData sugiliteData;
     private ReadableDescriptionGenerator readableDescriptionGenerator;
     private UIElementFeatureRecommender recommender;
+
+    private SugiliteStartingBlock originalScript;
+    private SugiliteOperationBlock blockToEdit;
+
     static final int PICK_CHILD_FEATURE = 1;
     static final int PICK_PARENT_FEATURE = 2;
+
+    static final int TRIGGERED_BY_NEW_EVENT = 1;
+    static final int TRIGGERED_BY_EDIT = 2;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -72,160 +81,37 @@ public class RecordingPopUpActivity extends AppCompatActivity {
         //fetch the data capsuled in the intent
         //TODO: refactor so the service passes in a feature pack instead
         if(savedInstanceState == null){
-            Bundle extras = getIntent().getExtras();
-            if(extras == null){
-                //something wrong here!
-            }
-            else{
-                featurePack.packageName = extras.getString("packageName", "NULL");
-                featurePack.className = extras.getString("className", "NULL");
-                featurePack.text = extras.getString("text", "NULL");
-                featurePack.contentDescription = extras.getString("contentDescription", "NULL");
-                featurePack.viewId = extras.getString("viewId", "NULL");
-                featurePack.boundsInParent = extras.getString("boundsInParent", "NULL");
-                featurePack.boundsInScreen = extras.getString("boundsInScreen", "NULL");
-                featurePack.time = extras.getLong("time", -1);
-                featurePack.eventType = extras.getInt("eventType", -1);
-                featurePack.parentNode = extras.getParcelable("parentNode");
-                featurePack.childNodes = extras.getParcelable("childrenNodes");
-                featurePack.allNodes = extras.getParcelable("allNodes");
-                featurePack.isEditable = extras.getBoolean("isEditable");
-                featurePack.eventType = extras.getInt("eventType");
-                featurePack.screenshot = (File)extras.getSerializable("screenshot");
-            }
+            loadFeaturePackFromIntent();
         }
         else{
-            featurePack.packageName = savedInstanceState.getString("packageName", "NULL");
-            featurePack.className = savedInstanceState.getString("className", "NULL");
-            featurePack.text = savedInstanceState.getString("text", "NULL");
-            featurePack.contentDescription = savedInstanceState.getString("contentDescription", "NULL");
-            featurePack.viewId = savedInstanceState.getString("viewId", "NULL");
-            featurePack.boundsInParent = savedInstanceState.getString("boundsInParent", "NULL");
-            featurePack.boundsInScreen = savedInstanceState.getString("boundsInScreen", "NULL");
-            featurePack.time = savedInstanceState.getLong("time", -1);
-            featurePack.eventType = savedInstanceState.getInt("eventType", -1);
-            featurePack.parentNode = savedInstanceState.getParcelable("parentNode");
-            featurePack.childNodes = savedInstanceState.getParcelable("childrenNodes");
-            featurePack.allNodes = savedInstanceState.getParcelable("allNodes");
-            featurePack.isEditable = savedInstanceState.getBoolean("isEditable");
-            featurePack.eventType = savedInstanceState.getInt("eventType");
-            featurePack.screenshot = (File)savedInstanceState.getSerializable("screenshot");
+            loadFeaturePackFromSavedInstance(savedInstanceState);
         }
-
-        //populate parent features
-        if(featurePack.parentNode != null){
-            if(featurePack.parentNode.getText() != null)
-                allParentFeatures.add(new AbstractMap.SimpleEntry<>("text", featurePack.parentNode.getText().toString()));
-            if(featurePack.parentNode.getContentDescription() != null)
-                allParentFeatures.add(new AbstractMap.SimpleEntry<>("contentDescription", featurePack.parentNode.getContentDescription().toString()));
-            if(featurePack.parentNode.getViewIdResourceName() != null)
-                allParentFeatures.add(new AbstractMap.SimpleEntry<>("viewId", featurePack.parentNode.getViewIdResourceName()));
-        }
-        if(allParentFeatures.size() == 0)
-            ((ViewManager)findViewById(R.id.parentCheckbox).getParent()).removeView(findViewById(R.id.parentCheckbox));
-
-
-        //populate child features
-        for(AccessibilityNodeInfo childNode : featurePack.childNodes.getList()){
-            if(childNode != null){
-                if(childNode.getText() != null)
-                    allChildFeatures.add(new AbstractMap.SimpleEntry<>("text", childNode.getText().toString()));
-                if(childNode.getContentDescription() != null)
-                    allChildFeatures.add(new AbstractMap.SimpleEntry<>("contentDescription", childNode.getContentDescription().toString()));
-                if(childNode.getViewIdResourceName() != null)
-                    allChildFeatures.add(new AbstractMap.SimpleEntry<>("viewId", childNode.getViewIdResourceName()));
-            }
-        }
-        if(allChildFeatures.size() == 0)
-            ((ViewManager)findViewById(R.id.childrenCheckbox).getParent()).removeView(findViewById(R.id.childrenCheckbox));
-
-        recommender = new UIElementFeatureRecommender(featurePack.packageName, featurePack.className, featurePack.text, featurePack.contentDescription, featurePack.viewId, featurePack.boundsInParent, featurePack.boundsInScreen, featurePack.isEditable, featurePack.time, featurePack.eventType, allParentFeatures, allChildFeatures);
-
-        Calendar c = Calendar.getInstance();
-        c.setTimeInMillis(featurePack.time);
-        SimpleDateFormat dateFormat;
-        dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ", Locale.US);
-        dateFormat.setTimeZone(TimeZone.getTimeZone("US/Eastern"));
-        boolean autoFillEnabled = sharedPreferences.getBoolean("auto_fill_enabled", false);
-
-        ((CheckBox)findViewById(R.id.packageName)).setText("App Name: " + readableDescriptionGenerator.getReadableName(featurePack.packageName));
-        //by default: check package name & class name
-        ((CheckBox)findViewById(R.id.packageName)).setChecked(true);
-        ((CheckBox)findViewById(R.id.className)).setText("Class Name: " + featurePack.className);
-        ((CheckBox)findViewById(R.id.className)).setChecked(true);
-
-
-        if(!featurePack.text.contentEquals("NULL")) {
-            ((CheckBox) findViewById(R.id.text)).setText("Text: " + featurePack.text);
-            if(autoFillEnabled)
-                ((CheckBox) findViewById(R.id.text)).setChecked(recommender.chooseText());
-        }
-        else
-            ((ViewManager)findViewById(R.id.text).getParent()).removeView(findViewById(R.id.text));
-
-        if(!featurePack.contentDescription.contentEquals("NULL")) {
-            ((CheckBox) findViewById(R.id.contentDescription)).setText("Content Description: " + featurePack.contentDescription);
-            if(autoFillEnabled)
-                ((CheckBox) findViewById(R.id.contentDescription)).setChecked(recommender.chooseContentDescription());
-        }
-        else
-            ((ViewManager)findViewById(R.id.contentDescription).getParent()).removeView(findViewById(R.id.contentDescription));
-
-        if(!featurePack.viewId.contentEquals("NULL")) {
-            ((CheckBox) findViewById(R.id.viewId)).setText("ViewId: " + featurePack.viewId);
-            if(autoFillEnabled)
-                ((CheckBox) findViewById(R.id.viewId)).setChecked(recommender.chooseViewId());
-        }
-        else
-            ((ViewManager)findViewById(R.id.viewId).getParent()).removeView(findViewById(R.id.viewId));
-
-
-        ((CheckBox)findViewById(R.id.boundsInParent)).setText("Bounds in Parent: " + featurePack.boundsInParent);
-        if(autoFillEnabled)
-            ((CheckBox) findViewById(R.id.boundsInParent)).setChecked(recommender.chooseBoundsInParent());
-
-        ((CheckBox)findViewById(R.id.boundsInScreen)).setText("Bounds in Screen: " + featurePack.boundsInScreen);
-        if(autoFillEnabled)
-            ((CheckBox) findViewById(R.id.boundsInScreen)).setChecked(recommender.chooseBoundsInScreen());
-
-        //populate selected child/parent features
-        if(autoFillEnabled){
-            selectedChildFeatures.addAll(recommender.chooseChildFeatures());
-            selectedParentFeatures.addAll(recommender.chooseParentFeatures());
-            if(findViewById(R.id.childrenCheckbox) != null)
-                ((CheckBox)findViewById(R.id.childrenCheckbox)).setChecked(selectedChildFeatures.size() > 0);
-            if(findViewById(R.id.parentCheckbox) != null)
-                ((CheckBox)findViewById(R.id.parentCheckbox)).setChecked(selectedParentFeatures.size() > 0);
-        }
-
-
-        ((TextView)findViewById(R.id.time)).setText("Event Time: " + dateFormat.format(c.getTime()) + "\nRecording script: " + sharedPreferences.getString("scriptName", "NULL"));
-        ((TextView)findViewById(R.id.filteredNodeCount)).setText(generateFilterCount());
-        ((TextView)findViewById(R.id.operationDescription)).setText(generateDescription());
-
+        setupSelections();
     }
 
     public void finishActivity(View view){
-
+        setResult(RESULT_CANCELED);
         finish();
     }
     public void turnOffRecording(View view)
     {
-
         SharedPreferences.Editor prefEditor = sharedPreferences.edit();
         prefEditor.putBoolean("recording_in_process", false);
         prefEditor.commit();
+        setResult(RESULT_CANCELED);
         finish();
     }
 
-    public void OKButtonOnClick(View view){
 
-        //add head if no one is present
-        if(sugiliteData.getScriptHead() == null ||
-                (!((SugiliteStartingBlock)sugiliteData.getScriptHead()).getScriptName().contentEquals(sharedPreferences.getString("scriptName", "defaultScript") + ".SugiliteScript"))){
+    public void OKButtonOnClick(View view){
+        //add head if no one is present && this popup is triggered by new event
+        if(triggerMode == TRIGGERED_BY_NEW_EVENT &&
+                (sugiliteData.getScriptHead() == null ||
+                (!((SugiliteStartingBlock)sugiliteData.getScriptHead()).getScriptName().contentEquals(sharedPreferences.getString("scriptName", "defaultScript") + ".SugiliteScript")))){
             sugiliteData.setScriptHead(new SugiliteStartingBlock(sharedPreferences.getString("scriptName", "defaultScript") + ".SugiliteScript"));
             sugiliteData.setCurrentScriptBlock(sugiliteData.getScriptHead());
         }
+
         //use the dialog "builder" to ask the type of operation to take
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Choose Operation");
@@ -255,46 +141,16 @@ public class RecordingPopUpActivity extends AppCompatActivity {
                             break;
                     }
                     operationBlock.setDescription(generateDescription());
-                    operationBlock.setPreviousBlock(sugiliteData.getCurrentScriptBlock());
                     operationBlock.setElementMatchingFilter(generateFilter());
                     operationBlock.setScreenshot(featurePack.screenshot);
                     //genereate the block if the operation is click or return
                     if (sugiliteOperation.getOperationType() == SugiliteOperation.CLICK || sugiliteOperation.getOperationType() == SugiliteOperation.RETURN) {
                         operationBlock.setOperation(sugiliteOperation);
-                        if (sugiliteData.getCurrentScriptBlock() instanceof SugiliteOperationBlock) {
-                            ((SugiliteOperationBlock) sugiliteData.getCurrentScriptBlock()).setNextBlock(operationBlock);
-                        }
-                        if (sugiliteData.getCurrentScriptBlock() instanceof SugiliteStartingBlock) {
-                            ((SugiliteStartingBlock) sugiliteData.getCurrentScriptBlock()).setNextBlock(operationBlock);
-                        }
-                        String message = "";
-                        if (operationBlock.getOperation().getOperationType() == SugiliteOperation.CLICK) {
-                            message += "Click ";
-                        }
-                        if (operationBlock.getOperation().getOperationType() == SugiliteOperation.SET_TEXT) {
-                            message += "Set text to \"" + ((SugiliteSetTextOperation) operationBlock.getOperation()).getText() + "\" ";
-                        }
-                        message += generateDescription();
                         operationBlock.setDescription(readableDescriptionGenerator.generateReadableDescription(operationBlock));
-                        sugiliteData.setCurrentScriptBlock(operationBlock);
-                        try {
-                            sugiliteScriptDao.save((SugiliteStartingBlock) sugiliteData.getScriptHead());
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
-                        System.out.println("saved block");
-                        new AlertDialog.Builder(activityContext)
-                                .setTitle("Operation Recorded")
-                                .setMessage(Html.fromHtml(readableDescriptionGenerator.generateReadableDescription(operationBlock)))
-                                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                                    public void onClick(DialogInterface dialog, int which) {
-                                        // continue with delete
-                                        finish();
-                                    }
-                                })
-                                .setIcon(android.R.drawable.ic_dialog_alert)
-                                .show();
+                        saveBlock(operationBlock, activityContext);
+
                     }
+
                     // if the operation == text, add a new pop up to ask the text to set the content of the edittext widget to
                     //TODO: eliminate the duplicate code for the two branches
                     else if (sugiliteOperation.getOperationType() == SugiliteOperation.SET_TEXT) {
@@ -308,41 +164,8 @@ public class RecordingPopUpActivity extends AppCompatActivity {
                                 String text = editText.getText().toString();
                                 setTextOperation.setText(text);
                                 operationBlock.setOperation(setTextOperation);
-                                if (sugiliteData.getCurrentScriptBlock() instanceof SugiliteOperationBlock) {
-                                    ((SugiliteOperationBlock) sugiliteData.getCurrentScriptBlock()).setNextBlock(operationBlock);
-                                }
-                                if (sugiliteData.getCurrentScriptBlock() instanceof SugiliteStartingBlock) {
-                                    ((SugiliteStartingBlock) sugiliteData.getCurrentScriptBlock()).setNextBlock(operationBlock);
-                                }
-                                System.out.println("saved block");
-                                String message = "";
-                                if (operationBlock.getOperation().getOperationType() == SugiliteOperation.CLICK) {
-                                    message += "Click ";
-                                }
-                                if (operationBlock.getOperation().getOperationType() == SugiliteOperation.SET_TEXT) {
-                                    message += "Set text to \"" + ((SugiliteSetTextOperation) operationBlock.getOperation()).getText() + "\" ";
-                                }
-                                message += generateDescription();
-                                operationBlock.setDescription(readableDescriptionGenerator.generateReadableDescription(operationBlock));
-                                sugiliteData.setCurrentScriptBlock(operationBlock);
-                                try {
-                                    sugiliteScriptDao.save((SugiliteStartingBlock) sugiliteData.getScriptHead());
-                                } catch (Exception e) {
-                                    e.printStackTrace();
-                                }
+                                saveBlock(operationBlock, activityContext);
 
-                                new AlertDialog.Builder(activityContext)
-                                        .setTitle("Operation Recorded")
-                                        .setMessage(Html.fromHtml(readableDescriptionGenerator.generateReadableDescription(operationBlock)))
-                                        .setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                                            public void onClick(DialogInterface dialog, int which) {
-                                                sugiliteData.addInstruction(operationBlock);
-                                                // continue with delete
-                                                finish();
-                                            }
-                                        })
-                                        .setIcon(android.R.drawable.ic_dialog_alert)
-                                        .show();
                             }
                         });
                         textDialogBuilder.show();
@@ -350,64 +173,30 @@ public class RecordingPopUpActivity extends AppCompatActivity {
                     }
                 }
             });
-            AlertDialog dialog = builder.show();
+            builder.show();
         }
 
 
         else{
             //handle event other than VIEW_CLICK
-            String defaultOperationName = "NULL";
-            String message = "";
             SugiliteOperation sugiliteOperation = new SugiliteOperation();
             switch (featurePack.eventType){
                 case AccessibilityEvent.TYPE_VIEW_SELECTED:
-                    defaultOperationName = "SELECT";
                     sugiliteOperation.setOperationType(SugiliteOperation.SELECT);
-                    message += "Select ";
                     break;
                 case AccessibilityEvent.TYPE_VIEW_LONG_CLICKED:
-                    defaultOperationName = "LONG CLICK";
                     sugiliteOperation.setOperationType(SugiliteOperation.LONG_CLICK);
-                    message += "Long click ";
                     break;
             }
             final SugiliteOperationBlock operationBlock = new SugiliteOperationBlock();
             operationBlock.setOperation(sugiliteOperation);
             final Context activityContext = this;
             operationBlock.setDescription(generateDescription());
-            operationBlock.setPreviousBlock(sugiliteData.getCurrentScriptBlock());
             operationBlock.setElementMatchingFilter(generateFilter());
             operationBlock.setOperation(sugiliteOperation);
             operationBlock.setFeaturePack(featurePack);
             operationBlock.setScreenshot(featurePack.screenshot);
-
-
-            if (sugiliteData.getCurrentScriptBlock() instanceof SugiliteOperationBlock) {
-                ((SugiliteOperationBlock) sugiliteData.getCurrentScriptBlock()).setNextBlock(operationBlock);
-            }
-            if (sugiliteData.getCurrentScriptBlock() instanceof SugiliteStartingBlock) {
-                ((SugiliteStartingBlock) sugiliteData.getCurrentScriptBlock()).setNextBlock(operationBlock);
-            }
-            message += generateDescription();
-            operationBlock.setDescription(readableDescriptionGenerator.generateReadableDescription(operationBlock));
-            sugiliteData.setCurrentScriptBlock(operationBlock);
-            try {
-                sugiliteScriptDao.save((SugiliteStartingBlock) sugiliteData.getScriptHead());
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-            System.out.println("saved block");
-            new AlertDialog.Builder(activityContext)
-                    .setTitle("Operation Recorded")
-                    .setMessage(Html.fromHtml(readableDescriptionGenerator.generateReadableDescription(operationBlock)))
-                    .setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                        public void onClick(DialogInterface dialog, int which) {
-                            // continue with delete
-                            finish();
-                        }
-                    })
-                    .setIcon(android.R.drawable.ic_dialog_alert)
-                    .show();
+            saveBlock(operationBlock, activityContext);
         }
     }
 
@@ -455,6 +244,7 @@ public class RecordingPopUpActivity extends AppCompatActivity {
         ((TextView)findViewById(R.id.operationDescription)).setText(generateDescription());
         ((TextView)findViewById(R.id.filteredNodeCount)).setText(generateFilterCount());
     }
+
 
     //read and load the result from the child/parent sub activity
     @Override
@@ -642,6 +432,249 @@ public class RecordingPopUpActivity extends AppCompatActivity {
             return retVal;
         else
             return "No feature selected!";
+    }
+
+    private void loadFeaturePackFromIntent(){
+        Bundle extras = getIntent().getExtras();
+        if(extras == null){
+            //something wrong here!
+        }
+        else{
+            triggerMode = extras.getInt("trigger");
+            switch (triggerMode) {
+                case TRIGGERED_BY_NEW_EVENT:
+                    featurePack.packageName = extras.getString("packageName", "NULL");
+                    featurePack.className = extras.getString("className", "NULL");
+                    featurePack.text = extras.getString("text", "NULL");
+                    featurePack.contentDescription = extras.getString("contentDescription", "NULL");
+                    featurePack.viewId = extras.getString("viewId", "NULL");
+                    featurePack.boundsInParent = extras.getString("boundsInParent", "NULL");
+                    featurePack.boundsInScreen = extras.getString("boundsInScreen", "NULL");
+                    featurePack.time = extras.getLong("time", -1);
+                    featurePack.eventType = extras.getInt("eventType", -1);
+                    featurePack.parentNode = extras.getParcelable("parentNode");
+                    featurePack.childNodes = extras.getParcelable("childrenNodes");
+                    featurePack.allNodes = extras.getParcelable("allNodes");
+                    featurePack.isEditable = extras.getBoolean("isEditable");
+                    featurePack.eventType = extras.getInt("eventType");
+                    featurePack.screenshot = (File) extras.getSerializable("screenshot");
+                    break;
+                case TRIGGERED_BY_EDIT:
+                    originalScript = (SugiliteStartingBlock)extras.getSerializable("originalScript");
+                    blockToEdit = (SugiliteOperationBlock)extras.getSerializable("blockToEdit");
+                    featurePack = new SugiliteAvailableFeaturePack(blockToEdit.getFeaturePack());
+                    break;
+            }
+        }
+    }
+
+    private void loadFeaturePackFromSavedInstance(Bundle savedInstanceState){
+        featurePack.packageName = savedInstanceState.getString("packageName", "NULL");
+        featurePack.className = savedInstanceState.getString("className", "NULL");
+        featurePack.text = savedInstanceState.getString("text", "NULL");
+        featurePack.contentDescription = savedInstanceState.getString("contentDescription", "NULL");
+        featurePack.viewId = savedInstanceState.getString("viewId", "NULL");
+        featurePack.boundsInParent = savedInstanceState.getString("boundsInParent", "NULL");
+        featurePack.boundsInScreen = savedInstanceState.getString("boundsInScreen", "NULL");
+        featurePack.time = savedInstanceState.getLong("time", -1);
+        featurePack.eventType = savedInstanceState.getInt("eventType", -1);
+        featurePack.parentNode = savedInstanceState.getParcelable("parentNode");
+        featurePack.childNodes = savedInstanceState.getParcelable("childrenNodes");
+        featurePack.allNodes = savedInstanceState.getParcelable("allNodes");
+        featurePack.isEditable = savedInstanceState.getBoolean("isEditable");
+        featurePack.eventType = savedInstanceState.getInt("eventType");
+        featurePack.screenshot = (File)savedInstanceState.getSerializable("screenshot");
+    }
+
+    private void saveBlock(SugiliteOperationBlock operationBlock, Context activityContext){
+        boolean success = false;
+        switch (triggerMode){
+            case TRIGGERED_BY_NEW_EVENT:
+                operationBlock.setPreviousBlock(sugiliteData.getCurrentScriptBlock());
+                if (sugiliteData.getCurrentScriptBlock() instanceof SugiliteOperationBlock) {
+                    ((SugiliteOperationBlock) sugiliteData.getCurrentScriptBlock()).setNextBlock(operationBlock);
+                }
+                if (sugiliteData.getCurrentScriptBlock() instanceof SugiliteStartingBlock) {
+                    ((SugiliteStartingBlock) sugiliteData.getCurrentScriptBlock()).setNextBlock(operationBlock);
+                }
+                operationBlock.setDescription(readableDescriptionGenerator.generateReadableDescription(operationBlock));
+                sugiliteData.setCurrentScriptBlock(operationBlock);
+                try {
+                    sugiliteScriptDao.save(sugiliteData.getScriptHead());
+                    success = true;
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    success = false;
+                }
+                System.out.println("saved block");
+                break;
+
+            case TRIGGERED_BY_EDIT:
+                SugiliteBlock currentBlock = originalScript;
+                while(true){
+                    if(currentBlock == null) {
+                        new Exception("can't find the block to edit").printStackTrace();
+                        break;
+                    }
+                    else if(currentBlock instanceof SugiliteStartingBlock)
+                        currentBlock = ((SugiliteStartingBlock) currentBlock).getNextBlock();
+                    else if (currentBlock instanceof SugiliteOperationBlock){
+                        if(currentBlock.getBlockId() == blockToEdit.getBlockId()){
+                            //matched
+                            if(currentBlock.getPreviousBlock() instanceof SugiliteOperationBlock){
+                                ((SugiliteOperationBlock) currentBlock.getPreviousBlock()).setNextBlock(operationBlock);
+                                operationBlock.setPreviousBlock(currentBlock.getPreviousBlock());
+                                try {
+                                    sugiliteScriptDao.save(originalScript);
+                                    success = true;
+                                }
+                                catch (Exception e){
+                                    e.printStackTrace();
+                                    success = false;
+                                }
+                                break;
+                            }
+                            else if(currentBlock.getPreviousBlock() instanceof SugiliteStartingBlock){
+                                ((SugiliteStartingBlock) currentBlock.getPreviousBlock()).setNextBlock(operationBlock);
+                                operationBlock.setPreviousBlock(currentBlock.getPreviousBlock());
+                                try {
+                                    success = true;
+                                    sugiliteScriptDao.save(originalScript);
+                                }
+                                catch (Exception e){
+                                     success = false;
+                                    e.printStackTrace();
+                                }
+                                break;
+                            }
+                            else {
+                                //something wrong here
+                            }
+                        }
+                        else{
+                            currentBlock = ((SugiliteOperationBlock) currentBlock).getNextBlock();
+                        }
+                    }
+                }
+
+                break;
+        }
+        final boolean retVal = success;
+        new AlertDialog.Builder(activityContext)
+                .setTitle("Operation Recorded")
+                .setMessage(Html.fromHtml(readableDescriptionGenerator.generateReadableDescription(operationBlock)))
+                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        // continue
+                        setResult((retVal ? RESULT_OK : RESULT_CANCELED));
+                        finish();
+                    }
+                })
+                .setIcon(android.R.drawable.ic_dialog_alert)
+                .show();
+
+    }
+
+    private void setupSelections(){
+        //populate parent features
+        if(featurePack.parentNode != null){
+            if(featurePack.parentNode.getText() != null)
+                allParentFeatures.add(new AbstractMap.SimpleEntry<>("text", featurePack.parentNode.getText().toString()));
+            if(featurePack.parentNode.getContentDescription() != null)
+                allParentFeatures.add(new AbstractMap.SimpleEntry<>("contentDescription", featurePack.parentNode.getContentDescription().toString()));
+            if(featurePack.parentNode.getViewIdResourceName() != null)
+                allParentFeatures.add(new AbstractMap.SimpleEntry<>("viewId", featurePack.parentNode.getViewIdResourceName()));
+        }
+        if(allParentFeatures.size() == 0)
+            ((ViewManager)findViewById(R.id.parentCheckbox).getParent()).removeView(findViewById(R.id.parentCheckbox));
+
+
+        //populate child features
+        for(AccessibilityNodeInfo childNode : featurePack.childNodes.getList()){
+            if(childNode != null){
+                if(childNode.getText() != null)
+                    allChildFeatures.add(new AbstractMap.SimpleEntry<>("text", childNode.getText().toString()));
+                if(childNode.getContentDescription() != null)
+                    allChildFeatures.add(new AbstractMap.SimpleEntry<>("contentDescription", childNode.getContentDescription().toString()));
+                if(childNode.getViewIdResourceName() != null)
+                    allChildFeatures.add(new AbstractMap.SimpleEntry<>("viewId", childNode.getViewIdResourceName()));
+            }
+        }
+        if(allChildFeatures.size() == 0)
+            ((ViewManager)findViewById(R.id.childrenCheckbox).getParent()).removeView(findViewById(R.id.childrenCheckbox));
+
+        recommender = new UIElementFeatureRecommender(featurePack.packageName, featurePack.className, featurePack.text, featurePack.contentDescription, featurePack.viewId, featurePack.boundsInParent, featurePack.boundsInScreen, featurePack.isEditable, featurePack.time, featurePack.eventType, allParentFeatures, allChildFeatures);
+
+        Calendar c = Calendar.getInstance();
+        c.setTimeInMillis(featurePack.time);
+        SimpleDateFormat dateFormat;
+        dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ", Locale.US);
+        dateFormat.setTimeZone(TimeZone.getTimeZone("US/Eastern"));
+        boolean autoFillEnabled = sharedPreferences.getBoolean("auto_fill_enabled", false);
+
+        if(!featurePack.packageName.contentEquals("NULL")) {
+            ((CheckBox) findViewById(R.id.packageName)).setText("App Name: " + readableDescriptionGenerator.getReadableName(featurePack.packageName));
+            if (autoFillEnabled)
+                ((CheckBox) findViewById(R.id.packageName)).setChecked(recommender.choosePackageName());
+        }
+        else
+            ((ViewManager)findViewById(R.id.packageName).getParent()).removeView(findViewById(R.id.packageName));
+
+        if(!featurePack.className.contentEquals("NULL")) {
+            ((CheckBox) findViewById(R.id.className)).setText("Class Name: " + featurePack.className);
+            if (autoFillEnabled)
+                ((CheckBox) findViewById(R.id.className)).setChecked(recommender.chooseClassName());
+        }
+        else
+            ((ViewManager)findViewById(R.id.className).getParent()).removeView(findViewById(R.id.className));
+
+        if(!featurePack.text.contentEquals("NULL")) {
+            ((CheckBox) findViewById(R.id.text)).setText("Text: " + featurePack.text);
+            if(autoFillEnabled)
+                ((CheckBox) findViewById(R.id.text)).setChecked(recommender.chooseText());
+        }
+        else
+            ((ViewManager)findViewById(R.id.text).getParent()).removeView(findViewById(R.id.text));
+
+        if(!featurePack.contentDescription.contentEquals("NULL")) {
+            ((CheckBox) findViewById(R.id.contentDescription)).setText("Content Description: " + featurePack.contentDescription);
+            if(autoFillEnabled)
+                ((CheckBox) findViewById(R.id.contentDescription)).setChecked(recommender.chooseContentDescription());
+        }
+        else
+            ((ViewManager)findViewById(R.id.contentDescription).getParent()).removeView(findViewById(R.id.contentDescription));
+
+        if(!featurePack.viewId.contentEquals("NULL")) {
+            ((CheckBox) findViewById(R.id.viewId)).setText("ViewId: " + featurePack.viewId);
+            if(autoFillEnabled)
+                ((CheckBox) findViewById(R.id.viewId)).setChecked(recommender.chooseViewId());
+        }
+        else
+            ((ViewManager)findViewById(R.id.viewId).getParent()).removeView(findViewById(R.id.viewId));
+
+
+        ((CheckBox)findViewById(R.id.boundsInParent)).setText("Bounds in Parent: " + featurePack.boundsInParent);
+        if(autoFillEnabled)
+            ((CheckBox) findViewById(R.id.boundsInParent)).setChecked(recommender.chooseBoundsInParent());
+
+        ((CheckBox)findViewById(R.id.boundsInScreen)).setText("Bounds in Screen: " + featurePack.boundsInScreen);
+        if(autoFillEnabled)
+            ((CheckBox) findViewById(R.id.boundsInScreen)).setChecked(recommender.chooseBoundsInScreen());
+
+        //populate selected child/parent features
+        if(autoFillEnabled){
+            selectedChildFeatures.addAll(recommender.chooseChildFeatures());
+            selectedParentFeatures.addAll(recommender.chooseParentFeatures());
+            if(findViewById(R.id.childrenCheckbox) != null)
+                ((CheckBox)findViewById(R.id.childrenCheckbox)).setChecked(selectedChildFeatures.size() > 0);
+            if(findViewById(R.id.parentCheckbox) != null)
+                ((CheckBox)findViewById(R.id.parentCheckbox)).setChecked(selectedParentFeatures.size() > 0);
+        }
+
+
+        ((TextView)findViewById(R.id.time)).setText("Event Time: " + dateFormat.format(c.getTime()) + "\nRecording script: " + sharedPreferences.getString("scriptName", "NULL"));
+        ((TextView)findViewById(R.id.filteredNodeCount)).setText(generateFilterCount());
+        ((TextView)findViewById(R.id.operationDescription)).setText(generateDescription());
     }
 
 

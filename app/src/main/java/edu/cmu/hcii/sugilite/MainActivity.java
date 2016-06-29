@@ -118,6 +118,7 @@ public class MainActivity extends AppCompatActivity {
      */
     private void setUpScriptList(){
         final ListView scriptList = (ListView)findViewById(R.id.scriptList);
+        scriptList.removeAllViews();
         List<String> names = sugiliteScriptDao.getAllNames();
         scriptList.setAdapter(new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, names));
         final Context activityContext = this;

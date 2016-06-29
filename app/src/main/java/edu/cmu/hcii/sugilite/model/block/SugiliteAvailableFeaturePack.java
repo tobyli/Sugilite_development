@@ -13,6 +13,22 @@ public class SugiliteAvailableFeaturePack {
     public SugiliteAvailableFeaturePack(){
         //do nothing
     }
+    public SugiliteAvailableFeaturePack(SugiliteAvailableFeaturePack featurePack){
+        this.packageName = featurePack.packageName;
+        this.className = featurePack.className;
+        this.text = featurePack.text;
+        this.contentDescription = featurePack.contentDescription;
+        this.viewId = featurePack.viewId;
+        this.boundsInParent = featurePack.boundsInParent;
+        this.boundsInScreen = featurePack.boundsInScreen;
+        this.isEditable = featurePack.isEditable;
+        this.time = featurePack.time;
+        this.eventType = featurePack.eventType;
+        this.screenshot = featurePack.screenshot;
+        this.parentNode = featurePack.parentNode;
+        this.childNodes = featurePack.childNodes;
+        this.allNodes = featurePack.allNodes;
+    }
     public String packageName, className, text, contentDescription, viewId, boundsInParent, boundsInScreen;
     public boolean isEditable;
     public long time;

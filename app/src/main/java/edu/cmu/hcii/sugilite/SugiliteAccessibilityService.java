@@ -181,6 +181,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
         popUpIntent.putExtra("isEditable", sourceNode.isEditable());
         popUpIntent.putExtra("eventType", event.getEventType());
         popUpIntent.putExtra("screenshot", screenshot);
+        popUpIntent.putExtra("trigger", RecordingPopUpActivity.TRIGGERED_BY_NEW_EVENT);
         return popUpIntent;
     }
 }

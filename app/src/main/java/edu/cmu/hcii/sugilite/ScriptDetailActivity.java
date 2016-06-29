@@ -45,10 +45,17 @@ public class ScriptDetailActivity extends AppCompatActivity {
         } else {
             scriptName = savedInstanceState.getString("scriptName");
         }
-        operationStepList = (LinearLayout)findViewById(R.id.operationStepList);
         sugiliteData = (SugiliteData)getApplication();
         sugiliteScriptDao = new SugiliteScriptDao(this);
         script = sugiliteScriptDao.read(scriptName);
+        loadOperationList();
+
+
+    }
+
+    public void loadOperationList(){
+        operationStepList = (LinearLayout)findViewById(R.id.operationStepList);
+        operationStepList.removeAllViews();
         if (script != null){
             for(final SugiliteBlock block : traverseBlock(script)) {
                 TextView operationStepItem = new TextView(this);
@@ -79,8 +86,8 @@ public class ScriptDetailActivity extends AppCompatActivity {
             operationStepItem.setText("NULL SCRIPT!");
             operationStepList.addView(operationStepItem);
         }
-
     }
+
     public void scriptDetailRunButtonOnClick (View view){
         new AlertDialog.Builder(this)
                 .setTitle("Run Script")
@@ -214,6 +221,11 @@ public class ScriptDetailActivity extends AppCompatActivity {
                 if(currentBlock.getDescription().contentEquals(textView.getText())){
                     //match, pop up the edit
                     //the pop up should save the new script to db
+                    Intent intent = new Intent(this, RecordingPopUpActivity.class);
+                    intent.putExtra("trigger", RecordingPopUpActivity.TRIGGERED_BY_EDIT);
+                    intent.putExtra("originalScript", script);
+                    intent.putExtra("blockToEdit", currentBlock);
+                    startActivityForResult(intent, RecordingPopUpActivity.TRIGGERED_BY_EDIT);
                     break;
                 }
                 else{
@@ -231,7 +243,23 @@ public class ScriptDetailActivity extends AppCompatActivity {
                 }
             }
         }
-        script = sugiliteScriptDao.read(scriptName);
+
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        // Check which request we're responding to
+        if (requestCode == RecordingPopUpActivity.TRIGGERED_BY_EDIT) {
+            // Make sure the request was successful
+            if (resultCode == RESULT_OK) {
+                Toast.makeText(this, "Successfully Editing the Operation", Toast.LENGTH_SHORT).show();
+                script = sugiliteScriptDao.read(scriptName);
+                loadOperationList();
+            }
+            else {
+                Toast.makeText(this, "Failed to Editing the Operation", Toast.LENGTH_SHORT).show();
+            }
+        }
     }
 
     private void deleteOperation(MenuItem item){
@@ -274,6 +302,7 @@ public class ScriptDetailActivity extends AppCompatActivity {
             }
         }
         script = sugiliteScriptDao.read(scriptName);
+        loadOperationList();
     }
 
 

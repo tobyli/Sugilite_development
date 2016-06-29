@@ -2,6 +2,8 @@ package edu.cmu.hcii.sugilite.model.block;
 
 import java.io.File;
 import java.io.Serializable;
+import java.util.Random;
+
 
 /**
  * @author toby
@@ -9,12 +11,20 @@ import java.io.Serializable;
  * @time 2:02 PM
  */
 public abstract class SugiliteBlock implements Serializable{
+    public SugiliteBlock(){
+        Random rand = new Random();
+        blockId = rand.nextInt(65535);
+    }
     public int blockType;
     public static int REGULAR_OPERATION = 1, IF_CONDITION = 2, FOR_EACH_LOOP = 3, RETURN_VALUE = 4, END_BLOCK = 5, STARTING_BLOCK = 6;
     //each block can only have 1 previous block
     SugiliteBlock previousBlock;
     private String description;
     private File screenshot;
+    private int blockId;
+    public int getBlockId(){
+        return blockId;
+    }
     public void setDescription(String description){
         this.description = description;
     }

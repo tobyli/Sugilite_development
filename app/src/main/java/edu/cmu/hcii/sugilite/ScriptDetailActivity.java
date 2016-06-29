@@ -1,6 +1,8 @@
 package edu.cmu.hcii.sugilite;
 
+import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -9,13 +11,17 @@ import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.Html;
+import android.util.TypedValue;
 import android.view.ContextMenu;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.LinearLayout;
+import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -29,7 +35,7 @@ import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 
 public class ScriptDetailActivity extends AppCompatActivity {
 
-    private LinearLayout operationStepList;
+    private ListView operationStepList;
     private SugiliteData sugiliteData;
     private String scriptName;
     private SharedPreferences sharedPreferences;
@@ -54,9 +60,10 @@ public class ScriptDetailActivity extends AppCompatActivity {
     }
 
     public void loadOperationList(){
-        operationStepList = (LinearLayout)findViewById(R.id.operationStepList);
-        operationStepList.removeAllViews();
+        operationStepList = (ListView)findViewById(R.id.operationStepList);
+        List<String> operations = new ArrayList<>();
         if (script != null){
+            /*
             for(final SugiliteBlock block : traverseBlock(script)) {
                 TextView operationStepItem = new TextView(this);
                 operationStepItem.setText(Html.fromHtml(block.getDescription()));
@@ -77,16 +84,36 @@ public class ScriptDetailActivity extends AppCompatActivity {
                         startActivity(intent);
                     }
                 });
-                registerForContextMenu(operationStepItem);
-                operationStepList.addView(operationStepItem, layoutParams);
-            }
+                */
+
+                for(SugiliteBlock block : traverseBlock(script)) {
+                    operations.add(block.getDescription());
+                }
         }
         else{
-            TextView operationStepItem = new TextView(this);
-            operationStepItem.setText("NULL SCRIPT!");
-            operationStepList.addView(operationStepItem);
+            operations.add("NULL SCRIPT");
         }
+
+        operationStepList.setAdapter(new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, operations) {
+            @Override
+            public View getView(int position, View convertView, ViewGroup parent) {
+                TextView tv = new TextView(parent.getContext());
+                tv.setText(Html.fromHtml(getItem(position)));
+                tv.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
+                return tv;
+            }
+        });
+
+        operationStepList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                if(view != null)
+                    Toast.makeText(getApplicationContext(), (view instanceof TextView ? ((TextView) view).getText().toString() : "NULL"), Toast.LENGTH_SHORT).show();
+            }
+        });
+        registerForContextMenu(operationStepList);
     }
+
 
     public void scriptDetailRunButtonOnClick (View view){
         new AlertDialog.Builder(this)
@@ -189,7 +216,6 @@ public class ScriptDetailActivity extends AppCompatActivity {
         switch (item.getItemId()){
             case ITEM_1:
                 Toast.makeText(this, "View Operation", Toast.LENGTH_SHORT).show();
-                item.getActionView().performClick();
                 break;
             case ITEM_2:
                 Toast.makeText(this, "Edit Operation", Toast.LENGTH_SHORT).show();
@@ -220,7 +246,7 @@ public class ScriptDetailActivity extends AppCompatActivity {
                 break;
             if(currentBlock instanceof SugiliteOperationBlock){
                 //TODO: check if content equals is the right method to use here
-                if(currentBlock.getDescription().contentEquals(textView.getText())){
+                if(Html.fromHtml(currentBlock.getDescription()).toString().contentEquals(textView.getText().toString())){
                     //match, pop up the edit
                     //the pop up should save the new script to db
                     Intent intent = new Intent(this, RecordingPopUpActivity.class);
@@ -235,7 +261,7 @@ public class ScriptDetailActivity extends AppCompatActivity {
                 }
             }
             if(currentBlock instanceof SugiliteStartingBlock){
-                if(currentBlock.getDescription().equals(textView.getText())){
+                if(Html.fromHtml(currentBlock.getDescription()).toString().contentEquals(textView.getText().toString())){
                     //match, can't edit starting block
                     Toast.makeText(this, "Can't edit starting block", Toast.LENGTH_SHORT).show();
                     break;
@@ -280,7 +306,7 @@ public class ScriptDetailActivity extends AppCompatActivity {
             if(currentBlock == null)
                 break;
             if(currentBlock instanceof SugiliteOperationBlock){
-                if(currentBlock.getDescription().contentEquals(textView.getText())){
+                if(Html.fromHtml(currentBlock.getDescription()).toString().contentEquals(textView.getText().toString())){
                     ((SugiliteOperationBlock) currentBlock).delete();
                     try {
                         sugiliteScriptDao.save(script);
@@ -295,7 +321,7 @@ public class ScriptDetailActivity extends AppCompatActivity {
                 }
             }
             if(currentBlock instanceof SugiliteStartingBlock){
-                if(currentBlock.getDescription().equals(textView.getText())){
+                if(Html.fromHtml(currentBlock.getDescription()).toString().contentEquals(textView.getText().toString())){
                     //match, can't delete starting block
                     Toast.makeText(this, "Can't delete starting block", Toast.LENGTH_SHORT).show();
                     break;

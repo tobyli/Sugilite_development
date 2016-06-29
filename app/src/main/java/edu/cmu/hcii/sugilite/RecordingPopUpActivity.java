@@ -534,6 +534,7 @@ public class RecordingPopUpActivity extends AppCompatActivity {
                             if(currentBlock.getPreviousBlock() instanceof SugiliteOperationBlock){
                                 ((SugiliteOperationBlock) currentBlock.getPreviousBlock()).setNextBlock(operationBlock);
                                 operationBlock.setPreviousBlock(currentBlock.getPreviousBlock());
+                                operationBlock.setNextBlock(((SugiliteOperationBlock) currentBlock).getNextBlock());
                                 try {
                                     sugiliteScriptDao.save(originalScript);
                                     success = true;
@@ -547,6 +548,7 @@ public class RecordingPopUpActivity extends AppCompatActivity {
                             else if(currentBlock.getPreviousBlock() instanceof SugiliteStartingBlock){
                                 ((SugiliteStartingBlock) currentBlock.getPreviousBlock()).setNextBlock(operationBlock);
                                 operationBlock.setPreviousBlock(currentBlock.getPreviousBlock());
+                                operationBlock.setNextBlock(((SugiliteOperationBlock) currentBlock).getNextBlock());
                                 try {
                                     success = true;
                                     sugiliteScriptDao.save(originalScript);

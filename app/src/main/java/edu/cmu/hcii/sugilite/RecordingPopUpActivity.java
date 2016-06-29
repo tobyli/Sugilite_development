@@ -38,6 +38,7 @@ import java.util.TimeZone;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
 import edu.cmu.hcii.sugilite.model.AccessibilityNodeInfoList;
 import edu.cmu.hcii.sugilite.model.SetMapEntrySerializableWrapper;
+import edu.cmu.hcii.sugilite.model.block.SugiliteAvailableFeaturePack;
 import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.model.block.UIElementMatchingFilter;
@@ -47,15 +48,8 @@ import edu.cmu.hcii.sugilite.ui.ReadableDescriptionGenerator;
 import edu.cmu.hcii.sugilite.ui.UIElementFeatureRecommender;
 
 public class RecordingPopUpActivity extends AppCompatActivity {
-
-    private String packageName, className, text, contentDescription, viewId, boundsInParent, boundsInScreen;
-    private boolean isEditable;
-    private long time;
-    private int eventType;
-    private File screenshot;
+    private SugiliteAvailableFeaturePack featurePack;
     private SharedPreferences sharedPreferences;
-    private AccessibilityNodeInfo parentNode;
-    private AccessibilityNodeInfoList childNodes, allNodes;
     private SugiliteScriptDao sugiliteScriptDao;
     private Set<Map.Entry<String, String>> allParentFeatures = new HashSet<>();
     private Set<Map.Entry<String, String>> allChildFeatures = new HashSet<>();
@@ -74,6 +68,7 @@ public class RecordingPopUpActivity extends AppCompatActivity {
         sugiliteScriptDao = new SugiliteScriptDao(this);
         readableDescriptionGenerator = new ReadableDescriptionGenerator(getApplicationContext());
         setContentView(R.layout.activity_recoding_pop_up);
+        featurePack = new SugiliteAvailableFeaturePack();
         //fetch the data capsuled in the intent
         if(savedInstanceState == null){
             Bundle extras = getIntent().getExtras();
@@ -81,56 +76,56 @@ public class RecordingPopUpActivity extends AppCompatActivity {
                 //something wrong here!
             }
             else{
-                packageName = extras.getString("packageName", "NULL");
-                className = extras.getString("className", "NULL");
-                text = extras.getString("text", "NULL");
-                contentDescription = extras.getString("contentDescription", "NULL");
-                viewId = extras.getString("viewId", "NULL");
-                boundsInParent = extras.getString("boundsInParent", "NULL");
-                boundsInScreen = extras.getString("boundsInScreen", "NULL");
-                time = extras.getLong("time", -1);
-                eventType = extras.getInt("eventType", -1);
-                parentNode = extras.getParcelable("parentNode");
-                childNodes = extras.getParcelable("childrenNodes");
-                allNodes = extras.getParcelable("allNodes");
-                isEditable = extras.getBoolean("isEditable");
-                eventType = extras.getInt("eventType");
-                screenshot = (File)extras.getSerializable("screenshot");
+                featurePack.packageName = extras.getString("packageName", "NULL");
+                featurePack.className = extras.getString("className", "NULL");
+                featurePack.text = extras.getString("text", "NULL");
+                featurePack.contentDescription = extras.getString("contentDescription", "NULL");
+                featurePack.viewId = extras.getString("viewId", "NULL");
+                featurePack.boundsInParent = extras.getString("boundsInParent", "NULL");
+                featurePack.boundsInScreen = extras.getString("boundsInScreen", "NULL");
+                featurePack.time = extras.getLong("time", -1);
+                featurePack.eventType = extras.getInt("eventType", -1);
+                featurePack.parentNode = extras.getParcelable("parentNode");
+                featurePack.childNodes = extras.getParcelable("childrenNodes");
+                featurePack.allNodes = extras.getParcelable("allNodes");
+                featurePack.isEditable = extras.getBoolean("isEditable");
+                featurePack.eventType = extras.getInt("eventType");
+                featurePack.screenshot = (File)extras.getSerializable("screenshot");
             }
         }
         else{
-            packageName = savedInstanceState.getString("packageName", "NULL");
-            className = savedInstanceState.getString("className", "NULL");
-            text = savedInstanceState.getString("text", "NULL");
-            contentDescription = savedInstanceState.getString("contentDescription", "NULL");
-            viewId = savedInstanceState.getString("viewId", "NULL");
-            boundsInParent = savedInstanceState.getString("boundsInParent", "NULL");
-            boundsInScreen = savedInstanceState.getString("boundsInScreen", "NULL");
-            time = savedInstanceState.getLong("time", -1);
-            eventType = savedInstanceState.getInt("eventType", -1);
-            parentNode = savedInstanceState.getParcelable("parentNode");
-            childNodes = savedInstanceState.getParcelable("childrenNodes");
-            allNodes = savedInstanceState.getParcelable("allNodes");
-            isEditable = savedInstanceState.getBoolean("isEditable");
-            eventType = savedInstanceState.getInt("eventType");
-            screenshot = (File)savedInstanceState.getSerializable("screenshot");
+            featurePack.packageName = savedInstanceState.getString("packageName", "NULL");
+            featurePack.className = savedInstanceState.getString("className", "NULL");
+            featurePack.text = savedInstanceState.getString("text", "NULL");
+            featurePack.contentDescription = savedInstanceState.getString("contentDescription", "NULL");
+            featurePack.viewId = savedInstanceState.getString("viewId", "NULL");
+            featurePack.boundsInParent = savedInstanceState.getString("boundsInParent", "NULL");
+            featurePack.boundsInScreen = savedInstanceState.getString("boundsInScreen", "NULL");
+            featurePack.time = savedInstanceState.getLong("time", -1);
+            featurePack.eventType = savedInstanceState.getInt("eventType", -1);
+            featurePack.parentNode = savedInstanceState.getParcelable("parentNode");
+            featurePack.childNodes = savedInstanceState.getParcelable("childrenNodes");
+            featurePack.allNodes = savedInstanceState.getParcelable("allNodes");
+            featurePack.isEditable = savedInstanceState.getBoolean("isEditable");
+            featurePack.eventType = savedInstanceState.getInt("eventType");
+            featurePack.screenshot = (File)savedInstanceState.getSerializable("screenshot");
         }
 
         //populate parent features
-        if(parentNode != null){
-            if(parentNode.getText() != null)
-                allParentFeatures.add(new AbstractMap.SimpleEntry<>("text", parentNode.getText().toString()));
-            if(parentNode.getContentDescription() != null)
-                allParentFeatures.add(new AbstractMap.SimpleEntry<>("contentDescription", parentNode.getContentDescription().toString()));
-            if(parentNode.getViewIdResourceName() != null)
-                allParentFeatures.add(new AbstractMap.SimpleEntry<>("viewId", parentNode.getViewIdResourceName()));
+        if(featurePack.parentNode != null){
+            if(featurePack.parentNode.getText() != null)
+                allParentFeatures.add(new AbstractMap.SimpleEntry<>("text", featurePack.parentNode.getText().toString()));
+            if(featurePack.parentNode.getContentDescription() != null)
+                allParentFeatures.add(new AbstractMap.SimpleEntry<>("contentDescription", featurePack.parentNode.getContentDescription().toString()));
+            if(featurePack.parentNode.getViewIdResourceName() != null)
+                allParentFeatures.add(new AbstractMap.SimpleEntry<>("viewId", featurePack.parentNode.getViewIdResourceName()));
         }
         if(allParentFeatures.size() == 0)
             ((ViewManager)findViewById(R.id.parentCheckbox).getParent()).removeView(findViewById(R.id.parentCheckbox));
 
 
         //populate child features
-        for(AccessibilityNodeInfo childNode : childNodes.getList()){
+        for(AccessibilityNodeInfo childNode : featurePack.childNodes.getList()){
             if(childNode != null){
                 if(childNode.getText() != null)
                     allChildFeatures.add(new AbstractMap.SimpleEntry<>("text", childNode.getText().toString()));
@@ -143,40 +138,40 @@ public class RecordingPopUpActivity extends AppCompatActivity {
         if(allChildFeatures.size() == 0)
             ((ViewManager)findViewById(R.id.childrenCheckbox).getParent()).removeView(findViewById(R.id.childrenCheckbox));
 
-        recommender = new UIElementFeatureRecommender(packageName, className, text, contentDescription, viewId, boundsInParent, boundsInScreen, isEditable, time, eventType, allParentFeatures, allChildFeatures);
+        recommender = new UIElementFeatureRecommender(featurePack.packageName, featurePack.className, featurePack.text, featurePack.contentDescription, featurePack.viewId, featurePack.boundsInParent, featurePack.boundsInScreen, featurePack.isEditable, featurePack.time, featurePack.eventType, allParentFeatures, allChildFeatures);
 
         Calendar c = Calendar.getInstance();
-        c.setTimeInMillis(time);
+        c.setTimeInMillis(featurePack.time);
         SimpleDateFormat dateFormat;
         dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ", Locale.US);
         dateFormat.setTimeZone(TimeZone.getTimeZone("US/Eastern"));
         boolean autoFillEnabled = sharedPreferences.getBoolean("auto_fill_enabled", false);
 
-        ((CheckBox)findViewById(R.id.packageName)).setText("App Name: " + readableDescriptionGenerator.getReadableName(packageName));
+        ((CheckBox)findViewById(R.id.packageName)).setText("App Name: " + readableDescriptionGenerator.getReadableName(featurePack.packageName));
         //by default: check package name & class name
         ((CheckBox)findViewById(R.id.packageName)).setChecked(true);
-        ((CheckBox)findViewById(R.id.className)).setText("Class Name: " + className);
+        ((CheckBox)findViewById(R.id.className)).setText("Class Name: " + featurePack.className);
         ((CheckBox)findViewById(R.id.className)).setChecked(true);
 
 
-        if(!text.contentEquals("NULL")) {
-            ((CheckBox) findViewById(R.id.text)).setText("Text: " + text);
+        if(!featurePack.text.contentEquals("NULL")) {
+            ((CheckBox) findViewById(R.id.text)).setText("Text: " + featurePack.text);
             if(autoFillEnabled)
                 ((CheckBox) findViewById(R.id.text)).setChecked(recommender.chooseText());
         }
         else
             ((ViewManager)findViewById(R.id.text).getParent()).removeView(findViewById(R.id.text));
 
-        if(!contentDescription.contentEquals("NULL")) {
-            ((CheckBox) findViewById(R.id.contentDescription)).setText("Content Description: " + contentDescription);
+        if(!featurePack.contentDescription.contentEquals("NULL")) {
+            ((CheckBox) findViewById(R.id.contentDescription)).setText("Content Description: " + featurePack.contentDescription);
             if(autoFillEnabled)
                 ((CheckBox) findViewById(R.id.contentDescription)).setChecked(recommender.chooseContentDescription());
         }
         else
             ((ViewManager)findViewById(R.id.contentDescription).getParent()).removeView(findViewById(R.id.contentDescription));
 
-        if(!viewId.contentEquals("NULL")) {
-            ((CheckBox) findViewById(R.id.viewId)).setText("ViewId: " + viewId);
+        if(!featurePack.viewId.contentEquals("NULL")) {
+            ((CheckBox) findViewById(R.id.viewId)).setText("ViewId: " + featurePack.viewId);
             if(autoFillEnabled)
                 ((CheckBox) findViewById(R.id.viewId)).setChecked(recommender.chooseViewId());
         }
@@ -184,11 +179,11 @@ public class RecordingPopUpActivity extends AppCompatActivity {
             ((ViewManager)findViewById(R.id.viewId).getParent()).removeView(findViewById(R.id.viewId));
 
 
-        ((CheckBox)findViewById(R.id.boundsInParent)).setText("Bounds in Parent: " + boundsInParent);
+        ((CheckBox)findViewById(R.id.boundsInParent)).setText("Bounds in Parent: " + featurePack.boundsInParent);
         if(autoFillEnabled)
             ((CheckBox) findViewById(R.id.boundsInParent)).setChecked(recommender.chooseBoundsInParent());
 
-        ((CheckBox)findViewById(R.id.boundsInScreen)).setText("Bounds in Screen: " + boundsInScreen);
+        ((CheckBox)findViewById(R.id.boundsInScreen)).setText("Bounds in Screen: " + featurePack.boundsInScreen);
         if(autoFillEnabled)
             ((CheckBox) findViewById(R.id.boundsInScreen)).setChecked(recommender.chooseBoundsInScreen());
 
@@ -234,8 +229,8 @@ public class RecordingPopUpActivity extends AppCompatActivity {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Choose Operation");
         String[] operations = {};
-        if(eventType == AccessibilityEvent.TYPE_VIEW_CLICKED) {
-            if (isEditable)
+        if(featurePack.eventType == AccessibilityEvent.TYPE_VIEW_CLICKED) {
+            if (featurePack.isEditable)
                 operations = new String[]{"CLICK", "SET TEXT"};
             else
                 operations = new String[]{"CLICK"};
@@ -260,7 +255,7 @@ public class RecordingPopUpActivity extends AppCompatActivity {
                     operationBlock.setDescription(generateDescription());
                     operationBlock.setPreviousBlock(sugiliteData.getCurrentScriptBlock());
                     operationBlock.setElementMatchingFilter(generateFilter());
-                    operationBlock.setScreenshot(screenshot);
+                    operationBlock.setScreenshot(featurePack.screenshot);
                     //genereate the block if the operation is click or return
                     if (sugiliteOperation.getOperationType() == SugiliteOperation.CLICK || sugiliteOperation.getOperationType() == SugiliteOperation.RETURN) {
                         operationBlock.setOperation(sugiliteOperation);
@@ -361,7 +356,7 @@ public class RecordingPopUpActivity extends AppCompatActivity {
             String defaultOperationName = "NULL";
             String message = "";
             SugiliteOperation sugiliteOperation = new SugiliteOperation();
-            switch (eventType){
+            switch (featurePack.eventType){
                 case AccessibilityEvent.TYPE_VIEW_SELECTED:
                     defaultOperationName = "SELECT";
                     sugiliteOperation.setOperationType(SugiliteOperation.SELECT);
@@ -380,7 +375,7 @@ public class RecordingPopUpActivity extends AppCompatActivity {
             operationBlock.setPreviousBlock(sugiliteData.getCurrentScriptBlock());
             operationBlock.setElementMatchingFilter(generateFilter());
             operationBlock.setOperation(sugiliteOperation);
-            operationBlock.setScreenshot(screenshot);
+            operationBlock.setScreenshot(featurePack.screenshot);
 
 
             if (sugiliteData.getCurrentScriptBlock() instanceof SugiliteOperationBlock) {
@@ -513,25 +508,25 @@ public class RecordingPopUpActivity extends AppCompatActivity {
     public UIElementMatchingFilter generateFilter(){
         UIElementMatchingFilter filter = new UIElementMatchingFilter();
         if((findViewById(R.id.packageName) != null) && (((CheckBox)findViewById(R.id.packageName)).isChecked())){
-            filter.setPackageName(packageName);
+            filter.setPackageName(featurePack.packageName);
         }
         if((findViewById(R.id.className) != null) && ((CheckBox)findViewById(R.id.className)).isChecked()){
-            filter.setClassName(className);
+            filter.setClassName(featurePack.className);
         }
         if((findViewById(R.id.text) != null) && ((CheckBox)findViewById(R.id.text)).isChecked()){
-            filter.setText(text);
+            filter.setText(featurePack.text);
         }
         if((findViewById(R.id.contentDescription) != null) && ((CheckBox)findViewById(R.id.contentDescription)).isChecked()){
-            filter.setContentDescription(contentDescription);
+            filter.setContentDescription(featurePack.contentDescription);
         }
         if((findViewById(R.id.viewId) != null) && ((CheckBox)findViewById(R.id.viewId)).isChecked()){
-            filter.setViewId(viewId);
+            filter.setViewId(featurePack.viewId);
         }
         if((findViewById(R.id.boundsInParent) != null) && ((CheckBox)findViewById(R.id.boundsInParent)).isChecked()){
-            filter.setBoundsInParent(Rect.unflattenFromString(boundsInParent));
+            filter.setBoundsInParent(Rect.unflattenFromString(featurePack.boundsInParent));
         }
         if((findViewById(R.id.boundsInScreen) != null) && ((CheckBox)findViewById(R.id.boundsInScreen)).isChecked()){
-            filter.setBoundsInScreen(Rect.unflattenFromString(boundsInScreen));
+            filter.setBoundsInScreen(Rect.unflattenFromString(featurePack.boundsInScreen));
         }
         if (selectedChildFeatures.size() > 0){
             UIElementMatchingFilter childFilter = new UIElementMatchingFilter();
@@ -568,7 +563,7 @@ public class RecordingPopUpActivity extends AppCompatActivity {
 
     public String generateFilterCount(){
         UIElementMatchingFilter filter = generateFilter();
-        List<AccessibilityNodeInfo> nodes = allNodes.getList();
+        List<AccessibilityNodeInfo> nodes = featurePack.allNodes.getList();
         int count = 0, clickableCount = 0;
         for(AccessibilityNodeInfo node : nodes){
             if(filter.filter(node)){
@@ -594,31 +589,31 @@ public class RecordingPopUpActivity extends AppCompatActivity {
         */
         retVal += "on UI element that ";
         if((findViewById(R.id.packageName) != null) && ((CheckBox)findViewById(R.id.packageName)).isChecked()){
-            retVal += ((notFirstCondition? "and " : "") + "is within the package \"" + packageName + "\" ");
+            retVal += ((notFirstCondition? "and " : "") + "is within the package \"" + featurePack.packageName + "\" ");
             notFirstCondition = true;
         }
         if((findViewById(R.id.className) != null) && ((CheckBox)findViewById(R.id.className)).isChecked()){
-            retVal += ((notFirstCondition? "and " : "") + "is of the class type \"" + className + "\" ");
+            retVal += ((notFirstCondition? "and " : "") + "is of the class type \"" + featurePack.className + "\" ");
             notFirstCondition = true;
         }
         if((findViewById(R.id.text) != null) && ((CheckBox)findViewById(R.id.text)).isChecked()){
-            retVal += ((notFirstCondition? "and " : "") + "has text \"" + text + "\" ");
+            retVal += ((notFirstCondition? "and " : "") + "has text \"" + featurePack.text + "\" ");
             notFirstCondition = true;
         }
         if((findViewById(R.id.contentDescription) != null) && ((CheckBox)findViewById(R.id.contentDescription)).isChecked()){
-            retVal += ((notFirstCondition? "and " : "") + "has contentDescription \"" + contentDescription + "\" ");
+            retVal += ((notFirstCondition? "and " : "") + "has contentDescription \"" + featurePack.contentDescription + "\" ");
             notFirstCondition = true;
         }
         if((findViewById(R.id.viewId) != null) && ((CheckBox)findViewById(R.id.viewId)).isChecked()){
-            retVal += ((notFirstCondition? "and " : "") + "has view ID \"" + viewId + "\" ");
+            retVal += ((notFirstCondition? "and " : "") + "has view ID \"" + featurePack.viewId + "\" ");
             notFirstCondition = true;
         }
         if((findViewById(R.id.boundsInParent) != null) && ((CheckBox)findViewById(R.id.boundsInParent)).isChecked()){
-            retVal += ((notFirstCondition? "and " : "") + "has location relative to its parent element at \"" + boundsInParent + "\" ");
+            retVal += ((notFirstCondition? "and " : "") + "has location relative to its parent element at \"" + featurePack.boundsInParent + "\" ");
             notFirstCondition = true;
         }
         if((findViewById(R.id.boundsInScreen) != null) && ((CheckBox)findViewById(R.id.boundsInScreen)).isChecked()){
-            retVal += ((notFirstCondition? "and " : "") + "has location on screen at \"" + boundsInScreen + "\" ");
+            retVal += ((notFirstCondition? "and " : "") + "has location on screen at \"" + featurePack.boundsInScreen + "\" ");
             notFirstCondition = true;
         }
         if (selectedChildFeatures.size() > 0){

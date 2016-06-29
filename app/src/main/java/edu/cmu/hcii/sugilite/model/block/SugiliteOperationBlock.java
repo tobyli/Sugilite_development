@@ -39,6 +39,14 @@ public class SugiliteOperationBlock extends SugiliteBlock implements Serializabl
         return operation;
     }
 
+    public void delete(){
+        SugiliteBlock previousBlock = getPreviousBlock();
+        if(previousBlock instanceof SugiliteStartingBlock)
+            ((SugiliteStartingBlock) previousBlock).setNextBlock(null);
+        if(previousBlock instanceof SugiliteOperationBlock)
+            ((SugiliteOperationBlock) previousBlock).setNextBlock(null);
+    }
+
     @Override
     public boolean run() throws Exception{
         if(operation == null){

@@ -9,8 +9,12 @@ import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.Html;
+import android.view.ContextMenu;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -55,7 +59,7 @@ public class ScriptDetailActivity extends AppCompatActivity {
                     @Override
                     public void onClick(View v) {
                         //show screenshot
-                        if(block.getScreenshot() == null || (!block.getScreenshot().exists())){
+                        if (block.getScreenshot() == null || (!block.getScreenshot().exists())) {
                             //no screenshot available
                             Toast.makeText(v.getContext(), "No screenshot available!", Toast.LENGTH_SHORT).show();
                             return;
@@ -66,6 +70,7 @@ public class ScriptDetailActivity extends AppCompatActivity {
                         startActivity(intent);
                     }
                 });
+                registerForContextMenu(operationStepItem);
                 operationStepList.addView(operationStepItem, layoutParams);
             }
         }
@@ -158,7 +163,118 @@ public class ScriptDetailActivity extends AppCompatActivity {
             sugiliteData.addInstruction(block);
         }
     }
+    private static final int ITEM_1 = Menu.FIRST;
+    private static final int ITEM_2 = Menu.FIRST + 1;
+    private static final int ITEM_3 = Menu.FIRST + 2;
 
+    @Override
+    public void onCreateContextMenu(ContextMenu menu, View view, ContextMenu.ContextMenuInfo info){
+        super.onCreateContextMenu(menu, view, info);
+        menu.setHeaderTitle("Sugilite Operation Menu");
+        menu.add(0, ITEM_1, 0, "View");
+        menu.add(0, ITEM_2, 0, "Edit");
+        menu.add(0, ITEM_3, 0, "Delete");
+    }
+
+    //TODO:implement context menu
+    @Override
+    public boolean onContextItemSelected(MenuItem item) {
+        switch (item.getItemId()){
+            case ITEM_1:
+                Toast.makeText(this, "View Operation", Toast.LENGTH_SHORT).show();
+                item.getActionView().performClick();
+                break;
+            case ITEM_2:
+                Toast.makeText(this, "Edit Operation", Toast.LENGTH_SHORT).show();
+                editOperation(item);
+                break;
+            case ITEM_3:
+                Toast.makeText(this, "Delete Operation", Toast.LENGTH_SHORT).show();
+                deleteOperation(item);
+                break;
+        }
+        return super.onContextItemSelected(item);
+    }
+
+    private void editOperation(MenuItem item){
+        TextView textView;
+        AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
+        if(info.targetView instanceof TextView){
+            int index = info.position;
+            textView = (TextView)info.targetView;
+        }
+        else
+            return;
+        SugiliteBlock currentBlock = script;
+        while(true){
+            if(currentBlock == null)
+                break;
+            if(currentBlock instanceof SugiliteOperationBlock){
+                //TODO: check if content equals is the right method to use here
+                if(currentBlock.getDescription().contentEquals(textView.getText())){
+                    //match, pop up the edit
+                    //the pop up should save the new script to db
+                    break;
+                }
+                else{
+                    currentBlock = ((SugiliteOperationBlock) currentBlock).getNextBlock();
+                }
+            }
+            if(currentBlock instanceof SugiliteStartingBlock){
+                if(currentBlock.getDescription().equals(textView.getText())){
+                    //match, can't edit starting block
+                    Toast.makeText(this, "Can't edit starting block", Toast.LENGTH_SHORT).show();
+                    break;
+                }
+                else {
+                    currentBlock = ((SugiliteStartingBlock) currentBlock).getNextBlock();
+                }
+            }
+        }
+        script = sugiliteScriptDao.read(scriptName);
+    }
+
+    private void deleteOperation(MenuItem item){
+        TextView textView;
+        AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
+        if(info.targetView instanceof TextView){
+            int index = info.position;
+            textView = (TextView)info.targetView;
+        }
+        else
+            return;
+        SugiliteBlock currentBlock = script;
+        while(true){
+            if(currentBlock == null)
+                break;
+            if(currentBlock instanceof SugiliteOperationBlock){
+                if(currentBlock.getDescription().contentEquals(textView.getText())){
+                    ((SugiliteOperationBlock) currentBlock).delete();
+                    try {
+                        sugiliteScriptDao.save(script);
+                    }
+                    catch (Exception e){
+                        e.printStackTrace();
+                    }
+                    break;
+                }
+                else{
+                    currentBlock = ((SugiliteOperationBlock) currentBlock).getNextBlock();
+                }
+            }
+            if(currentBlock instanceof SugiliteStartingBlock){
+                if(currentBlock.getDescription().equals(textView.getText())){
+                    //match, can't delete starting block
+                    Toast.makeText(this, "Can't delete starting block", Toast.LENGTH_SHORT).show();
+                    break;
+                }
+                else {
+                    currentBlock = ((SugiliteStartingBlock) currentBlock).getNextBlock();
+                }
+            }
+        }
+        script = sugiliteScriptDao.read(scriptName);
+    }
 
 
 

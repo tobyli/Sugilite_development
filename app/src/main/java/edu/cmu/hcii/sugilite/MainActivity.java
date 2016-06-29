@@ -13,6 +13,7 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.view.ContextMenu;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.Menu;
@@ -129,9 +130,54 @@ public class MainActivity extends AppCompatActivity {
                 startActivity(scriptDetailIntent);
             }
         });
+        registerForContextMenu(scriptList);
     }
 
+    private static final int ITEM_1 = Menu.FIRST;
+    private static final int ITEM_2 = Menu.FIRST + 1;
+    private static final int ITEM_3 = Menu.FIRST + 2;
+    private static final int ITEM_4 = Menu.FIRST + 3;
+
     @Override
+    public void onCreateContextMenu(ContextMenu menu, View view, ContextMenu.ContextMenuInfo info){
+        super.onCreateContextMenu(menu, view, info);
+        if(view instanceof TextView && ((TextView) view).getText() != null)
+            menu.setHeaderTitle(((TextView) view).getText());
+        else
+            menu.setHeaderTitle("Sugilite Operation Menu");
+        menu.add(0, ITEM_1, 0, "View");
+        menu.add(0, ITEM_2, 0, "Rename");
+        menu.add(0, ITEM_3, 0, "Share");
+        menu.add(0, ITEM_4, 0, "Delete");
+    }
+
+    //TODO:implement context menu
+    @Override
+    public boolean onContextItemSelected(MenuItem item) {
+        AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
+        switch (item.getItemId()){
+        case ITEM_1:
+            Toast.makeText(this, "View Script", Toast.LENGTH_SHORT).show();
+            info.targetView.performClick();
+            break;
+        case ITEM_2:
+            Toast.makeText(this, "Rename Script", Toast.LENGTH_SHORT).show();
+            break;
+        case ITEM_3:
+            Toast.makeText(this, "Share Script", Toast.LENGTH_SHORT).show();
+            break;
+        case ITEM_4:
+            Toast.makeText(this, "Delete Script", Toast.LENGTH_SHORT).show();
+            if(info.targetView instanceof TextView && ((TextView) info.targetView).getText() != null) {
+                sugiliteScriptDao.delete(((TextView) info.targetView).getText().toString());
+                setUpScriptList();
+            }
+            break;
+    }
+    return super.onContextItemSelected(item);
+    }
+
+        @Override
     public void onResume(){
         super.onResume();
         setUpScriptList();

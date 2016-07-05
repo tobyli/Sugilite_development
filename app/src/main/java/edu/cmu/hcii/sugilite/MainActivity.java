@@ -27,6 +27,7 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import edu.cmu.hcii.sugilite.automation.ServiceStatusManager;
@@ -49,6 +50,7 @@ public class MainActivity extends AppCompatActivity {
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         sugiliteScriptDao = new SugiliteScriptDao(this);
         sugiliteData = (SugiliteData)getApplication();
+        setTitle("Sugilite Script List");
         //TODO: confirm overwrite when duplicated name
         //TODO: combine the two instances of script creation
         addButton.setOnClickListener(new View.OnClickListener() {
@@ -119,12 +121,16 @@ public class MainActivity extends AppCompatActivity {
     private void setUpScriptList(){
         final ListView scriptList = (ListView)findViewById(R.id.scriptList);
         List<String> names = sugiliteScriptDao.getAllNames();
-        scriptList.setAdapter(new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, names));
+        List<String> displayNames = new ArrayList<>();
+        for(String name : names){
+            displayNames.add(new String(name).replace(".SugiliteScript", ""));
+        }
+        scriptList.setAdapter(new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, displayNames));
         final Context activityContext = this;
         scriptList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                String scriptName = (String) scriptList.getItemAtPosition(position);
+                String scriptName = (String) scriptList.getItemAtPosition(position) + ".SugiliteScript";
                 final Intent scriptDetailIntent = new Intent(activityContext, ScriptDetailActivity.class);
                 scriptDetailIntent.putExtra("scriptName", scriptName);
                 startActivity(scriptDetailIntent);
@@ -162,7 +168,7 @@ public class MainActivity extends AppCompatActivity {
             Toast.makeText(this, "View Script", Toast.LENGTH_SHORT).show();
             //open the view script activity
             if(info.targetView instanceof TextView && ((TextView) info.targetView).getText() != null) {
-                String scriptName = ((TextView) info.targetView).getText().toString();
+                String scriptName = ((TextView) info.targetView).getText().toString() + ".SugiliteScript";
                 final Intent scriptDetailIntent = new Intent(this, ScriptDetailActivity.class);
                 scriptDetailIntent.putExtra("scriptName", scriptName);
                 startActivity(scriptDetailIntent);

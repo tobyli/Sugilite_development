@@ -79,6 +79,7 @@ public class RecordingPopUpActivity extends AppCompatActivity {
         readableDescriptionGenerator = new ReadableDescriptionGenerator(getApplicationContext());
         setContentView(R.layout.activity_recoding_pop_up);
         featurePack = new SugiliteAvailableFeaturePack();
+        setTitle("Sugilite Script Recording");
         //fetch the data capsuled in the intent
         //TODO: refactor so the service passes in a feature pack instead
         if(savedInstanceState == null){
@@ -168,6 +169,7 @@ public class RecordingPopUpActivity extends AppCompatActivity {
                                 operationBlock.setOperation(setTextOperation);
                                 operationBlock.setDescription(readableDescriptionGenerator.generateReadableDescription(operationBlock));
                                 saveBlock(operationBlock, activityContext);
+                                sugiliteData.addInstruction(operationBlock);
 
                             }
                         });

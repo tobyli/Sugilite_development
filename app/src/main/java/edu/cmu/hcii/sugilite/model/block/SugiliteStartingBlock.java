@@ -14,13 +14,13 @@ public class SugiliteStartingBlock extends SugiliteBlock implements Serializable
     public SugiliteStartingBlock(){
         super();
         this.blockType = SugiliteBlock.STARTING_BLOCK;
-        this.setDescription("<b>STARTING BLOCK</b>");
+        this.setDescription("<b>STARTING SCRIPT</b>");
     }
     public SugiliteStartingBlock(String scriptName){
         super();
         this.scriptName = scriptName;
         this.blockType = SugiliteBlock.STARTING_BLOCK;
-        this.setDescription("<b>STARTING BLOCK</b>");
+        this.setDescription("<b>STARTING SCRIPT</b>");
     }
     public SugiliteBlock getNextBlock(){
         return nextBlock;
@@ -38,6 +38,24 @@ public class SugiliteStartingBlock extends SugiliteBlock implements Serializable
 
         else
             return nextBlock.run();
+    }
+
+    public SugiliteBlock getTail(){
+        SugiliteBlock currentBlock = this;
+        while(true){
+            if(currentBlock instanceof SugiliteStartingBlock){
+                if(((SugiliteStartingBlock) currentBlock).getNextBlock() == null)
+                    return currentBlock;
+                else
+                    currentBlock = ((SugiliteStartingBlock) currentBlock).getNextBlock();
+            }
+            else if(currentBlock instanceof SugiliteOperationBlock){
+                if(((SugiliteOperationBlock) currentBlock).getNextBlock() == null)
+                    return currentBlock;
+                else
+                    currentBlock = ((SugiliteOperationBlock) currentBlock).getNextBlock();
+            }
+        }
     }
 
 

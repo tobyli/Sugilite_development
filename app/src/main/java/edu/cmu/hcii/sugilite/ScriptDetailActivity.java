@@ -54,41 +54,22 @@ public class ScriptDetailActivity extends AppCompatActivity {
         sugiliteData = (SugiliteData)getApplication();
         sugiliteScriptDao = new SugiliteScriptDao(this);
         script = sugiliteScriptDao.read(scriptName);
+        setTitle("View Script: " + new String(scriptName).replace(".SugiliteScript", ""));
         loadOperationList();
 
 
     }
 
+    //TODO: set up operation on resume
+
     public void loadOperationList(){
         operationStepList = (ListView)findViewById(R.id.operationStepList);
         List<String> operations = new ArrayList<>();
         if (script != null){
-            /*
-            for(final SugiliteBlock block : traverseBlock(script)) {
-                TextView operationStepItem = new TextView(this);
-                operationStepItem.setText(Html.fromHtml(block.getDescription()));
-                LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-                layoutParams.setMargins(0, 0, 0, 30);
-                operationStepItem.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        //show screenshot
-                        if (block.getScreenshot() == null || (!block.getScreenshot().exists())) {
-                            //no screenshot available
-                            Toast.makeText(v.getContext(), "No screenshot available!", Toast.LENGTH_SHORT).show();
-                            return;
-                        }
-                        Intent intent = new Intent();
-                        intent.setAction(Intent.ACTION_VIEW);
-                        intent.setDataAndType(Uri.fromFile(block.getScreenshot()), "image/*");
-                        startActivity(intent);
-                    }
-                });
-                */
-
-                for(SugiliteBlock block : traverseBlock(script)) {
-                    operations.add(block.getDescription());
-                }
+            for(SugiliteBlock block : traverseBlock(script)) {
+                operations.add(block.getDescription());
+            }
+            operations.add("<b>ENDING SCRIPT</b>");
         }
         else{
             operations.add("NULL SCRIPT");
@@ -333,6 +314,38 @@ public class ScriptDetailActivity extends AppCompatActivity {
         }
         script = sugiliteScriptDao.read(scriptName);
         loadOperationList();
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        menu.add(Menu.NONE, Menu.FIRST, 1, "Resume Recording");
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item){
+        switch (item.getItemId()){
+            case Menu.FIRST:
+                resumeRecording();
+                break;
+        }
+        return true;
+    }
+
+    //TODO: rewrite resume recording
+    private void resumeRecording(){
+        SharedPreferences.Editor prefEditor = sharedPreferences.edit();
+        //turn off the recording before executing
+        prefEditor.putBoolean("recording_in_process", false);
+        prefEditor.commit();
+        sugiliteData.setScriptHead(script);
+        sugiliteData.setCurrentScriptBlock(script.getTail());
+        sugiliteData.clearInstructionQueue();
+        addItemsToInstructionQueue(traverseBlock(script));
+        Intent startMain = new Intent(Intent.ACTION_MAIN);
+        startMain.addCategory(Intent.CATEGORY_HOME);
+        startMain.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        startActivity(startMain);
     }
 
 

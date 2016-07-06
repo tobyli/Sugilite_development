@@ -283,6 +283,22 @@ public class StatusIconManager {
         });
     }
 
+    public void moveIcon (int x ,int y){
+        if(statusIcon == null)
+            return;
+        WindowManager.LayoutParams params = new WindowManager.LayoutParams(
+                WindowManager.LayoutParams.WRAP_CONTENT,
+                WindowManager.LayoutParams.WRAP_CONTENT,
+                WindowManager.LayoutParams.TYPE_PHONE,
+                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
+                PixelFormat.TRANSLUCENT);
+        params.gravity = Gravity.TOP | Gravity.RIGHT;
+        params.x = x;
+        params.y = y;
+        windowManager.updateViewLayout(statusIcon, params);
+        statusIcon.invalidate();
+    }
+
 
 
 

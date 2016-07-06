@@ -1,6 +1,7 @@
 package edu.cmu.hcii.sugilite.automation;
 
 import android.content.Context;
+import android.graphics.Rect;
 import android.os.Bundle;
 import android.view.accessibility.AccessibilityNodeInfo;
 import android.widget.Toast;
@@ -14,6 +15,8 @@ import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteOperation;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteSetTextOperation;
+import edu.cmu.hcii.sugilite.ui.BoundingBoxManager;
+import edu.cmu.hcii.sugilite.ui.StatusIconManager;
 
 /**
  * Created by toby on 6/13/16.
@@ -21,8 +24,14 @@ import edu.cmu.hcii.sugilite.model.operation.SugiliteSetTextOperation;
 public class Automator {
     private SugiliteData sugiliteData;
     private Context context;
-    public Automator(SugiliteData sugiliteData){
+    private BoundingBoxManager boundingBoxManager;
+    private StatusIconManager statusIconManager;
+    private static final int DELAY = 500;
+
+    public Automator(SugiliteData sugiliteData, Context context, StatusIconManager statusIconManager){
         this.sugiliteData = sugiliteData;
+        this.boundingBoxManager = new BoundingBoxManager(context);
+        this.statusIconManager = statusIconManager;
     }
     public boolean handleLiveEvent (AccessibilityNodeInfo rootNode, Context context){
         //TODO: fix the highlighting for matched element
@@ -51,8 +60,14 @@ public class Automator {
             //TODO: scrolling
             boolean retVal = performAction(node, operationBlock);
             if(retVal) {
+                //boundingBoxManager.addBoundingBox(node);
+                /*
+                Rect tempRect = new Rect();
+                node.getBoundsInScreen(tempRect);
+                statusIconManager.moveIcon(tempRect.centerX(), tempRect.centerY());
+                */
                 try {
-                    Thread.sleep(2000);
+                    Thread.sleep(DELAY);
                 }
                 catch (Exception e){
                     // do nothing
@@ -67,8 +82,6 @@ public class Automator {
     public boolean performAction(AccessibilityNodeInfo node, SugiliteOperationBlock block) {
 
         AccessibilityNodeInfo nodeToAction = node;
-
-
         if(block.getOperation().getOperationType() == SugiliteOperation.CLICK){
             return nodeToAction.performAction(AccessibilityNodeInfo.ACTION_CLICK);
         }

@@ -44,7 +44,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
         sugiliteData = (SugiliteData)getApplication();
         statusIconManager = new StatusIconManager(this, sugiliteData, sharedPreferences);
         screenshotManager = new SugiliteScreenshotManager(sharedPreferences, getApplicationContext());
-        automator = new Automator(sugiliteData);
+        automator = new Automator(sugiliteData, getApplicationContext(), statusIconManager);
 
         Integer[] accessibilityEventArrayToHandle = {AccessibilityEvent.TYPE_VIEW_CLICKED,
                 AccessibilityEvent.TYPE_VIEW_LONG_CLICKED,

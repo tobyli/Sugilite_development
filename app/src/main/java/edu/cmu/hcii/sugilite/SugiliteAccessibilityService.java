@@ -114,9 +114,6 @@ public class SugiliteAccessibilityService extends AccessibilityService {
         boolean retVal = false;
 
 
-
-
-
         if(sugiliteData.getInstructionQueueSize() > 0)
             retVal = automator.handleLiveEvent(rootNode, getApplicationContext());
 

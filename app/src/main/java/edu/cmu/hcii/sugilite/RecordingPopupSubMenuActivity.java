@@ -17,6 +17,7 @@ import java.util.Set;
 
 import edu.cmu.hcii.sugilite.model.SetMapEntrySerializableWrapper;
 
+@Deprecated
 public class RecordingPopupSubMenuActivity extends AppCompatActivity {
     private Set<Map.Entry<String, String>> allFeatures;
     private Set<Map.Entry<String, String>> selectedFeatures;

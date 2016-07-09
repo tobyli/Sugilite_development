@@ -49,6 +49,7 @@ import edu.cmu.hcii.sugilite.model.operation.SugiliteSetTextOperation;
 import edu.cmu.hcii.sugilite.ui.ReadableDescriptionGenerator;
 import edu.cmu.hcii.sugilite.ui.UIElementFeatureRecommender;
 
+@Deprecated
 public class RecordingPopUpActivity extends AppCompatActivity {
     private int triggerMode;
     private SugiliteAvailableFeaturePack featurePack;

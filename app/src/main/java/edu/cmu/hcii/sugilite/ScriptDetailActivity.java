@@ -230,11 +230,11 @@ public class ScriptDetailActivity extends AppCompatActivity {
                 if(Html.fromHtml(currentBlock.getDescription()).toString().contentEquals(textView.getText().toString())){
                     //match, pop up the edit
                     //the pop up should save the new script to db
-                    Intent intent = new Intent(this, RecordingPopUpActivity.class);
-                    intent.putExtra("trigger", RecordingPopUpActivity.TRIGGERED_BY_EDIT);
+                    Intent intent = new Intent(this, mRecordingPopUpActivity.class);
+                    intent.putExtra("trigger", mRecordingPopUpActivity.TRIGGERED_BY_EDIT);
                     intent.putExtra("originalScript", script);
                     intent.putExtra("blockToEdit", currentBlock);
-                    startActivityForResult(intent, RecordingPopUpActivity.TRIGGERED_BY_EDIT);
+                    startActivityForResult(intent, mRecordingPopUpActivity.TRIGGERED_BY_EDIT);
                     break;
                 }
                 else{
@@ -258,7 +258,7 @@ public class ScriptDetailActivity extends AppCompatActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         // Check which request we're responding to
-        if (requestCode == RecordingPopUpActivity.TRIGGERED_BY_EDIT) {
+        if (requestCode == mRecordingPopUpActivity.TRIGGERED_BY_EDIT) {
             // Make sure the request was successful
             if (resultCode == RESULT_OK) {
                 Toast.makeText(this, "Successfully Editing the Operation", Toast.LENGTH_SHORT).show();

@@ -25,7 +25,9 @@
             <LinearLayout
                 android:orientation="vertical"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content">
+                android:layout_height="wrap_content"
+                android:id="@+id/action_section"
+                android:layout_marginBottom="15dp">
 
                 <TextView
                     android:layout_width="wrap_content"
@@ -58,7 +60,7 @@
                     <EditText
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:id="@+id/editText" />
+                        android:id="@+id/action_parameter_set_text" />
 
                 </LinearLayout>
             </LinearLayout>
@@ -66,7 +68,8 @@
             <LinearLayout
                 android:orientation="vertical"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content">
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="15dp">
 
                 <TextView
                     android:layout_width="wrap_content"
@@ -80,14 +83,16 @@
                     android:layout_height="wrap_content"
                     android:id="@+id/target_type_dropdown"
                     android:layout_weight="1"
-                    android:spinnerMode="dialog"
+                    android:spinnerMode="dropdown"
                     android:layout_marginLeft="10dp" />
             </LinearLayout>
 
             <LinearLayout
                 android:orientation="vertical"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content">
+                android:layout_height="wrap_content"
+                android:id="@+id/identifier_layout"
+                android:layout_marginBottom="15dp">
 
                 <TextView
                     android:layout_width="wrap_content"
@@ -96,20 +101,13 @@
                     android:text="Identifier"
                     android:id="@+id/identifier_label" />
 
-                <CheckBox
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="New CheckBox"
-                    android:id="@+id/checkBox"
-                    android:checked="false"
-                    android:layout_marginLeft="20dp" />
-
             </LinearLayout>
 
             <LinearLayout
                 android:orientation="vertical"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content">
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="15dp">
 
                 <TextView
                     android:layout_width="wrap_content"
@@ -122,14 +120,15 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:id="@+id/within_app_dropdown"
-                    android:spinnerMode="dialog"
+                    android:spinnerMode="dropdown"
                     android:layout_marginLeft="10dp" />
             </LinearLayout>
 
             <LinearLayout
                 android:orientation="vertical"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content" >
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="15dp">
 
                 <TextView
                     android:layout_width="wrap_content"
@@ -169,7 +168,8 @@
             android:layout_alignParentBottom="true"
             android:layout_weight="1"
             android:layout_marginLeft="5dp"
-            android:layout_marginRight="5dp" />
+            android:layout_marginRight="5dp"
+            android:onClick="OKButtonOnClick" />
 
         <Button
             android:layout_width="wrap_content"
@@ -179,7 +179,8 @@
             android:layout_alignParentBottom="true"
             android:layout_weight="1"
             android:layout_marginLeft="5dp"
-            android:layout_marginRight="5dp" />
+            android:layout_marginRight="5dp"
+            android:onClick="finishActivity" />
 
         <Button
             android:layout_width="wrap_content"
@@ -189,7 +190,8 @@
             android:layout_alignParentBottom="true"
             android:layout_weight="1"
             android:layout_marginLeft="5dp"
-            android:layout_marginRight="5dp" />
+            android:layout_marginRight="5dp"
+            android:onClick="turnOffRecording" />
     </LinearLayout>
 
 

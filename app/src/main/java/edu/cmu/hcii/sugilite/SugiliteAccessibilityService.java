@@ -161,7 +161,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
         //TODO:AccessibilityNodeInfo is not serializable
 
         //pop up the selection window
-        Intent popUpIntent = new Intent(this, RecordingPopUpActivity.class);
+        Intent popUpIntent = new Intent(this, mRecordingPopUpActivity.class);
         popUpIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         popUpIntent.putExtra("packageName", sourceNode.getPackageName());
         popUpIntent.putExtra("className", sourceNode.getClassName());
@@ -178,7 +178,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
         popUpIntent.putExtra("isEditable", sourceNode.isEditable());
         popUpIntent.putExtra("eventType", event.getEventType());
         popUpIntent.putExtra("screenshot", screenshot);
-        popUpIntent.putExtra("trigger", RecordingPopUpActivity.TRIGGERED_BY_NEW_EVENT);
+        popUpIntent.putExtra("trigger", mRecordingPopUpActivity.TRIGGERED_BY_NEW_EVENT);
         return popUpIntent;
     }
 }

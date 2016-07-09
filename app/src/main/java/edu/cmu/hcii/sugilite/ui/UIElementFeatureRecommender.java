@@ -89,7 +89,7 @@ public class UIElementFeatureRecommender {
         if(!(contentDescription.contentEquals("NULL") && text.contentEquals("NULL")))
             return retSet;
         for(Map.Entry<String, String> entry : allChildFeatures){
-            if(entry.getKey().contentEquals("text")) {
+            if(entry.getKey().contentEquals("Text")) {
                 retSet.add(entry);
                 break;
             }

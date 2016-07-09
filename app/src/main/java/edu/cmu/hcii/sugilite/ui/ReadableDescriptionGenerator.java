@@ -97,6 +97,10 @@ public class ReadableDescriptionGenerator {
                 }
             }
 
+            if (((SugiliteOperationBlock) block).getElementMatchingFilter().getChildFilter()!= null && ((SugiliteOperationBlock) block).getElementMatchingFilter().getChildFilter().getViewId() != null){
+                message += (thatPrinted ? "" : "that ") + "has child view ID \"" + setColor(((SugiliteOperationBlock) block).getElementMatchingFilter().getChildFilter().getViewId(), "#800080") + "\" ";
+                thatPrinted = true;            }
+
 
             if(((SugiliteOperationBlock) block).getElementMatchingFilter().getViewId() != null){
                 message += (thatPrinted ? "" : "that ") + "has the view ID \"" + setColor(((SugiliteOperationBlock) block).getElementMatchingFilter().getViewId(), "#800080") + "\" ";

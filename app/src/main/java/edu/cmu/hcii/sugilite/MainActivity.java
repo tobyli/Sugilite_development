@@ -183,7 +183,7 @@ public class MainActivity extends AppCompatActivity {
         case ITEM_4:
             Toast.makeText(this, "Delete Script", Toast.LENGTH_SHORT).show();
             if(info.targetView instanceof TextView && ((TextView) info.targetView).getText() != null) {
-                sugiliteScriptDao.delete(((TextView) info.targetView).getText().toString());
+                sugiliteScriptDao.delete(((TextView) info.targetView).getText().toString() + ".SugiliteScript");
                 setUpScriptList();
             }
             break;

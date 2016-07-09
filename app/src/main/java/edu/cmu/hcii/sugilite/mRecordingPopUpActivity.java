@@ -8,8 +8,11 @@ import android.graphics.Rect;
 import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.text.Editable;
 import android.text.Html;
+import android.text.TextWatcher;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.ViewManager;
 import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityNodeInfo;
@@ -134,6 +137,9 @@ public class mRecordingPopUpActivity extends AppCompatActivity {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 saveBlock(operationBlock, activityContext);
+                //fill in the text box if the operation is of SET_TEXT type
+                if(operationBlock.getOperation().getOperationType() == SugiliteOperation.SET_TEXT)
+                    sugiliteData.addInstruction(operationBlock);
             }
         }).setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
             @Override
@@ -189,13 +195,17 @@ public class mRecordingPopUpActivity extends AppCompatActivity {
         Set<String> existingFeatureValues = new HashSet<>();
 
         //setup identifier
+        LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        layoutParams.setMargins(20, 0, 0 ,0);
+
+
         if(!featurePack.text.contentEquals("NULL")) {
             textCheckbox = new CheckBox(this);
-            textCheckbox.setText("Text: " + featurePack.text);
+            textCheckbox.setText(Html.fromHtml(boldify("Text: ") + featurePack.text));
             existingFeatureValues.add(featurePack.text);
             if(autoFillEnabled)
                 textCheckbox.setChecked(recommender.chooseText());
-            identifierLayout.addView(textCheckbox);
+            identifierLayout.addView(textCheckbox, layoutParams);
             identifierCheckboxMap.put("text", textCheckbox);
             textCheckbox.setOnCheckedChangeListener(identiferCheckboxChangeListener);
         }
@@ -203,22 +213,22 @@ public class mRecordingPopUpActivity extends AppCompatActivity {
 
         if(!featurePack.contentDescription.contentEquals("NULL")) {
             contentDescriptionCheckbox = new CheckBox(this);
-            contentDescriptionCheckbox.setText("ContentDescription: " + featurePack.contentDescription);
+            contentDescriptionCheckbox.setText(Html.fromHtml(boldify("ContentDescription: ") + featurePack.contentDescription));
             existingFeatureValues.add(featurePack.contentDescription);
             if(autoFillEnabled)
                 contentDescriptionCheckbox.setChecked(recommender.chooseContentDescription());
-            identifierLayout.addView(contentDescriptionCheckbox);
+            identifierLayout.addView(contentDescriptionCheckbox, layoutParams);
             identifierCheckboxMap.put("contentDescription", contentDescriptionCheckbox);
             contentDescriptionCheckbox.setOnCheckedChangeListener(identiferCheckboxChangeListener);
         }
 
         if(!featurePack.viewId.contentEquals("NULL")) {
             viewIdCheckbox = new CheckBox(this);
-            viewIdCheckbox.setText("ViewId: " + featurePack.viewId);
+            viewIdCheckbox.setText(Html.fromHtml(boldify("ViewId: ") + featurePack.viewId));
             existingFeatureValues.add(featurePack.viewId);
             if(autoFillEnabled)
                 viewIdCheckbox.setChecked(recommender.chooseViewId());
-            identifierLayout.addView(viewIdCheckbox);
+            identifierLayout.addView(viewIdCheckbox, layoutParams);
             identifierCheckboxMap.put("viewId", viewIdCheckbox);
             viewIdCheckbox.setOnCheckedChangeListener(identiferCheckboxChangeListener);
         }
@@ -231,12 +241,12 @@ public class mRecordingPopUpActivity extends AppCompatActivity {
         for(Map.Entry<String, String> feature : allChildFeatures){
             if(feature.getKey() != null && feature.getValue() != null){
                 CheckBox childCheckBox = new CheckBox(this);
-                childCheckBox.setText("Child " + feature.getKey() + ": " + feature.getValue());
+                childCheckBox.setText(Html.fromHtml(boldify("Child " + feature.getKey() + ": ") + feature.getValue()));
                 if(!existingFeatureValues.contains(feature.getValue())) {
                     if (selectedChildFeatures.contains(feature))
                         childCheckBox.setChecked(true);
                     existingFeatureValues.add(feature.getValue());
-                    identifierLayout.addView(childCheckBox);
+                    identifierLayout.addView(childCheckBox, layoutParams);
                     checkBoxChildEntryMap.put(feature, childCheckBox);
                     childCheckBox.setOnCheckedChangeListener(identiferCheckboxChangeListener);
                 }
@@ -245,15 +255,18 @@ public class mRecordingPopUpActivity extends AppCompatActivity {
             }
         }
 
+        //NOTE: temporarily remove parent features
+
+        /*
         for(Map.Entry<String, String> feature : allParentFeatures){
             if(feature.getKey() != null && feature.getValue() != null){
                 CheckBox parentCheckBox = new CheckBox(this);
-                parentCheckBox.setText("Parent " + feature.getKey() + ": " + feature.getValue());
+                parentCheckBox.setText(Html.fromHtml(boldify("Parent " + feature.getKey() + ": ") + feature.getValue()));
                 if(!existingFeatureValues.contains(feature.getValue())) {
                     if (selectedParentFeatures.contains(feature))
                         parentCheckBox.setChecked(true);
                     existingFeatureValues.add(feature.getValue());
-                    identifierLayout.addView(parentCheckBox);
+                    identifierLayout.addView(parentCheckBox, layoutParams);
                     checkBoxParentEntryMap.put(feature, parentCheckBox);
                     parentCheckBox.setOnCheckedChangeListener(identiferCheckboxChangeListener);
                 }
@@ -261,22 +274,22 @@ public class mRecordingPopUpActivity extends AppCompatActivity {
                     continue;
             }
         }
-
+        */
 
 
         boundsInParentCheckbox = new CheckBox(this);
-        boundsInParentCheckbox.setText("Bounds in Parent: " + featurePack.boundsInParent);
+        boundsInParentCheckbox.setText(Html.fromHtml(boldify("Bounds in Parent: ") + featurePack.boundsInParent));
         if(autoFillEnabled)
             boundsInParentCheckbox.setChecked(recommender.chooseBoundsInParent());
-        identifierLayout.addView(boundsInParentCheckbox);
+        identifierLayout.addView(boundsInParentCheckbox, layoutParams);
         identifierCheckboxMap.put("boundsInParent", boundsInParentCheckbox);
         boundsInParentCheckbox.setOnCheckedChangeListener(identiferCheckboxChangeListener);
 
         boundsInScreenCheckbox = new CheckBox(this);
-        boundsInScreenCheckbox.setText("Bounds in Screen: " + featurePack.boundsInScreen);
+        boundsInScreenCheckbox.setText(Html.fromHtml(boldify("Bounds in Screen: ") + featurePack.boundsInScreen));
         if(autoFillEnabled)
             boundsInScreenCheckbox.setChecked(recommender.chooseBoundsInScreen());
-        identifierLayout.addView(boundsInScreenCheckbox);
+        identifierLayout.addView(boundsInScreenCheckbox, layoutParams);
         identifierCheckboxMap.put("boundsInScreen", boundsInScreenCheckbox);
         boundsInScreenCheckbox.setOnCheckedChangeListener(identiferCheckboxChangeListener);
 
@@ -305,6 +318,25 @@ public class mRecordingPopUpActivity extends AppCompatActivity {
         actionSpinner.setAdapter(actionAdapter);
         actionSpinner.setSelection(0);
         actionSpinner.setOnItemSelectedListener(spinnerSelectedListener);
+
+        EditText textBox = (EditText)findViewById(R.id.action_parameter_set_text);
+        textBox.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                refreshAfterChange();
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+
+            }
+        });
+
         actionParameterSection = (LinearLayout)findViewById(R.id.action_parameter_section);
         actionSection = (LinearLayout)findViewById(R.id.action_section);
         actionSection.removeView(actionParameterSection);
@@ -339,8 +371,9 @@ public class mRecordingPopUpActivity extends AppCompatActivity {
     private void refreshAfterChange(){
         //collapse and expand the action parameter
         String actionSpinnerSelectedItem = actionSpinner.getSelectedItem().toString();
-        if (actionSpinnerSelectedItem.contentEquals("Set Text") && actionParameterSection.getParent() == null)
+        if (actionSpinnerSelectedItem.contentEquals("Set Text") && actionParameterSection.getParent() == null) {
             actionSection.addView(actionParameterSection);
+        }
         if ((!actionSpinnerSelectedItem.contentEquals("Set Text")) && (actionParameterSection.getParent() != null))
             actionSection.removeView(actionParameterSection);
 
@@ -598,6 +631,10 @@ public class mRecordingPopUpActivity extends AppCompatActivity {
         operationBlock.setScreenshot(featurePack.screenshot);
         operationBlock.setDescription(readableDescriptionGenerator.generateReadableDescription(operationBlock));
         return operationBlock;
+    }
+
+    private String boldify(String text){
+        return "<b>" + text + "</b>";
     }
 
 }

@@ -1,21 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
-    android:layout_height="match_parent" android:paddingLeft="@dimen/activity_horizontal_margin"
-    android:paddingRight="@dimen/activity_horizontal_margin"
-    android:paddingTop="@dimen/activity_vertical_margin"
-    android:paddingBottom="@dimen/activity_vertical_margin"
+    android:layout_height="match_parent"
     tools:context="edu.cmu.hcii.sugilite.mRecordingPopUpActivity">
     <ScrollView
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
         android:scrollbars="none"
         android:layout_weight="1"
-        android:layout_above="@+id/bottombar">
+        android:layout_above="@+id/bottombar"
+        android:layout_marginLeft="@dimen/activity_horizontal_margin"
+        android:layout_marginRight="@dimen/activity_horizontal_margin"
+        android:layout_marginTop="@dimen/activity_vertical_margin"
+        android:layout_marginBottom="@dimen/activity_vertical_margin">
         <LinearLayout
             android:orientation="vertical"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="fill_parent"
             android:layout_alignParentEnd="true"
             android:id="@+id/linearLayout"
             android:layout_alignParentStart="true"
@@ -26,18 +27,19 @@
                 android:orientation="vertical"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:id="@+id/action_section"
-                android:layout_marginBottom="15dp">
+                android:id="@+id/action_section">
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textAppearance="?android:attr/textAppearanceMedium"
                     android:text="Action"
-                    android:id="@+id/action_label" />
+                    android:id="@+id/action_label"
+                    android:textColor="#ffa500"
+                    android:textStyle="bold" />
 
                 <Spinner
-                    android:layout_width="wrap_content"
+                    android:layout_width="fill_parent"
                     android:layout_height="wrap_content"
                     android:id="@+id/action_dropdown"
                     android:spinnerMode="dropdown"
@@ -54,32 +56,40 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:textAppearance="?android:attr/textAppearanceMedium"
-                        android:text="Action Parameter"
-                        android:id="@+id/action_parameter_label" />
+                        android:text="Set Text To"
+                        android:id="@+id/action_parameter_label"
+                        android:layout_marginTop="10dp"
+                        android:textStyle="bold"
+                        android:textColor="#ff0000" />
 
                     <EditText
-                        android:layout_width="match_parent"
+                        android:layout_width="fill_parent"
                         android:layout_height="wrap_content"
-                        android:id="@+id/action_parameter_set_text" />
+                        android:id="@+id/action_parameter_set_text"
+                        android:background="@android:drawable/editbox_background" />
 
                 </LinearLayout>
             </LinearLayout>
 
+            <View style="@style/Divider"
+                android:layout_margin="10dp" />
+
             <LinearLayout
                 android:orientation="vertical"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="15dp">
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content">
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textAppearance="?android:attr/textAppearanceMedium"
                     android:text="Target Type"
-                    android:id="@+id/target_type_label" />
+                    android:id="@+id/target_type_label"
+                    android:textStyle="bold"
+                    android:textColor="#0000ff" />
 
                 <Spinner
-                    android:layout_width="wrap_content"
+                    android:layout_width="fill_parent"
                     android:layout_height="wrap_content"
                     android:id="@+id/target_type_dropdown"
                     android:layout_weight="1"
@@ -87,58 +97,69 @@
                     android:layout_marginLeft="10dp" />
             </LinearLayout>
 
+            <View style="@style/Divider"
+                android:layout_margin="10dp" />
+
             <LinearLayout
                 android:orientation="vertical"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:id="@+id/identifier_layout"
-                android:layout_marginBottom="15dp">
+                android:id="@+id/identifier_layout">
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textAppearance="?android:attr/textAppearanceMedium"
                     android:text="Identifier"
-                    android:id="@+id/identifier_label" />
+                    android:id="@+id/identifier_label"
+                    android:textColor="#006400"
+                    android:textStyle="bold" />
 
             </LinearLayout>
+
+            <View style="@style/Divider"
+                android:layout_margin="10dp" />
 
             <LinearLayout
                 android:orientation="vertical"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="15dp">
+                android:layout_height="wrap_content">
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textAppearance="?android:attr/textAppearanceMedium"
                     android:text="Within App"
-                    android:id="@+id/within_app_label" />
+                    android:id="@+id/within_app_label"
+                    android:textStyle="bold"
+                    android:textColor="#ff00ff" />
 
                 <Spinner
-                    android:layout_width="wrap_content"
+                    android:layout_width="fill_parent"
                     android:layout_height="wrap_content"
                     android:id="@+id/within_app_dropdown"
                     android:spinnerMode="dropdown"
                     android:layout_marginLeft="10dp" />
             </LinearLayout>
 
+            <View style="@style/Divider"
+                android:layout_margin="10dp" />
+
             <LinearLayout
                 android:orientation="vertical"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="15dp">
+                android:layout_height="wrap_content">
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textAppearance="?android:attr/textAppearanceMedium"
                     android:text="Preview"
-                    android:id="@+id/previewLabel" />
+                    android:id="@+id/previewLabel"
+                    android:textStyle="bold" />
 
                 <TextView
-                    android:layout_width="wrap_content"
+                    android:layout_width="fill_parent"
                     android:layout_height="wrap_content"
                     android:textAppearance="?android:attr/textAppearanceMedium"
                     android:text="Sample Operation Preview"
@@ -158,7 +179,8 @@
         android:id="@+id/bottombar"
         android:layout_alignParentBottom="true"
         android:layout_alignParentEnd="true"
-        android:weightSum="3">
+        android:weightSum="3"
+        style="@android:style/ButtonBar">
 
         <Button
             android:layout_width="wrap_content"
@@ -193,6 +215,5 @@
             android:layout_marginRight="5dp"
             android:onClick="turnOffRecording" />
     </LinearLayout>
-
-
 </RelativeLayout>
+

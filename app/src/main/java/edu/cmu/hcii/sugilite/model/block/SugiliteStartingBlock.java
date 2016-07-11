@@ -2,6 +2,8 @@ package edu.cmu.hcii.sugilite.model.block;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * @author toby
@@ -11,13 +13,16 @@ import java.util.ArrayList;
 public class SugiliteStartingBlock extends SugiliteBlock implements Serializable {
     private SugiliteBlock nextBlock;
     private String scriptName;
+    public Set<String> relevantPackages;
     public SugiliteStartingBlock(){
         super();
+        relevantPackages = new HashSet<>();
         this.blockType = SugiliteBlock.STARTING_BLOCK;
         this.setDescription("<b>STARTING SCRIPT</b>");
     }
     public SugiliteStartingBlock(String scriptName){
         super();
+        relevantPackages = new HashSet<>();
         this.scriptName = scriptName;
         this.blockType = SugiliteBlock.STARTING_BLOCK;
         this.setDescription("<b>STARTING SCRIPT</b>");

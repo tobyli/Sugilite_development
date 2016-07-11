@@ -26,7 +26,7 @@ public class Automator {
     private Context context;
     private BoundingBoxManager boundingBoxManager;
     private StatusIconManager statusIconManager;
-    private static final int DELAY = 500;
+    private static final int DELAY = 2000;
 
     public Automator(SugiliteData sugiliteData, Context context, StatusIconManager statusIconManager){
         this.sugiliteData = sugiliteData;

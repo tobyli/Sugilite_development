@@ -1,6 +1,7 @@
 package edu.cmu.hcii.sugilite;
 
 import android.app.Activity;
+import android.app.ActivityManager;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -25,6 +26,7 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -41,11 +43,13 @@ public class ScriptDetailActivity extends AppCompatActivity {
     private SharedPreferences sharedPreferences;
     private SugiliteScriptDao sugiliteScriptDao;
     private SugiliteStartingBlock script;
+    private ActivityManager activityManager;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_script_detail);
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        activityManager = (ActivityManager)getSystemService(Context.ACTIVITY_SERVICE);
         if (savedInstanceState == null) {
             scriptName = this.getIntent().getStringExtra("scriptName");
         } else {
@@ -97,6 +101,8 @@ public class ScriptDetailActivity extends AppCompatActivity {
 
 
     public void scriptDetailRunButtonOnClick (View view){
+        //kill the relevant apps before executing the script
+
         new AlertDialog.Builder(this)
                 .setTitle("Run Script")
                 .setMessage("Are you sure you want to run this script?")
@@ -109,12 +115,34 @@ public class ScriptDetailActivity extends AppCompatActivity {
                         //turn off the recording before executing
                         prefEditor.putBoolean("recording_in_process", false);
                         prefEditor.commit();
+
+                        for(String packageName : script.relevantPackages){
+                            try {
+                                Process sh = Runtime.getRuntime().exec("su", null,null);
+                                OutputStream os = sh.getOutputStream();
+                                os.write(("am force-stop " + packageName).getBytes("ASCII"));
+                                os.flush();
+                                os.close();
+                                System.out.println(packageName);
+                            }
+                            catch (Exception e){
+                                e.printStackTrace();
+                                // do nothing
+                            }
+                        }
+
+                        try {
+                            Thread.sleep(3000);
+                        }
+                        catch (Exception e){
+                            // do nothing
+                        }
+
                         //go to home screen for running the automation
                         Intent startMain = new Intent(Intent.ACTION_MAIN);
                         startMain.addCategory(Intent.CATEGORY_HOME);
-                        startMain.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                        startMain.setFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
                         startActivity(startMain);
-                        //TODO: kill the relevant apps before executing the script
                     }
                 })
                 .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
@@ -125,6 +153,7 @@ public class ScriptDetailActivity extends AppCompatActivity {
                 .setIcon(android.R.drawable.ic_dialog_alert)
                 .show();
     }
+
     public void scriptDetailCancelButtonOnClick (View view){
         finish();
     }

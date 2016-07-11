@@ -30,6 +30,7 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
+import edu.cmu.hcii.sugilite.automation.ServiceStatusManager;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
 import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
@@ -44,12 +45,14 @@ public class ScriptDetailActivity extends AppCompatActivity {
     private SugiliteScriptDao sugiliteScriptDao;
     private SugiliteStartingBlock script;
     private ActivityManager activityManager;
+    private ServiceStatusManager serviceStatusManager;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_script_detail);
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         activityManager = (ActivityManager)getSystemService(Context.ACTIVITY_SERVICE);
+        serviceStatusManager = new ServiceStatusManager(this);
         if (savedInstanceState == null) {
             scriptName = this.getIntent().getStringExtra("scriptName");
         } else {
@@ -100,7 +103,7 @@ public class ScriptDetailActivity extends AppCompatActivity {
     }
 
 
-    public void scriptDetailRunButtonOnClick (View view){
+    public void scriptDetailRunButtonOnClick (final View view){
         //kill the relevant apps before executing the script
 
         new AlertDialog.Builder(this)
@@ -110,39 +113,53 @@ public class ScriptDetailActivity extends AppCompatActivity {
                     public void onClick(DialogInterface dialog, int which) {
                         //clear the queue first before adding new instructions
                         sugiliteData.clearInstructionQueue();
-                        addItemsToInstructionQueue(traverseBlock(script));
-                        SharedPreferences.Editor prefEditor = sharedPreferences.edit();
-                        //turn off the recording before executing
-                        prefEditor.putBoolean("recording_in_process", false);
-                        prefEditor.commit();
+                        if(!serviceStatusManager.isRunning()){
+                            //prompt the user if the accessiblity service is not active
+                            AlertDialog.Builder builder1 = new AlertDialog.Builder(view.getContext());
+                            builder1.setTitle("Service not running")
+                                    .setMessage("The Sugilite accessiblity service is not enabled. Please enable the service in the phone settings before recording.")
+                                    .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                                        @Override
+                                        public void onClick(DialogInterface dialog, int which) {
+                                            serviceStatusManager.promptEnabling();
+                                            //do nothing
+                                        }
+                                    }).show();
+                        }
+                        else {
+                            //TODO: add the mechanism used for asking values for variables
+                            addItemsToInstructionQueue(traverseBlock(script));
+                            SharedPreferences.Editor prefEditor = sharedPreferences.edit();
+                            //turn off the recording before executing
+                            prefEditor.putBoolean("recording_in_process", false);
+                            prefEditor.commit();
 
-                        for(String packageName : script.relevantPackages){
-                            try {
-                                Process sh = Runtime.getRuntime().exec("su", null,null);
-                                OutputStream os = sh.getOutputStream();
-                                os.write(("am force-stop " + packageName).getBytes("ASCII"));
-                                os.flush();
-                                os.close();
-                                System.out.println(packageName);
+                            for (String packageName : script.relevantPackages) {
+                                try {
+                                    Process sh = Runtime.getRuntime().exec("su", null, null);
+                                    OutputStream os = sh.getOutputStream();
+                                    os.write(("am force-stop " + packageName).getBytes("ASCII"));
+                                    os.flush();
+                                    os.close();
+                                    System.out.println(packageName);
+                                } catch (Exception e) {
+                                    e.printStackTrace();
+                                    // do nothing, likely this exception is caused by non-rooted device
+                                }
                             }
-                            catch (Exception e){
-                                e.printStackTrace();
+
+                            try {
+                                Thread.sleep(3000);
+                            } catch (Exception e) {
                                 // do nothing
                             }
-                        }
 
-                        try {
-                            Thread.sleep(3000);
+                            //go to home screen for running the automation
+                            Intent startMain = new Intent(Intent.ACTION_MAIN);
+                            startMain.addCategory(Intent.CATEGORY_HOME);
+                            startMain.setFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
+                            startActivity(startMain);
                         }
-                        catch (Exception e){
-                            // do nothing
-                        }
-
-                        //go to home screen for running the automation
-                        Intent startMain = new Intent(Intent.ACTION_MAIN);
-                        startMain.addCategory(Intent.CATEGORY_HOME);
-                        startMain.setFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
-                        startActivity(startMain);
                     }
                 })
                 .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {

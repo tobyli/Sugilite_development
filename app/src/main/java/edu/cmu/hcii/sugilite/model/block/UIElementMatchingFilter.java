@@ -8,6 +8,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import edu.cmu.hcii.sugilite.automation.Automator;
+import edu.cmu.hcii.sugilite.model.variable.Variable;
+import edu.cmu.hcii.sugilite.model.variable.VariableHelper;
 
 /**
  * @author toby
@@ -16,7 +18,6 @@ import edu.cmu.hcii.sugilite.automation.Automator;
  */
 
 //NOTE: only use this filter when AccessibilityNodeInfo.find...byText or find...byViewId can't be used, as this filter is slower.
-
 public class UIElementMatchingFilter implements Serializable {
 
     String text;
@@ -227,6 +228,52 @@ public class UIElementMatchingFilter implements Serializable {
         if (viewId != null && (nodeInfo.viewId == null || (!viewId.contentEquals(nodeInfo.viewId))))
             return false;
         if (isClickable != null && isClickable.booleanValue() != nodeInfo.isClickable)
+            return false;
+
+        return true;
+    }
+
+    public boolean filter (AccessibilityNodeInfo nodeInfo, VariableHelper helper) {
+        if (nodeInfo == null)
+            return false;
+        if (text != null && (nodeInfo.getText() == null || (!text.contentEquals(helper.parse(nodeInfo.getText().toString())))))
+            return false;
+        if (contentDescription != null && (nodeInfo.getContentDescription() == null || (!contentDescription.contentEquals(helper.parse(nodeInfo.getContentDescription().toString())))))
+            return false;
+        if (packageName != null && (nodeInfo.getPackageName() == null || !packageName.contentEquals(helper.parse(nodeInfo.getPackageName().toString()))))
+            return false;
+        if (className != null && (nodeInfo.getClassName() == null || !className.contentEquals(helper.parse(nodeInfo.getClassName().toString()))))
+            return false;
+        if (viewId != null && (nodeInfo.getViewIdResourceName() == null || (!viewId.contentEquals(helper.parse(nodeInfo.getViewIdResourceName().toString())))))
+            return false;
+        if (parentFilter != null && (!parentFilter.filter(nodeInfo.getParent())))
+            return false;
+        if (isClickable != null && isClickable.booleanValue() != nodeInfo.isClickable())
+            return false;
+        Rect boundsInParent = new Rect(), boundsInScreen = new Rect();
+        nodeInfo.getBoundsInParent(boundsInParent);
+        nodeInfo.getBoundsInScreen(boundsInScreen);
+
+        if (this.boundsInParent != null && (boundsInParent == null || (!this.boundsInParent.contentEquals(boundsInParent.flattenToString()))))
+            return false;
+        if (this.boundsInScreen != null && (boundsInScreen == null || (!this.boundsInScreen.contentEquals(boundsInScreen.flattenToString()))))
+            return false;
+
+
+        boolean childFilterFlag = false;
+        if(childFilter == null){
+            childFilterFlag = true;
+        }
+        else {
+            List<AccessibilityNodeInfo> nodes = Automator.preOrderTraverse(nodeInfo);
+            for(AccessibilityNodeInfo node : nodes){
+                if(childFilter.filter(node)){
+                    childFilterFlag = true;
+                    break;
+                }
+            }
+        }
+        if(childFilterFlag == false)
             return false;
 
         return true;

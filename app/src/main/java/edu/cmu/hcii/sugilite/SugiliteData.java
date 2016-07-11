@@ -3,10 +3,13 @@ package edu.cmu.hcii.sugilite;
 import android.app.Application;
 
 import java.util.ArrayDeque;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Queue;
 
 import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
+import edu.cmu.hcii.sugilite.model.variable.Variable;
 
 /**
  * @author toby
@@ -18,6 +21,7 @@ public class SugiliteData extends Application {
     private SugiliteStartingBlock scriptHead;
     private SugiliteBlock currentScriptBlock;
     private Queue<SugiliteBlock> instructionQueue = new ArrayDeque<>();
+    public Map<String, Variable> stringVariableMap = new HashMap<>();
 
     public SugiliteStartingBlock getScriptHead(){
         return scriptHead;
@@ -58,6 +62,8 @@ public class SugiliteData extends Application {
     public SugiliteBlock pollInstructionQueue(){
         return instructionQueue.poll();
     }
+
+
 
 
 }

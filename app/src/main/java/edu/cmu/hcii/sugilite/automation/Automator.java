@@ -15,6 +15,7 @@ import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteOperation;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteSetTextOperation;
+import edu.cmu.hcii.sugilite.model.variable.VariableHelper;
 import edu.cmu.hcii.sugilite.ui.BoundingBoxManager;
 import edu.cmu.hcii.sugilite.ui.StatusIconManager;
 
@@ -26,6 +27,7 @@ public class Automator {
     private Context context;
     private BoundingBoxManager boundingBoxManager;
     private StatusIconManager statusIconManager;
+    private VariableHelper variableHelper;
     private static final int DELAY = 2000;
 
     public Automator(SugiliteData sugiliteData, Context context, StatusIconManager statusIconManager){
@@ -47,6 +49,7 @@ public class Automator {
             return false;
         }
         SugiliteOperationBlock operationBlock = (SugiliteOperationBlock)blockToMatch;
+        variableHelper = new VariableHelper(sugiliteData.stringVariableMap);
         //if we can match this event, perform the action and remove the head object
         List<AccessibilityNodeInfo> allNodes = preOrderTraverse(rootNode);
         List<AccessibilityNodeInfo> filteredNodes = new ArrayList<>();
@@ -60,7 +63,6 @@ public class Automator {
             //TODO: scrolling
             boolean retVal = performAction(node, operationBlock);
             if(retVal) {
-                //boundingBoxManager.addBoundingBox(node);
                 /*
                 Rect tempRect = new Rect();
                 node.getBoundsInScreen(tempRect);
@@ -86,7 +88,7 @@ public class Automator {
             return nodeToAction.performAction(AccessibilityNodeInfo.ACTION_CLICK);
         }
         if(block.getOperation().getOperationType() == SugiliteOperation.SET_TEXT){
-            String text = ((SugiliteSetTextOperation)block.getOperation()).getText();
+            String text = variableHelper.parse(((SugiliteSetTextOperation)block.getOperation()).getText());
             Bundle arguments = new Bundle();
             arguments.putCharSequence(AccessibilityNodeInfo
                     .ACTION_ARGUMENT_SET_TEXT_CHARSEQUENCE, text);

@@ -535,7 +535,8 @@ public class mRecordingPopUpActivity extends AppCompatActivity {
 
                 break;
         }
-        final boolean retVal = success;
+        finish();
+        /*
         new AlertDialog.Builder(activityContext)
                 .setTitle("Operation Recorded")
                 .setMessage(Html.fromHtml(readableDescriptionGenerator.generateReadableDescription(operationBlock)))
@@ -548,6 +549,7 @@ public class mRecordingPopUpActivity extends AppCompatActivity {
                 })
                 .setIcon(android.R.drawable.ic_dialog_alert)
                 .show();
+       */
 
     }
 

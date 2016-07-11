@@ -41,10 +41,10 @@ public class BoundingBoxManager {
     }
 
     public void addBoundingBox(AccessibilityNodeInfo node){
+        windowManager.removeView(boundingBoxOverlay);
         boundingBoxOverlay.clear();
         boundingBoxOverlay.add(node);
-        boundingBoxOverlay.postInvalidate();
-        windowManager.updateViewLayout(boundingBoxOverlay, params);
+        windowManager.addView(boundingBoxOverlay, params);
     }
 
 }

@@ -472,6 +472,7 @@ public class mRecordingPopUpActivity extends AppCompatActivity {
                 }
                 sugiliteData.setCurrentScriptBlock(operationBlock);
                 try {
+                    sugiliteData.getScriptHead().relevantPackages.add(featurePack.packageName);
                     sugiliteScriptDao.save(sugiliteData.getScriptHead());
                     success = true;
                 } catch (Exception e) {
@@ -498,6 +499,7 @@ public class mRecordingPopUpActivity extends AppCompatActivity {
                                 operationBlock.setPreviousBlock(currentBlock.getPreviousBlock());
                                 operationBlock.setNextBlock(((SugiliteOperationBlock) currentBlock).getNextBlock());
                                 try {
+                                    originalScript.relevantPackages.add(featurePack.packageName);
                                     sugiliteScriptDao.save(originalScript);
                                     success = true;
                                 }
@@ -533,7 +535,8 @@ public class mRecordingPopUpActivity extends AppCompatActivity {
 
                 break;
         }
-        final boolean retVal = success;
+        finish();
+        /*
         new AlertDialog.Builder(activityContext)
                 .setTitle("Operation Recorded")
                 .setMessage(Html.fromHtml(readableDescriptionGenerator.generateReadableDescription(operationBlock)))
@@ -546,6 +549,7 @@ public class mRecordingPopUpActivity extends AppCompatActivity {
                 })
                 .setIcon(android.R.drawable.ic_dialog_alert)
                 .show();
+       */
 
     }
 

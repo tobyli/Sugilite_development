@@ -30,7 +30,7 @@ public class BoundingBoxManager {
          params = new WindowManager.LayoutParams(
                 WindowManager.LayoutParams.MATCH_PARENT,
                 WindowManager.LayoutParams.MATCH_PARENT,
-                WindowManager.LayoutParams.TYPE_PHONE,
+                WindowManager.LayoutParams.TYPE_SYSTEM_OVERLAY,
                 WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL | WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE,
                 PixelFormat.TRANSLUCENT);
         params.gravity = Gravity.TOP | Gravity.LEFT;
@@ -41,10 +41,8 @@ public class BoundingBoxManager {
     }
 
     public void addBoundingBox(AccessibilityNodeInfo node){
-        windowManager.removeView(boundingBoxOverlay);
         boundingBoxOverlay.clear();
         boundingBoxOverlay.add(node);
-        windowManager.addView(boundingBoxOverlay, params);
     }
 
 }

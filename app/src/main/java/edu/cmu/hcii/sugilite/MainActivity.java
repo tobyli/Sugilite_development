@@ -1,6 +1,7 @@
 package edu.cmu.hcii.sugilite;
 
 import android.app.AlertDialog;
+import android.app.DatePickerDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -220,13 +221,18 @@ public class MainActivity extends AppCompatActivity {
 
         if (id == R.id.clear_automation_queue) {
             int count = sugiliteData.getInstructionQueueSize();
-            sugiliteData.clearInstructionQueue();
             new AlertDialog.Builder(this)
-                    .setTitle("Automation Queue Cleared")
-                    .setMessage("Cleared " + count + " operations from the automation queue")
+                    .setTitle("Confirm Clear Instruction Queue")
+                    .setMessage("Are you sure to cleared " + count + " operations from the automation queue?")
                     .setPositiveButton("OK", new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int which) {
-
+                            sugiliteData.clearInstructionQueue();
+                        }
+                    })
+                    .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            dialog.dismiss();
                         }
                     })
                     .setIcon(android.R.drawable.ic_dialog_alert)
@@ -236,13 +242,18 @@ public class MainActivity extends AppCompatActivity {
 
         if (id == R.id.clear_script_list) {
             int count = (int)sugiliteScriptDao.size();
-            sugiliteScriptDao.clear();
             new AlertDialog.Builder(this)
-                    .setTitle("Script List Cleared")
-                    .setMessage("Cleared " + count + " scripts")
+                    .setTitle("Confirm Clearing Script List")
+                    .setMessage("Are you sure to clear " + count + " scripts?")
                     .setPositiveButton("OK", new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int which) {
-
+                            sugiliteScriptDao.clear();
+                        }
+                    })
+                    .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            dialog.dismiss();
                         }
                     })
                     .setIcon(android.R.drawable.ic_dialog_alert)

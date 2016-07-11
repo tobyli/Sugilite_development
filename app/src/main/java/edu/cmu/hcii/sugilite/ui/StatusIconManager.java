@@ -23,6 +23,7 @@ import android.widget.Toast;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.util.Random;
 
 import edu.cmu.hcii.sugilite.MainActivity;
 import edu.cmu.hcii.sugilite.R;
@@ -46,6 +47,7 @@ public class StatusIconManager {
     private SugiliteScriptDao sugiliteScriptDao;
     private ServiceStatusManager serviceStatusManager;
     private SugiliteScreenshotManager screenshotManager;
+    private WindowManager.LayoutParams params;
 
     public StatusIconManager(Context context, SugiliteData sugiliteData, SharedPreferences sharedPreferences){
         this.context = context;
@@ -63,7 +65,7 @@ public class StatusIconManager {
     public void addStatusIcon(){
         statusIcon = new ImageView(context);
         statusIcon.setImageResource(R.mipmap.ic_launcher);
-        WindowManager.LayoutParams params = new WindowManager.LayoutParams(
+        params = new WindowManager.LayoutParams(
                 WindowManager.LayoutParams.WRAP_CONTENT,
                 WindowManager.LayoutParams.WRAP_CONTENT,
                 WindowManager.LayoutParams.TYPE_PHONE,
@@ -100,6 +102,32 @@ public class StatusIconManager {
         try{
             if(statusIcon != null)
                 windowManager.removeView(statusIcon);
+        }
+        catch (Exception e){
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * refresh the status icon to reflect the status of Sugilite
+     */
+    public void refreshStatusIcon(){
+        Random r = new Random();
+        try{
+            if(statusIcon != null){
+                boolean recordingInProcess = sharedPreferences.getBoolean("recording_in_process", false);
+                if(recordingInProcess)
+                    statusIcon.setImageResource(R.mipmap.duck_icon_recording);
+                else if(sugiliteData.getInstructionQueueSize() > 0) {
+                    statusIcon.setImageResource(R.mipmap.duck_icon_playing);
+                    params.x = r.nextInt(501);
+                    params.y = r.nextInt(501);
+                    windowManager.updateViewLayout(statusIcon, params);
+                }
+                else
+                    statusIcon.setImageResource(R.mipmap.ic_launcher);
+
+            }
         }
         catch (Exception e){
             e.printStackTrace();

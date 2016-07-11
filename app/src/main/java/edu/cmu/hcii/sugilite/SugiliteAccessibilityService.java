@@ -111,6 +111,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
         if (sharedPreferences.getBoolean("tracking_in_process", false)) {
             //background tracking in progress
         }
+        statusIconManager.refreshStatusIcon();
         boolean retVal = false;
 
 

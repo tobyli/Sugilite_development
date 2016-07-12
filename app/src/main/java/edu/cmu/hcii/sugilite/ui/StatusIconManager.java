@@ -8,6 +8,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.PixelFormat;
+import android.graphics.Rect;
 import android.net.Uri;
 import android.os.Environment;
 import android.provider.Settings;
@@ -17,21 +18,26 @@ import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
+import android.view.accessibility.AccessibilityNodeInfo;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Toast;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 
 import edu.cmu.hcii.sugilite.MainActivity;
 import edu.cmu.hcii.sugilite.R;
 import edu.cmu.hcii.sugilite.SugiliteData;
+import edu.cmu.hcii.sugilite.automation.Automator;
 import edu.cmu.hcii.sugilite.automation.ServiceStatusManager;
 import edu.cmu.hcii.sugilite.dao.SugiliteScreenshotManager;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
+import edu.cmu.hcii.sugilite.model.block.UIElementMatchingFilter;
 
 /**
  * @author toby
@@ -76,7 +82,7 @@ public class StatusIconManager {
         windowManager.getDefaultDisplay().getMetrics(displaymetrics);
 
 
-        params.gravity = Gravity.TOP | Gravity.RIGHT;
+        params.gravity = Gravity.TOP | Gravity.LEFT;
         params.x = 0;
         params.y = 200;
         addCrumpledPaperOnTouchListener(statusIcon, params, displaymetrics, windowManager);
@@ -111,8 +117,23 @@ public class StatusIconManager {
     /**
      * refresh the status icon to reflect the status of Sugilite
      */
-    public void refreshStatusIcon(){
-        Random r = new Random();
+    public void refreshStatusIcon(AccessibilityNodeInfo rootNode, UIElementMatchingFilter filter){
+        Rect rect = new Rect();
+        boolean matched = false;
+        if(rootNode != null) {
+            List<AccessibilityNodeInfo> allNode = Automator.preOrderTraverse(rootNode);
+            List<AccessibilityNodeInfo> filteredNode = new ArrayList<>();
+            for (AccessibilityNodeInfo node : allNode) {
+                if (filter.filter(node))
+                    filteredNode.add(node);
+            }
+            if (filteredNode.size() > 0) {
+                AccessibilityNodeInfo targetNode = filteredNode.get(0);
+                targetNode.getBoundsInScreen(rect);
+                matched = true;
+            }
+        }
+
         try{
             if(statusIcon != null){
                 boolean recordingInProcess = sharedPreferences.getBoolean("recording_in_process", false);
@@ -120,8 +141,10 @@ public class StatusIconManager {
                     statusIcon.setImageResource(R.mipmap.duck_icon_recording);
                 else if(sugiliteData.getInstructionQueueSize() > 0) {
                     statusIcon.setImageResource(R.mipmap.duck_icon_playing);
-                    params.x = r.nextInt(501);
-                    params.y = r.nextInt(501);
+                    if(matched) {
+                        params.x = (rect.centerX() > 150 ? rect.centerX() - 150 : 0);
+                        params.y = (rect.centerY() > 150 ? rect.centerY() - 150 : 0);
+                    }
                     windowManager.updateViewLayout(statusIcon, params);
                 }
                 else
@@ -178,7 +201,7 @@ public class StatusIconManager {
                     textDialogBuilder.setTitle("STATUS: " + (recordingInProcess ? "RECORDING:" : "NOT RECORDING") + "\nChoose Operation:");
                     final SugiliteStartingBlock startingBlock = (SugiliteStartingBlock) sugiliteData.getScriptHead();
                     boolean recordingInProgress = sharedPreferences.getBoolean("recording_in_process", false);
-                    String[] operations = {"View Current Script: " + (startingBlock == null ? "NULL" : startingBlock.getScriptName()), (recordingInProcess? "End Recording" : (startingBlock == null ? "New Recording" : "Resume Recording: " + startingBlock.getScriptName())), "Quit Sugilite"};
+                    String[] operations = {"View Current Script: " + (startingBlock == null ? "NULL" : startingBlock.getScriptName()), (recordingInProcess ? "End Recording" : (startingBlock == null ? "New Recording" : "Resume Recording: " + startingBlock.getScriptName())), "Quit Sugilite"};
                     textDialogBuilder.setItems(operations, new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
@@ -191,15 +214,14 @@ public class StatusIconManager {
                                     Toast.makeText(context, "view current script", Toast.LENGTH_SHORT).show();
                                     break;
                                 case 1:
-                                    if(recordingInProcess){
+                                    if (recordingInProcess) {
                                         //end recording
                                         SharedPreferences.Editor prefEditor = sharedPreferences.edit();
                                         prefEditor.putBoolean("recording_in_process", false);
                                         prefEditor.commit();
                                         Toast.makeText(context, "end recording", Toast.LENGTH_SHORT).show();
-                                    }
-                                    else{
-                                        if(startingBlock == null) {
+                                    } else {
+                                        if (startingBlock == null) {
                                             //create a new script
                                             sugiliteData.clearInstructionQueue();
                                             AlertDialog.Builder builder = new AlertDialog.Builder(v.getContext());
@@ -211,7 +233,7 @@ public class StatusIconManager {
                                                     .setPositiveButton("Start Recording", new DialogInterface.OnClickListener() {
                                                         @Override
                                                         public void onClick(DialogInterface dialog, int which) {
-                                                            if(!serviceStatusManager.isRunning()){
+                                                            if (!serviceStatusManager.isRunning()) {
                                                                 //prompt the user if the accessiblity service is not active
                                                                 AlertDialog.Builder builder1 = new AlertDialog.Builder(v.getContext());
                                                                 builder1.setTitle("Service not running")
@@ -223,8 +245,7 @@ public class StatusIconManager {
                                                                                 //do nothing
                                                                             }
                                                                         }).show();
-                                                            }
-                                                            else if (scriptName != null && scriptName.getText().toString().length() > 0) {
+                                                            } else if (scriptName != null && scriptName.getText().toString().length() > 0) {
                                                                 SharedPreferences.Editor editor = sharedPreferences.edit();
                                                                 editor.putString("scriptName", scriptName.getText().toString());
                                                                 editor.putBoolean("recording_in_process", true);
@@ -233,9 +254,8 @@ public class StatusIconManager {
                                                                 sugiliteData.initiateScript(scriptName.getText().toString() + ".SugiliteScript");
                                                                 //save the newly created script to DB
                                                                 try {
-                                                                    sugiliteScriptDao.save((SugiliteStartingBlock)sugiliteData.getScriptHead());
-                                                                }
-                                                                catch (Exception e){
+                                                                    sugiliteScriptDao.save((SugiliteStartingBlock) sugiliteData.getScriptHead());
+                                                                } catch (Exception e) {
                                                                     e.printStackTrace();
                                                                 }
                                                                 Toast.makeText(v.getContext(), "Changed script name to " + sharedPreferences.getString("scriptName", "NULL"), Toast.LENGTH_SHORT).show();
@@ -252,8 +272,7 @@ public class StatusIconManager {
                                             AlertDialog dialog2 = builder.create();
                                             dialog2.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
                                             dialog2.show();
-                                        }
-                                        else {
+                                        } else {
                                             //resume the recording of an existing script
                                             SharedPreferences.Editor prefEditor = sharedPreferences.edit();
                                             prefEditor.putBoolean("recording_in_process", true);
@@ -266,8 +285,7 @@ public class StatusIconManager {
                                     Toast.makeText(context, "quit sugilite", Toast.LENGTH_SHORT).show();
                                     try {
                                         screenshotManager.take(false);
-                                    }
-                                    catch (Exception e){
+                                    } catch (Exception e) {
                                         e.printStackTrace();
                                     }
                                     break;
@@ -292,7 +310,7 @@ public class StatusIconManager {
                         return true;
                     case MotionEvent.ACTION_MOVE:
                         // move paper ImageView
-                        mPaperParams.x = initialX + (int) (initialTouchX - event.getRawX());
+                        mPaperParams.x = initialX - (int) (initialTouchX - event.getRawX());
                         mPaperParams.y = initialY + (int) (event.getRawY() - initialTouchY);
                         windowManager.updateViewLayout(view, mPaperParams);
                         return true;
@@ -320,12 +338,14 @@ public class StatusIconManager {
                 WindowManager.LayoutParams.TYPE_PHONE,
                 WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
                 PixelFormat.TRANSLUCENT);
-        params.gravity = Gravity.TOP | Gravity.RIGHT;
+        params.gravity = Gravity.TOP | Gravity.LEFT;
         params.x = x;
         params.y = y;
         windowManager.updateViewLayout(statusIcon, params);
         statusIcon.invalidate();
     }
+
+
 
 
 

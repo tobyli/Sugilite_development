@@ -21,6 +21,8 @@ import java.util.Set;
 import edu.cmu.hcii.sugilite.dao.SugiliteScreenshotManager;
 import edu.cmu.hcii.sugilite.model.AccessibilityNodeInfoList;
 import edu.cmu.hcii.sugilite.automation.*;
+import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
+import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
 import edu.cmu.hcii.sugilite.model.block.UIElementMatchingFilter;
 import edu.cmu.hcii.sugilite.ui.StatusIconManager;
 
@@ -112,7 +114,14 @@ public class SugiliteAccessibilityService extends AccessibilityService {
         if (sharedPreferences.getBoolean("tracking_in_process", false)) {
             //background tracking in progress
         }
-        statusIconManager.refreshStatusIcon();
+        SugiliteBlock currentBlock = sugiliteData.peekInstructionQueue();
+        if(currentBlock instanceof SugiliteOperationBlock) {
+            statusIconManager.refreshStatusIcon(rootNode, ((SugiliteOperationBlock) currentBlock).getElementMatchingFilter());
+        }
+        else{
+            statusIconManager.refreshStatusIcon(null, null);
+        }
+
         boolean retVal = false;
 
 

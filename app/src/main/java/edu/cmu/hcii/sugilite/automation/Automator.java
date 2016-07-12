@@ -28,7 +28,7 @@ public class Automator {
     private BoundingBoxManager boundingBoxManager;
     private StatusIconManager statusIconManager;
     private VariableHelper variableHelper;
-    private static final int DELAY = 500;
+    private static final int DELAY = 2000;
 
     public Automator(SugiliteData sugiliteData, Context context, StatusIconManager statusIconManager){
         this.sugiliteData = sugiliteData;
@@ -61,6 +61,14 @@ public class Automator {
             return false;
         for(AccessibilityNodeInfo node : filteredNodes){
             //TODO: scrolling
+            if(operationBlock.getOperation().getOperationType() == SugiliteOperation.CLICK && (!node.isClickable()))
+                continue;
+            try {
+                Thread.sleep(DELAY / 2);
+            }
+            catch (Exception e){
+                // do nothing
+            }
             boolean retVal = performAction(node, operationBlock);
             if(retVal) {
                 /*
@@ -68,13 +76,13 @@ public class Automator {
                 node.getBoundsInScreen(tempRect);
                 statusIconManager.moveIcon(tempRect.centerX(), tempRect.centerY());
                 */
+                sugiliteData.removeInstructionQueueItem();
                 try {
-                    Thread.sleep(DELAY);
+                    Thread.sleep(DELAY / 2);
                 }
                 catch (Exception e){
                     // do nothing
                 }
-                sugiliteData.removeInstructionQueueItem();
                 return true;
             }
         }

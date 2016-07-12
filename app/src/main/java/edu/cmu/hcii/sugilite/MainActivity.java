@@ -254,11 +254,11 @@ public class MainActivity extends AppCompatActivity {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
                             dialog.dismiss();
+                            setUpScriptList();
                         }
                     })
                     .setIcon(android.R.drawable.ic_dialog_alert)
                     .show();
-            setUpScriptList();
             return true;
         }
 

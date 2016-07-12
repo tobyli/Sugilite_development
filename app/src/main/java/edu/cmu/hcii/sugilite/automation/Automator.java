@@ -28,7 +28,7 @@ public class Automator {
     private BoundingBoxManager boundingBoxManager;
     private StatusIconManager statusIconManager;
     private VariableHelper variableHelper;
-    private static final int DELAY = 2000;
+    private static final int DELAY = 500;
 
     public Automator(SugiliteData sugiliteData, Context context, StatusIconManager statusIconManager){
         this.sugiliteData = sugiliteData;
@@ -43,7 +43,7 @@ public class Automator {
         SugiliteBlock blockToMatch = sugiliteData.peekInstructionQueue();
         if (!(blockToMatch instanceof SugiliteOperationBlock)){
             if(blockToMatch instanceof SugiliteStartingBlock){
-                Toast.makeText(context, "Start running script " + ((SugiliteStartingBlock)blockToMatch).getScriptName(), Toast.LENGTH_SHORT).show();
+                //Toast.makeText(context, "Start running script " + ((SugiliteStartingBlock)blockToMatch).getScriptName(), Toast.LENGTH_SHORT).show();
             }
             sugiliteData.removeInstructionQueueItem();
             return false;
@@ -112,8 +112,9 @@ public class Automator {
         list.add(root);
         int childCount = root.getChildCount();
         for(int i = 0; i < childCount; i ++){
-            if(root.getChild(i) != null)
-                list.addAll(preOrderTraverse(root.getChild(i)));
+            AccessibilityNodeInfo node = root.getChild(i);
+            if(node != null)
+                list.addAll(preOrderTraverse(node));
         }
         return list;
     }

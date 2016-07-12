@@ -43,7 +43,7 @@ public class Automator {
         SugiliteBlock blockToMatch = sugiliteData.peekInstructionQueue();
         if (!(blockToMatch instanceof SugiliteOperationBlock)){
             if(blockToMatch instanceof SugiliteStartingBlock){
-                Toast.makeText(context, "Start running script " + ((SugiliteStartingBlock)blockToMatch).getScriptName(), Toast.LENGTH_SHORT).show();
+                //Toast.makeText(context, "Start running script " + ((SugiliteStartingBlock)blockToMatch).getScriptName(), Toast.LENGTH_SHORT).show();
             }
             sugiliteData.removeInstructionQueueItem();
             return false;
@@ -61,6 +61,14 @@ public class Automator {
             return false;
         for(AccessibilityNodeInfo node : filteredNodes){
             //TODO: scrolling
+            if(operationBlock.getOperation().getOperationType() == SugiliteOperation.CLICK && (!node.isClickable()))
+                continue;
+            try {
+                Thread.sleep(DELAY / 2);
+            }
+            catch (Exception e){
+                // do nothing
+            }
             boolean retVal = performAction(node, operationBlock);
             if(retVal) {
                 /*
@@ -68,13 +76,13 @@ public class Automator {
                 node.getBoundsInScreen(tempRect);
                 statusIconManager.moveIcon(tempRect.centerX(), tempRect.centerY());
                 */
+                sugiliteData.removeInstructionQueueItem();
                 try {
-                    Thread.sleep(DELAY);
+                    Thread.sleep(DELAY / 2);
                 }
                 catch (Exception e){
                     // do nothing
                 }
-                sugiliteData.removeInstructionQueueItem();
                 return true;
             }
         }
@@ -112,8 +120,9 @@ public class Automator {
         list.add(root);
         int childCount = root.getChildCount();
         for(int i = 0; i < childCount; i ++){
-            if(root.getChild(i) != null)
-                list.addAll(preOrderTraverse(root.getChild(i)));
+            AccessibilityNodeInfo node = root.getChild(i);
+            if(node != null)
+                list.addAll(preOrderTraverse(node));
         }
         return list;
     }

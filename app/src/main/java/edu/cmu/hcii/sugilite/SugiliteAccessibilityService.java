@@ -21,17 +21,20 @@ import java.util.Set;
 import edu.cmu.hcii.sugilite.dao.SugiliteScreenshotManager;
 import edu.cmu.hcii.sugilite.model.AccessibilityNodeInfoList;
 import edu.cmu.hcii.sugilite.automation.*;
+import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
+import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
 import edu.cmu.hcii.sugilite.model.block.UIElementMatchingFilter;
 import edu.cmu.hcii.sugilite.ui.StatusIconManager;
 
 public class SugiliteAccessibilityService extends AccessibilityService {
-        private WindowManager windowManager;
+    private WindowManager windowManager;
     private SharedPreferences sharedPreferences;
     private Automator automator;
     private SugiliteData sugiliteData;
     private StatusIconManager statusIconManager;
     private SugiliteScreenshotManager screenshotManager;
     private Set<Integer> accessibilityEventSetToHandle, accessibilityEventSetToSend;
+    private Thread automatorThread;
 
     public SugiliteAccessibilityService() {
     }
@@ -81,7 +84,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
     @Override
     public void onAccessibilityEvent(AccessibilityEvent event) {
         //TODO problem: the status of "right after click" (try getParent()?)
-        AccessibilityNodeInfo rootNode = getRootInActiveWindow();
+        final AccessibilityNodeInfo rootNode = getRootInActiveWindow();
         //Type of accessibility events to handle in this function
         //return if the event is not among the accessibilityEventArrayToHandle
         if(!accessibilityEventSetToHandle.contains(Integer.valueOf(event.getEventType())))
@@ -111,12 +114,29 @@ public class SugiliteAccessibilityService extends AccessibilityService {
         if (sharedPreferences.getBoolean("tracking_in_process", false)) {
             //background tracking in progress
         }
-        statusIconManager.refreshStatusIcon();
+        SugiliteBlock currentBlock = sugiliteData.peekInstructionQueue();
+        if(currentBlock instanceof SugiliteOperationBlock) {
+            statusIconManager.refreshStatusIcon(rootNode, ((SugiliteOperationBlock) currentBlock).getElementMatchingFilter());
+        }
+        else{
+            statusIconManager.refreshStatusIcon(null, null);
+        }
+
         boolean retVal = false;
 
 
-        if(sugiliteData.getInstructionQueueSize() > 0)
-            retVal = automator.handleLiveEvent(rootNode, getApplicationContext());
+        if(sugiliteData.getInstructionQueueSize() > 0) {
+            if(automatorThread == null) {
+                automatorThread = new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        automator.handleLiveEvent(rootNode, getApplicationContext());
+                        automatorThread = null;
+                    }
+                });
+                automatorThread.start();
+            }
+        }
 
     }
 

@@ -52,19 +52,12 @@ public class ReadableDescriptionGenerator {
             }
 
             if(((SugiliteOperationBlock) block).getElementMatchingFilter().getClassName() != null){
-                switch (((SugiliteOperationBlock) block).getElementMatchingFilter().getClassName()){
-                    case "android.widget.ImageButton":
-                    case "android.widget.Button":
-                    case "android.widget.TextView":
-                    case "android.widget.ImageView":
-                        message += setColor("the button ", "blue");
-                        break;
-                    case "android.widget.EditText":
-                        message += setColor("the textbox ", "blue");
-                        break;
-                    default:
-                        message += setColor("the object ", "blue");
-                }
+                String className =  ((SugiliteOperationBlock) block).getElementMatchingFilter().getClassName();
+                int lastIndex = className.lastIndexOf('.');
+                if(lastIndex > -1)
+                    message += setColor("the " + className.substring(lastIndex + 1) + " object      ", "blue");
+                else
+                    message += setColor("the object", "blue");
             }
             boolean thatPrinted = false;
 

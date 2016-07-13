@@ -161,7 +161,7 @@ public class MainActivity extends AppCompatActivity {
     //TODO:implement context menu
     @Override
     public boolean onContextItemSelected(MenuItem item) {
-        AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
+        final AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
         if(info == null)
             return super.onContextItemSelected(item);
         switch (item.getItemId()){
@@ -177,6 +177,34 @@ public class MainActivity extends AppCompatActivity {
             break;
         case ITEM_2:
             Toast.makeText(this, "Rename Script", Toast.LENGTH_SHORT).show();
+            if(info.targetView instanceof TextView && ((TextView) info.targetView).getText() != null) {
+                final String scriptName = ((TextView) info.targetView).getText().toString() + ".SugiliteScript";
+                AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                final EditText newName = new EditText(this);
+                builder.setView(newName)
+                        .setTitle("Enter the new name for \"" + ((TextView) info.targetView).getText().toString() + "\"")
+                        .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                SugiliteStartingBlock startingBlock = sugiliteScriptDao.read(scriptName);
+                                startingBlock.setScriptName(newName.getText().toString());
+                                try {
+                                    sugiliteScriptDao.save(startingBlock);
+                                    //sugiliteScriptDao.delete(scriptName);
+                                }
+                                catch (Exception e){
+                                    e.printStackTrace();
+                                }
+                            }
+                        })
+                        .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                dialog.dismiss();
+                            }
+                        }).show();
+
+            }
             break;
         case ITEM_3:
             Toast.makeText(this, "Share Script", Toast.LENGTH_SHORT).show();

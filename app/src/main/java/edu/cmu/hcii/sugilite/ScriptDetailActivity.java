@@ -242,14 +242,11 @@ public class ScriptDetailActivity extends AppCompatActivity {
     public boolean onContextItemSelected(MenuItem item) {
         switch (item.getItemId()){
             case ITEM_1:
-                Toast.makeText(this, "View Operation", Toast.LENGTH_SHORT).show();
                 break;
             case ITEM_2:
-                Toast.makeText(this, "Edit Operation", Toast.LENGTH_SHORT).show();
                 editOperation(item);
                 break;
             case ITEM_3:
-                Toast.makeText(this, "Delete Operation", Toast.LENGTH_SHORT).show();
                 deleteOperation(item);
                 break;
         }
@@ -274,6 +271,11 @@ public class ScriptDetailActivity extends AppCompatActivity {
             if(currentBlock instanceof SugiliteOperationBlock){
                 //TODO: check if content equals is the right method to use here
                 if(Html.fromHtml(currentBlock.getDescription()).toString().contentEquals(textView.getText().toString())){
+                    if(((SugiliteOperationBlock) currentBlock).getFeaturePack() == null){
+                        //scripts passed from external sources (via json) has no feature pack & previous block fields
+                        Toast.makeText(this, "Can't edit scripts from external source!", Toast.LENGTH_SHORT).show();
+                        break;
+                    }
                     //match, pop up the edit
                     //the pop up should save the new script to db
                     Intent intent = new Intent(this, mRecordingPopUpActivity.class);
@@ -334,6 +336,11 @@ public class ScriptDetailActivity extends AppCompatActivity {
                 break;
             if(currentBlock instanceof SugiliteOperationBlock){
                 if(Html.fromHtml(currentBlock.getDescription()).toString().contentEquals(textView.getText().toString())){
+                    //scripts passed from external sources (via json) has no feature pack & previous block fields
+                    if(((SugiliteOperationBlock) currentBlock).getFeaturePack() == null){
+                        Toast.makeText(this, "Can't edit scripts from external source!", Toast.LENGTH_SHORT).show();
+                        break;
+                    }
                     ((SugiliteOperationBlock) currentBlock).delete();
                     try {
                         sugiliteScriptDao.save(script);

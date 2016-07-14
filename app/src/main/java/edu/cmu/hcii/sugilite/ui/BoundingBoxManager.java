@@ -37,7 +37,12 @@ public class BoundingBoxManager {
         params.x = 0;
         params.y = 0;
         boundingBoxOverlay.setStrokeWidth(10);
-        windowManager.addView(boundingBoxOverlay, params);
+        try {
+            windowManager.addView(boundingBoxOverlay, params);
+        }
+        catch (Exception e){
+            e.printStackTrace();
+        }
     }
 
     public void addBoundingBox(AccessibilityNodeInfo node){

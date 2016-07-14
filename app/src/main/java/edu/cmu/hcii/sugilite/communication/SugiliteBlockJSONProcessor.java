@@ -1,5 +1,10 @@
 package edu.cmu.hcii.sugilite.communication;
 
+import android.content.Context;
+
+import com.google.gson.Gson;
+
+import edu.cmu.hcii.sugilite.communication.json.SugiliteScriptJSON;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 
 /**
@@ -8,17 +13,21 @@ import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
  * @time 2:28 PM
  */
 public class SugiliteBlockJSONProcessor {
-
-    public SugiliteBlockJSONProcessor(){
-
+    Gson gson;
+    Context context;
+    public SugiliteBlockJSONProcessor(Context context){
+        gson = new Gson();
+        this.context = context;
     }
 
-    String scriptToJson(SugiliteStartingBlock startingBlock){
-        return null;
+    public String scriptToJson(SugiliteStartingBlock startingBlock){
+        SugiliteScriptJSON scriptJSON = new SugiliteScriptJSON(startingBlock);
+        String json = gson.toJson(scriptJSON);
+        return json;
     }
 
-    SugiliteStartingBlock jsonToScript(String json){
-        SugiliteStartingBlock startingBlock = new SugiliteStartingBlock();
-        return startingBlock;
+    public SugiliteStartingBlock jsonToScript(String json){
+        SugiliteScriptJSON jsonBlock = gson.fromJson(json, SugiliteScriptJSON.class);
+        return jsonBlock.toSugiliteStartingBlock(context);
     }
 }

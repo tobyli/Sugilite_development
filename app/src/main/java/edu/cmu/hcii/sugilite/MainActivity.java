@@ -32,6 +32,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import edu.cmu.hcii.sugilite.automation.ServiceStatusManager;
+import edu.cmu.hcii.sugilite.communication.SugiliteBlockJSONProcessor;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 
@@ -87,6 +88,7 @@ public class MainActivity extends AppCompatActivity {
                                     editor.commit();
                                     //set the active script to the newly created script
                                     sugiliteData.initiateScript(scriptName.getText().toString() + ".SugiliteScript");
+                                    sugiliteData.initiatedExternally = false;
                                     //save the newly created script to DB
                                     try {
                                         sugiliteScriptDao.save((SugiliteStartingBlock)sugiliteData.getScriptHead());
@@ -205,6 +207,19 @@ public class MainActivity extends AppCompatActivity {
             }
             break;
         case ITEM_3:
+            final String scriptName = ((TextView) info.targetView).getText().toString() + ".SugiliteScript";
+            SugiliteStartingBlock startingBlock = sugiliteScriptDao.read(scriptName);
+            SugiliteBlockJSONProcessor processor = new SugiliteBlockJSONProcessor(this.getApplicationContext());
+            try {
+                String json = processor.scriptToJson(startingBlock);
+                System.out.println(json);
+                SugiliteStartingBlock recoveredFromJSON = processor.jsonToScript(json);
+                recoveredFromJSON.setScriptName("recovered_" + recoveredFromJSON.getScriptName());
+                sugiliteScriptDao.save(recoveredFromJSON);
+            }
+            catch (Exception e){
+                e.printStackTrace();
+            }
             Toast.makeText(this, "Sharing Script is not supported yet!", Toast.LENGTH_SHORT).show();
             break;
         case ITEM_4:

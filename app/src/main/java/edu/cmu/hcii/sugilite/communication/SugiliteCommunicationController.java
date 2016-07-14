@@ -1,9 +1,12 @@
 package edu.cmu.hcii.sugilite.communication;
 
+import android.app.AlertDialog;
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.os.Bundle;
@@ -13,8 +16,17 @@ import android.os.Message;
 import android.os.Messenger;
 import android.os.RemoteException;
 import android.util.Log;
+import android.view.WindowManager;
+import android.widget.Toast;
+
+import com.google.gson.Gson;
 
 import java.util.List;
+
+import edu.cmu.hcii.sugilite.SugiliteData;
+import edu.cmu.hcii.sugilite.communication.json.SugiliteBlockJSON;
+import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
+import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 
 /**
  * Created by oscarr on 7/7/16.
@@ -24,6 +36,9 @@ public class SugiliteCommunicationController {
     private Messenger sender = null; //used to make an RPC invocation
     private Messenger receiver = null; //invocation replies are processed by this Messenger (Middleware)
     private boolean isBound = false;
+    SugiliteScriptDao sugiliteScriptDao;
+    SugiliteBlockJSONProcessor jsonProcessor;
+    SugiliteData sugiliteData;
     private ServiceConnection connection; //receives callbacks from bind and unbind invocations
     private Context context;
     private final int REGISTER = 1;
@@ -33,13 +48,20 @@ public class SugiliteCommunicationController {
     private final int STOP_TRACKING = 5;
     private final int GET_ALL_SCRIPTS = 6;
     private final int GET_SCRIPT = 7;
+    private final int RESPONSE_EXCEPTION = 8;
     private final int APP_TRACKER_ID = 1001;
+    private SharedPreferences sharedPreferences;
 
 
-    public SugiliteCommunicationController(Context context) {
+
+    public SugiliteCommunicationController(Context context, SugiliteData sugiliteData, SharedPreferences sharedPreferences) {
         this.connection = new RemoteServiceConnection();
         this.receiver = new Messenger(new IncomingHandler());
         this.context = context.getApplicationContext();
+        this.sugiliteScriptDao = new SugiliteScriptDao(context);
+        this.jsonProcessor = new SugiliteBlockJSONProcessor(context);
+        this.sugiliteData = sugiliteData;
+        this.sharedPreferences = sharedPreferences;
     }
 
     public void start(){
@@ -64,13 +86,20 @@ public class SugiliteCommunicationController {
     }
 
     public boolean sendAllScripts(){
-        return sendMessage( RESPONSE, GET_ALL_SCRIPTS, getDummyListOfScripts() );
+        return sendMessage( RESPONSE, GET_ALL_SCRIPTS, new Gson().toJson(sugiliteScriptDao.getAllNames()));
     }
 
     public boolean sendScript(String scriptName){
         // you should send back the script which name is "scriptName"... now, we are using a dummy
-        // script for testing purposes
-        return sendMessage( RESPONSE, GET_SCRIPT, getDummyScript() );
+        SugiliteStartingBlock script = sugiliteScriptDao.read(scriptName + ".SugiliteScript");
+        if(script != null)
+            return sendMessage(RESPONSE, GET_SCRIPT, jsonProcessor.scriptToJson(script));
+        else
+            return sendMessage(RESPONSE_EXCEPTION, GET_SCRIPT, "Can't find a script with provided name");
+    }
+
+    public boolean sendRecordingFinishedSignal(String scriptName){
+        return sendMessage( RESPONSE, START_TRACKING, "FINISHED" + scriptName);
     }
 
     private boolean sendMessage(int messageType, int arg2, String obj){
@@ -113,17 +142,66 @@ public class SugiliteCommunicationController {
         @Override
         public void handleMessage(Message msg) {
             super.handleMessage(msg);
+            boolean recordingInProcess = sharedPreferences.getBoolean("recording_in_process", false);
             switch(msg.what) {
                 case START_TRACKING:
                     //TODO: start app tracking service
+                    if(recordingInProcess) {
+                        SugiliteCommunicationController.this.sendMessage(RESPONSE_EXCEPTION, START_TRACKING, "Already recording in process, can't start");
+                    }
+                    else {
+                        final String scriptName = msg.getData().getString("request");
+                        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+                        builder.setTitle("New Recording")
+                                .setMessage("Now start recording new script " + scriptName)
+                                .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        dialog.dismiss();
+                                    }
+                                })
+                                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        sugiliteData.clearInstructionQueue();
+                                        SharedPreferences.Editor editor = sharedPreferences.edit();
+                                        editor.putString("scriptName", scriptName);
+                                        editor.putBoolean("recording_in_process", true);
+                                        editor.commit();
+                                        sugiliteData.initiateScript(scriptName + ".SugiliteScript");
+                                        sugiliteData.initiatedExternally = true;
+                                        try {
+                                            sugiliteScriptDao.save((SugiliteStartingBlock) sugiliteData.getScriptHead());
+                                        } catch (Exception e) {
+                                            e.printStackTrace();
+                                        }
+                                        Toast.makeText(context, "Recording new script " + sharedPreferences.getString("scriptName", "NULL"), Toast.LENGTH_SHORT).show();
+                                    }
+                                });
+                        AlertDialog dialog = builder.create();
+                        dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
+                        dialog.show();
+                    }
                     Log.d( TAG, "Start Tracking");
                     break;
                 case STOP_TRACKING:
                     //TODO: stop app tracking service
-                    // ....
-                    if( msg.arg1 == 1 ) { // send back tracking log (script)? false == 0, true == 1.
-                        //TODO: replace getDummyScript by the corresponding script
-                        SugiliteCommunicationController.this.sendMessage( RESPONSE, GET_SCRIPT, getDummyScript() );
+                    if(recordingInProcess) {
+                        SharedPreferences.Editor prefEditor = sharedPreferences.edit();
+                        prefEditor.putBoolean("recording_in_process", false);
+                        prefEditor.commit();
+                        if(sugiliteData.initiatedExternally == true && sugiliteData.getScriptHead() != null)
+                            sendRecordingFinishedSignal(sugiliteData.getScriptHead().getScriptName());
+                        Toast.makeText(context, "end recording", Toast.LENGTH_SHORT).show();
+                        if (msg.arg1 == 1) { // send back tracking log (script)? false == 0, true == 1.
+                            //TODO: replace getDummyScript by the corresponding script
+                            SugiliteStartingBlock script = sugiliteData.getScriptHead();
+                            if (script != null)
+                                SugiliteCommunicationController.this.sendMessage(RESPONSE, GET_SCRIPT, jsonProcessor.scriptToJson(script));
+                        }
+                    }
+                    else {
+                        SugiliteCommunicationController.this.sendMessage(RESPONSE_EXCEPTION, STOP_TRACKING, "No recording in progress, can't stop");
                     }
                     break;
                 case GET_ALL_SCRIPTS:
@@ -166,48 +244,5 @@ public class SugiliteCommunicationController {
     }
 
 
-    private String getDummyListOfScripts() {
-        return "{\n" +
-                "    \"scripts\": [\n" +
-                "        {\n" +
-                "                \"name\": \"script1\",\n" +
-                "                \"created\": \"124578987845\"\n" +
-                "        },\n" +
-                "        {\n" +
-                "                \"name\": \"script2\",\n" +
-                "                \"created\": \"124578987845\"\n" +
-                "        }\n" +
-                "    ]\n" +
-                "}";
-    }
 
-    public String getDummyScript() {
-        return "{\"name\":\"Starbucks\",\"next\":{\"actionType\":\"CLICK\",\"elementFilter\":{\"packageName\":\"com.starbucks.mobilecard\"},\"next\":{\"actionParameter\":\"Latte\",\"actionType\":\"SET_TEXT\",\"elementFilter\":{\"contentDescription\":\"Search bar\",\"packageName\":\"com.starbucks.mobilecard\"},\"next\":{\"actionParameter\":\"condition\",\"actionType\":\"IF_CONDITION\"}}}}";
-//        return "{\n" +
-//                "  \"name\": \"Starbucks\",\n" +
-//                "  \"next\": {\n" +
-//                "    \"actionType\": \"CLICK\",\n" +
-//                "    \"elementFilter\": {\n" +
-//                "      \"packageName\": \"com.starbucks.mobilecard\",\n" +
-//                "      \"text\": \"Search\",\n" +
-//                "      \"screenLocation\": \"somewhere\",\n" +
-//                "      \"viewID\": \"something\"\n" +
-//                "    },\n" +
-//                "    \"next\": {\n" +
-//                "      \"actionType\": \"SET_TEXT\",\n" +
-//                "      \"actionParameter\": \"Latte\",\n" +
-//                "      \"elementFilter\": {\n" +
-//                "        \"packageName\": \"com.starbucks.mobilecard\",\n" +
-//                "        \"contentDescription\": \"Search bar\"\n" +
-//                "      },\n" +
-//                "      \"next\": {\n" +
-//                "        \"actionType\": \"IF_CONDITION\",\n" +
-//                "        \"actionParameter\": \"condition\",\n" +
-//                "        \"branch1\": {},\n" +
-//                "        \"branch2\": {}\n" +
-//                "      }\n" +
-//                "    }\n" +
-//                "  }\n" +
-//                "}";
-    }
 }

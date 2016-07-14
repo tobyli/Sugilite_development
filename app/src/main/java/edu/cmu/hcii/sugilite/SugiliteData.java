@@ -22,6 +22,8 @@ public class SugiliteData extends Application {
     private SugiliteBlock currentScriptBlock;
     private Queue<SugiliteBlock> instructionQueue = new ArrayDeque<>();
     public Map<String, Variable> stringVariableMap = new HashMap<>();
+    //true if the current recording script is initiated externally
+    public boolean initiatedExternally  = false;
 
     public SugiliteStartingBlock getScriptHead(){
         return scriptHead;

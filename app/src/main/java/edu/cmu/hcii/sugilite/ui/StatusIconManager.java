@@ -34,6 +34,7 @@ import edu.cmu.hcii.sugilite.R;
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.automation.Automator;
 import edu.cmu.hcii.sugilite.automation.ServiceStatusManager;
+import edu.cmu.hcii.sugilite.communication.SugiliteCommunicationController;
 import edu.cmu.hcii.sugilite.dao.SugiliteScreenshotManager;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
@@ -53,6 +54,7 @@ public class StatusIconManager {
     private SugiliteScriptDao sugiliteScriptDao;
     private ServiceStatusManager serviceStatusManager;
     private SugiliteScreenshotManager screenshotManager;
+    private SugiliteCommunicationController communicationController;
     private WindowManager.LayoutParams params;
 
     public StatusIconManager(Context context, SugiliteData sugiliteData, SharedPreferences sharedPreferences){
@@ -63,6 +65,7 @@ public class StatusIconManager {
         this.sugiliteScriptDao = new SugiliteScriptDao(context);
         this.serviceStatusManager = new ServiceStatusManager(context);
         this.screenshotManager = new SugiliteScreenshotManager(sharedPreferences, context);
+        this.communicationController = new SugiliteCommunicationController(context, sugiliteData, sharedPreferences);
     }
 
     /**
@@ -219,6 +222,8 @@ public class StatusIconManager {
                                         SharedPreferences.Editor prefEditor = sharedPreferences.edit();
                                         prefEditor.putBoolean("recording_in_process", false);
                                         prefEditor.commit();
+                                        if(sugiliteData.initiatedExternally == true && sugiliteData.getScriptHead() != null)
+                                            communicationController.sendRecordingFinishedSignal(sugiliteData.getScriptHead().getScriptName());
                                         Toast.makeText(context, "end recording", Toast.LENGTH_SHORT).show();
                                     } else {
                                         if (startingBlock == null) {
@@ -252,6 +257,7 @@ public class StatusIconManager {
                                                                 editor.commit();
                                                                 //set the active script to the newly created script
                                                                 sugiliteData.initiateScript(scriptName.getText().toString() + ".SugiliteScript");
+                                                                sugiliteData.initiatedExternally = false;
                                                                 //save the newly created script to DB
                                                                 try {
                                                                     sugiliteScriptDao.save((SugiliteStartingBlock) sugiliteData.getScriptHead());

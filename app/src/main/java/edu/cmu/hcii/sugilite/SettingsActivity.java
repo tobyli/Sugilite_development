@@ -37,6 +37,7 @@ import com.stericson.RootTools.RootTools;
 import java.util.List;
 
 import edu.cmu.hcii.sugilite.automation.ServiceStatusManager;
+import edu.cmu.hcii.sugilite.communication.SugiliteCommunicationController;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
 import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
@@ -57,6 +58,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
     private static ServiceStatusManager serviceStatusManager;
     private static SugiliteData sugiliteData;
     private static SugiliteScriptDao sugiliteScriptDao;
+    private static SugiliteCommunicationController communicationController;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -66,6 +68,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
         serviceStatusManager = new ServiceStatusManager(this);
         sugiliteData = (SugiliteData)getApplication();
         sugiliteScriptDao = new SugiliteScriptDao(this);
+        communicationController = new SugiliteCommunicationController(this, sugiliteData, null);
     }
 
     /**
@@ -155,6 +158,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
                                             scriptNamePreference.setSummary(scriptName.getText().toString());
                                             //set the active script to the newly created script
                                             sugiliteData.initiateScript(scriptName.getText().toString() + ".SugiliteScript");
+                                            sugiliteData.initiatedExternally = false;
                                             //save the newly created script to DB
                                             try {
                                                 sugiliteScriptDao.save((SugiliteStartingBlock) sugiliteData.getScriptHead());
@@ -174,6 +178,10 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
                         AlertDialog dialog = builder.create();
                         dialog.show();
 
+                    }
+                    else{
+                        if(sugiliteData.initiatedExternally == true && sugiliteData.getScriptHead() != null)
+                            communicationController.sendRecordingFinishedSignal(sugiliteData.getScriptHead().getScriptName());
                     }
                     break;
 

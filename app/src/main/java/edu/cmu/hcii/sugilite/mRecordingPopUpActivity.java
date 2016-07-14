@@ -39,6 +39,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TimeZone;
 
+import edu.cmu.hcii.sugilite.communication.SugiliteCommunicationController;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
 import edu.cmu.hcii.sugilite.model.AccessibilityNodeInfoList;
 import edu.cmu.hcii.sugilite.model.block.SerializableNodeInfo;
@@ -64,6 +65,7 @@ public class mRecordingPopUpActivity extends AppCompatActivity {
     private Set<Map.Entry<String, String>> selectedChildFeatures = new HashSet<>();
     private SugiliteData sugiliteData;
     private ReadableDescriptionGenerator readableDescriptionGenerator;
+    private SugiliteCommunicationController communicationController;
     private UIElementFeatureRecommender recommender;
     private Map<Map.Entry<String, String>, CheckBox> checkBoxChildEntryMap;
     private Map<Map.Entry<String, String>, CheckBox> checkBoxParentEntryMap;
@@ -91,6 +93,7 @@ public class mRecordingPopUpActivity extends AppCompatActivity {
         sugiliteData = (SugiliteData)getApplication();
         sugiliteScriptDao = new SugiliteScriptDao(this);
         readableDescriptionGenerator = new ReadableDescriptionGenerator(getApplicationContext());
+        communicationController = new SugiliteCommunicationController(this, sugiliteData, sharedPreferences);
         checkBoxChildEntryMap = new HashMap<>();
         checkBoxParentEntryMap = new HashMap<>();
         identifierCheckboxMap = new HashMap<>();
@@ -117,6 +120,8 @@ public class mRecordingPopUpActivity extends AppCompatActivity {
         SharedPreferences.Editor prefEditor = sharedPreferences.edit();
         prefEditor.putBoolean("recording_in_process", false);
         prefEditor.commit();
+        if(sugiliteData.initiatedExternally == true && sugiliteData.getScriptHead() != null)
+            communicationController.sendRecordingFinishedSignal(sugiliteData.getScriptHead().getScriptName());
         setResult(RESULT_CANCELED);
         finish();
     }

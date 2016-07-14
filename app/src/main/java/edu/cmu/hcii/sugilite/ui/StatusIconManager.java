@@ -83,7 +83,7 @@ public class StatusIconManager {
 
 
         params.gravity = Gravity.TOP | Gravity.LEFT;
-        params.x = 0;
+        params.x = displaymetrics.widthPixels;
         params.y = 200;
         addCrumpledPaperOnTouchListener(statusIcon, params, displaymetrics, windowManager);
 

@@ -18,6 +18,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import edu.cmu.hcii.sugilite.communication.SugiliteCommunicationController;
 import edu.cmu.hcii.sugilite.dao.SugiliteScreenshotManager;
 import edu.cmu.hcii.sugilite.model.AccessibilityNodeInfoList;
 import edu.cmu.hcii.sugilite.automation.*;
@@ -35,6 +36,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
     private SugiliteScreenshotManager screenshotManager;
     private Set<Integer> accessibilityEventSetToHandle, accessibilityEventSetToSend;
     private Thread automatorThread;
+    private SugiliteCommunicationController communicationController;
 
     public SugiliteAccessibilityService() {
     }
@@ -48,6 +50,15 @@ public class SugiliteAccessibilityService extends AccessibilityService {
         statusIconManager = new StatusIconManager(this, sugiliteData, sharedPreferences);
         screenshotManager = new SugiliteScreenshotManager(sharedPreferences, getApplicationContext());
         automator = new Automator(sugiliteData, getApplicationContext(), statusIconManager);
+
+        try {
+            communicationController = new SugiliteCommunicationController(getApplicationContext());
+            communicationController.start();
+            communicationController.register();
+        }
+        catch (Exception e){
+            e.printStackTrace();
+        }
 
         Integer[] accessibilityEventArrayToHandle = {AccessibilityEvent.TYPE_VIEW_CLICKED,
                 AccessibilityEvent.TYPE_VIEW_LONG_CLICKED,
@@ -72,7 +83,6 @@ public class SugiliteAccessibilityService extends AccessibilityService {
             //do nothing
         }
     }
-
 
 
     @Override
@@ -159,6 +169,15 @@ public class SugiliteAccessibilityService extends AccessibilityService {
                 e.printStackTrace();
             }
         //windowManager.removeView(statusIcon);
+
+        try {
+            communicationController.unregister();
+            communicationController.stop();
+        }
+        catch (Exception e){
+            e.printStackTrace();
+        }
+
     }
 
 

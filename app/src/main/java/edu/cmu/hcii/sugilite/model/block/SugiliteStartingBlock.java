@@ -44,6 +44,7 @@ public class SugiliteStartingBlock extends SugiliteBlock implements Serializable
     public String getScriptName(){
         return scriptName;
     }
+    public void setScriptName(String scriptName) {this.scriptName = scriptName;}
     @Override
     public boolean run() throws Exception {
         if (nextBlock == null)

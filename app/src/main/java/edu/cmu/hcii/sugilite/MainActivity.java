@@ -94,7 +94,7 @@ public class MainActivity extends AppCompatActivity {
                                     catch (Exception e){
                                         e.printStackTrace();
                                     }
-                                    Toast.makeText(v.getContext(), "Changed script name to " + sharedPreferences.getString("scriptName", "NULL"), Toast.LENGTH_SHORT).show();
+                                    //Toast.makeText(v.getContext(), "Changed script name to " + sharedPreferences.getString("scriptName", "NULL"), Toast.LENGTH_SHORT).show();
                                     setUpScriptList();
                                     finish();
                                 }
@@ -103,7 +103,7 @@ public class MainActivity extends AppCompatActivity {
                         .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
-                                //do nothing
+                                dialog.dismiss();
                             }
                         })
                         .setTitle("New Script");
@@ -161,12 +161,11 @@ public class MainActivity extends AppCompatActivity {
     //TODO:implement context menu
     @Override
     public boolean onContextItemSelected(MenuItem item) {
-        AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
+        final AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
         if(info == null)
             return super.onContextItemSelected(item);
         switch (item.getItemId()){
         case ITEM_1:
-            Toast.makeText(this, "View Script", Toast.LENGTH_SHORT).show();
             //open the view script activity
             if(info.targetView instanceof TextView && ((TextView) info.targetView).getText() != null) {
                 String scriptName = ((TextView) info.targetView).getText().toString() + ".SugiliteScript";
@@ -176,13 +175,39 @@ public class MainActivity extends AppCompatActivity {
             }
             break;
         case ITEM_2:
-            Toast.makeText(this, "Rename Script", Toast.LENGTH_SHORT).show();
+            if(info.targetView instanceof TextView && ((TextView) info.targetView).getText() != null) {
+                final String scriptName = ((TextView) info.targetView).getText().toString() + ".SugiliteScript";
+                AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                final EditText newName = new EditText(this);
+                builder.setView(newName)
+                        .setTitle("Enter the new name for \"" + ((TextView) info.targetView).getText().toString() + "\"")
+                        .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                SugiliteStartingBlock startingBlock = sugiliteScriptDao.read(scriptName);
+                                startingBlock.setScriptName(newName.getText().toString() + ".SugiliteScript");
+                                try {
+                                    sugiliteScriptDao.save(startingBlock);
+                                    setUpScriptList();
+                                    //sugiliteScriptDao.delete(scriptName);
+                                } catch (Exception e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                        })
+                        .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                dialog.dismiss();
+                            }
+                        }).show();
+
+            }
             break;
         case ITEM_3:
-            Toast.makeText(this, "Share Script", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Sharing Script is not supported yet!", Toast.LENGTH_SHORT).show();
             break;
         case ITEM_4:
-            Toast.makeText(this, "Delete Script", Toast.LENGTH_SHORT).show();
             if(info.targetView instanceof TextView && ((TextView) info.targetView).getText() != null) {
                 sugiliteScriptDao.delete(((TextView) info.targetView).getText().toString() + ".SugiliteScript");
                 setUpScriptList();
@@ -248,13 +273,14 @@ public class MainActivity extends AppCompatActivity {
                     .setPositiveButton("OK", new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int which) {
                             sugiliteScriptDao.clear();
+                            setUpScriptList();
                         }
                     })
                     .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
-                            dialog.dismiss();
                             setUpScriptList();
+                            dialog.dismiss();
                         }
                     })
                     .setIcon(android.R.drawable.ic_dialog_alert)

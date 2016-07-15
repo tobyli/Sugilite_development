@@ -58,7 +58,6 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
     private static ServiceStatusManager serviceStatusManager;
     private static SugiliteData sugiliteData;
     private static SugiliteScriptDao sugiliteScriptDao;
-    private static SugiliteCommunicationController communicationController;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -68,7 +67,6 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
         serviceStatusManager = new ServiceStatusManager(this);
         sugiliteData = (SugiliteData)getApplication();
         sugiliteScriptDao = new SugiliteScriptDao(this);
-        communicationController = new SugiliteCommunicationController(this, sugiliteData, null);
     }
 
     /**
@@ -181,7 +179,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
                     }
                     else{
                         if(sugiliteData.initiatedExternally == true && sugiliteData.getScriptHead() != null)
-                            communicationController.sendRecordingFinishedSignal(sugiliteData.getScriptHead().getScriptName());
+                            sugiliteData.communicationController.sendRecordingFinishedSignal(sugiliteData.getScriptHead().getScriptName());
                     }
                     break;
 

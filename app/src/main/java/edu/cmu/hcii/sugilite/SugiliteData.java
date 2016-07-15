@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Queue;
 
+import edu.cmu.hcii.sugilite.communication.SugiliteCommunicationController;
 import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.model.variable.Variable;
@@ -24,6 +25,8 @@ public class SugiliteData extends Application {
     public Map<String, Variable> stringVariableMap = new HashMap<>();
     //true if the current recording script is initiated externally
     public boolean initiatedExternally  = false;
+    public SugiliteCommunicationController communicationController;
+
 
     public SugiliteStartingBlock getScriptHead(){
         return scriptHead;

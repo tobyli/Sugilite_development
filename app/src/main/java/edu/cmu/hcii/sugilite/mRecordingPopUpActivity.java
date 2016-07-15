@@ -65,7 +65,6 @@ public class mRecordingPopUpActivity extends AppCompatActivity {
     private Set<Map.Entry<String, String>> selectedChildFeatures = new HashSet<>();
     private SugiliteData sugiliteData;
     private ReadableDescriptionGenerator readableDescriptionGenerator;
-    private SugiliteCommunicationController communicationController;
     private UIElementFeatureRecommender recommender;
     private Map<Map.Entry<String, String>, CheckBox> checkBoxChildEntryMap;
     private Map<Map.Entry<String, String>, CheckBox> checkBoxParentEntryMap;
@@ -93,7 +92,6 @@ public class mRecordingPopUpActivity extends AppCompatActivity {
         sugiliteData = (SugiliteData)getApplication();
         sugiliteScriptDao = new SugiliteScriptDao(this);
         readableDescriptionGenerator = new ReadableDescriptionGenerator(getApplicationContext());
-        communicationController = new SugiliteCommunicationController(this, sugiliteData, sharedPreferences);
         checkBoxChildEntryMap = new HashMap<>();
         checkBoxParentEntryMap = new HashMap<>();
         identifierCheckboxMap = new HashMap<>();
@@ -121,7 +119,7 @@ public class mRecordingPopUpActivity extends AppCompatActivity {
         prefEditor.putBoolean("recording_in_process", false);
         prefEditor.commit();
         if(sugiliteData.initiatedExternally == true && sugiliteData.getScriptHead() != null)
-            communicationController.sendRecordingFinishedSignal(sugiliteData.getScriptHead().getScriptName());
+            sugiliteData.communicationController.sendRecordingFinishedSignal(sugiliteData.getScriptHead().getScriptName());
         setResult(RESULT_CANCELED);
         finish();
     }

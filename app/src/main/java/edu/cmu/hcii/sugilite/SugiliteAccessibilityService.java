@@ -36,7 +36,6 @@ public class SugiliteAccessibilityService extends AccessibilityService {
     private SugiliteScreenshotManager screenshotManager;
     private Set<Integer> accessibilityEventSetToHandle, accessibilityEventSetToSend;
     private Thread automatorThread;
-    private SugiliteCommunicationController communicationController;
 
     public SugiliteAccessibilityService() {
     }
@@ -52,9 +51,9 @@ public class SugiliteAccessibilityService extends AccessibilityService {
         automator = new Automator(sugiliteData, getApplicationContext(), statusIconManager);
 
         try {
-            communicationController = new SugiliteCommunicationController(getApplicationContext());
-            communicationController.start();
-            communicationController.register();
+            sugiliteData.communicationController = new SugiliteCommunicationController(getApplicationContext(), sugiliteData, sharedPreferences);
+            sugiliteData.communicationController.start();
+            sugiliteData.communicationController.register();
         }
         catch (Exception e){
             e.printStackTrace();
@@ -171,8 +170,8 @@ public class SugiliteAccessibilityService extends AccessibilityService {
         //windowManager.removeView(statusIcon);
 
         try {
-            communicationController.unregister();
-            communicationController.stop();
+            sugiliteData.communicationController.unregister();
+            sugiliteData.communicationController.stop();
         }
         catch (Exception e){
             e.printStackTrace();

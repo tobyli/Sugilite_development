@@ -21,6 +21,7 @@ import android.widget.Toast;
 
 import com.google.gson.Gson;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import edu.cmu.hcii.sugilite.SugiliteData;
@@ -40,7 +41,7 @@ public class SugiliteCommunicationController {
     SugiliteBlockJSONProcessor jsonProcessor;
     SugiliteData sugiliteData;
     private ServiceConnection connection; //receives callbacks from bind and unbind invocations
-    private Context context;
+    private Context context; //NOTE: application context
     private final int REGISTER = 1;
     private final int UNREGISTER = 2;
     private final int RESPONSE = 3;
@@ -63,30 +64,38 @@ public class SugiliteCommunicationController {
         this.sugiliteData = sugiliteData;
         this.sharedPreferences = sharedPreferences;
     }
-
+    //start() is called when SugiliteAccessibilityService is created
     public void start(){
         Intent intent = createExplicitFromImplicitIntent( context,
                 new Intent( "com.yahoo.inmind.services.generic.control.ExternalAppCommService" ) );
         context.bindService(intent, this.connection, Context.BIND_AUTO_CREATE);
     }
 
-    public void stop(){
+    //stop() is called when SugiliteAccessibilityService is destroyed
+    public void stop() {
         if (this.isBound) {
             context.unbindService(connection);
             this.isBound = false;
         }
     }
 
+    //register() is called when SugiliteAccessibilityService is created
     public boolean register(){
         return sendMessage(REGISTER, 0, null);
     }
 
+    //unregister() is called when SugiliteAccessibilityService is destroyed
     public boolean unregister(){
         return sendMessage(UNREGISTER, 0, null);
     }
 
+
     public boolean sendAllScripts(){
-        return sendMessage( RESPONSE, GET_ALL_SCRIPTS, new Gson().toJson(sugiliteScriptDao.getAllNames()));
+        List<String> allNames = sugiliteScriptDao.getAllNames();
+        List<String> retVal = new ArrayList<>();
+        for(String name : allNames)
+            retVal.add(name.replace(".SugiliteScript", ""));
+        return sendMessage( RESPONSE, GET_ALL_SCRIPTS, new Gson().toJson(retVal));
     }
 
     public boolean sendScript(String scriptName){
@@ -95,11 +104,13 @@ public class SugiliteCommunicationController {
         if(script != null)
             return sendMessage(RESPONSE, GET_SCRIPT, jsonProcessor.scriptToJson(script));
         else
+            //the exception message below will be sent when can't find a script with provided name
             return sendMessage(RESPONSE_EXCEPTION, GET_SCRIPT, "Can't find a script with provided name");
     }
 
+    //the below message will be sent when a externally initiated script has finished recording
     public boolean sendRecordingFinishedSignal(String scriptName){
-        return sendMessage( RESPONSE, START_TRACKING, "FINISHED" + scriptName);
+        return sendMessage( RESPONSE, START_TRACKING, "FINISHED " + scriptName);
     }
 
     private boolean sendMessage(int messageType, int arg2, String obj){
@@ -145,47 +156,55 @@ public class SugiliteCommunicationController {
             boolean recordingInProcess = sharedPreferences.getBoolean("recording_in_process", false);
             switch(msg.what) {
                 case START_TRACKING:
-                    //TODO: start app tracking service
                     if(recordingInProcess) {
-                        SugiliteCommunicationController.this.sendMessage(RESPONSE_EXCEPTION, START_TRACKING, "Already recording in process, can't start");
+                        //the exception message below will be sent when there's already recording in process
+                        SugiliteCommunicationController.this.sendMessage(RESPONSE_EXCEPTION, START_TRACKING, "Already recording in progress, can't start");
                     }
                     else {
+                        //NOTE: script name should be specified in msg.getData().getString("request");
                         final String scriptName = msg.getData().getString("request");
-                        AlertDialog.Builder builder = new AlertDialog.Builder(context);
-                        builder.setTitle("New Recording")
-                                .setMessage("Now start recording new script " + scriptName)
-                                .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-                                    @Override
-                                    public void onClick(DialogInterface dialog, int which) {
-                                        dialog.dismiss();
-                                    }
-                                })
-                                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                                    @Override
-                                    public void onClick(DialogInterface dialog, int which) {
-                                        sugiliteData.clearInstructionQueue();
-                                        SharedPreferences.Editor editor = sharedPreferences.edit();
-                                        editor.putString("scriptName", scriptName);
-                                        editor.putBoolean("recording_in_process", true);
-                                        editor.commit();
-                                        sugiliteData.initiateScript(scriptName + ".SugiliteScript");
-                                        sugiliteData.initiatedExternally = true;
-                                        try {
-                                            sugiliteScriptDao.save((SugiliteStartingBlock) sugiliteData.getScriptHead());
-                                        } catch (Exception e) {
-                                            e.printStackTrace();
+                        if (scriptName != null) {
+                            AlertDialog.Builder builder = new AlertDialog.Builder(context);
+                            builder.setTitle("New Recording")
+                                    .setMessage("Now start recording new script " + scriptName)
+                                    .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                                        @Override
+                                        public void onClick(DialogInterface dialog, int which) {
+                                            dialog.dismiss();
                                         }
-                                        Toast.makeText(context, "Recording new script " + sharedPreferences.getString("scriptName", "NULL"), Toast.LENGTH_SHORT).show();
-                                    }
-                                });
-                        AlertDialog dialog = builder.create();
-                        dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
-                        dialog.show();
+                                    })
+                                    .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                                        @Override
+                                        public void onClick(DialogInterface dialog, int which) {
+                                            sugiliteData.clearInstructionQueue();
+                                            SharedPreferences.Editor editor = sharedPreferences.edit();
+                                            editor.putString("scriptName", scriptName);
+                                            editor.putBoolean("recording_in_process", true);
+                                            editor.commit();
+                                            sugiliteData.initiateScript(scriptName + ".SugiliteScript");
+                                            sugiliteData.initiatedExternally = true;
+                                            try {
+                                                sugiliteScriptDao.save(sugiliteData.getScriptHead());
+                                            } catch (Exception e) {
+                                                e.printStackTrace();
+                                            }
+                                            Toast.makeText(context, "Recording new script " + sharedPreferences.getString("scriptName", "NULL"), Toast.LENGTH_SHORT).show();
+
+                                            //go to home screen for recording
+                                            Intent startMain = new Intent(Intent.ACTION_MAIN);
+                                            startMain.addCategory(Intent.CATEGORY_HOME);
+                                            startMain.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                                            context.startActivity(startMain);
+                                        }
+                                    });
+                            AlertDialog dialog = builder.create();
+                            dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
+                            dialog.show();
+                        }
+                        Log.d(TAG, "Start Tracking");
+                        break;
                     }
-                    Log.d( TAG, "Start Tracking");
-                    break;
                 case STOP_TRACKING:
-                    //TODO: stop app tracking service
                     if(recordingInProcess) {
                         SharedPreferences.Editor prefEditor = sharedPreferences.edit();
                         prefEditor.putBoolean("recording_in_process", false);
@@ -193,14 +212,15 @@ public class SugiliteCommunicationController {
                         if(sugiliteData.initiatedExternally == true && sugiliteData.getScriptHead() != null)
                             sendRecordingFinishedSignal(sugiliteData.getScriptHead().getScriptName());
                         Toast.makeText(context, "end recording", Toast.LENGTH_SHORT).show();
-                        if (msg.arg1 == 1) { // send back tracking log (script)? false == 0, true == 1.
-                            //TODO: replace getDummyScript by the corresponding script
+                        if (msg.arg1 == 1) {
+                        // send back tracking log (script)? false == 0, true == 1.
                             SugiliteStartingBlock script = sugiliteData.getScriptHead();
                             if (script != null)
                                 SugiliteCommunicationController.this.sendMessage(RESPONSE, GET_SCRIPT, jsonProcessor.scriptToJson(script));
                         }
                     }
                     else {
+                        //the exception message below will be sent when there's no recording in process
                         SugiliteCommunicationController.this.sendMessage(RESPONSE_EXCEPTION, STOP_TRACKING, "No recording in progress, can't stop");
                     }
                     break;

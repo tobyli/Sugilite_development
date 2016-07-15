@@ -91,7 +91,7 @@ public class MainActivity extends AppCompatActivity {
                                     sugiliteData.initiatedExternally = false;
                                     //save the newly created script to DB
                                     try {
-                                        sugiliteScriptDao.save((SugiliteStartingBlock)sugiliteData.getScriptHead());
+                                        sugiliteScriptDao.save(sugiliteData.getScriptHead());
                                     }
                                     catch (Exception e){
                                         e.printStackTrace();
@@ -216,6 +216,9 @@ public class MainActivity extends AppCompatActivity {
                 SugiliteStartingBlock recoveredFromJSON = processor.jsonToScript(json);
                 recoveredFromJSON.setScriptName("recovered_" + recoveredFromJSON.getScriptName());
                 sugiliteScriptDao.save(recoveredFromJSON);
+                setUpScriptList();
+
+                sugiliteData.communicationController.sendAllScripts();
             }
             catch (Exception e){
                 e.printStackTrace();

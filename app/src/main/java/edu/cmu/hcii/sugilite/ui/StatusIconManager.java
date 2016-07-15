@@ -54,7 +54,6 @@ public class StatusIconManager {
     private SugiliteScriptDao sugiliteScriptDao;
     private ServiceStatusManager serviceStatusManager;
     private SugiliteScreenshotManager screenshotManager;
-    private SugiliteCommunicationController communicationController;
     private WindowManager.LayoutParams params;
 
     public StatusIconManager(Context context, SugiliteData sugiliteData, SharedPreferences sharedPreferences){
@@ -65,7 +64,6 @@ public class StatusIconManager {
         this.sugiliteScriptDao = new SugiliteScriptDao(context);
         this.serviceStatusManager = new ServiceStatusManager(context);
         this.screenshotManager = new SugiliteScreenshotManager(sharedPreferences, context);
-        this.communicationController = new SugiliteCommunicationController(context, sugiliteData, sharedPreferences);
     }
 
     /**
@@ -223,7 +221,7 @@ public class StatusIconManager {
                                         prefEditor.putBoolean("recording_in_process", false);
                                         prefEditor.commit();
                                         if(sugiliteData.initiatedExternally == true && sugiliteData.getScriptHead() != null)
-                                            communicationController.sendRecordingFinishedSignal(sugiliteData.getScriptHead().getScriptName());
+                                            sugiliteData.communicationController.sendRecordingFinishedSignal(sugiliteData.getScriptHead().getScriptName());
                                         Toast.makeText(context, "end recording", Toast.LENGTH_SHORT).show();
                                     } else {
                                         if (startingBlock == null) {

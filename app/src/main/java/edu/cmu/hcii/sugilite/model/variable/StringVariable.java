@@ -1,11 +1,13 @@
 package edu.cmu.hcii.sugilite.model.variable;
 
+import java.io.Serializable;
+
 /**
  * @author toby
  * @date 7/11/16
  * @time 4:54 PM
  */
-public class StringVariable extends Variable {
+public class StringVariable extends Variable implements Serializable {
     private String value;
     public StringVariable(){
         super();

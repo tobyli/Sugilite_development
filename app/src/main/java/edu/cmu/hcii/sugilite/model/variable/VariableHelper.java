@@ -15,11 +15,15 @@ public class VariableHelper {
     public VariableHelper(Map<String, Variable> stringVariableMap){
         this.stringVariableMap = stringVariableMap;
     }
-    public String parse(String text){
+    public String parse (String text){
+        if(stringVariableMap == null)
+            return text;
+        String currentText = new String(text);
         for(Map.Entry<String, Variable> entry : stringVariableMap.entrySet()){
             if(entry.getValue() instanceof StringVariable)
-                text.replace("@" + entry.getKey(), ((StringVariable) entry.getValue()).getValue());
+                currentText = currentText.replace("@" + entry.getKey(), ((StringVariable) entry.getValue()).getValue());
         }
-        return text;
+        return currentText;
     }
+
 }

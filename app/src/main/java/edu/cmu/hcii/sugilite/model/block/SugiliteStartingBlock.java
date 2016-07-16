@@ -19,18 +19,18 @@ public class SugiliteStartingBlock extends SugiliteBlock implements Serializable
     private String scriptName;
     public Set<String> relevantPackages;
     //persistent across launches, used to store the list of names for variables
-    public Set<String> variableNameSet;
+    public Map<String, Variable> variableNameDefaultValueMap;
     public SugiliteStartingBlock(){
         super();
         relevantPackages = new HashSet<>();
-        variableNameSet = new HashSet<>();
+        variableNameDefaultValueMap = new HashMap<>();
         this.blockType = SugiliteBlock.STARTING_BLOCK;
         this.setDescription("<b>STARTING SCRIPT</b>");
     }
     public SugiliteStartingBlock(String scriptName){
         super();
         relevantPackages = new HashSet<>();
-        variableNameSet = new HashSet<>();
+        variableNameDefaultValueMap = new HashMap<>();
         this.scriptName = scriptName;
         this.blockType = SugiliteBlock.STARTING_BLOCK;
         this.setDescription("<b>STARTING SCRIPT</b>");

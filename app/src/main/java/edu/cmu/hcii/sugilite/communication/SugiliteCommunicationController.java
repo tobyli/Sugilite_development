@@ -53,7 +53,7 @@ public class SugiliteCommunicationController {
     private final int APP_TRACKER_ID = 1001;
     private SharedPreferences sharedPreferences;
 
-
+    //TODO: add run script
 
     public SugiliteCommunicationController(Context context, SugiliteData sugiliteData, SharedPreferences sharedPreferences) {
         this.connection = new RemoteServiceConnection();

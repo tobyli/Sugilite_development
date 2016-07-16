@@ -6,6 +6,7 @@ import android.view.accessibility.AccessibilityNodeInfo;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import edu.cmu.hcii.sugilite.automation.Automator;
 import edu.cmu.hcii.sugilite.model.variable.Variable;
@@ -30,6 +31,9 @@ public class UIElementMatchingFilter implements Serializable {
     UIElementMatchingFilter parentFilter;
     UIElementMatchingFilter childFilter;
     Boolean isClickable;
+    Map<String, String> alternativeLabels;
+
+    //TODO: add possible alternatives
 
     public UIElementMatchingFilter(){
 

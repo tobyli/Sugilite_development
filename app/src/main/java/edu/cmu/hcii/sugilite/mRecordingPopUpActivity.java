@@ -50,6 +50,9 @@ import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.model.block.UIElementMatchingFilter;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteOperation;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteSetTextOperation;
+import edu.cmu.hcii.sugilite.model.variable.StringVariable;
+import edu.cmu.hcii.sugilite.model.variable.Variable;
+import edu.cmu.hcii.sugilite.ui.ChooseVariableDialog;
 import edu.cmu.hcii.sugilite.ui.ReadableDescriptionGenerator;
 import edu.cmu.hcii.sugilite.ui.UIElementFeatureRecommender;
 
@@ -97,6 +100,7 @@ public class mRecordingPopUpActivity extends AppCompatActivity {
         identifierCheckboxMap = new HashMap<>();
         setContentView(R.layout.activity_m_recording_pop_up);
         featurePack = new SugiliteAvailableFeaturePack();
+        ((TextView)findViewById(R.id.parameterLink)).setText(Html.fromHtml("<p><u>Set as a parameter</u></p>"));
         setTitle("Sugilite Script Recording");
         //fetch the data capsuled in the intent
         //TODO: refactor so the service passes in a feature pack instead
@@ -150,6 +154,25 @@ public class mRecordingPopUpActivity extends AppCompatActivity {
                 dialog.cancel();
             }
         }).show();
+    }
+
+    public void setAsAParameterOnClick(View view){
+        Toast.makeText(this, "set as a parameter", Toast.LENGTH_SHORT).show();
+        EditText actionParameter = (EditText)findViewById(R.id.action_parameter_set_text);
+        if(actionParameter != null) {
+            ChooseVariableDialog dialog;
+            switch (triggerMode) {
+                case TRIGGERED_BY_NEW_EVENT:
+                    dialog = new ChooseVariableDialog(this, actionParameter, getLayoutInflater(), sugiliteData, sugiliteData.getScriptHead());
+                    dialog.show();
+                    break;
+                case TRIGGERED_BY_EDIT:
+                    dialog = new ChooseVariableDialog(this, actionParameter, getLayoutInflater(), sugiliteData, originalScript);
+                    dialog.show();
+                    break;
+            }
+        }
+        //prompt new parameter, open the parameter management popup, click on a parameter
     }
 
 
@@ -626,10 +649,20 @@ public class mRecordingPopUpActivity extends AppCompatActivity {
             sugiliteOperation.setOperationType(SugiliteOperation.LONG_CLICK);
         if (actionSpinnerSelectedItem.contentEquals("Set Text")) {
             sugiliteOperation = new SugiliteSetTextOperation();
-            ((SugiliteSetTextOperation)sugiliteOperation).setText(((EditText) findViewById(R.id.action_parameter_set_text)).getText().toString());
+            //replace set text parameter with parameter
+            String rawText = ((EditText) findViewById(R.id.action_parameter_set_text)).getText().toString();
+            ((SugiliteSetTextOperation)sugiliteOperation).setText(rawText);
+            /*
+            switch (triggerMode) {
+                case TRIGGERED_BY_NEW_EVENT:
+                    ((SugiliteSetTextOperation)sugiliteOperation).setText(textVariableParse(rawText, sugiliteData.getScriptHead().variableNameSet, sugiliteData.stringVariableMap));
+                    break;
+                case TRIGGERED_BY_EDIT:
+                    ((SugiliteSetTextOperation)sugiliteOperation).setText(textVariableParse(rawText, originalScript.variableNameSet, sugiliteData.stringVariableMap));
+                    break;
+            }
+            */
         }
-
-
 
         final SugiliteOperationBlock operationBlock = new SugiliteOperationBlock();
         operationBlock.setOperation(sugiliteOperation);
@@ -639,6 +672,8 @@ public class mRecordingPopUpActivity extends AppCompatActivity {
         operationBlock.setDescription(readableDescriptionGenerator.generateReadableDescription(operationBlock));
         return operationBlock;
     }
+
+
 
     private String boldify(String text){
         return "<b>" + text + "</b>";

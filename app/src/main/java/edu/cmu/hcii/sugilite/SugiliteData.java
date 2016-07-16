@@ -3,12 +3,15 @@ package edu.cmu.hcii.sugilite;
 import android.app.Application;
 
 import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 
 import edu.cmu.hcii.sugilite.communication.SugiliteCommunicationController;
 import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
+import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.model.variable.Variable;
 
@@ -43,9 +46,22 @@ public class SugiliteData extends Application {
      * @param scriptName
      */
     public void initiateScript(String scriptName){
+        this.instructionQueue.clear();
+        this.stringVariableMap.clear();
         this.setScriptHead(new SugiliteStartingBlock(scriptName));
         this.setCurrentScriptBlock(scriptHead);
     }
+
+    public void runScript(SugiliteStartingBlock startingBlock){
+        this.instructionQueue.clear();
+        this.stringVariableMap.clear();
+        this.stringVariableMap.putAll(startingBlock.variableNameDefaultValueMap);
+        List<SugiliteBlock> blocks = traverseBlock(startingBlock);
+        for(SugiliteBlock block : blocks){
+            addInstruction(block);
+        }
+    }
+
     public void setCurrentScriptBlock(SugiliteBlock currentScriptBlock){
         this.currentScriptBlock = currentScriptBlock;
     }
@@ -68,7 +84,23 @@ public class SugiliteData extends Application {
         return instructionQueue.poll();
     }
 
-
+    private List<SugiliteBlock> traverseBlock(SugiliteStartingBlock startingBlock){
+        List<SugiliteBlock> sugiliteBlocks = new ArrayList<>();
+        SugiliteBlock currentBlock = startingBlock;
+        while(currentBlock != null){
+            sugiliteBlocks.add(currentBlock);
+            if(currentBlock instanceof SugiliteStartingBlock){
+                currentBlock = ((SugiliteStartingBlock)currentBlock).getNextBlock();
+            }
+            else if (currentBlock instanceof SugiliteOperationBlock){
+                currentBlock = ((SugiliteOperationBlock)currentBlock).getNextBlock();
+            }
+            else{
+                currentBlock = null;
+            }
+        }
+        return sugiliteBlocks;
+    }
 
 
 }

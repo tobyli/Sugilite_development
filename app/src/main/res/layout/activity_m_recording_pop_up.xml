@@ -62,11 +62,32 @@
                         android:textStyle="bold"
                         android:textColor="#ff0000" />
 
-                    <EditText
-                        android:layout_width="fill_parent"
+                    <LinearLayout
+                        android:orientation="horizontal"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:weightSum="1">
+
+                        <EditText
+                            android:layout_width="fill_parent"
+                            android:layout_height="wrap_content"
+                            android:id="@+id/action_parameter_set_text"
+                            android:background="@android:drawable/editbox_background" />
+
+                    </LinearLayout>
+
+                    <TextView
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:id="@+id/action_parameter_set_text"
-                        android:background="@android:drawable/editbox_background" />
+                        android:textAppearance="?android:attr/textAppearanceSmall"
+                        android:text="Set as a parameter"
+                        android:id="@+id/parameterLink"
+                        android:layout_gravity="right"
+                        android:textColor="#3377dc"
+                        android:textStyle="italic"
+                        android:singleLine="false"
+                        android:onClick="setAsAParameterOnClick"
+                        android:nestedScrollingEnabled="false" />
 
                 </LinearLayout>
             </LinearLayout>

@@ -8,6 +8,8 @@ import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
@@ -15,6 +17,8 @@ import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteOperation;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteSetTextOperation;
+import edu.cmu.hcii.sugilite.model.variable.StringVariable;
+import edu.cmu.hcii.sugilite.model.variable.Variable;
 import edu.cmu.hcii.sugilite.model.variable.VariableHelper;
 import edu.cmu.hcii.sugilite.ui.BoundingBoxManager;
 import edu.cmu.hcii.sugilite.ui.StatusIconManager;
@@ -96,6 +100,7 @@ public class Automator {
             return nodeToAction.performAction(AccessibilityNodeInfo.ACTION_CLICK);
         }
         if(block.getOperation().getOperationType() == SugiliteOperation.SET_TEXT){
+            variableHelper = new VariableHelper(sugiliteData.stringVariableMap);
             String text = variableHelper.parse(((SugiliteSetTextOperation)block.getOperation()).getText());
             Bundle arguments = new Bundle();
             arguments.putCharSequence(AccessibilityNodeInfo
@@ -134,5 +139,18 @@ public class Automator {
                 retList.add(node);
         }
         return retList;
+    }
+
+    private String textVariableParse (String text, Set<String> variableSet, Map<String, Variable> variableValueMap){
+        if(variableSet == null || variableValueMap == null)
+            return text;
+        String currentText = new String(text);
+        for(Map.Entry<String, Variable> entry : variableValueMap.entrySet()){
+            if(!variableSet.contains(entry.getKey()))
+                continue;
+            if(entry.getValue() instanceof StringVariable)
+                currentText = currentText.replace("@" + entry.getKey(), ((StringVariable) entry.getValue()).getValue());
+        }
+        return currentText;
     }
 }

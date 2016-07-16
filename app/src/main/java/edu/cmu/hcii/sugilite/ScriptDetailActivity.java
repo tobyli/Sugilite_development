@@ -112,7 +112,7 @@ public class ScriptDetailActivity extends AppCompatActivity {
                 .setPositiveButton("Run", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int which) {
                         //clear the queue first before adding new instructions
-                        sugiliteData.clearInstructionQueue();
+
                         if(!serviceStatusManager.isRunning()){
                             //prompt the user if the accessiblity service is not active
                             AlertDialog.Builder builder1 = new AlertDialog.Builder(view.getContext());
@@ -128,7 +128,6 @@ public class ScriptDetailActivity extends AppCompatActivity {
                         }
                         else {
                             //TODO: add the mechanism used for asking values for variables
-                            addItemsToInstructionQueue(traverseBlock(script));
                             SharedPreferences.Editor prefEditor = sharedPreferences.edit();
                             //turn off the recording before executing
                             prefEditor.putBoolean("recording_in_process", false);
@@ -147,13 +146,12 @@ public class ScriptDetailActivity extends AppCompatActivity {
                                     // do nothing, likely this exception is caused by non-rooted device
                                 }
                             }
-
+                            sugiliteData.runScript(script);
                             try {
                                 Thread.sleep(3000);
                             } catch (Exception e) {
                                 // do nothing
                             }
-
                             //go to home screen for running the automation
                             Intent startMain = new Intent(Intent.ACTION_MAIN);
                             startMain.addCategory(Intent.CATEGORY_HOME);
@@ -219,11 +217,7 @@ public class ScriptDetailActivity extends AppCompatActivity {
         return sugiliteBlocks;
     }
 
-    private void addItemsToInstructionQueue(List<SugiliteBlock> blocks){
-        for(SugiliteBlock block : blocks){
-            sugiliteData.addInstruction(block);
-        }
-    }
+    
     private static final int ITEM_1 = Menu.FIRST;
     private static final int ITEM_2 = Menu.FIRST + 1;
     private static final int ITEM_3 = Menu.FIRST + 2;
@@ -393,8 +387,7 @@ public class ScriptDetailActivity extends AppCompatActivity {
         prefEditor.commit();
         sugiliteData.setScriptHead(script);
         sugiliteData.setCurrentScriptBlock(script.getTail());
-        sugiliteData.clearInstructionQueue();
-        addItemsToInstructionQueue(traverseBlock(script));
+        sugiliteData.runScript(script);
         Intent startMain = new Intent(Intent.ACTION_MAIN);
         startMain.addCategory(Intent.CATEGORY_HOME);
         startMain.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);

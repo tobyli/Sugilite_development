@@ -31,14 +31,14 @@ import edu.cmu.hcii.sugilite.model.variable.Variable;
  * @time 3:20 PM
  */
 public class ChooseVariableDialog {
-    Context context;
-    AlertDialog dialog;
-    String selectedItemName;
-    SugiliteData sugiliteData;
-    SugiliteStartingBlock startingBlock;
-    final EditText newVariableNameEditText;
-    final EditText defaultValueEditText;
-    final EditText editText;
+    private Context context;
+    private AlertDialog dialog;
+    private String selectedItemName;
+    private SugiliteData sugiliteData;
+    private SugiliteStartingBlock startingBlock;
+    private final EditText newVariableNameEditText;
+    private final EditText defaultValueEditText;
+    private final EditText editText;
 
     public ChooseVariableDialog(final Context context, final EditText editText, LayoutInflater inflater, SugiliteData sugiliteData, SugiliteStartingBlock startingBlock){
         AlertDialog.Builder builder = new AlertDialog.Builder(context);

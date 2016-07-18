@@ -35,6 +35,7 @@ import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
 import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
+import edu.cmu.hcii.sugilite.ui.VariableSetValueDialog;
 
 public class ScriptDetailActivity extends AppCompatActivity {
 
@@ -46,6 +47,7 @@ public class ScriptDetailActivity extends AppCompatActivity {
     private SugiliteStartingBlock script;
     private ActivityManager activityManager;
     private ServiceStatusManager serviceStatusManager;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -105,7 +107,7 @@ public class ScriptDetailActivity extends AppCompatActivity {
 
     public void scriptDetailRunButtonOnClick (final View view){
         //kill the relevant apps before executing the script
-
+        final Context activityContext = this;
         new AlertDialog.Builder(this)
                 .setTitle("Run Script")
                 .setMessage("Are you sure you want to run this script?")
@@ -127,36 +129,15 @@ public class ScriptDetailActivity extends AppCompatActivity {
                                     }).show();
                         }
                         else {
-                            //TODO: add the mechanism used for asking values for variables
-                            SharedPreferences.Editor prefEditor = sharedPreferences.edit();
-                            //turn off the recording before executing
-                            prefEditor.putBoolean("recording_in_process", false);
-                            prefEditor.commit();
-
-                            for (String packageName : script.relevantPackages) {
-                                try {
-                                    Process sh = Runtime.getRuntime().exec("su", null, null);
-                                    OutputStream os = sh.getOutputStream();
-                                    os.write(("am force-stop " + packageName).getBytes("ASCII"));
-                                    os.flush();
-                                    os.close();
-                                    System.out.println(packageName);
-                                } catch (Exception e) {
-                                    e.printStackTrace();
-                                    // do nothing, likely this exception is caused by non-rooted device
-                                }
+                            VariableSetValueDialog variableSetValueDialog = new VariableSetValueDialog(activityContext, getLayoutInflater(), sugiliteData, script, sharedPreferences);
+                            if(script.variableNameDefaultValueMap.size() > 0) {
+                                //show the dialog
+                                variableSetValueDialog.show();
                             }
-                            sugiliteData.runScript(script);
-                            try {
-                                Thread.sleep(3000);
-                            } catch (Exception e) {
-                                // do nothing
+                            else{
+                                //execute the script without showing the dialog
+                                variableSetValueDialog.executeScript();
                             }
-                            //go to home screen for running the automation
-                            Intent startMain = new Intent(Intent.ACTION_MAIN);
-                            startMain.addCategory(Intent.CATEGORY_HOME);
-                            startMain.setFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
-                            startActivity(startMain);
                         }
                     }
                 })

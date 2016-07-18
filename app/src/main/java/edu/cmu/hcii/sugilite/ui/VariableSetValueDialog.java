@@ -3,6 +3,8 @@ package edu.cmu.hcii.sugilite.ui;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.EditText;
@@ -10,6 +12,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -29,10 +32,17 @@ public class VariableSetValueDialog {
     private AlertDialog dialog;
     private Map<String,Variable> variableDefaultValueMap, stringVariableMap;
     private Map<String,EditText> variableEditTextMap;
+    private SharedPreferences sharedPreferences;
+    private SugiliteStartingBlock startingBlock;
+    private SugiliteData sugiliteData;
+    private static final int SCRIPT_DELAY = 3000;
 
-    public VariableSetValueDialog(final Context context, LayoutInflater inflater, SugiliteData sugiliteData, SugiliteStartingBlock startingBlock){
+    public VariableSetValueDialog(final Context context, LayoutInflater inflater, SugiliteData sugiliteData, SugiliteStartingBlock startingBlock, SharedPreferences sharedPreferences){
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
         this.context = context;
+        this.sharedPreferences = sharedPreferences;
+        this.startingBlock = startingBlock;
+        this.sugiliteData = sugiliteData;
         View dialogView = inflater.inflate(R.layout.dialog_variable_set_value, null);
         LinearLayout mainLayout = (LinearLayout)dialogView.findViewById(R.id.layout_variable_set_value);
         variableDefaultValueMap = startingBlock.variableNameDefaultValueMap;
@@ -98,6 +108,7 @@ public class VariableSetValueDialog {
                     for (Map.Entry<String, EditText> entry : variableEditTextMap.entrySet()) {
                         stringVariableMap.put(entry.getKey(), new StringVariable(entry.getValue().getText().toString()));
                     }
+                    executeScript();
                     dialog.dismiss();
                 }
                 else {
@@ -105,6 +116,38 @@ public class VariableSetValueDialog {
                 }
             }
         });
+    }
+
+    public void executeScript(){
+        SharedPreferences.Editor prefEditor = sharedPreferences.edit();
+        //turn off the recording before executing
+        prefEditor.putBoolean("recording_in_process", false);
+        prefEditor.commit();
+        //kill all the relevant packages
+        for (String packageName : startingBlock.relevantPackages) {
+            try {
+                Process sh = Runtime.getRuntime().exec("su", null, null);
+                OutputStream os = sh.getOutputStream();
+                os.write(("am force-stop " + packageName).getBytes("ASCII"));
+                os.flush();
+                os.close();
+                System.out.println(packageName);
+            } catch (Exception e) {
+                e.printStackTrace();
+                // do nothing, likely this exception is caused by non-rooted device
+            }
+        }
+        sugiliteData.runScript(startingBlock);
+        try {
+            Thread.sleep(SCRIPT_DELAY);
+        } catch (Exception e) {
+            // do nothing
+        }
+        //go to home screen for running the automation
+        Intent startMain = new Intent(Intent.ACTION_MAIN);
+        startMain.addCategory(Intent.CATEGORY_HOME);
+        startMain.setFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
+        context.startActivity(startMain);
     }
 
 }

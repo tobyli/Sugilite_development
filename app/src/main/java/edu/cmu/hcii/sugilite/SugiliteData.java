@@ -54,8 +54,6 @@ public class SugiliteData extends Application {
 
     public void runScript(SugiliteStartingBlock startingBlock){
         this.instructionQueue.clear();
-        this.stringVariableMap.clear();
-        this.stringVariableMap.putAll(startingBlock.variableNameDefaultValueMap);
         List<SugiliteBlock> blocks = traverseBlock(startingBlock);
         for(SugiliteBlock block : blocks){
             addInstruction(block);

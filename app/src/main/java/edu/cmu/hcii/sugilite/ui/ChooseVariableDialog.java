@@ -5,6 +5,7 @@ import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.text.Editable;
+import android.text.Html;
 import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -18,6 +19,7 @@ import android.widget.Toast;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import edu.cmu.hcii.sugilite.R;
 import edu.cmu.hcii.sugilite.SugiliteData;
@@ -38,33 +40,45 @@ public class ChooseVariableDialog {
     private SugiliteStartingBlock startingBlock;
     private final EditText newVariableNameEditText;
     private final EditText defaultValueEditText;
-    private final EditText editText;
+    private final TextView editText;
+    private final String label;
 
-    public ChooseVariableDialog(final Context context, final EditText editText, LayoutInflater inflater, SugiliteData sugiliteData, SugiliteStartingBlock startingBlock){
+    public ChooseVariableDialog(final Context context, final TextView editText, LayoutInflater inflater, SugiliteData sugiliteData, SugiliteStartingBlock startingBlock, String label){
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
         View dialogView = inflater.inflate(R.layout.dialog_choose_variable, null);
-        String names[] ={"name", "drink", "coffee"};
+        List<String> existingVariables = new ArrayList<>();
+        for(Map.Entry<String, Variable> entry : startingBlock.variableNameDefaultValueMap.entrySet()){
+            if(entry.getValue() instanceof StringVariable){
+                existingVariables.add(entry.getKey() + ": (" + ((StringVariable) entry.getValue()).getValue() + ")");
+            }
+        }
         final ListView variableList = (ListView)dialogView.findViewById(R.id.existing_variable_list);
         if(variableList != null) {
-            ArrayAdapter<String> adapter = new ArrayAdapter<String>(context, android.R.layout.simple_list_item_single_choice, names);
+            ArrayAdapter<String> adapter = new ArrayAdapter<String>(context, android.R.layout.simple_list_item_single_choice, existingVariables);
             variableList.setAdapter(adapter);
         }
+        View emptyView = dialogView.findViewById(R.id.empty);
+        variableList.setEmptyView(emptyView);
+
         newVariableNameEditText = (EditText)dialogView.findViewById(R.id.new_variable_name);
         defaultValueEditText = (EditText)dialogView.findViewById(R.id.variable_default_value);
         this.startingBlock = startingBlock;
         this.editText = editText;
         this.context = context;
         this.sugiliteData = sugiliteData;
+        this.label = label;
         variableList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 if(view instanceof TextView){
-                    selectedItemName = ((TextView) view).getText().toString();
+                    String entry = ((TextView) view).getText().toString();
+                    selectedItemName = entry.substring(0, entry.indexOf(":"));
                     newVariableNameEditText.setText("");
                     defaultValueEditText.setText("");
                 }
             }
         });
+
 
         newVariableNameEditText.addTextChangedListener(new TextWatcher() {
             @Override
@@ -127,7 +141,14 @@ public class ChooseVariableDialog {
                          sugiliteData.stringVariableMap.put(variableName, new StringVariable(variableName, defaultValue));
                          startingBlock.variableNameDefaultValueMap.put(variableName, new StringVariable(variableName, defaultValue));
                      }
-                     editText.setText("@" + selectedItemName);
+                     else {
+                         //TODO: user has selected an existing variable
+                     }
+                     if(label.length() > 0){
+                         editText.setText(Html.fromHtml("<b>" + label + ":</b> " + "@" + selectedItemName));
+                     }
+                     else
+                        editText.setText("@" + selectedItemName);
                      dialog.dismiss();
                  }
              }

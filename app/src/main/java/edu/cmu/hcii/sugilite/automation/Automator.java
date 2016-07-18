@@ -68,7 +68,7 @@ public class Automator {
             if(operationBlock.getOperation().getOperationType() == SugiliteOperation.CLICK && (!node.isClickable()))
                 continue;
             try {
-                Thread.sleep(DELAY / 2);
+                //Thread.sleep(DELAY / 2);
             }
             catch (Exception e){
                 // do nothing

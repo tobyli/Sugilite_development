@@ -91,6 +91,7 @@ public class SugiliteScriptDao {
         cursor.moveToFirst();
         byte[] blob = cursor.getBlob(cursor.getColumnIndex(SugiliteScriptDbContract.SugiliteScriptRecordEntry.COLUMN_NAME_SCRIPT_BODY));
         SugiliteStartingBlock block = (SugiliteStartingBlock)SerializationUtils.deserialize(blob);
+        cursor.close();
         return block;
     }
 
@@ -102,6 +103,7 @@ public class SugiliteScriptDao {
         cursor.moveToFirst();
         byte[] blob = cursor.getBlob(cursor.getColumnIndex(SugiliteScriptDbContract.SugiliteScriptRecordEntry.COLUMN_NAME_SCRIPT_BODY));
         SugiliteStartingBlock block = (SugiliteStartingBlock)SerializationUtils.deserialize(blob);
+        cursor.close();
         return block;
     }
 
@@ -140,6 +142,7 @@ public class SugiliteScriptDao {
             names.add(name);
             cursor.moveToNext();
         }
+        cursor.close();
         return names;
     }
 
@@ -157,6 +160,7 @@ public class SugiliteScriptDao {
             scripts.add(block);
             cursor.moveToNext();
         }
+        cursor.close();
         return scripts;
     }
 

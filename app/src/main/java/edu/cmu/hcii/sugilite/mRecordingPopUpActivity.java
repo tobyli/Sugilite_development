@@ -4,6 +4,7 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.graphics.Rect;
 import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
@@ -157,17 +158,21 @@ public class mRecordingPopUpActivity extends AppCompatActivity {
     }
 
     public void setAsAParameterOnClick(View view){
-        Toast.makeText(this, "set as a parameter", Toast.LENGTH_SHORT).show();
         EditText actionParameter = (EditText)findViewById(R.id.action_parameter_set_text);
+        setAsAParameterOnClick(view, actionParameter, "");
+    }
+
+    public void setAsAParameterOnClick(View view, TextView actionParameter, String label){
+        Toast.makeText(this, "set as a parameter", Toast.LENGTH_SHORT).show();
         if(actionParameter != null) {
             ChooseVariableDialog dialog;
             switch (triggerMode) {
                 case TRIGGERED_BY_NEW_EVENT:
-                    dialog = new ChooseVariableDialog(this, actionParameter, getLayoutInflater(), sugiliteData, sugiliteData.getScriptHead());
+                    dialog = new ChooseVariableDialog(this, actionParameter, getLayoutInflater(), sugiliteData, sugiliteData.getScriptHead(), label);
                     dialog.show();
                     break;
                 case TRIGGERED_BY_EDIT:
-                    dialog = new ChooseVariableDialog(this, actionParameter, getLayoutInflater(), sugiliteData, originalScript);
+                    dialog = new ChooseVariableDialog(this, actionParameter, getLayoutInflater(), sugiliteData, originalScript, label);
                     dialog.show();
                     break;
             }
@@ -231,9 +236,10 @@ public class mRecordingPopUpActivity extends AppCompatActivity {
             existingFeatureValues.add(featurePack.text);
             if(autoFillEnabled)
                 textCheckbox.setChecked(recommender.chooseText());
-            identifierLayout.addView(textCheckbox, layoutParams);
+            identifierLayout.addView(generateRow(textCheckbox, "text"), layoutParams);
             identifierCheckboxMap.put("text", textCheckbox);
             textCheckbox.setOnCheckedChangeListener(identiferCheckboxChangeListener);
+            //TODO: fix the text label of the checkbox
         }
 
 
@@ -334,11 +340,11 @@ public class mRecordingPopUpActivity extends AppCompatActivity {
         //set up action
         actionSpinner = (Spinner)findViewById(R.id.action_dropdown);
         List<String> actionSpinnerItems = new ArrayList<>();
+        if(featurePack.isEditable)
+            actionSpinnerItems.add("Set Text");
         actionSpinnerItems.add("Click");
         if(featurePack.eventType == AccessibilityEvent.TYPE_VIEW_LONG_CLICKED)
             actionSpinnerItems.add("Long Click");
-        if(featurePack.isEditable)
-            actionSpinnerItems.add("Set Text");
         ArrayAdapter<String> actionAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, actionSpinnerItems);
         actionAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         actionSpinner.setAdapter(actionAdapter);
@@ -677,6 +683,24 @@ public class mRecordingPopUpActivity extends AppCompatActivity {
 
     private String boldify(String text){
         return "<b>" + text + "</b>";
+    }
+    private LinearLayout generateRow(final CheckBox checkBox, final String label){
+        LinearLayout linearLayout = new LinearLayout(this);
+        linearLayout.setOrientation(LinearLayout.VERTICAL);
+        TextView setVariableLink = new TextView(this);
+        setVariableLink.setText(Html.fromHtml("<p><u><i>Set as a parameter</i></u></p>"));
+        setVariableLink.setTextColor(Color.parseColor("#3377dc"));
+        setVariableLink.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                setAsAParameterOnClick(v, checkBox, label);
+            }
+        });
+        linearLayout.addView(checkBox);
+        LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        layoutParams.setMargins(30, 0, 0, 0);
+        linearLayout.addView(setVariableLink, layoutParams);
+        return linearLayout;
     }
 
 }

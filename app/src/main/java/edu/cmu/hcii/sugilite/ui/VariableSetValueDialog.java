@@ -106,7 +106,7 @@ public class VariableSetValueDialog {
                 if(allReady) {
                     //update all
                     for (Map.Entry<String, EditText> entry : variableEditTextMap.entrySet()) {
-                        stringVariableMap.put(entry.getKey(), new StringVariable(entry.getValue().getText().toString()));
+                        stringVariableMap.put(entry.getKey(), new StringVariable(entry.getKey(), entry.getValue().getText().toString()));
                     }
                     executeScript();
                     dialog.dismiss();

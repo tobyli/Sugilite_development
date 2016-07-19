@@ -5,6 +5,8 @@ import android.view.accessibility.AccessibilityNodeInfo;
 import java.io.File;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
 
 import edu.cmu.hcii.sugilite.model.AccessibilityNodeInfoList;
 
@@ -16,20 +18,22 @@ public class SugiliteAvailableFeaturePack implements Serializable{
         //do nothing
     }
     public SugiliteAvailableFeaturePack(SugiliteAvailableFeaturePack featurePack){
-        this.packageName = featurePack.packageName;
-        this.className = featurePack.className;
-        this.text = featurePack.text;
-        this.contentDescription = featurePack.contentDescription;
-        this.viewId = featurePack.viewId;
-        this.boundsInParent = featurePack.boundsInParent;
-        this.boundsInScreen = featurePack.boundsInScreen;
+        this.packageName = new String(featurePack.packageName);
+        this.className = new String(featurePack.className);
+        this.text = new String(featurePack.text);
+        this.contentDescription = new String(featurePack.contentDescription);
+        this.viewId = new String(featurePack.viewId);
+        this.boundsInParent = new String(featurePack.boundsInParent);
+        this.boundsInScreen = new String(featurePack.boundsInScreen);
         this.isEditable = featurePack.isEditable;
         this.time = featurePack.time;
         this.eventType = featurePack.eventType;
         this.screenshot = featurePack.screenshot;
         this.parentNode = featurePack.parentNode;
-        this.childNodes = featurePack.childNodes;
-        this.allNodes = featurePack.allNodes;
+        this.childNodes = new ArrayList<>(featurePack.childNodes);
+        this.allNodes = new ArrayList<>(featurePack.allNodes);
+        this.alternativeChildTextList = new HashSet<>(alternativeTextList);
+        this.alternativeTextList = new HashSet<>(alternativeTextList);
     }
     public String packageName, className, text, contentDescription, viewId, boundsInParent, boundsInScreen;
     public boolean isEditable;
@@ -38,5 +42,8 @@ public class SugiliteAvailableFeaturePack implements Serializable{
     public File screenshot;
     public SerializableNodeInfo parentNode;
     public ArrayList<SerializableNodeInfo> childNodes, allNodes;
+
+    public Set<String> alternativeTextList;
+    public Set<String> alternativeChildTextList;
 
 }

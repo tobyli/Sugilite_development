@@ -58,7 +58,7 @@ public class Automator {
         List<AccessibilityNodeInfo> allNodes = preOrderTraverse(rootNode);
         List<AccessibilityNodeInfo> filteredNodes = new ArrayList<>();
         for(AccessibilityNodeInfo node : allNodes){
-            if(operationBlock.getElementMatchingFilter().filter(node))
+            if(operationBlock.getElementMatchingFilter().filter(node, variableHelper))
                 filteredNodes.add(node);
         }
         if(filteredNodes.size() == 0)

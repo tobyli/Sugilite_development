@@ -60,9 +60,12 @@ public class VariableSetValueDialog {
             EditText variableValue = new EditText(context);
             variableValue.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT, 2));
             variableValue.setWidth(0);
+            /*
+            this part save the state of the last variable setting
             if(stringVariableMap.containsKey(entry.getKey()) && stringVariableMap.get(entry.getKey()) instanceof StringVariable)
                 variableValue.setText(((StringVariable) stringVariableMap.get(entry.getKey())).getValue());
-            else if(entry.getValue() instanceof StringVariable)
+            */
+            if(entry.getValue() instanceof StringVariable)
                 variableValue.setText(((StringVariable) entry.getValue()).getValue());
             linearLayout.addView(variableName);
             linearLayout.addView(variableValue);

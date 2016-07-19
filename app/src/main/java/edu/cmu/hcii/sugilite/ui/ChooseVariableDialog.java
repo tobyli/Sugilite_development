@@ -43,7 +43,7 @@ public class ChooseVariableDialog {
     private final TextView editText;
     private final String label;
 
-    public ChooseVariableDialog(final Context context, final TextView editText, LayoutInflater inflater, SugiliteData sugiliteData, SugiliteStartingBlock startingBlock, String label){
+    public ChooseVariableDialog(final Context context, final TextView editText, LayoutInflater inflater, SugiliteData sugiliteData, SugiliteStartingBlock startingBlock, String label, String defaultDefaultValue){
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
         View dialogView = inflater.inflate(R.layout.dialog_choose_variable, null);
         List<String> existingVariables = new ArrayList<>();
@@ -62,6 +62,7 @@ public class ChooseVariableDialog {
 
         newVariableNameEditText = (EditText)dialogView.findViewById(R.id.new_variable_name);
         defaultValueEditText = (EditText)dialogView.findViewById(R.id.variable_default_value);
+        defaultValueEditText.setText(defaultDefaultValue);
         this.startingBlock = startingBlock;
         this.editText = editText;
         this.context = context;

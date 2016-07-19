@@ -39,6 +39,7 @@ import edu.cmu.hcii.sugilite.dao.SugiliteScreenshotManager;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.model.block.UIElementMatchingFilter;
+import edu.cmu.hcii.sugilite.model.variable.VariableHelper;
 
 /**
  * @author toby
@@ -55,6 +56,7 @@ public class StatusIconManager {
     private ServiceStatusManager serviceStatusManager;
     private SugiliteScreenshotManager screenshotManager;
     private WindowManager.LayoutParams params;
+    private VariableHelper variableHelper;
 
     public StatusIconManager(Context context, SugiliteData sugiliteData, SharedPreferences sharedPreferences){
         this.context = context;
@@ -64,6 +66,8 @@ public class StatusIconManager {
         this.sugiliteScriptDao = new SugiliteScriptDao(context);
         this.serviceStatusManager = new ServiceStatusManager(context);
         this.screenshotManager = new SugiliteScreenshotManager(sharedPreferences, context);
+        variableHelper = new VariableHelper(sugiliteData.stringVariableMap);
+
     }
 
     /**
@@ -125,7 +129,7 @@ public class StatusIconManager {
             List<AccessibilityNodeInfo> allNode = Automator.preOrderTraverse(rootNode);
             List<AccessibilityNodeInfo> filteredNode = new ArrayList<>();
             for (AccessibilityNodeInfo node : allNode) {
-                if (filter.filter(node))
+                if (filter.filter(node, variableHelper))
                     filteredNode.add(node);
             }
             if (filteredNode.size() > 0) {

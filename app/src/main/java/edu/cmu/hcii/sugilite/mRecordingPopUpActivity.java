@@ -77,6 +77,7 @@ public class mRecordingPopUpActivity extends AppCompatActivity {
 
     private Spinner actionSpinner, targetTypeSpinner, withInAppSpinner;
     private CheckBox textCheckbox, contentDescriptionCheckbox, viewIdCheckbox, boundsInParentCheckbox, boundsInScreenCheckbox;
+    private String textContent, contentDescriptionContent, viewIdContent;
     private LinearLayout actionParameterSection, actionSection;
 
 
@@ -146,7 +147,7 @@ public class mRecordingPopUpActivity extends AppCompatActivity {
             public void onClick(DialogInterface dialog, int which) {
                 saveBlock(operationBlock, activityContext);
                 //fill in the text box if the operation is of SET_TEXT type
-                if(operationBlock.getOperation().getOperationType() == SugiliteOperation.SET_TEXT)
+                if(operationBlock.getOperation().getOperationType() == SugiliteOperation.SET_TEXT && triggerMode == TRIGGERED_BY_NEW_EVENT)
                     sugiliteData.addInstruction(operationBlock);
             }
         }).setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
@@ -159,26 +160,27 @@ public class mRecordingPopUpActivity extends AppCompatActivity {
 
     public void setAsAParameterOnClick(View view){
         EditText actionParameter = (EditText)findViewById(R.id.action_parameter_set_text);
-        setAsAParameterOnClick(view, actionParameter, "");
+        setAsAParameterOnClick(view, actionParameter, "", "");
     }
 
-    public void setAsAParameterOnClick(View view, TextView actionParameter, String label){
+    public void setAsAParameterOnClick(View view, TextView actionParameter, String label, String defaultDefaultValue){
         Toast.makeText(this, "set as a parameter", Toast.LENGTH_SHORT).show();
         if(actionParameter != null) {
             ChooseVariableDialog dialog;
             switch (triggerMode) {
                 case TRIGGERED_BY_NEW_EVENT:
-                    dialog = new ChooseVariableDialog(this, actionParameter, getLayoutInflater(), sugiliteData, sugiliteData.getScriptHead(), label);
+                    dialog = new ChooseVariableDialog(this, actionParameter, getLayoutInflater(), sugiliteData, sugiliteData.getScriptHead(), label, defaultDefaultValue);
                     dialog.show();
                     break;
                 case TRIGGERED_BY_EDIT:
-                    dialog = new ChooseVariableDialog(this, actionParameter, getLayoutInflater(), sugiliteData, originalScript, label);
+                    dialog = new ChooseVariableDialog(this, actionParameter, getLayoutInflater(), sugiliteData, originalScript, label, defaultDefaultValue);
                     dialog.show();
                     break;
             }
         }
         //prompt new parameter, open the parameter management popup, click on a parameter
     }
+
 
 
 
@@ -228,17 +230,34 @@ public class mRecordingPopUpActivity extends AppCompatActivity {
         //setup identifier
         LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         layoutParams.setMargins(20, 0, 0 ,0);
+        TextWatcher textWatcher = new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
 
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                refreshAfterChange();
+            }
+        };
 
         if(!featurePack.text.contentEquals("NULL")) {
             textCheckbox = new CheckBox(this);
             textCheckbox.setText(Html.fromHtml(boldify("Text: ") + featurePack.text));
             existingFeatureValues.add(featurePack.text);
+            textContent = new String(featurePack.text);
             if(autoFillEnabled)
                 textCheckbox.setChecked(recommender.chooseText());
-            identifierLayout.addView(generateRow(textCheckbox, "text"), layoutParams);
+            identifierLayout.addView(generateRow(textCheckbox, "text", featurePack.text), layoutParams);
             identifierCheckboxMap.put("text", textCheckbox);
             textCheckbox.setOnCheckedChangeListener(identiferCheckboxChangeListener);
+            textCheckbox.addTextChangedListener(textWatcher);
             //TODO: fix the text label of the checkbox
         }
 
@@ -247,22 +266,26 @@ public class mRecordingPopUpActivity extends AppCompatActivity {
             contentDescriptionCheckbox = new CheckBox(this);
             contentDescriptionCheckbox.setText(Html.fromHtml(boldify("ContentDescription: ") + featurePack.contentDescription));
             existingFeatureValues.add(featurePack.contentDescription);
+            contentDescriptionContent = new String(featurePack.contentDescription);
             if(autoFillEnabled)
                 contentDescriptionCheckbox.setChecked(recommender.chooseContentDescription());
-            identifierLayout.addView(contentDescriptionCheckbox, layoutParams);
+            identifierLayout.addView(generateRow(contentDescriptionCheckbox, "contentDescription", featurePack.contentDescription), layoutParams);
             identifierCheckboxMap.put("contentDescription", contentDescriptionCheckbox);
             contentDescriptionCheckbox.setOnCheckedChangeListener(identiferCheckboxChangeListener);
+            contentDescriptionCheckbox.addTextChangedListener(textWatcher);
         }
 
         if(!featurePack.viewId.contentEquals("NULL")) {
             viewIdCheckbox = new CheckBox(this);
             viewIdCheckbox.setText(Html.fromHtml(boldify("ViewId: ") + featurePack.viewId));
             existingFeatureValues.add(featurePack.viewId);
+            viewIdContent = new String(featurePack.viewId);
             if(autoFillEnabled)
                 viewIdCheckbox.setChecked(recommender.chooseViewId());
-            identifierLayout.addView(viewIdCheckbox, layoutParams);
+            identifierLayout.addView(generateRow(viewIdCheckbox, "viewId", featurePack.viewId), layoutParams);
             identifierCheckboxMap.put("viewId", viewIdCheckbox);
             viewIdCheckbox.setOnCheckedChangeListener(identiferCheckboxChangeListener);
+            viewIdCheckbox.addTextChangedListener(textWatcher);
         }
 
         if(autoFillEnabled){
@@ -278,9 +301,10 @@ public class mRecordingPopUpActivity extends AppCompatActivity {
                     if (selectedChildFeatures.contains(feature))
                         childCheckBox.setChecked(true);
                     existingFeatureValues.add(feature.getValue());
-                    identifierLayout.addView(childCheckBox, layoutParams);
+                    identifierLayout.addView(generateRow(childCheckBox, "Child " + feature.getKey(), feature.getValue()), layoutParams);
                     checkBoxChildEntryMap.put(feature, childCheckBox);
                     childCheckBox.setOnCheckedChangeListener(identiferCheckboxChangeListener);
+                    childCheckBox.addTextChangedListener(textWatcher);
                 }
                 else
                     continue;
@@ -402,6 +426,15 @@ public class mRecordingPopUpActivity extends AppCompatActivity {
 
     private void refreshAfterChange(){
         //collapse and expand the action parameter
+        Map<String, Variable> variableDefaultValueMap = null;
+        switch (triggerMode) {
+            case TRIGGERED_BY_NEW_EVENT:
+                variableDefaultValueMap = sugiliteData.getScriptHead().variableNameDefaultValueMap;
+                break;
+            case TRIGGERED_BY_EDIT:
+                variableDefaultValueMap = originalScript.variableNameDefaultValueMap;
+                break;
+        }
         String actionSpinnerSelectedItem = actionSpinner.getSelectedItem().toString();
         if (actionSpinnerSelectedItem.contentEquals("Set Text") && actionParameterSection.getParent() == null) {
             actionSection.addView(actionParameterSection);
@@ -415,8 +448,14 @@ public class mRecordingPopUpActivity extends AppCompatActivity {
 
         for(Map.Entry<String, String> feature : allChildFeatures){
             CheckBox checkBox = checkBoxChildEntryMap.get(feature);
-            if(checkBox != null && checkBox.isChecked())
-                selectedChildFeatures.add(feature);
+            Map.Entry<String, String> featureToAdd = new AbstractMap.SimpleEntry<String, String>(feature);
+            if(checkBox != null && checkBox.isChecked()) {
+                String childCheckboxLabel = checkBox.getText().toString();
+                if(childCheckboxLabel.contains("@") && variableDefaultValueMap != null && variableDefaultValueMap.keySet().contains(childCheckboxLabel.substring(childCheckboxLabel.indexOf("@") + 1))){
+                    featureToAdd.setValue(childCheckboxLabel.substring(childCheckboxLabel.indexOf("@")));
+                }
+                selectedChildFeatures.add(featureToAdd);
+            }
         }
 
         for(Map.Entry<String, String> feature : allParentFeatures){
@@ -426,9 +465,39 @@ public class mRecordingPopUpActivity extends AppCompatActivity {
         }
 
 
+
+        //refresh content according to checkbox label
+
+        if(textCheckbox != null && textCheckbox.getText() != null) {
+            String textCheckboxLabel = textCheckbox.getText().toString();
+            if (textCheckboxLabel.contains("@") && variableDefaultValueMap != null && variableDefaultValueMap.keySet().contains(textCheckboxLabel.substring(textCheckboxLabel.indexOf("@") + 1))) {
+                textContent = textCheckboxLabel.substring(textCheckboxLabel.indexOf("@"));
+            } else {
+                textContent = featurePack.text;
+            }
+        }
+
+        if(contentDescriptionCheckbox != null && contentDescriptionCheckbox.getText() != null) {
+            String contentDescriptionCheckboxLabel = contentDescriptionCheckbox.getText().toString();
+            if (contentDescriptionCheckboxLabel.contains("@") && variableDefaultValueMap != null && variableDefaultValueMap.keySet().contains(contentDescriptionCheckboxLabel.substring(contentDescriptionCheckboxLabel.indexOf("@") + 1))) {
+                contentDescriptionContent = contentDescriptionCheckboxLabel.substring(contentDescriptionCheckboxLabel.indexOf("@"));
+            } else {
+                contentDescriptionContent = featurePack.contentDescription;
+            }
+        }
+
+        if(viewIdCheckbox != null && viewIdCheckbox.getText() != null) {
+            String viewIdCheckboxLabel = viewIdCheckbox.getText().toString();
+            if (viewIdCheckboxLabel.contains("@") && variableDefaultValueMap != null && variableDefaultValueMap.keySet().contains(viewIdCheckboxLabel.substring(viewIdCheckboxLabel.indexOf("@") + 1))) {
+                viewIdContent = viewIdCheckboxLabel.substring(viewIdCheckboxLabel.indexOf("@"));
+            } else {
+                viewIdContent = featurePack.viewId;
+            }
+        }
+
+
+        //refresh the operation preview
         ((TextView) findViewById(R.id.previewContent)).setText(Html.fromHtml(readableDescriptionGenerator.generateReadableDescription(generateBlock())));
-
-
     }
 
     private void loadFeaturePackFromIntent(){
@@ -516,19 +585,22 @@ public class mRecordingPopUpActivity extends AppCompatActivity {
 
             case TRIGGERED_BY_EDIT:
                 SugiliteBlock currentBlock = originalScript;
+                SugiliteBlock previousBlock = null;
                 while(true){
                     if(currentBlock == null) {
                         new Exception("can't find the block to edit").printStackTrace();
                         break;
                     }
-                    else if(currentBlock instanceof SugiliteStartingBlock)
+                    else if(currentBlock instanceof SugiliteStartingBlock) {
+                        previousBlock = currentBlock;
                         currentBlock = ((SugiliteStartingBlock) currentBlock).getNextBlock();
+                    }
                     else if (currentBlock instanceof SugiliteOperationBlock){
                         if(currentBlock.getBlockId() == blockToEdit.getBlockId()){
                             //matched
-                            if(currentBlock.getPreviousBlock() instanceof SugiliteOperationBlock){
-                                ((SugiliteOperationBlock) currentBlock.getPreviousBlock()).setNextBlock(operationBlock);
-                                operationBlock.setPreviousBlock(currentBlock.getPreviousBlock());
+                            if(previousBlock instanceof SugiliteOperationBlock){
+                                ((SugiliteOperationBlock)previousBlock).setNextBlock(operationBlock);
+                                operationBlock.setPreviousBlock(previousBlock);
                                 operationBlock.setNextBlock(((SugiliteOperationBlock) currentBlock).getNextBlock());
                                 try {
                                     originalScript.relevantPackages.add(featurePack.packageName);
@@ -542,12 +614,12 @@ public class mRecordingPopUpActivity extends AppCompatActivity {
                                 break;
                             }
                             else if(currentBlock.getPreviousBlock() instanceof SugiliteStartingBlock){
-                                ((SugiliteStartingBlock) currentBlock.getPreviousBlock()).setNextBlock(operationBlock);
-                                operationBlock.setPreviousBlock(currentBlock.getPreviousBlock());
+                                ((SugiliteStartingBlock)previousBlock).setNextBlock(operationBlock);
+                                operationBlock.setPreviousBlock(previousBlock);
                                 operationBlock.setNextBlock(((SugiliteOperationBlock) currentBlock).getNextBlock());
                                 try {
-                                    success = true;
                                     sugiliteScriptDao.save(originalScript);
+                                    success = true;
                                 }
                                 catch (Exception e){
                                     success = false;
@@ -560,6 +632,7 @@ public class mRecordingPopUpActivity extends AppCompatActivity {
                             }
                         }
                         else{
+                            previousBlock = currentBlock;
                             currentBlock = ((SugiliteOperationBlock) currentBlock).getNextBlock();
                         }
                     }
@@ -567,6 +640,7 @@ public class mRecordingPopUpActivity extends AppCompatActivity {
 
                 break;
         }
+        setResult((success ? RESULT_OK : RESULT_CANCELED));
         finish();
         /*
         new AlertDialog.Builder(activityContext)
@@ -599,13 +673,13 @@ public class mRecordingPopUpActivity extends AppCompatActivity {
             filter.setClassName(featurePack.className);
         }
         if(textCheckbox != null && textCheckbox.isChecked()){
-            filter.setText(featurePack.text);
+            filter.setText(textContent);
         }
         if(contentDescriptionCheckbox != null && contentDescriptionCheckbox.isChecked()){
-            filter.setContentDescription(featurePack.contentDescription);
+            filter.setContentDescription(contentDescriptionContent);
         }
         if(viewIdCheckbox != null && viewIdCheckbox.isChecked()){
-            filter.setViewId(featurePack.viewId);
+            filter.setViewId(viewIdContent);
         }
         if(boundsInParentCheckbox != null && boundsInParentCheckbox.isChecked()){
             filter.setBoundsInParent(Rect.unflattenFromString(featurePack.boundsInParent));
@@ -624,8 +698,7 @@ public class mRecordingPopUpActivity extends AppCompatActivity {
                     childFilter.setContentDescription(entry.getValue());
                 }
                 if(entry.getKey().contentEquals("ViewID")){
-                    childFilter.setViewId(entry.getValue());
-                }
+                    childFilter.setViewId(entry.getValue());                }
             }
             filter.setChildFilter(childFilter);
         }
@@ -657,8 +730,10 @@ public class mRecordingPopUpActivity extends AppCompatActivity {
         if (actionSpinnerSelectedItem.contentEquals("Set Text")) {
             sugiliteOperation = new SugiliteSetTextOperation();
             //replace set text parameter with parameter
-            String rawText = ((EditText) findViewById(R.id.action_parameter_set_text)).getText().toString();
-            ((SugiliteSetTextOperation)sugiliteOperation).setText(rawText);
+            if(findViewById(R.id.action_parameter_set_text) != null) {
+                String rawText = ((EditText) findViewById(R.id.action_parameter_set_text)).getText().toString();
+                ((SugiliteSetTextOperation) sugiliteOperation).setText(rawText);
+            }
             /*
             switch (triggerMode) {
                 case TRIGGERED_BY_NEW_EVENT:
@@ -685,22 +760,24 @@ public class mRecordingPopUpActivity extends AppCompatActivity {
     private String boldify(String text){
         return "<b>" + text + "</b>";
     }
-    private LinearLayout generateRow(final CheckBox checkBox, final String label){
+    private LinearLayout generateRow(final CheckBox checkBox, final String label, final String defaultDefaultValue){
         LinearLayout linearLayout = new LinearLayout(this);
         linearLayout.setOrientation(LinearLayout.VERTICAL);
         TextView setVariableLink = new TextView(this);
-        setVariableLink.setText(Html.fromHtml("<p><u><i>Set as a parameter</i></u></p>"));
+        setVariableLink.setText(Html.fromHtml("<u><i>Set as a parameter</i></u>"));
         setVariableLink.setTextColor(Color.parseColor("#3377dc"));
         setVariableLink.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                setAsAParameterOnClick(v, checkBox, label);
+                setAsAParameterOnClick(v, checkBox, label, defaultDefaultValue);
             }
         });
-        linearLayout.addView(checkBox);
-        LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-        layoutParams.setMargins(30, 0, 0, 0);
-        linearLayout.addView(setVariableLink, layoutParams);
+        LinearLayout.LayoutParams checkBoxParams = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        linearLayout.addView(checkBox, checkBoxParams);
+        LinearLayout.LayoutParams linkParams = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        linkParams.setMargins(50, 0, 0, 0);
+        setVariableLink.setPadding(0, 0 ,0 ,0);
+        linearLayout.addView(setVariableLink, linkParams);
         return linearLayout;
     }
 

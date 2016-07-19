@@ -240,17 +240,17 @@ public class UIElementMatchingFilter implements Serializable {
     public boolean filter (AccessibilityNodeInfo nodeInfo, VariableHelper helper) {
         if (nodeInfo == null)
             return false;
-        if (text != null && (nodeInfo.getText() == null || (!text.contentEquals(helper.parse(nodeInfo.getText().toString())))))
+        if (text != null && (nodeInfo.getText() == null || (!helper.parse(text).contentEquals(nodeInfo.getText().toString()))))
             return false;
-        if (contentDescription != null && (nodeInfo.getContentDescription() == null || (!contentDescription.contentEquals(helper.parse(nodeInfo.getContentDescription().toString())))))
+        if (contentDescription != null && (nodeInfo.getContentDescription() == null || (!helper.parse(contentDescription).contentEquals(nodeInfo.getContentDescription().toString()))))
             return false;
-        if (packageName != null && (nodeInfo.getPackageName() == null || !packageName.contentEquals(helper.parse(nodeInfo.getPackageName().toString()))))
+        if (packageName != null && (nodeInfo.getPackageName() == null || !helper.parse(packageName).contentEquals(nodeInfo.getPackageName().toString())))
             return false;
-        if (className != null && (nodeInfo.getClassName() == null || !className.contentEquals(helper.parse(nodeInfo.getClassName().toString()))))
+        if (className != null && (nodeInfo.getClassName() == null || !helper.parse(className).contentEquals(nodeInfo.getClassName().toString())))
             return false;
-        if (viewId != null && (nodeInfo.getViewIdResourceName() == null || (!viewId.contentEquals(helper.parse(nodeInfo.getViewIdResourceName().toString())))))
+        if (viewId != null && (nodeInfo.getViewIdResourceName() == null || (!helper.parse(viewId).contentEquals(nodeInfo.getViewIdResourceName().toString()))))
             return false;
-        if (parentFilter != null && (!parentFilter.filter(nodeInfo.getParent())))
+        if (parentFilter != null && (!parentFilter.filter(nodeInfo.getParent(), helper)))
             return false;
         if (isClickable != null && isClickable.booleanValue() != nodeInfo.isClickable())
             return false;
@@ -271,7 +271,7 @@ public class UIElementMatchingFilter implements Serializable {
         else {
             List<AccessibilityNodeInfo> nodes = Automator.preOrderTraverse(nodeInfo);
             for(AccessibilityNodeInfo node : nodes){
-                if(childFilter.filter(node)){
+                if(childFilter.filter(node, helper)){
                     childFilterFlag = true;
                     break;
                 }

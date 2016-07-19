@@ -590,6 +590,7 @@ public class mRecordingPopUpActivity extends AppCompatActivity {
      * @return
      */
     public UIElementMatchingFilter generateFilter(){
+        //TODO: support variable here
         UIElementMatchingFilter filter = new UIElementMatchingFilter();
         if(withInAppSpinner.getSelectedItem().toString().contentEquals(readableDescriptionGenerator.getReadableName(featurePack.packageName))){
             filter.setPackageName(featurePack.packageName);

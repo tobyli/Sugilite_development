@@ -52,7 +52,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
         statusIconManager = new StatusIconManager(this, sugiliteData, sharedPreferences);
         screenshotManager = new SugiliteScreenshotManager(sharedPreferences, getApplicationContext());
         automator = new Automator(sugiliteData, getApplicationContext(), statusIconManager);
-
+        availableAlternatives = new HashSet<>();
         try {
             sugiliteData.communicationController = new SugiliteCommunicationController(getApplicationContext(), sugiliteData, sharedPreferences);
             sugiliteData.communicationController.start();
@@ -76,6 +76,12 @@ public class SugiliteAccessibilityService extends AccessibilityService {
         accessibilityEventSetToHandle = new HashSet<>(Arrays.asList(accessibilityEventArrayToHandle));
         accessibilityEventSetToSend = new HashSet<>(Arrays.asList(accessiblityEventArrayToSend));
 
+        //end recording
+        SharedPreferences.Editor prefEditor = sharedPreferences.edit();
+        prefEditor.putBoolean("recording_in_process", false);
+        prefEditor.commit();
+        sugiliteData.clearInstructionQueue();
+
         try {
             Toast.makeText(this, "Sugilite Accessibility Service Started", Toast.LENGTH_SHORT).show();
             statusIconManager.addStatusIcon();
@@ -93,22 +99,30 @@ public class SugiliteAccessibilityService extends AccessibilityService {
 
     }
 
+    private AccessibilityNodeInfo lastRootNode;
+    private HashSet<Map.Entry<String, String>> availableAlternatives;
+    Set<String> exceptedPackages = new HashSet<>();
+
     @Override
     public void onAccessibilityEvent(AccessibilityEvent event) {
         //TODO problem: the status of "right after click" (try getParent()?)
         //TODO new rootNode method
         final AccessibilityNodeInfo rootNode = getRootInActiveWindow();
+
+
         //Type of accessibility events to handle in this function
         //return if the event is not among the accessibilityEventArrayToHandle
-        if(!accessibilityEventSetToHandle.contains(Integer.valueOf(event.getEventType())))
+        if(!accessibilityEventSetToHandle.contains(Integer.valueOf(event.getEventType()))) {
+            lastRootNode = rootNode;
             return;
+        }
         if (sharedPreferences.getBoolean("recording_in_process", false)) {
             //recording in progress
             AccessibilityNodeInfo sourceNode = event.getSource();
-            Set<String> exceptedPackages = new HashSet<>();
             //skip internal interactions and interactions on system ui
             exceptedPackages.add("edu.cmu.hcii.sugilite");
             exceptedPackages.add("com.android.systemui");
+            availableAlternatives.addAll(getAlternativeLabels(sourceNode, rootNode));
             if (accessibilityEventSetToSend.contains(event.getEventType()) && (!exceptedPackages.contains(event.getPackageName()))) {
                 File screenshot = null;
                 if(sharedPreferences.getBoolean("root_enabled", false)) {
@@ -120,7 +134,9 @@ public class SugiliteAccessibilityService extends AccessibilityService {
                     }
                 }
                 //start the popup activity
-                startActivity(generatePopUpActivityIntentFromEvent(event, rootNode, screenshot));
+                startActivity(generatePopUpActivityIntentFromEvent(event, rootNode, screenshot, availableAlternatives));
+                availableAlternatives.clear();
+
             }
         }
 
@@ -150,7 +166,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
                 automatorThread.start();
             }
         }
-
+        lastRootNode = rootNode;
     }
 
 
@@ -189,7 +205,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
 
 
 
-    private Intent generatePopUpActivityIntentFromEvent(AccessibilityEvent event, AccessibilityNodeInfo rootNode, File screenshot){
+    private Intent generatePopUpActivityIntentFromEvent(AccessibilityEvent event, AccessibilityNodeInfo rootNode, File screenshot, HashSet<Map.Entry<String, String>> entryHashSet){
         AccessibilityNodeInfo sourceNode = event.getSource();
         Rect boundsInParents = new Rect();
         Rect boundsInScreen = new Rect();
@@ -222,7 +238,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
         popUpIntent.putExtra("eventType", event.getEventType());
         popUpIntent.putExtra("screenshot", screenshot);
         popUpIntent.putExtra("trigger", mRecordingPopUpActivity.TRIGGERED_BY_NEW_EVENT);
-        popUpIntent.putExtra("alternativeLabels", getAlternativeLabels(sourceNode, rootNode));
+        popUpIntent.putExtra("alternativeLabels", entryHashSet);
         return popUpIntent;
     }
 
@@ -232,9 +248,11 @@ public class SugiliteAccessibilityService extends AccessibilityService {
         if(allNodes == null)
             return retMap;
         for(AccessibilityNodeInfo node : allNodes){
+            if(exceptedPackages.contains(node.getPackageName()))
+                continue;
             if(!node.isClickable())
                 continue;
-            if(!((sourceNode.getClassName() == null && node.getClassName() == null) || (sourceNode.getClassName() != null && node.getClassName() != null && sourceNode.getClassName().toString().contentEquals(node.getClassName()))))
+            if(!(sourceNode == null || (sourceNode.getClassName() == null && node.getClassName() == null) || (sourceNode.getClassName() != null && node.getClassName() != null && sourceNode.getClassName().toString().contentEquals(node.getClassName()))))
                 continue;
             if(node.getText() != null)
                 retMap.add(new AbstractMap.SimpleEntry<>("Text", node.getText().toString()));
@@ -245,7 +263,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
                 if(childNode == null)
                     continue;
                 if(childNode.getText() != null)
-                    retMap.add(new AbstractMap.SimpleEntry<>("Text", childNode.getText().toString()));
+                    retMap.add(new AbstractMap.SimpleEntry<>("Child Text", childNode.getText().toString()));
             }
         }
         /*

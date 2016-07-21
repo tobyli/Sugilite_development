@@ -2,7 +2,6 @@ package edu.cmu.hcii.sugilite.communication.json;
 
 import android.content.Context;
 
-import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteOperation;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteSetTextOperation;
@@ -11,8 +10,9 @@ import edu.cmu.hcii.sugilite.ui.ReadableDescriptionGenerator;
 /**
  * Created by toby on 7/14/16.
  */
-public class SugiliteBlockJSON {
-    public SugiliteBlockJSON(SugiliteOperationBlock block){
+public class SugiliteOperationBlockJSON {
+    public SugiliteOperationBlockJSON(SugiliteOperationBlock block){
+        //TODO: support alternative list
         switch (block.getOperation().getOperationType()){
             case SugiliteOperation.CLICK:
                 actionType = "CLICK";
@@ -29,7 +29,7 @@ public class SugiliteBlockJSON {
         }
         filter = new SugiliteFilterJSON(block.getElementMatchingFilter());
         if(block.getNextBlock() != null && block.getNextBlock() instanceof SugiliteOperationBlock)
-            nextBlock = new SugiliteBlockJSON((SugiliteOperationBlock)block.getNextBlock());
+            nextBlock = new SugiliteOperationBlockJSON((SugiliteOperationBlock)block.getNextBlock());
 
     }
 
@@ -62,5 +62,5 @@ public class SugiliteBlockJSON {
 
     String actionType, actionParameter;
     SugiliteFilterJSON filter;
-    SugiliteBlockJSON nextBlock;
+    SugiliteOperationBlockJSON nextBlock;
 }

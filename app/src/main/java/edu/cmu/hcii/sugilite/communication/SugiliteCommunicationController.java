@@ -25,7 +25,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import edu.cmu.hcii.sugilite.SugiliteData;
-import edu.cmu.hcii.sugilite.communication.json.SugiliteBlockJSON;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 
@@ -181,13 +180,16 @@ public class SugiliteCommunicationController {
                                             editor.putString("scriptName", scriptName);
                                             editor.putBoolean("recording_in_process", true);
                                             editor.commit();
+
                                             sugiliteData.initiateScript(scriptName + ".SugiliteScript");
                                             sugiliteData.initiatedExternally = true;
+
                                             try {
                                                 sugiliteScriptDao.save(sugiliteData.getScriptHead());
                                             } catch (Exception e) {
                                                 e.printStackTrace();
                                             }
+
                                             Toast.makeText(context, "Recording new script " + sharedPreferences.getString("scriptName", "NULL"), Toast.LENGTH_SHORT).show();
 
                                             //go to home screen for recording
@@ -206,11 +208,13 @@ public class SugiliteCommunicationController {
                     }
                 case STOP_TRACKING:
                     if(recordingInProcess) {
+
                         SharedPreferences.Editor prefEditor = sharedPreferences.edit();
                         prefEditor.putBoolean("recording_in_process", false);
                         prefEditor.commit();
                         if(sugiliteData.initiatedExternally == true && sugiliteData.getScriptHead() != null)
                             sendRecordingFinishedSignal(sugiliteData.getScriptHead().getScriptName());
+
                         Toast.makeText(context, "end recording", Toast.LENGTH_SHORT).show();
                         if (msg.arg1 == 1) {
                         // send back tracking log (script)? false == 0, true == 1.
@@ -264,5 +268,6 @@ public class SugiliteCommunicationController {
     }
 
 
+    //TODO: add run methods
 
 }

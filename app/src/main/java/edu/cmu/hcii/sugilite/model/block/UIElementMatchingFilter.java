@@ -7,6 +7,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import edu.cmu.hcii.sugilite.automation.Automator;
 import edu.cmu.hcii.sugilite.model.variable.Variable;
@@ -21,17 +22,17 @@ import edu.cmu.hcii.sugilite.model.variable.VariableHelper;
 //NOTE: only use this filter when AccessibilityNodeInfo.find...byText or find...byViewId can't be used, as this filter is slower.
 public class UIElementMatchingFilter implements Serializable {
 
-    String text;
-    String contentDescription;
-    String viewId;
-    String packageName;
-    String className;
-    String boundsInScreen;
-    String boundsInParent;
-    UIElementMatchingFilter parentFilter;
-    UIElementMatchingFilter childFilter;
-    Boolean isClickable;
-    Map<String, String> alternativeLabels;
+    private String text;
+    private String contentDescription;
+    private String viewId;
+    private String packageName;
+    private String className;
+    private String boundsInScreen;
+    private String boundsInParent;
+    private UIElementMatchingFilter parentFilter;
+    private UIElementMatchingFilter childFilter;
+    private Boolean isClickable;
+    public Set<Map.Entry<String, String>> alternativeLabels;
 
     //TODO: add possible alternatives
 

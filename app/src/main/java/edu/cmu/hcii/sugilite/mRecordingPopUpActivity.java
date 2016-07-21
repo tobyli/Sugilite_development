@@ -23,6 +23,7 @@ import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.ListView;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -73,6 +74,8 @@ public class mRecordingPopUpActivity extends AppCompatActivity {
     private Map<Map.Entry<String, String>, CheckBox> checkBoxChildEntryMap;
     private Map<Map.Entry<String, String>, CheckBox> checkBoxParentEntryMap;
     private Map<String, CheckBox> identifierCheckboxMap;
+    private Set<Map.Entry<String, String>> alternativeLabels;
+
 
 
     private Spinner actionSpinner, targetTypeSpinner, withInAppSpinner;
@@ -181,8 +184,27 @@ public class mRecordingPopUpActivity extends AppCompatActivity {
         //prompt new parameter, open the parameter management popup, click on a parameter
     }
 
-
-
+    public void seeAlternativeLabelLinkOnClick(View view) {
+        if(alternativeLabels == null)
+            return;
+        List<String> labelList = new ArrayList<>();
+        for(Map.Entry<String, String> entry : alternativeLabels){
+            labelList.add(entry.getKey() + ": " + entry.getValue());
+        }
+        ListView listView = new ListView(this);
+        ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_single_choice, labelList);
+        listView.setAdapter(adapter);
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Alternative Labels")
+                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                    }
+                })
+                .setView(listView)
+                .show();
+    }
 
     private void setupSelections(){
         //populate parent features
@@ -524,11 +546,13 @@ public class mRecordingPopUpActivity extends AppCompatActivity {
                     featurePack.isEditable = extras.getBoolean("isEditable");
                     featurePack.eventType = extras.getInt("eventType");
                     featurePack.screenshot = (File) extras.getSerializable("screenshot");
+                    alternativeLabels = (HashSet<Map.Entry<String, String>>) extras.getSerializable("alternativeLabels");
                     break;
                 case TRIGGERED_BY_EDIT:
                     originalScript = (SugiliteStartingBlock)extras.getSerializable("originalScript");
                     blockToEdit = (SugiliteOperationBlock)extras.getSerializable("blockToEdit");
                     featurePack = new SugiliteAvailableFeaturePack(blockToEdit.getFeaturePack());
+                    alternativeLabels = blockToEdit.getElementMatchingFilter().alternativeLabels;
                     break;
             }
         }
@@ -550,6 +574,7 @@ public class mRecordingPopUpActivity extends AppCompatActivity {
         featurePack.isEditable = savedInstanceState.getBoolean("isEditable");
         featurePack.eventType = savedInstanceState.getInt("eventType");
         featurePack.screenshot = (File)savedInstanceState.getSerializable("screenshot");
+        alternativeLabels = (HashSet<Map.Entry<String, String>>)savedInstanceState.getSerializable("alternativeLabels");
     }
 
     /**
@@ -717,6 +742,10 @@ public class mRecordingPopUpActivity extends AppCompatActivity {
             }
             filter.setParentFilter(parentFilter);
         }
+
+        if(alternativeLabels != null)
+            filter.alternativeLabels = new HashSet<>(alternativeLabels);
+
         return filter;
     }
 

@@ -166,6 +166,15 @@
             <View style="@style/Divider"
                 android:layout_margin="10dp" />
 
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceSmall"
+                android:text="Alternative Labels"
+                android:id="@+id/see_alternative_link"
+                android:textColor="#1f6eed"
+                android:onClick="seeAlternativeLabelLinkOnClick" />
+
             <LinearLayout
                 android:orientation="vertical"
                 android:layout_width="match_parent"

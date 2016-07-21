@@ -11,11 +11,14 @@ import android.view.accessibility.AccessibilityNodeInfo;
 import android.widget.Toast;
 
 import java.io.File;
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import edu.cmu.hcii.sugilite.communication.SugiliteCommunicationController;
@@ -93,6 +96,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
     @Override
     public void onAccessibilityEvent(AccessibilityEvent event) {
         //TODO problem: the status of "right after click" (try getParent()?)
+        //TODO new rootNode method
         final AccessibilityNodeInfo rootNode = getRootInActiveWindow();
         //Type of accessibility events to handle in this function
         //return if the event is not among the accessibilityEventArrayToHandle
@@ -218,7 +222,80 @@ public class SugiliteAccessibilityService extends AccessibilityService {
         popUpIntent.putExtra("eventType", event.getEventType());
         popUpIntent.putExtra("screenshot", screenshot);
         popUpIntent.putExtra("trigger", mRecordingPopUpActivity.TRIGGERED_BY_NEW_EVENT);
+        popUpIntent.putExtra("alternativeLabels", getAlternativeLabels(sourceNode, rootNode));
         return popUpIntent;
+    }
+
+    private HashSet<Map.Entry<String, String>> getAlternativeLabels (AccessibilityNodeInfo sourceNode, AccessibilityNodeInfo rootNode){
+        HashSet<Map.Entry<String, String>> retMap = new HashSet<>();
+        List<AccessibilityNodeInfo> allNodes = Automator.preOrderTraverse(rootNode);
+        if(allNodes == null)
+            return retMap;
+        for(AccessibilityNodeInfo node : allNodes){
+            if(!node.isClickable())
+                continue;
+            if(!((sourceNode.getClassName() == null && node.getClassName() == null) || (sourceNode.getClassName() != null && node.getClassName() != null && sourceNode.getClassName().toString().contentEquals(node.getClassName()))))
+                continue;
+            if(node.getText() != null)
+                retMap.add(new AbstractMap.SimpleEntry<>("Text", node.getText().toString()));
+            List<AccessibilityNodeInfo> childNodes = Automator.preOrderTraverse(node);
+            if(childNodes == null)
+                continue;
+            for(AccessibilityNodeInfo childNode : childNodes){
+                if(childNode == null)
+                    continue;
+                if(childNode.getText() != null)
+                    retMap.add(new AbstractMap.SimpleEntry<>("Text", childNode.getText().toString()));
+            }
+        }
+        /*
+        AccessibilityNodeInfo parentNode = sourceNode.getParent();
+        if(parentNode == null)
+            return retMap;
+        AccessibilityNodeInfo grandParentNode = parentNode.getParent();
+        if(grandParentNode == null) {
+            for (int i = 0; i < parentNode.getChildCount(); i++) {
+                AccessibilityNodeInfo node = parentNode.getChild(i);
+                if (node == null)
+                    continue;
+                if (node.getText() != null) {
+                    retMap.add(new AbstractMap.SimpleEntry<>("Text", node.getText().toString()));
+                }
+                for (int j = 0; j < node.getChildCount(); j++) {
+                    AccessibilityNodeInfo childNode = node.getChild(j);
+                    if (childNode == null)
+                        continue;
+                    if (childNode.getText() != null) {
+                        retMap.add(new AbstractMap.SimpleEntry<>("Child Text", childNode.getText().toString()));
+                    }
+                }
+            }
+        }
+        else {
+            for(int i = 0; i < grandParentNode.getChildCount(); i++){
+                AccessibilityNodeInfo pNode = grandParentNode.getChild(i);
+                if(pNode == null)
+                    continue;
+                for(int j = 0; j < pNode.getChildCount(); j++){
+                    AccessibilityNodeInfo sNode = pNode.getChild(j);
+                    if(sNode == null)
+                        continue;
+                    if (sNode.getText() != null) {
+                        retMap.add(new AbstractMap.SimpleEntry<>("Text", sNode.getText().toString()));
+                    }
+                    for(int p = 0; p < sNode.getChildCount(); p ++){
+                        AccessibilityNodeInfo cNode = sNode.getChild(p);
+                        if(cNode == null)
+                            continue;
+                        if (cNode.getText() != null) {
+                            retMap.add(new AbstractMap.SimpleEntry<>("Child Text", cNode.getText().toString()));
+                        }
+                    }
+                }
+            }
+        }
+        */
+        return retMap;
     }
 }
 

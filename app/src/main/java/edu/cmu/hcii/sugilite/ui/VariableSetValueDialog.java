@@ -35,7 +35,7 @@ public class VariableSetValueDialog {
     private SharedPreferences sharedPreferences;
     private SugiliteStartingBlock startingBlock;
     private SugiliteData sugiliteData;
-    private static final int SCRIPT_DELAY = 3000;
+    public static final int SCRIPT_DELAY = 3000;
 
     public VariableSetValueDialog(final Context context, LayoutInflater inflater, SugiliteData sugiliteData, SugiliteStartingBlock startingBlock, SharedPreferences sharedPreferences){
         AlertDialog.Builder builder = new AlertDialog.Builder(context);

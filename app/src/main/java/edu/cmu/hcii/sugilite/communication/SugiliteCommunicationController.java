@@ -21,12 +21,15 @@ import android.widget.Toast;
 
 import com.google.gson.Gson;
 
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
 import edu.cmu.hcii.sugilite.SugiliteData;
+import edu.cmu.hcii.sugilite.automation.ServiceStatusManager;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
+import edu.cmu.hcii.sugilite.ui.VariableSetValueDialog;
 
 /**
  * Created by oscarr on 7/7/16.
@@ -49,10 +52,9 @@ public class SugiliteCommunicationController {
     private final int GET_ALL_SCRIPTS = 6;
     private final int GET_SCRIPT = 7;
     private final int START_TRACKING = 8;
+    private final int RUN = 9;
     private final int APP_TRACKER_ID = 1001;
     private SharedPreferences sharedPreferences;
-
-    //TODO: add run script
 
     public SugiliteCommunicationController(Context context, SugiliteData sugiliteData, SharedPreferences sharedPreferences) {
         this.connection = new RemoteServiceConnection();
@@ -65,6 +67,7 @@ public class SugiliteCommunicationController {
     }
     //start() is called when SugiliteAccessibilityService is created
     public void start(){
+        //TODO: change the service name here
         Intent intent = createExplicitFromImplicitIntent( context,
                 new Intent( "com.yahoo.inmind.services.generic.control.ExternalAppCommService" ) );
         context.bindService(intent, this.connection, Context.BIND_AUTO_CREATE);
@@ -109,8 +112,13 @@ public class SugiliteCommunicationController {
 
     //the below message will be sent when a externally initiated script has finished recording
     public boolean sendRecordingFinishedSignal(String scriptName){
-        return sendMessage( RESPONSE, START_TRACKING, "FINISHED " + scriptName);
+        return sendMessage(RESPONSE, START_TRACKING, "FINISHED RECORDING" + scriptName);
     }
+
+    public boolean sendExecutionFinishedSignal(String scriptName){
+        return sendMessage(RESPONSE, RUN, "FINISHED EXECUTING" + scriptName);
+    }
+
 
     private boolean sendMessage(int messageType, int arg2, String obj){
         if (isBound) {
@@ -234,6 +242,65 @@ public class SugiliteCommunicationController {
                 case GET_SCRIPT:
                     sendScript( msg.getData().getString("request") );
                     break;
+                case RUN:
+                    final String scriptName = msg.getData().getString("request");
+                    if(recordingInProcess) {
+                        SugiliteCommunicationController.this.sendMessage(RESPONSE_EXCEPTION, RUN, "Already recording in progress, can't run");
+                    }
+                    else {
+                        SugiliteStartingBlock script = sugiliteScriptDao.read(scriptName + ".SugiliteScript");
+                        if(script == null)
+                            SugiliteCommunicationController.this.sendMessage(RESPONSE_EXCEPTION, RUN, "Can't find the script");
+                        sugiliteData.clearInstructionQueue();
+                        final ServiceStatusManager serviceStatusManager = new ServiceStatusManager(context);
+
+                        if(!serviceStatusManager.isRunning()){
+                            //prompt the user if the accessiblity service is not active
+                            AlertDialog.Builder builder1 = new AlertDialog.Builder(context);
+                            builder1.setTitle("Service not running")
+                                    .setMessage("The Sugilite accessiblity service is not enabled. Please enable the service in the phone settings before recording.")
+                                    .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                                        @Override
+                                        public void onClick(DialogInterface dialog, int which) {
+                                            serviceStatusManager.promptEnabling();
+                                            //do nothing
+                                        }
+                                    });
+                            AlertDialog dialog = builder1.create();
+                            dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
+                            dialog.show();
+                        }
+                        else {
+                            sugiliteData.stringVariableMap.putAll(script.variableNameDefaultValueMap);
+
+                            //kill all the relevant packages
+                            for (String packageName : script.relevantPackages) {
+                                try {
+                                    Process sh = Runtime.getRuntime().exec("su", null, null);
+                                    OutputStream os = sh.getOutputStream();
+                                    os.write(("am force-stop " + packageName).getBytes("ASCII"));
+                                    os.flush();
+                                    os.close();
+                                    System.out.println(packageName);
+                                } catch (Exception e) {
+                                    e.printStackTrace();
+                                    // do nothing, likely this exception is caused by non-rooted device
+                                }
+                            }
+                            sugiliteData.runScript(script);
+                            try {
+                                Thread.sleep(VariableSetValueDialog.SCRIPT_DELAY);
+                            } catch (Exception e) {
+                                // do nothing
+                            }
+                            //go to home screen for running the automation
+                            Intent startMain = new Intent(Intent.ACTION_MAIN);
+                            startMain.addCategory(Intent.CATEGORY_HOME);
+                            startMain.setFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
+                            context.startActivity(startMain);
+                        }
+                    }
+
                 default:
                     Log.e( TAG, "Message not supported!");
                     break;

@@ -56,7 +56,6 @@ public class SugiliteAccessibilityService extends AccessibilityService {
         try {
             sugiliteData.communicationController = new SugiliteCommunicationController(getApplicationContext(), sugiliteData, sharedPreferences);
             sugiliteData.communicationController.start();
-            sugiliteData.communicationController.register();
         }
         catch (Exception e){
             e.printStackTrace();

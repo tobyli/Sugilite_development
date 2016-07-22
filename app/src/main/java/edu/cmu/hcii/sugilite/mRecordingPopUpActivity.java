@@ -238,7 +238,7 @@ public class mRecordingPopUpActivity extends AppCompatActivity {
         SimpleDateFormat dateFormat;
         dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ", Locale.US);
         dateFormat.setTimeZone(TimeZone.getTimeZone("US/Eastern"));
-        boolean autoFillEnabled = sharedPreferences.getBoolean("auto_fill_enabled", false);
+        boolean autoFillEnabled = sharedPreferences.getBoolean("auto_fill_enabled", true);
         LinearLayout identifierLayout = (LinearLayout) findViewById(R.id.identifier_layout);
 
         CompoundButton.OnCheckedChangeListener identiferCheckboxChangeListener = new CompoundButton.OnCheckedChangeListener() {

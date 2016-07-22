@@ -222,6 +222,8 @@ public class SugiliteAccessibilityService extends AccessibilityService {
         //pop up the selection window
         Intent popUpIntent = new Intent(this, mRecordingPopUpActivity.class);
         popUpIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        popUpIntent.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
+
         popUpIntent.putExtra("packageName", sourceNode.getPackageName());
         popUpIntent.putExtra("className", sourceNode.getClassName());
         popUpIntent.putExtra("text", sourceNode.getText());

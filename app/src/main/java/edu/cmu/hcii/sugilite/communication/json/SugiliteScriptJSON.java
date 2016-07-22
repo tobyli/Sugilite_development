@@ -2,6 +2,7 @@ package edu.cmu.hcii.sugilite.communication.json;
 
 import android.content.Context;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
@@ -16,9 +17,10 @@ public class SugiliteScriptJSON {
     public SugiliteScriptJSON(SugiliteStartingBlock startingBlock){
         this.scriptName = new String(startingBlock.getScriptName());
         this.scriptName.replace(".SugiliteScript", "");
+        variables = new HashMap<>();
         for(Map.Entry<String, Variable> entry : startingBlock.variableNameDefaultValueMap.entrySet()){
             if(entry.getValue() instanceof StringVariable)
-                variables.put(entry.getKey(), ((StringVariable) entry.getValue()).getValue());
+                this.variables.put(entry.getKey(), ((StringVariable) entry.getValue()).getValue());
         }
         if(startingBlock.getNextBlock() != null && startingBlock.getNextBlock() instanceof SugiliteOperationBlock)
             nextBlock = new SugiliteOperationBlockJSON((SugiliteOperationBlock)startingBlock.getNextBlock());

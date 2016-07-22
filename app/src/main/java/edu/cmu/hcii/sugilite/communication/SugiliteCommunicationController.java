@@ -300,6 +300,7 @@ public class SugiliteCommunicationController {
                             context.startActivity(startMain);
                         }
                     }
+                    break;
 
                 default:
                     Log.e( TAG, "Message not supported!");

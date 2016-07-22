@@ -47,12 +47,12 @@ public class SugiliteCommunicationController {
     private final int REGISTER = 1;
     private final int UNREGISTER = 2;
     private final int RESPONSE = 3;
-    private final int RESPONSE_EXCEPTION = 4;
+    private final int START_TRACKING = 4;
     private final int STOP_TRACKING = 5;
     private final int GET_ALL_SCRIPTS = 6;
     private final int GET_SCRIPT = 7;
-    private final int START_TRACKING = 8;
     private final int RUN = 9;
+    private final int RESPONSE_EXCEPTION = 10;
     private final int APP_TRACKER_ID = 1001;
     private SharedPreferences sharedPreferences;
 
@@ -147,6 +147,7 @@ public class SugiliteCommunicationController {
         public void onServiceConnected(ComponentName component, IBinder binder) {
             sender = new Messenger(binder);
             isBound = true;
+            register();
         }
 
         @Override

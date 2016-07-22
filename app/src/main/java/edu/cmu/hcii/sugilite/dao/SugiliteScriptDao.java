@@ -7,7 +7,6 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteStatement;
 
 import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
 
 import org.apache.commons.lang3.SerializationUtils;
 
@@ -16,8 +15,7 @@ import java.util.Calendar;
 import java.util.List;
 
 import edu.cmu.hcii.sugilite.dao.db.SugiliteScriptDbContract;
-import edu.cmu.hcii.sugilite.dao.db.SugiliteScriptDbHelper;
-import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
+import edu.cmu.hcii.sugilite.dao.db.SugiliteScriptDBHelper;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 
 /**
@@ -26,13 +24,13 @@ import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
  * @time 4:04 PM
  */
 public class SugiliteScriptDao {
-    private SugiliteScriptDbHelper sugiliteScriptDbHelper;
+    private SugiliteScriptDBHelper sugiliteScriptDBHelper;
     private Gson gson = new Gson();
     SQLiteDatabase db;
 
     public SugiliteScriptDao(Context context){
-        sugiliteScriptDbHelper = new SugiliteScriptDbHelper(context);
-        db = sugiliteScriptDbHelper.getWritableDatabase();
+        sugiliteScriptDBHelper = new SugiliteScriptDBHelper(context);
+        db = sugiliteScriptDBHelper.getWritableDatabase();
     }
 
     /**

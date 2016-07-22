@@ -9,7 +9,7 @@ import android.database.sqlite.SQLiteOpenHelper;
  * @date 6/15/16
  * @time 4:07 PM
  */
-public class SugiliteScriptDbHelper extends SQLiteOpenHelper {
+public class SugiliteScriptDBHelper extends SQLiteOpenHelper {
     public static final int DATABASE_VERSION = 1;
     public static final String DATABASE_NAME = "SugiliteScript.db";
     private static final String BLOB_TYPE = " BLOB";
@@ -33,7 +33,7 @@ public class SugiliteScriptDbHelper extends SQLiteOpenHelper {
     private static final String SQL_DELETE_ENTRIES =
             "DROP TABLE IF EXISTS " + SugiliteScriptDbContract.SugiliteScriptRecordEntry.TABLE_NAME;
 
-    public SugiliteScriptDbHelper(Context context){
+    public SugiliteScriptDBHelper(Context context){
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
     }
 

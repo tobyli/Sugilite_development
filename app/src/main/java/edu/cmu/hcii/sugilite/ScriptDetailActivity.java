@@ -151,8 +151,16 @@ public class ScriptDetailActivity extends AppCompatActivity {
     }
 
     public void scriptDetailCancelButtonOnClick (View view){
-        finish();
+        onBackPressed();
     }
+
+    @Override
+    public void onBackPressed()
+    {
+        Intent intent = new Intent(this, MainActivity.class);
+        startActivity(intent);
+    }
+
     public void scriptDetailDeleteButtonOnClick (View view){
         new AlertDialog.Builder(this)
                 .setTitle("Confirm Deleting")

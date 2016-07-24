@@ -43,7 +43,8 @@
                     android:layout_height="wrap_content"
                     android:id="@+id/action_dropdown"
                     android:spinnerMode="dropdown"
-                    android:layout_marginLeft="10dp" />
+                    android:layout_marginLeft="10dp"
+                    android:touchscreenBlocksFocus="true" />
 
                 <LinearLayout
                     android:orientation="vertical"
@@ -71,8 +72,7 @@
                         <EditText
                             android:layout_width="fill_parent"
                             android:layout_height="wrap_content"
-                            android:id="@+id/action_parameter_set_text"
-                            android:background="@android:drawable/editbox_background" />
+                            android:id="@+id/action_parameter_set_text" />
 
                     </LinearLayout>
 
@@ -83,7 +83,7 @@
                         android:text="Set as a parameter"
                         android:id="@+id/parameterLink"
                         android:layout_gravity="right"
-                        android:textColor="#3377dc"
+                        android:textColor="#8bb5f8"
                         android:textStyle="italic"
                         android:singleLine="false"
                         android:nestedScrollingEnabled="false" />
@@ -106,7 +106,7 @@
                     android:text="Target Type"
                     android:id="@+id/target_type_label"
                     android:textStyle="bold"
-                    android:textColor="#0000ff" />
+                    android:textColor="#57ffee" />
 
                 <Spinner
                     android:layout_width="fill_parent"
@@ -114,7 +114,8 @@
                     android:id="@+id/target_type_dropdown"
                     android:layout_weight="1"
                     android:spinnerMode="dropdown"
-                    android:layout_marginLeft="10dp" />
+                    android:layout_marginLeft="10dp"
+                    android:theme="@style/AlertDialog.AppCompat.Light" />
             </LinearLayout>
 
             <View style="@style/Divider"
@@ -132,7 +133,7 @@
                     android:textAppearance="?android:attr/textAppearanceMedium"
                     android:text="Identifier"
                     android:id="@+id/identifier_label"
-                    android:textColor="#006400"
+                    android:textColor="#00f100"
                     android:textStyle="bold" />
 
             </LinearLayout>
@@ -159,7 +160,8 @@
                     android:layout_height="wrap_content"
                     android:id="@+id/within_app_dropdown"
                     android:spinnerMode="dropdown"
-                    android:layout_marginLeft="10dp" />
+                    android:layout_marginLeft="10dp"
+                    android:theme="@style/AlertDialog.AppCompat.Light" />
             </LinearLayout>
 
             <View style="@style/Divider"
@@ -171,7 +173,7 @@
                 android:textAppearance="?android:attr/textAppearanceSmall"
                 android:text="Alternative Labels"
                 android:id="@+id/see_alternative_link"
-                android:textColor="#1f6eed" />
+                android:textColor="#8bb5f8" />
 
             <LinearLayout
                 android:orientation="vertical"
@@ -184,7 +186,9 @@
                     android:textAppearance="?android:attr/textAppearanceMedium"
                     android:text="Preview"
                     android:id="@+id/previewLabel"
-                    android:textStyle="bold" />
+                    android:textStyle="bold"
+                    android:textIsSelectable="false"
+                    android:textColor="#ffffff" />
 
                 <TextView
                     android:layout_width="fill_parent"
@@ -192,7 +196,6 @@
                     android:textAppearance="?android:attr/textAppearanceMedium"
                     android:text="Sample Operation Preview"
                     android:id="@+id/previewContent"
-                    android:textColor="#000000"
                     android:layout_marginLeft="20dp" />
 
             </LinearLayout>

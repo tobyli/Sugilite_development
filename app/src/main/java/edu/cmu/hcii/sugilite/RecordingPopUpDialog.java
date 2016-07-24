@@ -112,7 +112,7 @@ public class RecordingPopUpDialog {
         checkBoxParentEntryMap = new HashMap<>();
         identifierCheckboxMap = new HashMap<>();
         dialogRootView = inflater.inflate(R.layout.dialog_recording_pop_up, null);
-        //ContextThemeWrapper ctw = new ContextThemeWrapper(applicationContext, android.R.style.Theme_DeviceDefault_Light_Dialog_Alert);
+        ContextThemeWrapper ctw = new ContextThemeWrapper(applicationContext, R.style.AlertDialogCustom);
         AlertDialog.Builder builder = new AlertDialog.Builder(applicationContext);
         builder.setView(dialogRootView)
                 .setTitle("Sugilite Recording");
@@ -165,7 +165,7 @@ public class RecordingPopUpDialog {
             public void onClick(DialogInterface dialog, int which) {
                 saveBlock(operationBlock, tempContext);
                 //fill in the text box if the operation is of SET_TEXT type
-                if(operationBlock.getOperation().getOperationType() == SugiliteOperation.SET_TEXT && triggerMode == TRIGGERED_BY_NEW_EVENT)
+                if (operationBlock.getOperation().getOperationType() == SugiliteOperation.SET_TEXT && triggerMode == TRIGGERED_BY_NEW_EVENT)
                     sugiliteData.addInstruction(operationBlock);
             }
         }).setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
@@ -792,7 +792,7 @@ public class RecordingPopUpDialog {
         linearLayout.setOrientation(LinearLayout.VERTICAL);
         TextView setVariableLink = new TextView(dialogRootView.getContext());
         setVariableLink.setText(Html.fromHtml("<u><i>Set as a parameter</i></u>"));
-        setVariableLink.setTextColor(Color.parseColor("#3377dc"));
+        setVariableLink.setTextColor(Color.parseColor("#8bb5f8"));
         setVariableLink.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

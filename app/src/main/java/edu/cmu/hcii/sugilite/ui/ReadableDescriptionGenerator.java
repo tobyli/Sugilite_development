@@ -55,9 +55,9 @@ public class ReadableDescriptionGenerator {
                 String className =  ((SugiliteOperationBlock) block).getElementMatchingFilter().getClassName();
                 int lastIndex = className.lastIndexOf('.');
                 if(lastIndex > -1)
-                    message += setColor("the " + className.substring(lastIndex + 1) + " object      ", "blue");
+                    message += setColor("the " + className.substring(lastIndex + 1) + " object      ", "#57ffee");
                 else
-                    message += setColor("the object", "blue");
+                    message += setColor("the object", "#57ffee");
             }
             boolean thatPrinted = false;
 
@@ -78,13 +78,13 @@ public class ReadableDescriptionGenerator {
 
             if(labels.size() == 1){
                 for(Map.Entry<String, String> entry : labels.entrySet()){
-                    message += "\"" + setColor(entry.getValue(), "#006400") + "\" ";
+                    message += "\"" + setColor(entry.getValue(), "#00f100") + "\" ";
                 }
             }
             else if(labels.size() > 1){
                 int count = 0;
                 for(Map.Entry<String, String> entry : labels.entrySet()){
-                    message += (thatPrinted ? "" : "that ") + "has " + entry.getKey() + " \"" + setColor(entry.getValue(), "#006400") + "\" " + (count == labels.size() - 2 ? "and " :(count == labels.size() - 1 ? ", " : " "));
+                    message += (thatPrinted ? "" : "that ") + "has " + entry.getKey() + " \"" + setColor(entry.getValue(), "#00f100") + "\" " + (count == labels.size() - 2 ? "and " :(count == labels.size() - 1 ? ", " : " "));
                     thatPrinted = true;
                     count ++;
                 }
@@ -101,11 +101,11 @@ public class ReadableDescriptionGenerator {
             }
 
             if(((SugiliteOperationBlock) block).getElementMatchingFilter().getBoundsInScreen() != null){
-                message += "at the screen location (" + setColor(((SugiliteOperationBlock) block).getElementMatchingFilter().getBoundsInScreen(), "#006400") + ") ";
+                message += "at the screen location (" + setColor(((SugiliteOperationBlock) block).getElementMatchingFilter().getBoundsInScreen(), "#00f100") + ") ";
             }
 
             if(((SugiliteOperationBlock) block).getElementMatchingFilter().getBoundsInParent() != null){
-                message += "at the parent location (" + setColor(((SugiliteOperationBlock) block).getElementMatchingFilter().getBoundsInParent(), "#006400") + ") ";
+                message += "at the parent location (" + setColor(((SugiliteOperationBlock) block).getElementMatchingFilter().getBoundsInParent(), "#00f100") + ") ";
             }
 
             if(((SugiliteOperationBlock) block).getElementMatchingFilter().getPackageName() != null)

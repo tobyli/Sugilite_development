@@ -9,6 +9,7 @@ import android.text.Html;
 import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
@@ -89,7 +90,7 @@ public class ChooseVariableDialog {
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
-                if(s.length() > 0){
+                if (s.length() > 0) {
                     //reset the listview selection
                     selectedItemName = s.toString();
                     variableList.clearChoices();
@@ -119,6 +120,7 @@ public class ChooseVariableDialog {
                 });
 
         dialog = builder.create();
+        dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
 
     }
      public void show(){

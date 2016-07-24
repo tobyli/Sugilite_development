@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Rect;
 import android.preference.PreferenceManager;
+import android.view.LayoutInflater;
 import android.view.WindowManager;
 import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityNodeInfo;
@@ -25,6 +26,8 @@ import edu.cmu.hcii.sugilite.communication.SugiliteCommunicationController;
 import edu.cmu.hcii.sugilite.dao.SugiliteScreenshotManager;
 import edu.cmu.hcii.sugilite.model.AccessibilityNodeInfoList;
 import edu.cmu.hcii.sugilite.automation.*;
+import edu.cmu.hcii.sugilite.model.block.SerializableNodeInfo;
+import edu.cmu.hcii.sugilite.model.block.SugiliteAvailableFeaturePack;
 import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
 import edu.cmu.hcii.sugilite.model.block.UIElementMatchingFilter;
@@ -133,7 +136,9 @@ public class SugiliteAccessibilityService extends AccessibilityService {
                     }
                 }
                 //start the popup activity
-                startActivity(generatePopUpActivityIntentFromEvent(event, rootNode, screenshot, availableAlternatives));
+                //startActivity(generatePopUpActivityIntentFromEvent(event, rootNode, screenshot, availableAlternatives));
+                RecordingPopUpDialog recordingPopUpDialog = new RecordingPopUpDialog(sugiliteData, getApplicationContext(), generateFeaturePack(event, rootNode, screenshot), sharedPreferences, LayoutInflater.from(getApplicationContext()), RecordingPopUpDialog.TRIGGERED_BY_NEW_EVENT, availableAlternatives);
+                recordingPopUpDialog.show();
                 availableAlternatives.clear();
 
             }
@@ -201,7 +206,65 @@ public class SugiliteAccessibilityService extends AccessibilityService {
 
 
 
+    private SugiliteAvailableFeaturePack generateFeaturePack(AccessibilityEvent event, AccessibilityNodeInfo rootNode, File screenshot){
+        SugiliteAvailableFeaturePack featurePack = new SugiliteAvailableFeaturePack();
+        AccessibilityNodeInfo sourceNode = event.getSource();
+        Rect boundsInParents = new Rect();
+        Rect boundsInScreen = new Rect();
+        sourceNode.getBoundsInParent(boundsInParents);
+        sourceNode.getBoundsInScreen(boundsInScreen);
+        AccessibilityNodeInfo parentNode = sourceNode.getParent();
+        //NOTE: NOT ONLY COUNTING THE IMMEDIATE CHILDREN NOW
+        ArrayList<AccessibilityNodeInfo> childrenNodes = new ArrayList<>(Automator.preOrderTraverse(sourceNode));
+        ArrayList<AccessibilityNodeInfo> allNodes = new ArrayList<>();
+        if(rootNode != null)
+            allNodes = new ArrayList<>(Automator.preOrderTraverse(rootNode));
+        //TODO:AccessibilityNodeInfo is not serializable
 
+        if(sourceNode.getPackageName() == null){
+            featurePack.packageName = "NULL";
+        }
+        else
+            featurePack.packageName = sourceNode.getPackageName().toString();
+
+        if(sourceNode.getClassName() == null){
+            featurePack.className = "NULL";
+        }
+        else
+            featurePack.className = sourceNode.getClassName().toString();
+
+        if(sourceNode.getText() == null){
+            featurePack.text = "NULL";
+        }
+        else
+            featurePack.text = sourceNode.getText().toString();
+
+        if(sourceNode.getContentDescription() == null){
+            featurePack.contentDescription = "NULL";
+        }
+        else
+            featurePack.contentDescription = sourceNode.getContentDescription().toString();
+
+        if(sourceNode.getViewIdResourceName() == null){
+            featurePack.viewId = "NULL";
+        }
+        else
+            featurePack.viewId = sourceNode.getViewIdResourceName();
+
+        featurePack.boundsInParent = boundsInParents.flattenToString();
+        featurePack.boundsInScreen = boundsInScreen.flattenToString();
+        featurePack.time = Calendar.getInstance().getTimeInMillis();
+        featurePack.eventType = event.getEventType();
+        featurePack.parentNode = new SerializableNodeInfo(parentNode);
+        featurePack.childNodes = new AccessibilityNodeInfoList(childrenNodes).getSerializableList();
+        featurePack.allNodes = new AccessibilityNodeInfoList(allNodes).getSerializableList();
+        featurePack.isEditable = sourceNode.isEditable();
+        featurePack.screenshot = screenshot;
+
+        return featurePack;
+
+
+    }
 
 
     private Intent generatePopUpActivityIntentFromEvent(AccessibilityEvent event, AccessibilityNodeInfo rootNode, File screenshot, HashSet<Map.Entry<String, String>> entryHashSet){
@@ -236,7 +299,6 @@ public class SugiliteAccessibilityService extends AccessibilityService {
         popUpIntent.putExtra("childrenNodes", new AccessibilityNodeInfoList(childrenNodes));
         popUpIntent.putExtra("allNodes", new AccessibilityNodeInfoList(allNodes));
         popUpIntent.putExtra("isEditable", sourceNode.isEditable());
-        popUpIntent.putExtra("eventType", event.getEventType());
         popUpIntent.putExtra("screenshot", screenshot);
         popUpIntent.putExtra("trigger", mRecordingPopUpActivity.TRIGGERED_BY_NEW_EVENT);
         popUpIntent.putExtra("alternativeLabels", entryHashSet);

@@ -114,11 +114,11 @@ public class SugiliteCommunicationController {
 
     //the below message will be sent when a externally initiated script has finished recording
     public boolean sendRecordingFinishedSignal(String scriptName){
-        return sendMessage(RESPONSE, START_TRACKING, "FINISHED RECORDING" + scriptName);
+        return sendMessage(RESPONSE, STOP_TRACKING, "FINISHED RECORDING " + scriptName);
     }
 
     public boolean sendExecutionFinishedSignal(String scriptName){
-        return sendMessage(RESPONSE, RUN, "FINISHED EXECUTING" + scriptName);
+        return sendMessage(RESPONSE, RUN, "FINISHED EXECUTING " + scriptName);
     }
 
 

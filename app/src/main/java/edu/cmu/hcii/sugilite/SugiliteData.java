@@ -4,11 +4,13 @@ import android.app.Application;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 
+import edu.cmu.hcii.sugilite.automation.ErrorHandler;
 import edu.cmu.hcii.sugilite.communication.SugiliteCommunicationController;
 import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
@@ -29,6 +31,7 @@ public class SugiliteData extends Application {
     //true if the current recording script is initiated externally
     public boolean initiatedExternally  = false;
     public SugiliteCommunicationController communicationController;
+    public ErrorHandler errorHandler = null;
 
 
     public SugiliteStartingBlock getScriptHead(){
@@ -54,6 +57,9 @@ public class SugiliteData extends Application {
 
     public void runScript(SugiliteStartingBlock startingBlock){
         this.instructionQueue.clear();
+        errorHandler.relevantPackages.clear();
+        errorHandler.relevantPackages.addAll(startingBlock.relevantPackages);
+        errorHandler.reportSuccess(Calendar.getInstance().getTimeInMillis());
         List<SugiliteBlock> blocks = traverseBlock(startingBlock);
         for(SugiliteBlock block : blocks){
             addInstruction(block);

@@ -57,6 +57,7 @@ public class StatusIconManager {
     private SugiliteScreenshotManager screenshotManager;
     private WindowManager.LayoutParams params;
     private VariableHelper variableHelper;
+    private Random random;
 
     public StatusIconManager(Context context, SugiliteData sugiliteData, SharedPreferences sharedPreferences){
         this.context = context;
@@ -67,6 +68,7 @@ public class StatusIconManager {
         this.serviceStatusManager = new ServiceStatusManager(context);
         this.screenshotManager = new SugiliteScreenshotManager(sharedPreferences, context);
         variableHelper = new VariableHelper(sugiliteData.stringVariableMap);
+        random = new Random();
 
     }
 
@@ -138,6 +140,7 @@ public class StatusIconManager {
                 matched = true;
             }
         }
+        int offset = random.nextInt(5);
 
         try{
             if(statusIcon != null){
@@ -147,9 +150,13 @@ public class StatusIconManager {
                 else if(sugiliteData.getInstructionQueueSize() > 0) {
                     statusIcon.setImageResource(R.mipmap.duck_icon_playing);
                     if(matched) {
-                        params.x = (rect.centerX() > 150 ? rect.centerX() - 150 : 0);
-                        params.y = (rect.centerY() > 150 ? rect.centerY() - 150 : 0);
+                        params.x = (rect.centerX() > 150 ? rect.centerX()  - 150 : 0);
+                        params.y = (rect.centerY() > 150 ? rect.centerY()  - 150 : 0);
                     }
+                    /*
+                    params.x = params.x + offset;
+                    params.y = params.y + offset;
+                    */
                     windowManager.updateViewLayout(statusIcon, params);
                 }
                 else

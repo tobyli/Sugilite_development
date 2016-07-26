@@ -1,9 +1,12 @@
 package edu.cmu.hcii.sugilite;
 
 import android.accessibilityservice.AccessibilityService;
+import android.app.AlertDialog;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Rect;
+import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.view.LayoutInflater;
 import android.view.WindowManager;
@@ -21,6 +24,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import edu.cmu.hcii.sugilite.communication.SugiliteCommunicationController;
 import edu.cmu.hcii.sugilite.dao.SugiliteScreenshotManager;
@@ -42,6 +48,9 @@ public class SugiliteAccessibilityService extends AccessibilityService {
     private SugiliteScreenshotManager screenshotManager;
     private Set<Integer> accessibilityEventSetToHandle, accessibilityEventSetToSend;
     private Thread automatorThread;
+    private Context context;
+
+
 
     public SugiliteAccessibilityService() {
     }
@@ -56,6 +65,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
         screenshotManager = new SugiliteScreenshotManager(sharedPreferences, getApplicationContext());
         automator = new Automator(sugiliteData, getApplicationContext(), statusIconManager);
         availableAlternatives = new HashSet<>();
+        context = this;
         try {
             sugiliteData.communicationController = new SugiliteCommunicationController(getApplicationContext(), sugiliteData, sharedPreferences);
             sugiliteData.communicationController.start();
@@ -79,10 +89,17 @@ public class SugiliteAccessibilityService extends AccessibilityService {
         accessibilityEventSetToSend = new HashSet<>(Arrays.asList(accessiblityEventArrayToSend));
 
         //end recording
+
+        //set default value for the settings
         SharedPreferences.Editor prefEditor = sharedPreferences.edit();
         prefEditor.putBoolean("recording_in_process", false);
+        prefEditor.putBoolean("root_enabled", true);
+        prefEditor.putBoolean("auto_fill_enabled", true);
         prefEditor.commit();
         sugiliteData.clearInstructionQueue();
+        if(sugiliteData.errorHandler == null){
+            sugiliteData.errorHandler = new ErrorHandler(this);
+        }
 
         try {
             Toast.makeText(this, "Sugilite Accessibility Service Started", Toast.LENGTH_SHORT).show();
@@ -92,6 +109,8 @@ public class SugiliteAccessibilityService extends AccessibilityService {
             e.printStackTrace();
             //do nothing
         }
+
+
     }
 
 
@@ -101,7 +120,6 @@ public class SugiliteAccessibilityService extends AccessibilityService {
 
     }
 
-    private AccessibilityNodeInfo lastRootNode;
     private HashSet<Map.Entry<String, String>> availableAlternatives;
     Set<String> exceptedPackages = new HashSet<>();
 
@@ -115,22 +133,31 @@ public class SugiliteAccessibilityService extends AccessibilityService {
         //Type of accessibility events to handle in this function
         //return if the event is not among the accessibilityEventArrayToHandle
         if(!accessibilityEventSetToHandle.contains(Integer.valueOf(event.getEventType()))) {
-            lastRootNode = rootNode;
             return;
         }
+        exceptedPackages.add("edu.cmu.hcii.sugilite");
+        exceptedPackages.add("com.android.systemui");
+        if (sugiliteData.getInstructionQueueSize() > 0 && !exceptedPackages.contains(event.getPackageName()) && sugiliteData.errorHandler != null){
+            //script running in progress
+            //invoke the error handler
+
+            //sugiliteData.errorHandler.checkError(event, sugiliteData.peekInstructionQueue(), Calendar.getInstance().getTimeInMillis());
+        }
+
         if (sharedPreferences.getBoolean("recording_in_process", false)) {
             //recording in progress
             AccessibilityNodeInfo sourceNode = event.getSource();
             //skip internal interactions and interactions on system ui
-            exceptedPackages.add("edu.cmu.hcii.sugilite");
-            exceptedPackages.add("com.android.systemui");
             availableAlternatives.addAll(getAlternativeLabels(sourceNode, rootNode));
             if (accessibilityEventSetToSend.contains(event.getEventType()) && (!exceptedPackages.contains(event.getPackageName()))) {
                 File screenshot = null;
                 if(sharedPreferences.getBoolean("root_enabled", false)) {
                     //take screenshot
                     try {
+                        /*
+                        System.out.println("taking screen shot");
                         screenshot = screenshotManager.take(false);
+                        */
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
@@ -148,6 +175,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
             //background tracking in progress
         }
         SugiliteBlock currentBlock = sugiliteData.peekInstructionQueue();
+
         if(currentBlock instanceof SugiliteOperationBlock) {
             statusIconManager.refreshStatusIcon(rootNode, ((SugiliteOperationBlock) currentBlock).getElementMatchingFilter());
         }
@@ -170,7 +198,6 @@ public class SugiliteAccessibilityService extends AccessibilityService {
                 automatorThread.start();
             }
         }
-        lastRootNode = rootNode;
     }
 
 
@@ -266,7 +293,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
 
     }
 
-
+    @Deprecated
     private Intent generatePopUpActivityIntentFromEvent(AccessibilityEvent event, AccessibilityNodeInfo rootNode, File screenshot, HashSet<Map.Entry<String, String>> entryHashSet){
         AccessibilityNodeInfo sourceNode = event.getSource();
         Rect boundsInParents = new Rect();

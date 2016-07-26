@@ -7,6 +7,7 @@ import android.view.accessibility.AccessibilityNodeInfo;
 import android.widget.Toast;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -30,14 +31,12 @@ public class Automator {
     private SugiliteData sugiliteData;
     private Context context;
     private BoundingBoxManager boundingBoxManager;
-    private StatusIconManager statusIconManager;
     private VariableHelper variableHelper;
     private static final int DELAY = 2000;
 
     public Automator(SugiliteData sugiliteData, Context context, StatusIconManager statusIconManager){
         this.sugiliteData = sugiliteData;
         this.boundingBoxManager = new BoundingBoxManager(context);
-        this.statusIconManager = statusIconManager;
     }
     public boolean handleLiveEvent (AccessibilityNodeInfo rootNode, Context context){
         //TODO: fix the highlighting for matched element
@@ -80,6 +79,7 @@ public class Automator {
                 node.getBoundsInScreen(tempRect);
                 statusIconManager.moveIcon(tempRect.centerX(), tempRect.centerY());
                 */
+                sugiliteData.errorHandler.reportSuccess(Calendar.getInstance().getTimeInMillis());
                 sugiliteData.removeInstructionQueueItem();
                 try {
                     Thread.sleep(DELAY / 2);

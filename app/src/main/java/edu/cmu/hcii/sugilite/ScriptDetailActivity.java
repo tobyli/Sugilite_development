@@ -26,6 +26,7 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.io.File;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -225,6 +226,7 @@ public class ScriptDetailActivity extends AppCompatActivity {
     public boolean onContextItemSelected(MenuItem item) {
         switch (item.getItemId()){
             case ITEM_1:
+                viewOperation(item);
                 break;
             case ITEM_2:
                 editOperation(item);
@@ -234,6 +236,58 @@ public class ScriptDetailActivity extends AppCompatActivity {
                 break;
         }
         return super.onContextItemSelected(item);
+    }
+
+    private void viewOperation(MenuItem item){
+        TextView textView;
+        AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
+        if(info == null)
+            return;
+        if(info.targetView instanceof TextView){
+            int index = info.position;
+            textView = (TextView)info.targetView;
+        }
+        else
+            return;
+        SugiliteBlock currentBlock = script;
+        while(true){
+            if(currentBlock == null)
+                break;
+            if(currentBlock instanceof SugiliteOperationBlock){
+                //TODO: check if content equals is the right method to use here
+                if(Html.fromHtml(currentBlock.getDescription()).toString().contentEquals(textView.getText().toString())){
+                    if(((SugiliteOperationBlock) currentBlock).getFeaturePack() == null){
+                        //scripts passed from external sources (via json) has no feature pack & previous block fields
+                        Toast.makeText(this, "Can't view operations from external source!", Toast.LENGTH_SHORT).show();
+                        break;
+                    }
+                    //match, pop up the screenshot view
+                    File screenshot = currentBlock.getScreenshot();
+                    if(screenshot == null){
+                        Toast.makeText(this, "No screenshot available", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                    Intent intent = new Intent();
+                    intent.setAction(Intent.ACTION_VIEW);
+                    intent.setDataAndType(Uri.fromFile(screenshot), "image/*");
+                    startActivity(intent);
+                    break;
+                }
+                else{
+                    currentBlock = ((SugiliteOperationBlock) currentBlock).getNextBlock();
+                }
+            }
+            if(currentBlock instanceof SugiliteStartingBlock){
+                if(Html.fromHtml(currentBlock.getDescription()).toString().contentEquals(textView.getText().toString())){
+                    //match, can't edit starting block
+                    Toast.makeText(this, "Can't view starting block", Toast.LENGTH_SHORT).show();
+                    break;
+                }
+                else {
+                    currentBlock = ((SugiliteStartingBlock) currentBlock).getNextBlock();
+                }
+            }
+        }
     }
 
     private void editOperation(MenuItem item){

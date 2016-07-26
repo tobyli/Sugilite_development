@@ -42,6 +42,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TimeZone;
 
+import edu.cmu.hcii.sugilite.dao.SugiliteScreenshotManager;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
 import edu.cmu.hcii.sugilite.model.AccessibilityNodeInfoList;
 import edu.cmu.hcii.sugilite.model.block.SerializableNodeInfo;
@@ -79,6 +80,7 @@ public class RecordingPopUpDialog {
     private Map<Map.Entry<String, String>, CheckBox> checkBoxParentEntryMap;
     private Map<String, CheckBox> identifierCheckboxMap;
     private Set<Map.Entry<String, String>> alternativeLabels;
+    private SugiliteScreenshotManager screenshotManager;
 
 
 
@@ -106,6 +108,7 @@ public class RecordingPopUpDialog {
         this.featurePack = featurePack;
         this.triggerMode = triggerMode;
         this.layoutInflater = inflater;
+        this.screenshotManager = new SugiliteScreenshotManager(sharedPreferences, applicationContext);
         sugiliteScriptDao = new SugiliteScriptDao(applicationContext);
         readableDescriptionGenerator = new ReadableDescriptionGenerator(applicationContext);
         checkBoxChildEntryMap = new HashMap<>();
@@ -163,6 +166,18 @@ public class RecordingPopUpDialog {
         builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
+                //take screenshot
+                File screenshot = null;
+                if(sharedPreferences.getBoolean("root_enabled", false)) {
+                    try {
+                        System.out.println("taking screen shot");
+                        screenshot = screenshotManager.take(false);
+                        operationBlock.setScreenshot(screenshot);
+
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
                 saveBlock(operationBlock, tempContext);
                 //fill in the text box if the operation is of SET_TEXT type
                 if (operationBlock.getOperation().getOperationType() == SugiliteOperation.SET_TEXT && triggerMode == TRIGGERED_BY_NEW_EVENT)
@@ -178,6 +193,8 @@ public class RecordingPopUpDialog {
         dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
         dialog.show();
     }
+
+
 
     public void setAsAParameterOnClick(View view){
         EditText actionParameter = (EditText)dialogRootView.findViewById(R.id.action_parameter_set_text);

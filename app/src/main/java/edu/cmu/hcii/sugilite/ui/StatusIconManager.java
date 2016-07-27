@@ -145,6 +145,7 @@ public class StatusIconManager {
         try{
             if(statusIcon != null){
                 boolean recordingInProcess = sharedPreferences.getBoolean("recording_in_process", false);
+                boolean trackingInProcess = sharedPreferences.getBoolean("tracking_in_process", false);
                 if(recordingInProcess)
                     statusIcon.setImageResource(R.mipmap.duck_icon_recording);
                 else if(sugiliteData.getInstructionQueueSize() > 0) {
@@ -159,10 +160,14 @@ public class StatusIconManager {
                     */
                     windowManager.updateViewLayout(statusIcon, params);
                 }
+                else if(trackingInProcess){
+                    statusIcon.setImageResource(R.mipmap.duck_icon_spying);
+                }
                 else
                     statusIcon.setImageResource(R.mipmap.ic_launcher);
 
             }
+
         }
         catch (Exception e){
             e.printStackTrace();

@@ -15,10 +15,12 @@ import android.view.accessibility.AccessibilityNodeInfo;
 import android.widget.Toast;
 
 import java.io.File;
+import java.text.SimpleDateFormat;
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -37,6 +39,7 @@ import edu.cmu.hcii.sugilite.model.block.SugiliteAvailableFeaturePack;
 import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
 import edu.cmu.hcii.sugilite.model.block.UIElementMatchingFilter;
+import edu.cmu.hcii.sugilite.tracking.SugiliteTrackingHandler;
 import edu.cmu.hcii.sugilite.ui.StatusIconManager;
 
 public class SugiliteAccessibilityService extends AccessibilityService {
@@ -46,9 +49,10 @@ public class SugiliteAccessibilityService extends AccessibilityService {
     private SugiliteData sugiliteData;
     private StatusIconManager statusIconManager;
     private SugiliteScreenshotManager screenshotManager;
-    private Set<Integer> accessibilityEventSetToHandle, accessibilityEventSetToSend;
+    private Set<Integer> accessibilityEventSetToHandle, accessibilityEventSetToSend, accessibilityEventSetToTrack;
     private Thread automatorThread;
     private Context context;
+    private SugiliteTrackingHandler sugilteTrackingHandler;
 
 
 
@@ -64,6 +68,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
         statusIconManager = new StatusIconManager(this, sugiliteData, sharedPreferences);
         screenshotManager = new SugiliteScreenshotManager(sharedPreferences, getApplicationContext());
         automator = new Automator(sugiliteData, getApplicationContext(), statusIconManager);
+        sugilteTrackingHandler = new SugiliteTrackingHandler(sugiliteData, getApplicationContext());
         availableAlternatives = new HashSet<>();
         context = this;
         try {
@@ -86,8 +91,15 @@ public class SugiliteAccessibilityService extends AccessibilityService {
                 AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED};
         Integer[] accessiblityEventArrayToSend = {AccessibilityEvent.TYPE_VIEW_CLICKED,
                 AccessibilityEvent.TYPE_VIEW_LONG_CLICKED};
+        Integer[] accessibilityEventArrayToTrack = {
+                AccessibilityEvent.TYPE_VIEW_CLICKED,
+                AccessibilityEvent.TYPE_VIEW_LONG_CLICKED,
+                AccessibilityEvent.TYPE_VIEW_SELECTED,
+                AccessibilityEvent.TYPE_VIEW_TEXT_CHANGED
+        };
         accessibilityEventSetToHandle = new HashSet<>(Arrays.asList(accessibilityEventArrayToHandle));
         accessibilityEventSetToSend = new HashSet<>(Arrays.asList(accessiblityEventArrayToSend));
+        accessibilityEventSetToTrack = new HashSet<>(Arrays.asList(accessibilityEventArrayToTrack));
 
         //end recording
 
@@ -100,6 +112,9 @@ public class SugiliteAccessibilityService extends AccessibilityService {
         sugiliteData.clearInstructionQueue();
         if(sugiliteData.errorHandler == null){
             sugiliteData.errorHandler = new ErrorHandler(this);
+        }
+        if(sugiliteData.trackingName.contentEquals("default")){
+            sugiliteData.initiateTracking(sugilteTrackingHandler.getDefaultTrackingName());
         }
 
         try {
@@ -129,7 +144,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
         //TODO problem: the status of "right after click" (try getParent()?)
         //TODO new rootNode method
         final AccessibilityNodeInfo rootNode = getRootInActiveWindow();
-
+        AccessibilityNodeInfo sourceNode = event.getSource();
 
         //Type of accessibility events to handle in this function
         //return if the event is not among the accessibilityEventArrayToHandle
@@ -147,7 +162,6 @@ public class SugiliteAccessibilityService extends AccessibilityService {
 
         if (sharedPreferences.getBoolean("recording_in_process", false)) {
             //recording in progress
-            AccessibilityNodeInfo sourceNode = event.getSource();
             //skip internal interactions and interactions on system ui
             availableAlternatives.addAll(getAlternativeLabels(sourceNode, rootNode));
             if (accessibilityEventSetToSend.contains(event.getEventType()) && (!exceptedPackages.contains(event.getPackageName()))) {
@@ -173,6 +187,9 @@ public class SugiliteAccessibilityService extends AccessibilityService {
         }
 
         if (sharedPreferences.getBoolean("tracking_in_process", false)) {
+            if (accessibilityEventSetToTrack.contains(event.getEventType())) {
+                sugilteTrackingHandler.handle(event, sourceNode, generateFeaturePack(event, rootNode, null));
+            }
             //background tracking in progress
         }
         SugiliteBlock currentBlock = sugiliteData.peekInstructionQueue();
@@ -306,7 +323,11 @@ public class SugiliteAccessibilityService extends AccessibilityService {
         sourceNode.getBoundsInScreen(boundsInScreen);
         AccessibilityNodeInfo parentNode = sourceNode.getParent();
         //NOTE: NOT ONLY COUNTING THE IMMEDIATE CHILDREN NOW
-        ArrayList<AccessibilityNodeInfo> childrenNodes = new ArrayList<>(Automator.preOrderTraverse(sourceNode));
+        ArrayList<AccessibilityNodeInfo> childrenNodes = null;
+        if(sourceNode != null && Automator.preOrderTraverse(sourceNode) != null)
+             childrenNodes = new ArrayList<>(Automator.preOrderTraverse(sourceNode));
+        else
+            childrenNodes = new ArrayList<>();
         ArrayList<AccessibilityNodeInfo> allNodes = new ArrayList<>();
         if(rootNode != null)
              allNodes = new ArrayList<>(Automator.preOrderTraverse(rootNode));

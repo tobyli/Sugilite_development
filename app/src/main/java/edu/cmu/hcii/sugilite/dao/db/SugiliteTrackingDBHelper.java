@@ -15,11 +15,11 @@ public class SugiliteTrackingDBHelper extends SQLiteOpenHelper {
     private static final String TEXT_TYPE = " TEXT";
     private static final String COMMA_SEP = ",";
     private static final String SQL_CREATE_ENTRIES =
-            "CREATE TABLE " + SugiliteScriptDbContract.SugiliteScriptRecordEntry.TABLE_NAME + " (" +
-                    SugiliteScriptDbContract.SugiliteScriptRecordEntry._ID + " INTEGER PRIMARY KEY," +
-                    SugiliteScriptDbContract.SugiliteScriptRecordEntry.COLUMN_NAME_SCRIPT_NAME + TEXT_TYPE + COMMA_SEP +
-                    SugiliteScriptDbContract.SugiliteScriptRecordEntry.COLUMN_NAME_ADDED_TIME + INTEGER_TYPE + COMMA_SEP +
-                    SugiliteScriptDbContract.SugiliteScriptRecordEntry.COLUMN_NAME_SCRIPT_BODY + BLOB_TYPE +
+            "CREATE TABLE " + SugiliteTrackingDBContract.SugiliteTrackingRecordEntry.TABLE_NAME + " (" +
+                    SugiliteTrackingDBContract.SugiliteTrackingRecordEntry._ID + " INTEGER PRIMARY KEY," +
+                    SugiliteTrackingDBContract.SugiliteTrackingRecordEntry.COLUMN_NAME_SCRIPT_NAME + TEXT_TYPE + COMMA_SEP +
+                    SugiliteTrackingDBContract.SugiliteTrackingRecordEntry.COLUMN_NAME_ADDED_TIME + INTEGER_TYPE + COMMA_SEP +
+                    SugiliteTrackingDBContract.SugiliteTrackingRecordEntry.COLUMN_NAME_SCRIPT_BODY + BLOB_TYPE +
                     " )";
 
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion){
@@ -29,7 +29,7 @@ public class SugiliteTrackingDBHelper extends SQLiteOpenHelper {
 
 
     private static final String SQL_DELETE_ENTRIES =
-            "DROP TABLE IF EXISTS " + SugiliteScriptDbContract.SugiliteScriptRecordEntry.TABLE_NAME;
+            "DROP TABLE IF EXISTS " + SugiliteTrackingDBContract.SugiliteTrackingRecordEntry.TABLE_NAME;
 
     public SugiliteTrackingDBHelper (Context context){
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -37,6 +37,7 @@ public class SugiliteTrackingDBHelper extends SQLiteOpenHelper {
 
     public void onCreate (SQLiteDatabase db) {
         db.execSQL(SQL_CREATE_ENTRIES);
+        System.out.println("ON CREATE Sugilite Tracking DB");
     }
 
     public void onDowngrade(SQLiteDatabase db, int oldVersion, int newVersion){

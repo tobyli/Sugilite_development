@@ -5,11 +5,15 @@ import android.graphics.Rect;
 import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityNodeInfo;
 
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
 import edu.cmu.hcii.sugilite.dao.SugiliteTrackingDao;
 import edu.cmu.hcii.sugilite.model.block.SugiliteAvailableFeaturePack;
 import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
+import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.model.block.UIElementMatchingFilter;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteOperation;
 
@@ -76,14 +80,43 @@ public class SugiliteTrackingHandler {
         filter.setIsClickable(sourceNode.isClickable());
 
         operationBlock.setElementMatchingFilter(filter);
-
-        //TODO: set previous block and next block
-
-
+        save(operationBlock);
     }
 
-    private void save(){
+    public String getDefaultTrackingName(){
+        return new String("SugiliteTracking_" + new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.S").format(Calendar.getInstance().getTime()));
+    }
 
+    private void save(SugiliteOperationBlock operationBlock){
+        if(sugiliteData.getTrackingHead() == null || sugiliteData.getCurrentTrackingBlock() == null){
+            sugiliteData.setTrackingHead(new SugiliteStartingBlock(sugiliteData.trackingName));
+            operationBlock.setPreviousBlock(sugiliteData.getTrackingHead());
+            sugiliteData.getTrackingHead().setNextBlock(operationBlock);
+            sugiliteData.setCurrentTrackingBlock(operationBlock);
+            try {
+                sugiliteTrackingDao.save(sugiliteData.getTrackingHead());
+            }
+            catch (Exception e){
+                e.printStackTrace();
+            }
+            return;
+        }
+        SugiliteStartingBlock script = sugiliteData.getTrackingHead();
+        operationBlock.setPreviousBlock(sugiliteData.getCurrentScriptBlock());
+        if (sugiliteData.getCurrentTrackingBlock() instanceof SugiliteOperationBlock) {
+            ((SugiliteOperationBlock) sugiliteData.getCurrentTrackingBlock()).setNextBlock(operationBlock);
+        }
+        if (sugiliteData.getCurrentTrackingBlock() instanceof SugiliteStartingBlock) {
+            ((SugiliteStartingBlock) sugiliteData.getCurrentTrackingBlock()).setNextBlock(operationBlock);
+        }
+        sugiliteData.setCurrentTrackingBlock(operationBlock);
+        try {
+            sugiliteTrackingDao.save(sugiliteData.getTrackingHead());
+        }
+        catch (Exception e){
+            e.printStackTrace();
+        }
+        return;
     }
 
 }

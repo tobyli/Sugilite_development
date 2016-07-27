@@ -27,7 +27,10 @@ public class SugiliteOperationBlockJSON {
                 break;
             case SugiliteOperation.SET_TEXT:
                 actionType = "SET_TEXT";
-                actionParameter = ((SugiliteSetTextOperation)block.getOperation()).getText();
+                if(block.getOperation() instanceof SugiliteSetTextOperation)
+                    actionParameter = ((SugiliteSetTextOperation)block.getOperation()).getText();
+                else
+                    actionParameter = block.getOperation().getParameter();
                 break;
             default:
                 actionType = "UNDEFINED";

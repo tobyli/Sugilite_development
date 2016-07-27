@@ -9,6 +9,7 @@ import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.WindowManager;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -23,6 +24,7 @@ import edu.cmu.hcii.sugilite.R;
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.automation.ServiceStatusManager;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
+import edu.cmu.hcii.sugilite.dao.SugiliteTrackingDao;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.ui.VariableSetValueDialog;
 
@@ -32,6 +34,7 @@ public class SugiliteCommunicationActicvity extends AppCompatActivity {
     SugiliteBlockJSONProcessor jsonProcessor;
     SugiliteData sugiliteData;
     SharedPreferences sharedPreferences;
+    SugiliteTrackingDao sugiliteTrackingDao;
     Context context;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -58,6 +61,7 @@ public class SugiliteCommunicationActicvity extends AppCompatActivity {
 
         }
         this.sugiliteScriptDao = new SugiliteScriptDao(this);
+        this.sugiliteTrackingDao = new SugiliteTrackingDao(this);
         this.jsonProcessor = new SugiliteBlockJSONProcessor(this);
         this.sugiliteData = (SugiliteData)getApplication();
         this.sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
@@ -68,6 +72,7 @@ public class SugiliteCommunicationActicvity extends AppCompatActivity {
 
     private void handleRequest(String messageType, final String scriptName){
         boolean recordingInProcess = sharedPreferences.getBoolean("recording_in_process", false);
+        boolean trackingInProcess = sharedPreferences.getBoolean("tracking_in_process", false);
         switch (messageType){
             case "START_RECORDING":
                 if(recordingInProcess) {
@@ -128,7 +133,8 @@ public class SugiliteCommunicationActicvity extends AppCompatActivity {
                     if(sugiliteData.initiatedExternally == true && sugiliteData.getScriptHead() != null)
                         sendRecordingFinishedSignal(sugiliteData.getScriptHead().getScriptName());
 
-                    Toast.makeText(context, "end recording", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(context, "recording ended", Toast.LENGTH_SHORT).show();
+                    sendReturnValue("");
                 }
                 else {
                     //the exception message below will be sent when there's no recording in process
@@ -207,6 +213,48 @@ public class SugiliteCommunicationActicvity extends AppCompatActivity {
                 for(String name : allNames)
                     retVal.add(name.replace(".SugiliteScript", ""));
                 sendReturnValue(new Gson().toJson(retVal));
+                break;
+            case "START_TRACKING":
+                //commit preference change
+                SharedPreferences.Editor prefEditor = sharedPreferences.edit();
+                sugiliteData.initiateTracking(scriptName);
+                prefEditor.putBoolean("tracking_in_process", true);
+                prefEditor.commit();
+                try {
+                    sugiliteTrackingDao.save(sugiliteData.getTrackingHead());
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                sendReturnValue("");
+                Toast.makeText(context, "tracking started", Toast.LENGTH_SHORT).show();
+                break;
+            case "END_TRACKING":
+                if(trackingInProcess) {
+                    SharedPreferences.Editor prefEditor2 = sharedPreferences.edit();
+                    prefEditor2.putBoolean("tracking_in_process", false);
+                    prefEditor2.commit();
+                    Toast.makeText(context, "tracking ended", Toast.LENGTH_SHORT).show();
+                    sendReturnValue("");
+                }
+                break;
+            case "GET_TRACKING":
+                SugiliteStartingBlock tracking = sugiliteTrackingDao.read(scriptName);
+                if(tracking != null)
+                    sendReturnValue(jsonProcessor.scriptToJson(tracking));
+                else
+                    //the exception message below will be sent when can't find a script with provided name
+                    //TODO: send exception message
+                break;
+            case "GET_TRACKING_LIST":
+                List<String> allTrackingNames = sugiliteTrackingDao.getAllNames();
+                List<String> trackingRetVal = new ArrayList<>();
+                for(String name : allTrackingNames)
+                    trackingRetVal.add(name);
+                sendReturnValue(new Gson().toJson(trackingRetVal));
+                break;
+            case "CLEAR_TRACKING_LIST":
+                sugiliteTrackingDao.clear();
+                sendReturnValue("");
                 break;
         }
     }

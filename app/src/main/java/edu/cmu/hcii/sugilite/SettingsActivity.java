@@ -39,8 +39,10 @@ import java.util.List;
 import edu.cmu.hcii.sugilite.automation.ServiceStatusManager;
 import edu.cmu.hcii.sugilite.communication.SugiliteCommunicationController;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
+import edu.cmu.hcii.sugilite.dao.SugiliteTrackingDao;
 import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
+import edu.cmu.hcii.sugilite.tracking.SugiliteTrackingHandler;
 
 /**
  * A {@link PreferenceActivity} that presents a set of application settings. On
@@ -58,6 +60,9 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
     private static ServiceStatusManager serviceStatusManager;
     private static SugiliteData sugiliteData;
     private static SugiliteScriptDao sugiliteScriptDao;
+    private static SugiliteTrackingDao sugiliteTrackingDao;
+    private static SugiliteTrackingHandler trackingHandler;
+    private static Context context;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -67,6 +72,9 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
         serviceStatusManager = new ServiceStatusManager(this);
         sugiliteData = (SugiliteData)getApplication();
         sugiliteScriptDao = new SugiliteScriptDao(this);
+        sugiliteTrackingDao = new SugiliteTrackingDao(this);
+        trackingHandler = new SugiliteTrackingHandler(sugiliteData, this);
+        this.context = this;
     }
 
     /**
@@ -216,10 +224,36 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
                         Toast.makeText(preference.getContext(), "Root access is disabled", Toast.LENGTH_SHORT).show();
                     }
                     break;
-
-                default:
-
-
+                case "tracking_in_process":
+                    final SwitchPreference trackingEnabledSwitch = (SwitchPreference) preference;
+                    if (!trackingEnabledSwitch.isChecked()) {
+                        if (!serviceStatusManager.isRunning()) {
+                            ((SwitchPreference) preference).setChecked(false);
+                            //prompt the user if the accessiblity service is not active
+                            AlertDialog.Builder builder1 = new AlertDialog.Builder(preference.getContext());
+                            builder1.setTitle("Service not running")
+                                    .setMessage("The Sugilite accessiblity service is not enabled. Please enable the service in the phone settings before recording.")
+                                    .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                                        @Override
+                                        public void onClick(DialogInterface dialog, int which) {
+                                            serviceStatusManager.promptEnabling();
+                                            //do nothing
+                                        }
+                                    }).show();
+                        }
+                        else {
+                            String name = trackingHandler.getDefaultTrackingName();
+                            sugiliteData.initiateTracking(name);
+                            try {
+                                sugiliteTrackingDao.save(sugiliteData.getTrackingHead());
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+                            AlertDialog.Builder builder2 = new AlertDialog.Builder(preference.getContext())
+                                    .setMessage("Starting tracking " + name);
+                            builder2.show();
+                        }
+                    }
             }
             return true;
         }
@@ -335,6 +369,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
             bindPreferenceSummaryToValue(findPreference("example_list"));
             findPreference("recording_in_process").setOnPreferenceChangeListener(recordingInProgressPreferenceChangeListener);
             findPreference("root_enabled").setOnPreferenceChangeListener(recordingInProgressPreferenceChangeListener);
+            findPreference("tracking_in_process").setOnPreferenceChangeListener(recordingInProgressPreferenceChangeListener);
         }
 
         @Override

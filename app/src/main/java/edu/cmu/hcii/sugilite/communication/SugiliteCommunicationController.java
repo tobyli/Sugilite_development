@@ -28,6 +28,7 @@ import java.util.List;
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.automation.ServiceStatusManager;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
+import edu.cmu.hcii.sugilite.dao.SugiliteTrackingDao;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.ui.VariableSetValueDialog;
 
@@ -40,6 +41,7 @@ public class SugiliteCommunicationController {
     private Messenger receiver = null; //invocation replies are processed by this Messenger (Middleware)
     private boolean isBound = false;
     SugiliteScriptDao sugiliteScriptDao;
+    SugiliteTrackingDao sugiliteTrackingDao;
     SugiliteBlockJSONProcessor jsonProcessor;
     SugiliteData sugiliteData;
     private ServiceConnection connection; //receives callbacks from bind and unbind invocations
@@ -50,12 +52,14 @@ public class SugiliteCommunicationController {
     //TODO: implement tracking
     private final int START_TRACKING = 4;
     private final int STOP_TRACKING = 5;
-    private final int GET_ALL_SCRIPTS = 6;
-    private final int GET_SCRIPT = 7;
+    private final int GET_ALL_TRACKINGS = 6;
+    private final int GET_TRACKING = 7;
     private final int RUN = 9;
     private final int RESPONSE_EXCEPTION = 10;
     private final int START_RECORDING = 11;
     private final int STOP_RECORDING = 12;
+    private final int GET_ALL_SCRIPTS = 13;
+    private final int GET_SCRIPT = 14;
     private final int APP_TRACKER_ID = 1001;
     private SharedPreferences sharedPreferences;
     //TODO: add start recording/stop recording
@@ -65,6 +69,7 @@ public class SugiliteCommunicationController {
         this.receiver = new Messenger(new IncomingHandler());
         this.context = context.getApplicationContext();
         this.sugiliteScriptDao = new SugiliteScriptDao(context);
+        this.sugiliteTrackingDao = new SugiliteTrackingDao(context);
         this.jsonProcessor = new SugiliteBlockJSONProcessor(context);
         this.sugiliteData = sugiliteData;
         this.sharedPreferences = sharedPreferences;
@@ -112,6 +117,20 @@ public class SugiliteCommunicationController {
         return sendMessage( RESPONSE, GET_ALL_SCRIPTS, jsonProcessor.scriptsToJson(startingBlocks));
     }
 
+    public boolean sendAllTrackings(){
+        List<String> allNames = sugiliteTrackingDao.getAllNames();
+        List<SugiliteStartingBlock> startingBlocks = new ArrayList<>();
+        for(String name : allNames) {
+            try {
+                startingBlocks.add(sugiliteTrackingDao.read(name));
+            }
+            catch (Exception e){
+                e.printStackTrace();
+            }
+        }
+        return sendMessage( RESPONSE, GET_ALL_TRACKINGS, jsonProcessor.scriptsToJson(startingBlocks));
+    }
+
     public boolean sendScript(String scriptName){
         // you should send back the script which name is "scriptName"... now, we are using a dummy
         SugiliteStartingBlock script = sugiliteScriptDao.read(scriptName + ".SugiliteScript");
@@ -120,6 +139,16 @@ public class SugiliteCommunicationController {
         else
             //the exception message below will be sent when can't find a script with provided name
             return sendMessage(RESPONSE_EXCEPTION, GET_SCRIPT, "Can't find a script with provided name");
+    }
+
+    public boolean sendTracking(String trackingName){
+        // you should send back the script which name is "scriptName"... now, we are using a dummy
+        SugiliteStartingBlock tracking = sugiliteTrackingDao.read(trackingName);
+        if(tracking != null)
+            return sendMessage(RESPONSE, GET_TRACKING, jsonProcessor.scriptToJson(tracking));
+        else
+            //the exception message below will be sent when can't find a script with provided name
+            return sendMessage(RESPONSE_EXCEPTION, GET_TRACKING, "Can't find a tracking with provided name");
     }
 
     //the below message will be sent when a externally initiated script has finished recording
@@ -174,6 +203,7 @@ public class SugiliteCommunicationController {
         public void handleMessage(Message msg) {
             super.handleMessage(msg);
             boolean recordingInProcess = sharedPreferences.getBoolean("recording_in_process", false);
+            boolean trackingInProcess = sharedPreferences.getBoolean("tracking_in_process", false);
             switch(msg.what) {
                 case START_RECORDING:
                     if(recordingInProcess) {
@@ -224,7 +254,7 @@ public class SugiliteCommunicationController {
                             dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
                             dialog.show();
                         }
-                        Log.d(TAG, "Start Tracking");
+                        Log.d(TAG, "Start Recording");
                         break;
                     }
                 case STOP_RECORDING:
@@ -249,12 +279,59 @@ public class SugiliteCommunicationController {
                         SugiliteCommunicationController.this.sendMessage(RESPONSE_EXCEPTION, STOP_RECORDING, "No recording in progress, can't stop");
                     }
                     break;
+
+                case START_TRACKING:
+                    final String trackingName = msg.getData().getString("request");
+                    //commit preference change
+                    SharedPreferences.Editor prefEditor = sharedPreferences.edit();
+                    sugiliteData.initiateTracking(trackingName);
+                    prefEditor.putBoolean("tracking_in_process", true);
+                    prefEditor.commit();
+                    try {
+                        sugiliteTrackingDao.save(sugiliteData.getTrackingHead());
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                    Toast.makeText(context, "start tracking", Toast.LENGTH_SHORT).show();
+                    Log.d(TAG, "Start Tracking");
+                    break;
+
+                case STOP_TRACKING:
+                    if(trackingInProcess){
+                        SharedPreferences.Editor prefEditor2 = sharedPreferences.edit();
+                        prefEditor2.putBoolean("tracking_in_process", false);
+                        prefEditor2.commit();
+                        Toast.makeText(context, "end tracking", Toast.LENGTH_SHORT).show();
+                        if (msg.arg1 == 1) {
+                            // send back tracking log (script)? false == 0, true == 1.
+                            SugiliteStartingBlock tracking = sugiliteData.getTrackingHead();
+                            if (tracking != null)
+                                SugiliteCommunicationController.this.sendMessage(RESPONSE, GET_SCRIPT, jsonProcessor.scriptToJson(tracking));
+                        }
+                    }
+                    else {
+                        //the exception message below will be sent when there's no recording in process
+                        SugiliteCommunicationController.this.sendMessage(RESPONSE_EXCEPTION, STOP_TRACKING, "No tracking in progress, can't stop");
+                    }
+                    break;
+
                 case GET_ALL_SCRIPTS:
                     sendAllScripts();
                     break;
+
                 case GET_SCRIPT:
                     sendScript( msg.getData().getString("request") );
                     break;
+
+                case GET_ALL_TRACKINGS:
+                    sendAllTrackings();
+                    break;
+
+                case GET_TRACKING:
+                    sendTracking(msg.getData().getString("request"));
+                    break;
+
+
                 case RUN:
                     final String scriptName = msg.getData().getString("request");
                     if(recordingInProcess) {

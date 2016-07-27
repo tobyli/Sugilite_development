@@ -38,11 +38,20 @@ public class SugiliteData extends Application {
     public SugiliteStartingBlock getScriptHead(){
         return scriptHead;
     }
+    public SugiliteStartingBlock getTrackingHead(){
+        return trackingHead;
+    }
     public SugiliteBlock getCurrentScriptBlock(){
         return currentScriptBlock;
     }
+    public SugiliteBlock getCurrentTrackingBlock(){
+        return currentTrackingBlock;
+    }
     public void setScriptHead(SugiliteStartingBlock scriptHead){
         this.scriptHead = scriptHead;
+    }
+    public void setTrackingHead(SugiliteStartingBlock trackingHead){
+        this.trackingHead = trackingHead;
     }
 
     /**
@@ -54,6 +63,12 @@ public class SugiliteData extends Application {
         this.stringVariableMap.clear();
         this.setScriptHead(new SugiliteStartingBlock(scriptName));
         this.setCurrentScriptBlock(scriptHead);
+    }
+
+    public void initiateTracking(String trackingName){
+        this.setTrackingHead(new SugiliteStartingBlock(trackingName));
+        this.setCurrentTrackingBlock(trackingHead);
+        this.trackingName = trackingName;
     }
 
     public void runScript(SugiliteStartingBlock startingBlock){
@@ -69,6 +84,9 @@ public class SugiliteData extends Application {
 
     public void setCurrentScriptBlock(SugiliteBlock currentScriptBlock){
         this.currentScriptBlock = currentScriptBlock;
+    }
+    public void setCurrentTrackingBlock(SugiliteBlock currentTrackingBlock){
+        this.currentTrackingBlock = currentTrackingBlock;
     }
     public void addInstruction(SugiliteBlock block){
         instructionQueue.add(block);

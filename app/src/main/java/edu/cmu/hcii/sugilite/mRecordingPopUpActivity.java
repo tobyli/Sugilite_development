@@ -57,7 +57,7 @@ import edu.cmu.hcii.sugilite.model.variable.Variable;
 import edu.cmu.hcii.sugilite.ui.ChooseVariableDialog;
 import edu.cmu.hcii.sugilite.ui.ReadableDescriptionGenerator;
 import edu.cmu.hcii.sugilite.ui.UIElementFeatureRecommender;
-
+@Deprecated
 public class mRecordingPopUpActivity extends AppCompatActivity {
 
     private int triggerMode;

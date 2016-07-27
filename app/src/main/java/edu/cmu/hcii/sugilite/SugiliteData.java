@@ -24,14 +24,15 @@ import edu.cmu.hcii.sugilite.model.variable.Variable;
  */
 public class SugiliteData extends Application {
     //used to store the current active script
-    private SugiliteStartingBlock scriptHead;
-    private SugiliteBlock currentScriptBlock;
+    private SugiliteStartingBlock scriptHead, trackingHead;
+    private SugiliteBlock currentScriptBlock, currentTrackingBlock;
     private Queue<SugiliteBlock> instructionQueue = new ArrayDeque<>();
     public Map<String, Variable> stringVariableMap = new HashMap<>();
     //true if the current recording script is initiated externally
     public boolean initiatedExternally  = false;
     public SugiliteCommunicationController communicationController;
     public ErrorHandler errorHandler = null;
+    public String trackingName = "default";
 
 
     public SugiliteStartingBlock getScriptHead(){

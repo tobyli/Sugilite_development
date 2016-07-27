@@ -2,6 +2,11 @@ package edu.cmu.hcii.sugilite.communication.json;
 
 import android.content.Context;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import edu.cmu.hcii.sugilite.model.block.SerializableNodeInfo;
+import edu.cmu.hcii.sugilite.model.block.SugiliteAvailableFeaturePack;
 import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteOperation;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteSetTextOperation;
@@ -30,7 +35,17 @@ public class SugiliteOperationBlockJSON {
         filter = new SugiliteFilterJSON(block.getElementMatchingFilter());
         if(block.getNextBlock() != null && block.getNextBlock() instanceof SugiliteOperationBlock)
             nextBlock = new SugiliteOperationBlockJSON((SugiliteOperationBlock)block.getNextBlock());
-
+        createdTime = block.getCreatedTime();
+        if(block.getFeaturePack() != null){
+            SugiliteAvailableFeaturePack featurePack = block.getFeaturePack();
+            List<SerializableNodeInfo> childNodes = featurePack.childNodes;
+            if(childNodes != null && childNodes.size() > 0) {
+                childTexts = new ArrayList<>();
+                for (SerializableNodeInfo node : childNodes) {
+                    childTexts.add(node.text);
+                }
+            }
+        }
     }
 
     public SugiliteOperationBlock toSugiliteOperationBlock(Context context){
@@ -63,4 +78,6 @@ public class SugiliteOperationBlockJSON {
     String actionType, actionParameter;
     SugiliteFilterJSON filter;
     SugiliteOperationBlockJSON nextBlock;
+    List<String> childTexts;
+    long createdTime;
 }

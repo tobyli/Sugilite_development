@@ -67,6 +67,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
         availableAlternatives = new HashSet<>();
         context = this;
         try {
+            //TODO: periodically check the status of communication controller
             sugiliteData.communicationController = new SugiliteCommunicationController(getApplicationContext(), sugiliteData, sharedPreferences);
             sugiliteData.communicationController.start();
         }
@@ -238,9 +239,12 @@ public class SugiliteAccessibilityService extends AccessibilityService {
         AccessibilityNodeInfo sourceNode = event.getSource();
         Rect boundsInParents = new Rect();
         Rect boundsInScreen = new Rect();
-        sourceNode.getBoundsInParent(boundsInParents);
-        sourceNode.getBoundsInScreen(boundsInScreen);
-        AccessibilityNodeInfo parentNode = sourceNode.getParent();
+        AccessibilityNodeInfo parentNode = null;
+        if(sourceNode != null) {
+            sourceNode.getBoundsInParent(boundsInParents);
+            sourceNode.getBoundsInScreen(boundsInScreen);
+            parentNode = sourceNode.getParent();
+        }
         //NOTE: NOT ONLY COUNTING THE IMMEDIATE CHILDREN NOW
         ArrayList<AccessibilityNodeInfo> childrenNodes = new ArrayList<>(Automator.preOrderTraverse(sourceNode));
         ArrayList<AccessibilityNodeInfo> allNodes = new ArrayList<>();

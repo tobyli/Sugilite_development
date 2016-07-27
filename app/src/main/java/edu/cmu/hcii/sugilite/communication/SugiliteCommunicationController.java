@@ -47,14 +47,18 @@ public class SugiliteCommunicationController {
     private final int REGISTER = 1;
     private final int UNREGISTER = 2;
     private final int RESPONSE = 3;
+    //TODO: implement tracking
     private final int START_TRACKING = 4;
     private final int STOP_TRACKING = 5;
     private final int GET_ALL_SCRIPTS = 6;
     private final int GET_SCRIPT = 7;
     private final int RUN = 9;
     private final int RESPONSE_EXCEPTION = 10;
+    private final int START_RECORDING = 11;
+    private final int STOP_RECORDING = 12;
     private final int APP_TRACKER_ID = 1001;
     private SharedPreferences sharedPreferences;
+    //TODO: add start recording/stop recording
 
     public SugiliteCommunicationController(Context context, SugiliteData sugiliteData, SharedPreferences sharedPreferences) {
         this.connection = new RemoteServiceConnection();
@@ -96,10 +100,16 @@ public class SugiliteCommunicationController {
 
     public boolean sendAllScripts(){
         List<String> allNames = sugiliteScriptDao.getAllNames();
-        List<String> retVal = new ArrayList<>();
-        for(String name : allNames)
-            retVal.add(name.replace(".SugiliteScript", ""));
-        return sendMessage( RESPONSE, GET_ALL_SCRIPTS, new Gson().toJson(retVal));
+        List<SugiliteStartingBlock> startingBlocks = new ArrayList<>();
+        for(String name : allNames) {
+            try {
+                startingBlocks.add(sugiliteScriptDao.read(name));
+            }
+            catch (Exception e){
+                e.printStackTrace();
+            }
+        }
+        return sendMessage( RESPONSE, GET_ALL_SCRIPTS, jsonProcessor.scriptsToJson(startingBlocks));
     }
 
     public boolean sendScript(String scriptName){
@@ -114,7 +124,7 @@ public class SugiliteCommunicationController {
 
     //the below message will be sent when a externally initiated script has finished recording
     public boolean sendRecordingFinishedSignal(String scriptName){
-        return sendMessage(RESPONSE, STOP_TRACKING, "FINISHED RECORDING " + scriptName);
+        return sendMessage(RESPONSE, STOP_RECORDING, "FINISHED RECORDING " + scriptName);
     }
 
     public boolean sendExecutionFinishedSignal(String scriptName){
@@ -165,10 +175,10 @@ public class SugiliteCommunicationController {
             super.handleMessage(msg);
             boolean recordingInProcess = sharedPreferences.getBoolean("recording_in_process", false);
             switch(msg.what) {
-                case START_TRACKING:
+                case START_RECORDING:
                     if(recordingInProcess) {
                         //the exception message below will be sent when there's already recording in process
-                        SugiliteCommunicationController.this.sendMessage(RESPONSE_EXCEPTION, START_TRACKING, "Already recording in progress, can't start");
+                        SugiliteCommunicationController.this.sendMessage(RESPONSE_EXCEPTION, START_RECORDING, "Already recording in progress, can't start");
                     }
                     else {
                         //NOTE: script name should be specified in msg.getData().getString("request");
@@ -217,7 +227,7 @@ public class SugiliteCommunicationController {
                         Log.d(TAG, "Start Tracking");
                         break;
                     }
-                case STOP_TRACKING:
+                case STOP_RECORDING:
                     if(recordingInProcess) {
 
                         SharedPreferences.Editor prefEditor = sharedPreferences.edit();
@@ -236,7 +246,7 @@ public class SugiliteCommunicationController {
                     }
                     else {
                         //the exception message below will be sent when there's no recording in process
-                        SugiliteCommunicationController.this.sendMessage(RESPONSE_EXCEPTION, STOP_TRACKING, "No recording in progress, can't stop");
+                        SugiliteCommunicationController.this.sendMessage(RESPONSE_EXCEPTION, STOP_RECORDING, "No recording in progress, can't stop");
                     }
                     break;
                 case GET_ALL_SCRIPTS:

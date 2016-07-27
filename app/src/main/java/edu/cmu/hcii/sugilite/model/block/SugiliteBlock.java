@@ -2,6 +2,7 @@ package edu.cmu.hcii.sugilite.model.block;
 
 import java.io.File;
 import java.io.Serializable;
+import java.util.Calendar;
 import java.util.Random;
 
 
@@ -14,6 +15,7 @@ public abstract class SugiliteBlock implements Serializable{
     public SugiliteBlock(){
         Random rand = new Random();
         blockId = rand.nextInt(65535);
+        createdTime = Calendar.getInstance().getTimeInMillis();
     }
     public int blockType;
     public static int REGULAR_OPERATION = 1, IF_CONDITION = 2, FOR_EACH_LOOP = 3, RETURN_VALUE = 4, END_BLOCK = 5, STARTING_BLOCK = 6;
@@ -22,6 +24,10 @@ public abstract class SugiliteBlock implements Serializable{
     private String description;
     private File screenshot;
     private int blockId;
+    private long createdTime;
+    public long getCreatedTime(){
+        return createdTime;
+    }
     public int getBlockId(){
         return blockId;
     }

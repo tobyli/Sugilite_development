@@ -151,6 +151,13 @@ public class SugiliteAccessibilityService extends AccessibilityService {
         if(!accessibilityEventSetToHandle.contains(Integer.valueOf(event.getEventType()))) {
             return;
         }
+
+        //check communication status
+        if(sugiliteData.communicationController != null){
+            if(!sugiliteData.communicationController.checkConnectionStatus())
+                sugiliteData.communicationController.start();
+        }
+
         exceptedPackages.add("edu.cmu.hcii.sugilite");
         exceptedPackages.add("com.android.systemui");
         if (sugiliteData.getInstructionQueueSize() > 0 && !exceptedPackages.contains(event.getPackageName()) && sugiliteData.errorHandler != null){

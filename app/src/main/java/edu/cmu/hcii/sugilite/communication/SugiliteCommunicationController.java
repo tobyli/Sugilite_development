@@ -74,13 +74,26 @@ public class SugiliteCommunicationController {
         this.sugiliteData = sugiliteData;
         this.sharedPreferences = sharedPreferences;
     }
+
+    /**
+     *
+     * @return true if connection is good, false otherwise
+     */
+    public boolean checkConnectionStatus(){
+        if(connection == null)
+            return false;
+        return isBound;
+    }
+
     //start() is called when SugiliteAccessibilityService is created
     public void start(){
         //TODO: change the service name here
         System.out.println("BIND SERVICE FOR CONTEXT " + context);
         Intent intent = createExplicitFromImplicitIntent( context,
                 new Intent( "com.yahoo.inmind.services.generic.control.ExternalAppCommService" ) );
-        context.bindService(intent, this.connection, Context.BIND_AUTO_CREATE);
+        if(intent != null) {
+            context.bindService(intent, this.connection, Context.BIND_AUTO_CREATE);
+        }
     }
 
     //stop() is called when SugiliteAccessibilityService is destroyed

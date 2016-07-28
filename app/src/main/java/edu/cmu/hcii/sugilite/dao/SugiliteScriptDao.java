@@ -162,6 +162,25 @@ public class SugiliteScriptDao {
         return scripts;
     }
 
+    /**
+     *
+     * @return the next available default name "Untitled Script N" with the smallest N
+     */
+    public String getNextAvailableDefaultName(){
+        int i = 1;
+        String prefix = "Untitled Script ";
+        List<String> allNames = getAllNames();
+        while(true){
+            String scriptName = prefix + String.valueOf(i) + ".SugiliteScript";
+            if(allNames.contains(scriptName)){
+                i++;
+                continue;
+            }
+            else
+                return scriptName;
+        }
+    }
+
 
 
 

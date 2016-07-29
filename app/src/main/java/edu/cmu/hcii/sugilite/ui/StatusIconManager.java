@@ -31,6 +31,7 @@ import java.util.Random;
 
 import edu.cmu.hcii.sugilite.MainActivity;
 import edu.cmu.hcii.sugilite.R;
+import edu.cmu.hcii.sugilite.ScriptDetailActivity;
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.automation.Automator;
 import edu.cmu.hcii.sugilite.automation.ServiceStatusManager;
@@ -266,8 +267,9 @@ public class StatusIconManager {
                                     break;
                                 //bring the user to the script list activity
                                 case "View Last Recording":
-                                    Intent intent = new Intent(context, MainActivity.class);
-                                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                                    Intent intent = new Intent(context, ScriptDetailActivity.class);
+                                    intent.putExtra("scriptName", startingBlock.getScriptName());
+                                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                                     context.startActivity(intent);
                                     Toast.makeText(context, "view current script", Toast.LENGTH_SHORT).show();
                                     break;
@@ -276,7 +278,7 @@ public class StatusIconManager {
                                     SharedPreferences.Editor prefEditor = sharedPreferences.edit();
                                     prefEditor.putBoolean("recording_in_process", false);
                                     prefEditor.commit();
-                                    if(sugiliteData.initiatedExternally == true && sugiliteData.getScriptHead() != null)
+                                    if (sugiliteData.initiatedExternally == true && sugiliteData.getScriptHead() != null)
                                         sugiliteData.communicationController.sendRecordingFinishedSignal(sugiliteData.getScriptHead().getScriptName());
                                     Toast.makeText(context, "end recording", Toast.LENGTH_SHORT).show();
                                     break;

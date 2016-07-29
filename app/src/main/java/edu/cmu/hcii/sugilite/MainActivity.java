@@ -177,6 +177,7 @@ public class MainActivity extends AppCompatActivity {
             if(info.targetView instanceof TextView && ((TextView) info.targetView).getText() != null) {
                 String scriptName = ((TextView) info.targetView).getText().toString() + ".SugiliteScript";
                 final Intent scriptDetailIntent = new Intent(this, ScriptDetailActivity.class);
+                scriptDetailIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
                 scriptDetailIntent.putExtra("scriptName", scriptName);
                 startActivity(scriptDetailIntent);
             }
@@ -196,7 +197,7 @@ public class MainActivity extends AppCompatActivity {
                                 try {
                                     sugiliteScriptDao.save(startingBlock);
                                     setUpScriptList();
-                                    //sugiliteScriptDao.delete(scriptName);
+                                    sugiliteScriptDao.delete(scriptName);
                                 } catch (Exception e) {
                                     e.printStackTrace();
                                 }

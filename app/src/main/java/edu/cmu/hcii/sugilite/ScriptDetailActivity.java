@@ -21,6 +21,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -48,6 +49,7 @@ public class ScriptDetailActivity extends AppCompatActivity {
     private SugiliteStartingBlock script;
     private ActivityManager activityManager;
     private ServiceStatusManager serviceStatusManager;
+    private Context context;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -64,6 +66,7 @@ public class ScriptDetailActivity extends AppCompatActivity {
         sugiliteData = (SugiliteData)getApplication();
         sugiliteScriptDao = new SugiliteScriptDao(this);
         script = sugiliteScriptDao.read(scriptName);
+        this.context = this;
         setTitle("View Script: " + new String(scriptName).replace(".SugiliteScript", ""));
         loadOperationList();
 
@@ -410,6 +413,8 @@ public class ScriptDetailActivity extends AppCompatActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         menu.add(Menu.NONE, Menu.FIRST, 1, "Resume Recording");
+        menu.add(Menu.NONE, Menu.FIRST + 1, 2, "Rename");
+        menu.add(Menu.NONE, Menu.FIRST + 2, 3, "Delete");
         return true;
     }
 
@@ -418,6 +423,53 @@ public class ScriptDetailActivity extends AppCompatActivity {
         switch (item.getItemId()){
             case Menu.FIRST:
                 resumeRecording();
+                break;
+            case Menu.FIRST + 1:
+                AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                final EditText newName = new EditText(this);
+                builder.setView(newName)
+                        .setTitle("Enter the new name")
+                        .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                SugiliteStartingBlock startingBlock = sugiliteScriptDao.read(scriptName);
+                                startingBlock.setScriptName(newName.getText().toString() + ".SugiliteScript");
+                                try {
+                                    sugiliteScriptDao.save(startingBlock);
+                                    sugiliteScriptDao.delete(scriptName);
+                                    Intent intent = new Intent(context, ScriptDetailActivity.class);
+                                    intent.putExtra("scriptName", startingBlock.getScriptName());
+                                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                                    startActivity(intent);
+                                } catch (Exception e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                        })
+                        .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                dialog.dismiss();
+                            }
+                        }).show();
+                    break;
+            case Menu.FIRST + 2:
+                AlertDialog.Builder builder1 = new AlertDialog.Builder(this);
+                builder1.setTitle("Confirm Deleting")
+                        .setMessage("Are you sure you want to delete this script?")
+                        .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                sugiliteScriptDao.delete(scriptName);
+                                onBackPressed();
+                            }
+                        })
+                        .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                dialog.dismiss();
+                            }
+                        }).show();
                 break;
         }
         return true;

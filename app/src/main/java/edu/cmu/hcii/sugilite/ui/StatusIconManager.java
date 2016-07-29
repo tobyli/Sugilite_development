@@ -215,93 +215,132 @@ public class StatusIconManager {
                     // gesture is clicking -> pop up the on-click menu
                     AlertDialog.Builder textDialogBuilder = new AlertDialog.Builder(context);
                     final boolean recordingInProcess = sharedPreferences.getBoolean("recording_in_process", false);
-                    textDialogBuilder.setTitle("STATUS: " + (recordingInProcess ? "RECORDING:" : "NOT RECORDING") + "\nChoose Operation:");
                     final SugiliteStartingBlock startingBlock = (SugiliteStartingBlock) sugiliteData.getScriptHead();
+                    String scriptName = (startingBlock == null ? "" : startingBlock.getScriptName());
+                    final String scriptDefinedName = scriptName.replace(".SugiliteScript", "");
+                    //set pop up title
+                    if(recordingInProcess){
+                        textDialogBuilder.setTitle("RECORDING: " + scriptDefinedName);
+                    }
+                    else if (sugiliteData.getScriptHead() != null){
+                        textDialogBuilder.setTitle("NOT RECORDING\nLAST RECORDED: " + scriptDefinedName);
+                    }
+
+                    else {
+                        textDialogBuilder.setTitle("NOT RECORDING");
+                    }
+
                     boolean recordingInProgress = sharedPreferences.getBoolean("recording_in_process", false);
-                    String[] operations = {"View Current Script: " + (startingBlock == null ? "NULL" : startingBlock.getScriptName()), (recordingInProcess ? "End Recording" : (startingBlock == null ? "New Recording" : "Resume Recording: " + startingBlock.getScriptName())), "Quit Sugilite"};
-                    textDialogBuilder.setItems(operations, new DialogInterface.OnClickListener() {
+
+                    List<String> operationList = new ArrayList<>();
+                    operationList.add("View Script List");
+                    if(sugiliteData.getInstructionQueueSize() > 0)
+                        operationList.add("Clear Instruction Queue");
+                    if(startingBlock == null){
+                        operationList.add("New Recording");
+                    }
+                    else{
+                        if(recordingInProcess){
+                            operationList.add("View Current Recording");
+                            operationList.add("End Recording");
+                        }
+                        else{
+                            operationList.add("View Last Recording");
+                            operationList.add("Resume Last Recording");
+                            operationList.add("New Recording");
+                        }
+                    }
+                    operationList.add("Quit Sugilite");
+                    String[] operations = new String[operationList.size()];
+                    operations = operationList.toArray(operations);
+                    final String[] operationClone = operations.clone();
+                    textDialogBuilder.setItems(operationClone, new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
-                            switch (which) {
+                            switch (operationClone[which]) {
+                                case "View Script List":
+                                    Intent scriptListIntent = new Intent(context, MainActivity.class);
+                                    scriptListIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                                    context.startActivity(scriptListIntent);
+                                    Toast.makeText(context, "view script list", Toast.LENGTH_SHORT).show();
+                                    break;
                                 //bring the user to the script list activity
-                                case 0:
+                                case "View Last Recording":
                                     Intent intent = new Intent(context, MainActivity.class);
                                     intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                                     context.startActivity(intent);
                                     Toast.makeText(context, "view current script", Toast.LENGTH_SHORT).show();
                                     break;
-                                case 1:
-                                    if (recordingInProcess) {
-                                        //end recording
-                                        SharedPreferences.Editor prefEditor = sharedPreferences.edit();
-                                        prefEditor.putBoolean("recording_in_process", false);
-                                        prefEditor.commit();
-                                        if(sugiliteData.initiatedExternally == true && sugiliteData.getScriptHead() != null)
-                                            sugiliteData.communicationController.sendRecordingFinishedSignal(sugiliteData.getScriptHead().getScriptName());
-                                        Toast.makeText(context, "end recording", Toast.LENGTH_SHORT).show();
-                                    } else {
-                                        if (startingBlock == null) {
-                                            //create a new script
-                                            sugiliteData.clearInstructionQueue();
-                                            AlertDialog.Builder builder = new AlertDialog.Builder(v.getContext());
-                                            final EditText scriptName = new EditText(v.getContext());
-                                            scriptName.setText("New Script");
-                                            scriptName.setSelectAllOnFocus(true);
-                                            builder.setMessage("Specify the name for your new script")
-                                                    .setView(scriptName)
-                                                    .setPositiveButton("Start Recording", new DialogInterface.OnClickListener() {
-                                                        @Override
-                                                        public void onClick(DialogInterface dialog, int which) {
-                                                            if (!serviceStatusManager.isRunning()) {
-                                                                //prompt the user if the accessiblity service is not active
-                                                                AlertDialog.Builder builder1 = new AlertDialog.Builder(v.getContext());
-                                                                builder1.setTitle("Service not running")
-                                                                        .setMessage("The Sugilite accessiblity service is not enabled. Please enable the service in the phone settings before recording.")
-                                                                        .setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                                                                            @Override
-                                                                            public void onClick(DialogInterface dialog, int which) {
-                                                                                serviceStatusManager.promptEnabling();
-                                                                                //do nothing
-                                                                            }
-                                                                        }).show();
-                                                            } else if (scriptName != null && scriptName.getText().toString().length() > 0) {
-                                                                SharedPreferences.Editor editor = sharedPreferences.edit();
-                                                                editor.putString("scriptName", scriptName.getText().toString());
-                                                                editor.putBoolean("recording_in_process", true);
-                                                                editor.commit();
-                                                                //set the active script to the newly created script
-                                                                sugiliteData.initiateScript(scriptName.getText().toString() + ".SugiliteScript");
-                                                                sugiliteData.initiatedExternally = false;
-                                                                //save the newly created script to DB
-                                                                try {
-                                                                    sugiliteScriptDao.save((SugiliteStartingBlock) sugiliteData.getScriptHead());
-                                                                } catch (Exception e) {
-                                                                    e.printStackTrace();
-                                                                }
-                                                                Toast.makeText(v.getContext(), "Changed script name to " + sharedPreferences.getString("scriptName", "NULL"), Toast.LENGTH_SHORT).show();
-                                                            }
-                                                        }
-                                                    })
-                                                    .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-                                                        @Override
-                                                        public void onClick(DialogInterface dialog, int which) {
-                                                            //do nothing
-                                                        }
-                                                    })
-                                                    .setTitle("New Script");
-                                            AlertDialog dialog2 = builder.create();
-                                            dialog2.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
-                                            dialog2.show();
-                                        } else {
-                                            //resume the recording of an existing script
-                                            SharedPreferences.Editor prefEditor = sharedPreferences.edit();
-                                            prefEditor.putBoolean("recording_in_process", true);
-                                            prefEditor.commit();
-                                            Toast.makeText(context, "resume recording", Toast.LENGTH_SHORT).show();
-                                        }
-                                    }
+                                case "End Recording":
+                                    //end recording
+                                    SharedPreferences.Editor prefEditor = sharedPreferences.edit();
+                                    prefEditor.putBoolean("recording_in_process", false);
+                                    prefEditor.commit();
+                                    if(sugiliteData.initiatedExternally == true && sugiliteData.getScriptHead() != null)
+                                        sugiliteData.communicationController.sendRecordingFinishedSignal(sugiliteData.getScriptHead().getScriptName());
+                                    Toast.makeText(context, "end recording", Toast.LENGTH_SHORT).show();
                                     break;
-                                case 2:
+                                case "New Recording":
+                                    //create a new script
+                                    sugiliteData.clearInstructionQueue();
+                                    AlertDialog.Builder builder = new AlertDialog.Builder(v.getContext());
+                                    final EditText scriptName = new EditText(v.getContext());
+                                    scriptName.setText("New Script");
+                                    scriptName.setSelectAllOnFocus(true);
+                                    builder.setMessage("Specify the name for your new script")
+                                            .setView(scriptName)
+                                            .setPositiveButton("Start Recording", new DialogInterface.OnClickListener() {
+                                                @Override
+                                                public void onClick(DialogInterface dialog, int which) {
+                                                    if (!serviceStatusManager.isRunning()) {
+                                                        //prompt the user if the accessiblity service is not active
+                                                        AlertDialog.Builder builder1 = new AlertDialog.Builder(v.getContext());
+                                                        builder1.setTitle("Service not running")
+                                                                .setMessage("The Sugilite accessiblity service is not enabled. Please enable the service in the phone settings before recording.")
+                                                                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                                                                    @Override
+                                                                    public void onClick(DialogInterface dialog, int which) {
+                                                                        serviceStatusManager.promptEnabling();
+                                                                        //do nothing
+                                                                    }
+                                                                }).show();
+                                                    } else if (scriptName != null && scriptName.getText().toString().length() > 0) {
+                                                        SharedPreferences.Editor editor = sharedPreferences.edit();
+                                                        editor.putString("scriptName", scriptName.getText().toString());
+                                                        editor.putBoolean("recording_in_process", true);
+                                                        editor.commit();
+                                                        //set the active script to the newly created script
+                                                        sugiliteData.initiateScript(scriptName.getText().toString() + ".SugiliteScript");
+                                                        sugiliteData.initiatedExternally = false;
+                                                        //save the newly created script to DB
+                                                        try {
+                                                            sugiliteScriptDao.save((SugiliteStartingBlock) sugiliteData.getScriptHead());
+                                                        } catch (Exception e) {
+                                                            e.printStackTrace();
+                                                        }
+                                                        Toast.makeText(v.getContext(), "Changed script name to " + sharedPreferences.getString("scriptName", "NULL"), Toast.LENGTH_SHORT).show();
+                                                    }
+                                                }
+                                            })
+                                            .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                                                @Override
+                                                public void onClick(DialogInterface dialog, int which) {
+                                                    //do nothing
+                                                }
+                                            })
+                                            .setTitle("New Script");
+                                    AlertDialog dialog2 = builder.create();
+                                    dialog2.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
+                                    dialog2.show();
+                                    break;
+                                case "Resume Last Recording":
+                                    //resume the recording of an existing script
+                                    SharedPreferences.Editor prefEditor2 = sharedPreferences.edit();
+                                    prefEditor2.putBoolean("recording_in_process", true);
+                                    prefEditor2.commit();
+                                    Toast.makeText(context, "resume recording", Toast.LENGTH_SHORT).show();
+                                    break;
+                                case "Quit Sugilite":
                                     Toast.makeText(context, "quit sugilite", Toast.LENGTH_SHORT).show();
                                     try {
                                         screenshotManager.take(false);
@@ -309,11 +348,17 @@ public class StatusIconManager {
                                         e.printStackTrace();
                                     }
                                     break;
+                                case "Clear Instruction Queue":
+                                    sugiliteData.clearInstructionQueue();
+                                    break;
+                                default:
+                                    //do nothing
                             }
                         }
                     });
                     Dialog dialog = textDialogBuilder.create();
                     dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
+                    dialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_box);
                     dialog.show();
                     return true;
 

@@ -99,7 +99,10 @@ public class MainActivity extends AppCompatActivity {
                                     }
                                     //Toast.makeText(v.getContext(), "Changed script name to " + sharedPreferences.getString("scriptName", "NULL"), Toast.LENGTH_SHORT).show();
                                     setUpScriptList();
-                                    finish();
+                                    Intent startMain = new Intent(Intent.ACTION_MAIN);
+                                    startMain.addCategory(Intent.CATEGORY_HOME);
+                                    startMain.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                                    startActivity(startMain);
                                 }
                             }
                         })
@@ -136,6 +139,7 @@ public class MainActivity extends AppCompatActivity {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 String scriptName = (String) scriptList.getItemAtPosition(position) + ".SugiliteScript";
                 final Intent scriptDetailIntent = new Intent(activityContext, ScriptDetailActivity.class);
+                scriptDetailIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
                 scriptDetailIntent.putExtra("scriptName", scriptName);
                 startActivity(scriptDetailIntent);
             }

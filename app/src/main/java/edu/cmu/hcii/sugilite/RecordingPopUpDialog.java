@@ -108,6 +108,7 @@ public class RecordingPopUpDialog {
         this.featurePack = featurePack;
         this.triggerMode = triggerMode;
         this.layoutInflater = inflater;
+        this.alternativeLabels = new HashSet<>(alternativeLabels);
         this.screenshotManager = new SugiliteScreenshotManager(sharedPreferences, applicationContext);
         sugiliteScriptDao = new SugiliteScriptDao(applicationContext);
         readableDescriptionGenerator = new ReadableDescriptionGenerator(applicationContext);
@@ -123,6 +124,7 @@ public class RecordingPopUpDialog {
 
         dialog = builder.create();
         dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
+        dialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_box);
 
 
 

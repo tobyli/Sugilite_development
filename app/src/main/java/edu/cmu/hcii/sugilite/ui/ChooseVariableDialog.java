@@ -122,6 +122,7 @@ public class ChooseVariableDialog {
         dialog = builder.create();
         dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
 
+
     }
      public void show(){
          dialog.show();

@@ -88,7 +88,7 @@ public class SugiliteCommunicationController {
     //start() is called when SugiliteAccessibilityService is created
     public void start(){
         //TODO: change the service name here
-        System.out.println("BIND SERVICE FOR CONTEXT " + context);
+        //System.out.println("BIND SERVICE FOR CONTEXT " + context);
         Intent intent = createExplicitFromImplicitIntent( context,
                 new Intent( "com.yahoo.inmind.services.generic.control.ExternalAppCommService" ) );
         if(intent != null) {

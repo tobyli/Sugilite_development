@@ -125,12 +125,14 @@ public class ChooseVariableDialog {
 
     }
      public void show(){
+
          dialog.show();
          dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(new View.OnClickListener()
          {
              @Override
              public void onClick(View v)
              {
+                 String defaultValueToShow = "";
                  if (selectedItemName == null || selectedItemName.length() < 1) {
                      Toast.makeText(context, "No item selected!", Toast.LENGTH_SHORT).show();
                  } else if (newVariableNameEditText.getText().length() > 0 && defaultValueEditText.getText().length() < 1) {
@@ -140,6 +142,7 @@ public class ChooseVariableDialog {
                          //add the new variable and the new default value to the symbol table
                          String variableName = newVariableNameEditText.getText().toString();
                          String defaultValue = defaultValueEditText.getText().toString();
+                         defaultValueToShow = defaultValue;
                          if(sugiliteData.stringVariableMap == null)
                              sugiliteData.stringVariableMap = new HashMap<String, Variable>();
                          sugiliteData.stringVariableMap.put(variableName, new StringVariable(variableName, defaultValue));
@@ -147,15 +150,27 @@ public class ChooseVariableDialog {
                      }
                      else {
                          //TODO: user has selected an existing variable
+                         Variable defaultVariableValue = startingBlock.variableNameDefaultValueMap.get(selectedItemName);
+                         if(defaultVariableValue != null && defaultVariableValue instanceof StringVariable)
+                             defaultValueToShow = ((StringVariable) defaultVariableValue).getValue();
                      }
                      if(label.length() > 0){
-                         editText.setText(Html.fromHtml("<b>" + label + ":</b> " + "@" + selectedItemName));
+                         //choosing variable for a generated checkbox row
+                         editText.setText(Html.fromHtml("<b>" + label + ":</b> " + "@" + selectedItemName + ": (" + defaultValueToShow + ")"));
                      }
                      else
-                        editText.setText("@" + selectedItemName);
+                        editText.setText("@" + selectedItemName + ": (" + defaultValueToShow + ")");
                      dialog.dismiss();
                  }
              }
          });
+
      }
+
+    public static String getVariableName(String fullMsg){
+        if(fullMsg.contains(":"))
+            return fullMsg.substring(0, fullMsg.indexOf(":"));
+        else
+            return fullMsg;
+    }
 }

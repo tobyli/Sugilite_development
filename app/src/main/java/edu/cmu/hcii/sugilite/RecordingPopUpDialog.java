@@ -563,8 +563,10 @@ public class RecordingPopUpDialog {
 
         //refresh content according to checkbox label
 
+        //use the "***Content" to generate the filter later
+
         if(textCheckbox != null && textCheckbox.getText() != null) {
-            String textCheckboxLabel = textCheckbox.getText().toString();
+            String textCheckboxLabel = ChooseVariableDialog.getVariableName(textCheckbox.getText().toString());
             if (textCheckboxLabel.contains("@") && variableDefaultValueMap != null && variableDefaultValueMap.keySet().contains(textCheckboxLabel.substring(textCheckboxLabel.indexOf("@") + 1))) {
                 textContent = textCheckboxLabel.substring(textCheckboxLabel.indexOf("@"));
             } else {
@@ -573,7 +575,7 @@ public class RecordingPopUpDialog {
         }
 
         if(contentDescriptionCheckbox != null && contentDescriptionCheckbox.getText() != null) {
-            String contentDescriptionCheckboxLabel = contentDescriptionCheckbox.getText().toString();
+            String contentDescriptionCheckboxLabel = ChooseVariableDialog.getVariableName(contentDescriptionCheckbox.getText().toString());
             if (contentDescriptionCheckboxLabel.contains("@") && variableDefaultValueMap != null && variableDefaultValueMap.keySet().contains(contentDescriptionCheckboxLabel.substring(contentDescriptionCheckboxLabel.indexOf("@") + 1))) {
                 contentDescriptionContent = contentDescriptionCheckboxLabel.substring(contentDescriptionCheckboxLabel.indexOf("@"));
             } else {
@@ -582,7 +584,7 @@ public class RecordingPopUpDialog {
         }
 
         if(viewIdCheckbox != null && viewIdCheckbox.getText() != null) {
-            String viewIdCheckboxLabel = viewIdCheckbox.getText().toString();
+            String viewIdCheckboxLabel = ChooseVariableDialog.getVariableName(viewIdCheckbox.getText().toString());
             if (viewIdCheckboxLabel.contains("@") && variableDefaultValueMap != null && variableDefaultValueMap.keySet().contains(viewIdCheckboxLabel.substring(viewIdCheckboxLabel.indexOf("@") + 1))) {
                 viewIdContent = viewIdCheckboxLabel.substring(viewIdCheckboxLabel.indexOf("@"));
             } else {

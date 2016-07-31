@@ -138,7 +138,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
                         sugiliteData.clearInstructionQueue();
                         AlertDialog.Builder builder = new AlertDialog.Builder(preference.getContext());
                         final EditText scriptName = new EditText(preference.getContext());
-                        scriptName.setText("New Script");
+                        scriptName.setText(sugiliteScriptDao.getNextAvailableDefaultName());
                         scriptName.setSelectAllOnFocus(true);
                         builder.setMessage("Specify the name for your new script")
                                 .setView(scriptName)

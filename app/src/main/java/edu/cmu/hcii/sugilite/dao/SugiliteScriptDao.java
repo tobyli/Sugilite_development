@@ -171,8 +171,8 @@ public class SugiliteScriptDao {
         String prefix = "Untitled Script ";
         List<String> allNames = getAllNames();
         while(true){
-            String scriptName = prefix + String.valueOf(i) + ".SugiliteScript";
-            if(allNames.contains(scriptName)){
+            String scriptName = prefix + String.valueOf(i);
+            if(allNames.contains(scriptName + ".SugiliteScript")){
                 i++;
                 continue;
             }

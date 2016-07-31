@@ -62,7 +62,7 @@ public class MainActivity extends AppCompatActivity {
                 sugiliteData.clearInstructionQueue();
                 AlertDialog.Builder builder = new AlertDialog.Builder(v.getContext());
                 final EditText scriptName = new EditText(v.getContext());
-                scriptName.setText("New Script");
+                scriptName.setText(sugiliteScriptDao.getNextAvailableDefaultName());
                 scriptName.setSelectAllOnFocus(true);
                 builder.setMessage("Specify the name for your new script")
                         .setView(scriptName)

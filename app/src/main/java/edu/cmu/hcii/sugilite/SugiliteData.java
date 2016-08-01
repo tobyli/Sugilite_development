@@ -141,7 +141,7 @@ public class SugiliteData extends Application {
     "END_RECORDING_EXCEPTION", exceptionMessage
     "RUN_SCRIPT_EXCEPTION, exceptionMessage
     "RUN_JSON_EXCEPTION", exceptionMessage
-    "ADD_JOSON_AS_SCRIPT_EXCEPTION", exceptionMessage
+    "ADD_JSON_AS_SCRIPT_EXCEPTION", exceptionMessage
 
      */
     public String callbackString = "";

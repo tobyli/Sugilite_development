@@ -278,8 +278,10 @@ public class StatusIconManager {
                                     SharedPreferences.Editor prefEditor = sharedPreferences.edit();
                                     prefEditor.putBoolean("recording_in_process", false);
                                     prefEditor.commit();
-                                    if (sugiliteData.initiatedExternally == true && sugiliteData.getScriptHead() != null)
+                                    if (sugiliteData.initiatedExternally == true && sugiliteData.getScriptHead() != null) {
                                         sugiliteData.communicationController.sendRecordingFinishedSignal(sugiliteData.getScriptHead().getScriptName());
+                                        sugiliteData.sendCallbackMsg("FINISHED_RECORDING", sugiliteData.getScriptHead().getScriptName(), sugiliteData.callbackString);
+                                    }
                                     Toast.makeText(context, "end recording", Toast.LENGTH_SHORT).show();
                                     break;
                                 case "New Recording":

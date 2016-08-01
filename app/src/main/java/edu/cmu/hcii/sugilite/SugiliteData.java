@@ -1,6 +1,7 @@
 package edu.cmu.hcii.sugilite;
 
 import android.app.Application;
+import android.content.Intent;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -123,6 +124,29 @@ public class SugiliteData extends Application {
             }
         }
         return sugiliteBlocks;
+    }
+
+    /**
+     * send a new intent to the location specified in callbackString
+     * @param messageType
+     * @param messageBody
+     * @param callbackString
+     */
+
+    /*
+    messageType, messageBody
+    -------------------------
+    "FINISHED_RECORDING", scriptName
+
+
+     */
+    public String callbackString = "";
+    public void sendCallbackMsg(String messageType, String messageBody, String callbackString){
+        Intent intent = new Intent(callbackString);
+        intent.putExtra("messageType", messageType);
+        intent.putExtra("messageBody", messageBody);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
+        startActivity(intent);
     }
 
 

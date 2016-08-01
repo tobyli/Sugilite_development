@@ -43,21 +43,36 @@ public class SugiliteCommunicationActicvity extends AppCompatActivity {
         messageType = (TextView)findViewById(R.id.receive_message_textview);
         scriptName = (TextView)findViewById(R.id.receive_message_script_name);
         messageType.setText("TEST MESSAGE TYPE");
-        String arg1 = "", arg2 = "";
+        String messageTypeString = "", arg1 = "", arg2 = "";
         if (getIntent().getExtras() != null)
         {
-            arg1 = getIntent().getStringExtra("messageType");
-            messageType.setText(arg1);
+            messageTypeString = getIntent().getStringExtra("messageType");
+            messageType.setText(messageTypeString);
             /*
-            START_RECORDING, scriptName
-            END_RECORDING, "NULL"
-            RUN_SCRIPT, scriptName
-            GET_SCRIPT, scriptName
-            GET_SCRIPT_LIST, "NULL
-             */
 
-            arg2 = getIntent().getStringExtra("scriptName");
-            scriptName.setText(arg2);
+            messageType, arg1, arg2
+            --------------------------
+            START_RECORDING, scriptName, callbackString (callbackString gets called when finish recording OR at EXCEPTION)
+            END_RECORDING, "NULL", callbackString (... gets called with status: SUCCESS or EXCEPTION)
+            RUN_SCRIPT, scriptName, callbackString (... when finish executing or EXCEPTION)
+            RUN_JSON, JSON, callbackString (callbackString gets called when finish executing or EXCEPTION)
+            //TODO: send call back when finish executing
+            ADD_JSON_AS_SCRIPT, JSON, "NULL" //return value returned as activity result instead
+            GET_SCRIPT, scriptName, "NULL" //return value returned as activity result instead
+            GET_SCRIPT_LIST, "NULL, "NULL" //return value returned as activity result instead
+
+
+
+            START_TRACKING, trackingName, callbackString
+            END_TRACKING, "NULL", callbackString
+            GET_TRACKING, trackingName, "NULL"
+            GET_TRACKING_LIST, "NULL", "NULL"
+            CLEAR_TRACKING_LIST, "NULL", "NULL"
+            */
+
+            arg1 = getIntent().getStringExtra("arg1");
+            arg2 = getIntent().getStringExtra("arg2");
+            scriptName.setText(arg1);
 
         }
         this.sugiliteScriptDao = new SugiliteScriptDao(this);
@@ -66,25 +81,29 @@ public class SugiliteCommunicationActicvity extends AppCompatActivity {
         this.sugiliteData = (SugiliteData)getApplication();
         this.sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         this.context = this;
-        handleRequest(arg1, arg2);
+        handleRequest(messageTypeString, arg1, arg2);
 
     }
 
-    private void handleRequest(String messageType, final String scriptName){
+    private void handleRequest(String messageType, final String arg1, final String arg2){
         boolean recordingInProcess = sharedPreferences.getBoolean("recording_in_process", false);
         boolean trackingInProcess = sharedPreferences.getBoolean("tracking_in_process", false);
         switch (messageType){
+            //
             case "START_RECORDING":
+                //arg1 = scriptName, arg2 = callbackString
+                if(arg2 != null)
+                    sugiliteData.callbackString = new String(arg2);
                 if(recordingInProcess) {
                     //the exception message below will be sent when there's already recording in process
-                    //TODO: send exception message
+                    sugiliteData.sendCallbackMsg("START_RECORDING_EXCEPTION", "recording already in process", arg2);
+                    finish();
                 }
                 else {
-                    //NOTE: script name should be specified in msg.getData().getString("request");
-                    if (scriptName != null) {
+                    if (arg1 != null) {
                         AlertDialog.Builder builder = new AlertDialog.Builder(this);
                         builder.setTitle("New Recording")
-                                .setMessage("Now start recording new script " + scriptName)
+                                .setMessage("Now start recording new script " + arg1)
                                 .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
                                     @Override
                                     public void onClick(DialogInterface dialog, int which) {
@@ -96,11 +115,11 @@ public class SugiliteCommunicationActicvity extends AppCompatActivity {
                                     public void onClick(DialogInterface dialog, int which) {
                                         sugiliteData.clearInstructionQueue();
                                         SharedPreferences.Editor editor = sharedPreferences.edit();
-                                        editor.putString("scriptName", scriptName);
+                                        editor.putString("scriptName", arg1);
                                         editor.putBoolean("recording_in_process", true);
                                         editor.commit();
 
-                                        sugiliteData.initiateScript(scriptName + ".SugiliteScript");
+                                        sugiliteData.initiateScript(arg1 + ".SugiliteScript");
                                         sugiliteData.initiatedExternally = true;
 
                                         try {
@@ -125,82 +144,86 @@ public class SugiliteCommunicationActicvity extends AppCompatActivity {
                 }
                 break;
             case "END_RECORDING":
+                //arg1 = "NULL", arg2 = callbackString
+                if(arg2 != null)
+                    sugiliteData.callbackString = new String(arg2);
                 if(recordingInProcess) {
 
                     SharedPreferences.Editor prefEditor = sharedPreferences.edit();
                     prefEditor.putBoolean("recording_in_process", false);
                     prefEditor.commit();
                     if(sugiliteData.initiatedExternally == true && sugiliteData.getScriptHead() != null)
-                        sendRecordingFinishedSignal(sugiliteData.getScriptHead().getScriptName());
+                        sugiliteData.sendCallbackMsg("FINISHED_RECORDING", sugiliteData.getScriptHead().getScriptName(), arg2);
 
                     Toast.makeText(context, "recording ended", Toast.LENGTH_SHORT).show();
                     sendReturnValue("");
                 }
                 else {
                     //the exception message below will be sent when there's no recording in process
-                    //TODO: send exception message
+                    sugiliteData.sendCallbackMsg("END_RECORDING_EXCEPTION", "no recording in process", arg2);
+                    finish();
                 }
                 break;
             case "RUN_SCRIPT":
+                //arg1 = scriptName, arg2 = callbackString
+                if(arg2 != null)
+                    sugiliteData.callbackString = new String(arg2);
                 if(recordingInProcess) {
-                //TODO: send exception message
+                    sugiliteData.sendCallbackMsg("RUN_SCRIPT_EXCEPTION", "recording already in process", arg2);
+                    finish();
                 }
                 else {
-                    SugiliteStartingBlock script = sugiliteScriptDao.read(scriptName + ".SugiliteScript");
-                    if(script == null)
-                        //TODO: send exception message
-                    sugiliteData.clearInstructionQueue();
-                    final ServiceStatusManager serviceStatusManager = new ServiceStatusManager(context);
+                    SugiliteStartingBlock script = sugiliteScriptDao.read(arg1 + ".SugiliteScript");
 
-                    if(!serviceStatusManager.isRunning()){
-                        //prompt the user if the accessiblity service is not active
-                        AlertDialog.Builder builder1 = new AlertDialog.Builder(context);
-                        builder1.setTitle("Service not running")
-                                .setMessage("The Sugilite accessiblity service is not enabled. Please enable the service in the phone settings before recording.")
-                                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                                    @Override
-                                    public void onClick(DialogInterface dialog, int which) {
-                                        serviceStatusManager.promptEnabling();
-                                        //do nothing
-                                    }
-                                });
-                        AlertDialog dialog = builder1.create();
-                        dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
-                        dialog.show();
+                    if(script == null) {
+                        sugiliteData.sendCallbackMsg("RUN_SCRIPT_EXCEPTION", "null script", arg2);
+                        finish();
                     }
                     else {
-                        sugiliteData.stringVariableMap.putAll(script.variableNameDefaultValueMap);
-
-                        //kill all the relevant packages
-                        for (String packageName : script.relevantPackages) {
-                            try {
-                                Process sh = Runtime.getRuntime().exec("su", null, null);
-                                OutputStream os = sh.getOutputStream();
-                                os.write(("am force-stop " + packageName).getBytes("ASCII"));
-                                os.flush();
-                                os.close();
-                                System.out.println(packageName);
-                            } catch (Exception e) {
-                                e.printStackTrace();
-                                // do nothing, likely this exception is caused by non-rooted device
-                            }
-                        }
-                        sugiliteData.runScript(script);
-                        try {
-                            Thread.sleep(VariableSetValueDialog.SCRIPT_DELAY);
-                        } catch (Exception e) {
-                            // do nothing
-                        }
-                        //go to home screen for running the automation
-                        Intent startMain = new Intent(Intent.ACTION_MAIN);
-                        startMain.addCategory(Intent.CATEGORY_HOME);
-                        startMain.setFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
-                        context.startActivity(startMain);
+                        runScript(script);
                     }
                 }
                 break;
+            case "RUN_JSON":
+                //arg1 = JSON, arg2 = callbackString
+                if(arg2 != null)
+                    sugiliteData.callbackString = new String(arg2);
+                if(arg1 != null){
+                    try{
+                        SugiliteStartingBlock script = jsonProcessor.jsonToScript(arg1);
+                        runScript(script);
+                    }
+                    catch (Exception e){
+                        e.printStackTrace();
+                        sugiliteData.sendCallbackMsg("RUN_JSON_EXCEPTION", "error in json parsing", arg2);
+                        finish();
+                    }
+                }
+                else {
+                    sugiliteData.sendCallbackMsg("RUN_JSON_EXCEPTION", "null json", arg2);
+                    finish();
+                }
+                break;
+            case "ADD_JSON_AS_SCRIPT":
+                //arg1 = JSON, arg2 = "NULL"
+                if(arg1 != null){
+                    try{
+                        SugiliteStartingBlock script = jsonProcessor.jsonToScript(arg1);
+                        sugiliteScriptDao.save(script);
+                    }
+                    catch (Exception e){
+                        e.printStackTrace();
+                        sugiliteData.sendCallbackMsg("ADD_JSON_AS_SCRIPT_EXCEPTION", "error in json parsing", arg2);
+                    }
+
+                }
+                else {
+                    sugiliteData.sendCallbackMsg("ADD_JSON_AS_SCRIPT", "null json", arg2);
+                }
+                break;
             case "GET_SCRIPT":
-                SugiliteStartingBlock script = sugiliteScriptDao.read(scriptName + ".SugiliteScript");
+                //arg1 = scriptName, arg2 = "NULL"
+                SugiliteStartingBlock script = sugiliteScriptDao.read(arg1 + ".SugiliteScript");
                 if(script != null)
                     sendReturnValue(jsonProcessor.scriptToJson(script));
                 else
@@ -208,16 +231,22 @@ public class SugiliteCommunicationActicvity extends AppCompatActivity {
                     //TODO: send exception message
                 break;
             case "GET_SCRIPT_LIST":
+                //arg1 = scriptName, arg2 = "NULL"
                 List<String> allNames = sugiliteScriptDao.getAllNames();
                 List<String> retVal = new ArrayList<>();
                 for(String name : allNames)
                     retVal.add(name.replace(".SugiliteScript", ""));
                 sendReturnValue(new Gson().toJson(retVal));
                 break;
+
+
+
+
+            //*******
             case "START_TRACKING":
                 //commit preference change
                 SharedPreferences.Editor prefEditor = sharedPreferences.edit();
-                sugiliteData.initiateTracking(scriptName);
+                sugiliteData.initiateTracking(arg1);
                 prefEditor.putBoolean("tracking_in_process", true);
                 prefEditor.commit();
                 try {
@@ -238,7 +267,7 @@ public class SugiliteCommunicationActicvity extends AppCompatActivity {
                 }
                 break;
             case "GET_TRACKING":
-                SugiliteStartingBlock tracking = sugiliteTrackingDao.read(scriptName);
+                SugiliteStartingBlock tracking = sugiliteTrackingDao.read(arg1);
                 if(tracking != null)
                     sendReturnValue(jsonProcessor.scriptToJson(tracking));
                 else
@@ -259,8 +288,56 @@ public class SugiliteCommunicationActicvity extends AppCompatActivity {
         }
     }
 
-    public boolean sendRecordingFinishedSignal(String scriptName){
-        return true;
+    private void runScript(SugiliteStartingBlock script){
+        sugiliteData.clearInstructionQueue();
+        final ServiceStatusManager serviceStatusManager = new ServiceStatusManager(context);
+
+        if(!serviceStatusManager.isRunning()){
+            //prompt the user if the accessiblity service is not active
+            AlertDialog.Builder builder1 = new AlertDialog.Builder(context);
+            builder1.setTitle("Service not running")
+                    .setMessage("The Sugilite accessiblity service is not enabled. Please enable the service in the phone settings before recording.")
+                    .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            serviceStatusManager.promptEnabling();
+                            //do nothing
+                        }
+                    });
+            AlertDialog dialog = builder1.create();
+            dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
+            dialog.show();
+        }
+        else {
+            sugiliteData.stringVariableMap.putAll(script.variableNameDefaultValueMap);
+
+            //kill all the relevant packages
+            for (String packageName : script.relevantPackages) {
+                try {
+                    Process sh = Runtime.getRuntime().exec("su", null, null);
+                    OutputStream os = sh.getOutputStream();
+                    os.write(("am force-stop " + packageName).getBytes("ASCII"));
+                    os.flush();
+                    os.close();
+                    System.out.println(packageName);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    // do nothing, likely this exception is caused by non-rooted device
+                }
+            }
+            sugiliteData.runScript(script);
+            try {
+                Thread.sleep(VariableSetValueDialog.SCRIPT_DELAY);
+            } catch (Exception e) {
+                // do nothing
+            }
+            //go to home screen for running the automation
+            Intent startMain = new Intent(Intent.ACTION_MAIN);
+            startMain.addCategory(Intent.CATEGORY_HOME);
+            startMain.setFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
+            context.startActivity(startMain);
+        }
+
     }
 
     private void sendReturnValue(String retVal){

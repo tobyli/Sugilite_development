@@ -127,8 +127,10 @@ public class mRecordingPopUpActivity extends AppCompatActivity {
         SharedPreferences.Editor prefEditor = sharedPreferences.edit();
         prefEditor.putBoolean("recording_in_process", false);
         prefEditor.commit();
-        if(sugiliteData.initiatedExternally == true && sugiliteData.getScriptHead() != null)
+        if(sugiliteData.initiatedExternally == true && sugiliteData.getScriptHead() != null) {
             sugiliteData.communicationController.sendRecordingFinishedSignal(sugiliteData.getScriptHead().getScriptName());
+            sugiliteData.sendCallbackMsg("FINISHED_RECORDING", sugiliteData.getScriptHead().getScriptName(), sugiliteData.callbackString);
+        }
         setResult(RESULT_CANCELED);
         finish();
     }

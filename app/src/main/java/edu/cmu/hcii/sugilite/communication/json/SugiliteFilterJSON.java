@@ -2,6 +2,10 @@ package edu.cmu.hcii.sugilite.communication.json;
 
 import android.graphics.Rect;
 
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+
 import edu.cmu.hcii.sugilite.model.block.UIElementMatchingFilter;
 
 /**
@@ -21,6 +25,8 @@ public class SugiliteFilterJSON {
                 this.parentFilter = new SugiliteFilterJSON(filter.getParentFilter());
             if(filter.getChildFilter() != null)
                 this.childFilter = new SugiliteFilterJSON(filter.getChildFilter());
+            if(filter.alternativeLabels != null && filter.alternativeLabels.size() > 0)
+                alternativeLabels = new HashSet<>(filter.alternativeLabels);
         }
     }
     public UIElementMatchingFilter toUIElementMatchingFilter(){
@@ -38,8 +44,11 @@ public class SugiliteFilterJSON {
             filter.setParentFilter(parentFilter.toUIElementMatchingFilter());
         if(childFilter != null)
             filter.setChildFilter(childFilter.toUIElementMatchingFilter());
+        if(alternativeLabels != null)
+            filter.alternativeLabels = new HashSet<>(alternativeLabels);
         return filter;
     }
     public String text, contentDescription, viewId, packageName, className, boundsInScreen, boundsInParent;
     public SugiliteFilterJSON parentFilter, childFilter;
+    public Set<Map.Entry<String, String>> alternativeLabels;
 }

@@ -2,6 +2,7 @@ package edu.cmu.hcii.sugilite.communication.json;
 
 import android.graphics.Rect;
 
+import java.util.AbstractMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -25,8 +26,12 @@ public class SugiliteFilterJSON {
                 this.parentFilter = new SugiliteFilterJSON(filter.getParentFilter());
             if(filter.getChildFilter() != null)
                 this.childFilter = new SugiliteFilterJSON(filter.getChildFilter());
-            if(filter.alternativeLabels != null && filter.alternativeLabels.size() > 0)
-                alternativeLabels = new HashSet<>(filter.alternativeLabels);
+            if(filter.alternativeLabels != null && filter.alternativeLabels.size() > 0) {
+                this.alternativeLabels = new HashSet<>();
+                for(Map.Entry<String, String> entry : filter.alternativeLabels){
+                    this.alternativeLabels.add(new SugiliteAlternativePairJSON(entry.getKey(), entry.getValue()));
+                }
+            }
         }
     }
     public UIElementMatchingFilter toUIElementMatchingFilter(){
@@ -44,11 +49,15 @@ public class SugiliteFilterJSON {
             filter.setParentFilter(parentFilter.toUIElementMatchingFilter());
         if(childFilter != null)
             filter.setChildFilter(childFilter.toUIElementMatchingFilter());
-        if(alternativeLabels != null)
-            filter.alternativeLabels = new HashSet<>(alternativeLabels);
+        if(alternativeLabels != null) {
+            filter.alternativeLabels = new HashSet<>();
+            for(SugiliteAlternativePairJSON pair : alternativeLabels){
+                filter.alternativeLabels.add(new AbstractMap.SimpleEntry<String, String>(pair.type, pair.value));
+            }
+        }
         return filter;
     }
     public String text, contentDescription, viewId, packageName, className, boundsInScreen, boundsInParent;
     public SugiliteFilterJSON parentFilter, childFilter;
-    public Set<Map.Entry<String, String>> alternativeLabels;
+    public Set<SugiliteAlternativePairJSON> alternativeLabels;
 }

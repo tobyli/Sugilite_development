@@ -137,7 +137,11 @@ public class SugiliteData extends Application {
     messageType, messageBody
     -------------------------
     "FINISHED_RECORDING", scriptName
-
+    "START_RECORDING_EXCEPTION", exceptionMessage
+    "END_RECORDING_EXCEPTION", exceptionMessage
+    "RUN_SCRIPT_EXCEPTION, exceptionMessage
+    "RUN_JSON_EXCEPTION", exceptionMessage
+    "ADD_JOSON_AS_SCRIPT_EXCEPTION", exceptionMessage
 
      */
     public String callbackString = "";
@@ -146,7 +150,12 @@ public class SugiliteData extends Application {
         intent.putExtra("messageType", messageType);
         intent.putExtra("messageBody", messageBody);
         intent.setFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
-        startActivity(intent);
+        try {
+            startActivity(intent);
+        }
+        catch (Exception e){
+            //do nothing
+        }
     }
 
 

@@ -32,8 +32,14 @@ public class SugiliteAvailableFeaturePack implements Serializable{
         this.parentNode = featurePack.parentNode;
         this.childNodes = new ArrayList<>(featurePack.childNodes);
         this.allNodes = new ArrayList<>(featurePack.allNodes);
-        this.alternativeChildTextList = new HashSet<>(alternativeTextList);
-        this.alternativeTextList = new HashSet<>(alternativeTextList);
+        if(featurePack.alternativeChildTextList != null)
+            this.alternativeChildTextList = new HashSet<>(featurePack.alternativeChildTextList);
+        else
+            this.alternativeChildTextList = new HashSet<>();
+        if(featurePack.alternativeTextList != null)
+            this.alternativeTextList = new HashSet<>(featurePack.alternativeTextList);
+        else
+            this.alternativeTextList = new HashSet<>();
     }
     public String packageName, className, text, contentDescription, viewId, boundsInParent, boundsInScreen;
     public boolean isEditable;

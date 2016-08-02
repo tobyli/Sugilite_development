@@ -319,7 +319,7 @@ public class SugiliteCommunicationController {
                             // send back tracking log (script)? false == 0, true == 1.
                             SugiliteStartingBlock tracking = sugiliteData.getTrackingHead();
                             if (tracking != null)
-                                SugiliteCommunicationController.this.sendMessage(RESPONSE, GET_SCRIPT, jsonProcessor.scriptToJson(tracking));
+                                SugiliteCommunicationController.this.sendMessage(RESPONSE, GET_TRACKING, jsonProcessor.scriptToJson(tracking));
                         }
                     }
                     else {

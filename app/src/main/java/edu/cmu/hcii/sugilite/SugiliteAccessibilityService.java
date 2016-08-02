@@ -270,10 +270,16 @@ public class SugiliteAccessibilityService extends AccessibilityService {
             parentNode = sourceNode.getParent();
         }
         //NOTE: NOT ONLY COUNTING THE IMMEDIATE CHILDREN NOW
-        ArrayList<AccessibilityNodeInfo> childrenNodes = new ArrayList<>(Automator.preOrderTraverse(sourceNode));
-        ArrayList<AccessibilityNodeInfo> allNodes = new ArrayList<>();
-        if(rootNode != null)
+        ArrayList<AccessibilityNodeInfo> childrenNodes = null;
+        if(sourceNode != null && Automator.preOrderTraverse(sourceNode) != null)
+            childrenNodes = new ArrayList<>(Automator.preOrderTraverse(sourceNode));
+        else
+            childrenNodes = new ArrayList<>();
+        ArrayList<AccessibilityNodeInfo> allNodes = null;
+        if(rootNode != null && Automator.preOrderTraverse(rootNode) != null)
             allNodes = new ArrayList<>(Automator.preOrderTraverse(rootNode));
+        else
+            allNodes = new ArrayList<>();
         //TODO:AccessibilityNodeInfo is not serializable
 
         if(sourceNode.getPackageName() == null){

@@ -166,11 +166,4 @@ public class ChooseVariableDialog {
          });
 
      }
-
-    public static String getVariableName(String fullMsg){
-        if(fullMsg.contains(":"))
-            return fullMsg.substring(0, fullMsg.indexOf(":"));
-        else
-            return fullMsg;
-    }
 }

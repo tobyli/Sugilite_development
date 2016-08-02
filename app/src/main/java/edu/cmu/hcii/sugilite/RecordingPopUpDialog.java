@@ -546,7 +546,7 @@ public class RecordingPopUpDialog {
             CheckBox checkBox = checkBoxChildEntryMap.get(feature);
             Map.Entry<String, String> featureToAdd = new AbstractMap.SimpleEntry<String, String>(feature);
             if(checkBox != null && checkBox.isChecked()) {
-                String childCheckboxLabel = checkBox.getText().toString();
+                String childCheckboxLabel = extractParameter(checkBox.getText().toString());
                 if(childCheckboxLabel.contains("@") && variableDefaultValueMap != null && variableDefaultValueMap.keySet().contains(childCheckboxLabel.substring(childCheckboxLabel.indexOf("@") + 1))){
                     featureToAdd.setValue(childCheckboxLabel.substring(childCheckboxLabel.indexOf("@")));
                 }
@@ -567,7 +567,7 @@ public class RecordingPopUpDialog {
         //use the "***Content" to generate the filter later
 
         if(textCheckbox != null && textCheckbox.getText() != null) {
-            String textCheckboxLabel = ChooseVariableDialog.getVariableName(textCheckbox.getText().toString());
+            String textCheckboxLabel = extractParameter(textCheckbox.getText().toString());
             if (textCheckboxLabel.contains("@") && variableDefaultValueMap != null && variableDefaultValueMap.keySet().contains(textCheckboxLabel.substring(textCheckboxLabel.indexOf("@") + 1))) {
                 textContent = textCheckboxLabel.substring(textCheckboxLabel.indexOf("@"));
             } else {
@@ -576,7 +576,7 @@ public class RecordingPopUpDialog {
         }
 
         if(contentDescriptionCheckbox != null && contentDescriptionCheckbox.getText() != null) {
-            String contentDescriptionCheckboxLabel = ChooseVariableDialog.getVariableName(contentDescriptionCheckbox.getText().toString());
+            String contentDescriptionCheckboxLabel = extractParameter(contentDescriptionCheckbox.getText().toString());
             if (contentDescriptionCheckboxLabel.contains("@") && variableDefaultValueMap != null && variableDefaultValueMap.keySet().contains(contentDescriptionCheckboxLabel.substring(contentDescriptionCheckboxLabel.indexOf("@") + 1))) {
                 contentDescriptionContent = contentDescriptionCheckboxLabel.substring(contentDescriptionCheckboxLabel.indexOf("@"));
             } else {
@@ -585,7 +585,7 @@ public class RecordingPopUpDialog {
         }
 
         if(viewIdCheckbox != null && viewIdCheckbox.getText() != null) {
-            String viewIdCheckboxLabel = ChooseVariableDialog.getVariableName(viewIdCheckbox.getText().toString());
+            String viewIdCheckboxLabel = extractParameter(viewIdCheckbox.getText().toString());
             if (viewIdCheckboxLabel.contains("@") && variableDefaultValueMap != null && variableDefaultValueMap.keySet().contains(viewIdCheckboxLabel.substring(viewIdCheckboxLabel.indexOf("@") + 1))) {
                 viewIdContent = viewIdCheckboxLabel.substring(viewIdCheckboxLabel.indexOf("@"));
             } else {
@@ -703,6 +703,12 @@ public class RecordingPopUpDialog {
        */
 
     }
+    private String extractParameter(String content){
+        if(content.contains(":") && content.contains("@"))
+            return content.substring(content.indexOf("@"), content.lastIndexOf(":"));
+        else
+            return content;
+    }
 
     /**
      * generate a UIElementMatchingFilter based on the selection
@@ -718,13 +724,13 @@ public class RecordingPopUpDialog {
             filter.setClassName(featurePack.className);
         }
         if(textCheckbox != null && textCheckbox.isChecked()){
-            filter.setText(textContent);
+            filter.setText(extractParameter(textContent));
         }
         if(contentDescriptionCheckbox != null && contentDescriptionCheckbox.isChecked()){
-            filter.setContentDescription(contentDescriptionContent);
+            filter.setContentDescription(extractParameter(contentDescriptionContent));
         }
         if(viewIdCheckbox != null && viewIdCheckbox.isChecked()){
-            filter.setViewId(viewIdContent);
+            filter.setViewId(extractParameter(viewIdContent));
         }
         if(boundsInParentCheckbox != null && boundsInParentCheckbox.isChecked()){
             filter.setBoundsInParent(Rect.unflattenFromString(featurePack.boundsInParent));
@@ -737,13 +743,13 @@ public class RecordingPopUpDialog {
             UIElementMatchingFilter childFilter = new UIElementMatchingFilter();
             for(Map.Entry<String, String> entry : selectedChildFeatures){
                 if(entry.getKey().contentEquals("Text")){
-                    childFilter.setText(entry.getValue());
+                    childFilter.setText(extractParameter(entry.getValue()));
                 }
                 if(entry.getKey().contentEquals("ContentDescription")){
-                    childFilter.setContentDescription(entry.getValue());
+                    childFilter.setContentDescription(extractParameter(entry.getValue()));
                 }
                 if(entry.getKey().contentEquals("ViewID")){
-                    childFilter.setViewId(entry.getValue());                }
+                    childFilter.setViewId(extractParameter(entry.getValue()));                }
             }
             filter.setChildFilter(childFilter);
         }
@@ -781,7 +787,7 @@ public class RecordingPopUpDialog {
             //replace set text parameter with parameter
             if(dialogRootView.findViewById(R.id.action_parameter_set_text) != null) {
                 String rawText = ((EditText) dialogRootView.findViewById(R.id.action_parameter_set_text)).getText().toString();
-                ((SugiliteSetTextOperation) sugiliteOperation).setText(rawText);
+                ((SugiliteSetTextOperation) sugiliteOperation).setText(extractParameter(rawText));
             }
             /*
             switch (triggerMode) {

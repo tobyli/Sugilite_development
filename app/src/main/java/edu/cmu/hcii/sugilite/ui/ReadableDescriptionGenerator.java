@@ -35,7 +35,7 @@ public class ReadableDescriptionGenerator {
          */
         if(block instanceof SugiliteOperationBlock){
             SugiliteOperation operation = ((SugiliteOperationBlock) block).getOperation();
-
+            //print the operation
             switch (operation.getOperationType()){
                 case SugiliteOperation.CLICK:
                     message += setColor("Click ", "#ffa500") + "on ";
@@ -51,6 +51,7 @@ public class ReadableDescriptionGenerator {
                     break;
             }
 
+            //print the object type
             if(((SugiliteOperationBlock) block).getElementMatchingFilter().getClassName() != null){
                 String className =  ((SugiliteOperationBlock) block).getElementMatchingFilter().getClassName();
                 int lastIndex = className.lastIndexOf('.');

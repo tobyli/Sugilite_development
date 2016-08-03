@@ -120,8 +120,8 @@ public class ChooseVariableDialog {
                 });
 
         dialog = builder.create();
-        dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
-
+        dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ERROR);
+        dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE);
 
     }
      public void show(){

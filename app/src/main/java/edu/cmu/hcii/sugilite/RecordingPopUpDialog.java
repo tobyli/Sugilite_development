@@ -18,6 +18,7 @@ import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityNodeInfo;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.CheckBox;
@@ -87,6 +88,7 @@ public class RecordingPopUpDialog {
 
     private Spinner actionSpinner, targetTypeSpinner, withInAppSpinner, readoutParameterSpinner;
     private CheckBox textCheckbox, contentDescriptionCheckbox, viewIdCheckbox, boundsInParentCheckbox, boundsInScreenCheckbox;
+    private EditText setTextEditText;
     private String textContent, contentDescriptionContent, viewIdContent;
     private LinearLayout actionParameterSection, actionSection, readoutParameterSection;
     private View dialogRootView;
@@ -156,6 +158,7 @@ public class RecordingPopUpDialog {
         dialog = builder.create();
         dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
         dialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_box);
+
         //fetch the data capsuled in the intent
         //TODO: refactor so the service passes in a feature pack instead
         setupSelections();
@@ -163,6 +166,8 @@ public class RecordingPopUpDialog {
 
     public void show(){
         dialog.show();
+        dialog.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM);
+        //dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE);
 
     }
 
@@ -552,7 +557,15 @@ public class RecordingPopUpDialog {
         readoutParameterSpinner.setOnItemSelectedListener(spinnerSelectedListener);
 
 
-
+        setTextEditText = (EditText)dialogRootView.findViewById(R.id.action_parameter_set_text);
+        final InputMethodManager imm = (InputMethodManager) dialog.getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
+        setTextEditText.setOnClickListener(new View.OnClickListener() {
+            //force the keyboard to show when edit text on click
+            @Override
+            public void onClick(View v) {
+                imm.showSoftInput(v, InputMethodManager.SHOW_IMPLICIT);
+            }
+        });
         actionParameterSection = (LinearLayout)dialogRootView.findViewById(R.id.action_parameter_section);
         readoutParameterSection = (LinearLayout)dialogRootView.findViewById(R.id.read_out_parameter_section);
         actionSection = (LinearLayout)dialogRootView.findViewById(R.id.action_section);

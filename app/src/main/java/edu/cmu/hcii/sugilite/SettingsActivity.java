@@ -25,9 +25,12 @@ import android.preference.PreferenceFragment;
 import android.preference.PreferenceManager;
 import android.preference.RingtonePreference;
 import android.text.TextUtils;
+import android.view.KeyEvent;
 import android.view.MenuItem;
 import android.support.v4.app.NavUtils;
 import android.view.MotionEvent;
+import android.view.View;
+import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.Toast;
@@ -181,8 +184,26 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
                                     }
                                 })
                                 .setTitle("New Script");
-                        AlertDialog dialog = builder.create();
+
+                        final AlertDialog dialog = builder.create();
+                        dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE);
                         dialog.show();
+
+                        scriptName.setOnKeyListener(new View.OnKeyListener() {
+                            public boolean onKey(View v, int keyCode, KeyEvent event) {
+                                if (event.getAction() == KeyEvent.ACTION_DOWN) {
+                                    switch (keyCode) {
+                                        case KeyEvent.KEYCODE_DPAD_CENTER:
+                                        case KeyEvent.KEYCODE_ENTER:
+                                            dialog.getButton(DialogInterface.BUTTON_POSITIVE).performClick();
+                                            return true;
+                                        default:
+                                            break;
+                                    }
+                                }
+                                return false;
+                            }
+                        });
 
                     }
                     else{

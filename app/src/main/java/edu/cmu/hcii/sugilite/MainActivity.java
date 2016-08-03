@@ -15,10 +15,13 @@ import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.ContextMenu;
+import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.WindowManager;
+import android.view.inputmethod.EditorInfo;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
@@ -35,6 +38,7 @@ import edu.cmu.hcii.sugilite.automation.ServiceStatusManager;
 import edu.cmu.hcii.sugilite.communication.SugiliteBlockJSONProcessor;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
+import edu.cmu.hcii.sugilite.ui.NewScriptDialog;
 
 public class MainActivity extends AppCompatActivity {
     private SugiliteData sugiliteData;
@@ -59,62 +63,13 @@ public class MainActivity extends AppCompatActivity {
         addButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(final View v) {
-                sugiliteData.clearInstructionQueue();
-                AlertDialog.Builder builder = new AlertDialog.Builder(v.getContext());
-                final EditText scriptName = new EditText(v.getContext());
-                scriptName.setText(sugiliteScriptDao.getNextAvailableDefaultName());
-                scriptName.setSelectAllOnFocus(true);
-                builder.setMessage("Specify the name for your new script")
-                        .setView(scriptName)
-                        .setPositiveButton("Start Recording", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                if(!serviceStatusManager.isRunning()){
-                                    //prompt the user if the accessiblity service is not active
-                                    AlertDialog.Builder builder1 = new AlertDialog.Builder(v.getContext());
-                                    builder1.setTitle("Service not running")
-                                            .setMessage("The Sugilite accessiblity service is not enabled. Please enable the service in the phone settings before recording.")
-                                            .setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                                                @Override
-                                                public void onClick(DialogInterface dialog, int which) {
-                                                    serviceStatusManager.promptEnabling();
-                                                    //do nothing
-                                                }
-                                            }).show();
-                                }
-                                else if (scriptName != null && scriptName.getText().toString().length() > 0) {
-                                    SharedPreferences.Editor editor = sharedPreferences.edit();
-                                    editor.putString("scriptName", scriptName.getText().toString());
-                                    editor.putBoolean("recording_in_process", true);
-                                    editor.commit();
-                                    //set the active script to the newly created script
-                                    sugiliteData.initiateScript(scriptName.getText().toString() + ".SugiliteScript");
-                                    sugiliteData.initiatedExternally = false;
-                                    //save the newly created script to DB
-                                    try {
-                                        sugiliteScriptDao.save(sugiliteData.getScriptHead());
-                                    }
-                                    catch (Exception e){
-                                        e.printStackTrace();
-                                    }
-                                    //Toast.makeText(v.getContext(), "Changed script name to " + sharedPreferences.getString("scriptName", "NULL"), Toast.LENGTH_SHORT).show();
-                                    setUpScriptList();
-                                    Intent startMain = new Intent(Intent.ACTION_MAIN);
-                                    startMain.addCategory(Intent.CATEGORY_HOME);
-                                    startMain.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                                    startActivity(startMain);
-                                }
-                            }
-                        })
-                        .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                dialog.dismiss();
-                            }
-                        })
-                        .setTitle("New Script");
-                AlertDialog dialog = builder.create();
-                dialog.show();
+                NewScriptDialog newScriptDialog = new NewScriptDialog(v.getContext(), sugiliteScriptDao, serviceStatusManager, sharedPreferences, sugiliteData, false, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        setUpScriptList();
+                    }
+                }, null);
+                newScriptDialog.show();
             }
         });
 

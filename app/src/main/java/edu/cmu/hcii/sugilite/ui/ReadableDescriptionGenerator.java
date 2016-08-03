@@ -49,6 +49,8 @@ public class ReadableDescriptionGenerator {
                 case SugiliteOperation.LONG_CLICK:
                     message += setColor("Long click ", "#ffa500") + "on ";
                     break;
+                case SugiliteOperation.READ_OUT:
+                    message += setColor("Read out ", "#ffa500") + "the" + setColor(((SugiliteOperationBlock)block).getOperation().getParameter(), "#ff0000") + " for ";
             }
 
             //print the object type

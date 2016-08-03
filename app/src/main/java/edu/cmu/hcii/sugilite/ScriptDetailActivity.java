@@ -37,6 +37,7 @@ import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
 import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
+import edu.cmu.hcii.sugilite.model.operation.SugiliteOperation;
 import edu.cmu.hcii.sugilite.ui.VariableSetValueDialog;
 
 public class ScriptDetailActivity extends AppCompatActivity {
@@ -69,7 +70,6 @@ public class ScriptDetailActivity extends AppCompatActivity {
         this.context = this;
         setTitle("View Script: " + new String(scriptName).replace(".SugiliteScript", ""));
         loadOperationList();
-
 
     }
 
@@ -317,14 +317,19 @@ public class ScriptDetailActivity extends AppCompatActivity {
                         Toast.makeText(this, "Can't edit scripts from external source!", Toast.LENGTH_SHORT).show();
                         break;
                     }
+                    DialogInterface.OnClickListener callback = new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            System.out.println("callback called");
+                            script = sugiliteScriptDao.read(scriptName);
+                            loadOperationList();
+                        }
+                    };
+                    RecordingPopUpDialog recordingPopUpDialog = new RecordingPopUpDialog(sugiliteData, getApplicationContext(), script, sharedPreferences, (SugiliteOperationBlock)currentBlock, LayoutInflater.from(getApplicationContext()), RecordingPopUpDialog.TRIGGERED_BY_EDIT, callback);
+                    recordingPopUpDialog.show();
+                    break;
                     //match, pop up the edit
                     //the pop up should save the new script to db
-                    Intent intent = new Intent(this, mRecordingPopUpActivity.class);
-                    intent.putExtra("trigger", mRecordingPopUpActivity.TRIGGERED_BY_EDIT);
-                    intent.putExtra("originalScript", script);
-                    intent.putExtra("blockToEdit", currentBlock);
-                    startActivityForResult(intent, mRecordingPopUpActivity.TRIGGERED_BY_EDIT);
-                    break;
                 }
                 else{
                     currentBlock = ((SugiliteOperationBlock) currentBlock).getNextBlock();

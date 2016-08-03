@@ -1,6 +1,7 @@
 package edu.cmu.hcii.sugilite.automation;
 
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Rect;
 import android.os.Bundle;
 import android.view.accessibility.AccessibilityNodeInfo;
@@ -23,6 +24,8 @@ import edu.cmu.hcii.sugilite.model.variable.Variable;
 import edu.cmu.hcii.sugilite.model.variable.VariableHelper;
 import edu.cmu.hcii.sugilite.ui.BoundingBoxManager;
 import edu.cmu.hcii.sugilite.ui.StatusIconManager;
+import android.speech.tts.TextToSpeech;
+
 
 /**
  * Created by toby on 6/13/16.
@@ -33,11 +36,24 @@ public class Automator {
     private BoundingBoxManager boundingBoxManager;
     private VariableHelper variableHelper;
     private static final int DELAY = 2000;
+    private TextToSpeech tts;
+    private boolean ttsReady = false;
+
 
     public Automator(SugiliteData sugiliteData, Context context, StatusIconManager statusIconManager){
         this.sugiliteData = sugiliteData;
         this.boundingBoxManager = new BoundingBoxManager(context);
+        Intent checkIntent = new Intent();
+        tts = new TextToSpeech(context, new TextToSpeech.OnInitListener() {
+            @Override
+            public void onInit(int status) {
+                ttsReady = true;
+            }
+        });
+
     }
+
+
     public boolean handleLiveEvent (AccessibilityNodeInfo rootNode, Context context){
         //TODO: fix the highlighting for matched element
         if(sugiliteData.getInstructionQueueSize() == 0 || rootNode == null)
@@ -112,6 +128,30 @@ public class Automator {
         }
         if(block.getOperation().getOperationType() == SugiliteOperation.SELECT){
             return nodeToAction.performAction(AccessibilityNodeInfo.ACTION_SELECT);
+        }
+
+        if(block.getOperation().getOperationType() == SugiliteOperation.READ_OUT){
+            if(block.getOperation().getParameter().contentEquals("Text")) {
+                if (ttsReady && node != null && node.getText() != null) {
+                    tts.speak("Return Value", TextToSpeech.QUEUE_ADD, null);
+                    tts.speak(node.getText().toString(), TextToSpeech.QUEUE_ADD, null);
+                }
+            }
+            else if (block.getOperation().getParameter().contentEquals("Child Text")) {
+                List<AccessibilityNodeInfo> children = preOrderTraverse(node);
+                if (ttsReady && node != null && children != null && children.size() > 0) {
+                    String childText = "";
+                    for(AccessibilityNodeInfo childNode : children){
+                        if(childNode.getText() != null)
+                            childText += childNode.getText();
+                    }
+                    if(childText.length() > 0) {
+                        tts.speak("Return Value", TextToSpeech.QUEUE_ADD, null);
+                        tts.speak(childText, TextToSpeech.QUEUE_ADD, null);
+                    }
+                }
+            }
+            return true;
         }
 
 

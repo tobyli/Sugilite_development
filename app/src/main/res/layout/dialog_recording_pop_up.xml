@@ -89,6 +89,38 @@
                         android:nestedScrollingEnabled="false" />
 
                 </LinearLayout>
+
+                <LinearLayout
+                    android:orientation="vertical"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/read_out_parameter_section"
+                    android:layout_marginLeft="20dp" >
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textAppearance="?android:attr/textAppearanceMedium"
+                        android:text="Text to Read Out"
+                        android:id="@+id/textView7"
+                        android:layout_marginTop="10dp"
+                        android:textStyle="bold"
+                        android:textColor="#ff0000" />
+
+                    <LinearLayout
+                        android:orientation="horizontal"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:weightSum="1" >
+
+                        <Spinner
+                            android:layout_width="fill_parent"
+                            android:layout_height="wrap_content"
+                            android:id="@+id/text_to_read_out_spinner"
+                            android:spinnerMode="dropdown" />
+                    </LinearLayout>
+
+                </LinearLayout>
             </LinearLayout>
 
             <View style="@style/Divider"

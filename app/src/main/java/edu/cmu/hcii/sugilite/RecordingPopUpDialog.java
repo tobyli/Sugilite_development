@@ -81,13 +81,14 @@ public class RecordingPopUpDialog {
     private Map<String, CheckBox> identifierCheckboxMap;
     private Set<Map.Entry<String, String>> alternativeLabels;
     private SugiliteScreenshotManager screenshotManager;
+    private DialogInterface.OnClickListener editCallback;
 
 
 
-    private Spinner actionSpinner, targetTypeSpinner, withInAppSpinner;
+    private Spinner actionSpinner, targetTypeSpinner, withInAppSpinner, readoutParameterSpinner;
     private CheckBox textCheckbox, contentDescriptionCheckbox, viewIdCheckbox, boundsInParentCheckbox, boundsInScreenCheckbox;
     private String textContent, contentDescriptionContent, viewIdContent;
-    private LinearLayout actionParameterSection, actionSection;
+    private LinearLayout actionParameterSection, actionSection, readoutParameterSection;
     private View dialogRootView;
     private LayoutInflater layoutInflater;
 
@@ -120,19 +121,44 @@ public class RecordingPopUpDialog {
         AlertDialog.Builder builder = new AlertDialog.Builder(applicationContext);
         builder.setView(dialogRootView)
                 .setTitle("Sugilite Recording");
-
-
         dialog = builder.create();
         dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
         dialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_box);
-
-
-
         //fetch the data capsuled in the intent
         //TODO: refactor so the service passes in a feature pack instead
         setupSelections();
+    }
 
-
+    public RecordingPopUpDialog(SugiliteData sugiliteData, Context applicationContext, SugiliteStartingBlock originalScript, SharedPreferences sharedPreferences, SugiliteOperationBlock blockToEdit, LayoutInflater inflater, int triggerMode, DialogInterface.OnClickListener callback){
+        this.sharedPreferences = sharedPreferences;
+        this.sugiliteData = sugiliteData;
+        this.featurePack = blockToEdit.getFeaturePack();
+        this.triggerMode = triggerMode;
+        this.layoutInflater = inflater;
+        this.originalScript = originalScript;
+        this.blockToEdit = blockToEdit;
+        this.editCallback = callback;
+        if(blockToEdit.getElementMatchingFilter().alternativeLabels != null)
+            this.alternativeLabels = new HashSet<>(blockToEdit.getElementMatchingFilter().alternativeLabels);
+        else
+            this.alternativeLabels = new HashSet<>();
+        this.screenshotManager = new SugiliteScreenshotManager(sharedPreferences, applicationContext);
+        sugiliteScriptDao = new SugiliteScriptDao(applicationContext);
+        readableDescriptionGenerator = new ReadableDescriptionGenerator(applicationContext);
+        checkBoxChildEntryMap = new HashMap<>();
+        checkBoxParentEntryMap = new HashMap<>();
+        identifierCheckboxMap = new HashMap<>();
+        dialogRootView = inflater.inflate(R.layout.dialog_recording_pop_up, null);
+        ContextThemeWrapper ctw = new ContextThemeWrapper(applicationContext, R.style.AlertDialogCustom);
+        AlertDialog.Builder builder = new AlertDialog.Builder(applicationContext);
+        builder.setView(dialogRootView)
+                .setTitle("Sugilite Recording");
+        dialog = builder.create();
+        dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
+        dialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_box);
+        //fetch the data capsuled in the intent
+        //TODO: refactor so the service passes in a feature pack instead
+        setupSelections();
     }
 
     public void show(){
@@ -162,6 +188,7 @@ public class RecordingPopUpDialog {
             sugiliteData.setScriptHead(new SugiliteStartingBlock(sharedPreferences.getString("scriptName", "defaultScript") + ".SugiliteScript"));
             sugiliteData.setCurrentScriptBlock(sugiliteData.getScriptHead());
         }
+
         final SugiliteOperationBlock operationBlock = generateBlock();
         AlertDialog.Builder builder = new AlertDialog.Builder(dialog.getContext());
         builder.setTitle("Save Operation Confirmation").setMessage(Html.fromHtml("Are you sure you want to record the operation: " + readableDescriptionGenerator.generateReadableDescription(operationBlock)));
@@ -185,6 +212,10 @@ public class RecordingPopUpDialog {
                 //fill in the text box if the operation is of SET_TEXT type
                 if (operationBlock.getOperation().getOperationType() == SugiliteOperation.SET_TEXT && triggerMode == TRIGGERED_BY_NEW_EVENT)
                     sugiliteData.addInstruction(operationBlock);
+                if(editCallback != null) {
+                    System.out.println("calling callback");
+                    editCallback.onClick(dialog, which);
+                }
             }
         }).setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
             @Override
@@ -389,10 +420,17 @@ public class RecordingPopUpDialog {
             selectedParentFeatures.addAll(recommender.chooseParentFeatures());
         }
 
+        boolean hasChildText = false;
+        String childText = "";
         for(Map.Entry<String, String> feature : allChildFeatures){
             if(feature.getKey() != null && feature.getValue() != null){
                 CheckBox childCheckBox = new CheckBox(dialogRootView.getContext());
                 childCheckBox.setText(Html.fromHtml(boldify("Child " + feature.getKey() + ": ") + feature.getValue()));
+                if(feature.getKey().contains("Text")) {
+                    hasChildText = true;
+                    childText += feature.getValue();
+                    childText += " ";
+                }
                 if(!existingFeatureValues.contains(feature.getValue())) {
                     if (selectedChildFeatures.contains(feature))
                         childCheckBox.setChecked(true);
@@ -458,6 +496,8 @@ public class RecordingPopUpDialog {
         };
 
         //set up action
+
+
         actionSpinner = (Spinner)dialogRootView.findViewById(R.id.action_dropdown);
         List<String> actionSpinnerItems = new ArrayList<>();
         if(featurePack.isEditable)
@@ -465,11 +505,16 @@ public class RecordingPopUpDialog {
         actionSpinnerItems.add("Click");
         if(featurePack.eventType == AccessibilityEvent.TYPE_VIEW_LONG_CLICKED)
             actionSpinnerItems.add("Long Click");
+        if((featurePack.text != null && (! featurePack.text.contentEquals("NULL"))) || hasChildText)
+            actionSpinnerItems.add("Read Out");
+
         ArrayAdapter<String> actionAdapter = new ArrayAdapter<String>(dialogRootView.getContext(), android.R.layout.simple_spinner_item, actionSpinnerItems);
         actionAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         actionSpinner.setAdapter(actionAdapter);
         actionSpinner.setSelection(0);
         actionSpinner.setOnItemSelectedListener(spinnerSelectedListener);
+
+
 
         EditText textBox = (EditText)dialogRootView.findViewById(R.id.action_parameter_set_text);
         textBox.addTextChangedListener(new TextWatcher() {
@@ -488,12 +533,27 @@ public class RecordingPopUpDialog {
 
             }
         });
+        //set up read out parameter spinner
+        readoutParameterSpinner = (Spinner)dialogRootView.findViewById(R.id.text_to_read_out_spinner);
+        List<String> readoutParameterItems  = new ArrayList<>();
+        if(featurePack.text != null && (!featurePack.text.contentEquals("NULL")))
+            readoutParameterItems.add("Text: (" + featurePack.text + ")");
+        if(hasChildText)
+            readoutParameterItems.add("Child Text: (" + childText + ")");
+        ArrayAdapter<String> readoutAdapter = new ArrayAdapter<String>(dialogRootView.getContext(), android.R.layout.simple_spinner_item, readoutParameterItems);
+        readoutParameterSpinner.setAdapter(readoutAdapter);
+        readoutParameterSpinner.setSelection(0);
+        readoutParameterSpinner.setOnItemSelectedListener(spinnerSelectedListener);
+
+
 
         actionParameterSection = (LinearLayout)dialogRootView.findViewById(R.id.action_parameter_section);
+        readoutParameterSection = (LinearLayout)dialogRootView.findViewById(R.id.read_out_parameter_section);
         actionSection = (LinearLayout)dialogRootView.findViewById(R.id.action_section);
         actionSection.removeView(actionParameterSection);
+        actionSection.removeView(readoutParameterSection);
 
-        //set up target type
+        //set up target type spinner
         targetTypeSpinner = (Spinner)dialogRootView.findViewById(R.id.target_type_dropdown);
         List<String> targetTypeSpinnerItems = new ArrayList<>();
         targetTypeSpinnerItems.add(featurePack.className);
@@ -504,7 +564,7 @@ public class RecordingPopUpDialog {
         targetTypeSpinner.setSelection(0);
         targetTypeSpinner.setOnItemSelectedListener(spinnerSelectedListener);
 
-        //set up within app
+        //set up within app spinner
         withInAppSpinner = (Spinner)dialogRootView.findViewById(R.id.within_app_dropdown);
         List<String> withinAppSpinnerItems = new ArrayList<>();
         withinAppSpinnerItems.add(readableDescriptionGenerator.getReadableName(featurePack.packageName));
@@ -537,6 +597,12 @@ public class RecordingPopUpDialog {
         }
         if ((!actionSpinnerSelectedItem.contentEquals("Set Text")) && (actionParameterSection.getParent() != null))
             actionSection.removeView(actionParameterSection);
+
+        if (actionSpinnerSelectedItem.contentEquals("Read Out") && readoutParameterSection.getParent() == null) {
+            actionSection.addView(readoutParameterSection);
+        }
+        if ((!actionSpinnerSelectedItem.contentEquals("Read Out")) && (readoutParameterSection.getParent() != null))
+            actionSection.removeView(readoutParameterSection);
 
         //refresh "selectedchildren" and "selectedparent"
         selectedParentFeatures.clear();
@@ -782,6 +848,13 @@ public class RecordingPopUpDialog {
             sugiliteOperation.setOperationType(SugiliteOperation.CLICK);
         if (actionSpinnerSelectedItem.contentEquals("Long Click"))
             sugiliteOperation.setOperationType(SugiliteOperation.LONG_CLICK);
+        if (actionSpinnerSelectedItem.contentEquals("Read Out")) {
+            sugiliteOperation.setOperationType(SugiliteOperation.READ_OUT);
+            if(dialogRootView.findViewById(R.id.text_to_read_out_spinner) != null){
+                String selectionText = ((Spinner)dialogRootView.findViewById(R.id.text_to_read_out_spinner)).getSelectedItem().toString();
+                sugiliteOperation.setParameter(selectionText.substring(0, selectionText.indexOf(":")));
+            }
+        }
         if (actionSpinnerSelectedItem.contentEquals("Set Text")) {
             sugiliteOperation = new SugiliteSetTextOperation();
             //replace set text parameter with parameter

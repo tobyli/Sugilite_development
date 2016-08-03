@@ -191,12 +191,14 @@ public class RecordingPopUpDialog {
 
         final SugiliteOperationBlock operationBlock = generateBlock();
         AlertDialog.Builder builder = new AlertDialog.Builder(dialog.getContext());
+        //disable the confirmation dialog
+        /*
         builder.setTitle("Save Operation Confirmation").setMessage(Html.fromHtml("Are you sure you want to record the operation: " + readableDescriptionGenerator.generateReadableDescription(operationBlock)));
-        final Context tempContext = dialog.getContext();
         builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 //take screenshot
+                */
                 File screenshot = null;
                 if(sharedPreferences.getBoolean("root_enabled", false)) {
                     try {
@@ -208,14 +210,15 @@ public class RecordingPopUpDialog {
                         e.printStackTrace();
                     }
                 }
-                saveBlock(operationBlock, tempContext);
+                saveBlock(operationBlock, dialog.getContext());
                 //fill in the text box if the operation is of SET_TEXT type
                 if (operationBlock.getOperation().getOperationType() == SugiliteOperation.SET_TEXT && triggerMode == TRIGGERED_BY_NEW_EVENT)
                     sugiliteData.addInstruction(operationBlock);
                 if(editCallback != null) {
                     System.out.println("calling callback");
-                    editCallback.onClick(dialog, which);
+                    editCallback.onClick(dialog, 0);
                 }
+        /*
             }
         }).setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
             @Override
@@ -226,6 +229,7 @@ public class RecordingPopUpDialog {
         AlertDialog dialog = builder.create();
         dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
         dialog.show();
+        */
     }
 
 
@@ -374,7 +378,7 @@ public class RecordingPopUpDialog {
             }
         };
 
-        if(!featurePack.text.contentEquals("NULL")) {
+        if((!featurePack.text.contentEquals("NULL")) && featurePack.text.length() > 0) {
             textCheckbox = new CheckBox(dialogRootView.getContext());
             textCheckbox.setText(Html.fromHtml(boldify("Text: ") + featurePack.text));
             existingFeatureValues.add(featurePack.text);
@@ -389,7 +393,7 @@ public class RecordingPopUpDialog {
         }
 
 
-        if(!featurePack.contentDescription.contentEquals("NULL")) {
+        if((!featurePack.contentDescription.contentEquals("NULL")) && featurePack.contentDescription.length() > 0) {
             contentDescriptionCheckbox = new CheckBox(dialogRootView.getContext());
             contentDescriptionCheckbox.setText(Html.fromHtml(boldify("ContentDescription: ") + featurePack.contentDescription));
             existingFeatureValues.add(featurePack.contentDescription);
@@ -423,7 +427,7 @@ public class RecordingPopUpDialog {
         boolean hasChildText = false;
         String childText = "";
         for(Map.Entry<String, String> feature : allChildFeatures){
-            if(feature.getKey() != null && feature.getValue() != null){
+            if(feature.getKey() != null && feature.getValue() != null && feature.getValue().length() > 0){
                 CheckBox childCheckBox = new CheckBox(dialogRootView.getContext());
                 childCheckBox.setText(Html.fromHtml(boldify("Child " + feature.getKey() + ": ") + feature.getValue()));
                 if(feature.getKey().contains("Text")) {
@@ -538,6 +542,8 @@ public class RecordingPopUpDialog {
         List<String> readoutParameterItems  = new ArrayList<>();
         if(featurePack.text != null && (!featurePack.text.contentEquals("NULL")))
             readoutParameterItems.add("Text: (" + featurePack.text + ")");
+        if(featurePack.contentDescription != null && (!featurePack.contentDescription.contentEquals("NULL")))
+            readoutParameterItems.add("Content Description: (" + featurePack.contentDescription + ")");
         if(hasChildText)
             readoutParameterItems.add("Child Text: (" + childText + ")");
         ArrayAdapter<String> readoutAdapter = new ArrayAdapter<String>(dialogRootView.getContext(), android.R.layout.simple_spinner_item, readoutParameterItems);

@@ -151,6 +151,12 @@ public class Automator {
                     }
                 }
             }
+            else if (block.getOperation().getParameter().contentEquals("Content Description")){
+                if (ttsReady && node != null && node.getContentDescription() != null) {
+                    tts.speak("Return Value", TextToSpeech.QUEUE_ADD, null);
+                    tts.speak(node.getContentDescription().toString(), TextToSpeech.QUEUE_ADD, null);
+                }
+            }
             return true;
         }
 

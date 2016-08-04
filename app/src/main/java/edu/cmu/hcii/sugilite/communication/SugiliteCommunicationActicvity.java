@@ -28,7 +28,7 @@ import edu.cmu.hcii.sugilite.dao.SugiliteTrackingDao;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.ui.VariableSetValueDialog;
 
-public class SugiliteCommunicationActicvity extends AppCompatActivity {
+public class SugiliteCommunicationActicvity extends Activity {
     TextView messageType, scriptName;
     SugiliteScriptDao sugiliteScriptDao;
     SugiliteBlockJSONProcessor jsonProcessor;

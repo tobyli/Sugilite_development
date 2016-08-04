@@ -43,6 +43,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TimeZone;
 
+import edu.cmu.hcii.sugilite.communication.SugiliteBlockJSONProcessor;
 import edu.cmu.hcii.sugilite.dao.SugiliteScreenshotManager;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
 import edu.cmu.hcii.sugilite.model.AccessibilityNodeInfoList;
@@ -70,6 +71,7 @@ public class RecordingPopUpDialog {
     private SugiliteAvailableFeaturePack featurePack;
     private SharedPreferences sharedPreferences;
     private SugiliteScriptDao sugiliteScriptDao;
+    private SugiliteBlockJSONProcessor jsonProcessor;
     private Set<Map.Entry<String, String>> allParentFeatures = new HashSet<>();
     private Set<Map.Entry<String, String>> allChildFeatures = new HashSet<>();
     private Set<Map.Entry<String, String>> selectedParentFeatures = new HashSet<>();
@@ -113,6 +115,7 @@ public class RecordingPopUpDialog {
         this.layoutInflater = inflater;
         this.alternativeLabels = new HashSet<>(alternativeLabels);
         this.screenshotManager = new SugiliteScreenshotManager(sharedPreferences, applicationContext);
+        jsonProcessor = new SugiliteBlockJSONProcessor(applicationContext);
         sugiliteScriptDao = new SugiliteScriptDao(applicationContext);
         readableDescriptionGenerator = new ReadableDescriptionGenerator(applicationContext);
         checkBoxChildEntryMap = new HashMap<>();
@@ -181,7 +184,7 @@ public class RecordingPopUpDialog {
         prefEditor.commit();
         if(sugiliteData.initiatedExternally == true && sugiliteData.getScriptHead() != null)
             sugiliteData.communicationController.sendRecordingFinishedSignal(sugiliteData.getScriptHead().getScriptName());
-            sugiliteData.sendCallbackMsg("FINISHED_RECORDING", sugiliteData.getScriptHead().getScriptName(), sugiliteData.callbackString);
+            sugiliteData.sendCallbackMsg("FINISHED_RECORDING", jsonProcessor.scriptToJson(sugiliteData.getScriptHead()), sugiliteData.callbackString);
         dialog.dismiss();
     }
 

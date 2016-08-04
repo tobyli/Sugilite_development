@@ -153,7 +153,7 @@ public class SugiliteCommunicationActicvity extends Activity {
                     prefEditor.putBoolean("recording_in_process", false);
                     prefEditor.commit();
                     if(sugiliteData.initiatedExternally == true && sugiliteData.getScriptHead() != null)
-                        sugiliteData.sendCallbackMsg("FINISHED_RECORDING", sugiliteData.getScriptHead().getScriptName(), arg2);
+                        sugiliteData.sendCallbackMsg("FINISHED_RECORDING", jsonProcessor.scriptToJson(sugiliteData.getScriptHead()), arg2);
 
                     Toast.makeText(context, "recording ended", Toast.LENGTH_SHORT).show();
                     sendReturnValue("");

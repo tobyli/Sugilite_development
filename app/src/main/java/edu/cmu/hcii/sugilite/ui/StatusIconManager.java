@@ -36,6 +36,7 @@ import edu.cmu.hcii.sugilite.ScriptDetailActivity;
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.automation.Automator;
 import edu.cmu.hcii.sugilite.automation.ServiceStatusManager;
+import edu.cmu.hcii.sugilite.communication.SugiliteBlockJSONProcessor;
 import edu.cmu.hcii.sugilite.communication.SugiliteCommunicationController;
 import edu.cmu.hcii.sugilite.dao.SugiliteScreenshotManager;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
@@ -57,6 +58,7 @@ public class StatusIconManager {
     private SugiliteScriptDao sugiliteScriptDao;
     private ServiceStatusManager serviceStatusManager;
     private SugiliteScreenshotManager screenshotManager;
+    private SugiliteBlockJSONProcessor jsonProcessor;
     private WindowManager.LayoutParams params;
     private VariableHelper variableHelper;
     private Random random;
@@ -70,6 +72,7 @@ public class StatusIconManager {
         this.serviceStatusManager = new ServiceStatusManager(context);
         this.screenshotManager = new SugiliteScreenshotManager(sharedPreferences, context);
         variableHelper = new VariableHelper(sugiliteData.stringVariableMap);
+        jsonProcessor = new SugiliteBlockJSONProcessor(context);
         random = new Random();
 
     }
@@ -281,7 +284,7 @@ public class StatusIconManager {
                                     prefEditor.commit();
                                     if (sugiliteData.initiatedExternally == true && sugiliteData.getScriptHead() != null) {
                                         sugiliteData.communicationController.sendRecordingFinishedSignal(sugiliteData.getScriptHead().getScriptName());
-                                        sugiliteData.sendCallbackMsg("FINISHED_RECORDING", sugiliteData.getScriptHead().getScriptName(), sugiliteData.callbackString);
+                                        sugiliteData.sendCallbackMsg("FINISHED_RECORDING", jsonProcessor.scriptToJson(sugiliteData.getScriptHead()), sugiliteData.callbackString);
                                     }
                                     Toast.makeText(context, "end recording", Toast.LENGTH_SHORT).show();
                                     break;

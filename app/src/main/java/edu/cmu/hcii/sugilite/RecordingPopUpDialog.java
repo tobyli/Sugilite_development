@@ -54,6 +54,7 @@ import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.model.block.UIElementMatchingFilter;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteOperation;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteSetTextOperation;
+import edu.cmu.hcii.sugilite.model.variable.StringVariable;
 import edu.cmu.hcii.sugilite.model.variable.Variable;
 import edu.cmu.hcii.sugilite.ui.ChooseVariableDialog;
 import edu.cmu.hcii.sugilite.ui.ReadableDescriptionGenerator;
@@ -83,14 +84,15 @@ public class RecordingPopUpDialog {
     private Set<Map.Entry<String, String>> alternativeLabels;
     private SugiliteScreenshotManager screenshotManager;
     private DialogInterface.OnClickListener editCallback;
+    private String childText = "";
 
 
 
-    private Spinner actionSpinner, targetTypeSpinner, withInAppSpinner, readoutParameterSpinner;
+    private Spinner actionSpinner, targetTypeSpinner, withInAppSpinner, readoutParameterSpinner, loadVariableParameterSpinner;
     private CheckBox textCheckbox, contentDescriptionCheckbox, viewIdCheckbox, boundsInParentCheckbox, boundsInScreenCheckbox;
-    private EditText setTextEditText;
+    private EditText setTextEditText, loadVariableVariableDefaultValue, loadVariableVariableName;
     private String textContent, contentDescriptionContent, viewIdContent;
-    private LinearLayout actionParameterSection, actionSection, readoutParameterSection;
+    private LinearLayout actionParameterSection, actionSection, readoutParameterSection, loadVariableParameterSection;
     private View dialogRootView;
     private LayoutInflater layoutInflater;
 
@@ -186,6 +188,26 @@ public class RecordingPopUpDialog {
     }
 
     public void OKButtonOnClick(View view){
+        //check if all fields are filled
+        String actionSpinnerSelectedItem = actionSpinner.getSelectedItem().toString();
+        if (actionSpinnerSelectedItem.contentEquals("Load as Variable")){
+            if(loadVariableVariableName.getText().length() < 1){
+                //variable name not filled, popup window
+                AlertDialog.Builder builder = new AlertDialog.Builder(dialog.getContext());
+                builder.setTitle("Variable Name not Set").setMessage("Please set the name of the varilable").setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                    }
+                }).show();
+            }
+            return;
+        }
+        //TODO: add popup if current selection can't get unique button
+
+
+
+
         //add head if no one is present && this popup is triggered by new event
         if(triggerMode == TRIGGERED_BY_NEW_EVENT &&
                 (sugiliteData.getScriptHead() == null ||
@@ -430,7 +452,6 @@ public class RecordingPopUpDialog {
         }
 
         boolean hasChildText = false;
-        String childText = "";
         for(Map.Entry<String, String> feature : allChildFeatures){
             if(feature.getKey() != null && feature.getValue() != null && feature.getValue().length() > 0){
                 CheckBox childCheckBox = new CheckBox(dialogRootView.getContext());
@@ -514,8 +535,10 @@ public class RecordingPopUpDialog {
         actionSpinnerItems.add("Click");
         if(featurePack.eventType == AccessibilityEvent.TYPE_VIEW_LONG_CLICKED)
             actionSpinnerItems.add("Long Click");
-        if((featurePack.text != null && (! featurePack.text.contentEquals("NULL"))) || hasChildText)
+        if((featurePack.text != null && (! featurePack.text.contentEquals("NULL"))) || hasChildText || (featurePack.contentDescription != null && (! featurePack.contentDescription.contentEquals("NULL")))) {
             actionSpinnerItems.add("Read Out");
+            actionSpinnerItems.add("Load as Variable");
+        }
 
         ArrayAdapter<String> actionAdapter = new ArrayAdapter<String>(dialogRootView.getContext(), android.R.layout.simple_spinner_item, actionSpinnerItems);
         actionAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
@@ -542,6 +565,9 @@ public class RecordingPopUpDialog {
 
             }
         });
+        loadVariableVariableDefaultValue = (EditText)dialogRootView.findViewById(R.id.load_variable_default_value);
+        loadVariableVariableName = (EditText)dialogRootView.findViewById(R.id.load_variable_variable_name);
+
         //set up read out parameter spinner
         readoutParameterSpinner = (Spinner)dialogRootView.findViewById(R.id.text_to_read_out_spinner);
         List<String> readoutParameterItems  = new ArrayList<>();
@@ -556,6 +582,20 @@ public class RecordingPopUpDialog {
         readoutParameterSpinner.setSelection(0);
         readoutParameterSpinner.setOnItemSelectedListener(spinnerSelectedListener);
 
+        //set up load variable parameter spinner
+        loadVariableParameterSpinner = (Spinner)dialogRootView.findViewById(R.id.element_to_load_variable_spinner);
+        List<String> loadVariableParameterItems  = new ArrayList<>();
+        if(featurePack.text != null && (!featurePack.text.contentEquals("NULL")))
+            loadVariableParameterItems.add("Text: (" + featurePack.text + ")");
+        if(featurePack.contentDescription != null && (!featurePack.contentDescription.contentEquals("NULL")))
+            loadVariableParameterItems.add("Content Description: (" + featurePack.contentDescription + ")");
+        if(hasChildText)
+            loadVariableParameterItems.add("Child Text: (" + childText + ")");
+        ArrayAdapter<String> loadVariableAdapter = new ArrayAdapter<String>(dialogRootView.getContext(), android.R.layout.simple_spinner_item, loadVariableParameterItems);
+        loadVariableParameterSpinner.setAdapter(loadVariableAdapter);
+        loadVariableParameterSpinner.setSelection(0);
+        loadVariableParameterSpinner.setOnItemSelectedListener(spinnerSelectedListener);
+
 
         setTextEditText = (EditText)dialogRootView.findViewById(R.id.action_parameter_set_text);
         final InputMethodManager imm = (InputMethodManager) dialog.getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
@@ -568,9 +608,12 @@ public class RecordingPopUpDialog {
         });
         actionParameterSection = (LinearLayout)dialogRootView.findViewById(R.id.action_parameter_section);
         readoutParameterSection = (LinearLayout)dialogRootView.findViewById(R.id.read_out_parameter_section);
+        loadVariableParameterSection = (LinearLayout)dialogRootView.findViewById(R.id.load_variable_parameter_section);
+
         actionSection = (LinearLayout)dialogRootView.findViewById(R.id.action_section);
         actionSection.removeView(actionParameterSection);
         actionSection.removeView(readoutParameterSection);
+        actionSection.removeView(loadVariableParameterSection);
 
         //set up target type spinner
         targetTypeSpinner = (Spinner)dialogRootView.findViewById(R.id.target_type_dropdown);
@@ -623,6 +666,22 @@ public class RecordingPopUpDialog {
         if ((!actionSpinnerSelectedItem.contentEquals("Read Out")) && (readoutParameterSection.getParent() != null))
             actionSection.removeView(readoutParameterSection);
 
+        if (actionSpinnerSelectedItem.contentEquals("Load as Variable") && loadVariableParameterSection.getParent() == null) {
+            actionSection.addView(loadVariableParameterSection);
+            String selectedTarget = loadVariableParameterSpinner.getSelectedItem().toString();
+            if(loadVariableVariableDefaultValue.getText().toString().length() < 1) {
+                if (selectedTarget.contains("Text")) {
+                    loadVariableVariableDefaultValue.setText(featurePack.text);
+                } else if (selectedTarget.contains("Content Description")) {
+                    loadVariableVariableDefaultValue.setText(featurePack.contentDescription);
+                } else if (selectedTarget.contains("Child Text")) {
+                    loadVariableVariableDefaultValue.setText(childText);
+                }
+            }
+        }
+        if ((!actionSpinnerSelectedItem.contentEquals("Load as Variable")) && (loadVariableParameterSection.getParent() != null))
+            actionSection.removeView(loadVariableParameterSection);
+
         //refresh "selectedchildren" and "selectedparent"
         selectedParentFeatures.clear();
         selectedChildFeatures.clear();
@@ -647,7 +706,6 @@ public class RecordingPopUpDialog {
 
 
 
-        //refresh content according to checkbox label
 
         //use the "***Content" to generate the filter later
 
@@ -681,6 +739,7 @@ public class RecordingPopUpDialog {
 
         //refresh the operation preview
         ((TextView) dialogRootView.findViewById(R.id.previewContent)).setText(Html.fromHtml(readableDescriptionGenerator.generateReadableDescription(generateBlock())));
+
     }
 
     /**
@@ -874,6 +933,40 @@ public class RecordingPopUpDialog {
                 sugiliteOperation.setParameter(selectionText.substring(0, selectionText.indexOf(":")));
             }
         }
+        if (actionSpinnerSelectedItem.contentEquals("Load as Variable")){
+            sugiliteOperation.setOperationType(SugiliteOperation.LOAD_AS_VARIABLE);
+            if(dialogRootView.findViewById(R.id.element_to_load_variable_spinner) != null){
+                String selectionText = ((Spinner)dialogRootView.findViewById(R.id.element_to_load_variable_spinner)).getSelectedItem().toString();
+                sugiliteOperation.setParameter(selectionText.substring(0, selectionText.indexOf(":")));
+                String variableName = loadVariableVariableName.getText().toString();
+
+
+                //add the variable to the symbol table
+                StringVariable stringVariable = new StringVariable(variableName);
+                stringVariable.type = Variable.LOAD_RUNTIME;
+                String selectedTarget = loadVariableParameterSpinner.getSelectedItem().toString();
+                if(loadVariableVariableDefaultValue.getText().toString().length() < 1) {
+                    if (selectedTarget.contains("Text")) {
+                        stringVariable.setValue(featurePack.text);
+                    } else if (selectedTarget.contains("Content Description")) {
+                        stringVariable.setValue(featurePack.contentDescription);
+                    } else if (selectedTarget.contains("Child Text")) {
+                        stringVariable.setValue(childText);
+                    }
+                }
+                if(sugiliteData.stringVariableMap == null)
+                    sugiliteData.stringVariableMap = new HashMap<String, Variable>();
+
+                sugiliteData.stringVariableMap.put(variableName, stringVariable);
+                if(triggerMode == TRIGGERED_BY_EDIT) {
+                    originalScript.variableNameDefaultValueMap.put(variableName, stringVariable);
+                }
+                else if (triggerMode == TRIGGERED_BY_NEW_EVENT){
+                    sugiliteData.getScriptHead().variableNameDefaultValueMap.put(variableName, stringVariable);
+                }
+
+            }
+        }
         if (actionSpinnerSelectedItem.contentEquals("Set Text")) {
             sugiliteOperation = new SugiliteSetTextOperation();
             //replace set text parameter with parameter
@@ -907,6 +1000,7 @@ public class RecordingPopUpDialog {
     private String boldify(String text){
         return "<b>" + text + "</b>";
     }
+
     private LinearLayout generateRow(final CheckBox checkBox, final String label, final String defaultDefaultValue){
         LinearLayout linearLayout = new LinearLayout(dialogRootView.getContext());
         linearLayout.setOrientation(LinearLayout.VERTICAL);

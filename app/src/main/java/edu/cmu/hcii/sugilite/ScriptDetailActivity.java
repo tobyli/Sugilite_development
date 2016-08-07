@@ -135,6 +135,7 @@ public class ScriptDetailActivity extends AppCompatActivity {
                         else {
                             VariableSetValueDialog variableSetValueDialog = new VariableSetValueDialog(activityContext, getLayoutInflater(), sugiliteData, script, sharedPreferences);
                             if(script.variableNameDefaultValueMap.size() > 0) {
+                                sugiliteData.stringVariableMap.putAll(script.variableNameDefaultValueMap);
                                 //show the dialog
                                 variableSetValueDialog.show();
                             }

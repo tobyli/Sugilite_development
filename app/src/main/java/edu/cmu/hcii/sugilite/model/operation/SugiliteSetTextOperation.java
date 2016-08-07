@@ -12,6 +12,7 @@ import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
 public class SugiliteSetTextOperation extends SugiliteOperation implements Serializable {
     private String text;
     public SugiliteSetTextOperation(){
+        super();
         this.setOperationType(SET_TEXT);
     }
     public String getText(){

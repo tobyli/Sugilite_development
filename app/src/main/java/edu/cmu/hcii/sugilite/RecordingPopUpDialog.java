@@ -53,6 +53,7 @@ import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.model.block.UIElementMatchingFilter;
+import edu.cmu.hcii.sugilite.model.operation.SugiliteLoadVariableOperation;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteOperation;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteSetTextOperation;
 import edu.cmu.hcii.sugilite.model.variable.StringVariable;
@@ -937,12 +938,13 @@ public class RecordingPopUpDialog {
             }
         }
         if (actionSpinnerSelectedItem.contentEquals("Load as Variable")){
+            sugiliteOperation = new SugiliteLoadVariableOperation();
             sugiliteOperation.setOperationType(SugiliteOperation.LOAD_AS_VARIABLE);
             if(dialogRootView.findViewById(R.id.element_to_load_variable_spinner) != null){
                 String selectionText = ((Spinner)dialogRootView.findViewById(R.id.element_to_load_variable_spinner)).getSelectedItem().toString();
                 sugiliteOperation.setParameter(selectionText.substring(0, selectionText.indexOf(":")));
                 String variableName = loadVariableVariableName.getText().toString();
-
+                ((SugiliteLoadVariableOperation)sugiliteOperation).setVariableName(variableName);
 
                 //add the variable to the symbol table
                 StringVariable stringVariable = new StringVariable(variableName);

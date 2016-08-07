@@ -50,6 +50,8 @@ public class VariableSetValueDialog {
         variableEditTextMap = new HashMap<>();
 
         for(Map.Entry<String, Variable> entry : variableDefaultValueMap.entrySet()){
+            if(entry.getValue().type == Variable.LOAD_RUNTIME)
+                continue;
             LinearLayout linearLayout = new LinearLayout(context);
             linearLayout.setOrientation(LinearLayout.HORIZONTAL);
             linearLayout.setWeightSum(3);

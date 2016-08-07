@@ -17,6 +17,7 @@ import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
+import edu.cmu.hcii.sugilite.model.operation.SugiliteLoadVariableOperation;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteOperation;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteSetTextOperation;
 import edu.cmu.hcii.sugilite.model.variable.StringVariable;
@@ -160,7 +161,43 @@ public class Automator {
             return true;
         }
 
+        if(block.getOperation().getOperationType() == SugiliteOperation.LOAD_AS_VARIABLE) {
+            if (block.getOperation() instanceof SugiliteLoadVariableOperation) {
+                String variableName = ((SugiliteLoadVariableOperation) block.getOperation()).getVariableName();
+                StringVariable stringVariable = new StringVariable(variableName);
+                stringVariable.type = Variable.LOAD_RUNTIME;
 
+                if (block.getOperation().getParameter().contentEquals("Text")) {
+                    if (node.getText() != null) {
+                        stringVariable.setValue(node.getText().toString());
+                    }
+                } else if (block.getOperation().getParameter().contentEquals("Child Text")) {
+                    List<AccessibilityNodeInfo> children = preOrderTraverse(node);
+                    if (ttsReady && node != null && children != null && children.size() > 0) {
+                        String childText = "";
+                        for (AccessibilityNodeInfo childNode : children) {
+                            if (childNode.getText() != null)
+                                childText += childNode.getText();
+                        }
+                        if (childText.length() > 0) {
+                            stringVariable.setValue(childText);
+                        }
+                    }
+                } else if (block.getOperation().getParameter().contentEquals("Content Description")) {
+                    if (node.getContentDescription() != null) {
+                        stringVariable.setValue(node.getContentDescription().toString());
+                    }
+                }
+                if(stringVariable.getValue() != null && stringVariable.getValue().length() > 0){
+                    //save the string variable to run time symbol table
+                    Toast.makeText(context, "Get value \"" + stringVariable.getValue() + "\" for the variable " + stringVariable.getName(), Toast.LENGTH_SHORT).show();
+                    sugiliteData.stringVariableMap.put(stringVariable.getName(), stringVariable);
+                    return true;
+                }
+                else
+                    return false;
+            }
+        }
         return false;
     }
 

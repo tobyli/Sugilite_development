@@ -149,7 +149,7 @@ public class SugiliteData extends Application {
         Intent intent = new Intent(callbackString);
         intent.putExtra("messageType", messageType);
         intent.putExtra("messageBody", messageBody);
-        intent.setFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_NO_HISTORY);
         try {
             startActivity(intent);
         }

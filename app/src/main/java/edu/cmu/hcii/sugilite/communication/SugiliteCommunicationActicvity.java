@@ -28,7 +28,7 @@ import edu.cmu.hcii.sugilite.dao.SugiliteTrackingDao;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.ui.VariableSetValueDialog;
 
-public class SugiliteCommunicationActicvity extends AppCompatActivity {
+public class SugiliteCommunicationActicvity extends Activity {
     TextView messageType, scriptName;
     SugiliteScriptDao sugiliteScriptDao;
     SugiliteBlockJSONProcessor jsonProcessor;
@@ -153,7 +153,7 @@ public class SugiliteCommunicationActicvity extends AppCompatActivity {
                     prefEditor.putBoolean("recording_in_process", false);
                     prefEditor.commit();
                     if(sugiliteData.initiatedExternally == true && sugiliteData.getScriptHead() != null)
-                        sugiliteData.sendCallbackMsg("FINISHED_RECORDING", sugiliteData.getScriptHead().getScriptName(), arg2);
+                        sugiliteData.sendCallbackMsg("FINISHED_RECORDING", jsonProcessor.scriptToJson(sugiliteData.getScriptHead()), arg2);
 
                     Toast.makeText(context, "recording ended", Toast.LENGTH_SHORT).show();
                     sendReturnValue("");

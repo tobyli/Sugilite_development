@@ -40,6 +40,7 @@ import com.stericson.RootTools.RootTools;
 import java.util.List;
 
 import edu.cmu.hcii.sugilite.automation.ServiceStatusManager;
+import edu.cmu.hcii.sugilite.communication.SugiliteBlockJSONProcessor;
 import edu.cmu.hcii.sugilite.communication.SugiliteCommunicationController;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
 import edu.cmu.hcii.sugilite.dao.SugiliteTrackingDao;
@@ -65,6 +66,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
     private static SugiliteScriptDao sugiliteScriptDao;
     private static SugiliteTrackingDao sugiliteTrackingDao;
     private static SugiliteTrackingHandler trackingHandler;
+    private static SugiliteBlockJSONProcessor jsonProcessor;
     private static Context context;
 
     @Override
@@ -77,6 +79,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
         sugiliteScriptDao = new SugiliteScriptDao(this);
         sugiliteTrackingDao = new SugiliteTrackingDao(this);
         trackingHandler = new SugiliteTrackingHandler(sugiliteData, this);
+        jsonProcessor = new SugiliteBlockJSONProcessor(this);
         this.context = this;
     }
 
@@ -209,7 +212,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
                     else{
                         if(sugiliteData.initiatedExternally == true && sugiliteData.getScriptHead() != null)
                             sugiliteData.communicationController.sendRecordingFinishedSignal(sugiliteData.getScriptHead().getScriptName());
-                            sugiliteData.sendCallbackMsg("FINISHED_RECORDING", sugiliteData.getScriptHead().getScriptName(), sugiliteData.callbackString);
+                            sugiliteData.sendCallbackMsg("FINISHED_RECORDING", jsonProcessor.scriptToJson(sugiliteData.getScriptHead()), sugiliteData.callbackString);
                     }
                     break;
 

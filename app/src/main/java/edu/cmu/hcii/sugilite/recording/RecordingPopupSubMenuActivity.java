@@ -1,4 +1,4 @@
-package edu.cmu.hcii.sugilite;
+package edu.cmu.hcii.sugilite.recording;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -15,6 +15,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import edu.cmu.hcii.sugilite.R;
 import edu.cmu.hcii.sugilite.model.SetMapEntrySerializableWrapper;
 
 @Deprecated

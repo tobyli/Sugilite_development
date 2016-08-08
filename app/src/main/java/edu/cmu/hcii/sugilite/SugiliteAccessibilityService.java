@@ -1,12 +1,10 @@
 package edu.cmu.hcii.sugilite;
 
 import android.accessibilityservice.AccessibilityService;
-import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Rect;
-import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.view.LayoutInflater;
 import android.view.WindowManager;
@@ -15,20 +13,14 @@ import android.view.accessibility.AccessibilityNodeInfo;
 import android.widget.Toast;
 
 import java.io.File;
-import java.text.SimpleDateFormat;
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
-import java.util.Date;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 import edu.cmu.hcii.sugilite.communication.SugiliteCommunicationController;
 import edu.cmu.hcii.sugilite.dao.SugiliteScreenshotManager;
@@ -38,7 +30,8 @@ import edu.cmu.hcii.sugilite.model.block.SerializableNodeInfo;
 import edu.cmu.hcii.sugilite.model.block.SugiliteAvailableFeaturePack;
 import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
-import edu.cmu.hcii.sugilite.model.block.UIElementMatchingFilter;
+import edu.cmu.hcii.sugilite.recording.RecordingPopUpDialog;
+import edu.cmu.hcii.sugilite.recording.mRecordingPopUpActivity;
 import edu.cmu.hcii.sugilite.tracking.SugiliteTrackingHandler;
 import edu.cmu.hcii.sugilite.ui.StatusIconManager;
 
@@ -365,7 +358,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
         popUpIntent.putExtra("allNodes", new AccessibilityNodeInfoList(allNodes));
         popUpIntent.putExtra("isEditable", sourceNode.isEditable());
         popUpIntent.putExtra("screenshot", screenshot);
-        popUpIntent.putExtra("trigger", mRecordingPopUpActivity.TRIGGERED_BY_NEW_EVENT);
+        popUpIntent.putExtra("trigger", RecordingPopUpDialog.TRIGGERED_BY_NEW_EVENT);
         popUpIntent.putExtra("alternativeLabels", entryHashSet);
         return popUpIntent;
     }

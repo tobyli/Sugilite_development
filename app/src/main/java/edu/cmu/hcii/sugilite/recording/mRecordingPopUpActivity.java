@@ -1,4 +1,4 @@
-package edu.cmu.hcii.sugilite;
+package edu.cmu.hcii.sugilite.recording;
 
 import android.app.AlertDialog;
 import android.content.Context;
@@ -41,6 +41,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TimeZone;
 
+import edu.cmu.hcii.sugilite.R;
+import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.communication.SugiliteCommunicationController;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
 import edu.cmu.hcii.sugilite.model.AccessibilityNodeInfoList;

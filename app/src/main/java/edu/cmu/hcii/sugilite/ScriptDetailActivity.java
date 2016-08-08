@@ -1,6 +1,5 @@
 package edu.cmu.hcii.sugilite;
 
-import android.app.Activity;
 import android.app.ActivityManager;
 import android.app.AlertDialog;
 import android.content.Context;
@@ -22,13 +21,11 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
-import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.File;
-import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -37,7 +34,8 @@ import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
 import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
-import edu.cmu.hcii.sugilite.model.operation.SugiliteOperation;
+import edu.cmu.hcii.sugilite.recording.RecordingPopUpDialog;
+import edu.cmu.hcii.sugilite.recording.mRecordingPopUpActivity;
 import edu.cmu.hcii.sugilite.ui.VariableSetValueDialog;
 
 public class ScriptDetailActivity extends AppCompatActivity {
@@ -353,7 +351,7 @@ public class ScriptDetailActivity extends AppCompatActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         // Check which request we're responding to
-        if (requestCode == mRecordingPopUpActivity.TRIGGERED_BY_EDIT) {
+        if (requestCode == RecordingPopUpDialog.TRIGGERED_BY_EDIT) {
             // Make sure the request was successful
             if (resultCode == RESULT_OK) {
                 Toast.makeText(this, "Successfully Editing the Operation", Toast.LENGTH_SHORT).show();

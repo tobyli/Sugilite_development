@@ -1,13 +1,11 @@
-package edu.cmu.hcii.sugilite;
+package edu.cmu.hcii.sugilite.recording;
 
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.graphics.Bitmap;
 import android.graphics.Rect;
-import android.os.Environment;
 import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -23,8 +21,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.File;
-import java.io.FileOutputStream;
-import java.net.HttpCookie;
 import java.text.SimpleDateFormat;
 import java.util.AbstractMap;
 import java.util.Calendar;
@@ -35,6 +31,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TimeZone;
 
+import edu.cmu.hcii.sugilite.R;
+import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
 import edu.cmu.hcii.sugilite.model.AccessibilityNodeInfoList;
 import edu.cmu.hcii.sugilite.model.SetMapEntrySerializableWrapper;

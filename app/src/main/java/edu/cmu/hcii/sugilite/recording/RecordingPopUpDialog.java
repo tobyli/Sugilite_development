@@ -1,6 +1,7 @@
-package edu.cmu.hcii.sugilite;
+package edu.cmu.hcii.sugilite.recording;
 
 import android.app.AlertDialog;
+import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
@@ -43,6 +44,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TimeZone;
 
+import edu.cmu.hcii.sugilite.R;
+import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.communication.SugiliteBlockJSONProcessor;
 import edu.cmu.hcii.sugilite.dao.SugiliteScreenshotManager;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
@@ -87,6 +90,7 @@ public class RecordingPopUpDialog {
     private Set<Map.Entry<String, String>> alternativeLabels;
     private SugiliteScreenshotManager screenshotManager;
     private DialogInterface.OnClickListener editCallback;
+    private RecordingSkipManager skipManager;
     private String childText = "";
 
 
@@ -107,8 +111,8 @@ public class RecordingPopUpDialog {
     static final int PICK_CHILD_FEATURE = 1;
     static final int PICK_PARENT_FEATURE = 2;
 
-    static final int TRIGGERED_BY_NEW_EVENT = 1;
-    static final int TRIGGERED_BY_EDIT = 2;
+    public static final int TRIGGERED_BY_NEW_EVENT = 1;
+    public static final int TRIGGERED_BY_EDIT = 2;
 
     public RecordingPopUpDialog(SugiliteData sugiliteData, Context applicationContext, SugiliteAvailableFeaturePack featurePack, SharedPreferences sharedPreferences, LayoutInflater inflater, int triggerMode, Set<Map.Entry<String, String>> alternativeLabels){
         this.sharedPreferences = sharedPreferences;
@@ -118,6 +122,7 @@ public class RecordingPopUpDialog {
         this.layoutInflater = inflater;
         this.alternativeLabels = new HashSet<>(alternativeLabels);
         this.screenshotManager = new SugiliteScreenshotManager(sharedPreferences, applicationContext);
+        this.skipManager = new RecordingSkipManager();
         jsonProcessor = new SugiliteBlockJSONProcessor(applicationContext);
         sugiliteScriptDao = new SugiliteScriptDao(applicationContext);
         readableDescriptionGenerator = new ReadableDescriptionGenerator(applicationContext);
@@ -146,6 +151,8 @@ public class RecordingPopUpDialog {
         this.originalScript = originalScript;
         this.blockToEdit = blockToEdit;
         this.editCallback = callback;
+        this.skipManager = new RecordingSkipManager();
+        jsonProcessor = new SugiliteBlockJSONProcessor(applicationContext);
         if(blockToEdit.getElementMatchingFilter().alternativeLabels != null)
             this.alternativeLabels = new HashSet<>(blockToEdit.getElementMatchingFilter().alternativeLabels);
         else
@@ -164,10 +171,13 @@ public class RecordingPopUpDialog {
         dialog = builder.create();
         dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
         dialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_box);
-
         //fetch the data capsuled in the intent
         //TODO: refactor so the service passes in a feature pack instead
         setupSelections();
+
+        //check skip status, click on the ok button if skip manager returns true
+        if(skipManager.checkSkip(featurePack, triggerMode))
+            OKButtonOnClick(null);
     }
 
     public void show(){
@@ -191,7 +201,7 @@ public class RecordingPopUpDialog {
         dialog.dismiss();
     }
 
-    public void OKButtonOnClick(View view){
+    public void OKButtonOnClick(final View view){
         //check if all fields are filled
         String actionSpinnerSelectedItem = actionSpinner.getSelectedItem().toString();
         if (actionSpinnerSelectedItem.contentEquals("Load as Variable")){
@@ -223,15 +233,12 @@ public class RecordingPopUpDialog {
         final SugiliteOperationBlock operationBlock = generateBlock();
         AlertDialog.Builder builder = new AlertDialog.Builder(dialog.getContext());
         //disable the confirmation dialog
-        /*
-        builder.setTitle("Save Operation Confirmation").setMessage(Html.fromHtml("Are you sure you want to record the operation: " + readableDescriptionGenerator.generateReadableDescription(operationBlock)));
-        builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+        DialogInterface.OnClickListener onClickListener = new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 //take screenshot
-                */
                 File screenshot = null;
-                if(sharedPreferences.getBoolean("root_enabled", false)) {
+                if (sharedPreferences.getBoolean("root_enabled", false)) {
                     try {
                         System.out.println("taking screen shot");
                         screenshot = screenshotManager.take(false);
@@ -241,27 +248,35 @@ public class RecordingPopUpDialog {
                         e.printStackTrace();
                     }
                 }
-                saveBlock(operationBlock, dialog.getContext());
+                saveBlock(operationBlock, dialogRootView.getContext());
                 //fill in the text box if the operation is of SET_TEXT type
                 if (operationBlock.getOperation().getOperationType() == SugiliteOperation.SET_TEXT && triggerMode == TRIGGERED_BY_NEW_EVENT)
                     sugiliteData.addInstruction(operationBlock);
-                if(editCallback != null) {
+                if (editCallback != null) {
                     System.out.println("calling callback");
-                    editCallback.onClick(dialog, 0);
+                    editCallback.onClick(null, 0);
                 }
-        /*
             }
-        }).setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                dialog.cancel();
-            }
-        });
-        AlertDialog dialog = builder.create();
-        dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
-        dialog.show();
-        */
+        };
+        if(view == null) {
+            builder.setTitle("Save Operation Confirmation").setMessage(Html.fromHtml("Are you sure you want to record the operation: " + readableDescriptionGenerator.generateReadableDescription(operationBlock)));
+            builder.setPositiveButton("Yes", onClickListener).
+                    setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                        @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    dialog.cancel();
+                }
+            });
+            AlertDialog dialog = builder.create();
+            dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
+            dialog.show();
+        }
+
+        else {
+            onClickListener.onClick(null, 0);
+        }
     }
+
 
 
 
@@ -644,6 +659,9 @@ public class RecordingPopUpDialog {
         //((TextView)findViewById(R.id.time)).setText("Event Time: " + dateFormat.format(c.getTime()) + "\nRecording script: " + sharedPreferences.getString("scriptName", "NULL"));
         //((TextView)findViewById(R.id.filteredNodeCount)).setText(generateFilterCount());
         ((TextView) dialogRootView.findViewById(R.id.previewContent)).setText(readableDescriptionGenerator.generateReadableDescription(generateBlock()));
+
+
+
     }
 
     private void refreshAfterChange(){

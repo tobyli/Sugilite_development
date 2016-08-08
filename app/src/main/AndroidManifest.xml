@@ -52,16 +52,16 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="edu.cmu.hcii.sugilite.MainActivity" />
         </activity>
-        <activity android:name=".RecordingPopUpActivity" >
+        <activity android:name=".recording.RecordingPopUpActivity" >
         </activity>
         <activity
-            android:name=".RecordingPopupSubMenuActivity"
+            android:name=".recording.RecordingPopupSubMenuActivity"
             android:noHistory="true" >
         </activity>
         <activity android:name=".ScriptDetailActivity" >
         </activity>
         <activity
-            android:name=".mRecordingPopUpActivity"
+            android:name=".recording.mRecordingPopUpActivity"
             android:noHistory="true"
             android:label="Sugilite Script Recording" >
         </activity>

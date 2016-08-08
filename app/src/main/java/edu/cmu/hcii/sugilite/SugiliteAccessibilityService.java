@@ -180,7 +180,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
                 //start the popup activity
                 //startActivity(generatePopUpActivityIntentFromEvent(event, rootNode, screenshot, availableAlternatives));
                 RecordingPopUpDialog recordingPopUpDialog = new RecordingPopUpDialog(sugiliteData, getApplicationContext(), generateFeaturePack(event, rootNode, screenshot), sharedPreferences, LayoutInflater.from(getApplicationContext()), RecordingPopUpDialog.TRIGGERED_BY_NEW_EVENT, availableAlternatives);
-                recordingPopUpDialog.show();
+                recordingPopUpDialog.show(false);
                 availableAlternatives.clear();
 
             }

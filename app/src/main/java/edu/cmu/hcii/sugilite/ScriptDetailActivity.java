@@ -28,6 +28,7 @@ import android.widget.Toast;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import edu.cmu.hcii.sugilite.automation.ServiceStatusManager;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
@@ -36,6 +37,8 @@ import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.recording.RecordingPopUpDialog;
 import edu.cmu.hcii.sugilite.recording.mRecordingPopUpActivity;
+import edu.cmu.hcii.sugilite.model.operation.SugiliteOperation;
+import edu.cmu.hcii.sugilite.model.variable.Variable;
 import edu.cmu.hcii.sugilite.ui.VariableSetValueDialog;
 
 public class ScriptDetailActivity extends AppCompatActivity {
@@ -133,9 +136,20 @@ public class ScriptDetailActivity extends AppCompatActivity {
                         else {
                             VariableSetValueDialog variableSetValueDialog = new VariableSetValueDialog(activityContext, getLayoutInflater(), sugiliteData, script, sharedPreferences);
                             if(script.variableNameDefaultValueMap.size() > 0) {
+                                //has variable
                                 sugiliteData.stringVariableMap.putAll(script.variableNameDefaultValueMap);
-                                //show the dialog
-                                variableSetValueDialog.show();
+                                boolean needUserInput = false;
+                                for(Map.Entry<String, Variable> entry : script.variableNameDefaultValueMap.entrySet()){
+                                    if(entry.getValue().type == Variable.USER_INPUT){
+                                        needUserInput = true;
+                                        break;
+                                    }
+                                }
+                                if(needUserInput)
+                                    //show the dialog to obtain user input
+                                    variableSetValueDialog.show();
+                                else
+                                    variableSetValueDialog.executeScript();
                             }
                             else{
                                 //execute the script without showing the dialog
@@ -325,7 +339,7 @@ public class ScriptDetailActivity extends AppCompatActivity {
                         }
                     };
                     RecordingPopUpDialog recordingPopUpDialog = new RecordingPopUpDialog(sugiliteData, getApplicationContext(), script, sharedPreferences, (SugiliteOperationBlock)currentBlock, LayoutInflater.from(getApplicationContext()), RecordingPopUpDialog.TRIGGERED_BY_EDIT, callback);
-                    recordingPopUpDialog.show();
+                    recordingPopUpDialog.show(true);
                     break;
                     //match, pop up the edit
                     //the pop up should save the new script to db

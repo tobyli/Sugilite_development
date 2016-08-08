@@ -13,6 +13,7 @@ public class Variable implements Serializable {
     public int type;
     public Variable(String name){
         super();
+        type = USER_INPUT;
         this.name = name;
     }
     public Variable(){

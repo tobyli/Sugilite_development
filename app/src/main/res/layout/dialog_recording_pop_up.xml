@@ -129,7 +129,7 @@
                         android:id="@+id/textView9"
                         android:layout_marginTop="10dp"
                         android:textStyle="bold"
-                        android:textColor="#3b3b3b" />
+                        android:textColor="#c6c6c6" />
 
                     <EditText
                         android:layout_width="fill_parent"
@@ -144,7 +144,7 @@
                         android:id="@+id/textView10"
                         android:layout_marginTop="10dp"
                         android:textStyle="bold"
-                        android:textColor="#FF3B3B3B" />
+                        android:textColor="#FFC6C6C6" />
 
                     <EditText
                         android:layout_width="fill_parent"

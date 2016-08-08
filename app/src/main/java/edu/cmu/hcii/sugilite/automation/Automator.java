@@ -36,7 +36,7 @@ public class Automator {
     private Context context;
     private BoundingBoxManager boundingBoxManager;
     private VariableHelper variableHelper;
-    private static final int DELAY = 2000;
+    private static final int DELAY = 3500;
     private TextToSpeech tts;
     private boolean ttsReady = false;
 
@@ -190,7 +190,6 @@ public class Automator {
                 }
                 if(stringVariable.getValue() != null && stringVariable.getValue().length() > 0){
                     //save the string variable to run time symbol table
-                    Toast.makeText(context, "Get value \"" + stringVariable.getValue() + "\" for the variable " + stringVariable.getName(), Toast.LENGTH_SHORT).show();
                     sugiliteData.stringVariableMap.put(stringVariable.getName(), stringVariable);
                     return true;
                 }

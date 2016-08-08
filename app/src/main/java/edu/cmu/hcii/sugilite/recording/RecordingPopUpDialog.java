@@ -140,6 +140,8 @@ public class RecordingPopUpDialog {
         //fetch the data capsuled in the intent
         //TODO: refactor so the service passes in a feature pack instead
         setupSelections();
+        //check skip status, click on the ok button if skip manager returns true
+
     }
 
     public RecordingPopUpDialog(SugiliteData sugiliteData, Context applicationContext, SugiliteStartingBlock originalScript, SharedPreferences sharedPreferences, SugiliteOperationBlock blockToEdit, LayoutInflater inflater, int triggerMode, DialogInterface.OnClickListener callback){
@@ -176,13 +178,16 @@ public class RecordingPopUpDialog {
         setupSelections();
 
         //check skip status, click on the ok button if skip manager returns true
-        if(skipManager.checkSkip(featurePack, triggerMode))
-            OKButtonOnClick(null);
+
     }
 
-    public void show(){
-        dialog.show();
-        dialog.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM);
+    public void show(boolean doNotSkip){
+        if(skipManager.checkSkip(featurePack, triggerMode) && (!doNotSkip))
+            OKButtonOnClick(null);
+        else {
+            dialog.show();
+            dialog.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM);
+        }
         //dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE);
 
     }
@@ -214,8 +219,8 @@ public class RecordingPopUpDialog {
                         dialog.dismiss();
                     }
                 }).show();
+                return;
             }
-            return;
         }
         //TODO: add popup if current selection can't get unique button
 
@@ -260,13 +265,19 @@ public class RecordingPopUpDialog {
         };
         if(view == null) {
             builder.setTitle("Save Operation Confirmation").setMessage(Html.fromHtml("Are you sure you want to record the operation: " + readableDescriptionGenerator.generateReadableDescription(operationBlock)));
-            builder.setPositiveButton("Yes", onClickListener).
-                    setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            builder.setPositiveButton("Yes", onClickListener)
+                    .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
                         @Override
-                public void onClick(DialogInterface dialog, int which) {
-                    dialog.cancel();
-                }
-            });
+                        public void onClick(DialogInterface dialog, int which) {
+                            dialog.cancel();
+                        }
+                    })
+                    .setNeutralButton("Edit", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            show(true);
+                        }
+                    });
             AlertDialog dialog = builder.create();
             dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
             dialog.show();
@@ -774,6 +785,37 @@ public class RecordingPopUpDialog {
      */
     private void saveBlock(SugiliteOperationBlock operationBlock, Context activityContext){
         boolean success = false;
+
+        //save the variable to the symbol table if the operation is LOAD_AS_VARIABLE
+        if(operationBlock.getOperation().getOperationType() == SugiliteOperation.LOAD_AS_VARIABLE){
+            //add the variable to the symbol table
+            String variableName = loadVariableVariableName.getText().toString();
+            StringVariable stringVariable = new StringVariable(variableName);
+            stringVariable.type = Variable.LOAD_RUNTIME;
+            String selectedTarget = loadVariableParameterSpinner.getSelectedItem().toString();
+            if(loadVariableVariableDefaultValue.getText().toString().length() > 0) {
+                if (selectedTarget.contains("Text")) {
+                    stringVariable.setValue(featurePack.text);
+                } else if (selectedTarget.contains("Content Description")) {
+                    stringVariable.setValue(featurePack.contentDescription);
+                } else if (selectedTarget.contains("Child Text")) {
+                    stringVariable.setValue(childText);
+                }
+            }
+
+            if(sugiliteData.stringVariableMap == null)
+                sugiliteData.stringVariableMap = new HashMap<String, Variable>();
+
+            sugiliteData.stringVariableMap.put(variableName, stringVariable);
+
+            if(triggerMode == TRIGGERED_BY_EDIT) {
+                originalScript.variableNameDefaultValueMap.put(variableName, stringVariable);
+            }
+            else if (triggerMode == TRIGGERED_BY_NEW_EVENT){
+                sugiliteData.getScriptHead().variableNameDefaultValueMap.put(variableName, stringVariable);
+            }
+        }
+
         switch (triggerMode){
             case TRIGGERED_BY_NEW_EVENT:
                 operationBlock.setPreviousBlock(sugiliteData.getCurrentScriptBlock());
@@ -963,32 +1005,7 @@ public class RecordingPopUpDialog {
                 sugiliteOperation.setParameter(selectionText.substring(0, selectionText.indexOf(":")));
                 String variableName = loadVariableVariableName.getText().toString();
                 ((SugiliteLoadVariableOperation)sugiliteOperation).setVariableName(variableName);
-
-                //add the variable to the symbol table
-                StringVariable stringVariable = new StringVariable(variableName);
-                stringVariable.type = Variable.LOAD_RUNTIME;
-                String selectedTarget = loadVariableParameterSpinner.getSelectedItem().toString();
-                if(loadVariableVariableDefaultValue.getText().toString().length() < 1) {
-                    if (selectedTarget.contains("Text")) {
-                        stringVariable.setValue(featurePack.text);
-                    } else if (selectedTarget.contains("Content Description")) {
-                        stringVariable.setValue(featurePack.contentDescription);
-                    } else if (selectedTarget.contains("Child Text")) {
-                        stringVariable.setValue(childText);
-                    }
-                }
-                if(sugiliteData.stringVariableMap == null)
-                    sugiliteData.stringVariableMap = new HashMap<String, Variable>();
-
-                sugiliteData.stringVariableMap.put(variableName, stringVariable);
-                if(triggerMode == TRIGGERED_BY_EDIT) {
-                    originalScript.variableNameDefaultValueMap.put(variableName, stringVariable);
-                }
-                else if (triggerMode == TRIGGERED_BY_NEW_EVENT){
-                    sugiliteData.getScriptHead().variableNameDefaultValueMap.put(variableName, stringVariable);
-                }
-
-            }
+                            }
         }
         if (actionSpinnerSelectedItem.contentEquals("Set Text")) {
             sugiliteOperation = new SugiliteSetTextOperation();

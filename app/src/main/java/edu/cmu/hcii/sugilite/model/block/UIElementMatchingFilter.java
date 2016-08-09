@@ -234,7 +234,29 @@ public class UIElementMatchingFilter implements Serializable {
             return false;
         if (isClickable != null && isClickable.booleanValue() != nodeInfo.isClickable)
             return false;
+        if (packageName != null && (nodeInfo.packageName == null || !packageName.contentEquals(nodeInfo.packageName)))
+            return false;
+        if (className != null && (nodeInfo.className == null || !className.contentEquals(nodeInfo.className)))
+            return false;
+        if (this.boundsInParent != null && (nodeInfo.boundsInParent == null || (!this.boundsInParent.contentEquals(nodeInfo.boundsInParent))))
+            return false;
+        if (this.boundsInScreen != null && (nodeInfo.boundsInScreen == null || (!this.boundsInScreen.contentEquals(nodeInfo.boundsInScreen))))
+            return false;
 
+        if(this.childFilter != null){
+            if(this.childFilter.getText() != null){
+                if(nodeInfo.childText == null || (!nodeInfo.childText.contains(this.childFilter.getText())))
+                    return false;
+            }
+            if(this.childFilter.getContentDescription() != null){
+                if(nodeInfo.childContentDescription == null || (!nodeInfo.childContentDescription.contains(this.childFilter.getContentDescription())))
+                    return false;
+            }
+            if(this.childFilter.getViewId() != null){
+                if(nodeInfo.childViewId == null || (!nodeInfo.childViewId.contains(this.childFilter.getViewId())))
+                    return false;
+            }
+        }
         return true;
     }
 

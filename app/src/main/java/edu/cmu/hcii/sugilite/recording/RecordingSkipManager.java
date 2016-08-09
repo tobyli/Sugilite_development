@@ -1,24 +1,32 @@
 package edu.cmu.hcii.sugilite.recording;
 
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
 import edu.cmu.hcii.sugilite.model.block.SerializableNodeInfo;
 import edu.cmu.hcii.sugilite.model.block.SugiliteAvailableFeaturePack;
+import edu.cmu.hcii.sugilite.model.block.UIElementMatchingFilter;
 
 /**
  * Created by toby on 8/7/16.
  */
 public class RecordingSkipManager {
     Set<String> packageToSkip;
+    AlternativeNodesFilterTester filterTester;
     public RecordingSkipManager(){
         packageToSkip = new HashSet<>();
         packageToSkip.add("com.google.android.googlequicksearchbox");
+        filterTester = new AlternativeNodesFilterTester();
 
     }
-    public boolean checkSkip(SugiliteAvailableFeaturePack featurePack, int triggerMode){
+    public boolean checkSkip(SugiliteAvailableFeaturePack featurePack, int triggerMode, UIElementMatchingFilter filter, Collection<SerializableNodeInfo> alternativeNodes){
         //never skip editing interface
         if(triggerMode == RecordingPopUpDialog.TRIGGERED_BY_EDIT)
+            return false;
+
+        //don't skip if the recommended selection can have more than 1 match in alternative nodes
+        if(filterTester.getFilteredAlternativeNodesCount(alternativeNodes, filter) > 1)
             return false;
 
         //skip if the package name is among the "to skip" list
@@ -40,6 +48,8 @@ public class RecordingSkipManager {
 
         if(availableLabel.size() == 0 || availableLabel.size() == 1)
             return true;
+
+
 
         return false;
     }

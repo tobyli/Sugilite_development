@@ -51,6 +51,9 @@ public class ReadableDescriptionGenerator {
                     break;
                 case SugiliteOperation.READ_OUT:
                     message += setColor("Read out ", "#ffa500") + "the" + setColor(((SugiliteOperationBlock)block).getOperation().getParameter(), "#ff0000") + " for ";
+                    break;
+                case SugiliteOperation.LOAD_AS_VARIABLE:
+                    message += setColor("Load the value ", "#ffa500") + "of the" + setColor(((SugiliteOperationBlock)block).getOperation().getParameter(), "#ff0000") + " as a variable for ";
             }
 
             //print the object type

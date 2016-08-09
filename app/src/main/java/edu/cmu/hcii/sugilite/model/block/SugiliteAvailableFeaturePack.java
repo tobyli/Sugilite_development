@@ -48,6 +48,7 @@ public class SugiliteAvailableFeaturePack implements Serializable{
     public File screenshot;
     public SerializableNodeInfo parentNode;
     public ArrayList<SerializableNodeInfo> childNodes, allNodes;
+    public Set<SerializableNodeInfo> alternativeNodes;
 
     public Set<String> alternativeTextList;
     public Set<String> alternativeChildTextList;

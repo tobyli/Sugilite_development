@@ -91,7 +91,9 @@ public class RecordingPopUpDialog {
     private SugiliteScreenshotManager screenshotManager;
     private DialogInterface.OnClickListener editCallback;
     private RecordingSkipManager skipManager;
+    private AlternativeNodesFilterTester filterTester;
     private String childText = "";
+
 
 
 
@@ -123,6 +125,7 @@ public class RecordingPopUpDialog {
         this.alternativeLabels = new HashSet<>(alternativeLabels);
         this.screenshotManager = new SugiliteScreenshotManager(sharedPreferences, applicationContext);
         this.skipManager = new RecordingSkipManager();
+        this.filterTester = new AlternativeNodesFilterTester();
         jsonProcessor = new SugiliteBlockJSONProcessor(applicationContext);
         sugiliteScriptDao = new SugiliteScriptDao(applicationContext);
         readableDescriptionGenerator = new ReadableDescriptionGenerator(applicationContext);
@@ -140,7 +143,7 @@ public class RecordingPopUpDialog {
         //fetch the data capsuled in the intent
         //TODO: refactor so the service passes in a feature pack instead
         setupSelections();
-        //check skip status, click on the ok button if skip manager returns true
+
 
     }
 
@@ -154,6 +157,7 @@ public class RecordingPopUpDialog {
         this.blockToEdit = blockToEdit;
         this.editCallback = callback;
         this.skipManager = new RecordingSkipManager();
+        this.filterTester = new AlternativeNodesFilterTester();
         jsonProcessor = new SugiliteBlockJSONProcessor(applicationContext);
         if(blockToEdit.getElementMatchingFilter().alternativeLabels != null)
             this.alternativeLabels = new HashSet<>(blockToEdit.getElementMatchingFilter().alternativeLabels);
@@ -182,7 +186,7 @@ public class RecordingPopUpDialog {
     }
 
     public void show(boolean doNotSkip){
-        if(skipManager.checkSkip(featurePack, triggerMode) && (!doNotSkip))
+        if(skipManager.checkSkip(featurePack, triggerMode, generateFilter(), featurePack.alternativeNodes) && (!doNotSkip))
             OKButtonOnClick(null);
         else {
             dialog.show();
@@ -769,6 +773,10 @@ public class RecordingPopUpDialog {
             }
         }
 
+        //refresh the alternative counts
+        if(featurePack.alternativeNodes != null)
+            ((TextView)dialogRootView.findViewById(R.id.see_alternative_link)).setText(featurePack.alternativeNodes.size() + " total alternative nodes, "
+                    + filterTester.getFilteredAlternativeNodesCount(featurePack.alternativeNodes, generateFilter()) + " matched");
 
         //refresh the operation preview
         ((TextView) dialogRootView.findViewById(R.id.previewContent)).setText(Html.fromHtml(readableDescriptionGenerator.generateReadableDescription(generateBlock())));

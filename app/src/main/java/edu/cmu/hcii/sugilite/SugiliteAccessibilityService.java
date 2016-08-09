@@ -130,6 +130,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
     }
 
     private HashSet<Map.Entry<String, String>> availableAlternatives;
+    private HashSet<SerializableNodeInfo> availableAlternativeNodes;
     Set<String> exceptedPackages = new HashSet<>();
 
     @Override
@@ -164,6 +165,8 @@ public class SugiliteAccessibilityService extends AccessibilityService {
             //recording in progress
             //skip internal interactions and interactions on system ui
             availableAlternatives.addAll(getAlternativeLabels(sourceNode, rootNode));
+            availableAlternativeNodes.addAll(getAvailableAlternativeNodes(sourceNode, rootNode));
+
             if (accessibilityEventSetToSend.contains(event.getEventType()) && (!exceptedPackages.contains(event.getPackageName()))) {
                 File screenshot = null;
                 if(sharedPreferences.getBoolean("root_enabled", false)) {
@@ -179,16 +182,17 @@ public class SugiliteAccessibilityService extends AccessibilityService {
                 }
                 //start the popup activity
                 //startActivity(generatePopUpActivityIntentFromEvent(event, rootNode, screenshot, availableAlternatives));
-                RecordingPopUpDialog recordingPopUpDialog = new RecordingPopUpDialog(sugiliteData, getApplicationContext(), generateFeaturePack(event, rootNode, screenshot), sharedPreferences, LayoutInflater.from(getApplicationContext()), RecordingPopUpDialog.TRIGGERED_BY_NEW_EVENT, availableAlternatives);
+                RecordingPopUpDialog recordingPopUpDialog = new RecordingPopUpDialog(sugiliteData, getApplicationContext(), generateFeaturePack(event, rootNode, screenshot, availableAlternativeNodes), sharedPreferences, LayoutInflater.from(getApplicationContext()), RecordingPopUpDialog.TRIGGERED_BY_NEW_EVENT, availableAlternatives);
                 recordingPopUpDialog.show(false);
                 availableAlternatives.clear();
+                availableAlternativeNodes.clear();
 
             }
         }
 
         if (sharedPreferences.getBoolean("tracking_in_process", false)) {
             if (accessibilityEventSetToTrack.contains(event.getEventType())) {
-                sugilteTrackingHandler.handle(event, sourceNode, generateFeaturePack(event, rootNode, null));
+                sugilteTrackingHandler.handle(event, sourceNode, generateFeaturePack(event, rootNode, null, null));
             }
             //background tracking in progress
         }
@@ -251,7 +255,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
 
 
 
-    private SugiliteAvailableFeaturePack generateFeaturePack(AccessibilityEvent event, AccessibilityNodeInfo rootNode, File screenshot){
+    private SugiliteAvailableFeaturePack generateFeaturePack(AccessibilityEvent event, AccessibilityNodeInfo rootNode, File screenshot, HashSet<SerializableNodeInfo> availableAlternativeNodes){
         SugiliteAvailableFeaturePack featurePack = new SugiliteAvailableFeaturePack();
         AccessibilityNodeInfo sourceNode = event.getSource();
         Rect boundsInParents = new Rect();
@@ -314,6 +318,10 @@ public class SugiliteAccessibilityService extends AccessibilityService {
         featurePack.allNodes = new AccessibilityNodeInfoList(allNodes).getSerializableList();
         featurePack.isEditable = sourceNode.isEditable();
         featurePack.screenshot = screenshot;
+        if(availableAlternativeNodes != null)
+            featurePack.alternativeNodes = new HashSet<>(availableAlternativeNodes);
+        else
+            featurePack.alternativeNodes = new HashSet<>();
 
         return featurePack;
 
@@ -387,54 +395,23 @@ public class SugiliteAccessibilityService extends AccessibilityService {
                     retMap.add(new AbstractMap.SimpleEntry<>("Child Text", childNode.getText().toString()));
             }
         }
-        /*
-        AccessibilityNodeInfo parentNode = sourceNode.getParent();
-        if(parentNode == null)
-            return retMap;
-        AccessibilityNodeInfo grandParentNode = parentNode.getParent();
-        if(grandParentNode == null) {
-            for (int i = 0; i < parentNode.getChildCount(); i++) {
-                AccessibilityNodeInfo node = parentNode.getChild(i);
-                if (node == null)
-                    continue;
-                if (node.getText() != null) {
-                    retMap.add(new AbstractMap.SimpleEntry<>("Text", node.getText().toString()));
-                }
-                for (int j = 0; j < node.getChildCount(); j++) {
-                    AccessibilityNodeInfo childNode = node.getChild(j);
-                    if (childNode == null)
-                        continue;
-                    if (childNode.getText() != null) {
-                        retMap.add(new AbstractMap.SimpleEntry<>("Child Text", childNode.getText().toString()));
-                    }
-                }
-            }
-        }
-        else {
-            for(int i = 0; i < grandParentNode.getChildCount(); i++){
-                AccessibilityNodeInfo pNode = grandParentNode.getChild(i);
-                if(pNode == null)
-                    continue;
-                for(int j = 0; j < pNode.getChildCount(); j++){
-                    AccessibilityNodeInfo sNode = pNode.getChild(j);
-                    if(sNode == null)
-                        continue;
-                    if (sNode.getText() != null) {
-                        retMap.add(new AbstractMap.SimpleEntry<>("Text", sNode.getText().toString()));
-                    }
-                    for(int p = 0; p < sNode.getChildCount(); p ++){
-                        AccessibilityNodeInfo cNode = sNode.getChild(p);
-                        if(cNode == null)
-                            continue;
-                        if (cNode.getText() != null) {
-                            retMap.add(new AbstractMap.SimpleEntry<>("Child Text", cNode.getText().toString()));
-                        }
-                    }
-                }
-            }
-        }
-        */
         return retMap;
+    }
+
+    private HashSet<SerializableNodeInfo> getAvailableAlternativeNodes (AccessibilityNodeInfo sourceNode, AccessibilityNodeInfo rootNode){
+        List<AccessibilityNodeInfo> allNodes = Automator.preOrderTraverse(rootNode);
+        HashSet<SerializableNodeInfo> retSet = new HashSet<>();
+        if(allNodes == null)
+            return retSet;
+        for(AccessibilityNodeInfo node : allNodes){
+            if(exceptedPackages.contains(node.getPackageName()))
+                continue;
+            if(!node.isClickable())
+                continue;
+            SerializableNodeInfo nodeToAdd = new SerializableNodeInfo(node);
+            retSet.add(nodeToAdd);
+        }
+        return retSet;
     }
 }
 

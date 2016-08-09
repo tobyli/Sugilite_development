@@ -26,8 +26,10 @@ public class RecordingSkipManager {
             return false;
 
         //don't skip if the recommended selection can have more than 1 match in alternative nodes
+        /*
         if(filterTester.getFilteredAlternativeNodesCount(alternativeNodes, filter) > 1)
             return false;
+        */
 
         //skip if the package name is among the "to skip" list
         if(packageToSkip.contains(featurePack.packageName))

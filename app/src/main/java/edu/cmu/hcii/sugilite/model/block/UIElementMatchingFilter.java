@@ -180,15 +180,15 @@ public class UIElementMatchingFilter implements Serializable {
     public boolean filter (AccessibilityNodeInfo nodeInfo) {
         if (nodeInfo == null)
             return false;
-        if (text != null && (nodeInfo.getText() == null || (!text.contentEquals(nodeInfo.getText()))))
+        if (text != null && (nodeInfo.getText() == null || (!text.equalsIgnoreCase(nodeInfo.getText().toString()))))
             return false;
-        if (contentDescription != null && (nodeInfo.getContentDescription() == null || (!contentDescription.contentEquals(nodeInfo.getContentDescription()))))
+        if (contentDescription != null && (nodeInfo.getContentDescription() == null || (!contentDescription.equalsIgnoreCase(nodeInfo.getContentDescription().toString()))))
             return false;
         if (packageName != null && (nodeInfo.getPackageName() == null || !packageName.contentEquals(nodeInfo.getPackageName())))
             return false;
         if (className != null && (nodeInfo.getClassName() == null || !className.contentEquals(nodeInfo.getClassName())))
             return false;
-        if (viewId != null && (nodeInfo.getViewIdResourceName() == null || (!viewId.contentEquals(nodeInfo.getViewIdResourceName()))))
+        if (viewId != null && (nodeInfo.getViewIdResourceName() == null || (!viewId.equalsIgnoreCase(nodeInfo.getViewIdResourceName()))))
             return false;
         if (parentFilter != null && (!parentFilter.filter(nodeInfo.getParent())))
             return false;
@@ -226,11 +226,11 @@ public class UIElementMatchingFilter implements Serializable {
     public boolean filter (SerializableNodeInfo nodeInfo){
         if (nodeInfo == null)
             return false;
-        if (text != null && (nodeInfo.text == null || (!text.contentEquals(nodeInfo.text))))
+        if (text != null && (nodeInfo.text == null || (!text.equalsIgnoreCase(nodeInfo.text))))
             return false;
-        if (contentDescription != null && (nodeInfo.contentDescription == null || (!contentDescription.contentEquals(nodeInfo.contentDescription))))
+        if (contentDescription != null && (nodeInfo.contentDescription == null || (!contentDescription.equalsIgnoreCase(nodeInfo.contentDescription))))
             return false;
-        if (viewId != null && (nodeInfo.viewId == null || (!viewId.contentEquals(nodeInfo.viewId))))
+        if (viewId != null && (nodeInfo.viewId == null || (!viewId.equalsIgnoreCase(nodeInfo.viewId))))
             return false;
         if (isClickable != null && isClickable.booleanValue() != nodeInfo.isClickable)
             return false;
@@ -245,15 +245,42 @@ public class UIElementMatchingFilter implements Serializable {
 
         if(this.childFilter != null){
             if(this.childFilter.getText() != null){
-                if(nodeInfo.childText == null || (!nodeInfo.childText.contains(this.childFilter.getText())))
+                if(nodeInfo.childText == null)
+                    return false;
+                boolean matched = false;
+                for(String text : nodeInfo.childText){
+                    if(this.childFilter.getText().equalsIgnoreCase(text)){
+                        matched = true;
+                        break;
+                    }
+                }
+                if(matched == false)
                     return false;
             }
             if(this.childFilter.getContentDescription() != null){
-                if(nodeInfo.childContentDescription == null || (!nodeInfo.childContentDescription.contains(this.childFilter.getContentDescription())))
+                if(nodeInfo.childContentDescription == null)
+                    return false;
+                boolean matched = false;
+                for(String contentDescription : nodeInfo.childContentDescription){
+                    if(this.childFilter.getContentDescription().equalsIgnoreCase(contentDescription)){
+                        matched = true;
+                        break;
+                    }
+                }
+                if(matched == false)
                     return false;
             }
             if(this.childFilter.getViewId() != null){
-                if(nodeInfo.childViewId == null || (!nodeInfo.childViewId.contains(this.childFilter.getViewId())))
+                if(nodeInfo.childViewId == null)
+                    return false;
+                boolean matched = false;
+                for(String viewId : nodeInfo.childViewId){
+                    if(this.childFilter.getViewId().equalsIgnoreCase(viewId)){
+                        matched = true;
+                        break;
+                    }
+                }
+                if(matched == false)
                     return false;
             }
         }
@@ -263,15 +290,15 @@ public class UIElementMatchingFilter implements Serializable {
     public boolean filter (AccessibilityNodeInfo nodeInfo, VariableHelper helper) {
         if (nodeInfo == null)
             return false;
-        if (text != null && (nodeInfo.getText() == null || (!helper.parse(text).contentEquals(nodeInfo.getText().toString()))))
+        if (text != null && (nodeInfo.getText() == null || (!helper.parse(text).equalsIgnoreCase(nodeInfo.getText().toString()))))
             return false;
-        if (contentDescription != null && (nodeInfo.getContentDescription() == null || (!helper.parse(contentDescription).contentEquals(nodeInfo.getContentDescription().toString()))))
+        if (contentDescription != null && (nodeInfo.getContentDescription() == null || (!helper.parse(contentDescription).equalsIgnoreCase(nodeInfo.getContentDescription().toString()))))
             return false;
         if (packageName != null && (nodeInfo.getPackageName() == null || !helper.parse(packageName).contentEquals(nodeInfo.getPackageName().toString())))
             return false;
         if (className != null && (nodeInfo.getClassName() == null || !helper.parse(className).contentEquals(nodeInfo.getClassName().toString())))
             return false;
-        if (viewId != null && (nodeInfo.getViewIdResourceName() == null || (!helper.parse(viewId).contentEquals(nodeInfo.getViewIdResourceName().toString()))))
+        if (viewId != null && (nodeInfo.getViewIdResourceName() == null || (!helper.parse(viewId).equalsIgnoreCase(nodeInfo.getViewIdResourceName().toString()))))
             return false;
         if (parentFilter != null && (!parentFilter.filter(nodeInfo.getParent(), helper)))
             return false;

@@ -63,6 +63,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
         automator = new Automator(sugiliteData, getApplicationContext(), statusIconManager);
         sugilteTrackingHandler = new SugiliteTrackingHandler(sugiliteData, getApplicationContext());
         availableAlternatives = new HashSet<>();
+        availableAlternativeNodes = new HashSet<>();
         context = this;
         try {
             //TODO: periodically check the status of communication controller

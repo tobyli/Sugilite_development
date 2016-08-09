@@ -25,7 +25,7 @@ public class SugiliteStartingBlock extends SugiliteBlock implements Serializable
         relevantPackages = new HashSet<>();
         variableNameDefaultValueMap = new HashMap<>();
         this.blockType = SugiliteBlock.STARTING_BLOCK;
-        this.setDescription("<b>STARTING SCRIPT</b>");
+        this.setDescription("<b>START SCRIPT</b>");
     }
     public SugiliteStartingBlock(String scriptName){
         super();
@@ -33,7 +33,7 @@ public class SugiliteStartingBlock extends SugiliteBlock implements Serializable
         variableNameDefaultValueMap = new HashMap<>();
         this.scriptName = scriptName;
         this.blockType = SugiliteBlock.STARTING_BLOCK;
-        this.setDescription("<b>STARTING SCRIPT</b>");
+        this.setDescription("<b>START SCRIPT</b>");
     }
     public SugiliteBlock getNextBlock(){
         return nextBlock;

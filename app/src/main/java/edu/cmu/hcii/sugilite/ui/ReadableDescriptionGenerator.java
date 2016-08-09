@@ -29,7 +29,7 @@ public class ReadableDescriptionGenerator {
     public String generateReadableDescription(SugiliteBlock block){
         String message = "";
         if(block instanceof SugiliteStartingBlock)
-            return "<b>STARTING SCRIPT</b>";
+            return "<b>START SCRIPT</b>";
         /**
          * structure: [OPERATION] + "the button/textbox/object" + [IDENTIFIER] + "that has [VIEWID]" + at [LOCATION] + in [PACKAGE]
          */

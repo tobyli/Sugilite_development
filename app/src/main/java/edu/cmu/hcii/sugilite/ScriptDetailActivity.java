@@ -83,10 +83,10 @@ public class ScriptDetailActivity extends AppCompatActivity {
             for(SugiliteBlock block : traverseBlock(script)) {
                 operations.add(block.getDescription());
             }
-            operations.add("<b>ENDING SCRIPT</b>");
+            operations.add("<b>END SCRIPT</b>");
         }
         else{
-            operations.add("NULL SCRIPT");
+            operations.add("EMPTY SCRIPT!");
         }
 
         operationStepList.setAdapter(new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, operations) {

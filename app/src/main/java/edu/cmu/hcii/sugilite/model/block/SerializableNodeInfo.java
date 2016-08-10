@@ -23,6 +23,10 @@ public class SerializableNodeInfo implements Serializable {
         this.contentDescription = contentDescription;
         this.viewId = viewId;
         this.isClickable = isClickable;
+        childText = new HashSet<>();
+        childContentDescription = new HashSet<>();
+        childViewId = new HashSet<>();
+
     }
     public SerializableNodeInfo(AccessibilityNodeInfo nodeInfo){
         if(nodeInfo != null) {
@@ -51,6 +55,66 @@ public class SerializableNodeInfo implements Serializable {
             }
         }
     }
+
+    public boolean isTheSameNode(SerializableNodeInfo node){
+        if((this.text != null && node.text != null && !this.text.contentEquals(node.text)) ||
+                (this.text == null && node.text != null) ||
+                (this.text != null && node.text == null))
+            return false;
+        if((this.contentDescription != null && node.contentDescription != null && !this.contentDescription.contentEquals(node.contentDescription)) ||
+                (this.contentDescription == null && node.contentDescription != null) ||
+                (this.contentDescription != null && node.contentDescription == null))
+            return false;
+        if((this.viewId != null && node.viewId != null && !this.viewId.contentEquals(node.viewId)) ||
+                (this.viewId == null && node.viewId != null) ||
+                (this.viewId != null && node.viewId == null))
+            return false;
+        if((this.packageName != null && node.packageName != null && !this.packageName.contentEquals(node.packageName)) ||
+                (this.packageName == null && node.packageName != null) ||
+                (this.packageName != null && node.packageName == null))
+            return false;
+        if((this.className != null && node.className != null && !this.className.contentEquals(node.className)) ||
+                (this.className == null && node.className != null) ||
+                (this.className != null && node.className == null))
+            return false;
+        if(this.isClickable != node.isClickable)
+            return false;
+        for(String text : this.childText){
+            if(!node.childText.contains(text))
+                return false;
+        }
+        for(String contentDescription : this.childContentDescription){
+            if(!node.childContentDescription.contains(contentDescription))
+                return false;
+        }
+        for(String viewId : this.childViewId){
+            if(!node.childViewId.contains(viewId))
+                return false;
+        }
+        if(this.childText.size() != node.childText.size())
+            return false;
+        if(this.childContentDescription.size() != node.childContentDescription.size())
+            return false;
+        if(this.childViewId.size() != node.childViewId.size())
+            return false;
+        Rect boundsInParentRect = Rect.unflattenFromString(boundsInParent);
+        Rect boundsInScreenRect = Rect.unflattenFromString(boundsInScreen);
+
+        if((boundsInParentRect.height() != Rect.unflattenFromString(node.boundsInParent).height()) || (boundsInParentRect.width() != Rect.unflattenFromString(node.boundsInParent).width())) {
+            if(!(boundsInParentRect.contains(Rect.unflattenFromString(node.boundsInParent)) || Rect.unflattenFromString(node.boundsInParent).contains(boundsInParentRect)))
+                return false;
+
+        }
+
+        if((boundsInScreenRect.height() != Rect.unflattenFromString(node.boundsInScreen).height()) || (boundsInScreenRect.width() != Rect.unflattenFromString(node.boundsInScreen).width())) {
+            if(!(boundsInScreenRect.contains(Rect.unflattenFromString(node.boundsInScreen)) || Rect.unflattenFromString(node.boundsInScreen).contains(boundsInScreenRect)))
+                return false;
+        }
+
+
+        return true;
+    }
+
     public String text, contentDescription, viewId, boundsInParent, boundsInScreen, className, packageName;
     public boolean isClickable;
     public HashSet<String> childText, childContentDescription, childViewId;

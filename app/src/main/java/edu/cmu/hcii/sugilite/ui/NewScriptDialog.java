@@ -29,6 +29,8 @@ public class NewScriptDialog {
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
         sugiliteData.clearInstructionQueue();
         final EditText scriptName = new EditText(context);
+        scriptName.setImeOptions(EditorInfo.IME_ACTION_DONE);
+        scriptName.setSingleLine(true);
         scriptName.setText(sugiliteScriptDao.getNextAvailableDefaultName());
         scriptName.setSelectAllOnFocus(true);
         builder.setMessage("Specify the name for your new script")
@@ -90,7 +92,7 @@ public class NewScriptDialog {
         scriptName.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
             public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
-                if(actionId == EditorInfo.IME_NULL && event.getAction() == KeyEvent.ACTION_DOWN)
+                if(actionId == EditorInfo.IME_ACTION_DONE)
                     dialog.getButton(DialogInterface.BUTTON_POSITIVE).performClick();
                 return true;
             }

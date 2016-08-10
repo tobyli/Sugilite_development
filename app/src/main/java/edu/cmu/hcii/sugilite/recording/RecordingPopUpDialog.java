@@ -254,7 +254,8 @@ public class RecordingPopUpDialog {
                         operationBlock.setScreenshot(screenshot);
 
                     } catch (Exception e) {
-                        e.printStackTrace();
+                        //e.printStackTrace();
+                        System.err.println("[ERROR] Error in taking screenshot, is root access granted?");
                     }
                 }
                 saveBlock(operationBlock, dialogRootView.getContext());
@@ -774,9 +775,10 @@ public class RecordingPopUpDialog {
         }
 
         //refresh the alternative counts
-        if(featurePack.alternativeNodes != null)
-            ((TextView)dialogRootView.findViewById(R.id.see_alternative_link)).setText(featurePack.alternativeNodes.size() + " total alternative nodes, "
+        if(featurePack.alternativeNodes != null) {
+            ((TextView) dialogRootView.findViewById(R.id.see_alternative_link)).setText(featurePack.alternativeNodes.size() + " total alternative nodes, "
                     + filterTester.getFilteredAlternativeNodesCount(featurePack.alternativeNodes, generateFilter()) + " matched");
+        }
 
         //refresh the operation preview
         ((TextView) dialogRootView.findViewById(R.id.previewContent)).setText(Html.fromHtml(readableDescriptionGenerator.generateReadableDescription(generateBlock())));

@@ -280,31 +280,31 @@ public class SugiliteAccessibilityService extends AccessibilityService {
             allNodes = new ArrayList<>();
         //TODO:AccessibilityNodeInfo is not serializable
 
-        if(sourceNode.getPackageName() == null){
+        if(sourceNode == null || sourceNode.getPackageName() == null){
             featurePack.packageName = "NULL";
         }
         else
             featurePack.packageName = sourceNode.getPackageName().toString();
 
-        if(sourceNode.getClassName() == null){
+        if(sourceNode == null || sourceNode.getClassName() == null){
             featurePack.className = "NULL";
         }
         else
             featurePack.className = sourceNode.getClassName().toString();
 
-        if(sourceNode.getText() == null){
+        if(sourceNode == null || sourceNode.getText() == null){
             featurePack.text = "NULL";
         }
         else
             featurePack.text = sourceNode.getText().toString();
 
-        if(sourceNode.getContentDescription() == null){
+        if(sourceNode == null || sourceNode.getContentDescription() == null){
             featurePack.contentDescription = "NULL";
         }
         else
             featurePack.contentDescription = sourceNode.getContentDescription().toString();
 
-        if(sourceNode.getViewIdResourceName() == null){
+        if(sourceNode == null || sourceNode.getViewIdResourceName() == null){
             featurePack.viewId = "NULL";
         }
         else
@@ -317,7 +317,10 @@ public class SugiliteAccessibilityService extends AccessibilityService {
         featurePack.parentNode = new SerializableNodeInfo(parentNode);
         featurePack.childNodes = new AccessibilityNodeInfoList(childrenNodes).getSerializableList();
         featurePack.allNodes = new AccessibilityNodeInfoList(allNodes).getSerializableList();
-        featurePack.isEditable = sourceNode.isEditable();
+        if(sourceNode != null)
+            featurePack.isEditable = sourceNode.isEditable();
+        else
+            featurePack.isEditable = false;
         featurePack.screenshot = screenshot;
         if(availableAlternativeNodes != null)
             featurePack.alternativeNodes = new HashSet<>(availableAlternativeNodes);

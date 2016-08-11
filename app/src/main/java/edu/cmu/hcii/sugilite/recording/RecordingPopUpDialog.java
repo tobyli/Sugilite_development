@@ -763,7 +763,7 @@ public class RecordingPopUpDialog {
             }
         });
 
-        if(blockToEdit.getOperation() instanceof SugiliteSetTextOperation){
+        if(triggerMode == TRIGGERED_BY_EDIT && blockToEdit.getOperation() instanceof SugiliteSetTextOperation){
             String text = ((SugiliteSetTextOperation) blockToEdit.getOperation()).getText();
             if(text != null)
                 setTextEditText.setText(text);
@@ -774,7 +774,7 @@ public class RecordingPopUpDialog {
         loadVariableVariableName = (EditText)dialogRootView.findViewById(R.id.load_variable_variable_name);
 
         //fill the above two edittext
-        if(blockToEdit.getOperation() instanceof SugiliteLoadVariableOperation){
+        if(triggerMode == TRIGGERED_BY_EDIT && blockToEdit.getOperation() instanceof SugiliteLoadVariableOperation){
             String variableName = ((SugiliteLoadVariableOperation) blockToEdit.getOperation()).getVariableName();
             if(variableName != null){
                 loadVariableVariableName.setText(variableName);

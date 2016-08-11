@@ -439,19 +439,34 @@ public class RecordingPopUpDialog {
                 refreshAfterChange();
             }
         };
+        UIElementMatchingFilter existingFilter = null;
+        if(triggerMode == TRIGGERED_BY_EDIT)
+            existingFilter = blockToEdit.getElementMatchingFilter();
 
         if((!featurePack.text.contentEquals("NULL")) && featurePack.text.length() > 0) {
             textCheckbox = new CheckBox(dialogRootView.getContext());
             textCheckbox.setText(Html.fromHtml(boldify("Text: ") + featurePack.text));
             existingFeatureValues.add(featurePack.text);
             textContent = new String(featurePack.text);
-            if(autoFillEnabled)
+            if(autoFillEnabled && triggerMode == TRIGGERED_BY_NEW_EVENT)
+                //fill the box by recommender
                 textCheckbox.setChecked(recommender.chooseText());
-            identifierLayout.addView(generateRow(textCheckbox, "text", featurePack.text), layoutParams);
-            identifierCheckboxMap.put("text", textCheckbox);
+            if(triggerMode == TRIGGERED_BY_EDIT){
+                if(existingFilter.getText() != null) {
+                    textCheckbox.setChecked(true);
+                    if(existingFilter.getText().contains("@")){
+                        Variable defaultVariable = originalScript.variableNameDefaultValueMap.get(existingFilter.getText().substring(existingFilter.getText().indexOf("@") + 1));
+                        String defaultVariableValue = null;
+                        if(defaultVariable != null && defaultVariable instanceof StringVariable)
+                            defaultVariableValue = ((StringVariable)defaultVariable).getValue();
+                        textCheckbox.setText(Html.fromHtml(boldify("Text: ") + existingFilter.getText() + (defaultVariableValue != null ? ": (" + defaultVariableValue + ")" : "")));
+                    }
+                }
+            }
+            identifierLayout.addView(generateRow(textCheckbox, "Text", featurePack.text), layoutParams);
+            identifierCheckboxMap.put("Text", textCheckbox);
             textCheckbox.setOnCheckedChangeListener(identiferCheckboxChangeListener);
             textCheckbox.addTextChangedListener(textWatcher);
-            //TODO: fix the text label of the checkbox
         }
 
 
@@ -460,10 +475,23 @@ public class RecordingPopUpDialog {
             contentDescriptionCheckbox.setText(Html.fromHtml(boldify("ContentDescription: ") + featurePack.contentDescription));
             existingFeatureValues.add(featurePack.contentDescription);
             contentDescriptionContent = new String(featurePack.contentDescription);
-            if(autoFillEnabled)
+            if(autoFillEnabled && triggerMode == TRIGGERED_BY_NEW_EVENT)
+                //fill the box by recommender
                 contentDescriptionCheckbox.setChecked(recommender.chooseContentDescription());
-            identifierLayout.addView(generateRow(contentDescriptionCheckbox, "contentDescription", featurePack.contentDescription), layoutParams);
-            identifierCheckboxMap.put("contentDescription", contentDescriptionCheckbox);
+            if(triggerMode == TRIGGERED_BY_EDIT){
+                if(existingFilter.getContentDescription() != null) {
+                    contentDescriptionCheckbox.setChecked(true);
+                    if(existingFilter.getContentDescription().contains("@")){
+                        Variable defaultVariable = originalScript.variableNameDefaultValueMap.get(existingFilter.getContentDescription().substring(existingFilter.getContentDescription().indexOf("@") + 1));
+                        String defaultVariableValue = null;
+                        if(defaultVariable != null && defaultVariable instanceof StringVariable)
+                            defaultVariableValue = ((StringVariable)defaultVariable).getValue();
+                        textCheckbox.setText(Html.fromHtml(boldify("ContentDescription: ") + existingFilter.getContentDescription() + (defaultVariableValue != null ? ": (" + defaultVariableValue + ")" : "")));
+                    }
+                }
+            }
+            identifierLayout.addView(generateRow(contentDescriptionCheckbox, "ContentDescription", featurePack.contentDescription), layoutParams);
+            identifierCheckboxMap.put("ContentDescription", contentDescriptionCheckbox);
             contentDescriptionCheckbox.setOnCheckedChangeListener(identiferCheckboxChangeListener);
             contentDescriptionCheckbox.addTextChangedListener(textWatcher);
         }
@@ -473,17 +501,47 @@ public class RecordingPopUpDialog {
             viewIdCheckbox.setText(Html.fromHtml(boldify("ViewId: ") + featurePack.viewId));
             existingFeatureValues.add(featurePack.viewId);
             viewIdContent = new String(featurePack.viewId);
-            if(autoFillEnabled)
+            if(autoFillEnabled && triggerMode == TRIGGERED_BY_NEW_EVENT)
+                //fill the box by recommender
                 viewIdCheckbox.setChecked(recommender.chooseViewId());
-            identifierLayout.addView(generateRow(viewIdCheckbox, "viewId", featurePack.viewId), layoutParams);
-            identifierCheckboxMap.put("viewId", viewIdCheckbox);
+            if(triggerMode == TRIGGERED_BY_EDIT){
+                if(existingFilter.getViewId() != null) {
+                    viewIdCheckbox.setChecked(true);
+                    if(existingFilter.getViewId().contains("@")){
+                        Variable defaultVariable = originalScript.variableNameDefaultValueMap.get(existingFilter.getViewId().substring(existingFilter.getViewId().indexOf("@") + 1));
+                        String defaultVariableValue = null;
+                        if(defaultVariable != null && defaultVariable instanceof StringVariable)
+                            defaultVariableValue = ((StringVariable)defaultVariable).getValue();
+                        textCheckbox.setText(Html.fromHtml(boldify("ViewId: ") + existingFilter.getViewId() + (defaultVariableValue != null ? ": (" + defaultVariableValue + ")" : "")));
+                    }
+                }
+            }
+            identifierLayout.addView(generateRow(viewIdCheckbox, "ViewId", featurePack.viewId), layoutParams);
+            identifierCheckboxMap.put("ViewId", viewIdCheckbox);
             viewIdCheckbox.setOnCheckedChangeListener(identiferCheckboxChangeListener);
             viewIdCheckbox.addTextChangedListener(textWatcher);
         }
 
-        if(autoFillEnabled){
+        if(autoFillEnabled && triggerMode == TRIGGERED_BY_NEW_EVENT){
             selectedChildFeatures.addAll(recommender.chooseChildFeatures());
             selectedParentFeatures.addAll(recommender.chooseParentFeatures());
+        }
+        else if (triggerMode == TRIGGERED_BY_EDIT){
+            UIElementMatchingFilter parentFilter = existingFilter.getParentFilter();
+            UIElementMatchingFilter childFilter = existingFilter.getChildFilter();
+            if(parentFilter.getText() != null)
+                selectedParentFeatures.add(new AbstractMap.SimpleEntry<String, String>("Text", parentFilter.getText()));
+            if(parentFilter.getContentDescription() != null)
+                selectedParentFeatures.add(new AbstractMap.SimpleEntry<String, String>("ContentDescription", parentFilter.getContentDescription()));
+            if(parentFilter.getViewId() != null)
+                selectedParentFeatures.add(new AbstractMap.SimpleEntry<String, String>("ViewID", parentFilter.getViewId()));
+
+            if(childFilter.getText() != null)
+                selectedChildFeatures.add(new AbstractMap.SimpleEntry<String, String>("Text", childFilter.getText()));
+            if(childFilter.getContentDescription() != null)
+                selectedChildFeatures.add(new AbstractMap.SimpleEntry<String, String>("ContentDescription", childFilter.getContentDescription()));
+            if(childFilter.getViewId() != null)
+                selectedChildFeatures.add(new AbstractMap.SimpleEntry<String, String>("ViewID", childFilter.getViewId()));
         }
 
         boolean hasChildText = false;
@@ -534,16 +592,24 @@ public class RecordingPopUpDialog {
 
         boundsInParentCheckbox = new CheckBox(dialogRootView.getContext());
         boundsInParentCheckbox.setText(Html.fromHtml(boldify("Bounds in Parent: ") + featurePack.boundsInParent));
-        if(autoFillEnabled)
+        if(autoFillEnabled && triggerMode == TRIGGERED_BY_NEW_EVENT)
             boundsInParentCheckbox.setChecked(recommender.chooseBoundsInParent());
+        if(triggerMode == TRIGGERED_BY_EDIT){
+            if(existingFilter.getBoundsInParent() != null)
+                boundsInParentCheckbox.setChecked(true);
+        }
         identifierLayout.addView(boundsInParentCheckbox, layoutParams);
         identifierCheckboxMap.put("boundsInParent", boundsInParentCheckbox);
         boundsInParentCheckbox.setOnCheckedChangeListener(identiferCheckboxChangeListener);
 
         boundsInScreenCheckbox = new CheckBox(dialogRootView.getContext());
         boundsInScreenCheckbox.setText(Html.fromHtml(boldify("Bounds in Screen: ") + featurePack.boundsInScreen));
-        if(autoFillEnabled)
+        if(autoFillEnabled && triggerMode == TRIGGERED_BY_NEW_EVENT)
             boundsInScreenCheckbox.setChecked(recommender.chooseBoundsInScreen());
+        if(triggerMode == TRIGGERED_BY_EDIT){
+            if(existingFilter.getBoundsInScreen() != null)
+                boundsInScreenCheckbox.setChecked(true);
+        }
         identifierLayout.addView(boundsInScreenCheckbox, layoutParams);
         identifierCheckboxMap.put("boundsInScreen", boundsInScreenCheckbox);
         boundsInScreenCheckbox.setOnCheckedChangeListener(identiferCheckboxChangeListener);
@@ -565,26 +631,122 @@ public class RecordingPopUpDialog {
 
         actionSpinner = (Spinner)dialogRootView.findViewById(R.id.action_dropdown);
         List<String> actionSpinnerItems = new ArrayList<>();
-        if(featurePack.isEditable)
+        Map<Integer, Integer> actionOrderMap = new HashMap<>();
+        int actionSpinnerItemCount = 0;
+        if(featurePack.isEditable) {
             actionSpinnerItems.add("Set Text");
+            actionOrderMap.put(SugiliteOperation.SET_TEXT, actionSpinnerItemCount ++);
+        }
         actionSpinnerItems.add("Click");
-        if(featurePack.eventType == AccessibilityEvent.TYPE_VIEW_LONG_CLICKED)
+        actionOrderMap.put(SugiliteOperation.CLICK, actionSpinnerItemCount++);
+        if(featurePack.eventType == AccessibilityEvent.TYPE_VIEW_LONG_CLICKED) {
             actionSpinnerItems.add("Long Click");
+            actionOrderMap.put(SugiliteOperation.LONG_CLICK, actionSpinnerItemCount++);
+        }
         if((featurePack.text != null && (! featurePack.text.contentEquals("NULL"))) || hasChildText || (featurePack.contentDescription != null && (! featurePack.contentDescription.contentEquals("NULL")))) {
             actionSpinnerItems.add("Read Out");
+            actionOrderMap.put(SugiliteOperation.READ_OUT, actionSpinnerItemCount++);
             actionSpinnerItems.add("Load as Variable");
+            actionOrderMap.put(SugiliteOperation.LOAD_AS_VARIABLE, actionSpinnerItemCount++);
         }
 
         ArrayAdapter<String> actionAdapter = new ArrayAdapter<String>(dialogRootView.getContext(), android.R.layout.simple_spinner_item, actionSpinnerItems);
         actionAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         actionSpinner.setAdapter(actionAdapter);
-        actionSpinner.setSelection(0);
+        if(triggerMode == TRIGGERED_BY_NEW_EVENT)
+            actionSpinner.setSelection(0);
+        else if (triggerMode == TRIGGERED_BY_EDIT){
+            SugiliteOperation oldOperation = blockToEdit.getOperation();
+            try {
+                actionSpinner.setSelection(actionOrderMap.get(oldOperation.getOperationType()));
+            }
+            catch (Exception e){
+                e.printStackTrace();
+                actionSpinner.setSelection(0);
+            }
+        }
         actionSpinner.setOnItemSelectedListener(spinnerSelectedListener);
 
+        //set up read out parameter spinner
+        Map<String, Integer> readOutSpinnerOrderMap = new HashMap<>();
+        int readOutSpinnerActionCount = 0;
+
+        readoutParameterSpinner = (Spinner)dialogRootView.findViewById(R.id.text_to_read_out_spinner);
+        List<String> readoutParameterItems  = new ArrayList<>();
+        if(featurePack.text != null && (!featurePack.text.contentEquals("NULL"))) {
+            readoutParameterItems.add("Text: (" + featurePack.text + ")");
+            readOutSpinnerOrderMap.put("Text", readOutSpinnerActionCount ++);
+        }
+        if(featurePack.contentDescription != null && (!featurePack.contentDescription.contentEquals("NULL"))) {
+            readoutParameterItems.add("Content Description: (" + featurePack.contentDescription + ")");
+            readOutSpinnerOrderMap.put("Content Description", readOutSpinnerActionCount ++);
+        }
+        if(hasChildText) {
+            readoutParameterItems.add("Child Text: (" + childText + ")");
+            readOutSpinnerOrderMap.put("Child Text", readOutSpinnerActionCount++);
+        }
+        ArrayAdapter<String> readoutAdapter = new ArrayAdapter<String>(dialogRootView.getContext(), android.R.layout.simple_spinner_item, readoutParameterItems);
+        readoutParameterSpinner.setAdapter(readoutAdapter);
+        if(triggerMode == TRIGGERED_BY_NEW_EVENT)
+            readoutParameterSpinner.setSelection(0);
+        else if (triggerMode == TRIGGERED_BY_EDIT){
+            SugiliteOperation oldOperation = blockToEdit.getOperation();
+            try {
+                readoutParameterSpinner.setSelection(readOutSpinnerOrderMap.get(oldOperation.getParameter()));
+            }
+            catch (Exception e){
+                e.printStackTrace();
+                readoutParameterSpinner.setSelection(0);
+            }
+        }
+        readoutParameterSpinner.setOnItemSelectedListener(spinnerSelectedListener);
 
 
-        EditText textBox = (EditText)dialogRootView.findViewById(R.id.action_parameter_set_text);
-        textBox.addTextChangedListener(new TextWatcher() {
+        //set up load variable parameter spinner
+        Map<String, Integer> loadVariableParameterSpinnerOrderMap = new HashMap<>();
+        int loadVariableParameterSpinnerActionCount = 0;
+
+        loadVariableParameterSpinner = (Spinner)dialogRootView.findViewById(R.id.element_to_load_variable_spinner);
+        List<String> loadVariableParameterItems  = new ArrayList<>();
+        if(featurePack.text != null && (!featurePack.text.contentEquals("NULL"))) {
+            loadVariableParameterItems.add("Text: (" + featurePack.text + ")");
+            loadVariableParameterSpinnerOrderMap.put("Text", loadVariableParameterSpinnerActionCount++);
+        }
+        if(featurePack.contentDescription != null && (!featurePack.contentDescription.contentEquals("NULL"))) {
+            loadVariableParameterItems.add("Content Description: (" + featurePack.contentDescription + ")");
+            loadVariableParameterSpinnerOrderMap.put("Content Description", loadVariableParameterSpinnerActionCount++);
+        }
+        if(hasChildText) {
+            loadVariableParameterItems.add("Child Text: (" + childText + ")");
+            loadVariableParameterSpinnerOrderMap.put("Child Text", loadVariableParameterSpinnerActionCount++);
+        }
+        ArrayAdapter<String> loadVariableAdapter = new ArrayAdapter<String>(dialogRootView.getContext(), android.R.layout.simple_spinner_item, loadVariableParameterItems);
+        loadVariableParameterSpinner.setAdapter(loadVariableAdapter);
+        if(triggerMode == TRIGGERED_BY_NEW_EVENT)
+            loadVariableParameterSpinner.setSelection(0);
+        else if (triggerMode == TRIGGERED_BY_EDIT){
+            SugiliteOperation oldOperation = blockToEdit.getOperation();
+            try {
+                loadVariableParameterSpinner.setSelection(loadVariableParameterSpinnerOrderMap.get(oldOperation.getParameter()));
+            }
+            catch (Exception e){
+                e.printStackTrace();
+                loadVariableParameterSpinner.setSelection(0);
+            }
+        }
+        loadVariableParameterSpinner.setOnItemSelectedListener(spinnerSelectedListener);
+
+
+        setTextEditText = (EditText)dialogRootView.findViewById(R.id.action_parameter_set_text);
+        final InputMethodManager imm = (InputMethodManager) dialog.getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
+        setTextEditText.setOnClickListener(new View.OnClickListener() {
+            //force the keyboard to show when edit text on click
+            @Override
+            public void onClick(View v) {
+                imm.showSoftInput(v, InputMethodManager.SHOW_IMPLICIT);
+            }
+        });
+        setTextEditText.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
 
@@ -600,47 +762,31 @@ public class RecordingPopUpDialog {
 
             }
         });
+
+        if(blockToEdit.getOperation() instanceof SugiliteSetTextOperation){
+            String text = ((SugiliteSetTextOperation) blockToEdit.getOperation()).getText();
+            if(text != null)
+                setTextEditText.setText(text);
+        }
+
+
         loadVariableVariableDefaultValue = (EditText)dialogRootView.findViewById(R.id.load_variable_default_value);
         loadVariableVariableName = (EditText)dialogRootView.findViewById(R.id.load_variable_variable_name);
 
-        //set up read out parameter spinner
-        readoutParameterSpinner = (Spinner)dialogRootView.findViewById(R.id.text_to_read_out_spinner);
-        List<String> readoutParameterItems  = new ArrayList<>();
-        if(featurePack.text != null && (!featurePack.text.contentEquals("NULL")))
-            readoutParameterItems.add("Text: (" + featurePack.text + ")");
-        if(featurePack.contentDescription != null && (!featurePack.contentDescription.contentEquals("NULL")))
-            readoutParameterItems.add("Content Description: (" + featurePack.contentDescription + ")");
-        if(hasChildText)
-            readoutParameterItems.add("Child Text: (" + childText + ")");
-        ArrayAdapter<String> readoutAdapter = new ArrayAdapter<String>(dialogRootView.getContext(), android.R.layout.simple_spinner_item, readoutParameterItems);
-        readoutParameterSpinner.setAdapter(readoutAdapter);
-        readoutParameterSpinner.setSelection(0);
-        readoutParameterSpinner.setOnItemSelectedListener(spinnerSelectedListener);
-
-        //set up load variable parameter spinner
-        loadVariableParameterSpinner = (Spinner)dialogRootView.findViewById(R.id.element_to_load_variable_spinner);
-        List<String> loadVariableParameterItems  = new ArrayList<>();
-        if(featurePack.text != null && (!featurePack.text.contentEquals("NULL")))
-            loadVariableParameterItems.add("Text: (" + featurePack.text + ")");
-        if(featurePack.contentDescription != null && (!featurePack.contentDescription.contentEquals("NULL")))
-            loadVariableParameterItems.add("Content Description: (" + featurePack.contentDescription + ")");
-        if(hasChildText)
-            loadVariableParameterItems.add("Child Text: (" + childText + ")");
-        ArrayAdapter<String> loadVariableAdapter = new ArrayAdapter<String>(dialogRootView.getContext(), android.R.layout.simple_spinner_item, loadVariableParameterItems);
-        loadVariableParameterSpinner.setAdapter(loadVariableAdapter);
-        loadVariableParameterSpinner.setSelection(0);
-        loadVariableParameterSpinner.setOnItemSelectedListener(spinnerSelectedListener);
-
-
-        setTextEditText = (EditText)dialogRootView.findViewById(R.id.action_parameter_set_text);
-        final InputMethodManager imm = (InputMethodManager) dialog.getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
-        setTextEditText.setOnClickListener(new View.OnClickListener() {
-            //force the keyboard to show when edit text on click
-            @Override
-            public void onClick(View v) {
-                imm.showSoftInput(v, InputMethodManager.SHOW_IMPLICIT);
+        //fill the above two edittext
+        if(blockToEdit.getOperation() instanceof SugiliteLoadVariableOperation){
+            String variableName = ((SugiliteLoadVariableOperation) blockToEdit.getOperation()).getVariableName();
+            if(variableName != null){
+                loadVariableVariableName.setText(variableName);
+                if(originalScript.variableNameDefaultValueMap.containsKey(variableName)){
+                    Variable defaultVariable = originalScript.variableNameDefaultValueMap.get(variableName);
+                    if(defaultVariable != null)
+                        loadVariableVariableDefaultValue.setText(defaultVariable instanceof StringVariable ? ((StringVariable) defaultVariable).getValue() : "");
+                }
             }
-        });
+
+        }
+
         actionParameterSection = (LinearLayout)dialogRootView.findViewById(R.id.action_parameter_section);
         readoutParameterSection = (LinearLayout)dialogRootView.findViewById(R.id.read_out_parameter_section);
         loadVariableParameterSection = (LinearLayout)dialogRootView.findViewById(R.id.load_variable_parameter_section);
@@ -658,7 +804,14 @@ public class RecordingPopUpDialog {
         ArrayAdapter<String> targetTypeAdapter = new ArrayAdapter<String>(dialogRootView.getContext(), android.R.layout.simple_spinner_item, targetTypeSpinnerItems);
         targetTypeAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         targetTypeSpinner.setAdapter(targetTypeAdapter);
-        targetTypeSpinner.setSelection(0);
+        if(triggerMode == TRIGGERED_BY_NEW_EVENT)
+            targetTypeSpinner.setSelection(0);
+        else if (triggerMode == TRIGGERED_BY_EDIT){
+            if(existingFilter.getClassName() != null)
+                targetTypeSpinner.setSelection(0);
+            else
+                targetTypeSpinner.setSelection(1);
+        }
         targetTypeSpinner.setOnItemSelectedListener(spinnerSelectedListener);
 
         //set up within app spinner
@@ -669,7 +822,14 @@ public class RecordingPopUpDialog {
         ArrayAdapter<String> withInAppAdapter = new ArrayAdapter<String>(dialogRootView.getContext(), android.R.layout.simple_spinner_item, withinAppSpinnerItems);
         withInAppAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         withInAppSpinner.setAdapter(withInAppAdapter);
-        withInAppSpinner.setSelection(0);
+        if(triggerMode == TRIGGERED_BY_NEW_EVENT)
+            withInAppSpinner.setSelection(0);
+        else if (triggerMode == TRIGGERED_BY_EDIT){
+            if(existingFilter.getPackageName() != null)
+                withInAppSpinner.setSelection(0);
+            else
+                withInAppSpinner.setSelection(1);
+        }
         withInAppSpinner.setOnItemSelectedListener(spinnerSelectedListener);
 
         //((TextView)findViewById(R.id.time)).setText("Event Time: " + dateFormat.format(c.getTime()) + "\nRecording script: " + sharedPreferences.getString("scriptName", "NULL"));
@@ -933,7 +1093,6 @@ public class RecordingPopUpDialog {
      * @return
      */
     public UIElementMatchingFilter generateFilter(){
-        //TODO: support variable here
         UIElementMatchingFilter filter = new UIElementMatchingFilter();
         if(withInAppSpinner.getSelectedItem().toString().contentEquals(readableDescriptionGenerator.getReadableName(featurePack.packageName))){
             filter.setPackageName(featurePack.packageName);

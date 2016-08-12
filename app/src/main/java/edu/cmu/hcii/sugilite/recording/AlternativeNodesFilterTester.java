@@ -31,6 +31,19 @@ public class AlternativeNodesFilterTester {
                     matchedNodes.add(node);
             }
         }
+        if(matchedNodes.size() > 1){
+            int count = 0;
+            System.out.println("MATECHED NODES: \n");
+            for(SerializableNodeInfo node : matchedNodes){
+                System.out.println("*** NODE " + count++ + " ***\n");
+                System.out.println("Text: " + (node.text == null ? "NULL" : node.text) + "\n");
+                System.out.println("ContentDescription: " + (node.contentDescription == null ? "NULL" : node.contentDescription) + "\n");
+                System.out.println("ViewId: " + (node.viewId == null ? "NULL" : node.viewId) + "\n");
+                System.out.println("BoundsInScreen: " + (node.boundsInScreen == null ? "NULL" : node.boundsInScreen) + "\n");
+
+                System.out.println("BoundsInParent: " + (node.boundsInParent == null ? "NULL" : node.boundsInParent) + "\n");
+            }
+        }
         return matchedNodes.size();
     }
 

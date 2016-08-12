@@ -271,6 +271,7 @@ public class StatusIconManager {
                                     break;
                                 //bring the user to the script list activity
                                 case "View Last Recording":
+                                case "View Current Recording":
                                     Intent intent = new Intent(context, ScriptDetailActivity.class);
                                     intent.putExtra("scriptName", startingBlock.getScriptName());
                                     intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);

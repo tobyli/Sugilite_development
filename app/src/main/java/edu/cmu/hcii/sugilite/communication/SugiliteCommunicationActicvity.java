@@ -82,6 +82,7 @@ public class SugiliteCommunicationActicvity extends Activity {
         this.sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         this.context = this;
         handleRequest(messageTypeString, arg1, arg2);
+        finish();
 
     }
 

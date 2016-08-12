@@ -35,6 +35,7 @@ public class SugiliteStartingBlock extends SugiliteBlock implements Serializable
         this.blockType = SugiliteBlock.STARTING_BLOCK;
         this.setDescription("<b>START SCRIPT</b>");
     }
+    @Override
     public SugiliteBlock getNextBlock(){
         return nextBlock;
     }
@@ -45,14 +46,7 @@ public class SugiliteStartingBlock extends SugiliteBlock implements Serializable
         return scriptName;
     }
     public void setScriptName(String scriptName) {this.scriptName = scriptName;}
-    @Override
-    public boolean run() throws Exception {
-        if (nextBlock == null)
-            throw new Exception("null next block!");
 
-        else
-            return nextBlock.run();
-    }
 
     public SugiliteBlock getTail(){
         SugiliteBlock currentBlock = this;

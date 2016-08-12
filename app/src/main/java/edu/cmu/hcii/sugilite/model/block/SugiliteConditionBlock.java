@@ -13,35 +13,91 @@ public class SugiliteConditionBlock extends SugiliteBlock implements Serializabl
     private int conditionType;
     private String parameter1, parameter2;
 
-    private SugiliteBlock getNextBlock(){
+    public SugiliteConditionBlock (SugiliteBlock block1, SugiliteBlock block2, String parameter1, int conditionType, String parameter2, SugiliteBlock previousBlock){
+        super();
+        this.blockType = SugiliteBlock.CONDITION;
+        this.setDescription("Condition");
+        this.setScreenshot(null);
+        this.setPreviousBlock(previousBlock);
+
+        this.block1 = block1;
+        this.block2 = block2;
+        this.parameter1 = parameter1;
+        this.conditionType = conditionType;
+        this.parameter2 = parameter2;
+    }
+
+    public void setBlock1(SugiliteBlock block){
+        this.block1 = block;
+    }
+    public void setBlock2(SugiliteBlock block){
+        this.block2 = block;
+    }
+    public void setParameter1(String parameter){
+        this.parameter1 = parameter;
+    }
+    public void setParameter2(String parameter){
+        this.parameter2 = parameter;
+    }
+    public void setConditionType(int conditionType){
+        this.conditionType = conditionType;
+    }
+
+    public SugiliteBlock getBlock1(){
+        return block1;
+    }
+    public SugiliteBlock getBlock2(){
+        return block2;
+    }
+    public String getParameter1(){
+        return parameter1;
+    }
+    public String getParameter2(){
+        return parameter2;
+    }
+    public int getConditionType(){
+        return conditionType;
+    }
+
+    public SugiliteBlock getNextBlock(){
         switch (conditionType){
             case TEXT_EQUALS:
-                break;
+                if(parameter1.contentEquals(parameter2))
+                    return block1;
+                else
+                    return block2;
             case TEXT_CONTAINS:
-                break;
+                if(parameter1.contains(parameter2))
+                    return block1;
+                else
+                    return block2;
             case VALUE_GREATER_OR_EQUAL_THAN:
-                break;
+                try{
+                    if(Integer.valueOf(parameter1) >= Integer.valueOf(parameter2))
+                        return block1;
+                    else
+                        return block2;
+                }
+                catch (Exception e){
+                    e.printStackTrace();
+                    return block2;
+                }
             case VALUE_SMALLER_THAN:
-                break;
+                try{
+                    if(Integer.valueOf(parameter1) < Integer.valueOf(parameter2))
+                        return block1;
+                    else
+                        return block2;
+                }
+                catch (Exception e){
+                    e.printStackTrace();
+                    return block2;
+                }
             case IF_CAN_MATCH_BLOCK_1:
+                //TODO:
                 break;
 
         }
         return null;
     }
-    //private UIElementMatchingFilter elementMatchingFilter;
-    //private SugiliteOperation operation;
-    //private SugiliteAvailableFeaturePack featurePack;
-
-    @Override
-    public boolean run() throws Exception{
-
-        //
-        //perform the operation
-        //
-
-        return block1.run();
-    }
-
-
 }

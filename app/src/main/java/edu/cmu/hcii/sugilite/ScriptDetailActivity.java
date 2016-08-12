@@ -228,6 +228,7 @@ public class ScriptDetailActivity extends AppCompatActivity {
     private static final int ITEM_1 = Menu.FIRST;
     private static final int ITEM_2 = Menu.FIRST + 1;
     private static final int ITEM_3 = Menu.FIRST + 2;
+    private static final int ITEM_4 = Menu.FIRST + 3;
 
     @Override
     public void onCreateContextMenu(ContextMenu menu, View view, ContextMenu.ContextMenuInfo info){
@@ -235,7 +236,8 @@ public class ScriptDetailActivity extends AppCompatActivity {
         menu.setHeaderTitle("Sugilite Operation Menu");
         menu.add(0, ITEM_1, 0, "View");
         menu.add(0, ITEM_2, 0, "Edit");
-        menu.add(0, ITEM_3, 0, "Delete");
+        menu.add(0, ITEM_3, 0, "Fork");
+        menu.add(0, ITEM_4, 0, "Delete");
     }
 
     //TODO:implement context menu
@@ -249,6 +251,8 @@ public class ScriptDetailActivity extends AppCompatActivity {
                 editOperation(item);
                 break;
             case ITEM_3:
+                forkOperation(item);
+            case ITEM_4:
                 deleteOperation(item);
                 break;
         }
@@ -362,7 +366,17 @@ public class ScriptDetailActivity extends AppCompatActivity {
 
     }
 
-    @Override
+    private void forkOperation(MenuItem item) {
+        //TODO
+        /*
+        1. create a new fork popup that generates fork blocks
+        2. change the automator so it can handle fork blocks
+        3.
+         */
+
+    }
+
+        @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         // Check which request we're responding to
         if (requestCode == RecordingPopUpDialog.TRIGGERED_BY_EDIT) {

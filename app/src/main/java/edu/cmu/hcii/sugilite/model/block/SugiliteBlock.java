@@ -18,7 +18,7 @@ public abstract class SugiliteBlock implements Serializable{
         createdTime = Calendar.getInstance().getTimeInMillis();
     }
     public int blockType;
-    public static int REGULAR_OPERATION = 1, IF_CONDITION = 2, FOR_EACH_LOOP = 3, RETURN_VALUE = 4, END_BLOCK = 5, STARTING_BLOCK = 6;
+    public static int REGULAR_OPERATION = 1, CONDITION = 2, FOR_EACH_LOOP = 3, RETURN_VALUE = 4, END_BLOCK = 5, STARTING_BLOCK = 6;
     //each block can only have 1 previous block
     SugiliteBlock previousBlock;
     private String description;
@@ -50,5 +50,5 @@ public abstract class SugiliteBlock implements Serializable{
         return screenshot;
     }
     //each "run" method should execute the task wrapped in the block, and call the "run" method of the next block
-    public abstract boolean run() throws Exception;
+    public abstract SugiliteBlock getNextBlock() throws Exception;
 }

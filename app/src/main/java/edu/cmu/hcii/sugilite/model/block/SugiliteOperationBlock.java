@@ -33,7 +33,7 @@ public class SugiliteOperationBlock extends SugiliteBlock implements Serializabl
         this.featurePack = featurePack;
     }
 
-
+    @Override
     public SugiliteBlock getNextBlock(){
         return nextBlock;
     }
@@ -55,20 +55,4 @@ public class SugiliteOperationBlock extends SugiliteBlock implements Serializabl
             ((SugiliteOperationBlock) previousBlock).setNextBlock(null);
     }
 
-    @Override
-    public boolean run() throws Exception{
-        if(operation == null){
-            throw new Exception("null operation!");
-        }
-        if(elementMatchingFilter == null){
-            throw new Exception("null element matching filter!");
-        }
-        if(nextBlock == null){
-            throw new Exception("null next block!");
-        }
-        //
-        //perform the operation
-        //
-        return nextBlock.run();
-    }
 }

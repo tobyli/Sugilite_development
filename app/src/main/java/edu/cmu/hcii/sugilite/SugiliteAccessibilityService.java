@@ -148,10 +148,13 @@ public class SugiliteAccessibilityService extends AccessibilityService {
         }
 
         //check communication status
+
+        /* temporarily disable the communication controller for performance optimization
         if(sugiliteData.communicationController != null){
             if(!sugiliteData.communicationController.checkConnectionStatus())
                 sugiliteData.communicationController.start();
         }
+        */
 
         exceptedPackages.add("edu.cmu.hcii.sugilite");
         exceptedPackages.add("com.android.systemui");
@@ -192,13 +195,14 @@ public class SugiliteAccessibilityService extends AccessibilityService {
         }
 
         if (sharedPreferences.getBoolean("tracking_in_process", false)) {
+            //background tracking in progress
             if (accessibilityEventSetToTrack.contains(event.getEventType())) {
                 sugilteTrackingHandler.handle(event, sourceNode, generateFeaturePack(event, rootNode, null, null));
+                sugiliteData.handleBroadcastingEvent(event);
             }
-            //background tracking in progress
         }
         SugiliteBlock currentBlock = sugiliteData.peekInstructionQueue();
-
+        //refresh status icon
         if(currentBlock instanceof SugiliteOperationBlock) {
             statusIconManager.refreshStatusIcon(rootNode, ((SugiliteOperationBlock) currentBlock).getElementMatchingFilter());
         }
@@ -210,6 +214,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
 
 
         if(sugiliteData.getInstructionQueueSize() > 0) {
+            //run automation
             if(automatorThread == null) {
                 automatorThread = new Thread(new Runnable() {
                     @Override

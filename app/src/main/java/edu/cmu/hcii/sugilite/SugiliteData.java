@@ -2,17 +2,23 @@ package edu.cmu.hcii.sugilite;
 
 import android.app.Application;
 import android.content.Intent;
+import android.view.accessibility.AccessibilityEvent;
+
+import com.google.gson.Gson;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
+import java.util.Set;
 
 import edu.cmu.hcii.sugilite.automation.ErrorHandler;
 import edu.cmu.hcii.sugilite.communication.SugiliteCommunicationController;
+import edu.cmu.hcii.sugilite.communication.SugiliteEventBroadcastingActivity;
 import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
@@ -29,6 +35,8 @@ public class SugiliteData extends Application {
     private SugiliteBlock currentScriptBlock, currentTrackingBlock;
     private Queue<SugiliteBlock> instructionQueue = new ArrayDeque<>();
     public Map<String, Variable> stringVariableMap = new HashMap<>();
+    public Set<String> registeredBroadcastingListener = new HashSet<>();
+    private Gson gson = new Gson();
     //true if the current recording script is initiated externally
     public boolean initiatedExternally  = false;
     public SugiliteCommunicationController communicationController;
@@ -154,7 +162,26 @@ public class SugiliteData extends Application {
             startActivity(intent);
         }
         catch (Exception e){
-            //do nothing
+            e.printStackTrace();
+        }
+    }
+
+    public void handleBroadcastingEvent(AccessibilityEvent event){
+        if(registeredBroadcastingListener.size() < 1)
+            return;
+        SugiliteEventBroadcastingActivity.BroadcastingEvent broadcastingEvent = new SugiliteEventBroadcastingActivity.BroadcastingEvent(event);
+        String messageToSend = gson.toJson(broadcastingEvent);
+        for (String dest : registeredBroadcastingListener){
+            Intent intent = new Intent(dest);
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_NO_HISTORY);
+            intent.putExtra("messageType", "SUGILITE_EVENT");
+            intent.putExtra("eventBody", messageToSend);
+            try {
+                startActivity(intent);
+            }
+            catch (Exception e){
+                e.printStackTrace();
+            }
         }
     }
 

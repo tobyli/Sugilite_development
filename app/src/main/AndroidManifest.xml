@@ -20,8 +20,8 @@
         <activity
             android:name=".MainActivity"
             android:label="Sugilite"
-            android:theme="@style/AppTheme.NoActionBar"
-            android:noHistory="true">
+            android:noHistory="true"
+            android:theme="@style/AppTheme.NoActionBar" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -62,16 +62,20 @@
         </activity>
         <activity
             android:name=".recording.mRecordingPopUpActivity"
-            android:noHistory="true"
-            android:label="Sugilite Script Recording" >
+            android:label="Sugilite Script Recording"
+            android:noHistory="true" >
         </activity>
-        <activity android:name=".communication.SugiliteCommunicationActicvity"
+        <activity
+            android:name=".communication.SugiliteCommunicationActicvity"
             android:noHistory="true"
-            android:theme="@android:style/Theme.NoDisplay">
+            android:theme="@android:style/Theme.NoDisplay" >
             <intent-filter>
                 <action android:name="edu.cmu.hcii.sugilite.COMMUNICATION" />
+
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
+        </activity>
+        <activity android:name=".communication.SugiliteEventBroadcastingActivity" >
         </activity>
     </application>
 

@@ -1,5 +1,6 @@
 package edu.cmu.hcii.sugilite.communication;
 
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -31,7 +32,6 @@ public class SugiliteEventBroadcastingActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_sugilite_event_broadcasting);
         this.sugiliteData = (SugiliteData)getApplication();
         this.sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         this.gson = new Gson();
@@ -39,19 +39,27 @@ public class SugiliteEventBroadcastingActivity extends AppCompatActivity {
         if (getIntent().getExtras() != null) {
             messageType = getIntent().getStringExtra("messageType");
             arg1 = getIntent().getStringExtra("arg1");
+            handleRequest(messageType, arg1);
         }
         finish();
     }
 
     private void handleRequest(String messageType, String arg1) {
-        boolean trackingInProcess = sharedPreferences.getBoolean("tracking_in_process", false);
+        boolean broadcastingEnabled = sharedPreferences.getBoolean("broadcasting_enabled", false);
         switch (messageType) {
             case "REGISTER":
                 sugiliteData.registeredBroadcastingListener.add(arg1);
+                Intent returnIntent = new Intent();
+                returnIntent.putExtra("result", sugiliteData.registeredBroadcastingListener.toString());
+                setResult(Activity.RESULT_OK, returnIntent);
                 break;
             case "UNREGISTER":
-                if(sugiliteData.registeredBroadcastingListener.contains(arg1))
+                if(sugiliteData.registeredBroadcastingListener.contains(arg1)) {
                     sugiliteData.registeredBroadcastingListener.remove(arg1);
+                    Intent returnIntent2 = new Intent();
+                    returnIntent2.putExtra("result", sugiliteData.registeredBroadcastingListener.toString());
+                    setResult(Activity.RESULT_OK, returnIntent2);
+                }
                 break;
         }
         AlertDialog dialog = new AlertDialog.Builder(this)
@@ -110,7 +118,7 @@ public class SugiliteEventBroadcastingActivity extends AppCompatActivity {
                 if(childTextSet.size() > 0)
                     childText = childTextSet.toString();
                 if(childContentDescriptionSet.size() > 0)
-                    childContentDescription = childContentDescription.toString();
+                    childContentDescription = childContentDescriptionSet.toString();
             }
         }
 

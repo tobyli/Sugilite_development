@@ -71,11 +71,16 @@
             android:theme="@android:style/Theme.NoDisplay" >
             <intent-filter>
                 <action android:name="edu.cmu.hcii.sugilite.COMMUNICATION" />
-
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
-        <activity android:name=".communication.SugiliteEventBroadcastingActivity" >
+        <activity android:name=".communication.SugiliteEventBroadcastingActivity"
+            android:noHistory="true"
+            android:theme="@android:style/Theme.NoDisplay" >
+            <intent-filter>
+                <action android:name="edu.cmu.hcii.sugilite.BROADCASTING" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
         </activity>
     </application>
 

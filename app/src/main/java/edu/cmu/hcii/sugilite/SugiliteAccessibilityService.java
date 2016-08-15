@@ -133,6 +133,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
     private HashSet<Map.Entry<String, String>> availableAlternatives;
     private HashSet<SerializableNodeInfo> availableAlternativeNodes;
     Set<String> exceptedPackages = new HashSet<>();
+    Set<String> trackingExcludedPackages = new HashSet<>();
 
     @Override
     public void onAccessibilityEvent(AccessibilityEvent event) {
@@ -158,6 +159,11 @@ public class SugiliteAccessibilityService extends AccessibilityService {
 
         exceptedPackages.add("edu.cmu.hcii.sugilite");
         exceptedPackages.add("com.android.systemui");
+        exceptedPackages.add("edu.cmu.hcii.sugilitecommunicationtest");
+
+        trackingExcludedPackages.add("edu.cmu.hcii.sugilitecommunicationtest");
+        trackingExcludedPackages.add("edu.cmu.hcii.sugilite");
+
         if (sugiliteData.getInstructionQueueSize() > 0 && !exceptedPackages.contains(event.getPackageName()) && sugiliteData.errorHandler != null){
             //script running in progress
             //invoke the error handler
@@ -194,11 +200,16 @@ public class SugiliteAccessibilityService extends AccessibilityService {
             }
         }
 
+        if(sharedPreferences.getBoolean("broadcasting_enabled", false)) {
+            if (accessibilityEventSetToTrack.contains(event.getEventType()) && (!trackingExcludedPackages.contains(event.getPackageName()))) {
+                sugiliteData.handleBroadcastingEvent(event);
+            }
+        }
+
         if (sharedPreferences.getBoolean("tracking_in_process", false)) {
             //background tracking in progress
-            if (accessibilityEventSetToTrack.contains(event.getEventType())) {
+            if (accessibilityEventSetToTrack.contains(event.getEventType()) && (!trackingExcludedPackages.contains(event.getPackageName()))) {
                 sugilteTrackingHandler.handle(event, sourceNode, generateFeaturePack(event, rootNode, null, null));
-                sugiliteData.handleBroadcastingEvent(event);
             }
         }
         SugiliteBlock currentBlock = sugiliteData.peekInstructionQueue();

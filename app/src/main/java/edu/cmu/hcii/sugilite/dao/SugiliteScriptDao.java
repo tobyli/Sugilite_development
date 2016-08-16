@@ -30,7 +30,6 @@ public class SugiliteScriptDao {
 
     public SugiliteScriptDao(Context context){
         sugiliteScriptDBHelper = new SugiliteScriptDBHelper(context);
-        db = sugiliteScriptDBHelper.getWritableDatabase();
     }
 
     /**

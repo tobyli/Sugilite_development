@@ -48,6 +48,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
     private Context context;
     private SugiliteTrackingHandler sugilteTrackingHandler;
     private SugiliteAppVocabularyDao vocabularyDao;
+    final private static boolean BUILDING_VOCAB = true;
 
 
 
@@ -66,7 +67,6 @@ public class SugiliteAccessibilityService extends AccessibilityService {
         sugilteTrackingHandler = new SugiliteTrackingHandler(sugiliteData, getApplicationContext());
         availableAlternatives = new HashSet<>();
         availableAlternativeNodes = new HashSet<>();
-        trackingAvailableAlternativeNodes = new HashSet<>();
         trackingPackageVocabs = new HashSet<>();
         packageVocabs = new HashSet<>();
         vocabularyDao = new SugiliteAppVocabularyDao(getApplicationContext());
@@ -140,7 +140,6 @@ public class SugiliteAccessibilityService extends AccessibilityService {
     private HashSet<SerializableNodeInfo> availableAlternativeNodes;
     private HashSet<Map.Entry<String, String>> packageVocabs;
 
-    private HashSet<SerializableNodeInfo> trackingAvailableAlternativeNodes;
     private HashSet<Map.Entry<String, String>> trackingPackageVocabs;
 
     Set<String> exceptedPackages = new HashSet<>();
@@ -206,29 +205,34 @@ public class SugiliteAccessibilityService extends AccessibilityService {
                 RecordingPopUpDialog recordingPopUpDialog = new RecordingPopUpDialog(sugiliteData, getApplicationContext(), generateFeaturePack(event, rootNode, screenshot, availableAlternativeNodes), sharedPreferences, LayoutInflater.from(getApplicationContext()), RecordingPopUpDialog.TRIGGERED_BY_NEW_EVENT, availableAlternatives);
                 recordingPopUpDialog.show(false);
             }
-
-            //add alternative nodes to the app vocab set
-            for(SerializableNodeInfo node : availableAlternativeNodes){
-                if(node.packageName != null && node.text != null)
-                    packageVocabs.add(new AbstractMap.SimpleEntry<String, String>(node.packageName, node.text));
-                if(node.packageName != null && node.childText != null && node.childText.size() > 0){
-                    for(String childText : node.childText)
-                        packageVocabs.add(new AbstractMap.SimpleEntry<String, String>(node.packageName, childText));
+            if(BUILDING_VOCAB) {
+                //add alternative nodes to the app vocab set
+                for (SerializableNodeInfo node : availableAlternativeNodes) {
+                    if (node.packageName != null && node.text != null)
+                        packageVocabs.add(new AbstractMap.SimpleEntry<String, String>(node.packageName, node.text));
+                    if (node.packageName != null && node.childText != null && node.childText.size() > 0) {
+                        for (String childText : node.childText)
+                            packageVocabs.add(new AbstractMap.SimpleEntry<String, String>(node.packageName, childText));
+                    }
                 }
             }
 
             if (accessibilityEventSetToSend.contains(event.getEventType()) && (!exceptedPackages.contains(event.getPackageName()))) {
-                for(Map.Entry<String, String> entry : packageVocabs){
-                    try {
-                        vocabularyDao.save(entry.getKey(), entry.getValue());
-                    }
-                    catch (Exception e){
-                        e.printStackTrace();
+
+                if(BUILDING_VOCAB) {
+                    for (Map.Entry<String, String> entry : packageVocabs) {
+                        try {
+                            vocabularyDao.save(entry.getKey(), entry.getValue());
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
                     }
                 }
+
                 availableAlternatives.clear();
                 availableAlternativeNodes.clear();
-                packageVocabs.clear();
+                if(BUILDING_VOCAB)
+                    packageVocabs.clear();
             }
 
         }
@@ -241,24 +245,34 @@ public class SugiliteAccessibilityService extends AccessibilityService {
 
         if (sharedPreferences.getBoolean("tracking_in_process", false)) {
             //background tracking in progress
-            //add all seen clickable nodes to package vocab DB
-            trackingAvailableAlternativeNodes.addAll(getAvailableAlternativeNodes(sourceNode, rootNode));
-            for(SerializableNodeInfo node : trackingAvailableAlternativeNodes){
-                if(node.packageName != null && node.text != null)
-                    packageVocabs.add(new AbstractMap.SimpleEntry<String, String>(node.packageName, node.text));
-                if(node.packageName != null && node.childText != null && node.childText.size() > 0){
-                    for(String childText : node.childText)
-                        packageVocabs.add(new AbstractMap.SimpleEntry<String, String>(node.packageName, childText));
-                }
-            }
-
             if (accessibilityEventSetToTrack.contains(event.getEventType()) && (!trackingExcludedPackages.contains(event.getPackageName()))) {
                 sugilteTrackingHandler.handle(event, sourceNode, generateFeaturePack(event, rootNode, null, null));
             }
 
-            trackingAvailableAlternativeNodes.clear();
-            trackingPackageVocabs.clear();
+            //add all seen clickable nodes to package vocab DB
+            if(BUILDING_VOCAB) {
+                for (SerializableNodeInfo node : getAvailableAlternativeNodes(sourceNode, rootNode)) {
+                    if (node.packageName != null && node.text != null)
+                        packageVocabs.add(new AbstractMap.SimpleEntry<>(node.packageName, node.text));
+                    if (node.packageName != null && node.childText != null && node.childText.size() > 0) {
+                        for (String childText : node.childText)
+                            packageVocabs.add(new AbstractMap.SimpleEntry<>(node.packageName, childText));
+                    }
+                }
+                //only read/write DB at every click -> to optimize performance
+                if (event.getEventType() == AccessibilityEvent.TYPE_VIEW_CLICKED) {
+                    for (Map.Entry<String, String> entry : packageVocabs) {
+                        try {
+                            vocabularyDao.save(entry.getKey(), entry.getValue());
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+                    trackingPackageVocabs.clear();
+                }
+            }
         }
+
         SugiliteBlock currentBlock = sugiliteData.peekInstructionQueue();
         //refresh status icon
         if(currentBlock instanceof SugiliteOperationBlock) {

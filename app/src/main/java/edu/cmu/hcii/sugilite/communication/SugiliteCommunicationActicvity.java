@@ -40,12 +40,14 @@ public class SugiliteCommunicationActicvity extends Activity {
     SugiliteTrackingDao sugiliteTrackingDao;
     SugiliteAppVocabularyDao vocabularyDao;
     Context context;
+    Gson gson;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_sugilite_communication_acticvity);
         messageType = (TextView)findViewById(R.id.receive_message_textview);
         scriptName = (TextView)findViewById(R.id.receive_message_script_name);
+        gson = new Gson();
         messageType.setText("TEST MESSAGE TYPE");
         String messageTypeString = "", arg1 = "", arg2 = "";
         if (getIntent().getExtras() != null)
@@ -292,10 +294,10 @@ public class SugiliteCommunicationActicvity extends Activity {
                 sendReturnValue("");
                 break;
 
-            case "GET_PACKAGE_VOCAB":
+            case "GET_ALL_PACKAGE_VOCAB":
                 Map<String, Set<String>> appVocabMap =  null;
                 try {
-                    vocabularyDao.getTextsForAllPackages();
+                    appVocabMap = vocabularyDao.getTextsForAllPackages();
                 }
                 catch (Exception e){
                     e.printStackTrace();
@@ -304,7 +306,7 @@ public class SugiliteCommunicationActicvity extends Activity {
                     String retVal2 = "";
                     for(Map.Entry<String, Set<String>> entry : appVocabMap.entrySet()){
                         for(String text : entry.getValue()){
-                            retVal2 += entry.getValue() + ": " + text + "\n";
+                            retVal2 += entry.getKey() + ": " + text + "\n";
                         }
                     }
                     sendReturnValue(retVal2);
@@ -312,11 +314,27 @@ public class SugiliteCommunicationActicvity extends Activity {
                 else{
                     sendReturnValue("NULL");
                 }
+                break;
 
+            case "GET_PACKAGE_VOCAB":
+                Set<String> vocabSet = null;
+                if(arg1 != null) {
+                    try {
+                        vocabSet = vocabularyDao.getText(arg1);
+                        sendReturnValue(gson.toJson(vocabSet));
+                    }
+                    catch (Exception e){
+                        e.printStackTrace();
+                    }
+                }
+                else {
+                    //TODO: send exception
+                }
         }
     }
 
     private void runScript(SugiliteStartingBlock script){
+
         sugiliteData.clearInstructionQueue();
         final ServiceStatusManager serviceStatusManager = new ServiceStatusManager(context);
 

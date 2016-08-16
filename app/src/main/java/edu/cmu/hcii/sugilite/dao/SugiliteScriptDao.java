@@ -49,11 +49,18 @@ public class SugiliteScriptDao {
         values.put(SugiliteScriptDbContract.SugiliteScriptRecordEntry.COLUMN_NAME_SCRIPT_NAME, sugiliteBlock.getScriptName());
         values.put(SugiliteScriptDbContract.SugiliteScriptRecordEntry.COLUMN_NAME_SCRIPT_BODY, SerializationUtils.serialize(sugiliteBlock));
         values.put(SugiliteScriptDbContract.SugiliteScriptRecordEntry.COLUMN_NAME_ADDED_TIME, c.getTimeInMillis());
-        long newRowId;
-        newRowId = db.insert(
-                SugiliteScriptDbContract.SugiliteScriptRecordEntry.TABLE_NAME,
-                null,
-                values);
+        long newRowId = -1;
+        try {
+            db = sugiliteScriptDBHelper.getWritableDatabase();
+            newRowId = db.insert(
+                    SugiliteScriptDbContract.SugiliteScriptRecordEntry.TABLE_NAME,
+                    null,
+                    values);
+            db.close();
+        }
+        catch (Exception e){
+            e.printStackTrace();
+        }
         return newRowId;
     }
 
@@ -62,8 +69,16 @@ public class SugiliteScriptDao {
      * @return # of rows in DB
      */
     public long size(){
-        SQLiteStatement statement = db.compileStatement("select count (*) from " + SugiliteScriptDbContract.SugiliteScriptRecordEntry.TABLE_NAME + ";");
-        long size = statement.simpleQueryForLong();
+        long size = -1;
+        try {
+            db = sugiliteScriptDBHelper.getReadableDatabase();
+            SQLiteStatement statement = db.compileStatement("select count (*) from " + SugiliteScriptDbContract.SugiliteScriptRecordEntry.TABLE_NAME + ";");
+            size = statement.simpleQueryForLong();
+            db.close();
+        }
+        catch (Exception e){
+            e.printStackTrace();
+        }
         return size;
     }
 
@@ -72,7 +87,15 @@ public class SugiliteScriptDao {
      * @return path of the ".db" file
      */
     public String getPath(){
-        String path = db.getPath();
+        String path = "";
+        try {
+            db = sugiliteScriptDBHelper.getReadableDatabase();
+            path = db.getPath();
+            db.close();
+        }
+        catch (Exception e){
+            e.printStackTrace();
+        }
         return path;
     }
 
@@ -82,26 +105,42 @@ public class SugiliteScriptDao {
      * @return the script with name = key, null if there's no such script
      */
     public SugiliteStartingBlock read(String key){
-        Cursor cursor = db.rawQuery("SELECT * FROM " + SugiliteScriptDbContract.SugiliteScriptRecordEntry.TABLE_NAME + " WHERE " + SugiliteScriptDbContract.SugiliteScriptRecordEntry.COLUMN_NAME_SCRIPT_NAME + " = \'" + key + "\';", null);
-        if(cursor.getCount() == 0) {
-            return null;
+        SugiliteStartingBlock block = null;
+        try {
+            db = sugiliteScriptDBHelper.getReadableDatabase();
+            Cursor cursor = db.rawQuery("SELECT * FROM " + SugiliteScriptDbContract.SugiliteScriptRecordEntry.TABLE_NAME + " WHERE " + SugiliteScriptDbContract.SugiliteScriptRecordEntry.COLUMN_NAME_SCRIPT_NAME + " = \'" + key + "\';", null);
+            if (cursor.getCount() == 0) {
+                return null;
+            }
+            cursor.moveToFirst();
+            byte[] blob = cursor.getBlob(cursor.getColumnIndex(SugiliteScriptDbContract.SugiliteScriptRecordEntry.COLUMN_NAME_SCRIPT_BODY));
+             block = (SugiliteStartingBlock) SerializationUtils.deserialize(blob);
+            cursor.close();
+            db.close();
         }
-        cursor.moveToFirst();
-        byte[] blob = cursor.getBlob(cursor.getColumnIndex(SugiliteScriptDbContract.SugiliteScriptRecordEntry.COLUMN_NAME_SCRIPT_BODY));
-        SugiliteStartingBlock block = (SugiliteStartingBlock)SerializationUtils.deserialize(blob);
-        cursor.close();
+        catch (Exception e){
+            e.printStackTrace();
+        }
         return block;
     }
 
     public SugiliteStartingBlock read(long id){
-        Cursor cursor = db.rawQuery("SELECT * FROM " + SugiliteScriptDbContract.SugiliteScriptRecordEntry.TABLE_NAME + " WHERE " + SugiliteScriptDbContract.SugiliteScriptRecordEntry._ID + " = \'" + id + "\';", null);
-        if(cursor.getCount() == 0) {
-            return null;
+        SugiliteStartingBlock block = null;
+        try {
+            db = sugiliteScriptDBHelper.getReadableDatabase();
+            Cursor cursor = db.rawQuery("SELECT * FROM " + SugiliteScriptDbContract.SugiliteScriptRecordEntry.TABLE_NAME + " WHERE " + SugiliteScriptDbContract.SugiliteScriptRecordEntry._ID + " = \'" + id + "\';", null);
+            if (cursor.getCount() == 0) {
+                return null;
+            }
+            cursor.moveToFirst();
+            byte[] blob = cursor.getBlob(cursor.getColumnIndex(SugiliteScriptDbContract.SugiliteScriptRecordEntry.COLUMN_NAME_SCRIPT_BODY));
+            block = (SugiliteStartingBlock) SerializationUtils.deserialize(blob);
+            cursor.close();
+            db.close();
         }
-        cursor.moveToFirst();
-        byte[] blob = cursor.getBlob(cursor.getColumnIndex(SugiliteScriptDbContract.SugiliteScriptRecordEntry.COLUMN_NAME_SCRIPT_BODY));
-        SugiliteStartingBlock block = (SugiliteStartingBlock)SerializationUtils.deserialize(blob);
-        cursor.close();
+        catch (Exception e){
+            e.printStackTrace();
+        }
         return block;
     }
 
@@ -111,8 +150,16 @@ public class SugiliteScriptDao {
      * @return the number of rows deleted
      */
     public int delete(String key){
-        SQLiteStatement statement = db.compileStatement("DELETE FROM " + SugiliteScriptDbContract.SugiliteScriptRecordEntry.TABLE_NAME + " WHERE " + SugiliteScriptDbContract.SugiliteScriptRecordEntry.COLUMN_NAME_SCRIPT_NAME + " = \'" + key + "\';");
-        int rowCount = statement.executeUpdateDelete();
+        int rowCount = -1;
+        try {
+            db = sugiliteScriptDBHelper.getWritableDatabase();
+            SQLiteStatement statement = db.compileStatement("DELETE FROM " + SugiliteScriptDbContract.SugiliteScriptRecordEntry.TABLE_NAME + " WHERE " + SugiliteScriptDbContract.SugiliteScriptRecordEntry.COLUMN_NAME_SCRIPT_NAME + " = \'" + key + "\';");
+            rowCount = statement.executeUpdateDelete();
+            db.close();
+        }
+        catch (Exception e){
+            e.printStackTrace();
+        }
         return rowCount;
     }
 
@@ -122,8 +169,16 @@ public class SugiliteScriptDao {
      */
 
     public int clear(){
-        SQLiteStatement statement = db.compileStatement("DELETE FROM " + SugiliteScriptDbContract.SugiliteScriptRecordEntry.TABLE_NAME + ";");
-        int rowCount = statement.executeUpdateDelete();
+        int rowCount = -1;
+        try {
+            db = sugiliteScriptDBHelper.getWritableDatabase();
+            SQLiteStatement statement = db.compileStatement("DELETE FROM " + SugiliteScriptDbContract.SugiliteScriptRecordEntry.TABLE_NAME + ";");
+            rowCount = statement.executeUpdateDelete();
+            db.close();
+        }
+        catch (Exception e){
+            e.printStackTrace();
+        }
         return rowCount;
     }
 
@@ -132,15 +187,22 @@ public class SugiliteScriptDao {
      * @return the list of all script names in DB
      */
     public List<String> getAllNames(){
-        Cursor cursor = db.rawQuery("SELECT * FROM " + SugiliteScriptDbContract.SugiliteScriptRecordEntry.TABLE_NAME + ";", null);
-        cursor.moveToFirst();
         List<String> names = new ArrayList<>();
-        while (!cursor.isAfterLast()){
-            String name = cursor.getString(cursor.getColumnIndex(SugiliteScriptDbContract.SugiliteScriptRecordEntry.COLUMN_NAME_SCRIPT_NAME));
-            names.add(name);
-            cursor.moveToNext();
+        try {
+            db = sugiliteScriptDBHelper.getReadableDatabase();
+            Cursor cursor = db.rawQuery("SELECT * FROM " + SugiliteScriptDbContract.SugiliteScriptRecordEntry.TABLE_NAME + ";", null);
+            cursor.moveToFirst();
+            while (!cursor.isAfterLast()) {
+                String name = cursor.getString(cursor.getColumnIndex(SugiliteScriptDbContract.SugiliteScriptRecordEntry.COLUMN_NAME_SCRIPT_NAME));
+                names.add(name);
+                cursor.moveToNext();
+            }
+            cursor.close();
+            db.close();
         }
-        cursor.close();
+        catch (Exception e){
+            e.printStackTrace();
+        }
         return names;
     }
 
@@ -149,16 +211,23 @@ public class SugiliteScriptDao {
      * @return the list of all scripts in DB
      */
     public List<SugiliteStartingBlock> getAllScripts(){
-        Cursor cursor = db.rawQuery("SELECT * FROM " + SugiliteScriptDbContract.SugiliteScriptRecordEntry.TABLE_NAME + ";", null);
-        cursor.moveToFirst();
         List<SugiliteStartingBlock> scripts = new ArrayList<>();
-        while (!cursor.isAfterLast()){
-            byte[] blob = cursor.getBlob(cursor.getColumnIndex(SugiliteScriptDbContract.SugiliteScriptRecordEntry.COLUMN_NAME_SCRIPT_BODY));
-            SugiliteStartingBlock block = (SugiliteStartingBlock)SerializationUtils.deserialize(blob);
-            scripts.add(block);
-            cursor.moveToNext();
+        try {
+            db = sugiliteScriptDBHelper.getReadableDatabase();
+            Cursor cursor = db.rawQuery("SELECT * FROM " + SugiliteScriptDbContract.SugiliteScriptRecordEntry.TABLE_NAME + ";", null);
+            cursor.moveToFirst();
+            while (!cursor.isAfterLast()) {
+                byte[] blob = cursor.getBlob(cursor.getColumnIndex(SugiliteScriptDbContract.SugiliteScriptRecordEntry.COLUMN_NAME_SCRIPT_BODY));
+                SugiliteStartingBlock block = (SugiliteStartingBlock) SerializationUtils.deserialize(blob);
+                scripts.add(block);
+                cursor.moveToNext();
+            }
+            cursor.close();
+            db.close();
         }
-        cursor.close();
+        catch (Exception e){
+            e.printStackTrace();
+        }
         return scripts;
     }
 

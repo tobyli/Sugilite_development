@@ -20,12 +20,11 @@ import edu.cmu.hcii.sugilite.dao.db.SugiliteScriptDbContract;
  * Created by toby on 8/15/16.
  */
 public class SugiliteAppVocabularyDao {
-    private SugiliteAppVocabularyDBHelper sugiliteAppVocabularyDBHelper;
-    private SQLiteDatabase db;
+    private static SugiliteAppVocabularyDBHelper sugiliteAppVocabularyDBHelper;
+    private static SQLiteDatabase db;
 
     public SugiliteAppVocabularyDao(Context context){
         sugiliteAppVocabularyDBHelper = new SugiliteAppVocabularyDBHelper(context);
-        db = sugiliteAppVocabularyDBHelper.getWritableDatabase();
     }
 
     /**
@@ -44,59 +43,100 @@ public class SugiliteAppVocabularyDao {
             return -1;
         values.put(SugiliteAppVocabularyDBContract.SugiliteAppVocabularRecordEntry.COLUMN_NAME_PACKAGE_NAME, packageName);
         values.put(SugiliteAppVocabularyDBContract.SugiliteAppVocabularRecordEntry.COLUMN_NAME_TEXT, text);
-        long newRowId;
-        newRowId = db.insert(
-                SugiliteAppVocabularyDBContract.SugiliteAppVocabularRecordEntry.TABLE_NAME,
-                null,
-                values);
+        long newRowId = -1;
+        try {
+            db = sugiliteAppVocabularyDBHelper.getWritableDatabase();
+            newRowId = db.insert(
+                    SugiliteAppVocabularyDBContract.SugiliteAppVocabularRecordEntry.TABLE_NAME,
+                    null,
+                    values);
+            db.close();
+        }
+        catch (Exception e){
+            e.printStackTrace();
+        }
         return newRowId;
     }
 
     public Set<String> getText(String packageName) throws Exception{
-        Cursor cursor = db.rawQuery("SELECT * FROM " + SugiliteAppVocabularyDBContract.SugiliteAppVocabularRecordEntry.TABLE_NAME + " WHERE " + SugiliteAppVocabularyDBContract.SugiliteAppVocabularRecordEntry.COLUMN_NAME_PACKAGE_NAME + " = \'" + packageName + "\';", null);
-        if(cursor.getCount() == 0) {
-            return null;
-        }
+        String[] columnsToReturn = {SugiliteAppVocabularyDBContract.SugiliteAppVocabularRecordEntry.COLUMN_NAME_TEXT};
+        String selection = SugiliteAppVocabularyDBContract.SugiliteAppVocabularRecordEntry.COLUMN_NAME_PACKAGE_NAME + " =?";
+        String[] selectionArgs = {packageName};
         Set<String> retVal = new HashSet<>();
-        cursor.moveToFirst();
-        while(!cursor.isAfterLast()){
-            String text = cursor.getString(cursor.getColumnIndex(SugiliteAppVocabularyDBContract.SugiliteAppVocabularRecordEntry.COLUMN_NAME_TEXT));
-            retVal.add(text);
-            cursor.moveToNext();
+        try {
+            db = sugiliteAppVocabularyDBHelper.getReadableDatabase();
+            Cursor cursor = db.query(SugiliteAppVocabularyDBContract.SugiliteAppVocabularRecordEntry.TABLE_NAME,
+                    columnsToReturn, selection, selectionArgs, null, null, null);
+            if (cursor.getCount() == 0) {
+                return null;
+            }
+            cursor.moveToFirst();
+            while (!cursor.isAfterLast()) {
+                String text = cursor.getString(cursor.getColumnIndex(SugiliteAppVocabularyDBContract.SugiliteAppVocabularRecordEntry.COLUMN_NAME_TEXT));
+                retVal.add(text);
+                cursor.moveToNext();
+            }
+            cursor.close();
+            db.close();
         }
-        cursor.close();
+        catch (Exception e){
+            e.printStackTrace();
+        }
         return retVal;
     }
 
     public Map<String, Set<String>> getTextsForAllPackages() throws Exception{
-        Cursor cursor = db.rawQuery("SELECT * FROM *;", null);
-        if(cursor.getCount() == 0) {
-            return null;
-        }
         Map<String, Set<String>> retVal = new HashMap<>();
-        while(!cursor.isAfterLast()){
-            String packageName = cursor.getString(cursor.getColumnIndex(SugiliteAppVocabularyDBContract.SugiliteAppVocabularRecordEntry.COLUMN_NAME_PACKAGE_NAME));
-            String text = cursor.getString(cursor.getColumnIndex(SugiliteAppVocabularyDBContract.SugiliteAppVocabularRecordEntry.COLUMN_NAME_TEXT));
-            if(retVal.containsKey(packageName)){
-                retVal.get(packageName).add(text);
+        try {
+            db = sugiliteAppVocabularyDBHelper.getReadableDatabase();
+            Cursor cursor = db.rawQuery("SELECT * FROM " + SugiliteAppVocabularyDBContract.SugiliteAppVocabularRecordEntry.TABLE_NAME + ";", null);
+            if (cursor.getCount() == 0) {
+                return null;
             }
-            else{
-                Set<String> textSet = new HashSet<>();
-                textSet.add(text);
-                retVal.put(packageName, textSet);
+            cursor.moveToFirst();
+            while (!cursor.isAfterLast()) {
+                String packageName = cursor.getString(cursor.getColumnIndex(SugiliteAppVocabularyDBContract.SugiliteAppVocabularRecordEntry.COLUMN_NAME_PACKAGE_NAME));
+                String text = cursor.getString(cursor.getColumnIndex(SugiliteAppVocabularyDBContract.SugiliteAppVocabularRecordEntry.COLUMN_NAME_TEXT));
+                if (retVal.containsKey(packageName)) {
+                    retVal.get(packageName).add(text);
+                } else {
+                    Set<String> textSet = new HashSet<>();
+                    textSet.add(text);
+                    retVal.put(packageName, textSet);
+                }
+                cursor.moveToNext();
             }
-            cursor.moveToNext();
+            cursor.close();
+            db.close();
         }
-        cursor.close();
+        catch (Exception e){
+            e.printStackTrace();
+        }
         return retVal;
     }
 
     public boolean containsEntry(String packageName, String text) throws Exception{
-        Cursor cursor = db.rawQuery("SELECT * FROM " + SugiliteAppVocabularyDBContract.SugiliteAppVocabularRecordEntry.TABLE_NAME + " WHERE " + SugiliteAppVocabularyDBContract.SugiliteAppVocabularRecordEntry.COLUMN_NAME_PACKAGE_NAME + " = \'" + packageName + "\' AND " + SugiliteAppVocabularyDBContract.SugiliteAppVocabularRecordEntry.COLUMN_NAME_TEXT + "= \'" + text +  "\';", null);
-        if(cursor.getCount() == 0) {
-            return false;
+        String[] columnsToReturn = {SugiliteAppVocabularyDBContract.SugiliteAppVocabularRecordEntry.COLUMN_NAME_TEXT};
+        String selection = SugiliteAppVocabularyDBContract.SugiliteAppVocabularRecordEntry.COLUMN_NAME_PACKAGE_NAME + " =? AND " + SugiliteAppVocabularyDBContract.SugiliteAppVocabularRecordEntry.COLUMN_NAME_TEXT + " =?";
+        String[] selectionArgs = {packageName, text};
+        boolean containsEntry = false;
+        try {
+            db = sugiliteAppVocabularyDBHelper.getReadableDatabase();
+            Cursor cursor = db.query(SugiliteAppVocabularyDBContract.SugiliteAppVocabularRecordEntry.TABLE_NAME,
+                    columnsToReturn, selection, selectionArgs, null, null, null);
+            if (cursor.getCount() > 0) {
+                containsEntry = true;
+            }
+            else{
+                containsEntry = false;
+            }
+            cursor.close();
+            db.close();
         }
-        return true;
+        catch (Exception e){
+            e.printStackTrace();
+        }
+        return containsEntry;
     }
 
     /**
@@ -104,7 +144,15 @@ public class SugiliteAppVocabularyDao {
      * @return path of the ".db" file
      */
     public String getPath(){
-        String path = db.getPath();
+        String path = "";
+        try {
+            db = sugiliteAppVocabularyDBHelper.getReadableDatabase();
+            path = db.getPath();
+            db.close();
+        }
+        catch (Exception e){
+            e.printStackTrace();
+        }
         return path;
     }
 
@@ -113,8 +161,16 @@ public class SugiliteAppVocabularyDao {
      * @return # of rows in DB
      */
     public long size(){
-        SQLiteStatement statement = db.compileStatement("select count (*) from " + SugiliteAppVocabularyDBContract.SugiliteAppVocabularRecordEntry.TABLE_NAME + ";");
-        long size = statement.simpleQueryForLong();
+        long size = -1;
+        try {
+            db = sugiliteAppVocabularyDBHelper.getReadableDatabase();
+            SQLiteStatement statement = db.compileStatement("SELECT COUNT (*) FROM " + SugiliteAppVocabularyDBContract.SugiliteAppVocabularRecordEntry.TABLE_NAME + ";");
+            size = statement.simpleQueryForLong();
+            db.close();
+        }
+        catch (Exception e){
+            e.printStackTrace();
+        }
         return size;
     }
 
@@ -124,8 +180,16 @@ public class SugiliteAppVocabularyDao {
      */
 
     public int clear(){
-        SQLiteStatement statement = db.compileStatement("DELETE FROM " + SugiliteAppVocabularyDBContract.SugiliteAppVocabularRecordEntry.TABLE_NAME + ";");
-        int rowCount = statement.executeUpdateDelete();
+        int rowCount = -1;
+        try {
+            db = sugiliteAppVocabularyDBHelper.getWritableDatabase();
+            SQLiteStatement statement = db.compileStatement("DELETE FROM " + SugiliteAppVocabularyDBContract.SugiliteAppVocabularRecordEntry.TABLE_NAME + ";");
+            rowCount = statement.executeUpdateDelete();
+            db.close();
+        }
+        catch (Exception e){
+            e.printStackTrace();
+        }
         return rowCount;
     }
 

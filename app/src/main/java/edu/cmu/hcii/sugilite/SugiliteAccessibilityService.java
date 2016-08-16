@@ -66,6 +66,9 @@ public class SugiliteAccessibilityService extends AccessibilityService {
         sugilteTrackingHandler = new SugiliteTrackingHandler(sugiliteData, getApplicationContext());
         availableAlternatives = new HashSet<>();
         availableAlternativeNodes = new HashSet<>();
+        trackingAvailableAlternativeNodes = new HashSet<>();
+        trackingPackageVocabs = new HashSet<>();
+        packageVocabs = new HashSet<>();
         vocabularyDao = new SugiliteAppVocabularyDao(getApplicationContext());
         context = this;
         try {
@@ -135,6 +138,11 @@ public class SugiliteAccessibilityService extends AccessibilityService {
 
     private HashSet<Map.Entry<String, String>> availableAlternatives;
     private HashSet<SerializableNodeInfo> availableAlternativeNodes;
+    private HashSet<Map.Entry<String, String>> packageVocabs;
+
+    private HashSet<SerializableNodeInfo> trackingAvailableAlternativeNodes;
+    private HashSet<Map.Entry<String, String>> trackingPackageVocabs;
+
     Set<String> exceptedPackages = new HashSet<>();
     Set<String> trackingExcludedPackages = new HashSet<>();
 
@@ -170,19 +178,20 @@ public class SugiliteAccessibilityService extends AccessibilityService {
         if (sugiliteData.getInstructionQueueSize() > 0 && !exceptedPackages.contains(event.getPackageName()) && sugiliteData.errorHandler != null){
             //script running in progress
             //invoke the error handler
-
             //sugiliteData.errorHandler.checkError(event, sugiliteData.peekInstructionQueue(), Calendar.getInstance().getTimeInMillis());
         }
 
         if (sharedPreferences.getBoolean("recording_in_process", false)) {
             //recording in progress
+
             //skip internal interactions and interactions on system ui
             availableAlternatives.addAll(getAlternativeLabels(sourceNode, rootNode));
             availableAlternativeNodes.addAll(getAvailableAlternativeNodes(sourceNode, rootNode));
 
+            //if the event is to be recorded, process it
             if (accessibilityEventSetToSend.contains(event.getEventType()) && (!exceptedPackages.contains(event.getPackageName()))) {
                 File screenshot = null;
-                if(sharedPreferences.getBoolean("root_enabled", false)) {
+                if (sharedPreferences.getBoolean("root_enabled", false)) {
                     //take screenshot
                     try {
                         /*
@@ -194,13 +203,34 @@ public class SugiliteAccessibilityService extends AccessibilityService {
                     }
                 }
                 //start the popup activity
-                //startActivity(generatePopUpActivityIntentFromEvent(event, rootNode, screenshot, availableAlternatives));
                 RecordingPopUpDialog recordingPopUpDialog = new RecordingPopUpDialog(sugiliteData, getApplicationContext(), generateFeaturePack(event, rootNode, screenshot, availableAlternativeNodes), sharedPreferences, LayoutInflater.from(getApplicationContext()), RecordingPopUpDialog.TRIGGERED_BY_NEW_EVENT, availableAlternatives);
                 recordingPopUpDialog.show(false);
+            }
+
+            //add alternative nodes to the app vocab set
+            for(SerializableNodeInfo node : availableAlternativeNodes){
+                if(node.packageName != null && node.text != null)
+                    packageVocabs.add(new AbstractMap.SimpleEntry<String, String>(node.packageName, node.text));
+                if(node.packageName != null && node.childText != null && node.childText.size() > 0){
+                    for(String childText : node.childText)
+                        packageVocabs.add(new AbstractMap.SimpleEntry<String, String>(node.packageName, childText));
+                }
+            }
+
+            if (accessibilityEventSetToSend.contains(event.getEventType()) && (!exceptedPackages.contains(event.getPackageName()))) {
+                for(Map.Entry<String, String> entry : packageVocabs){
+                    try {
+                        vocabularyDao.save(entry.getKey(), entry.getValue());
+                    }
+                    catch (Exception e){
+                        e.printStackTrace();
+                    }
+                }
                 availableAlternatives.clear();
                 availableAlternativeNodes.clear();
-
+                packageVocabs.clear();
             }
+
         }
 
         if(sharedPreferences.getBoolean("broadcasting_enabled", false)) {
@@ -212,29 +242,22 @@ public class SugiliteAccessibilityService extends AccessibilityService {
         if (sharedPreferences.getBoolean("tracking_in_process", false)) {
             //background tracking in progress
             //add all seen clickable nodes to package vocab DB
-            availableAlternativeNodes.addAll(getAvailableAlternativeNodes(sourceNode, rootNode));
-            for(SerializableNodeInfo node : availableAlternativeNodes){
+            trackingAvailableAlternativeNodes.addAll(getAvailableAlternativeNodes(sourceNode, rootNode));
+            for(SerializableNodeInfo node : trackingAvailableAlternativeNodes){
                 if(node.packageName != null && node.text != null)
-                    try {
-                        vocabularyDao.save(node.packageName, node.text);
-                    }
-                    catch (Exception e){
-                        e.printStackTrace();
-                    }
+                    packageVocabs.add(new AbstractMap.SimpleEntry<String, String>(node.packageName, node.text));
                 if(node.packageName != null && node.childText != null && node.childText.size() > 0){
                     for(String childText : node.childText)
-                        try {
-                            vocabularyDao.save(node.packageName, childText);
-                        }
-                        catch (Exception e){
-                            e.printStackTrace();
-                        }
+                        packageVocabs.add(new AbstractMap.SimpleEntry<String, String>(node.packageName, childText));
                 }
             }
+
             if (accessibilityEventSetToTrack.contains(event.getEventType()) && (!trackingExcludedPackages.contains(event.getPackageName()))) {
                 sugilteTrackingHandler.handle(event, sourceNode, generateFeaturePack(event, rootNode, null, null));
             }
-            availableAlternativeNodes.clear();
+
+            trackingAvailableAlternativeNodes.clear();
+            trackingPackageVocabs.clear();
         }
         SugiliteBlock currentBlock = sugiliteData.peekInstructionQueue();
         //refresh status icon

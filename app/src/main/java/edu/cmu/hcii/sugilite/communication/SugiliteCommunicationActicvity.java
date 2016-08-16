@@ -19,10 +19,13 @@ import com.google.gson.Gson;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import edu.cmu.hcii.sugilite.R;
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.automation.ServiceStatusManager;
+import edu.cmu.hcii.sugilite.dao.SugiliteAppVocabularyDao;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
 import edu.cmu.hcii.sugilite.dao.SugiliteTrackingDao;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
@@ -35,6 +38,7 @@ public class SugiliteCommunicationActicvity extends Activity {
     SugiliteData sugiliteData;
     SharedPreferences sharedPreferences;
     SugiliteTrackingDao sugiliteTrackingDao;
+    SugiliteAppVocabularyDao vocabularyDao;
     Context context;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -61,13 +65,13 @@ public class SugiliteCommunicationActicvity extends Activity {
             GET_SCRIPT, scriptName, "NULL" //return value returned as activity result instead
             GET_SCRIPT_LIST, "NULL, "NULL" //return value returned as activity result instead
 
-
-
             START_TRACKING, trackingName, callbackString
             END_TRACKING, "NULL", callbackString
             GET_TRACKING, trackingName, "NULL"
             GET_TRACKING_LIST, "NULL", "NULL"
             CLEAR_TRACKING_LIST, "NULL", "NULL"
+
+            GET_PACKAGE_VOCAB, "NULL", NULL" //return value returned as activity result instead
             */
 
             arg1 = getIntent().getStringExtra("arg1");
@@ -77,6 +81,7 @@ public class SugiliteCommunicationActicvity extends Activity {
         }
         this.sugiliteScriptDao = new SugiliteScriptDao(this);
         this.sugiliteTrackingDao = new SugiliteTrackingDao(this);
+        this.vocabularyDao = new SugiliteAppVocabularyDao(this);
         this.jsonProcessor = new SugiliteBlockJSONProcessor(this);
         this.sugiliteData = (SugiliteData)getApplication();
         this.sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
@@ -286,6 +291,28 @@ public class SugiliteCommunicationActicvity extends Activity {
                 sugiliteTrackingDao.clear();
                 sendReturnValue("");
                 break;
+
+            case "GET_PACKAGE_VOCAB":
+                Map<String, Set<String>> appVocabMap =  null;
+                try {
+                    vocabularyDao.getTextsForAllPackages();
+                }
+                catch (Exception e){
+                    e.printStackTrace();
+                }
+                if(appVocabMap != null && appVocabMap.size() > 0){
+                    String retVal2 = "";
+                    for(Map.Entry<String, Set<String>> entry : appVocabMap.entrySet()){
+                        for(String text : entry.getValue()){
+                            retVal2 += entry.getValue() + ": " + text + "\n";
+                        }
+                    }
+                    sendReturnValue(retVal2);
+                }
+                else{
+                    sendReturnValue("NULL");
+                }
+
         }
     }
 

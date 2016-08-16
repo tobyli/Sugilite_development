@@ -23,6 +23,7 @@ import java.util.Map;
 import java.util.Set;
 
 import edu.cmu.hcii.sugilite.communication.SugiliteCommunicationController;
+import edu.cmu.hcii.sugilite.dao.SugiliteAppVocabularyDao;
 import edu.cmu.hcii.sugilite.dao.SugiliteScreenshotManager;
 import edu.cmu.hcii.sugilite.model.AccessibilityNodeInfoList;
 import edu.cmu.hcii.sugilite.automation.*;
@@ -46,6 +47,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
     private Thread automatorThread;
     private Context context;
     private SugiliteTrackingHandler sugilteTrackingHandler;
+    private SugiliteAppVocabularyDao vocabularyDao;
 
 
 
@@ -64,6 +66,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
         sugilteTrackingHandler = new SugiliteTrackingHandler(sugiliteData, getApplicationContext());
         availableAlternatives = new HashSet<>();
         availableAlternativeNodes = new HashSet<>();
+        vocabularyDao = new SugiliteAppVocabularyDao(getApplicationContext());
         context = this;
         try {
             //TODO: periodically check the status of communication controller
@@ -208,9 +211,30 @@ public class SugiliteAccessibilityService extends AccessibilityService {
 
         if (sharedPreferences.getBoolean("tracking_in_process", false)) {
             //background tracking in progress
+            //add all seen clickable nodes to package vocab DB
+            availableAlternativeNodes.addAll(getAvailableAlternativeNodes(sourceNode, rootNode));
+            for(SerializableNodeInfo node : availableAlternativeNodes){
+                if(node.packageName != null && node.text != null)
+                    try {
+                        vocabularyDao.save(node.packageName, node.text);
+                    }
+                    catch (Exception e){
+                        e.printStackTrace();
+                    }
+                if(node.packageName != null && node.childText != null && node.childText.size() > 0){
+                    for(String childText : node.childText)
+                        try {
+                            vocabularyDao.save(node.packageName, childText);
+                        }
+                        catch (Exception e){
+                            e.printStackTrace();
+                        }
+                }
+            }
             if (accessibilityEventSetToTrack.contains(event.getEventType()) && (!trackingExcludedPackages.contains(event.getPackageName()))) {
                 sugilteTrackingHandler.handle(event, sourceNode, generateFeaturePack(event, rootNode, null, null));
             }
+            availableAlternativeNodes.clear();
         }
         SugiliteBlock currentBlock = sugiliteData.peekInstructionQueue();
         //refresh status icon

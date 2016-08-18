@@ -48,7 +48,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
     private Context context;
     private SugiliteTrackingHandler sugilteTrackingHandler;
     private SugiliteAppVocabularyDao vocabularyDao;
-    final private static boolean BUILDING_VOCAB = true;
+    final private static boolean BUILDING_VOCAB = false;
 
 
 

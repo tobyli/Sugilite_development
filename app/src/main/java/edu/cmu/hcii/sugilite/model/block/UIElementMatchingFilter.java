@@ -419,7 +419,7 @@ public class UIElementMatchingFilter implements Serializable {
         return retList;
     }
 
-    private boolean equalsToIgnoreCaseTrimSymbols(CharSequence string1, CharSequence string2){
+    static public boolean equalsToIgnoreCaseTrimSymbols(CharSequence string1, CharSequence string2){
         if((string1 == null && string2 != null) || (string1 != null && string2 == null))
             return false;
         if(string1 == null && string2 == null)

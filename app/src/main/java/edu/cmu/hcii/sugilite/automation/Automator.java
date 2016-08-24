@@ -88,14 +88,14 @@ public class Automator {
             List<AccessibilityNodeInfo> childContentDescriptionMatchedNodes = new ArrayList<>();
 
             for (AccessibilityNodeInfo node : filteredNodes){
-                if(node.getText() != null && filter.getTextOrChildTextOrContentDescription().equals(node.getText()))
+                if(node.getText() != null && UIElementMatchingFilter.equalsToIgnoreCaseTrimSymbols(filter.getTextOrChildTextOrContentDescription(), node.getText()))
                     textMatchedNodes.add(node);
-                if(node.getContentDescription() != null && filter.getTextOrChildTextOrContentDescription().equals(node.getContentDescription()))
+                if(node.getContentDescription() != null && UIElementMatchingFilter.equalsToIgnoreCaseTrimSymbols(filter.getTextOrChildTextOrContentDescription(), node.getContentDescription()))
                     contentDescriptionMatchedNodes.add(node);
                 for(AccessibilityNodeInfo childNode : preOrderTraverse(node)){
-                    if(childNode.getText() != null && filter.getTextOrChildTextOrContentDescription().equals(childNode.getText()))
+                    if(childNode.getText() != null && UIElementMatchingFilter.equalsToIgnoreCaseTrimSymbols(filter.getTextOrChildTextOrContentDescription(), childNode.getText()))
                         childTextMatchedNodes.add(node);
-                    if(childNode.getContentDescription() != null && filter.getTextOrChildTextOrContentDescription().equals(childNode.getContentDescription()))
+                    if(childNode.getContentDescription() != null && UIElementMatchingFilter.equalsToIgnoreCaseTrimSymbols(filter.getTextOrChildTextOrContentDescription(), childNode.getContentDescription()))
                         childContentDescriptionMatchedNodes.add(node);
                 }
             }

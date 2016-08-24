@@ -1,6 +1,8 @@
 package edu.cmu.hcii.sugilite.automation;
 
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
 import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
@@ -33,30 +35,34 @@ public class Generalizer {
             //go through the filters
             if(block instanceof SugiliteOperationBlock){
                 UIElementMatchingFilter filter = ((SugiliteOperationBlock) block).getElementMatchingFilter();
-                if(filter.getText() != null && command.contains(filter.getText())){
+                if(filter.getText() != null && command.toLowerCase().contains(filter.getText().toLowerCase())){
                     script.variableNameDefaultValueMap.put(filter.getText(), new StringVariable(filter.getText(), filter.getText()));
                     filter.setText("@" + filter.getText());
                     ((SugiliteOperationBlock) block).setElementMatchingFilter(filter);
+                    modified = true;
                 }
-                if(filter.getContentDescription() != null && command.contains(filter.getContentDescription())){
+                if(filter.getContentDescription() != null && command.toLowerCase().contains(filter.getContentDescription().toLowerCase())){
                     script.variableNameDefaultValueMap.put(filter.getContentDescription(), new StringVariable(filter.getContentDescription(), filter.getContentDescription()));
                     filter.setContentDescription("@" + filter.getContentDescription());
                     ((SugiliteOperationBlock) block).setElementMatchingFilter(filter);
+                    modified = true;
                 }
                 if(filter.getChildFilter() != null){
-                    if(filter.getChildFilter().getText() != null && command.contains(filter.getChildFilter().getText())){
+                    if(filter.getChildFilter().getText() != null && command.toLowerCase().contains(filter.getChildFilter().getText().toLowerCase())){
                         UIElementMatchingFilter childFilter = filter.getChildFilter();
                         script.variableNameDefaultValueMap.put(filter.getChildFilter().getText(), new StringVariable(filter.getChildFilter().getText(), filter.getChildFilter().getText()));
                         childFilter.setText("@" + filter.getChildFilter().getText());
                         filter.setChildFilter(childFilter);
                         ((SugiliteOperationBlock) block).setElementMatchingFilter(filter);
+                        modified = true;
                     }
-                    if(filter.getChildFilter().getContentDescription() != null && command.contains(filter.getChildFilter().getContentDescription())){
+                    if(filter.getChildFilter().getContentDescription() != null && command.toLowerCase().contains(filter.getChildFilter().getContentDescription().toLowerCase())){
                         UIElementMatchingFilter childFilter = filter.getChildFilter();
                         script.variableNameDefaultValueMap.put(filter.getChildFilter().getContentDescription(), new StringVariable(filter.getChildFilter().getContentDescription(), filter.getChildFilter().getContentDescription()));
                         childFilter.setContentDescription("@" + filter.getChildFilter().getContentDescription());
                         filter.setChildFilter(childFilter);
                         ((SugiliteOperationBlock) block).setElementMatchingFilter(filter);
+                        modified = true;
                     }
                 }
 
@@ -64,14 +70,29 @@ public class Generalizer {
             block = block.getNextBlock();
         }
         //save the script as command_generalized
-        String fileName = new String(command);
-        fileName.replace(".SugiliteScript", "");
-        script.setScriptName(fileName + "_generalized" + ".SugiliteScript");
-        try {
-            sugiliteScriptDao.save(script);
+        AlertDialog.Builder builder = new AlertDialog.Builder(context)
+                .setTitle("Script Generalization")
+                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        //do nothing
+                    }
+                });
+        if(modified) {
+            String fileName = new String(command);
+            fileName.replace(".SugiliteScript", "");
+            script.setScriptName(fileName + "_generalized" + ".SugiliteScript");
+            try {
+                sugiliteScriptDao.save(script);
+                builder.setMessage("Generalization successful!");
+            } catch (Exception e) {
+                e.printStackTrace();
+                builder.setMessage("Generalization failed!");
+            }
         }
-        catch (Exception e){
-            e.printStackTrace();
+        else {
+            builder.setMessage("Didn't find anything to generalize!");
         }
+        builder.show();
     }
 }

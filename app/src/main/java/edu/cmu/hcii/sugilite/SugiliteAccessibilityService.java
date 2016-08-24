@@ -145,12 +145,16 @@ public class SugiliteAccessibilityService extends AccessibilityService {
     Set<String> exceptedPackages = new HashSet<>();
     Set<String> trackingExcludedPackages = new HashSet<>();
 
+    String previousClickText = "NULL", previousClickContentDescription = "NULL", previousClickChildText = "NULL", previousClickChildContentDescription = "NULL";
     @Override
     public void onAccessibilityEvent(AccessibilityEvent event) {
         //TODO problem: the status of "right after click" (try getParent()?)
         //TODO new rootNode method
         final AccessibilityNodeInfo rootNode = getRootInActiveWindow();
         AccessibilityNodeInfo sourceNode = event.getSource();
+
+
+
 
         //Type of accessibility events to handle in this function
         //return if the event is not among the accessibilityEventArrayToHandle
@@ -166,6 +170,36 @@ public class SugiliteAccessibilityService extends AccessibilityService {
                 sugiliteData.communicationController.start();
         }
         */
+
+        //add previous click information for building UI hierachy from vocabs
+        if(BUILDING_VOCAB && (!trackingExcludedPackages.contains(event.getPackageName())) && event.getEventType() == AccessibilityEvent.TYPE_VIEW_CLICKED && sourceNode != null){
+            if(sourceNode.getText() != null)
+                previousClickText = sourceNode.getText().toString();
+            else
+                previousClickText = "NULL";
+            if(sourceNode.getContentDescription() != null)
+                previousClickContentDescription = sourceNode.getContentDescription().toString();
+            else
+                previousClickContentDescription = "NULL";
+            List<AccessibilityNodeInfo> childNodes = Automator.preOrderTraverse(sourceNode);
+            Set<String> childTexts = new HashSet<>();
+            Set<String> childContentDescriptions = new HashSet<>();
+            for(AccessibilityNodeInfo childNode : childNodes){
+                if(childNode.getText() != null)
+                    childTexts.add(childNode.getText().toString());
+                if(childNode.getContentDescription() != null)
+                    childContentDescriptions.add(childNode.getContentDescription().toString());
+            }
+            if(childTexts.size() > 0)
+                previousClickChildText = childTexts.toString();
+            else
+                previousClickChildText = "NULL";
+            if(childContentDescriptions.size() > 0)
+                previousClickContentDescription = childContentDescriptions.toString();
+            else
+                previousClickContentDescription = "NULL";
+        }
+
 
         exceptedPackages.add("edu.cmu.hcii.sugilite");
         exceptedPackages.add("com.android.systemui");
@@ -222,7 +256,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
                 if(BUILDING_VOCAB) {
                     for (Map.Entry<String, String> entry : packageVocabs) {
                         try {
-                            vocabularyDao.save(entry.getKey(), entry.getValue());
+                            vocabularyDao.save(entry.getKey(), entry.getValue(), "meh", previousClickText, previousClickContentDescription, previousClickChildText, previousClickChildContentDescription);
                         } catch (Exception e) {
                             e.printStackTrace();
                         }
@@ -263,7 +297,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
                 if (event.getEventType() == AccessibilityEvent.TYPE_VIEW_CLICKED) {
                     for (Map.Entry<String, String> entry : packageVocabs) {
                         try {
-                            vocabularyDao.save(entry.getKey(), entry.getValue());
+                            vocabularyDao.save(entry.getKey(), entry.getValue(), "meh", previousClickText, previousClickContentDescription, previousClickChildText, previousClickChildContentDescription);
                         } catch (Exception e) {
                             e.printStackTrace();
                         }

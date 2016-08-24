@@ -8,7 +8,7 @@ import android.database.sqlite.SQLiteOpenHelper;
  * Created by toby on 8/15/16.
  */
 public class SugiliteAppVocabularyDBHelper extends SQLiteOpenHelper {
-    public static final int DATABASE_VERSION = 1;
+    public static final int DATABASE_VERSION = 2;
     public static final String DATABASE_NAME = "SugiliteAppVocabulary.db";
     private static final String BLOB_TYPE = " BLOB";
     private static final String INTEGER_TYPE = " INTEGER";
@@ -18,7 +18,13 @@ public class SugiliteAppVocabularyDBHelper extends SQLiteOpenHelper {
             "CREATE TABLE " + SugiliteAppVocabularyDBContract.SugiliteAppVocabularRecordEntry.TABLE_NAME + " (" +
                     SugiliteAppVocabularyDBContract.SugiliteAppVocabularRecordEntry._ID + " INTEGER PRIMARY KEY," +
                     SugiliteAppVocabularyDBContract.SugiliteAppVocabularRecordEntry.COLUMN_NAME_PACKAGE_NAME + TEXT_TYPE + COMMA_SEP +
-                    SugiliteAppVocabularyDBContract.SugiliteAppVocabularRecordEntry.COLUMN_NAME_TEXT + TEXT_TYPE +
+                    SugiliteAppVocabularyDBContract.SugiliteAppVocabularRecordEntry.COLUMN_NAME_TEXT + TEXT_TYPE + COMMA_SEP +
+                    SugiliteAppVocabularyDBContract.SugiliteAppVocabularRecordEntry.COLUMN_NAME_TEXT_TYPE + TEXT_TYPE + COMMA_SEP +
+                    SugiliteAppVocabularyDBContract.SugiliteAppVocabularRecordEntry.COLUMN_NAME_PREVIOUS_CLICK_TEXT + TEXT_TYPE + COMMA_SEP +
+                    SugiliteAppVocabularyDBContract.SugiliteAppVocabularRecordEntry.COLUMN_NAME_PREVIOUS_CLICK_CONTENT_DESCRIPTION + TEXT_TYPE + COMMA_SEP +
+                    SugiliteAppVocabularyDBContract.SugiliteAppVocabularRecordEntry.COLUMN_NAME_PREVIOUS_CLICK_CHILD_TEXT + TEXT_TYPE + COMMA_SEP +
+                    SugiliteAppVocabularyDBContract.SugiliteAppVocabularRecordEntry.COLUMN_NAME_PREVIOUS_CLICK_CHILD_CONTENT_DESCRIPTION + TEXT_TYPE +
+
                     " )";
 
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion){

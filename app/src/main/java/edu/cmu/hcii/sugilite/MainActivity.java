@@ -34,6 +34,7 @@ import android.widget.Toast;
 import java.util.ArrayList;
 import java.util.List;
 
+import edu.cmu.hcii.sugilite.automation.Generalizer;
 import edu.cmu.hcii.sugilite.automation.ServiceStatusManager;
 import edu.cmu.hcii.sugilite.communication.SugiliteBlockJSONProcessor;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
@@ -45,6 +46,7 @@ public class MainActivity extends AppCompatActivity {
     private SharedPreferences sharedPreferences;
     private SugiliteScriptDao sugiliteScriptDao;
     private ServiceStatusManager serviceStatusManager;
+    private Generalizer generalizer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,6 +59,7 @@ public class MainActivity extends AppCompatActivity {
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         sugiliteScriptDao = new SugiliteScriptDao(this);
         sugiliteData = (SugiliteData)getApplication();
+        generalizer = new Generalizer(this);
         setTitle("Sugilite Script List");
         //TODO: confirm overwrite when duplicated name
         //TODO: combine the two instances of script creation
@@ -106,6 +109,8 @@ public class MainActivity extends AppCompatActivity {
     private static final int ITEM_2 = Menu.FIRST + 1;
     private static final int ITEM_3 = Menu.FIRST + 2;
     private static final int ITEM_4 = Menu.FIRST + 3;
+    private static final int ITEM_5 = Menu.FIRST + 4;
+
 
     @Override
     public void onCreateContextMenu(ContextMenu menu, View view, ContextMenu.ContextMenuInfo info){
@@ -117,7 +122,8 @@ public class MainActivity extends AppCompatActivity {
         menu.add(0, ITEM_1, 0, "View");
         menu.add(0, ITEM_2, 0, "Rename");
         menu.add(0, ITEM_3, 0, "Share");
-        menu.add(0, ITEM_4, 0, "Delete");
+        menu.add(0, ITEM_4, 0, "Generalize");
+        menu.add(0, ITEM_5, 0, "Delete");
     }
 
     //TODO:implement context menu
@@ -187,6 +193,11 @@ public class MainActivity extends AppCompatActivity {
             Toast.makeText(this, "Sharing Script is not supported yet!", Toast.LENGTH_SHORT).show();
             break;
         case ITEM_4:
+            final String scriptName1 = ((TextView) info.targetView).getText().toString() + ".SugiliteScript";
+            SugiliteStartingBlock startingBlock1 = sugiliteScriptDao.read(scriptName1);
+            generalizer.generalize(startingBlock1);
+            break;
+        case ITEM_5:
             if(info.targetView instanceof TextView && ((TextView) info.targetView).getText() != null) {
                 sugiliteScriptDao.delete(((TextView) info.targetView).getText().toString() + ".SugiliteScript");
                 setUpScriptList();

@@ -34,7 +34,7 @@ public class SugiliteAppVocabularyDao {
      * @return row id
      * @throws Exception
      */
-    public long save(String packageName, String text) throws Exception{
+    public long save(String packageName, String text, String textType, String previousClickText, String previousClickContentDescription, String previousClickChildText, String previousClickChildContentDescription) throws Exception{
         ContentValues values = new ContentValues();
         if(packageName == null || text == null){
             throw new Exception("null block");
@@ -43,6 +43,12 @@ public class SugiliteAppVocabularyDao {
             return -1;
         values.put(SugiliteAppVocabularyDBContract.SugiliteAppVocabularRecordEntry.COLUMN_NAME_PACKAGE_NAME, packageName);
         values.put(SugiliteAppVocabularyDBContract.SugiliteAppVocabularRecordEntry.COLUMN_NAME_TEXT, text);
+        values.put(SugiliteAppVocabularyDBContract.SugiliteAppVocabularRecordEntry.COLUMN_NAME_TEXT_TYPE, textType);
+        values.put(SugiliteAppVocabularyDBContract.SugiliteAppVocabularRecordEntry.COLUMN_NAME_PREVIOUS_CLICK_TEXT, previousClickText);
+        values.put(SugiliteAppVocabularyDBContract.SugiliteAppVocabularRecordEntry.COLUMN_NAME_PREVIOUS_CLICK_CONTENT_DESCRIPTION, previousClickContentDescription);
+        values.put(SugiliteAppVocabularyDBContract.SugiliteAppVocabularRecordEntry.COLUMN_NAME_PREVIOUS_CLICK_CHILD_TEXT, previousClickChildText);
+        values.put(SugiliteAppVocabularyDBContract.SugiliteAppVocabularRecordEntry.COLUMN_NAME_PREVIOUS_CLICK_CHILD_CONTENT_DESCRIPTION, previousClickChildContentDescription);
+
         long newRowId = -1;
         try {
             db = sugiliteAppVocabularyDBHelper.getWritableDatabase();

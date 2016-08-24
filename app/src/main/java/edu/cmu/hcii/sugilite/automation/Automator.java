@@ -17,6 +17,7 @@ import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
+import edu.cmu.hcii.sugilite.model.block.UIElementMatchingFilter;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteLoadVariableOperation;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteOperation;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteSetTextOperation;
@@ -77,6 +78,42 @@ public class Automator {
             if(operationBlock.getElementMatchingFilter().filter(node, variableHelper))
                 filteredNodes.add(node);
         }
+
+        if(operationBlock.getElementMatchingFilter().getTextOrChildTextOrContentDescription() != null) {
+            //process the order of TextOrChildOrContentDescription
+            UIElementMatchingFilter filter = operationBlock.getElementMatchingFilter();
+            List<AccessibilityNodeInfo> textMatchedNodes = new ArrayList<>();
+            List<AccessibilityNodeInfo> contentDescriptionMatchedNodes = new ArrayList<>();
+            List<AccessibilityNodeInfo> childTextMatchedNodes = new ArrayList<>();
+            List<AccessibilityNodeInfo> childContentDescriptionMatchedNodes = new ArrayList<>();
+
+            for (AccessibilityNodeInfo node : filteredNodes){
+                if(node.getText() != null && filter.getTextOrChildTextOrContentDescription().equals(node.getText()))
+                    textMatchedNodes.add(node);
+                if(node.getContentDescription() != null && filter.getTextOrChildTextOrContentDescription().equals(node.getContentDescription()))
+                    contentDescriptionMatchedNodes.add(node);
+                for(AccessibilityNodeInfo childNode : preOrderTraverse(node)){
+                    if(childNode.getText() != null && filter.getTextOrChildTextOrContentDescription().equals(childNode.getText()))
+                        childTextMatchedNodes.add(node);
+                    if(childNode.getContentDescription() != null && filter.getTextOrChildTextOrContentDescription().equals(childNode.getContentDescription()))
+                        childContentDescriptionMatchedNodes.add(node);
+                }
+            }
+
+            filteredNodes = new ArrayList<>();
+            if(textMatchedNodes.size() > 0)
+                filteredNodes.addAll(textMatchedNodes);
+            else if (contentDescriptionMatchedNodes.size() > 0)
+                filteredNodes.addAll(contentDescriptionMatchedNodes);
+            else if (childTextMatchedNodes.size() > 0)
+                filteredNodes.addAll(childTextMatchedNodes);
+            else if (childContentDescriptionMatchedNodes.size() > 0)
+                filteredNodes.addAll(childContentDescriptionMatchedNodes);
+        }
+
+
+
+
         if(filteredNodes.size() == 0)
             return false;
         for(AccessibilityNodeInfo node : filteredNodes){

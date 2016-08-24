@@ -466,6 +466,8 @@ public class SugiliteAccessibilityService extends AccessibilityService {
                 continue;
             if(node.getText() != null)
                 retMap.add(new AbstractMap.SimpleEntry<>("Text", node.getText().toString()));
+            if(node.getContentDescription() != null)
+                retMap.add(new AbstractMap.SimpleEntry<>("ContentDescription", node.getContentDescription().toString()));
             List<AccessibilityNodeInfo> childNodes = Automator.preOrderTraverse(node);
             if(childNodes == null)
                 continue;
@@ -474,6 +476,8 @@ public class SugiliteAccessibilityService extends AccessibilityService {
                     continue;
                 if(childNode.getText() != null)
                     retMap.add(new AbstractMap.SimpleEntry<>("Child Text", childNode.getText().toString()));
+                if(childNode.getContentDescription() != null)
+                    retMap.add(new AbstractMap.SimpleEntry<>("Child ContentDescription", childNode.getText().toString()));
             }
         }
         return retMap;

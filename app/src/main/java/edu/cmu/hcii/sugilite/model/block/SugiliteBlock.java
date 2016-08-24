@@ -50,5 +50,5 @@ public abstract class SugiliteBlock implements Serializable{
         return screenshot;
     }
     //each "run" method should execute the task wrapped in the block, and call the "run" method of the next block
-    public abstract SugiliteBlock getNextBlock() throws Exception;
+    public abstract SugiliteBlock getNextBlock();
 }

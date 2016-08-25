@@ -4,7 +4,11 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
+import edu.cmu.hcii.sugilite.model.block.SerializableNodeInfo;
 import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
@@ -42,6 +46,7 @@ public class Generalizer {
                 UIElementMatchingFilter filter = ((SugiliteOperationBlock) block).getElementMatchingFilter();
                 if(filter.getText() != null && command.toLowerCase().contains(filter.getText().toLowerCase())){
                     script.variableNameDefaultValueMap.put(filter.getText(), new StringVariable(filter.getText(), filter.getText()));
+                    addVariableAlternatives(filter.getText(), "text", script, (SugiliteOperationBlock) block);
                     filter.setText("@" + filter.getText());
                     ((SugiliteOperationBlock) block).setElementMatchingFilter(filter);
                     block.setDescription(descriptionGenerator.generateReadableDescription(block));
@@ -49,6 +54,7 @@ public class Generalizer {
                 }
                 if(filter.getContentDescription() != null && command.toLowerCase().contains(filter.getContentDescription().toLowerCase())){
                     script.variableNameDefaultValueMap.put(filter.getContentDescription(), new StringVariable(filter.getContentDescription(), filter.getContentDescription()));
+                    addVariableAlternatives(filter.getContentDescription(), "contentDescription", script, (SugiliteOperationBlock) block);
                     filter.setContentDescription("@" + filter.getContentDescription());
                     ((SugiliteOperationBlock) block).setElementMatchingFilter(filter);
                     block.setDescription(descriptionGenerator.generateReadableDescription(block));
@@ -58,6 +64,7 @@ public class Generalizer {
                     if (filter.getChildFilter().getText() != null && command.toLowerCase().contains(filter.getChildFilter().getText().toLowerCase())) {
                         UIElementMatchingFilter childFilter = filter.getChildFilter();
                         script.variableNameDefaultValueMap.put(filter.getChildFilter().getText(), new StringVariable(filter.getChildFilter().getText(), filter.getChildFilter().getText()));
+                        addVariableAlternatives(filter.getChildFilter().getText(), "childText", script, (SugiliteOperationBlock) block);
                         childFilter.setText("@" + filter.getChildFilter().getText());
                         filter.setChildFilter(childFilter);
                         ((SugiliteOperationBlock) block).setElementMatchingFilter(filter);
@@ -67,6 +74,7 @@ public class Generalizer {
                     if (filter.getChildFilter().getContentDescription() != null && command.toLowerCase().contains(filter.getChildFilter().getContentDescription().toLowerCase())) {
                         UIElementMatchingFilter childFilter = filter.getChildFilter();
                         script.variableNameDefaultValueMap.put(filter.getChildFilter().getContentDescription(), new StringVariable(filter.getChildFilter().getContentDescription(), filter.getChildFilter().getContentDescription()));
+                        addVariableAlternatives(filter.getChildFilter().getContentDescription(), "childContentDescriptio", script, (SugiliteOperationBlock)block);
                         childFilter.setContentDescription("@" + filter.getChildFilter().getContentDescription());
                         filter.setChildFilter(childFilter);
                         ((SugiliteOperationBlock) block).setElementMatchingFilter(filter);
@@ -113,5 +121,70 @@ public class Generalizer {
             builder.setMessage("Didn't find anything to generalize!");
         }
         builder.show();
+    }
+
+    private void addVariableAlternatives(String variableName, String variableType, SugiliteStartingBlock script, SugiliteOperationBlock operationBlock){
+        if(operationBlock == null || operationBlock.getFeaturePack() == null || operationBlock.getFeaturePack().alternativeNodes == null || operationBlock.getFeaturePack().alternativeNodes.size() < 1)
+            return;
+        Set<SerializableNodeInfo> alternativeNodes = operationBlock.getFeaturePack().alternativeNodes;
+        if(operationBlock == null || operationBlock.getElementMatchingFilter() == null)
+            return;
+        UIElementMatchingFilter filter = operationBlock.getElementMatchingFilter();
+        String className = filter.getClassName();
+
+        for(SerializableNodeInfo node : alternativeNodes){
+            if(className != null && (node.className == null || (!className.equals(node.className))))
+                continue;
+            switch (variableType) {
+                case "text":
+                    if(node.text != null){
+                        if(script.variableNameAlternativeValueMap.containsKey(variableName)){
+                            script.variableNameAlternativeValueMap.get(variableName).add(node.text);
+                        }
+                        else {
+                            Set<String> stringSet = new HashSet<>();
+                            stringSet.add(node.text);
+                            script.variableNameAlternativeValueMap.put(variableName, stringSet);
+                        }
+                    }
+                    break;
+                case "contentDescription":
+                    if(node.contentDescription != null){
+                        if(script.variableNameAlternativeValueMap.containsKey(variableName)){
+                            script.variableNameAlternativeValueMap.get(variableName).add(node.contentDescription);
+                        }
+                        else {
+                            Set<String> stringSet = new HashSet<>();
+                            stringSet.add(node.contentDescription);
+                            script.variableNameAlternativeValueMap.put(variableName, stringSet);
+                        }
+                    }
+                    break;
+                case "childText":
+                    if(node.childText != null){
+                        if(script.variableNameAlternativeValueMap.containsKey(variableName)){
+                            script.variableNameAlternativeValueMap.get(variableName).addAll(node.childText);
+                        }
+                        else {
+                            Set<String> stringSet = new HashSet<>();
+                            stringSet.addAll(node.childText);
+                            script.variableNameAlternativeValueMap.put(variableName, stringSet);
+                        }
+                    }
+                    break;
+                case "childContentDescription":
+                    if(node.childContentDescription != null){
+                        if(script.variableNameAlternativeValueMap.containsKey(variableName)){
+                            script.variableNameAlternativeValueMap.get(variableName).addAll(node.childContentDescription);
+                        }
+                        else {
+                            Set<String> stringSet = new HashSet<>();
+                            stringSet.addAll(node.childContentDescription);
+                            script.variableNameAlternativeValueMap.put(variableName, stringSet);
+                        }
+                    }
+                    break;
+            }
+        }
     }
 }

@@ -7,14 +7,19 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.OutputStream;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import edu.cmu.hcii.sugilite.R;
 import edu.cmu.hcii.sugilite.SugiliteData;
@@ -31,7 +36,8 @@ public class VariableSetValueDialog {
     private Context context;
     private AlertDialog dialog;
     private Map<String,Variable> variableDefaultValueMap, stringVariableMap;
-    private Map<String,EditText> variableEditTextMap;
+    private Map<String, Set<String>> variableNameAlternativeValueMap;
+    private Map<String, View> variableSelectionViewMap;
     private SharedPreferences sharedPreferences;
     private SugiliteStartingBlock startingBlock;
     private SugiliteData sugiliteData;
@@ -46,8 +52,9 @@ public class VariableSetValueDialog {
         View dialogView = inflater.inflate(R.layout.dialog_variable_set_value, null);
         LinearLayout mainLayout = (LinearLayout)dialogView.findViewById(R.id.layout_variable_set_value);
         variableDefaultValueMap = startingBlock.variableNameDefaultValueMap;
+        variableNameAlternativeValueMap = startingBlock.variableNameAlternativeValueMap;
         stringVariableMap = sugiliteData.stringVariableMap;
-        variableEditTextMap = new HashMap<>();
+        variableSelectionViewMap = new HashMap<>();
 
         for(Map.Entry<String, Variable> entry : variableDefaultValueMap.entrySet()){
             if(entry.getValue().type == Variable.LOAD_RUNTIME)
@@ -59,19 +66,47 @@ public class VariableSetValueDialog {
             variableName.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT, 1));
             variableName.setWidth(0);
             variableName.setText(entry.getKey());
-            EditText variableValue = new EditText(context);
-            variableValue.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT, 2));
-            variableValue.setWidth(0);
+            linearLayout.addView(variableName);
+            //TODO: use a spinner if alternatives can be found
+
+
+            if(variableNameAlternativeValueMap != null && variableNameAlternativeValueMap.containsKey(entry.getKey())){
+                //has alternative values stored
+                Spinner alternativeValueSpinner = new Spinner(context);
+                List<String> spinnerItemList = new ArrayList<>();
+                if(entry.getValue() instanceof StringVariable)
+                    spinnerItemList.add(((StringVariable) entry.getValue()).getValue());
+                for(String alternative : variableNameAlternativeValueMap.get(entry.getKey())){
+                    if(alternative.equals(((StringVariable) entry.getValue()).getValue()))
+                        continue;
+                    spinnerItemList.add(alternative);
+                }
+                ArrayAdapter<String> spinnerAdapter = new ArrayAdapter<String>(context, android.R.layout.simple_spinner_item, spinnerItemList);
+                spinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                alternativeValueSpinner.setAdapter(spinnerAdapter);
+
+                alternativeValueSpinner.setLayoutParams(new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 2));
+                linearLayout.addView(alternativeValueSpinner);
+                alternativeValueSpinner.setSelection(0);
+                variableSelectionViewMap.put(entry.getKey(), alternativeValueSpinner);
+
+            }
+            else {
+                //has no alternative values stored
+                EditText variableValue = new EditText(context);
+                variableValue.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT, 2));
+                variableValue.setWidth(0);
             /*
             this part save the state of the last variable setting
             if(stringVariableMap.containsKey(entry.getKey()) && stringVariableMap.get(entry.getKey()) instanceof StringVariable)
                 variableValue.setText(((StringVariable) stringVariableMap.get(entry.getKey())).getValue());
             */
-            if(entry.getValue() instanceof StringVariable)
-                variableValue.setText(((StringVariable) entry.getValue()).getValue());
-            linearLayout.addView(variableName);
-            linearLayout.addView(variableValue);
-            variableEditTextMap.put(entry.getKey(), variableValue);
+                if (entry.getValue() instanceof StringVariable)
+                    variableValue.setText(((StringVariable) entry.getValue()).getValue());
+                linearLayout.addView(variableValue);
+                variableSelectionViewMap.put(entry.getKey(), variableValue);
+
+            }
             mainLayout.addView(linearLayout);
         }
 
@@ -102,16 +137,22 @@ public class VariableSetValueDialog {
             {
                 //check if all fields have been set
                 boolean allReady = true;
-                for(Map.Entry<String, EditText> entry: variableEditTextMap.entrySet()) {
-                    if(entry.getValue().getText().toString().length() < 1) {
-                        allReady = false;
-                        break;
+                for(Map.Entry<String, View> entry: variableSelectionViewMap.entrySet()) {
+                    if(entry.getValue() instanceof TextView) {
+                        if (((TextView)entry.getValue()).getText().toString().length() < 1) {
+                            allReady = false;
+                            break;
+                        }
                     }
                 }
                 if(allReady) {
                     //update all
-                    for (Map.Entry<String, EditText> entry : variableEditTextMap.entrySet()) {
-                        stringVariableMap.put(entry.getKey(), new StringVariable(entry.getKey(), entry.getValue().getText().toString()));
+                    for (Map.Entry<String, View> entry : variableSelectionViewMap.entrySet()) {
+                        if(entry.getValue() instanceof TextView)
+                            stringVariableMap.put(entry.getKey(), new StringVariable(entry.getKey(), ((TextView)entry.getValue()).getText().toString()));
+                        else if (entry.getValue() instanceof Spinner){
+                            stringVariableMap.put(entry.getKey(), new StringVariable(entry.getKey(), ((Spinner) entry.getValue()).getSelectedItem().toString()));
+                        }
                     }
                     executeScript();
                     dialog.dismiss();

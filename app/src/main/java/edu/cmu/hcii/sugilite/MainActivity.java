@@ -196,6 +196,7 @@ public class MainActivity extends AppCompatActivity {
             final String scriptName1 = ((TextView) info.targetView).getText().toString() + ".SugiliteScript";
             SugiliteStartingBlock startingBlock1 = sugiliteScriptDao.read(scriptName1);
             generalizer.generalize(startingBlock1);
+            setUpScriptList();
             break;
         case ITEM_5:
             if(info.targetView instanceof TextView && ((TextView) info.targetView).getText() != null) {

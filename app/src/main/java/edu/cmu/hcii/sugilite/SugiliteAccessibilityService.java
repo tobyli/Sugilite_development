@@ -511,7 +511,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
                 if(childNode.getText() != null)
                     retMap.add(new AbstractMap.SimpleEntry<>("Child Text", childNode.getText().toString()));
                 if(childNode.getContentDescription() != null)
-                    retMap.add(new AbstractMap.SimpleEntry<>("Child ContentDescription", childNode.getText().toString()));
+                    retMap.add(new AbstractMap.SimpleEntry<>("Child ContentDescription", childNode.getContentDescription().toString()));
             }
         }
         return retMap;

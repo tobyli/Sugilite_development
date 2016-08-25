@@ -39,6 +39,7 @@ public class SugiliteAppVocabularyDao {
         if(packageName == null || text == null){
             throw new Exception("null block");
         }
+        //TODO: fix contains entry
         if(containsEntry(packageName, text))
             return -1;
         values.put(SugiliteAppVocabularyDBContract.SugiliteAppVocabularRecordEntry.COLUMN_NAME_PACKAGE_NAME, packageName);

@@ -343,6 +343,7 @@ public class ScriptDetailActivity extends AppCompatActivity {
                         }
                     };
                     RecordingPopUpDialog recordingPopUpDialog = new RecordingPopUpDialog(sugiliteData, getApplicationContext(), script, sharedPreferences, (SugiliteOperationBlock)currentBlock, LayoutInflater.from(getApplicationContext()), RecordingPopUpDialog.TRIGGERED_BY_EDIT, callback);
+                    sugiliteData.initiatedExternally = false;
                     recordingPopUpDialog.show(true);
                     break;
                     //match, pop up the edit
@@ -513,6 +514,7 @@ public class ScriptDetailActivity extends AppCompatActivity {
         //turn off the recording before executing
         prefEditor.putBoolean("recording_in_process", false);
         prefEditor.commit();
+        sugiliteData.initiatedExternally = false;
         sugiliteData.setScriptHead(script);
         sugiliteData.setCurrentScriptBlock(script.getTail());
         sugiliteData.runScript(script);

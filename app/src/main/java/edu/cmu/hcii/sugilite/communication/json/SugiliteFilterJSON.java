@@ -22,6 +22,7 @@ public class SugiliteFilterJSON {
             this.className = filter.getClassName();
             this.boundsInScreen = filter.getBoundsInScreen();
             this.boundsInParent = filter.getBoundsInParent();
+            this.isClickable = filter.getIsClickable();
             this.textOrChildTextOrContentDescription = filter.getTextOrChildTextOrContentDescription();
             if(filter.getParentFilter() != null)
                 this.parentFilter = new SugiliteFilterJSON(filter.getParentFilter());
@@ -43,6 +44,7 @@ public class SugiliteFilterJSON {
         filter.setPackageName(packageName);
         filter.setClassName(className);
         filter.setTextOrChildTextOrContentDescription(textOrChildTextOrContentDescription);
+        filter.setIsClickable(isClickable);
 
         if(boundsInScreen != null)
             filter.setBoundsInScreen(Rect.unflattenFromString(boundsInScreen));
@@ -63,4 +65,5 @@ public class SugiliteFilterJSON {
     public String text, contentDescription, viewId, packageName, className, boundsInScreen, boundsInParent, textOrChildTextOrContentDescription;
     public SugiliteFilterJSON parentFilter, childFilter;
     public Set<SugiliteAlternativePairJSON> alternativeLabels;
+    public boolean isClickable = false;
 }

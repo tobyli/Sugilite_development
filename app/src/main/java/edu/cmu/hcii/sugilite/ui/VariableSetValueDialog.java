@@ -67,9 +67,7 @@ public class VariableSetValueDialog {
             variableName.setWidth(0);
             variableName.setText(entry.getKey());
             linearLayout.addView(variableName);
-            //TODO: use a spinner if alternatives can be found
-
-
+            //use a spinner if alternatives can be found
             if(variableNameAlternativeValueMap != null && variableNameAlternativeValueMap.containsKey(entry.getKey())){
                 //has alternative values stored
                 Spinner alternativeValueSpinner = new Spinner(context);
@@ -92,7 +90,7 @@ public class VariableSetValueDialog {
 
             }
             else {
-                //has no alternative values stored
+                //has no alternative values stored - show edit text to prompt the user to enter value
                 EditText variableValue = new EditText(context);
                 variableValue.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT, 2));
                 variableValue.setWidth(0);

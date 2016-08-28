@@ -26,8 +26,10 @@ import android.widget.Toast;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Queue;
 import java.util.Random;
 
 import edu.cmu.hcii.sugilite.MainActivity;
@@ -40,6 +42,7 @@ import edu.cmu.hcii.sugilite.communication.SugiliteBlockJSONProcessor;
 import edu.cmu.hcii.sugilite.communication.SugiliteCommunicationController;
 import edu.cmu.hcii.sugilite.dao.SugiliteScreenshotManager;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
+import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.model.block.UIElementMatchingFilter;
 import edu.cmu.hcii.sugilite.model.variable.VariableHelper;
@@ -237,11 +240,20 @@ public class StatusIconManager {
                     }
 
                     boolean recordingInProgress = sharedPreferences.getBoolean("recording_in_process", false);
+                    final boolean runningInProgress = sugiliteData.getInstructionQueueSize() > 0;
+
+                    //pause the execution when the duck is clicked
+                    final Queue<SugiliteBlock> storedQueue = runningInProgress ? sugiliteData.getCopyOfInstructionQueue() : null;
+                    if(runningInProgress)
+                        sugiliteData.clearInstructionQueue();
+
 
                     List<String> operationList = new ArrayList<>();
-                    operationList.add("View Script List");
-                    if(sugiliteData.getInstructionQueueSize() > 0)
+                    if(runningInProgress) {
+                        operationList.add("Resume Running");
                         operationList.add("Clear Instruction Queue");
+                    }
+                    operationList.add("View Script List");
                     if(startingBlock == null){
                         operationList.add("New Recording");
                     }
@@ -297,6 +309,7 @@ public class StatusIconManager {
                                     break;
                                 case "Resume Last Recording":
                                     //resume the recording of an existing script
+                                    sugiliteData.initiatedExternally = false;
                                     SharedPreferences.Editor prefEditor2 = sharedPreferences.edit();
                                     prefEditor2.putBoolean("recording_in_process", true);
                                     prefEditor2.commit();
@@ -312,6 +325,10 @@ public class StatusIconManager {
                                     break;
                                 case "Clear Instruction Queue":
                                     sugiliteData.clearInstructionQueue();
+                                    storedQueue.clear();
+                                    break;
+                                case "Resume Running":
+                                    dialog.dismiss();
                                     break;
                                 default:
                                     //do nothing
@@ -319,6 +336,15 @@ public class StatusIconManager {
                         }
                     });
                     Dialog dialog = textDialogBuilder.create();
+                    dialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
+                        @Override
+                        public void onDismiss(DialogInterface dialog) {
+                            if(runningInProgress){
+                                //restore execution
+                                sugiliteData.addInstructions(storedQueue);
+                            }
+                        }
+                    });
                     dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
                     dialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_box);
                     dialog.show();

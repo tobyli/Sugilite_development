@@ -115,6 +115,12 @@ public class SugiliteData extends Application {
     public SugiliteBlock pollInstructionQueue(){
         return instructionQueue.poll();
     }
+    public Queue<SugiliteBlock> getCopyOfInstructionQueue(){
+        return new ArrayDeque<>(instructionQueue);
+    }
+    public void addInstructions(Queue<SugiliteBlock> blocks){
+        this.instructionQueue.addAll(blocks);
+    }
 
     private List<SugiliteBlock> traverseBlock(SugiliteStartingBlock startingBlock){
         List<SugiliteBlock> sugiliteBlocks = new ArrayList<>();

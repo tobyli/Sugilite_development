@@ -40,7 +40,7 @@ public class SugiliteAppVocabularyDao {
             throw new Exception("null block");
         }
         //TODO: fix contains entry
-        if(containsEntry(packageName, text))
+        if(containsEntry(packageName, text, textType, previousClickText, previousClickContentDescription, previousClickChildText, previousClickChildContentDescription))
             return -1;
         values.put(SugiliteAppVocabularyDBContract.SugiliteAppVocabularRecordEntry.COLUMN_NAME_PACKAGE_NAME, packageName);
         values.put(SugiliteAppVocabularyDBContract.SugiliteAppVocabularRecordEntry.COLUMN_NAME_TEXT, text);
@@ -65,6 +65,12 @@ public class SugiliteAppVocabularyDao {
         return newRowId;
     }
 
+    /**
+     * get a set of all texts for a given packageName
+     * @param packageName
+     * @return
+     * @throws Exception
+     */
     public Set<String> getText(String packageName) throws Exception{
         String[] columnsToReturn = {SugiliteAppVocabularyDBContract.SugiliteAppVocabularRecordEntry.COLUMN_NAME_TEXT};
         String selection = SugiliteAppVocabularyDBContract.SugiliteAppVocabularRecordEntry.COLUMN_NAME_PACKAGE_NAME + " =?";
@@ -92,6 +98,11 @@ public class SugiliteAppVocabularyDao {
         return retVal;
     }
 
+    /**
+     * get a map of all texts for all packages
+     * @return
+     * @throws Exception
+     */
     public Map<String, Set<String>> getTextsForAllPackages() throws Exception{
         Map<String, Set<String>> retVal = new HashMap<>();
         try {
@@ -122,6 +133,13 @@ public class SugiliteAppVocabularyDao {
         return retVal;
     }
 
+    /**
+     * check if db contains a given (packageName, text)
+     * @param packageName
+     * @param text
+     * @return
+     * @throws Exception
+     */
     public boolean containsEntry(String packageName, String text) throws Exception{
         String[] columnsToReturn = {SugiliteAppVocabularyDBContract.SugiliteAppVocabularRecordEntry.COLUMN_NAME_TEXT};
         String selection = SugiliteAppVocabularyDBContract.SugiliteAppVocabularRecordEntry.COLUMN_NAME_PACKAGE_NAME + " =? AND " + SugiliteAppVocabularyDBContract.SugiliteAppVocabularRecordEntry.COLUMN_NAME_TEXT + " =?";
@@ -147,7 +165,50 @@ public class SugiliteAppVocabularyDao {
     }
 
     /**
-     *
+     * check if db contains a given (packageName, text, textType, previousClickText, previousClickContentDescription, previousClickChildText, previousClickChildContentDescription)
+     * @param packageName
+     * @param text
+     * @param textType
+     * @param previousClickText
+     * @param previousClickContentDescription
+     * @param previousClickChildText
+     * @param previousClickChildContentDescription
+     * @return
+     * @throws Exception
+     */
+    public boolean containsEntry(String packageName, String text, String textType, String previousClickText, String previousClickContentDescription, String previousClickChildText, String previousClickChildContentDescription) throws Exception {
+        String[] columnsToReturn = {SugiliteAppVocabularyDBContract.SugiliteAppVocabularRecordEntry.COLUMN_NAME_TEXT};
+        String selection = SugiliteAppVocabularyDBContract.SugiliteAppVocabularRecordEntry.COLUMN_NAME_PACKAGE_NAME + " =? AND " +
+                SugiliteAppVocabularyDBContract.SugiliteAppVocabularRecordEntry.COLUMN_NAME_TEXT + " =? AND " +
+                SugiliteAppVocabularyDBContract.SugiliteAppVocabularRecordEntry.COLUMN_NAME_TEXT_TYPE + " =? AND " +
+                SugiliteAppVocabularyDBContract.SugiliteAppVocabularRecordEntry.COLUMN_NAME_PREVIOUS_CLICK_TEXT + " =? AND " +
+                SugiliteAppVocabularyDBContract.SugiliteAppVocabularRecordEntry.COLUMN_NAME_PREVIOUS_CLICK_CONTENT_DESCRIPTION + " =? AND " +
+                SugiliteAppVocabularyDBContract.SugiliteAppVocabularRecordEntry.COLUMN_NAME_PREVIOUS_CLICK_CHILD_TEXT + " =? AND " +
+                SugiliteAppVocabularyDBContract.SugiliteAppVocabularRecordEntry.COLUMN_NAME_PREVIOUS_CLICK_CHILD_CONTENT_DESCRIPTION + " =?";
+
+        String[] selectionArgs = {packageName, text, textType, previousClickText, previousClickChildContentDescription, previousClickChildText, previousClickChildContentDescription};
+
+        boolean containsEntry = false;
+        try {
+            db = sugiliteAppVocabularyDBHelper.getReadableDatabase();
+            Cursor cursor = db.query(SugiliteAppVocabularyDBContract.SugiliteAppVocabularRecordEntry.TABLE_NAME,
+                    columnsToReturn, selection, selectionArgs, null, null, null);
+            if (cursor.getCount() > 0) {
+                containsEntry = true;
+            }
+            else{
+                containsEntry = false;
+            }
+            cursor.close();
+            db.close();
+        }
+        catch (Exception e){
+            e.printStackTrace();
+        }
+        return containsEntry;
+    }
+
+    /**
      * @return path of the ".db" file
      */
     public String getPath(){
@@ -164,7 +225,6 @@ public class SugiliteAppVocabularyDao {
     }
 
     /**
-     *
      * @return # of rows in DB
      */
     public long size(){

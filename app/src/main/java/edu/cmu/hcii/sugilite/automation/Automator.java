@@ -37,7 +37,7 @@ public class Automator {
     private Context context;
     private BoundingBoxManager boundingBoxManager;
     private VariableHelper variableHelper;
-    private static final int DELAY = 3500;
+    private static final int DELAY = 2500;
     private TextToSpeech tts;
     private boolean ttsReady = false;
 
@@ -126,6 +126,8 @@ public class Automator {
 
         if(filteredNodes.size() == 0)
             return false;
+
+        boolean succeeded = false;
         for(AccessibilityNodeInfo node : filteredNodes){
             //TODO: scrolling
             if(operationBlock.getOperation().getOperationType() == SugiliteOperation.CLICK && (!node.isClickable()))
@@ -143,18 +145,20 @@ public class Automator {
                 node.getBoundsInScreen(tempRect);
                 statusIconManager.moveIcon(tempRect.centerX(), tempRect.centerY());
                 */
-                sugiliteData.errorHandler.reportSuccess(Calendar.getInstance().getTimeInMillis());
-                sugiliteData.removeInstructionQueueItem();
+                if(!succeeded) {
+                    sugiliteData.errorHandler.reportSuccess(Calendar.getInstance().getTimeInMillis());
+                    sugiliteData.removeInstructionQueueItem();
+                }
+                succeeded = true;
                 try {
                     Thread.sleep(DELAY / 2);
                 }
                 catch (Exception e){
                     // do nothing
                 }
-                return true;
             }
         }
-        return false;
+        return succeeded;
     }
 
     public boolean performAction(AccessibilityNodeInfo node, SugiliteOperationBlock block) {

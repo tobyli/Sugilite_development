@@ -168,6 +168,10 @@ public class UIElementMatchingFilter implements Serializable {
         return className;
     }
 
+    public boolean getIsClickable() {
+        return isClickable;
+    }
+
     public String getBoundsInScreen(){
         return boundsInScreen;
     }
@@ -203,7 +207,7 @@ public class UIElementMatchingFilter implements Serializable {
             return false;
         if (parentFilter != null && (!parentFilter.filter(nodeInfo.getParent())))
             return false;
-        if (isClickable != null && isClickable.booleanValue() != nodeInfo.isClickable())
+        if (isClickable != null && isClickable && (!nodeInfo.isClickable()))
             return false;
         if (textOrChildTextOrContentDescription != null && (! (equalsToIgnoreCaseTrimSymbols(textOrChildTextOrContentDescription, nodeInfo.getText()) || equalsToIgnoreCaseTrimSymbols(textOrChildTextOrContentDescription, nodeInfo.getContentDescription())))){
             boolean matchedChild = false;
@@ -262,7 +266,7 @@ public class UIElementMatchingFilter implements Serializable {
             return false;
         if (viewId != null && (nodeInfo.viewId == null || (!viewId.equalsIgnoreCase(nodeInfo.viewId))))
             return false;
-        if (isClickable != null && isClickable.booleanValue() != nodeInfo.isClickable)
+        if (isClickable != null && isClickable && (!nodeInfo.isClickable))
             return false;
         if (packageName != null && (nodeInfo.packageName == null || !packageName.contentEquals(nodeInfo.packageName)))
             return false;
@@ -352,7 +356,7 @@ public class UIElementMatchingFilter implements Serializable {
             return false;
         if (parentFilter != null && (!parentFilter.filter(nodeInfo.getParent(), helper)))
             return false;
-        if (isClickable != null && isClickable.booleanValue() != nodeInfo.isClickable())
+        if (isClickable != null && isClickable && (!nodeInfo.isClickable()))
             return false;
         Rect boundsInParent = new Rect(), boundsInScreen = new Rect();
         nodeInfo.getBoundsInParent(boundsInParent);

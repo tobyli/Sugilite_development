@@ -92,11 +92,21 @@ public class Automator {
                     textMatchedNodes.add(node);
                 if(node.getContentDescription() != null && UIElementMatchingFilter.equalsToIgnoreCaseTrimSymbols(filter.getTextOrChildTextOrContentDescription(), node.getContentDescription()))
                     contentDescriptionMatchedNodes.add(node);
+                boolean childTextMatched = false;
+                boolean childContentDescriptionMatched = false;
                 for(AccessibilityNodeInfo childNode : preOrderTraverse(node)){
-                    if(childNode.getText() != null && UIElementMatchingFilter.equalsToIgnoreCaseTrimSymbols(filter.getTextOrChildTextOrContentDescription(), childNode.getText()))
+                    if(childTextMatched == false &&
+                            childNode.getText() != null &&
+                            UIElementMatchingFilter.equalsToIgnoreCaseTrimSymbols(filter.getTextOrChildTextOrContentDescription(), childNode.getText())) {
                         childTextMatchedNodes.add(node);
-                    if(childNode.getContentDescription() != null && UIElementMatchingFilter.equalsToIgnoreCaseTrimSymbols(filter.getTextOrChildTextOrContentDescription(), childNode.getContentDescription()))
+                        childTextMatched = true;
+                    }
+                    if(childContentDescriptionMatched == false &&
+                            childNode.getContentDescription() != null &&
+                            UIElementMatchingFilter.equalsToIgnoreCaseTrimSymbols(filter.getTextOrChildTextOrContentDescription(), childNode.getContentDescription())) {
                         childContentDescriptionMatchedNodes.add(node);
+                        childContentDescriptionMatched = true;
+                    }
                 }
             }
 

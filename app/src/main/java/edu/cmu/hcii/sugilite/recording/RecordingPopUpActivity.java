@@ -45,7 +45,6 @@ import edu.cmu.hcii.sugilite.model.block.UIElementMatchingFilter;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteOperation;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteSetTextOperation;
 import edu.cmu.hcii.sugilite.ui.ReadableDescriptionGenerator;
-import edu.cmu.hcii.sugilite.ui.UIElementFeatureRecommender;
 
 @Deprecated
 public class RecordingPopUpActivity extends AppCompatActivity {
@@ -60,6 +59,7 @@ public class RecordingPopUpActivity extends AppCompatActivity {
     private SugiliteData sugiliteData;
     private ReadableDescriptionGenerator readableDescriptionGenerator;
     private UIElementFeatureRecommender recommender;
+    private String scriptName;
 
     private SugiliteStartingBlock originalScript;
     private SugiliteOperationBlock blockToEdit;
@@ -75,6 +75,7 @@ public class RecordingPopUpActivity extends AppCompatActivity {
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         sugiliteData = (SugiliteData)getApplication();
         sugiliteScriptDao = new SugiliteScriptDao(this);
+        scriptName = sugiliteData.getScriptHead().getScriptName();
         readableDescriptionGenerator = new ReadableDescriptionGenerator(getApplicationContext());
         setContentView(R.layout.activity_recoding_pop_up);
         featurePack = new SugiliteAvailableFeaturePack();
@@ -616,7 +617,7 @@ public class RecordingPopUpActivity extends AppCompatActivity {
         if(allChildFeatures.size() == 0)
             ((ViewManager)findViewById(R.id.childrenCheckbox).getParent()).removeView(findViewById(R.id.childrenCheckbox));
 
-        recommender = new UIElementFeatureRecommender(featurePack.packageName, featurePack.className, featurePack.text, featurePack.contentDescription, featurePack.viewId, featurePack.boundsInParent, featurePack.boundsInScreen, featurePack.isEditable, featurePack.time, featurePack.eventType, allParentFeatures, allChildFeatures);
+        recommender = new UIElementFeatureRecommender(featurePack.packageName, featurePack.className, featurePack.text, featurePack.contentDescription, featurePack.viewId, featurePack.boundsInParent, featurePack.boundsInScreen, scriptName, featurePack.isEditable, featurePack.time, featurePack.eventType, allParentFeatures, allChildFeatures);
 
         Calendar c = Calendar.getInstance();
         c.setTimeInMillis(featurePack.time);

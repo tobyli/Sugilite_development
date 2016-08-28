@@ -1,14 +1,11 @@
 package edu.cmu.hcii.sugilite.recording;
 
 import android.app.AlertDialog;
-import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.Rect;
-import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.text.Editable;
 import android.text.Html;
 import android.text.TextWatcher;
@@ -18,7 +15,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.view.accessibility.AccessibilityEvent;
-import android.view.accessibility.AccessibilityNodeInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -49,7 +45,6 @@ import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.communication.SugiliteBlockJSONProcessor;
 import edu.cmu.hcii.sugilite.dao.SugiliteScreenshotManager;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
-import edu.cmu.hcii.sugilite.model.AccessibilityNodeInfoList;
 import edu.cmu.hcii.sugilite.model.block.SerializableNodeInfo;
 import edu.cmu.hcii.sugilite.model.block.SugiliteAvailableFeaturePack;
 import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
@@ -63,7 +58,6 @@ import edu.cmu.hcii.sugilite.model.variable.StringVariable;
 import edu.cmu.hcii.sugilite.model.variable.Variable;
 import edu.cmu.hcii.sugilite.ui.ChooseVariableDialog;
 import edu.cmu.hcii.sugilite.ui.ReadableDescriptionGenerator;
-import edu.cmu.hcii.sugilite.ui.UIElementFeatureRecommender;
 
 /**
  * @author toby
@@ -93,6 +87,7 @@ public class RecordingPopUpDialog {
     private RecordingSkipManager skipManager;
     private AlternativeNodesFilterTester filterTester;
     private String childText = "";
+    private String scriptName;
 
 
 
@@ -126,6 +121,7 @@ public class RecordingPopUpDialog {
         this.screenshotManager = new SugiliteScreenshotManager(sharedPreferences, applicationContext);
         this.skipManager = new RecordingSkipManager();
         this.filterTester = new AlternativeNodesFilterTester();
+        this.scriptName = sugiliteData.getScriptHead().getScriptName();
         jsonProcessor = new SugiliteBlockJSONProcessor(applicationContext);
         sugiliteScriptDao = new SugiliteScriptDao(applicationContext);
         readableDescriptionGenerator = new ReadableDescriptionGenerator(applicationContext);
@@ -159,6 +155,7 @@ public class RecordingPopUpDialog {
         this.editCallback = callback;
         this.skipManager = new RecordingSkipManager();
         this.filterTester = new AlternativeNodesFilterTester();
+        this.scriptName = originalScript.getScriptName();
         jsonProcessor = new SugiliteBlockJSONProcessor(applicationContext);
         if(blockToEdit.getElementMatchingFilter().alternativeLabels != null)
             this.alternativeLabels = new HashSet<>(blockToEdit.getElementMatchingFilter().alternativeLabels);
@@ -403,7 +400,7 @@ public class RecordingPopUpDialog {
             }
         }
 
-        recommender = new UIElementFeatureRecommender(featurePack.packageName, featurePack.className, featurePack.text, featurePack.contentDescription, featurePack.viewId, featurePack.boundsInParent, featurePack.boundsInScreen, featurePack.isEditable, featurePack.time, featurePack.eventType, allParentFeatures, allChildFeatures);
+        recommender = new UIElementFeatureRecommender(featurePack.packageName, featurePack.className, featurePack.text, featurePack.contentDescription, featurePack.viewId, featurePack.boundsInParent, featurePack.boundsInScreen, scriptName, featurePack.isEditable, featurePack.time, featurePack.eventType, allParentFeatures, allChildFeatures);
 
         Calendar c = Calendar.getInstance();
         c.setTimeInMillis(featurePack.time);

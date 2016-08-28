@@ -1,4 +1,4 @@
-package edu.cmu.hcii.sugilite.ui;
+package edu.cmu.hcii.sugilite.recording;
 
 import java.util.HashSet;
 import java.util.Map;
@@ -15,13 +15,14 @@ import edu.cmu.hcii.sugilite.model.block.UIElementMatchingFilter;
 public class UIElementFeatureRecommender {
 
     private String packageName, className, text, contentDescription, viewId, boundsInParent, boundsInScreen;
+    private String scriptName;
     private boolean isEditable;
     private long time;
     private int eventType;
     private Set<Map.Entry<String, String>> allParentFeatures = new HashSet<>();
     private Set<Map.Entry<String, String>> allChildFeatures = new HashSet<>();
 
-    public UIElementFeatureRecommender(String packageName, String className, String text, String contentDescription, String viewId, String boundsInParent, String boundsInScreen,
+    public UIElementFeatureRecommender(String packageName, String className, String text, String contentDescription, String viewId, String boundsInParent, String boundsInScreen, String scriptName,
                                         boolean isEditable, long time, int eventType, Set<Map.Entry<String, String>> allParentFeatures, Set<Map.Entry<String, String>> allChildFeatures){
         this.packageName = packageName;
         this.className = className;
@@ -30,6 +31,7 @@ public class UIElementFeatureRecommender {
         this.viewId = viewId;
         this.boundsInParent = boundsInParent;
         this.boundsInScreen = boundsInScreen;
+        this.scriptName = scriptName;
         this.isEditable = isEditable;
         this.time = time;
         this.eventType = eventType;
@@ -89,6 +91,14 @@ public class UIElementFeatureRecommender {
         if(!(contentDescription.contentEquals("NULL") && text.contentEquals("NULL")))
             return retSet;
         for(Map.Entry<String, String> entry : allChildFeatures){
+            if(entry.getValue().length() > 3 && scriptName.toLowerCase().contains(entry.getValue().toLowerCase())){
+                retSet.add(entry);
+                break;
+            }
+        }
+        for(Map.Entry<String, String> entry : allChildFeatures){
+            if(retSet.size() > 0)
+                break;
             if(entry.getKey().contentEquals("Text")) {
                 retSet.add(entry);
                 break;

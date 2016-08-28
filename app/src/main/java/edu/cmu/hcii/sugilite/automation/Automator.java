@@ -88,6 +88,7 @@ public class Automator {
             List<AccessibilityNodeInfo> childContentDescriptionMatchedNodes = new ArrayList<>();
 
             for (AccessibilityNodeInfo node : filteredNodes){
+
                 if(node.getText() != null && UIElementMatchingFilter.equalsToIgnoreCaseTrimSymbols(filter.getTextOrChildTextOrContentDescription(), node.getText()))
                     textMatchedNodes.add(node);
                 if(node.getContentDescription() != null && UIElementMatchingFilter.equalsToIgnoreCaseTrimSymbols(filter.getTextOrChildTextOrContentDescription(), node.getContentDescription()))

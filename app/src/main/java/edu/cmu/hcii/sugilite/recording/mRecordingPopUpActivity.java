@@ -14,7 +14,6 @@ import android.text.Html;
 import android.text.TextWatcher;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.ViewManager;
 import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityNodeInfo;
 import android.widget.AdapterView;
@@ -43,7 +42,6 @@ import java.util.TimeZone;
 
 import edu.cmu.hcii.sugilite.R;
 import edu.cmu.hcii.sugilite.SugiliteData;
-import edu.cmu.hcii.sugilite.communication.SugiliteCommunicationController;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
 import edu.cmu.hcii.sugilite.model.AccessibilityNodeInfoList;
 import edu.cmu.hcii.sugilite.model.block.SerializableNodeInfo;
@@ -54,11 +52,10 @@ import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.model.block.UIElementMatchingFilter;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteOperation;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteSetTextOperation;
-import edu.cmu.hcii.sugilite.model.variable.StringVariable;
 import edu.cmu.hcii.sugilite.model.variable.Variable;
 import edu.cmu.hcii.sugilite.ui.ChooseVariableDialog;
 import edu.cmu.hcii.sugilite.ui.ReadableDescriptionGenerator;
-import edu.cmu.hcii.sugilite.ui.UIElementFeatureRecommender;
+
 @Deprecated
 public class mRecordingPopUpActivity extends AppCompatActivity {
 
@@ -84,6 +81,7 @@ public class mRecordingPopUpActivity extends AppCompatActivity {
     private CheckBox textCheckbox, contentDescriptionCheckbox, viewIdCheckbox, boundsInParentCheckbox, boundsInScreenCheckbox;
     private String textContent, contentDescriptionContent, viewIdContent;
     private LinearLayout actionParameterSection, actionSection;
+    private String scriptName;
 
 
     private SugiliteStartingBlock originalScript;
@@ -105,6 +103,7 @@ public class mRecordingPopUpActivity extends AppCompatActivity {
         checkBoxChildEntryMap = new HashMap<>();
         checkBoxParentEntryMap = new HashMap<>();
         identifierCheckboxMap = new HashMap<>();
+        scriptName = sugiliteData.getScriptHead().getScriptName();
         setContentView(R.layout.activity_m_recording_pop_up);
         featurePack = new SugiliteAvailableFeaturePack();
         ((TextView)findViewById(R.id.parameterLink)).setText(Html.fromHtml("<p><u>Set as a parameter</u></p>"));
@@ -235,7 +234,7 @@ public class mRecordingPopUpActivity extends AppCompatActivity {
             }
         }
 
-        recommender = new UIElementFeatureRecommender(featurePack.packageName, featurePack.className, featurePack.text, featurePack.contentDescription, featurePack.viewId, featurePack.boundsInParent, featurePack.boundsInScreen, featurePack.isEditable, featurePack.time, featurePack.eventType, allParentFeatures, allChildFeatures);
+        recommender = new UIElementFeatureRecommender(featurePack.packageName, featurePack.className, featurePack.text, featurePack.contentDescription, featurePack.viewId, featurePack.boundsInParent, featurePack.boundsInScreen, scriptName, featurePack.isEditable, featurePack.time, featurePack.eventType, allParentFeatures, allChildFeatures);
 
         Calendar c = Calendar.getInstance();
         c.setTimeInMillis(featurePack.time);

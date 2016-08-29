@@ -32,7 +32,7 @@ public class UIElementMatchingFilter implements Serializable {
     private String textOrChildTextOrContentDescription;
     private UIElementMatchingFilter parentFilter;
     private UIElementMatchingFilter childFilter;
-    private Boolean isClickable;
+    private Boolean isClickable = false;
     public Set<Map.Entry<String, String>> alternativeLabels;
 
     //TODO: add possible alternatives

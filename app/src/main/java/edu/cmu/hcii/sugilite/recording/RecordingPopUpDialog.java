@@ -437,7 +437,7 @@ public class RecordingPopUpDialog {
 
         if((!featurePack.text.contentEquals("NULL")) && featurePack.text.length() > 0) {
             textCheckbox = new CheckBox(dialogRootView.getContext());
-            textCheckbox.setText(Html.fromHtml(boldify("Text: ") + featurePack.text));
+            textCheckbox.setText(Html.fromHtml(boldify("Text Label: ") + featurePack.text));
             existingFeatureValues.add(featurePack.text);
             textContent = new String(featurePack.text);
             if(autoFillEnabled && triggerMode == TRIGGERED_BY_NEW_EVENT)
@@ -597,7 +597,7 @@ public class RecordingPopUpDialog {
         }
 
         boundsInParentCheckbox = new CheckBox(dialogRootView.getContext());
-        boundsInParentCheckbox.setText(Html.fromHtml(boldify("Bounds in Parent: ") + featurePack.boundsInParent));
+        boundsInParentCheckbox.setText(Html.fromHtml(boldify("Location in Parent: ") + featurePack.boundsInParent));
         if(autoFillEnabled && triggerMode == TRIGGERED_BY_NEW_EVENT)
             boundsInParentCheckbox.setChecked(recommender.chooseBoundsInParent());
         if(triggerMode == TRIGGERED_BY_EDIT) {
@@ -609,7 +609,7 @@ public class RecordingPopUpDialog {
 
 
         boundsInScreenCheckbox = new CheckBox(dialogRootView.getContext());
-        boundsInScreenCheckbox.setText(Html.fromHtml(boldify("Bounds in Screen: ") + featurePack.boundsInScreen));
+        boundsInScreenCheckbox.setText(Html.fromHtml(boldify("Location in Screen: ") + featurePack.boundsInScreen));
         if(autoFillEnabled && triggerMode == TRIGGERED_BY_NEW_EVENT)
             boundsInScreenCheckbox.setChecked(recommender.chooseBoundsInScreen());
         if(triggerMode == TRIGGERED_BY_EDIT){

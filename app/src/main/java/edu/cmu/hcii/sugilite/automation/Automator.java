@@ -37,7 +37,7 @@ public class Automator {
     private Context context;
     private BoundingBoxManager boundingBoxManager;
     private VariableHelper variableHelper;
-    private static final int DELAY = 2500;
+    private static final int DELAY = 1000;
     private TextToSpeech tts;
     private boolean ttsReady = false;
 
@@ -151,6 +151,7 @@ public class Automator {
                     sugiliteData.removeInstructionQueueItem();
                 }
                 succeeded = true;
+
                 try {
                     Thread.sleep(DELAY / 2);
                 }

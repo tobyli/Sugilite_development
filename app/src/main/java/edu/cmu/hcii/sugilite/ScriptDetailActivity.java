@@ -234,7 +234,7 @@ public class ScriptDetailActivity extends AppCompatActivity {
     public void onCreateContextMenu(ContextMenu menu, View view, ContextMenu.ContextMenuInfo info){
         super.onCreateContextMenu(menu, view, info);
         menu.setHeaderTitle("Sugilite Operation Menu");
-        menu.add(0, ITEM_1, 0, "View");
+        menu.add(0, ITEM_1, 0, "View Screenshot");
         menu.add(0, ITEM_2, 0, "Edit");
         menu.add(0, ITEM_3, 0, "Fork");
         menu.add(0, ITEM_4, 0, "Delete");

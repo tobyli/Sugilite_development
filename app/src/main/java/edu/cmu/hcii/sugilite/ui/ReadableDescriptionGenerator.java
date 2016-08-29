@@ -149,7 +149,7 @@ public class ReadableDescriptionGenerator {
             return packageName;
     }
 
-    private String setColor(String message, String color){
+    static public String setColor(String message, String color){
         return "<font color=\"" + color + "\"><b>" + message + "</b></font>";
     }
 

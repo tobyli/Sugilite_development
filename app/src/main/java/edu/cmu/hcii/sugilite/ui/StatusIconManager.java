@@ -163,10 +163,15 @@ public class StatusIconManager {
                         params.x = (rect.centerX() > 150 ? rect.centerX()  - 150 : 0);
                         params.y = (rect.centerY() > 150 ? rect.centerY()  - 150 : 0);
                     }
-                    /*
-                    params.x = params.x + offset;
-                    params.y = params.y + offset;
-                    */
+                    if(offset % 2 == 0) {
+                        params.x = params.x + offset;
+                        params.y = params.y - offset;
+                    }
+                    else {
+                        params.x = params.x - offset;
+                        params.y = params.y + offset;
+                    }
+
                     windowManager.updateViewLayout(statusIcon, params);
                 }
                 else if(trackingInProcess || (broadcastingInProcess && sugiliteData.registeredBroadcastingListener.size() > 0)){

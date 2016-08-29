@@ -225,7 +225,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textAppearance="?android:attr/textAppearanceMedium"
-                    android:text="Identifier"
+                    android:text="Identifying Features"
                     android:id="@+id/identifier_label"
                     android:textColor="#00f100"
                     android:textStyle="bold" />

@@ -3,16 +3,21 @@ package edu.cmu.hcii.sugilite.automation;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.text.Html;
 import android.view.WindowManager;
 import android.view.accessibility.AccessibilityEvent;
+import android.widget.Toast;
 
 import java.util.Calendar;
 import java.util.HashSet;
+import java.util.Queue;
 import java.util.Set;
 
+import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
+import edu.cmu.hcii.sugilite.ui.ReadableDescriptionGenerator;
 
 /**
  * @author toby
@@ -25,10 +30,14 @@ public class ErrorHandler {
     private Context applicationContext;
     public Set<String> relevantPackages;
     private boolean showingErrorDialog = false;
+    private SugiliteData sugiliteData;
+    private ReadableDescriptionGenerator descriptionGenerator;
 
-    public ErrorHandler(Context context){
+    public ErrorHandler(Context context, SugiliteData sugiliteData){
         this.applicationContext = context;
         relevantPackages = new HashSet<>();
+        this.sugiliteData = sugiliteData;
+        this.descriptionGenerator = new ReadableDescriptionGenerator(context);
     }
 
     /*
@@ -60,8 +69,10 @@ public class ErrorHandler {
 
         String description = nextInstruction.getDescription();
         if(event.getSource() != null && event.getSource().getPackageName() != null) {
+            String oldPackage = lastPackageName;
             lastPackageName = event.getSource().getPackageName().toString();
-            System.out.println("last package set to " + lastPackageName);
+            if(oldPackage != null && lastPackageName != null && !oldPackage.equals(lastPackageName))
+                System.out.println("last package set to " + lastPackageName);
         }
 
         //handle wrong package error
@@ -69,7 +80,7 @@ public class ErrorHandler {
             String currentPackageName = event.getSource().getPackageName().toString();
             if (!relevantPackages.contains(currentPackageName)) {
                 //error
-                handleError("Wrong package! Now at " + currentPackageName + ", expecting " + description + ".");
+                handleError("<b>Wrong app!</b> Current app is " + ReadableDescriptionGenerator.setColor(descriptionGenerator.getReadableName(currentPackageName), "#ff00ff") + ". <br><br> Next operation: " + description);
                 return true;
             }
         }
@@ -80,7 +91,6 @@ public class ErrorHandler {
 
 
         return false;
-        //TODO: check if the current package is among the relevant package of the operation
     }
 
     /**
@@ -88,19 +98,23 @@ public class ErrorHandler {
      * @return
      */
     public boolean checkError(SugiliteBlock nextInstruction, long eventTime){
+        if(nextInstruction == null)
+            return false;
         Calendar calendar = Calendar.getInstance();
         long currentTime = calendar.getTimeInMillis();
         long sinceLastWindowChange = currentTime - lastWindowChange;
         long sinceLastSuccesss = currentTime - lastSuccess;
         lastCheckTime = currentTime;
+        System.out.println("Since last success: " + (currentTime - lastSuccess) + "\n" +
+        "Since last window change: " + (currentTime - lastWindowChange) + "\n\n");
         if(sinceLastSuccesss > 30000){
             //stucked
-            handleError("sinceLastSuccess: " + sinceLastSuccesss + "\n" + "Stucked! Too long since the last success, expecting " + nextInstruction.getDescription());
+            handleError("The current window is not responding in executing the next operation: " + nextInstruction.getDescription() + "<br><br>" + "sinceLastSuccess: " + sinceLastSuccesss + "<br>" + "Stucked! Too long since the last success.");
             return true;
         }
-        if(sinceLastWindowChange > 5000){
+        if(sinceLastWindowChange > 10000){
             //stucked
-            handleError("sinceLastWindowChange: " + sinceLastWindowChange + "\n" + "Stucked! Too long since the last window content change, expecting " + nextInstruction.getDescription());
+            handleError("The current window is not responding in executing the next operation: " + nextInstruction.getDescription() + "<br><br>" + "sinceLastWindowChange: " + sinceLastWindowChange + "<br>" + "Stucked! Too long since the last window content change.");
             return true;
         }
         return false;
@@ -109,12 +123,29 @@ public class ErrorHandler {
 
 
     private void handleError(String errorMsg){
+        //pause the execution when the duck is clicked
+        final Queue<SugiliteBlock> storedQueue =  sugiliteData.getCopyOfInstructionQueue();
+        sugiliteData.clearInstructionQueue();
+
+
+        //TODO: pause the execution
         AlertDialog.Builder builder = new AlertDialog.Builder(applicationContext);
         builder.setTitle("Script Execution Error")
-                .setMessage(errorMsg)
-                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                .setMessage(Html.fromHtml(errorMsg))
+                .setPositiveButton("Keep Waiting", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
+                        //reset the timer when the user chooses to keep waiting
+                        reportSuccess(Calendar.getInstance().getTimeInMillis());
+                        sugiliteData.addInstructions(storedQueue);
+                        dialog.dismiss();
+                    }
+                })
+                .setNegativeButton("End Executing", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        sugiliteData.clearInstructionQueue();
+                        Toast.makeText(applicationContext, "Cleared Operation Queue!", Toast.LENGTH_SHORT).show();
                         dialog.dismiss();
                     }
                 })
@@ -123,7 +154,7 @@ public class ErrorHandler {
                     public void onDismiss(DialogInterface dialog) {
                         showingErrorDialog = false;
                     }
-        });
+                });
         AlertDialog dialog = builder.create();
         dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
         if(showingErrorDialog == false)

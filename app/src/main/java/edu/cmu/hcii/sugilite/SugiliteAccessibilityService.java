@@ -1,10 +1,13 @@
 package edu.cmu.hcii.sugilite;
 
 import android.accessibilityservice.AccessibilityService;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Rect;
+import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.view.LayoutInflater;
 import android.view.WindowManager;
@@ -90,7 +93,8 @@ public class SugiliteAccessibilityService extends AccessibilityService {
                 AccessibilityEvent.TYPE_WINDOWS_CHANGED,
                 AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED};
         Integer[] accessiblityEventArrayToSend = {AccessibilityEvent.TYPE_VIEW_CLICKED,
-                AccessibilityEvent.TYPE_VIEW_LONG_CLICKED};
+                AccessibilityEvent.TYPE_VIEW_LONG_CLICKED,
+                AccessibilityEvent.TYPE_VIEW_TEXT_CHANGED};
         Integer[] accessibilityEventArrayToTrack = {
                 AccessibilityEvent.TYPE_VIEW_CLICKED,
                 AccessibilityEvent.TYPE_VIEW_LONG_CLICKED,
@@ -111,7 +115,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
         prefEditor.commit();
         sugiliteData.clearInstructionQueue();
         if(sugiliteData.errorHandler == null){
-            sugiliteData.errorHandler = new ErrorHandler(this);
+            sugiliteData.errorHandler = new ErrorHandler(this, sugiliteData);
         }
         if(sugiliteData.trackingName.contentEquals("default")){
             sugiliteData.initiateTracking(sugilteTrackingHandler.getDefaultTrackingName());
@@ -126,6 +130,26 @@ public class SugiliteAccessibilityService extends AccessibilityService {
             //do nothing
         }
 
+        final Handler handler1 = new Handler();
+        handler1.postDelayed(new Runnable() {
+            //run error handler every 2 seconds if executing
+            @Override
+            public void run() {
+                if(sugiliteData.getInstructionQueueSize() > 0)
+                    sugiliteData.errorHandler.checkError(sugiliteData.peekInstructionQueue(), Calendar.getInstance().getTimeInMillis());
+                handler1.postDelayed(this, 2000);
+            }
+        }, 2000);
+
+        final Handler handler2 = new Handler();
+        handler2.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                if(sugiliteData.getInstructionQueueSize() > 0)
+                    statusIconManager.refreshStatusIcon(null, null);
+                handler1.postDelayed(this, 500);
+            }
+        }, 500);
 
     }
 
@@ -211,7 +235,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
         if (sugiliteData.getInstructionQueueSize() > 0 && !exceptedPackages.contains(event.getPackageName()) && sugiliteData.errorHandler != null){
             //script running in progress
             //invoke the error handler
-            //sugiliteData.errorHandler.checkError(event, sugiliteData.peekInstructionQueue(), Calendar.getInstance().getTimeInMillis());
+            sugiliteData.errorHandler.checkError(event, sugiliteData.peekInstructionQueue(), Calendar.getInstance().getTimeInMillis());
         }
 
         if (sharedPreferences.getBoolean("recording_in_process", false)) {
@@ -223,21 +247,30 @@ public class SugiliteAccessibilityService extends AccessibilityService {
 
             //if the event is to be recorded, process it
             if (accessibilityEventSetToSend.contains(event.getEventType()) && (!exceptedPackages.contains(event.getPackageName()))) {
-                File screenshot = null;
-                if (sharedPreferences.getBoolean("root_enabled", false)) {
-                    //take screenshot
-                    try {
+                if (event.getEventType() == AccessibilityEvent.TYPE_VIEW_TEXT_CHANGED || event.getEventType() == AccessibilityEvent.TYPE_VIEW_FOCUSED){
+                    //pop up warning dialog if focus on text box
+                    if(sourceNode != null && sourceNode.isEditable()){
+                        Toast.makeText(context, "For recording text entry, please type into the Sugilite recording dialog instead of directly in the textbox. Click on the textbox to show the Sugilite recording dialog.", Toast.LENGTH_SHORT).show();
+                    }
+                }
+                else {
+                    //send the event to recording pop up dialog
+                    File screenshot = null;
+                    if (sharedPreferences.getBoolean("root_enabled", false)) {
+                        //take screenshot
+                        try {
                         /*
                         System.out.println("taking screen shot");
                         screenshot = screenshotManager.take(false);
                         */
-                    } catch (Exception e) {
-                        e.printStackTrace();
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
                     }
+                    //start the popup activity
+                    RecordingPopUpDialog recordingPopUpDialog = new RecordingPopUpDialog(sugiliteData, getApplicationContext(), generateFeaturePack(event, rootNode, screenshot, availableAlternativeNodes), sharedPreferences, LayoutInflater.from(getApplicationContext()), RecordingPopUpDialog.TRIGGERED_BY_NEW_EVENT, availableAlternatives);
+                    recordingPopUpDialog.show(false);
                 }
-                //start the popup activity
-                RecordingPopUpDialog recordingPopUpDialog = new RecordingPopUpDialog(sugiliteData, getApplicationContext(), generateFeaturePack(event, rootNode, screenshot, availableAlternativeNodes), sharedPreferences, LayoutInflater.from(getApplicationContext()), RecordingPopUpDialog.TRIGGERED_BY_NEW_EVENT, availableAlternatives);
-                recordingPopUpDialog.show(false);
             }
             if(BUILDING_VOCAB) {
                 //add alternative nodes to the app vocab set

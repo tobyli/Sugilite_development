@@ -645,8 +645,13 @@ public class RecordingPopUpDialog {
         ArrayAdapter<String> actionAdapter = new ArrayAdapter<String>(dialogRootView.getContext(), android.R.layout.simple_spinner_item, actionSpinnerItems);
         actionAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         actionSpinner.setAdapter(actionAdapter);
-        if(triggerMode == TRIGGERED_BY_NEW_EVENT)
-            actionSpinner.setSelection(0);
+        if(triggerMode == TRIGGERED_BY_NEW_EVENT) {
+            if (featurePack.eventType == AccessibilityEvent.TYPE_VIEW_LONG_CLICKED) {
+                actionSpinner.setSelection(actionSpinnerItems.indexOf("Long Click"));
+            }
+            else
+                actionSpinner.setSelection(0);
+        }
         else if (triggerMode == TRIGGERED_BY_EDIT){
             SugiliteOperation oldOperation = blockToEdit.getOperation();
             try {

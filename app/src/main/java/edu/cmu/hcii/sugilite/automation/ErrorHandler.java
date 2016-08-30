@@ -18,6 +18,7 @@ import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
+import edu.cmu.hcii.sugilite.model.operation.SugiliteOperation;
 import edu.cmu.hcii.sugilite.ui.ReadableDescriptionGenerator;
 
 /**
@@ -70,6 +71,12 @@ public class ErrorHandler {
                 break;
         }
 
+        if(nextInstruction instanceof SugiliteOperationBlock){
+            SugiliteOperation operation = ((SugiliteOperationBlock) nextInstruction).getOperation();
+            if(operation.getOperationType() == SugiliteOperation.SPECIAL_GO_HOME)
+                return false;
+        }
+
         String description = nextInstruction.getDescription();
         if(event.getSource() != null && event.getSource().getPackageName() != null) {
             String oldPackage = lastPackageName;
@@ -89,19 +96,15 @@ public class ErrorHandler {
         }
 
         //handle timeout error
-        checkError(nextInstruction, eventTime);
-
-
-
-        return false;
+        return checkError(nextInstruction);
     }
 
     /**
      * execute every N seconds
      * @return
      */
-    public boolean checkError(SugiliteBlock nextInstruction, long eventTime){
-        if(nextInstruction == null)
+    public boolean checkError(SugiliteBlock nextInstruction){
+        if(nextInstruction == null || sharedPreferences.getBoolean("recording_in_process", true))
             return false;
         Calendar calendar = Calendar.getInstance();
         long currentTime = calendar.getTimeInMillis();
@@ -130,8 +133,6 @@ public class ErrorHandler {
         final Queue<SugiliteBlock> storedQueue =  sugiliteData.getCopyOfInstructionQueue();
         sugiliteData.clearInstructionQueue();
 
-
-        //TODO: pause the execution
         AlertDialog.Builder builder = new AlertDialog.Builder(applicationContext);
         builder.setTitle("Script Execution Error")
                 .setMessage(Html.fromHtml(errorMsg))

@@ -54,6 +54,8 @@ public class ReadableDescriptionGenerator {
                     break;
                 case SugiliteOperation.LOAD_AS_VARIABLE:
                     message += setColor("Load the value ", "#ffa500") + "of the" + setColor(((SugiliteOperationBlock)block).getOperation().getParameter(), "#ff0000") + " as a variable for ";
+                case SugiliteOperation.SPECIAL_GO_HOME:
+                    return "<b>GO TO HOME SCREEN</b>";
             }
 
             //print the object type

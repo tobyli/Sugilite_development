@@ -136,7 +136,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
             @Override
             public void run() {
                 if(sugiliteData.getInstructionQueueSize() > 0)
-                    sugiliteData.errorHandler.checkError(sugiliteData.peekInstructionQueue(), Calendar.getInstance().getTimeInMillis());
+                    sugiliteData.errorHandler.checkError(sugiliteData.peekInstructionQueue());
                 handler1.postDelayed(this, 2000);
             }
         }, 2000);
@@ -232,7 +232,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
         trackingExcludedPackages.add("edu.cmu.hcii.sugilitecommunicationtest");
         trackingExcludedPackages.add("edu.cmu.hcii.sugilite");
 
-        if (sugiliteData.getInstructionQueueSize() > 0 && !exceptedPackages.contains(event.getPackageName()) && sugiliteData.errorHandler != null){
+        if (sugiliteData.getInstructionQueueSize() > 0 && !sharedPreferences.getBoolean("recording_in_process", true) && !exceptedPackages.contains(event.getPackageName()) && sugiliteData.errorHandler != null){
             //script running in progress
             //invoke the error handler
             sugiliteData.errorHandler.checkError(event, sugiliteData.peekInstructionQueue(), Calendar.getInstance().getTimeInMillis());
@@ -240,6 +240,10 @@ public class SugiliteAccessibilityService extends AccessibilityService {
 
         if (sharedPreferences.getBoolean("recording_in_process", false)) {
             //recording in progress
+
+            //add package name to the relevant package set
+            if(sugiliteData.getScriptHead() != null && event.getPackageName() != null)
+                sugiliteData.getScriptHead().relevantPackages.add(event.getPackageName().toString());
 
             //skip internal interactions and interactions on system ui
             availableAlternatives.addAll(getAlternativeLabels(sourceNode, rootNode));

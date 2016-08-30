@@ -43,8 +43,10 @@ import edu.cmu.hcii.sugilite.communication.SugiliteCommunicationController;
 import edu.cmu.hcii.sugilite.dao.SugiliteScreenshotManager;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
 import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
+import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.model.block.UIElementMatchingFilter;
+import edu.cmu.hcii.sugilite.model.operation.SugiliteOperation;
 import edu.cmu.hcii.sugilite.model.variable.VariableHelper;
 
 /**
@@ -62,6 +64,7 @@ public class StatusIconManager {
     private ServiceStatusManager serviceStatusManager;
     private SugiliteScreenshotManager screenshotManager;
     private SugiliteBlockJSONProcessor jsonProcessor;
+    private ReadableDescriptionGenerator descriptionGenerator;
     private WindowManager.LayoutParams params;
     private VariableHelper variableHelper;
     private Random random;
@@ -76,6 +79,7 @@ public class StatusIconManager {
         this.screenshotManager = new SugiliteScreenshotManager(sharedPreferences, context);
         variableHelper = new VariableHelper(sugiliteData.stringVariableMap);
         jsonProcessor = new SugiliteBlockJSONProcessor(context);
+        descriptionGenerator = new ReadableDescriptionGenerator(context);
         random = new Random();
 
     }
@@ -139,7 +143,7 @@ public class StatusIconManager {
             List<AccessibilityNodeInfo> allNode = Automator.preOrderTraverse(rootNode);
             List<AccessibilityNodeInfo> filteredNode = new ArrayList<>();
             for (AccessibilityNodeInfo node : allNode) {
-                if (filter.filter(node, variableHelper))
+                if (filter != null && filter.filter(node, variableHelper))
                     filteredNode.add(node);
             }
             if (filteredNode.size() > 0) {
@@ -265,6 +269,7 @@ public class StatusIconManager {
                     else{
                         if(recordingInProcess){
                             operationList.add("View Current Recording");
+                            operationList.add("Add GO_HOME Operation Block");
                             operationList.add("End Recording");
                         }
                         else{
@@ -335,6 +340,34 @@ public class StatusIconManager {
                                 case "Resume Running":
                                     dialog.dismiss();
                                     break;
+                                case "Add GO_HOME Operation Block":
+                                    //insert a GO_HOME opeartion block AND go home
+                                    SugiliteOperationBlock operationBlock = new SugiliteOperationBlock();
+                                    SugiliteOperation operation = new SugiliteOperation(SugiliteOperation.SPECIAL_GO_HOME);
+                                    operationBlock.setOperation(operation);
+                                    operationBlock.setDescription(descriptionGenerator.generateReadableDescription(operationBlock));
+                                    try {
+                                        SugiliteBlock currentBlock = sugiliteData.getCurrentScriptBlock();
+                                        if(currentBlock == null || sugiliteData.getScriptHead() == null)
+                                            throw new Exception("NULL CURRENT BLOCK OR NULL SCRIPT");
+                                        operationBlock.setPreviousBlock(currentBlock);
+                                        if (currentBlock instanceof SugiliteOperationBlock)
+                                            ((SugiliteOperationBlock) currentBlock).setNextBlock(operationBlock);
+                                        if (currentBlock instanceof SugiliteStartingBlock)
+                                            ((SugiliteStartingBlock) currentBlock).setNextBlock(operationBlock);
+                                        //TODO: deal with blocks other than operation block and starting block
+                                        sugiliteData.setCurrentScriptBlock(operationBlock);
+                                        sugiliteScriptDao.save(sugiliteData.getScriptHead());
+                                        //go to home
+                                        Intent startMain = new Intent(Intent.ACTION_MAIN);
+                                        startMain.addCategory(Intent.CATEGORY_HOME);
+                                        startMain.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                                        context.startActivity(startMain);
+                                    }
+                                    catch (Exception e){
+                                        e.printStackTrace();
+                                    }
+                                    break;
                                 default:
                                     //do nothing
                             }
@@ -344,7 +377,7 @@ public class StatusIconManager {
                     dialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
                         @Override
                         public void onDismiss(DialogInterface dialog) {
-                            if(runningInProgress){
+                            if (runningInProgress) {
                                 //restore execution
                                 sugiliteData.addInstructions(storedQueue);
                             }

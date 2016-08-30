@@ -65,24 +65,49 @@ public class Automator {
             return false;
         this.context = context;
         SugiliteBlock blockToMatch = sugiliteData.peekInstructionQueue();
-        if (!(blockToMatch instanceof SugiliteOperationBlock)){
-            if(blockToMatch instanceof SugiliteStartingBlock){
+        if(blockToMatch == null)
+            return false;
+        if (!(blockToMatch instanceof SugiliteOperationBlock)) {
+            if (blockToMatch instanceof SugiliteStartingBlock) {
                 //Toast.makeText(context, "Start running script " + ((SugiliteStartingBlock)blockToMatch).getScriptName(), Toast.LENGTH_SHORT).show();
             }
             sugiliteData.removeInstructionQueueItem();
             return false;
         }
+
         SugiliteOperationBlock operationBlock = (SugiliteOperationBlock)blockToMatch;
+
+        if(operationBlock.getElementMatchingFilter() == null){
+            if(operationBlock.getOperation().getOperationType() == SugiliteOperation.SPECIAL_GO_HOME){
+                //perform the go home operation
+                boolean retVal = performAction(null, operationBlock);
+                if(retVal) {
+                    sugiliteData.errorHandler.reportSuccess(Calendar.getInstance().getTimeInMillis());
+                    sugiliteData.removeInstructionQueueItem();
+                    try {
+                        Thread.sleep(DELAY / 2);
+                    }
+                    catch (Exception e){
+                        // do nothing
+                    }
+                }
+            }
+            else
+                return false;
+        }
+
         variableHelper = new VariableHelper(sugiliteData.stringVariableMap);
         //if we can match this event, perform the action and remove the head object
         List<AccessibilityNodeInfo> allNodes = preOrderTraverse(rootNode);
         List<AccessibilityNodeInfo> filteredNodes = new ArrayList<>();
         for(AccessibilityNodeInfo node : allNodes){
+            if(operationBlock.getElementMatchingFilter() == null)
+                continue;
             if(operationBlock.getElementMatchingFilter().filter(node, variableHelper))
                 filteredNodes.add(node);
         }
 
-        if(operationBlock.getElementMatchingFilter().getTextOrChildTextOrContentDescription() != null) {
+        if(operationBlock.getElementMatchingFilter() != null && operationBlock.getElementMatchingFilter().getTextOrChildTextOrContentDescription() != null) {
             //process the order of TextOrChildOrContentDescription
             UIElementMatchingFilter filter = operationBlock.getElementMatchingFilter();
             List<AccessibilityNodeInfo> textMatchedNodes = new ArrayList<>();
@@ -185,6 +210,15 @@ public class Automator {
         }
         if(block.getOperation().getOperationType() == SugiliteOperation.SELECT){
             return nodeToAction.performAction(AccessibilityNodeInfo.ACTION_SELECT);
+        }
+
+        if(block.getOperation().getOperationType() == SugiliteOperation.SPECIAL_GO_HOME){
+            //perform the GO_HOME operation
+            Intent startMain = new Intent(Intent.ACTION_MAIN);
+            startMain.addCategory(Intent.CATEGORY_HOME);
+            startMain.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            context.startActivity(startMain);
+            return true;
         }
 
         if(block.getOperation().getOperationType() == SugiliteOperation.READ_OUT){

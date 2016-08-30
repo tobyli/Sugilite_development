@@ -39,6 +39,9 @@ public class SugiliteOperationBlockJSON {
             case SugiliteOperation.LOAD_AS_VARIABLE:
                 actionType = "LOAD_AS_VARIABLE";
                 break;
+            case SugiliteOperation.SPECIAL_GO_HOME:
+                actionType = "SPECIAL_GO_HOME";
+                break;
             default:
                 actionType = "UNDEFINED";
         }
@@ -77,6 +80,8 @@ public class SugiliteOperationBlockJSON {
                 operation.setOperationType(SugiliteOperation.CLICK);
             else if (actionType.equals("LONG_CLICK"))
                 operation.setOperationType(SugiliteOperation.LONG_CLICK);
+            else if (actionType.equals("SPECIAL_GO_HOME"))
+                operation.setOperationType(SugiliteOperation.SPECIAL_GO_HOME);
         }
         //TODO: disable edit for those without feature pack;
         operationBlock.setFeaturePack(null);

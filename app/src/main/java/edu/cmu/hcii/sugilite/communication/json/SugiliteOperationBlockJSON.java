@@ -69,11 +69,6 @@ public class SugiliteOperationBlockJSON {
             operation = new SugiliteSetTextOperation();
             ((SugiliteSetTextOperation)operation).setText(actionParameter);
         }
-        if(actionType.equals("READ_OUT")) {
-            operation = new SugiliteOperation();
-            operation.setOperationType(SugiliteOperation.READ_OUT);
-            operation.setParameter(actionParameter);
-        }
         else {
             operation = new SugiliteOperation();
             if(actionType.equals("CLICK"))
@@ -82,6 +77,10 @@ public class SugiliteOperationBlockJSON {
                 operation.setOperationType(SugiliteOperation.LONG_CLICK);
             else if (actionType.equals("SPECIAL_GO_HOME"))
                 operation.setOperationType(SugiliteOperation.SPECIAL_GO_HOME);
+            else if (actionType.equals("READ_OUT")){
+                operation.setOperationType(SugiliteOperation.READ_OUT);
+                operation.setParameter(actionParameter);
+            }
         }
         //TODO: disable edit for those without feature pack;
         operationBlock.setFeaturePack(null);

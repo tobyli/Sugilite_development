@@ -79,7 +79,7 @@ public class Automator {
 
         if(operationBlock.getElementMatchingFilter() == null){
             if(operationBlock.getOperation().getOperationType() == SugiliteOperation.SPECIAL_GO_HOME){
-                //perform the go home operation
+                //perform the go home operation - because the go home operation will have a null filter
                 boolean retVal = performAction(null, operationBlock);
                 if(retVal) {
                     sugiliteData.errorHandler.reportSuccess(Calendar.getInstance().getTimeInMillis());
@@ -91,6 +91,7 @@ public class Automator {
                         // do nothing
                     }
                 }
+                return retVal;
             }
             else
                 return false;
@@ -101,13 +102,11 @@ public class Automator {
         List<AccessibilityNodeInfo> allNodes = preOrderTraverse(rootNode);
         List<AccessibilityNodeInfo> filteredNodes = new ArrayList<>();
         for(AccessibilityNodeInfo node : allNodes){
-            if(operationBlock.getElementMatchingFilter() == null)
-                continue;
             if(operationBlock.getElementMatchingFilter().filter(node, variableHelper))
                 filteredNodes.add(node);
         }
 
-        if(operationBlock.getElementMatchingFilter() != null && operationBlock.getElementMatchingFilter().getTextOrChildTextOrContentDescription() != null) {
+        if(operationBlock.getElementMatchingFilter().getTextOrChildTextOrContentDescription() != null) {
             //process the order of TextOrChildOrContentDescription
             UIElementMatchingFilter filter = operationBlock.getElementMatchingFilter();
             List<AccessibilityNodeInfo> textMatchedNodes = new ArrayList<>();
@@ -222,13 +221,13 @@ public class Automator {
         }
 
         if(block.getOperation().getOperationType() == SugiliteOperation.READ_OUT){
-            if(block.getOperation().getParameter().contentEquals("Text")) {
+            if(block.getOperation().getParameter().toLowerCase().contentEquals("text")) {
                 if (ttsReady && node != null && node.getText() != null) {
                     tts.speak("Result", TextToSpeech.QUEUE_ADD, null);
                     tts.speak(node.getText().toString(), TextToSpeech.QUEUE_ADD, null);
                 }
             }
-            else if (block.getOperation().getParameter().contentEquals("Child Text")) {
+            else if (block.getOperation().getParameter().toLowerCase().contentEquals("child text")) {
                 List<AccessibilityNodeInfo> children = preOrderTraverse(node);
                 if (ttsReady && node != null && children != null && children.size() > 0) {
                     String childText = "";
@@ -242,7 +241,7 @@ public class Automator {
                     }
                 }
             }
-            else if (block.getOperation().getParameter().contentEquals("Content Description")){
+            else if (block.getOperation().getParameter().toLowerCase().contentEquals("content description")){
                 if (ttsReady && node != null && node.getContentDescription() != null) {
                     tts.speak("Result", TextToSpeech.QUEUE_ADD, null);
                     tts.speak(node.getContentDescription().toString(), TextToSpeech.QUEUE_ADD, null);

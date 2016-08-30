@@ -9,6 +9,7 @@ import android.view.WindowManager;
 import android.view.accessibility.AccessibilityEvent;
 import android.widget.Toast;
 
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.HashSet;
 import java.util.Queue;
@@ -35,6 +36,8 @@ public class ErrorHandler {
     private SugiliteData sugiliteData;
     private ReadableDescriptionGenerator descriptionGenerator;
     private SharedPreferences sharedPreferences;
+    private Set<String> excludedPackageFromWrongPackage;
+    private String[] excludedPackageSet = {"com.google.android.inputmethod.pinyin"};
 
     public ErrorHandler(Context context, SugiliteData sugiliteData, SharedPreferences sharedPreferences){
         this.applicationContext = context;
@@ -42,6 +45,7 @@ public class ErrorHandler {
         this.sugiliteData = sugiliteData;
         this.descriptionGenerator = new ReadableDescriptionGenerator(context);
         this.sharedPreferences = sharedPreferences;
+        excludedPackageFromWrongPackage = new HashSet<>(Arrays.asList(excludedPackageSet));
     }
 
     /*
@@ -88,7 +92,8 @@ public class ErrorHandler {
         //handle wrong package error
         if(relevantPackages != null && relevantPackages.size() > 0 && event.getSource() != null && event.getSource().getPackageName() != null) {
             String currentPackageName = event.getSource().getPackageName().toString();
-            if (!relevantPackages.contains(currentPackageName)) {
+            if (!relevantPackages.contains(currentPackageName) &&
+                    (!(excludedPackageFromWrongPackage.contains(currentPackageName) || excludedPackageFromWrongPackage.contains(event.getSource().getPackageName())))) {
                 //error
                 handleError("<b>Wrong app!</b> Current app is " + ReadableDescriptionGenerator.setColor(descriptionGenerator.getReadableName(currentPackageName), "#ff00ff") + ". <br><br> Next operation: " + description);
                 return true;

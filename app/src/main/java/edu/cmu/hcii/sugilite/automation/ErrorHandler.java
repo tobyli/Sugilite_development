@@ -3,6 +3,7 @@ package edu.cmu.hcii.sugilite.automation;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.SharedPreferences;
 import android.text.Html;
 import android.view.WindowManager;
 import android.view.accessibility.AccessibilityEvent;
@@ -32,12 +33,14 @@ public class ErrorHandler {
     private boolean showingErrorDialog = false;
     private SugiliteData sugiliteData;
     private ReadableDescriptionGenerator descriptionGenerator;
+    private SharedPreferences sharedPreferences;
 
-    public ErrorHandler(Context context, SugiliteData sugiliteData){
+    public ErrorHandler(Context context, SugiliteData sugiliteData, SharedPreferences sharedPreferences){
         this.applicationContext = context;
         relevantPackages = new HashSet<>();
         this.sugiliteData = sugiliteData;
         this.descriptionGenerator = new ReadableDescriptionGenerator(context);
+        this.sharedPreferences = sharedPreferences;
     }
 
     /*
@@ -147,6 +150,29 @@ public class ErrorHandler {
                         sugiliteData.clearInstructionQueue();
                         Toast.makeText(applicationContext, "Cleared Operation Queue!", Toast.LENGTH_SHORT).show();
                         dialog.dismiss();
+                    }
+                })
+                .setNeutralButton("Create Fork", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        SugiliteBlock currentBlock = storedQueue.peek().getPreviousBlock();
+                        //find the starting block for the current executing script
+                        SugiliteBlock mBlock = currentBlock;
+                        while(mBlock.getPreviousBlock() != null)
+                            mBlock = mBlock.getPreviousBlock();
+                        if(!(mBlock instanceof SugiliteStartingBlock))
+                            return;
+                        SugiliteStartingBlock startingBlock = (SugiliteStartingBlock)mBlock;
+                        startingBlock.setScriptName(startingBlock.getScriptName().replace(".SugiliteScript", "") + "_forked" + ".SugiliteScript");
+                        //put the script back to "current recording"
+                        sugiliteData.setScriptHead(startingBlock);
+                        sugiliteData.setCurrentScriptBlock(currentBlock);
+                        sugiliteData.initiatedExternally = false;
+                        SharedPreferences.Editor prefEditor = sharedPreferences.edit();
+                        //resume recording
+                        prefEditor.putBoolean("recording_in_process", true);
+                        prefEditor.commit();
+                        Toast.makeText(applicationContext, "resuming recording", Toast.LENGTH_SHORT).show();
                     }
                 })
                 .setOnDismissListener(new DialogInterface.OnDismissListener() {

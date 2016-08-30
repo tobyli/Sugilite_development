@@ -26,10 +26,12 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.File;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import edu.cmu.hcii.sugilite.automation.Automator;
 import edu.cmu.hcii.sugilite.automation.ServiceStatusManager;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
 import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
@@ -510,18 +512,44 @@ public class ScriptDetailActivity extends AppCompatActivity {
 
     //TODO: rewrite resume recording
     private void resumeRecording(){
-        SharedPreferences.Editor prefEditor = sharedPreferences.edit();
-        //turn off the recording before executing
-        prefEditor.putBoolean("recording_in_process", false);
-        prefEditor.commit();
-        sugiliteData.initiatedExternally = false;
-        sugiliteData.setScriptHead(script);
-        sugiliteData.setCurrentScriptBlock(script.getTail());
-        sugiliteData.runScript(script);
-        Intent startMain = new Intent(Intent.ACTION_MAIN);
-        startMain.addCategory(Intent.CATEGORY_HOME);
-        startMain.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        startActivity(startMain);
+        if(!serviceStatusManager.isRunning()){
+            //prompt the user if the accessiblity service is not active
+            AlertDialog.Builder builder1 = new AlertDialog.Builder(this);
+            builder1.setTitle("Service not running")
+                    .setMessage("The Sugilite accessiblity service is not enabled. Please enable the service in the phone settings before recording.")
+                    .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            serviceStatusManager.promptEnabling();
+                            //do nothing
+                        }
+                    }).show();
+        }
+        else {
+            SharedPreferences.Editor prefEditor = sharedPreferences.edit();
+            //turn off the recording before executing
+            prefEditor.putBoolean("recording_in_process", false);
+            prefEditor.putString("scriptName", script.getScriptName().replace(".SugiliteScript", ""));
+            prefEditor.commit();
+            sugiliteData.initiatedExternally = false;
+            sugiliteData.setScriptHead(script);
+            sugiliteData.setCurrentScriptBlock(script.getTail());
+            //force stop all the relevant packages
+            for (String packageName : script.relevantPackages) {
+                Automator.killPackage(packageName);
+            }
+            sugiliteData.runScript(script, true);
+            //need to have this delay to ensure that the killing has finished before we start executing
+            try {
+                Thread.sleep(VariableSetValueDialog.SCRIPT_DELAY);
+            } catch (Exception e) {
+                // do nothing
+            }
+            Intent startMain = new Intent(Intent.ACTION_MAIN);
+            startMain.addCategory(Intent.CATEGORY_HOME);
+            startMain.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(startMain);
+        }
     }
 
 

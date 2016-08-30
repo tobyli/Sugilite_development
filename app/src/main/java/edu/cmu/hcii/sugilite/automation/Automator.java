@@ -7,8 +7,10 @@ import android.os.Bundle;
 import android.view.accessibility.AccessibilityNodeInfo;
 import android.widget.Toast;
 
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -52,6 +54,7 @@ public class Automator {
                 ttsReady = true;
             }
         });
+
 
     }
 
@@ -287,5 +290,22 @@ public class Automator {
                 currentText = currentText.replace("@" + entry.getKey(), ((StringVariable) entry.getValue()).getValue());
         }
         return currentText;
+    }
+
+    static public void killPackage(String packageName){
+        if(packageName.equals("com.google.android.googlequicksearchbox"))
+            return;
+        try {
+            Process sh = Runtime.getRuntime().exec("su", null, null);
+            OutputStream os = sh.getOutputStream();
+            os.write(("am force-stop " + packageName).getBytes("ASCII"));
+            os.flush();
+            os.close();
+            System.out.println(packageName);
+        } catch (Exception e) {
+            System.out.println("FAILED TO KILL RELEVANT PACKAGES (permission denied)");
+            e.printStackTrace();
+            // do nothing, likely this exception is caused by non-rooted device
+        }
     }
 }

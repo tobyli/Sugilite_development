@@ -163,6 +163,7 @@ public class ErrorHandler {
                         if(!(mBlock instanceof SugiliteStartingBlock))
                             return;
                         SugiliteStartingBlock startingBlock = (SugiliteStartingBlock)mBlock;
+                        System.out.println("*** Found original script " + ((SugiliteStartingBlock) mBlock).getScriptName());
                         startingBlock.setScriptName(startingBlock.getScriptName().replace(".SugiliteScript", "") + "_forked" + ".SugiliteScript");
                         //put the script back to "current recording"
                         sugiliteData.setScriptHead(startingBlock);
@@ -171,6 +172,7 @@ public class ErrorHandler {
                         SharedPreferences.Editor prefEditor = sharedPreferences.edit();
                         //resume recording
                         prefEditor.putBoolean("recording_in_process", true);
+                        prefEditor.putString("scriptName", startingBlock.getScriptName().replace(".SugiliteScript", ""));
                         prefEditor.commit();
                         Toast.makeText(applicationContext, "resuming recording", Toast.LENGTH_SHORT).show();
                     }

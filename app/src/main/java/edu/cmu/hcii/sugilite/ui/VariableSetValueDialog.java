@@ -23,6 +23,7 @@ import java.util.Set;
 
 import edu.cmu.hcii.sugilite.R;
 import edu.cmu.hcii.sugilite.SugiliteData;
+import edu.cmu.hcii.sugilite.automation.Automator;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.model.variable.StringVariable;
 import edu.cmu.hcii.sugilite.model.variable.Variable;
@@ -41,7 +42,7 @@ public class VariableSetValueDialog {
     private SharedPreferences sharedPreferences;
     private SugiliteStartingBlock startingBlock;
     private SugiliteData sugiliteData;
-    public static final int SCRIPT_DELAY = 3000;
+    public static final int SCRIPT_DELAY = 2000;
 
     public VariableSetValueDialog(final Context context, LayoutInflater inflater, SugiliteData sugiliteData, SugiliteStartingBlock startingBlock, SharedPreferences sharedPreferences){
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
@@ -169,19 +170,10 @@ public class VariableSetValueDialog {
         prefEditor.commit();
         //kill all the relevant packages
         for (String packageName : startingBlock.relevantPackages) {
-            try {
-                Process sh = Runtime.getRuntime().exec("su", null, null);
-                OutputStream os = sh.getOutputStream();
-                os.write(("am force-stop " + packageName).getBytes("ASCII"));
-                os.flush();
-                os.close();
-                System.out.println(packageName);
-            } catch (Exception e) {
-                e.printStackTrace();
-                // do nothing, likely this exception is caused by non-rooted device
-            }
+            Automator.killPackage(packageName);
         }
         sugiliteData.runScript(startingBlock);
+        //need to have this delay to ensure that the killing has finished before we start executing
         try {
             Thread.sleep(SCRIPT_DELAY);
         } catch (Exception e) {

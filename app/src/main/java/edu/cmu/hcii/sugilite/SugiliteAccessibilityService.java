@@ -115,7 +115,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
         prefEditor.commit();
         sugiliteData.clearInstructionQueue();
         if(sugiliteData.errorHandler == null){
-            sugiliteData.errorHandler = new ErrorHandler(this, sugiliteData);
+            sugiliteData.errorHandler = new ErrorHandler(this, sugiliteData, sharedPreferences);
         }
         if(sugiliteData.trackingName.contentEquals("default")){
             sugiliteData.initiateTracking(sugilteTrackingHandler.getDefaultTrackingName());

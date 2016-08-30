@@ -2,6 +2,10 @@ package edu.cmu.hcii.sugilite;
 
 import android.app.Application;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.os.Handler;
+import android.os.Looper;
+import android.preference.PreferenceManager;
 import android.view.accessibility.AccessibilityEvent;
 
 import com.google.gson.Gson;
@@ -42,6 +46,8 @@ public class SugiliteData extends Application {
     public SugiliteCommunicationController communicationController;
     public ErrorHandler errorHandler = null;
     public String trackingName = "default";
+    private boolean startRecordingWhenFinishExecuting = false;
+
 
 
     public SugiliteStartingBlock getScriptHead(){
@@ -81,6 +87,7 @@ public class SugiliteData extends Application {
     }
 
     public void runScript(SugiliteStartingBlock startingBlock){
+        startRecordingWhenFinishExecuting = false;
         this.instructionQueue.clear();
         errorHandler.relevantPackages.clear();
         errorHandler.relevantPackages.addAll(startingBlock.relevantPackages);
@@ -89,6 +96,11 @@ public class SugiliteData extends Application {
         for(SugiliteBlock block : blocks){
             addInstruction(block);
         }
+    }
+
+    public void runScript(SugiliteStartingBlock startingBlock, boolean isForResuming){
+        runScript(startingBlock);
+        startRecordingWhenFinishExecuting = isForResuming;
     }
 
     public void setCurrentScriptBlock(SugiliteBlock currentScriptBlock){
@@ -108,6 +120,21 @@ public class SugiliteData extends Application {
     }
     public void removeInstructionQueueItem(){
         instructionQueue.remove();
+        if(instructionQueue.size() == 0 && startRecordingWhenFinishExecuting){
+            //start recording at the end of "resume recording" operation
+            final Handler handler = new Handler(Looper.getMainLooper());
+            final SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+            handler.postDelayed(new Runnable() {
+                //1.5 sec delay to start recording -> to avoid catching operations from automation execution
+                @Override
+                public void run() {
+                    System.out.println("Turning on recording - resuming");
+                    SharedPreferences.Editor prefEditor = sharedPreferences.edit();
+                    prefEditor.putBoolean("recording_in_process", true);
+                    prefEditor.commit();
+                }
+            }, 1500);
+        }
     }
     public SugiliteBlock peekInstructionQueue(){
         return instructionQueue.peek();

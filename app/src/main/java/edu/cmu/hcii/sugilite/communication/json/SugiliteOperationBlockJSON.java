@@ -34,6 +34,7 @@ public class SugiliteOperationBlockJSON {
                 break;
             case SugiliteOperation.READ_OUT:
                 actionType = "READ_OUT";
+                actionParameter = block.getOperation().getParameter();
                 break;
             case SugiliteOperation.LOAD_AS_VARIABLE:
                 actionType = "LOAD_AS_VARIABLE";
@@ -64,6 +65,11 @@ public class SugiliteOperationBlockJSON {
         if(actionType.equals("SET_TEXT")) {
             operation = new SugiliteSetTextOperation();
             ((SugiliteSetTextOperation)operation).setText(actionParameter);
+        }
+        if(actionType.equals("READ_OUT")) {
+            operation = new SugiliteOperation();
+            operation.setOperationType(SugiliteOperation.READ_OUT);
+            operation.setParameter(actionParameter);
         }
         else {
             operation = new SugiliteOperation();

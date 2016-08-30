@@ -32,6 +32,12 @@ public class SugiliteOperationBlockJSON {
                 else
                     actionParameter = block.getOperation().getParameter();
                 break;
+            case SugiliteOperation.READ_OUT:
+                actionType = "READ_OUT";
+                break;
+            case SugiliteOperation.LOAD_AS_VARIABLE:
+                actionType = "LOAD_AS_VARIABLE";
+                break;
             default:
                 actionType = "UNDEFINED";
         }

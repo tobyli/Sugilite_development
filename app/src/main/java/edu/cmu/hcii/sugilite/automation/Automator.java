@@ -190,7 +190,7 @@ public class Automator {
         if(block.getOperation().getOperationType() == SugiliteOperation.READ_OUT){
             if(block.getOperation().getParameter().contentEquals("Text")) {
                 if (ttsReady && node != null && node.getText() != null) {
-                    tts.speak("Return Value", TextToSpeech.QUEUE_ADD, null);
+                    tts.speak("Result", TextToSpeech.QUEUE_ADD, null);
                     tts.speak(node.getText().toString(), TextToSpeech.QUEUE_ADD, null);
                 }
             }

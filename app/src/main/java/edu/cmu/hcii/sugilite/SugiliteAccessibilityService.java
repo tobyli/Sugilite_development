@@ -242,7 +242,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
             //recording in progress
 
             //add package name to the relevant package set
-            if(sugiliteData.getScriptHead() != null && event.getPackageName() != null)
+            if(sugiliteData.getScriptHead() != null && event.getPackageName() != null && (!exceptedPackages.contains(event.getPackageName())))
                 sugiliteData.getScriptHead().relevantPackages.add(event.getPackageName().toString());
 
             //skip internal interactions and interactions on system ui

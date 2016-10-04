@@ -17,6 +17,7 @@ import android.widget.Toast;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -80,7 +81,7 @@ public class VariableSetValueDialog {
                         continue;
                     spinnerItemList.add(alternative);
                 }
-                ArrayAdapter<String> spinnerAdapter = new ArrayAdapter<String>(context, android.R.layout.simple_spinner_item, spinnerItemList);
+                ArrayAdapter<String> spinnerAdapter = new ArrayAdapter<>(context, android.R.layout.simple_spinner_item, spinnerItemList);
                 spinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
                 alternativeValueSpinner.setAdapter(spinnerAdapter);
 
@@ -167,7 +168,7 @@ public class VariableSetValueDialog {
         SharedPreferences.Editor prefEditor = sharedPreferences.edit();
         //turn off the recording before executing
         prefEditor.putBoolean("recording_in_process", false);
-        prefEditor.commit();
+        prefEditor.apply();
         //kill all the relevant packages
         for (String packageName : startingBlock.relevantPackages) {
             Automator.killPackage(packageName);

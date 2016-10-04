@@ -52,7 +52,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
     private SugiliteTrackingHandler sugilteTrackingHandler;
     private SugiliteAppVocabularyDao vocabularyDao;
     final private static boolean BUILDING_VOCAB = false;
-
+    private Handler handler;
 
 
     public SugiliteAccessibilityService() {
@@ -66,7 +66,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
         sugiliteData = (SugiliteData)getApplication();
         statusIconManager = new StatusIconManager(this, sugiliteData, sharedPreferences);
         screenshotManager = new SugiliteScreenshotManager(sharedPreferences, getApplicationContext());
-        automator = new Automator(sugiliteData, getApplicationContext(), statusIconManager);
+        automator = new Automator(sugiliteData, this, statusIconManager);
         sugilteTrackingHandler = new SugiliteTrackingHandler(sugiliteData, getApplicationContext());
         availableAlternatives = new HashSet<>();
         availableAlternativeNodes = new HashSet<>();
@@ -74,6 +74,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
         packageVocabs = new HashSet<>();
         vocabularyDao = new SugiliteAppVocabularyDao(getApplicationContext());
         context = this;
+        handler = new Handler();
         try {
             //TODO: periodically check the status of communication controller
             sugiliteData.communicationController = new SugiliteCommunicationController(getApplicationContext(), sugiliteData, sharedPreferences);
@@ -151,6 +152,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
             }
         }, 500);
 
+
     }
 
 
@@ -158,6 +160,10 @@ public class SugiliteAccessibilityService extends AccessibilityService {
     public void onServiceConnected() {
         super.onServiceConnected();
 
+    }
+
+    public void runOnUiThread(Runnable runnable) {
+        handler.post(runnable);
     }
 
     private HashSet<Map.Entry<String, String>> availableAlternatives;
@@ -258,22 +264,27 @@ public class SugiliteAccessibilityService extends AccessibilityService {
                     }
                 }
                 else {
-                    //send the event to recording pop up dialog
-                    File screenshot = null;
-                    if (sharedPreferences.getBoolean("root_enabled", false)) {
-                        //take screenshot
-                        try {
+                    //temp hack
+                    if(sourceNode != null && sourceNode.getClassName() != null && sourceNode.getPackageName() != null && sourceNode.getClassName().toString().contentEquals("android.view.ViewGroup") && sourceNode.getPackageName().equals("com.google.android.googlequicksearchbox"))
+                    {/*do nothing (don't show popup)*/}
+                    else {
+                        //send the event to recording pop up dialog
+                        File screenshot = null;
+                        if (sharedPreferences.getBoolean("root_enabled", false)) {
+                            //take screenshot
+                            try {
                         /*
                         System.out.println("taking screen shot");
                         screenshot = screenshotManager.take(false);
                         */
-                        } catch (Exception e) {
-                            e.printStackTrace();
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
                         }
+                        //start the popup activity
+                        RecordingPopUpDialog recordingPopUpDialog = new RecordingPopUpDialog(sugiliteData, getApplicationContext(), generateFeaturePack(event, rootNode, screenshot, availableAlternativeNodes), sharedPreferences, LayoutInflater.from(getApplicationContext()), RecordingPopUpDialog.TRIGGERED_BY_NEW_EVENT, availableAlternatives);
+                        recordingPopUpDialog.show(false);
                     }
-                    //start the popup activity
-                    RecordingPopUpDialog recordingPopUpDialog = new RecordingPopUpDialog(sugiliteData, getApplicationContext(), generateFeaturePack(event, rootNode, screenshot, availableAlternativeNodes), sharedPreferences, LayoutInflater.from(getApplicationContext()), RecordingPopUpDialog.TRIGGERED_BY_NEW_EVENT, availableAlternatives);
-                    recordingPopUpDialog.show(false);
                 }
             }
             if(BUILDING_VOCAB) {

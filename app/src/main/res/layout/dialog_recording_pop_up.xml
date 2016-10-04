@@ -183,6 +183,15 @@
                     </LinearLayout>
 
                 </LinearLayout>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="?android:attr/textAppearanceMedium"
+                    android:text="Sugilite finds multiple possible features for the object you&apos;ve just opearted on and can&apos;t determine the best feature to use. Can you choose the best feature to use for identifying this object in future executions of this script? "
+                    android:id="@+id/text_ambiguation_prompt"
+                    android:visibility="gone"
+                    android:textIsSelectable="true" />
             </LinearLayout>
 
             <View style="@style/Divider"
@@ -191,7 +200,8 @@
             <LinearLayout
                 android:orientation="vertical"
                 android:layout_width="fill_parent"
-                android:layout_height="wrap_content">
+                android:layout_height="wrap_content"
+                android:id="@+id/target_type_section">
 
                 <TextView
                     android:layout_width="wrap_content"
@@ -238,7 +248,8 @@
             <LinearLayout
                 android:orientation="vertical"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content">
+                android:layout_height="wrap_content"
+                android:id="@+id/within_app_section">
 
                 <TextView
                     android:layout_width="wrap_content"

@@ -18,6 +18,7 @@ import android.view.accessibility.AccessibilityEvent;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.EditText;
@@ -169,7 +170,6 @@ public class RecordingPopUpDialog {
         checkBoxParentEntryMap = new HashMap<>();
         identifierCheckboxMap = new HashMap<>();
         dialogRootView = inflater.inflate(R.layout.dialog_recording_pop_up, null);
-        ContextThemeWrapper ctw = new ContextThemeWrapper(applicationContext, R.style.AlertDialogCustom);
         AlertDialog.Builder builder = new AlertDialog.Builder(applicationContext);
         builder.setView(dialogRootView)
                 .setTitle("Sugilite Recording");
@@ -185,14 +185,81 @@ public class RecordingPopUpDialog {
     }
 
     public void show(boolean doNotSkip){
-        if(skipManager.checkSkip(featurePack, triggerMode, generateFilter(), featurePack.alternativeNodes) && (!doNotSkip))
+        //to skip
+        if(skipManager.checkSkip(featurePack, triggerMode, generateFilter(), featurePack.alternativeNodes).contentEquals("skip") && (!doNotSkip))
             OKButtonOnClick(null);
+        //to show the disambiguation panel
+        else if (skipManager.checkSkip(featurePack, triggerMode, generateFilter(), featurePack.alternativeNodes).contentEquals("disambiguation")){
+            hideUnrelevantInfo();
+            dialog.show();
+            dialog.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM);
+        }
+        //to show the full popup
         else {
             dialog.show();
             dialog.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM);
         }
-        //dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE);
+    }
 
+    /**
+     * hide unrelevant info in the popup and only show relevant info
+     */
+    public void hideUnrelevantInfo(){
+        //TODO: add some sort of user friendly prompt
+        //hide action section
+        dialogRootView.findViewById(R.id.action_section).setVisibility(View.GONE);
+        dialogRootView.findViewById(R.id.within_app_section).setVisibility(View.GONE);
+        dialogRootView.findViewById(R.id.target_type_section).setVisibility(View.GONE);
+        dialogRootView.findViewById(R.id.text_ambiguation_prompt).setVisibility(View.VISIBLE);
+
+        //TODO: hide unlikely chosen features (e.g. location/view ID when text label is available)
+        Set<String> availableLabel = new HashSet<>();
+        if(featurePack.text != null && (!featurePack.text.contentEquals("NULL")))
+            availableLabel.add(featurePack.text);
+        if(featurePack.contentDescription != null && (!featurePack.contentDescription.contentEquals("NULL")))
+            availableLabel.add(featurePack.contentDescription);
+        for(SerializableNodeInfo node : featurePack.childNodes){
+            if(node.text != null)
+                availableLabel.add(node.text);
+            if(node.contentDescription != null)
+                availableLabel.add(node.contentDescription);
+        }
+        if(availableLabel.size() > 1){
+            //have 1+ text labels, hide other features
+            if(boundsInParentCheckbox != null){
+                boundsInParentCheckbox.setVisibility(View.GONE);
+            }
+            if(boundsInScreenCheckbox != null){
+                boundsInScreenCheckbox.setVisibility(View.GONE);
+            }
+        }
+
+        //change the button to allow the user to view more options (see the full popup)
+        final Button editButton = (Button)dialogRootView.findViewById(R.id.recordingOffButton);
+        editButton.setText("More..");
+        editButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                //unhide hidden info - undo "hideUnrelevantInfo"
+                dialogRootView.findViewById(R.id.target_type_section).setVisibility(View.VISIBLE);
+                dialogRootView.findViewById(R.id.action_section).setVisibility(View.VISIBLE);
+                dialogRootView.findViewById(R.id.within_app_section).setVisibility(View.VISIBLE);
+                dialogRootView.findViewById(R.id.text_ambiguation_prompt).setVisibility(View.GONE);
+                if(boundsInParentCheckbox != null){
+                    boundsInParentCheckbox.setVisibility(View.VISIBLE);
+                }
+                if(boundsInScreenCheckbox != null){
+                    boundsInScreenCheckbox.setVisibility(View.VISIBLE);
+                }
+                editButton.setText("Recording Off");
+                editButton.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        turnOffRecording(v);
+                    }
+                });
+            }
+        });
     }
 
     public void finishActivity(View view){
@@ -228,12 +295,10 @@ public class RecordingPopUpDialog {
         //TODO: add popup if current selection can't get unique button
 
 
-
-
         //add head if no one is present && this popup is triggered by new event
         if(triggerMode == TRIGGERED_BY_NEW_EVENT &&
                 (sugiliteData.getScriptHead() == null ||
-                        (!((SugiliteStartingBlock)sugiliteData.getScriptHead()).getScriptName().contentEquals(sharedPreferences.getString("scriptName", "defaultScript") + ".SugiliteScript")))){
+                        (!(sugiliteData.getScriptHead()).getScriptName().contentEquals(sharedPreferences.getString("scriptName", "defaultScript") + ".SugiliteScript")))){
             sugiliteData.setScriptHead(new SugiliteStartingBlock(sharedPreferences.getString("scriptName", "defaultScript") + ".SugiliteScript"));
             sugiliteData.setCurrentScriptBlock(sugiliteData.getScriptHead());
         }
@@ -245,7 +310,7 @@ public class RecordingPopUpDialog {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 //take screenshot
-                File screenshot = null;
+                File screenshot;
                 if (sharedPreferences.getBoolean("root_enabled", false)) {
                     try {
                         System.out.println("taking screen shot");
@@ -888,8 +953,7 @@ public class RecordingPopUpDialog {
 
         //((TextView)findViewById(R.id.time)).setText("Event Time: " + dateFormat.format(c.getTime()) + "\nRecording script: " + sharedPreferences.getString("scriptName", "NULL"));
         //((TextView)findViewById(R.id.filteredNodeCount)).setText(generateFilterCount());
-        ((TextView) dialogRootView.findViewById(R.id.previewContent)).setText(readableDescriptionGenerator.generateReadableDescription(generateBlock()));
-
+        ((TextView) dialogRootView.findViewById(R.id.previewContent)).setText(Html.fromHtml(readableDescriptionGenerator.generateReadableDescription(generateBlock())));
 
 
     }

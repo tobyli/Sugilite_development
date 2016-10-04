@@ -20,23 +20,22 @@ public class RecordingSkipManager {
         filterTester = new AlternativeNodesFilterTester();
 
     }
-    public boolean checkSkip(SugiliteAvailableFeaturePack featurePack, int triggerMode, UIElementMatchingFilter filter, Collection<SerializableNodeInfo> alternativeNodes){
+    public String checkSkip(SugiliteAvailableFeaturePack featurePack, int triggerMode, UIElementMatchingFilter filter, Collection<SerializableNodeInfo> alternativeNodes){
         //never skip editing interface
         if(triggerMode == RecordingPopUpDialog.TRIGGERED_BY_EDIT)
-            return false;
+            return "full";
         //never skip edit text
         if(featurePack.isEditable)
-            return false;
+            return "full";
 
         //don't skip if the recommended selection can have more than 1 match in alternative nodes
-
         if(filterTester.getFilteredAlternativeNodesCount(alternativeNodes, filter) > 1)
-            return false;
+            return "full";
 
 
         //skip if the package name is among the "to skip" list
         if(packageToSkip.contains(featurePack.packageName))
-            return true;
+            return "skip";
 
         //skip if only one label available OR no label available
         Set<String> availableLabel = new HashSet<>();
@@ -52,10 +51,11 @@ public class RecordingSkipManager {
         }
 
         if(availableLabel.size() == 0 || availableLabel.size() == 1)
-            return true;
+            return "skip";
+        if(availableLabel.size() > 1)
+            return "disambiguation";
 
 
-
-        return false;
+        return "full";
     }
 }

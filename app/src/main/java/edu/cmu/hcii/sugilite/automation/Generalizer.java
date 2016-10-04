@@ -10,6 +10,7 @@ import java.util.Set;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
 import edu.cmu.hcii.sugilite.model.block.SerializableNodeInfo;
 import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
+import edu.cmu.hcii.sugilite.model.block.SugiliteErrorHandlingForkBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.model.block.UIElementMatchingFilter;
@@ -93,8 +94,14 @@ public class Generalizer {
                         modified = true;
                     }
                 }
+                block = ((SugiliteOperationBlock) block).getNextBlock();
             }
-            block = block.getNextBlock();
+            else if (block instanceof SugiliteStartingBlock)
+                block = ((SugiliteStartingBlock) block).getNextBlock();
+            else if (block instanceof SugiliteErrorHandlingForkBlock)
+                block = ((SugiliteErrorHandlingForkBlock) block).getOriginalNextBlock();
+            else
+                throw new RuntimeException("Unsupported Block Type!");
         }
         //save the script as command_generalized
         AlertDialog.Builder builder = new AlertDialog.Builder(context)

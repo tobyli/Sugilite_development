@@ -50,7 +50,7 @@ public class ReadableDescriptionGenerator {
                     message += setColor("Long click ", "#ffa500") + "on ";
                     break;
                 case SugiliteOperation.READ_OUT:
-                    message += setColor("Read out ", "#ffa500") + "the" + setColor(((SugiliteOperationBlock)block).getOperation().getParameter(), "#ff0000") + " for ";
+                    message += setColor("Read out ", "#ffa500") + "the " + setColor(((SugiliteOperationBlock)block).getOperation().getParameter(), "#ff0000") + " for ";
                     break;
                 case SugiliteOperation.LOAD_AS_VARIABLE:
                     message += setColor("Load the value ", "#ffa500") + "of the" + setColor(((SugiliteOperationBlock)block).getOperation().getParameter(), "#ff0000") + " as a variable for ";
@@ -63,9 +63,9 @@ public class ReadableDescriptionGenerator {
                 String className =  ((SugiliteOperationBlock) block).getElementMatchingFilter().getClassName();
                 int lastIndex = className.lastIndexOf('.');
                 if(lastIndex > -1)
-                    message += setColor("the " + className.substring(lastIndex + 1) + " object      ", "#57ffee");
+                    message += setColor("the " + className.substring(lastIndex + 1) + " object ", "#57ffee");
                 else
-                    message += setColor("the object", "#57ffee");
+                    message += setColor("the object ", "#57ffee");
             }
             boolean thatPrinted = false;
 

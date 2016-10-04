@@ -39,7 +39,7 @@ public class SugiliteStartingBlock extends SugiliteBlock implements Serializable
         this.blockType = SugiliteBlock.STARTING_BLOCK;
         this.setDescription("<b>START SCRIPT</b>");
     }
-    @Override
+
     public SugiliteBlock getNextBlock(){
         return nextBlock;
     }

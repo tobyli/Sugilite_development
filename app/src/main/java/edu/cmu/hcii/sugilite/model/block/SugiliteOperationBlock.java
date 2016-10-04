@@ -33,7 +33,6 @@ public class SugiliteOperationBlock extends SugiliteBlock implements Serializabl
         this.featurePack = featurePack;
     }
 
-    @Override
     public SugiliteBlock getNextBlock(){
         return nextBlock;
     }

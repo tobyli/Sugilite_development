@@ -1,9 +1,16 @@
 package edu.cmu.hcii.sugilite.automation;
 
+import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Rect;
 import android.os.Bundle;
+import android.text.Html;
+import android.view.MotionEvent;
+import android.view.View;
+import android.view.WindowManager;
 import android.view.accessibility.AccessibilityNodeInfo;
 import android.widget.Toast;
 
@@ -15,8 +22,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import edu.cmu.hcii.sugilite.SugiliteAccessibilityService;
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
+import edu.cmu.hcii.sugilite.model.block.SugiliteErrorHandlingForkBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.model.block.UIElementMatchingFilter;
@@ -36,6 +45,7 @@ import android.speech.tts.TextToSpeech;
  */
 public class Automator {
     private SugiliteData sugiliteData;
+    private SugiliteAccessibilityService serviceContext;
     private Context context;
     private BoundingBoxManager boundingBoxManager;
     private VariableHelper variableHelper;
@@ -44,8 +54,9 @@ public class Automator {
     private boolean ttsReady = false;
 
 
-    public Automator(SugiliteData sugiliteData, Context context, StatusIconManager statusIconManager){
+    public Automator(SugiliteData sugiliteData, SugiliteAccessibilityService context, StatusIconManager statusIconManager){
         this.sugiliteData = sugiliteData;
+        this.serviceContext = context;
         this.boundingBoxManager = new BoundingBoxManager(context);
         Intent checkIntent = new Intent();
         tts = new TextToSpeech(context, new TextToSpeech.OnInitListener() {
@@ -70,9 +81,18 @@ public class Automator {
         if (!(blockToMatch instanceof SugiliteOperationBlock)) {
             if (blockToMatch instanceof SugiliteStartingBlock) {
                 //Toast.makeText(context, "Start running script " + ((SugiliteStartingBlock)blockToMatch).getScriptName(), Toast.LENGTH_SHORT).show();
+                sugiliteData.removeInstructionQueueItem();
+                addNextBlockToQueue(blockToMatch);
+                return true;
             }
-            sugiliteData.removeInstructionQueueItem();
-            return false;
+            else if (blockToMatch instanceof SugiliteErrorHandlingForkBlock){
+                sugiliteData.removeInstructionQueueItem();
+                addNextBlockToQueue(blockToMatch);
+                return true;
+            }
+            else {
+                throw new RuntimeException("Unsupported Block Type!");
+            }
         }
 
         SugiliteOperationBlock operationBlock = (SugiliteOperationBlock)blockToMatch;
@@ -84,6 +104,7 @@ public class Automator {
                 if(retVal) {
                     sugiliteData.errorHandler.reportSuccess(Calendar.getInstance().getTimeInMillis());
                     sugiliteData.removeInstructionQueueItem();
+                    addNextBlockToQueue(operationBlock);
                     try {
                         Thread.sleep(DELAY / 2);
                     }
@@ -175,7 +196,9 @@ public class Automator {
                 */
                 if(!succeeded) {
                     sugiliteData.errorHandler.reportSuccess(Calendar.getInstance().getTimeInMillis());
-                    sugiliteData.removeInstructionQueueItem();
+                    if(sugiliteData.getInstructionQueueSize() > 0)
+                        sugiliteData.removeInstructionQueueItem();
+                    addNextBlockToQueue(operationBlock);
                 }
                 succeeded = true;
 
@@ -341,4 +364,47 @@ public class Automator {
             // do nothing, likely this exception is caused by non-rooted device
         }
     }
+
+    public void addNextBlockToQueue(final SugiliteBlock block){
+        if(block == null)
+            return;
+        if(block instanceof SugiliteStartingBlock)
+            sugiliteData.addInstruction(((SugiliteStartingBlock) block).getNextBlock());
+        else if (block instanceof  SugiliteOperationBlock)
+            sugiliteData.addInstruction(((SugiliteOperationBlock) block).getNextBlock());
+        else if (block instanceof SugiliteErrorHandlingForkBlock){
+            //TODO: add automatic feature if can only find solution for one
+            final AlertDialog.Builder builder = new AlertDialog.Builder(context)
+                    .setTitle("Choose which branch to execute")
+                    .setMessage(Html.fromHtml("<b>Original: </b>" + ((SugiliteErrorHandlingForkBlock) block).getOriginalNextBlock().getDescription() +
+                            "<br><br>" + "<b>Alternative: </b>" + ((SugiliteErrorHandlingForkBlock) block).getAlternativeNextBlock().getDescription()))
+                    .setNegativeButton("Original", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            sugiliteData.addInstruction(((SugiliteErrorHandlingForkBlock) block).getOriginalNextBlock());
+                        }
+                    })
+                    .setPositiveButton("Alternative", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            sugiliteData.addInstruction(((SugiliteErrorHandlingForkBlock) block).getAlternativeNextBlock());
+                        }
+                    });
+            serviceContext.runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    AlertDialog dialog = builder.create();
+                    dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
+                    dialog.show();
+                }
+            });
+
+        }
+        else
+            throw new RuntimeException("Unsupported Block Type!");
+    }
+
+
+
+
 }

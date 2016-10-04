@@ -16,7 +16,9 @@ import java.util.Queue;
 import java.util.Set;
 
 import edu.cmu.hcii.sugilite.SugiliteData;
+import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
 import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
+import edu.cmu.hcii.sugilite.model.block.SugiliteErrorHandlingForkBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteOperation;
@@ -37,7 +39,8 @@ public class ErrorHandler {
     private ReadableDescriptionGenerator descriptionGenerator;
     private SharedPreferences sharedPreferences;
     private Set<String> excludedPackageFromWrongPackage;
-    private String[] excludedPackageSet = {"com.google.android.inputmethod.pinyin"};
+    private SugiliteScriptDao sugiliteScriptDao;
+    private String[] excludedPackageSet = {"com.google.android.inputmethod.pinyin", "com.inMind.inMindAgent"};
 
     public ErrorHandler(Context context, SugiliteData sugiliteData, SharedPreferences sharedPreferences){
         this.applicationContext = context;
@@ -45,6 +48,7 @@ public class ErrorHandler {
         this.sugiliteData = sugiliteData;
         this.descriptionGenerator = new ReadableDescriptionGenerator(context);
         this.sharedPreferences = sharedPreferences;
+        sugiliteScriptDao = new SugiliteScriptDao(context);
         excludedPackageFromWrongPackage = new HashSet<>(Arrays.asList(excludedPackageSet));
     }
 
@@ -134,6 +138,7 @@ public class ErrorHandler {
 
 
     private void handleError(String errorMsg){
+
         //pause the execution when the duck is clicked
         final Queue<SugiliteBlock> storedQueue =  sugiliteData.getCopyOfInstructionQueue();
         sugiliteData.clearInstructionQueue();
@@ -161,26 +166,37 @@ public class ErrorHandler {
                 .setNeutralButton("Create Fork", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        SugiliteBlock currentBlock = storedQueue.peek().getPreviousBlock();
+
+                        final SugiliteBlock currentBlock = storedQueue.peek().getPreviousBlock();
+
                         //find the starting block for the current executing script
                         SugiliteBlock mBlock = currentBlock;
                         while(mBlock.getPreviousBlock() != null)
                             mBlock = mBlock.getPreviousBlock();
                         if(!(mBlock instanceof SugiliteStartingBlock))
                             return;
-                        SugiliteStartingBlock startingBlock = (SugiliteStartingBlock)mBlock;
+                        final SugiliteStartingBlock startingBlock = (SugiliteStartingBlock)mBlock;
                         System.out.println("*** Found original script " + ((SugiliteStartingBlock) mBlock).getScriptName());
-                        startingBlock.setScriptName(startingBlock.getScriptName().replace(".SugiliteScript", "") + "_forked" + ".SugiliteScript");
-                        //put the script back to "current recording"
-                        sugiliteData.setScriptHead(startingBlock);
-                        sugiliteData.setCurrentScriptBlock(currentBlock);
-                        sugiliteData.initiatedExternally = false;
-                        SharedPreferences.Editor prefEditor = sharedPreferences.edit();
-                        //resume recording
-                        prefEditor.putBoolean("recording_in_process", true);
-                        prefEditor.putString("scriptName", startingBlock.getScriptName().replace(".SugiliteScript", ""));
-                        prefEditor.commit();
-                        Toast.makeText(applicationContext, "resuming recording", Toast.LENGTH_SHORT).show();
+
+                        AlertDialog.Builder replaceOrParallelDialogBuilder = new AlertDialog.Builder(applicationContext);
+                        replaceOrParallelDialogBuilder.setTitle("Create Fork")
+                                .setMessage("Do you want the new fork to replace the original script or to be a parallel branch?")
+                                .setPositiveButton("Replace", new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        forkResumeRecording(startingBlock, currentBlock);
+                                    }
+                                })
+                                .setNegativeButton("Parallel", new DialogInterface.OnClickListener() {
+                                    //create a parallel fork and resume recording
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        forkParallelBranchResumeRecording(startingBlock, currentBlock);
+                                    }
+                                });
+                        AlertDialog replaceOrParallelDialog = replaceOrParallelDialogBuilder.create();
+                        replaceOrParallelDialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
+                        replaceOrParallelDialog.show();
                     }
                 })
                 .setOnDismissListener(new DialogInterface.OnDismissListener() {
@@ -203,6 +219,64 @@ public class ErrorHandler {
     public void reportSuccess(long time){
         lastSuccess = time;
         lastWindowChange = time;
+    }
+
+    public void forkResumeRecording(SugiliteStartingBlock startingBlock, SugiliteBlock currentBlock){
+        //put the script back to "current recording"
+        sugiliteData.setScriptHead(startingBlock);
+        sugiliteData.setCurrentScriptBlock(currentBlock);
+        sugiliteData.initiatedExternally = false;
+        SharedPreferences.Editor prefEditor = sharedPreferences.edit();
+        //resume recording
+        prefEditor.putBoolean("recording_in_process", true);
+        prefEditor.putString("scriptName", startingBlock.getScriptName().replace(".SugiliteScript", ""));
+        prefEditor.commit();
+        Toast.makeText(applicationContext, "resuming recording", Toast.LENGTH_SHORT).show();
+    }
+
+    /**
+     * insert a fork block & resume recoding
+     * @param startingBlock
+     * @param currentBlock
+     * @throws RuntimeException
+     */
+    public void forkParallelBranchResumeRecording(SugiliteStartingBlock startingBlock, SugiliteBlock currentBlock) throws RuntimeException{
+        //put the script back to "current recording"
+        sugiliteData.setScriptHead(startingBlock);
+        sugiliteData.setCurrentScriptBlock(currentBlock);
+        sugiliteData.initiatedExternally = false;
+
+        SugiliteErrorHandlingForkBlock forkBlock = new SugiliteErrorHandlingForkBlock();
+        if(currentBlock instanceof SugiliteStartingBlock){
+            forkBlock.setOriginalNextBlock(((SugiliteStartingBlock) currentBlock).getNextBlock());
+            ((SugiliteStartingBlock) currentBlock).setNextBlock(forkBlock);
+        }
+        else if(currentBlock instanceof SugiliteOperationBlock){
+            forkBlock.setOriginalNextBlock(((SugiliteOperationBlock) currentBlock).getNextBlock());
+            ((SugiliteOperationBlock) currentBlock).setNextBlock(forkBlock);
+        }
+        else if(currentBlock instanceof SugiliteErrorHandlingForkBlock) {
+            forkBlock.setOriginalNextBlock(((SugiliteErrorHandlingForkBlock) currentBlock).getAlternativeNextBlock());
+            ((SugiliteErrorHandlingForkBlock) currentBlock).setAlternativeNextBlock(forkBlock);
+        }
+        else {
+            throw new RuntimeException("Unsupported Block Type!");
+        }
+
+        forkBlock.setPreviousBlock(currentBlock);
+        sugiliteData.setCurrentScriptBlock(forkBlock);
+        try {
+            sugiliteScriptDao.save(startingBlock);
+        }
+        catch (Exception e){
+            e.printStackTrace();
+        }
+        SharedPreferences.Editor prefEditor = sharedPreferences.edit();
+        //resume recording
+        prefEditor.putBoolean("recording_in_process", true);
+        prefEditor.putString("scriptName", startingBlock.getScriptName().replace(".SugiliteScript", ""));
+        prefEditor.commit();
+        Toast.makeText(applicationContext, "resuming recording", Toast.LENGTH_SHORT).show();
     }
 
 }

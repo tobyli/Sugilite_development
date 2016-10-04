@@ -93,9 +93,7 @@ public class SugiliteData extends Application {
         errorHandler.relevantPackages.addAll(startingBlock.relevantPackages);
         errorHandler.reportSuccess(Calendar.getInstance().getTimeInMillis());
         List<SugiliteBlock> blocks = traverseBlock(startingBlock);
-        for(SugiliteBlock block : blocks){
-            addInstruction(block);
-        }
+        addInstruction(startingBlock);
     }
 
     public void runScript(SugiliteStartingBlock startingBlock, boolean isForResuming){
@@ -110,7 +108,15 @@ public class SugiliteData extends Application {
         this.currentTrackingBlock = currentTrackingBlock;
     }
     public void addInstruction(SugiliteBlock block){
+        if(block == null)
+            //note: nullable -> see Automator.addNextBlockToQueue
+            return;
         instructionQueue.add(block);
+    }
+    public void addInstructions(Queue<SugiliteBlock> blocks){
+        if(blocks == null)
+            return;
+        this.instructionQueue.addAll(blocks);
     }
     public void clearInstructionQueue(){
         instructionQueue.clear();
@@ -145,9 +151,7 @@ public class SugiliteData extends Application {
     public Queue<SugiliteBlock> getCopyOfInstructionQueue(){
         return new ArrayDeque<>(instructionQueue);
     }
-    public void addInstructions(Queue<SugiliteBlock> blocks){
-        this.instructionQueue.addAll(blocks);
-    }
+
 
     private List<SugiliteBlock> traverseBlock(SugiliteStartingBlock startingBlock){
         List<SugiliteBlock> sugiliteBlocks = new ArrayList<>();

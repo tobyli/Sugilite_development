@@ -13,20 +13,19 @@ import android.os.Bundle;
 import android.text.Html;
 import android.util.TypedValue;
 import android.view.ContextMenu;
+import android.view.GestureDetector;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
-import android.view.ViewGroup;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
+
 import android.widget.EditText;
-import android.widget.ListView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.File;
-import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -35,17 +34,16 @@ import edu.cmu.hcii.sugilite.automation.Automator;
 import edu.cmu.hcii.sugilite.automation.ServiceStatusManager;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
 import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
+import edu.cmu.hcii.sugilite.model.block.SugiliteErrorHandlingForkBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.recording.RecordingPopUpDialog;
-import edu.cmu.hcii.sugilite.recording.mRecordingPopUpActivity;
-import edu.cmu.hcii.sugilite.model.operation.SugiliteOperation;
 import edu.cmu.hcii.sugilite.model.variable.Variable;
 import edu.cmu.hcii.sugilite.ui.VariableSetValueDialog;
 
 public class ScriptDetailActivity extends AppCompatActivity {
 
-    private ListView operationStepList;
+    private LinearLayout operationStepList;
     private SugiliteData sugiliteData;
     private String scriptName;
     private SharedPreferences sharedPreferences;
@@ -71,7 +69,7 @@ public class ScriptDetailActivity extends AppCompatActivity {
         sugiliteScriptDao = new SugiliteScriptDao(this);
         script = sugiliteScriptDao.read(scriptName);
         this.context = this;
-        setTitle("View Script: " + new String(scriptName).replace(".SugiliteScript", ""));
+        setTitle("View Script: " + scriptName.replace(".SugiliteScript", ""));
         loadOperationList();
 
     }
@@ -79,36 +77,104 @@ public class ScriptDetailActivity extends AppCompatActivity {
     //TODO: set up operation on resume
 
     public void loadOperationList(){
-        operationStepList = (ListView)findViewById(R.id.operationStepList);
-        List<String> operations = new ArrayList<>();
-        if (script != null){
-            for(SugiliteBlock block : traverseBlock(script)) {
-                operations.add(block.getDescription());
-            }
-            operations.add("<b>END SCRIPT</b>");
-        }
-        else{
-            operations.add("EMPTY SCRIPT!");
+        operationStepList = (LinearLayout)findViewById(R.id.operation_list_view);
+        operationStepList.removeAllViews();
+        SugiliteBlock iterBlock = script;
+        while(iterBlock != null){
+            operationStepList.addView(getViewForBlock(iterBlock));
+            if (iterBlock instanceof SugiliteStartingBlock)
+                iterBlock = ((SugiliteStartingBlock) iterBlock).getNextBlock();
+            else if (iterBlock instanceof SugiliteOperationBlock)
+                iterBlock = ((SugiliteOperationBlock) iterBlock).getNextBlock();
+            else
+                break;
         }
 
-        operationStepList.setAdapter(new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, operations) {
-            @Override
-            public View getView(int position, View convertView, ViewGroup parent) {
-                TextView tv = new TextView(parent.getContext());
-                tv.setText(Html.fromHtml(getItem(position)));
-                tv.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
-                return tv;
-            }
-        });
+        TextView tv = new TextView(context);
+        tv.setText(Html.fromHtml("<b>END SCRIPT</b>"));
+        tv.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
+        tv.setPadding(10, 10, 10, 10);
+        operationStepList.addView(tv);
+    }
 
-        operationStepList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                if(view != null)
-                    Toast.makeText(getApplicationContext(), (view instanceof TextView ? ((TextView) view).getText().toString() : "NULL"), Toast.LENGTH_SHORT).show();
+    /**
+     * recursively construct the list of operations
+     * @param block
+     * @return
+     */
+    public View getViewForBlock(SugiliteBlock block){
+        if(block instanceof SugiliteStartingBlock){
+            TextView tv = new TextView(context);
+            tv.setText(Html.fromHtml(block.getDescription()));
+            tv.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
+            tv.setPadding(10, 10, 10, 10);
+            tv.setOnTouchListener(textViewOnTouchListener);
+            registerForContextMenu(tv);
+            return tv;
+        }
+        else if(block instanceof SugiliteOperationBlock){
+            TextView tv = new TextView(context);
+            tv.setText(Html.fromHtml(block.getDescription()));
+            tv.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
+            tv.setPadding(10, 10, 10, 10);
+            tv.setOnTouchListener(textViewOnTouchListener);
+            registerForContextMenu(tv);
+            return tv;
+        }
+        else if(block instanceof SugiliteErrorHandlingForkBlock){
+            LinearLayout mainLayout = new LinearLayout(context);
+            mainLayout.setOrientation(LinearLayout.VERTICAL);
+            mainLayout.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+            TextView tv = new TextView(context);
+            tv.setText(Html.fromHtml("<b>" + "TRY" + "</b>"));
+            tv.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
+            tv.setPadding(10, 10, 10, 10);
+            registerForContextMenu(tv);
+            mainLayout.addView(tv);
+            LinearLayout originalBranch = new LinearLayout(context);
+            originalBranch.setOrientation(LinearLayout.VERTICAL);
+            originalBranch.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+            SugiliteBlock iterBlock = ((SugiliteErrorHandlingForkBlock) block).getOriginalNextBlock();
+            //add blocks in original branch
+            while (iterBlock != null) {
+                View blockView = getViewForBlock(iterBlock);
+                originalBranch.addView(blockView);
+                if (iterBlock instanceof SugiliteStartingBlock)
+                    iterBlock = ((SugiliteStartingBlock) iterBlock).getNextBlock();
+                else if (iterBlock instanceof SugiliteOperationBlock)
+                    iterBlock = ((SugiliteOperationBlock) iterBlock).getNextBlock();
+                else
+                    break;
             }
-        });
-        registerForContextMenu(operationStepList);
+            originalBranch.setPadding(60, 0, 0, 0);
+            mainLayout.addView(originalBranch);
+            TextView tv2 = new TextView(context);
+            tv2.setText(Html.fromHtml("<b>" + "IF FAILED" + "</b>"));
+            tv2.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
+            tv2.setPadding(10, 10, 10, 10);
+            registerForContextMenu(tv2);
+            mainLayout.addView(tv2);
+            LinearLayout alternativeBranch = new LinearLayout(context);
+            alternativeBranch.setOrientation(LinearLayout.VERTICAL);
+            alternativeBranch.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+            //add blocks in the alternative branch
+            iterBlock = ((SugiliteErrorHandlingForkBlock) block).getAlternativeNextBlock();
+            while (iterBlock != null) {
+                View blockView = getViewForBlock(iterBlock);
+                alternativeBranch.addView(blockView);
+                if (iterBlock instanceof SugiliteStartingBlock)
+                    iterBlock = ((SugiliteStartingBlock) iterBlock).getNextBlock();
+                else if (iterBlock instanceof SugiliteOperationBlock)
+                    iterBlock = ((SugiliteOperationBlock) iterBlock).getNextBlock();
+                else
+                    break;
+            }
+            alternativeBranch.setPadding(60, 0, 0, 0);
+            mainLayout.addView(alternativeBranch);
+            return mainLayout;
+        }
+
+        return null;
     }
 
 
@@ -208,7 +274,7 @@ public class ScriptDetailActivity extends AppCompatActivity {
                 .show();
     }
 
-    private List<SugiliteBlock> traverseBlock(SugiliteStartingBlock startingBlock){
+    private List<SugiliteBlock> traverseBlock(SugiliteStartingBlock startingBlock) throws Exception{
         List<SugiliteBlock> sugiliteBlocks = new ArrayList<>();
         SugiliteBlock currentBlock = startingBlock;
         while(currentBlock != null){
@@ -219,8 +285,11 @@ public class ScriptDetailActivity extends AppCompatActivity {
             else if (currentBlock instanceof SugiliteOperationBlock){
                 currentBlock = ((SugiliteOperationBlock)currentBlock).getNextBlock();
             }
+            else if (currentBlock instanceof SugiliteErrorHandlingForkBlock){
+                currentBlock = ((SugiliteErrorHandlingForkBlock) currentBlock).getOriginalNextBlock();
+            }
             else{
-                currentBlock = null;
+                throw new RuntimeException("Unsupported Block Type!");
             }
         }
         return sugiliteBlocks;
@@ -232,6 +301,9 @@ public class ScriptDetailActivity extends AppCompatActivity {
     private static final int ITEM_3 = Menu.FIRST + 2;
     private static final int ITEM_4 = Menu.FIRST + 3;
 
+    private TextView contextTextView = null;
+
+
     @Override
     public void onCreateContextMenu(ContextMenu menu, View view, ContextMenu.ContextMenuInfo info){
         super.onCreateContextMenu(menu, view, info);
@@ -240,9 +312,12 @@ public class ScriptDetailActivity extends AppCompatActivity {
         menu.add(0, ITEM_2, 0, "Edit");
         menu.add(0, ITEM_3, 0, "Fork");
         menu.add(0, ITEM_4, 0, "Delete");
+        if(view instanceof TextView) {
+            view.setBackgroundResource(android.R.color.transparent);
+            contextTextView = (TextView) view;
+        }
     }
 
-    //TODO:implement context menu
     @Override
     public boolean onContextItemSelected(MenuItem item) {
         switch (item.getItemId()){
@@ -262,15 +337,8 @@ public class ScriptDetailActivity extends AppCompatActivity {
     }
 
     private void viewOperation(MenuItem item){
-        TextView textView;
-        AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
-        if(info == null)
-            return;
-        if(info.targetView instanceof TextView){
-            int index = info.position;
-            textView = (TextView)info.targetView;
-        }
-        else
+        TextView textView = contextTextView;
+        if(textView == null)
             return;
         SugiliteBlock currentBlock = script;
         while(true){
@@ -314,21 +382,18 @@ public class ScriptDetailActivity extends AppCompatActivity {
     }
 
     private void editOperation(MenuItem item){
-        TextView textView;
-        AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
-        if(info == null)
+        TextView textView = contextTextView;
+        if(textView == null) {
+            System.out.println("Can't find view " + item.getItemId());
             return;
-        if(info.targetView instanceof TextView){
-            int index = info.position;
-            textView = (TextView)info.targetView;
         }
-        else
-            return;
-        SugiliteBlock currentBlock = script;
+        attemptToEdit(script, textView);
+    }
+    private boolean attemptToEdit(SugiliteBlock currentBlock, TextView textView){
         while(true){
             if(currentBlock == null)
                 break;
-            if(currentBlock instanceof SugiliteOperationBlock){
+            else if(currentBlock instanceof SugiliteOperationBlock){
                 //TODO: check if content equals is the right method to use here
                 if(Html.fromHtml(currentBlock.getDescription()).toString().contentEquals(textView.getText().toString())){
                     if(((SugiliteOperationBlock) currentBlock).getFeaturePack() == null){
@@ -355,7 +420,7 @@ public class ScriptDetailActivity extends AppCompatActivity {
                     currentBlock = ((SugiliteOperationBlock) currentBlock).getNextBlock();
                 }
             }
-            if(currentBlock instanceof SugiliteStartingBlock){
+            else if(currentBlock instanceof SugiliteStartingBlock){
                 if(Html.fromHtml(currentBlock.getDescription()).toString().contentEquals(textView.getText().toString())){
                     //match, can't edit starting block
                     Toast.makeText(this, "Can't edit starting block", Toast.LENGTH_SHORT).show();
@@ -365,8 +430,18 @@ public class ScriptDetailActivity extends AppCompatActivity {
                     currentBlock = ((SugiliteStartingBlock) currentBlock).getNextBlock();
                 }
             }
+            else if(currentBlock instanceof SugiliteErrorHandlingForkBlock){
+                attemptToEdit(((SugiliteErrorHandlingForkBlock) currentBlock).getOriginalNextBlock(), textView);
+                attemptToEdit(((SugiliteErrorHandlingForkBlock) currentBlock).getAlternativeNextBlock(), textView);
+                break;
+            }
+            else {
+                throw new RuntimeException("Unsupported Block Type!");
+            }
         }
-
+        //hack
+        //TODO: use block id to match operation instead
+        return false;
     }
 
     private void forkOperation(MenuItem item) {
@@ -396,21 +471,19 @@ public class ScriptDetailActivity extends AppCompatActivity {
     }
 
     private void deleteOperation(MenuItem item){
-        TextView textView;
-        AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
-        if(info == null)
+        TextView textView = contextTextView;
+        if(textView == null)
             return;
-        if(info.targetView instanceof TextView){
-            int index = info.position;
-            textView = (TextView)info.targetView;
-        }
-        else
-            return;
-        SugiliteBlock currentBlock = script;
+        attemptToDelete(script, textView);
+        script = sugiliteScriptDao.read(scriptName);
+        loadOperationList();
+    }
+
+    private void attemptToDelete(SugiliteBlock currentBlock, TextView textView){
         while(true){
             if(currentBlock == null)
                 break;
-            if(currentBlock instanceof SugiliteOperationBlock){
+            else if(currentBlock instanceof SugiliteOperationBlock){
                 if(Html.fromHtml(currentBlock.getDescription()).toString().contentEquals(textView.getText().toString())){
                     //scripts passed from external sources (via json) has no feature pack & previous block fields
                     if(((SugiliteOperationBlock) currentBlock).getFeaturePack() == null){
@@ -430,7 +503,7 @@ public class ScriptDetailActivity extends AppCompatActivity {
                     currentBlock = ((SugiliteOperationBlock) currentBlock).getNextBlock();
                 }
             }
-            if(currentBlock instanceof SugiliteStartingBlock){
+            else if(currentBlock instanceof SugiliteStartingBlock){
                 if(Html.fromHtml(currentBlock.getDescription()).toString().contentEquals(textView.getText().toString())){
                     //match, can't delete starting block
                     Toast.makeText(this, "Can't delete starting block", Toast.LENGTH_SHORT).show();
@@ -440,9 +513,15 @@ public class ScriptDetailActivity extends AppCompatActivity {
                     currentBlock = ((SugiliteStartingBlock) currentBlock).getNextBlock();
                 }
             }
+            else if(currentBlock instanceof SugiliteErrorHandlingForkBlock){
+                attemptToDelete(((SugiliteErrorHandlingForkBlock) currentBlock).getAlternativeNextBlock(), textView);
+                attemptToDelete(((SugiliteErrorHandlingForkBlock) currentBlock).getOriginalNextBlock(), textView);
+                break;
+            }
+            else {
+                throw new RuntimeException("Unsupported Block Type!");
+            }
         }
-        script = sugiliteScriptDao.read(scriptName);
-        loadOperationList();
     }
 
     @Override
@@ -552,6 +631,40 @@ public class ScriptDetailActivity extends AppCompatActivity {
         }
     }
 
+    float lastY = 0;
+
+    final GestureDetector gestureDetector = new GestureDetector(context,new GestureDetector.SimpleOnGestureListener() {
+        public void onLongPress(MotionEvent e) {
+
+        }
+    });
+    View highlightedView = null;
+    View.OnTouchListener textViewOnTouchListener = new View.OnTouchListener() {
+        @Override
+        public boolean onTouch(View v, MotionEvent event) {
+            switch(event.getAction())
+            {
+                case MotionEvent.ACTION_DOWN:
+                    v.setBackgroundResource(android.R.color.holo_blue_light);
+                    //fix the multiple highlighting issue
+                    if(highlightedView != null && highlightedView instanceof TextView)
+                        highlightedView.setBackgroundResource(android.R.color.transparent);
+                    highlightedView = v;
+                    lastY = event.getY();
+                    break;
+                case MotionEvent.ACTION_UP:
+                    v.setBackgroundResource(android.R.color.transparent);
+                    break;
+                case MotionEvent.ACTION_MOVE:
+                    float abs = Math.abs(lastY - event.getY());
+                    if(abs > 3)
+                        v.setBackgroundResource(android.R.color.transparent);
+                    break;
+            }
+
+            return false;
+        }
+    };
 
 
 }

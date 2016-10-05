@@ -283,7 +283,11 @@ public class SugiliteAccessibilityService extends AccessibilityService {
                         }
                         //start the popup activity
                         RecordingPopUpDialog recordingPopUpDialog = new RecordingPopUpDialog(sugiliteData, getApplicationContext(), generateFeaturePack(event, rootNode, screenshot, availableAlternativeNodes), sharedPreferences, LayoutInflater.from(getApplicationContext()), RecordingPopUpDialog.TRIGGERED_BY_NEW_EVENT, availableAlternatives);
-                        recordingPopUpDialog.show(false);
+                        sugiliteData.recordingPopupDialogQueue.add(recordingPopUpDialog);
+                        if(!sugiliteData.recordingPopupDialogQueue.isEmpty() && sugiliteData.hasRecordingPopupActive == false) {
+                            sugiliteData.hasRecordingPopupActive = true;
+                            sugiliteData.recordingPopupDialogQueue.poll().show();
+                        }
                     }
                 }
             }

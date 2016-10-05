@@ -58,6 +58,7 @@ import edu.cmu.hcii.sugilite.model.operation.SugiliteOperation;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteSetTextOperation;
 import edu.cmu.hcii.sugilite.model.variable.StringVariable;
 import edu.cmu.hcii.sugilite.model.variable.Variable;
+import edu.cmu.hcii.sugilite.ui.AbstractSugiliteDialog;
 import edu.cmu.hcii.sugilite.ui.ChooseVariableDialog;
 import edu.cmu.hcii.sugilite.ui.ReadableDescriptionGenerator;
 
@@ -66,7 +67,7 @@ import edu.cmu.hcii.sugilite.ui.ReadableDescriptionGenerator;
  * @date 7/22/16
  * @time 12:18 PM
  */
-public class RecordingPopUpDialog {
+public class RecordingPopUpDialog extends AbstractSugiliteDialog {
 
     private int triggerMode;
     private SugiliteAvailableFeaturePack featurePack;
@@ -113,7 +114,7 @@ public class RecordingPopUpDialog {
     public static final int TRIGGERED_BY_NEW_EVENT = 1;
     public static final int TRIGGERED_BY_EDIT = 2;
 
-    public RecordingPopUpDialog(SugiliteData sugiliteData, Context applicationContext, SugiliteAvailableFeaturePack featurePack, SharedPreferences sharedPreferences, LayoutInflater inflater, int triggerMode, Set<Map.Entry<String, String>> alternativeLabels){
+    public RecordingPopUpDialog(final SugiliteData sugiliteData, Context applicationContext, SugiliteAvailableFeaturePack featurePack, SharedPreferences sharedPreferences, LayoutInflater inflater, int triggerMode, Set<Map.Entry<String, String>> alternativeLabels){
         this.sharedPreferences = sharedPreferences;
         this.sugiliteData = sugiliteData;
         this.featurePack = featurePack;
@@ -134,10 +135,18 @@ public class RecordingPopUpDialog {
         ContextThemeWrapper ctw = new ContextThemeWrapper(applicationContext, R.style.AlertDialogCustom);
         AlertDialog.Builder builder = new AlertDialog.Builder(applicationContext);
         builder.setView(dialogRootView)
-                .setTitle("Sugilite Recording");
+                .setTitle("Sugilite Recording Panel");
         dialog = builder.create();
         dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
         dialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_box);
+        dialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
+            @Override
+            public void onDismiss(DialogInterface dialog) {
+                sugiliteData.hasRecordingPopupActive = false;
+                if (!sugiliteData.recordingPopupDialogQueue.isEmpty())
+                    sugiliteData.recordingPopupDialogQueue.poll().show();
+            }
+        });
         //fetch the data capsuled in the intent
         //TODO: refactor so the service passes in a feature pack instead
         setupSelections();
@@ -146,7 +155,7 @@ public class RecordingPopUpDialog {
     }
 
     //THIS CONSTRUCTOR IS USED FOR EDITING ONLY!
-    public RecordingPopUpDialog(SugiliteData sugiliteData, Context applicationContext, SugiliteStartingBlock originalScript, SharedPreferences sharedPreferences, SugiliteOperationBlock blockToEdit, LayoutInflater inflater, int triggerMode, DialogInterface.OnClickListener callback){
+    public RecordingPopUpDialog(final SugiliteData sugiliteData, Context applicationContext, SugiliteStartingBlock originalScript, SharedPreferences sharedPreferences, SugiliteOperationBlock blockToEdit, LayoutInflater inflater, int triggerMode, DialogInterface.OnClickListener callback){
         this.sharedPreferences = sharedPreferences;
         this.sugiliteData = sugiliteData;
         this.featurePack = blockToEdit.getFeaturePack();
@@ -172,10 +181,20 @@ public class RecordingPopUpDialog {
         dialogRootView = inflater.inflate(R.layout.dialog_recording_pop_up, null);
         AlertDialog.Builder builder = new AlertDialog.Builder(applicationContext);
         builder.setView(dialogRootView)
-                .setTitle("Sugilite Recording");
+                .setTitle("Sugilite Recording Panel");
         dialog = builder.create();
         dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
         dialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_box);
+        dialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
+            @Override
+            public void onDismiss(DialogInterface dialog) {
+                sugiliteData.hasRecordingPopupActive = false;
+                if (!sugiliteData.recordingPopupDialogQueue.isEmpty()) {
+                    sugiliteData.hasRecordingPopupActive = true;
+                    sugiliteData.recordingPopupDialogQueue.poll().show();
+                }
+            }
+        });
         //fetch the data capsuled in the intent
         //TODO: refactor so the service passes in a feature pack instead
         setupSelections();
@@ -190,7 +209,12 @@ public class RecordingPopUpDialog {
             OKButtonOnClick(null);
         //to show the disambiguation panel
         else if (skipManager.checkSkip(featurePack, triggerMode, generateFilter(), featurePack.alternativeNodes).contentEquals("disambiguation")){
-            hideUnrelevantInfo();
+            hideUnrelevantInfo(true, "Sugilite finds multiple possible features for the object you've just opearted on and can't determine the best feature to use.\n\nCan you choose the best feature to use for identifying this object in future executions of this script?");
+            dialog.show();
+            dialog.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM);
+        }
+        else if (skipManager.checkSkip(featurePack, triggerMode, generateFilter(), featurePack.alternativeNodes).contentEquals("multipleMatch")){
+            hideUnrelevantInfo(false, "Sugilte's automatically generated feature set can match more than one objects on the current screen.\n\nCan you choose the best set of features to use for identifying this object in future executions of this script?");
             dialog.show();
             dialog.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM);
         }
@@ -202,15 +226,24 @@ public class RecordingPopUpDialog {
     }
 
     /**
+     * this function is used to keep compability with AbstractSugiliteDialog class
+     */
+    public void show(){
+        show(false);
+    }
+
+    /**
      * hide unrelevant info in the popup and only show relevant info
      */
-    public void hideUnrelevantInfo(){
+    public void hideUnrelevantInfo(boolean hideLocation, String prompt){
         //TODO: add some sort of user friendly prompt
         //hide action section
+        dialog.setTitle("Sugilite Disambiguation Panel");
         dialogRootView.findViewById(R.id.action_section).setVisibility(View.GONE);
         dialogRootView.findViewById(R.id.within_app_section).setVisibility(View.GONE);
         dialogRootView.findViewById(R.id.target_type_section).setVisibility(View.GONE);
         dialogRootView.findViewById(R.id.text_ambiguation_prompt).setVisibility(View.VISIBLE);
+        ((TextView)dialogRootView.findViewById(R.id.text_ambiguation_prompt)).setText(prompt);
 
         //TODO: hide unlikely chosen features (e.g. location/view ID when text label is available)
         Set<String> availableLabel = new HashSet<>();
@@ -224,7 +257,7 @@ public class RecordingPopUpDialog {
             if(node.contentDescription != null)
                 availableLabel.add(node.contentDescription);
         }
-        if(availableLabel.size() > 1){
+        if(availableLabel.size() > 1 && hideLocation){
             //have 1+ text labels, hide other features
             if(boundsInParentCheckbox != null){
                 boundsInParentCheckbox.setVisibility(View.GONE);
@@ -241,14 +274,15 @@ public class RecordingPopUpDialog {
             @Override
             public void onClick(View v) {
                 //unhide hidden info - undo "hideUnrelevantInfo"
+                dialog.setTitle("Sugilite Advanced Recording Panel");
                 dialogRootView.findViewById(R.id.target_type_section).setVisibility(View.VISIBLE);
                 dialogRootView.findViewById(R.id.action_section).setVisibility(View.VISIBLE);
                 dialogRootView.findViewById(R.id.within_app_section).setVisibility(View.VISIBLE);
                 dialogRootView.findViewById(R.id.text_ambiguation_prompt).setVisibility(View.GONE);
-                if(boundsInParentCheckbox != null){
+                if (boundsInParentCheckbox != null) {
                     boundsInParentCheckbox.setVisibility(View.VISIBLE);
                 }
-                if(boundsInScreenCheckbox != null){
+                if (boundsInScreenCheckbox != null) {
                     boundsInScreenCheckbox.setVisibility(View.VISIBLE);
                 }
                 editButton.setText("Recording Off");
@@ -258,8 +292,10 @@ public class RecordingPopUpDialog {
                         turnOffRecording(v);
                     }
                 });
+                refreshAfterChange();
             }
         });
+        refreshAfterChange();
     }
 
     public void finishActivity(View view){
@@ -333,6 +369,7 @@ public class RecordingPopUpDialog {
             }
         };
         if(view == null) {
+            //the main panel is skipped
             builder.setTitle("Save Operation Confirmation").setMessage(Html.fromHtml("Are you sure you want to record the operation: " + readableDescriptionGenerator.generateReadableDescription(operationBlock)));
             builder.setPositiveButton("Yes", onClickListener)
                     .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
@@ -349,6 +386,16 @@ public class RecordingPopUpDialog {
                     });
             AlertDialog dialog = builder.create();
             dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
+            dialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
+                @Override
+                public void onDismiss(DialogInterface dialog) {
+                    sugiliteData.hasRecordingPopupActive = false;
+                    if (!sugiliteData.recordingPopupDialogQueue.isEmpty()) {
+                        sugiliteData.hasRecordingPopupActive = true;
+                        sugiliteData.recordingPopupDialogQueue.poll().show();
+                    }
+                }
+            });
             dialog.show();
         }
 

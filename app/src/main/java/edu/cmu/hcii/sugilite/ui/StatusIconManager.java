@@ -296,9 +296,11 @@ public class StatusIconManager {
                                 case "View Last Recording":
                                 case "View Current Recording":
                                     Intent intent = new Intent(context, ScriptDetailActivity.class);
-                                    intent.putExtra("scriptName", startingBlock.getScriptName());
-                                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                                    context.startActivity(intent);
+                                    if(startingBlock != null && startingBlock.getScriptName() != null) {
+                                        intent.putExtra("scriptName", startingBlock.getScriptName());
+                                        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                                        context.startActivity(intent);
+                                    }
                                     Toast.makeText(context, "view current script", Toast.LENGTH_SHORT).show();
                                     break;
                                 case "End Recording":

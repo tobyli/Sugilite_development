@@ -138,7 +138,7 @@ public class ErrorHandler {
 
 
     private void handleError(String errorMsg){
-
+        //TODO: seprate the error handling dialog out
         //pause the execution when the duck is clicked
         final Queue<SugiliteBlock> storedQueue =  sugiliteData.getCopyOfInstructionQueue();
         sugiliteData.clearInstructionQueue();
@@ -163,7 +163,7 @@ public class ErrorHandler {
                         dialog.dismiss();
                     }
                 })
-                .setNeutralButton("Create Fork", new DialogInterface.OnClickListener() {
+                .setNeutralButton("Fix the Script", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
 
@@ -180,14 +180,14 @@ public class ErrorHandler {
 
                         AlertDialog.Builder replaceOrParallelDialogBuilder = new AlertDialog.Builder(applicationContext);
                         replaceOrParallelDialogBuilder.setTitle("Create Fork")
-                                .setMessage("Do you want the new fork to replace the original script or to be a parallel branch?")
+                                .setMessage("Do you want to replace the corresponding part in the original script or to create a fork?")
                                 .setPositiveButton("Replace", new DialogInterface.OnClickListener() {
                                     @Override
                                     public void onClick(DialogInterface dialog, int which) {
                                         forkResumeRecording(startingBlock, currentBlock);
                                     }
                                 })
-                                .setNegativeButton("Parallel", new DialogInterface.OnClickListener() {
+                                .setNegativeButton("New Fork", new DialogInterface.OnClickListener() {
                                     //create a parallel fork and resume recording
                                     @Override
                                     public void onClick(DialogInterface dialog, int which) {

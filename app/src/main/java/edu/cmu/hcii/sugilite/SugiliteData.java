@@ -27,6 +27,7 @@ import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.model.variable.Variable;
+import edu.cmu.hcii.sugilite.ui.AbstractSugiliteDialog;
 
 /**
  * @author toby
@@ -48,6 +49,8 @@ public class SugiliteData extends Application {
     public String trackingName = "default";
     private boolean startRecordingWhenFinishExecuting = false;
 
+    public Queue<AbstractSugiliteDialog> recordingPopupDialogQueue = new ArrayDeque<>();
+    public boolean hasRecordingPopupActive = false;
 
 
     public SugiliteStartingBlock getScriptHead(){

@@ -34,7 +34,7 @@ import edu.cmu.hcii.sugilite.model.variable.Variable;
  * @date 7/15/16
  * @time 8:47 PM
  */
-public class VariableSetValueDialog {
+public class VariableSetValueDialog extends AbstractSugiliteDialog{
     private Context context;
     private AlertDialog dialog;
     private Map<String,Variable> variableDefaultValueMap, stringVariableMap;

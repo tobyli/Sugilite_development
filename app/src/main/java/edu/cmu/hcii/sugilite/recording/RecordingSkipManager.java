@@ -28,14 +28,13 @@ public class RecordingSkipManager {
         if(featurePack.isEditable)
             return "full";
 
-        //don't skip if the recommended selection can have more than 1 match in alternative nodes
-        if(filterTester.getFilteredAlternativeNodesCount(alternativeNodes, filter) > 1)
-            return "full";
-
-
         //skip if the package name is among the "to skip" list
         if(packageToSkip.contains(featurePack.packageName))
             return "skip";
+
+        //don't skip if the recommended selection can have more than 1 match in alternative nodes
+        if(filterTester.getFilteredAlternativeNodesCount(alternativeNodes, filter) > 1)
+            return "multipleMatch";
 
         //skip if only one label available OR no label available
         Set<String> availableLabel = new HashSet<>();

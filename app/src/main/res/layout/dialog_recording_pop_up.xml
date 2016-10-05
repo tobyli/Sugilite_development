@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
-    android:layout_height="match_parent"
+    android:layout_height="wrap_content"
     tools:context="edu.cmu.hcii.sugilite.recording.mRecordingPopUpActivity">
     <ScrollView
         android:layout_width="fill_parent"
@@ -184,18 +184,19 @@
 
                 </LinearLayout>
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textAppearance="?android:attr/textAppearanceMedium"
-                    android:text="Sugilite finds multiple possible features for the object you&apos;ve just opearted on and can&apos;t determine the best feature to use. Can you choose the best feature to use for identifying this object in future executions of this script? "
-                    android:id="@+id/text_ambiguation_prompt"
-                    android:visibility="gone"
-                    android:textIsSelectable="true" />
             </LinearLayout>
 
             <View style="@style/Divider"
                 android:layout_margin="10dp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Sugilite finds multiple possible features for the object you've just opearted on and can't determine the best feature to use.\n\nCan you choose the best feature to use for identifying this object in future executions of this script?"
+                android:textColor="#ffffff"
+                android:id="@+id/text_ambiguation_prompt"
+                android:visibility="gone"
+                android:textIsSelectable="true" />
 
             <LinearLayout
                 android:orientation="vertical"

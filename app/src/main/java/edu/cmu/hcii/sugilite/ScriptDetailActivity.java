@@ -69,7 +69,8 @@ public class ScriptDetailActivity extends AppCompatActivity {
         sugiliteScriptDao = new SugiliteScriptDao(this);
         script = sugiliteScriptDao.read(scriptName);
         this.context = this;
-        setTitle("View Script: " + scriptName.replace(".SugiliteScript", ""));
+        if(scriptName != null)
+            setTitle("View Script: " + scriptName.replace(".SugiliteScript", ""));
         loadOperationList();
 
     }

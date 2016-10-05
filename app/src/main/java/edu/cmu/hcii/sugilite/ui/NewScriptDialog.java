@@ -22,7 +22,7 @@ import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
  * @date 8/3/16
  * @time 6:14 PM
  */
-public class NewScriptDialog {
+public class NewScriptDialog extends AbstractSugiliteDialog {
     private AlertDialog dialog;
     public NewScriptDialog(final Context context, final SugiliteScriptDao sugiliteScriptDao, final ServiceStatusManager serviceStatusManager,
                            final SharedPreferences sharedPreferences, final SugiliteData sugiliteData, boolean isSystemAlert, final Dialog.OnClickListener positiveCallback, final Dialog.OnClickListener negativeCallback){

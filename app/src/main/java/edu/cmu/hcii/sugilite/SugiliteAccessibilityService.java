@@ -9,11 +9,16 @@ import android.content.SharedPreferences;
 import android.graphics.Rect;
 import android.os.Handler;
 import android.preference.PreferenceManager;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.WindowManager;
 import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityNodeInfo;
 import android.widget.Toast;
+
+import com.google.gson.Gson;
+
+import org.json.JSONObject;
 
 import java.io.File;
 import java.util.AbstractMap;
@@ -26,6 +31,7 @@ import java.util.Map;
 import java.util.Set;
 
 import edu.cmu.hcii.sugilite.communication.SugiliteCommunicationController;
+import edu.cmu.hcii.sugilite.communication.SugiliteEventBroadcastingActivity;
 import edu.cmu.hcii.sugilite.dao.SugiliteAppVocabularyDao;
 import edu.cmu.hcii.sugilite.dao.SugiliteScreenshotManager;
 import edu.cmu.hcii.sugilite.model.AccessibilityNodeInfoList;
@@ -329,6 +335,31 @@ public class SugiliteAccessibilityService extends AccessibilityService {
             }
         }
 
+        // broadcast the accessibility event received, for any app that may want to listen
+        try
+        {
+            SugiliteEventBroadcastingActivity.BroadcastingEvent broadcastingEvent = new SugiliteEventBroadcastingActivity.BroadcastingEvent(event);
+            Gson gson = new Gson();
+
+            // what is teh event ? find the properties.
+            String desc = broadcastingEvent.contentDescription;
+            String pkg = broadcastingEvent.packageName;
+            String event_type = broadcastingEvent.eventType;
+
+            // if it is a home press event ...
+            if(desc.contentEquals("Home") && event_type.contentEquals("TYPE_VIEW_CLICKED") && pkg.contentEquals("com.android.systemui"))
+            {
+                String messageToSend = gson.toJson(broadcastingEvent);
+
+                Intent intent = new Intent();
+                intent.setAction("edu.cmu.hcii.sugilite.SUGILITE_EVENT");
+                intent.putExtra("event_string", messageToSend);
+                sendBroadcast(intent);
+            }
+        }
+        catch(Exception e)
+        {}
+
         if (sharedPreferences.getBoolean("tracking_in_process", false)) {
             //background tracking in progress
             if (accessibilityEventSetToTrack.contains(event.getEventType()) && (!trackingExcludedPackages.contains(event.getPackageName()))) {
@@ -385,6 +416,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
             }
         }
     }
+
 
 
 

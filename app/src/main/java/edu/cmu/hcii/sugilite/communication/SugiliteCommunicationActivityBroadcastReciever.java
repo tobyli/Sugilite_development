@@ -59,7 +59,6 @@ public class SugiliteCommunicationActivityBroadcastReciever extends BroadcastRec
             String messageTypeString = "", arg1 = "", arg2 = "";
             if (intent.getExtras() != null)
             {
-                messageTypeString = intent.getStringExtra("messageType");
                 /*
 
                 messageType, arg1, arg2
@@ -81,7 +80,7 @@ public class SugiliteCommunicationActivityBroadcastReciever extends BroadcastRec
 
                 GET_PACKAGE_VOCAB, "NULL", NULL" //return value returned as activity result instead
                 */
-
+                messageTypeString = intent.getStringExtra("messageType");
                 arg1 = intent.getStringExtra("arg1");
                 arg2 = intent.getStringExtra("arg2");
 
@@ -94,7 +93,9 @@ public class SugiliteCommunicationActivityBroadcastReciever extends BroadcastRec
             this.sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
 
             this_message_type = messageTypeString;
+
             Log.d("my_tag_b_event", "got request for : "+messageTypeString);
+            // Toast.makeText(context.getApplicationContext(), "got request for : "+messageTypeString, Toast.LENGTH_SHORT).show();
 
             handleRequest(messageTypeString, arg1, arg2);
             finish();
@@ -167,6 +168,7 @@ public class SugiliteCommunicationActivityBroadcastReciever extends BroadcastRec
                     }
                 }
                 break;
+
             case "END_RECORDING":
                 //arg1 = "NULL", arg2 = callbackString
                 if(arg2 != null)
@@ -179,7 +181,7 @@ public class SugiliteCommunicationActivityBroadcastReciever extends BroadcastRec
                     if(sugiliteData.initiatedExternally == true && sugiliteData.getScriptHead() != null)
                         sugiliteData.sendCallbackMsg("FINISHED_RECORDING", jsonProcessor.scriptToJson(sugiliteData.getScriptHead()), arg2);
 
-                    Toast.makeText(context, "recording ended", Toast.LENGTH_SHORT).show();
+                    //Toast.makeText(context, "recording ended", Toast.LENGTH_SHORT).show();
                     sendReturnValue("");
                 }
                 else {
@@ -296,7 +298,8 @@ public class SugiliteCommunicationActivityBroadcastReciever extends BroadcastRec
                     SharedPreferences.Editor prefEditor2 = sharedPreferences.edit();
                     prefEditor2.putBoolean("tracking_in_process", false);
                     prefEditor2.commit();
-                    Toast.makeText(context, "tracking ended", Toast.LENGTH_SHORT).show();
+
+                    //Toast.makeText(context, "tracking ended", Toast.LENGTH_SHORT).show();
                     sendReturnValue("");
                 }
                 break;

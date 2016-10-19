@@ -52,6 +52,7 @@ import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteErrorHandlingForkBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
+import edu.cmu.hcii.sugilite.model.block.SugiliteSubscriptOperationBlock;
 import edu.cmu.hcii.sugilite.model.block.UIElementMatchingFilter;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteLoadVariableOperation;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteOperation;
@@ -564,11 +565,11 @@ public class RecordingPopUpDialog extends AbstractSugiliteDialog {
                         String defaultVariableValue = null;
                         if(defaultVariable != null && defaultVariable instanceof StringVariable)
                             defaultVariableValue = ((StringVariable)defaultVariable).getValue();
-                        textCheckbox.setText(Html.fromHtml(boldify("Text: ") + existingFilter.getText() + (defaultVariableValue != null ? ": (" + defaultVariableValue + ")" : "")));
+                        textCheckbox.setText(Html.fromHtml(boldify("Text Label: ") + existingFilter.getText() + (defaultVariableValue != null ? ": (" + defaultVariableValue + ")" : "")));
                     }
                 }
             }
-            identifierLayout.addView(generateRow(textCheckbox, "Text", featurePack.text), layoutParams);
+            identifierLayout.addView(generateRow(textCheckbox, "Text Label", featurePack.text), layoutParams);
             identifierCheckboxMap.put("Text", textCheckbox);
 
         }
@@ -601,7 +602,7 @@ public class RecordingPopUpDialog extends AbstractSugiliteDialog {
 
         if(!featurePack.viewId.contentEquals("NULL")) {
             viewIdCheckbox = new CheckBox(dialogRootView.getContext());
-            viewIdCheckbox.setText(Html.fromHtml(boldify("ViewId: ") + featurePack.viewId));
+            viewIdCheckbox.setText(Html.fromHtml(boldify("Object ID: ") + featurePack.viewId));
             existingFeatureValues.add(featurePack.viewId);
             viewIdContent = new String(featurePack.viewId);
             if(autoFillEnabled && triggerMode == TRIGGERED_BY_NEW_EVENT)
@@ -615,11 +616,11 @@ public class RecordingPopUpDialog extends AbstractSugiliteDialog {
                         String defaultVariableValue = null;
                         if(defaultVariable != null && defaultVariable instanceof StringVariable)
                             defaultVariableValue = ((StringVariable) defaultVariable).getValue();
-                        textCheckbox.setText(Html.fromHtml(boldify("ViewId: ") + existingFilter.getViewId() + (defaultVariableValue != null ? ": (" + defaultVariableValue + ")" : "")));
+                        textCheckbox.setText(Html.fromHtml(boldify("Object ID: ") + existingFilter.getViewId() + (defaultVariableValue != null ? ": (" + defaultVariableValue + ")" : "")));
                     }
                 }
             }
-            identifierLayout.addView(generateRow(viewIdCheckbox, "ViewId", featurePack.viewId), layoutParams);
+            identifierLayout.addView(generateRow(viewIdCheckbox, "Object ID", featurePack.viewId), layoutParams);
             identifierCheckboxMap.put("ViewId", viewIdCheckbox);
         }
 
@@ -674,7 +675,7 @@ public class RecordingPopUpDialog extends AbstractSugiliteDialog {
         for(Map.Entry<String, String> feature : allChildFeatures){
             if(feature.getKey() != null && feature.getValue() != null && feature.getValue().length() > 0){
                 CheckBox childCheckBox = new CheckBox(dialogRootView.getContext());
-                childCheckBox.setText(Html.fromHtml(boldify("Child " + feature.getKey() + ": ") + feature.getValue()));
+                childCheckBox.setText(Html.fromHtml(boldify("" + feature.getKey() + ": ") + feature.getValue()));
                 if(feature.getKey().contains("Text")) {
                     hasChildText = true;
                     childText += feature.getValue();
@@ -693,7 +694,7 @@ public class RecordingPopUpDialog extends AbstractSugiliteDialog {
                                     AbstractMap.SimpleEntry<String, String> parsedFeature = new AbstractMap.SimpleEntry<String, String>(selectedFeature.getKey(), ((StringVariable)defaultValue).getValue());
                                     if (parsedFeature.equals(feature)){
                                         childCheckBox.setChecked(true);
-                                        childCheckBox.setText(Html.fromHtml(boldify("Child " + feature.getKey() + ": ") + selectedFeature.getValue() + ": (" + ((StringVariable)defaultValue).getValue() + ")"));
+                                        childCheckBox.setText(Html.fromHtml(boldify("" + feature.getKey() + ": ") + selectedFeature.getValue() + ": (" + ((StringVariable)defaultValue).getValue() + ")"));
                                     }
                                 }
                             }
@@ -701,7 +702,7 @@ public class RecordingPopUpDialog extends AbstractSugiliteDialog {
                     }
 
                     existingFeatureValues.add(feature.getValue());
-                    identifierLayout.addView(generateRow(childCheckBox, "Child " + feature.getKey(), feature.getValue()), layoutParams);
+                    identifierLayout.addView(generateRow(childCheckBox, "" + feature.getKey(), feature.getValue()), layoutParams);
                     checkBoxChildEntryMap.put(feature, childCheckBox);
                 }
                 else
@@ -1129,6 +1130,7 @@ public class RecordingPopUpDialog extends AbstractSugiliteDialog {
             stringVariable.type = Variable.LOAD_RUNTIME;
             String selectedTarget = loadVariableParameterSpinner.getSelectedItem().toString();
             if(loadVariableVariableDefaultValue.getText().toString().length() > 0) {
+                //TODO: this need to be modified if we are to change the labels
                 if (selectedTarget.contains("Text")) {
                     stringVariable.setValue(featurePack.text);
                 } else if (selectedTarget.contains("Content Description")) {
@@ -1162,6 +1164,9 @@ public class RecordingPopUpDialog extends AbstractSugiliteDialog {
                 }
                 else if (sugiliteData.getCurrentScriptBlock() instanceof SugiliteErrorHandlingForkBlock){
                     ((SugiliteErrorHandlingForkBlock) sugiliteData.getCurrentScriptBlock()).setAlternativeNextBlock(operationBlock);
+                }
+                else if (sugiliteData.getCurrentScriptBlock() instanceof SugiliteSubscriptOperationBlock){
+                    ((SugiliteSubscriptOperationBlock) sugiliteData.getCurrentScriptBlock()).setNextBlock(operationBlock);
                 }
                 else{
                     throw new RuntimeException("Unsupported Block Type!");
@@ -1328,6 +1333,7 @@ public class RecordingPopUpDialog extends AbstractSugiliteDialog {
     }
 
     private SugiliteOperationBlock generateBlock(){
+        //determine the action first
         SugiliteOperation sugiliteOperation = new SugiliteOperation();
         String actionSpinnerSelectedItem = actionSpinner.getSelectedItem().toString();
         if (actionSpinnerSelectedItem.contentEquals("Click"))

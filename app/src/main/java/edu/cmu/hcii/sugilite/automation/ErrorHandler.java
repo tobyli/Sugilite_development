@@ -40,7 +40,9 @@ public class ErrorHandler {
     private SharedPreferences sharedPreferences;
     private Set<String> excludedPackageFromWrongPackage;
     private SugiliteScriptDao sugiliteScriptDao;
-    private String[] excludedPackageSet = {"com.google.android.inputmethod.pinyin", "com.inMind.inMindAgent"};
+    private String[] excludedPackageSet = {"com.google.android.inputmethod.pinyin", "com.inMind.inMindAgent", "com.google.android.inputmethod.latin"};
+
+    static final private int LAST_WINDOW_CHANGE_TIMEOUT = 20000, LAST_SUCCESSFUL_OPERATION = 40000;
 
     public ErrorHandler(Context context, SugiliteData sugiliteData, SharedPreferences sharedPreferences){
         this.applicationContext = context;
@@ -122,12 +124,12 @@ public class ErrorHandler {
         lastCheckTime = currentTime;
         System.out.println("Since last success: " + (currentTime - lastSuccess) + "\n" +
         "Since last window change: " + (currentTime - lastWindowChange) + "\n\n");
-        if(sinceLastSuccesss > 30000){
+        if(sinceLastSuccesss > LAST_SUCCESSFUL_OPERATION){
             //stucked
             handleError("The current window is not responding in executing the next operation: " + nextInstruction.getDescription() + "<br><br>" + "sinceLastSuccess: " + sinceLastSuccesss + "<br>" + "Stucked! Too long since the last success.");
             return true;
         }
-        if(sinceLastWindowChange > 10000){
+        if(sinceLastWindowChange > LAST_WINDOW_CHANGE_TIMEOUT){
             //stucked
             handleError("The current window is not responding in executing the next operation: " + nextInstruction.getDescription() + "<br><br>" + "sinceLastWindowChange: " + sinceLastWindowChange + "<br>" + "Stucked! Too long since the last window content change.");
             return true;

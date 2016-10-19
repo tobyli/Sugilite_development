@@ -18,6 +18,7 @@ public class SugiliteAppVocabularyDBContract {
         public static final String COLUMN_NAME_PREVIOUS_CLICK_CONTENT_DESCRIPTION = "previous_click_content_description";
         public static final String COLUMN_NAME_PREVIOUS_CLICK_CHILD_TEXT = "previous_click_child_text";
         public static final String COLUMN_NAME_PREVIOUS_CLICK_CHILD_CONTENT_DESCRIPTION = "previous_click_child_content_description";
+        public static final String COLUMN_NAME_PREVIOUS_CLICK_PACKAGE_NAME = "previous_package_name";
 
     }
 }

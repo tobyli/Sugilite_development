@@ -41,6 +41,7 @@ public class SugiliteData extends Application {
     private Queue<SugiliteBlock> instructionQueue = new ArrayDeque<>();
     public Map<String, Variable> stringVariableMap = new HashMap<>();
     public Set<String> registeredBroadcastingListener = new HashSet<>();
+    public SugiliteBlock afterExecutionOperation = null;
     private Gson gson = new Gson();
     //true if the current recording script is initiated externally
     public boolean initiatedExternally  = false;
@@ -89,8 +90,9 @@ public class SugiliteData extends Application {
         this.trackingName = trackingName;
     }
 
-    public void runScript(SugiliteStartingBlock startingBlock){
+    public void runScript(SugiliteStartingBlock startingBlock, SugiliteBlock afterExecutionOperation){
         startRecordingWhenFinishExecuting = false;
+        this.afterExecutionOperation = afterExecutionOperation;
         this.instructionQueue.clear();
         errorHandler.relevantPackages.clear();
         errorHandler.relevantPackages.addAll(startingBlock.relevantPackages);
@@ -100,7 +102,7 @@ public class SugiliteData extends Application {
     }
 
     public void runScript(SugiliteStartingBlock startingBlock, boolean isForResuming){
-        runScript(startingBlock);
+        runScript(startingBlock, null);
         startRecordingWhenFinishExecuting = isForResuming;
     }
 
@@ -111,9 +113,14 @@ public class SugiliteData extends Application {
         this.currentTrackingBlock = currentTrackingBlock;
     }
     public void addInstruction(SugiliteBlock block){
-        if(block == null)
+        if(block == null) {
             //note: nullable -> see Automator.addNextBlockToQueue
+            if(afterExecutionOperation != null) {
+                instructionQueue.add(afterExecutionOperation);
+                afterExecutionOperation = null;
+            }
             return;
+        }
         instructionQueue.add(block);
     }
     public void addInstructions(Queue<SugiliteBlock> blocks){

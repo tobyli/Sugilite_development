@@ -390,7 +390,7 @@ public class SugiliteCommunicationController {
                                     // do nothing, likely this exception is caused by non-rooted device
                                 }
                             }
-                            sugiliteData.runScript(script);
+                            sugiliteData.runScript(script, null);
                             try {
                                 Thread.sleep(VariableSetValueDialog.SCRIPT_DELAY);
                             } catch (Exception e) {

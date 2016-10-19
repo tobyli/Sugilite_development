@@ -1,5 +1,6 @@
 package edu.cmu.hcii.sugilite.ui;
 
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -25,6 +26,7 @@ import java.util.Set;
 import edu.cmu.hcii.sugilite.R;
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.automation.Automator;
+import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.model.variable.StringVariable;
 import edu.cmu.hcii.sugilite.model.variable.Variable;
@@ -154,7 +156,7 @@ public class VariableSetValueDialog extends AbstractSugiliteDialog{
                             stringVariableMap.put(entry.getKey(), new StringVariable(entry.getKey(), ((Spinner) entry.getValue()).getSelectedItem().toString()));
                         }
                     }
-                    executeScript();
+                    executeScript(null);
                     dialog.dismiss();
                 }
                 else {
@@ -164,7 +166,10 @@ public class VariableSetValueDialog extends AbstractSugiliteDialog{
         });
     }
 
-    public void executeScript(){
+    /**
+     * @param afterExecutionOperation @nullable, this operation will be pushed into the queue after the exeution
+     */
+    public void executeScript(SugiliteBlock afterExecutionOperation){
         SharedPreferences.Editor prefEditor = sharedPreferences.edit();
         //turn off the recording before executing
         prefEditor.putBoolean("recording_in_process", false);
@@ -173,7 +178,7 @@ public class VariableSetValueDialog extends AbstractSugiliteDialog{
         for (String packageName : startingBlock.relevantPackages) {
             Automator.killPackage(packageName);
         }
-        sugiliteData.runScript(startingBlock);
+        sugiliteData.runScript(startingBlock, afterExecutionOperation);
         //need to have this delay to ensure that the killing has finished before we start executing
         try {
             Thread.sleep(SCRIPT_DELAY);
@@ -184,6 +189,9 @@ public class VariableSetValueDialog extends AbstractSugiliteDialog{
         Intent startMain = new Intent(Intent.ACTION_MAIN);
         startMain.addCategory(Intent.CATEGORY_HOME);
         startMain.setFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
+        if(!(context instanceof Activity)){
+            startMain.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        }
         context.startActivity(startMain);
     }
 

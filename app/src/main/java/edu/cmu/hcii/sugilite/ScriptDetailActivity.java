@@ -37,6 +37,7 @@ import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteErrorHandlingForkBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
+import edu.cmu.hcii.sugilite.model.block.SugiliteSubscriptOperationBlock;
 import edu.cmu.hcii.sugilite.recording.RecordingPopUpDialog;
 import edu.cmu.hcii.sugilite.model.variable.Variable;
 import edu.cmu.hcii.sugilite.ui.VariableSetValueDialog;
@@ -87,8 +88,12 @@ public class ScriptDetailActivity extends AppCompatActivity {
                 iterBlock = ((SugiliteStartingBlock) iterBlock).getNextBlock();
             else if (iterBlock instanceof SugiliteOperationBlock)
                 iterBlock = ((SugiliteOperationBlock) iterBlock).getNextBlock();
-            else
+            else if (iterBlock instanceof  SugiliteSubscriptOperationBlock)
+                iterBlock = ((SugiliteSubscriptOperationBlock) iterBlock).getNextBlock();
+            else if (iterBlock instanceof SugiliteErrorHandlingForkBlock)
                 break;
+            else
+                new Exception("unsupported block type").printStackTrace();
         }
 
         TextView tv = new TextView(context);
@@ -103,8 +108,8 @@ public class ScriptDetailActivity extends AppCompatActivity {
      * @param block
      * @return
      */
-    public View getViewForBlock(SugiliteBlock block){
-        if(block instanceof SugiliteStartingBlock){
+    public View getViewForBlock(SugiliteBlock block) {
+        if (block instanceof SugiliteStartingBlock) {
             TextView tv = new TextView(context);
             tv.setText(Html.fromHtml(block.getDescription()));
             tv.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
@@ -112,8 +117,7 @@ public class ScriptDetailActivity extends AppCompatActivity {
             tv.setOnTouchListener(textViewOnTouchListener);
             registerForContextMenu(tv);
             return tv;
-        }
-        else if(block instanceof SugiliteOperationBlock){
+        } else if (block instanceof SugiliteOperationBlock || block instanceof SugiliteSubscriptOperationBlock) {
             TextView tv = new TextView(context);
             tv.setText(Html.fromHtml(block.getDescription()));
             tv.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
@@ -121,8 +125,7 @@ public class ScriptDetailActivity extends AppCompatActivity {
             tv.setOnTouchListener(textViewOnTouchListener);
             registerForContextMenu(tv);
             return tv;
-        }
-        else if(block instanceof SugiliteErrorHandlingForkBlock){
+        } else if (block instanceof SugiliteErrorHandlingForkBlock) {
             LinearLayout mainLayout = new LinearLayout(context);
             mainLayout.setOrientation(LinearLayout.VERTICAL);
             mainLayout.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
@@ -136,6 +139,7 @@ public class ScriptDetailActivity extends AppCompatActivity {
             originalBranch.setOrientation(LinearLayout.VERTICAL);
             originalBranch.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
             SugiliteBlock iterBlock = ((SugiliteErrorHandlingForkBlock) block).getOriginalNextBlock();
+
             //add blocks in original branch
             while (iterBlock != null) {
                 View blockView = getViewForBlock(iterBlock);
@@ -144,8 +148,12 @@ public class ScriptDetailActivity extends AppCompatActivity {
                     iterBlock = ((SugiliteStartingBlock) iterBlock).getNextBlock();
                 else if (iterBlock instanceof SugiliteOperationBlock)
                     iterBlock = ((SugiliteOperationBlock) iterBlock).getNextBlock();
-                else
+                else if (iterBlock instanceof  SugiliteSubscriptOperationBlock)
+                    iterBlock = ((SugiliteSubscriptOperationBlock) iterBlock).getNextBlock();
+                else if (iterBlock instanceof SugiliteErrorHandlingForkBlock)
                     break;
+                else
+                    new Exception("unsupported block type").printStackTrace();
             }
             originalBranch.setPadding(60, 0, 0, 0);
             mainLayout.addView(originalBranch);
@@ -158,6 +166,7 @@ public class ScriptDetailActivity extends AppCompatActivity {
             LinearLayout alternativeBranch = new LinearLayout(context);
             alternativeBranch.setOrientation(LinearLayout.VERTICAL);
             alternativeBranch.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+
             //add blocks in the alternative branch
             iterBlock = ((SugiliteErrorHandlingForkBlock) block).getAlternativeNextBlock();
             while (iterBlock != null) {
@@ -167,15 +176,22 @@ public class ScriptDetailActivity extends AppCompatActivity {
                     iterBlock = ((SugiliteStartingBlock) iterBlock).getNextBlock();
                 else if (iterBlock instanceof SugiliteOperationBlock)
                     iterBlock = ((SugiliteOperationBlock) iterBlock).getNextBlock();
-                else
+                else if (iterBlock instanceof  SugiliteSubscriptOperationBlock)
+                    iterBlock = ((SugiliteSubscriptOperationBlock) iterBlock).getNextBlock();
+                else if (iterBlock instanceof SugiliteErrorHandlingForkBlock)
                     break;
+                else
+                    new Exception("unsupported block type").printStackTrace();
             }
             alternativeBranch.setPadding(60, 0, 0, 0);
             mainLayout.addView(alternativeBranch);
             return mainLayout;
-        }
+        } else
+            new Exception("UNSUPPORTED BLOCK TYPE").printStackTrace();
 
         return null;
+
+
     }
 
 
@@ -218,11 +234,11 @@ public class ScriptDetailActivity extends AppCompatActivity {
                                     //show the dialog to obtain user input
                                     variableSetValueDialog.show();
                                 else
-                                    variableSetValueDialog.executeScript();
+                                    variableSetValueDialog.executeScript(null);
                             }
                             else{
                                 //execute the script without showing the dialog
-                                variableSetValueDialog.executeScript();
+                                variableSetValueDialog.executeScript(null);
                             }
                         }
                     }
@@ -289,6 +305,8 @@ public class ScriptDetailActivity extends AppCompatActivity {
             else if (currentBlock instanceof SugiliteErrorHandlingForkBlock){
                 currentBlock = ((SugiliteErrorHandlingForkBlock) currentBlock).getOriginalNextBlock();
             }
+            else if (currentBlock instanceof SugiliteSubscriptOperationBlock)
+                currentBlock = ((SugiliteSubscriptOperationBlock) currentBlock).getNextBlock();
             else{
                 throw new RuntimeException("Unsupported Block Type!");
             }
@@ -342,20 +360,20 @@ public class ScriptDetailActivity extends AppCompatActivity {
         if(textView == null)
             return;
         SugiliteBlock currentBlock = script;
-        while(true){
-            if(currentBlock == null)
+        while(true) {
+            if (currentBlock == null)
                 break;
-            if(currentBlock instanceof SugiliteOperationBlock){
+            if (currentBlock instanceof SugiliteOperationBlock) {
                 //TODO: check if content equals is the right method to use here
-                if(Html.fromHtml(currentBlock.getDescription()).toString().contentEquals(textView.getText().toString())){
-                    if(((SugiliteOperationBlock) currentBlock).getFeaturePack() == null){
+                if (Html.fromHtml(currentBlock.getDescription()).toString().contentEquals(textView.getText().toString())) {
+                    if (((SugiliteOperationBlock) currentBlock).getFeaturePack() == null) {
                         //scripts passed from external sources (via json) has no feature pack & previous block fields
                         Toast.makeText(this, "Can't view operations from external source!", Toast.LENGTH_SHORT).show();
                         break;
                     }
                     //match, pop up the screenshot view
                     File screenshot = currentBlock.getScreenshot();
-                    if(screenshot == null){
+                    if (screenshot == null) {
                         Toast.makeText(this, "No screenshot available", Toast.LENGTH_SHORT).show();
                         return;
                     }
@@ -364,21 +382,23 @@ public class ScriptDetailActivity extends AppCompatActivity {
                     intent.setDataAndType(Uri.fromFile(screenshot), "image/*");
                     startActivity(intent);
                     break;
-                }
-                else{
+                } else {
                     currentBlock = ((SugiliteOperationBlock) currentBlock).getNextBlock();
                 }
-            }
-            if(currentBlock instanceof SugiliteStartingBlock){
-                if(Html.fromHtml(currentBlock.getDescription()).toString().contentEquals(textView.getText().toString())){
+            } else if (currentBlock instanceof SugiliteStartingBlock) {
+                if (Html.fromHtml(currentBlock.getDescription()).toString().contentEquals(textView.getText().toString())) {
                     //match, can't edit starting block
                     Toast.makeText(this, "Can't view starting block", Toast.LENGTH_SHORT).show();
                     break;
-                }
-                else {
+                } else {
                     currentBlock = ((SugiliteStartingBlock) currentBlock).getNextBlock();
                 }
-            }
+            } else if (currentBlock instanceof SugiliteSubscriptOperationBlock) {
+                //TODO: do something
+            } else if (currentBlock instanceof SugiliteErrorHandlingForkBlock) {
+                //TODO: do something
+            } else
+                new Exception("UNSUPPORTED BLOCK TYPE").printStackTrace();
         }
     }
 
@@ -435,6 +455,9 @@ public class ScriptDetailActivity extends AppCompatActivity {
                 attemptToEdit(((SugiliteErrorHandlingForkBlock) currentBlock).getOriginalNextBlock(), textView);
                 attemptToEdit(((SugiliteErrorHandlingForkBlock) currentBlock).getAlternativeNextBlock(), textView);
                 break;
+            }
+            else if(currentBlock instanceof SugiliteSubscriptOperationBlock){
+                //TODO: do something
             }
             else {
                 throw new RuntimeException("Unsupported Block Type!");

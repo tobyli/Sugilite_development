@@ -5,9 +5,12 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Rect;
 import android.os.Bundle;
+import android.os.Handler;
 import android.text.Html;
+import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
@@ -24,10 +27,12 @@ import java.util.Set;
 
 import edu.cmu.hcii.sugilite.SugiliteAccessibilityService;
 import edu.cmu.hcii.sugilite.SugiliteData;
+import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
 import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteErrorHandlingForkBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
+import edu.cmu.hcii.sugilite.model.block.SugiliteSubscriptOperationBlock;
 import edu.cmu.hcii.sugilite.model.block.UIElementMatchingFilter;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteLoadVariableOperation;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteOperation;
@@ -37,6 +42,8 @@ import edu.cmu.hcii.sugilite.model.variable.Variable;
 import edu.cmu.hcii.sugilite.model.variable.VariableHelper;
 import edu.cmu.hcii.sugilite.ui.BoundingBoxManager;
 import edu.cmu.hcii.sugilite.ui.StatusIconManager;
+import edu.cmu.hcii.sugilite.ui.VariableSetValueDialog;
+
 import android.speech.tts.TextToSpeech;
 
 
@@ -49,16 +56,21 @@ public class Automator {
     private Context context;
     private BoundingBoxManager boundingBoxManager;
     private VariableHelper variableHelper;
-    private static final int DELAY = 1000;
+    private static final int DELAY = 3000;
     private TextToSpeech tts;
+    private SugiliteScriptDao sugiliteScriptDao;
+    private LayoutInflater layoutInflater;
+    private SharedPreferences sharedPreferences;
     private boolean ttsReady = false;
 
 
-    public Automator(SugiliteData sugiliteData, SugiliteAccessibilityService context, StatusIconManager statusIconManager){
+    public Automator(SugiliteData sugiliteData, SugiliteAccessibilityService context, StatusIconManager statusIconManager, SharedPreferences sharedPreferences){
         this.sugiliteData = sugiliteData;
         this.serviceContext = context;
         this.boundingBoxManager = new BoundingBoxManager(context);
-        Intent checkIntent = new Intent();
+        this.sugiliteScriptDao = new SugiliteScriptDao(context);
+        this.layoutInflater = (LayoutInflater) context.getSystemService( Context.LAYOUT_INFLATER_SERVICE );
+        this.sharedPreferences = sharedPreferences;
         tts = new TextToSpeech(context, new TextToSpeech.OnInitListener() {
             @Override
             public void onInit(int status) {
@@ -75,19 +87,71 @@ public class Automator {
         if(sugiliteData.getInstructionQueueSize() == 0 || rootNode == null)
             return false;
         this.context = context;
-        SugiliteBlock blockToMatch = sugiliteData.peekInstructionQueue();
+        final SugiliteBlock blockToMatch = sugiliteData.peekInstructionQueue();
         if(blockToMatch == null)
             return false;
         if (!(blockToMatch instanceof SugiliteOperationBlock)) {
+            //handle non Sugilite operation blocks
+            /**
+             * nothing really special needed for starting blocks
+             */
             if (blockToMatch instanceof SugiliteStartingBlock) {
                 //Toast.makeText(context, "Start running script " + ((SugiliteStartingBlock)blockToMatch).getScriptName(), Toast.LENGTH_SHORT).show();
                 sugiliteData.removeInstructionQueueItem();
                 addNextBlockToQueue(blockToMatch);
                 return true;
             }
+            /**
+             * handle error handling block - "addNextBlockToQueue" will determine which block to add
+             */
             else if (blockToMatch instanceof SugiliteErrorHandlingForkBlock){
                 sugiliteData.removeInstructionQueueItem();
                 addNextBlockToQueue(blockToMatch);
+                return true;
+            }
+            /**
+             * for subscript operation blocks, the subscript should be executed
+             */
+            else if (blockToMatch instanceof SugiliteSubscriptOperationBlock){
+                sugiliteData.removeInstructionQueueItem();
+                SugiliteSubscriptOperationBlock sugiliteSubscriptOperationBlock = (SugiliteSubscriptOperationBlock)blockToMatch;
+
+                //run the subscript
+                final SugiliteStartingBlock script = sugiliteScriptDao.read(sugiliteSubscriptOperationBlock.getSubscriptName());
+                if(script != null) {
+                    Handler mainHandler = new Handler(context.getMainLooper());
+                    final Context finalContext = context;
+                    Runnable myRunnable = new Runnable() {
+                        @Override
+                        public void run() {
+                            VariableSetValueDialog variableSetValueDialog = new VariableSetValueDialog(finalContext, layoutInflater, sugiliteData, script, sharedPreferences);
+                            if (script.variableNameDefaultValueMap.size() > 0) {
+                                //has variable
+                                sugiliteData.stringVariableMap.putAll(script.variableNameDefaultValueMap);
+                                boolean needUserInput = false;
+                                for (Map.Entry<String, Variable> entry : script.variableNameDefaultValueMap.entrySet()) {
+                                    if (entry.getValue().type == Variable.USER_INPUT) {
+                                        needUserInput = true;
+                                        break;
+                                    }
+                                }
+                                if (needUserInput)
+                                    //show the dialog to obtain user input
+                                    variableSetValueDialog.show();
+                                else
+                                    variableSetValueDialog.executeScript(((SugiliteSubscriptOperationBlock) blockToMatch).getNextBlock());
+                            } else {
+                                //execute the script without showing the dialog
+                                variableSetValueDialog.executeScript(((SugiliteSubscriptOperationBlock) blockToMatch).getNextBlock());
+                            }
+                        }
+                    };
+                    mainHandler.post(myRunnable);
+                }
+                else {
+                    //ERROR: CAN'T FIND THE SCRIPT
+                    System.out.println("Can't find the script " + sugiliteSubscriptOperationBlock.getSubscriptName());
+                }
                 return true;
             }
             else {
@@ -312,6 +376,11 @@ public class Automator {
         return false;
     }
 
+    /**
+     * traverse a tree from the root, and return all the notes in the tree
+     * @param root
+     * @return
+     */
     public static List<AccessibilityNodeInfo> preOrderTraverse(AccessibilityNodeInfo root){
         if(root == null)
             return null;
@@ -348,7 +417,12 @@ public class Automator {
         return currentText;
     }
 
+    /**
+     * kill a package named packageName
+     * @param packageName
+     */
     static public void killPackage(String packageName){
+        //don't kill the home screen
         if(packageName.equals("com.google.android.googlequicksearchbox"))
             return;
         try {
@@ -372,6 +446,7 @@ public class Automator {
             sugiliteData.addInstruction(((SugiliteStartingBlock) block).getNextBlock());
         else if (block instanceof  SugiliteOperationBlock)
             sugiliteData.addInstruction(((SugiliteOperationBlock) block).getNextBlock());
+        //if the current block is a fork, then SUGILITE needs to determine which "next block" to add to the queue
         else if (block instanceof SugiliteErrorHandlingForkBlock){
             //TODO: add automatic feature if can only find solution for one
             final AlertDialog.Builder builder = new AlertDialog.Builder(context)
@@ -398,10 +473,21 @@ public class Automator {
                     dialog.show();
                 }
             });
-
         }
+        else if (block instanceof SugiliteSubscriptOperationBlock)
+            sugiliteData.addInstruction(((SugiliteSubscriptOperationBlock) block).getNextBlock());
         else
             throw new RuntimeException("Unsupported Block Type!");
+    }
+
+    /**
+     *
+     * @param block
+     * @return true for original branch, false for alternative branch
+     */
+    //ONLY THE ALTERNATIVE BLOCK CAN BE ANOTHER FORK BLOCK!!!
+    public boolean chooseBranchForForkBlock(SugiliteErrorHandlingForkBlock block){
+        return false;
     }
 
 

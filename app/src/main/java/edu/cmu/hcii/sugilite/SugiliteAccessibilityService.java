@@ -66,7 +66,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
         sugiliteData = (SugiliteData)getApplication();
         statusIconManager = new StatusIconManager(this, sugiliteData, sharedPreferences);
         screenshotManager = new SugiliteScreenshotManager(sharedPreferences, getApplicationContext());
-        automator = new Automator(sugiliteData, this, statusIconManager);
+        automator = new Automator(sugiliteData, this, statusIconManager, sharedPreferences);
         sugilteTrackingHandler = new SugiliteTrackingHandler(sugiliteData, getApplicationContext());
         availableAlternatives = new HashSet<>();
         availableAlternativeNodes = new HashSet<>();
@@ -175,7 +175,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
     Set<String> exceptedPackages = new HashSet<>();
     Set<String> trackingExcludedPackages = new HashSet<>();
 
-    String previousClickText = "NULL", previousClickContentDescription = "NULL", previousClickChildText = "NULL", previousClickChildContentDescription = "NULL";
+    String previousClickText = "NULL", previousClickContentDescription = "NULL", previousClickChildText = "NULL", previousClickChildContentDescription = "NULL", previousClickPackageName = "NULL";
     @Override
     public void onAccessibilityEvent(AccessibilityEvent event) {
         //TODO problem: the status of "right after click" (try getParent()?)
@@ -211,6 +211,11 @@ public class SugiliteAccessibilityService extends AccessibilityService {
                 previousClickContentDescription = sourceNode.getContentDescription().toString();
             else
                 previousClickContentDescription = "NULL";
+            if(sourceNode.getPackageName() != null)
+                previousClickPackageName = sourceNode.getPackageName().toString();
+            else
+                previousClickPackageName = "NULL";
+
             List<AccessibilityNodeInfo> childNodes = Automator.preOrderTraverse(sourceNode);
             Set<String> childTexts = new HashSet<>();
             Set<String> childContentDescriptions = new HashSet<>();
@@ -308,7 +313,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
                 if(BUILDING_VOCAB) {
                     for (Map.Entry<String, String> entry : packageVocabs) {
                         try {
-                            vocabularyDao.save(entry.getKey(), entry.getValue(), "meh", previousClickText, previousClickContentDescription, previousClickChildText, previousClickChildContentDescription);
+                            vocabularyDao.save(entry.getKey(), entry.getValue(), "meh", previousClickText, previousClickContentDescription, previousClickChildText, previousClickChildContentDescription, previousClickPackageName);
                         } catch (Exception e) {
                             e.printStackTrace();
                         }
@@ -349,7 +354,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
                 if (event.getEventType() == AccessibilityEvent.TYPE_VIEW_CLICKED) {
                     for (Map.Entry<String, String> entry : packageVocabs) {
                         try {
-                            vocabularyDao.save(entry.getKey(), entry.getValue(), "meh", previousClickText, previousClickContentDescription, previousClickChildText, previousClickChildContentDescription);
+                            vocabularyDao.save(entry.getKey(), entry.getValue(), "meh", previousClickText, previousClickContentDescription, previousClickChildText, previousClickChildContentDescription, previousClickPackageName);
                         } catch (Exception e) {
                             e.printStackTrace();
                         }

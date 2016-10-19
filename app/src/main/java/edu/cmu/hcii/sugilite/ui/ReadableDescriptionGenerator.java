@@ -10,6 +10,7 @@ import java.util.Map;
 import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
+import edu.cmu.hcii.sugilite.model.block.SugiliteSubscriptOperationBlock;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteOperation;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteSetTextOperation;
 
@@ -99,12 +100,12 @@ public class ReadableDescriptionGenerator {
             }
 
             if (((SugiliteOperationBlock) block).getElementMatchingFilter().getChildFilter()!= null && ((SugiliteOperationBlock) block).getElementMatchingFilter().getChildFilter().getViewId() != null){
-                message += (thatPrinted ? "" : "that ") + "has child view ID \"" + setColor(((SugiliteOperationBlock) block).getElementMatchingFilter().getChildFilter().getViewId(), "#800080") + "\" ";
+                message += (thatPrinted ? "" : "that ") + "has child Object ID \"" + setColor(((SugiliteOperationBlock) block).getElementMatchingFilter().getChildFilter().getViewId(), "#800080") + "\" ";
                 thatPrinted = true;            }
 
 
             if(((SugiliteOperationBlock) block).getElementMatchingFilter().getViewId() != null){
-                message += (thatPrinted ? "" : "that ") + "has the view ID \"" + setColor(((SugiliteOperationBlock) block).getElementMatchingFilter().getViewId(), "#800080") + "\" ";
+                message += (thatPrinted ? "" : "that ") + "has the Object ID \"" + setColor(((SugiliteOperationBlock) block).getElementMatchingFilter().getViewId(), "#800080") + "\" ";
                 thatPrinted = true;
             }
 
@@ -119,6 +120,9 @@ public class ReadableDescriptionGenerator {
             if(((SugiliteOperationBlock) block).getElementMatchingFilter().getPackageName() != null)
                 message += "in " + setColor(getReadableName(((SugiliteOperationBlock) block).getElementMatchingFilter().getPackageName()), "#ff00ff") + " ";
             return message;
+        }
+        else if (block instanceof SugiliteSubscriptOperationBlock){
+            return "<b> RUN SUBSCRIPT " + setColor(((SugiliteSubscriptOperationBlock) block).getSubscriptName(), "#bc002f") + "</b>";
         }
 
 

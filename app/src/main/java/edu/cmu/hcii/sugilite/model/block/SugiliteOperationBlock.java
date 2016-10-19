@@ -52,6 +52,8 @@ public class SugiliteOperationBlock extends SugiliteBlock implements Serializabl
             ((SugiliteStartingBlock) previousBlock).setNextBlock(null);
         if(previousBlock instanceof SugiliteOperationBlock)
             ((SugiliteOperationBlock) previousBlock).setNextBlock(null);
+        if(previousBlock instanceof SugiliteSubscriptOperationBlock)
+            ((SugiliteSubscriptOperationBlock) previousBlock).setNextBlock(null);
     }
 
 }

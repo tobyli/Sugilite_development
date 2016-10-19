@@ -18,7 +18,7 @@ public abstract class SugiliteBlock implements Serializable{
         createdTime = Calendar.getInstance().getTimeInMillis();
     }
     public int blockType;
-    public static int REGULAR_OPERATION = 1, CONDITION = 2, FOR_EACH_LOOP = 3, RETURN_VALUE = 4, END_BLOCK = 5, STARTING_BLOCK = 6;
+    public static int REGULAR_OPERATION = 1, CONDITION = 2, FOR_EACH_LOOP = 3, RETURN_VALUE = 4, END_BLOCK = 5, STARTING_BLOCK = 6, SUBSCRIPT = 7;
     //each block can only have 1 previous block
     SugiliteBlock previousBlock;
     private String description;

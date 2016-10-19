@@ -34,13 +34,13 @@ public class SugiliteAppVocabularyDao {
      * @return row id
      * @throws Exception
      */
-    public long save(String packageName, String text, String textType, String previousClickText, String previousClickContentDescription, String previousClickChildText, String previousClickChildContentDescription) throws Exception{
+    public long save(String packageName, String text, String textType, String previousClickText, String previousClickContentDescription, String previousClickChildText, String previousClickChildContentDescription, String previousClickPackageName) throws Exception{
         ContentValues values = new ContentValues();
         if(packageName == null || text == null){
             throw new Exception("null block");
         }
         //TODO: fix contains entry
-        if(containsEntry(packageName, text, textType, previousClickText, previousClickContentDescription, previousClickChildText, previousClickChildContentDescription))
+        if(containsEntry(packageName, text, textType, previousClickText, previousClickContentDescription, previousClickChildText, previousClickChildContentDescription, previousClickPackageName))
             return -1;
         values.put(SugiliteAppVocabularyDBContract.SugiliteAppVocabularRecordEntry.COLUMN_NAME_PACKAGE_NAME, packageName);
         values.put(SugiliteAppVocabularyDBContract.SugiliteAppVocabularRecordEntry.COLUMN_NAME_TEXT, text);
@@ -49,6 +49,7 @@ public class SugiliteAppVocabularyDao {
         values.put(SugiliteAppVocabularyDBContract.SugiliteAppVocabularRecordEntry.COLUMN_NAME_PREVIOUS_CLICK_CONTENT_DESCRIPTION, previousClickContentDescription);
         values.put(SugiliteAppVocabularyDBContract.SugiliteAppVocabularRecordEntry.COLUMN_NAME_PREVIOUS_CLICK_CHILD_TEXT, previousClickChildText);
         values.put(SugiliteAppVocabularyDBContract.SugiliteAppVocabularRecordEntry.COLUMN_NAME_PREVIOUS_CLICK_CHILD_CONTENT_DESCRIPTION, previousClickChildContentDescription);
+        values.put(SugiliteAppVocabularyDBContract.SugiliteAppVocabularRecordEntry.COLUMN_NAME_PREVIOUS_CLICK_PACKAGE_NAME, previousClickPackageName);
 
         long newRowId = -1;
         try {
@@ -165,7 +166,7 @@ public class SugiliteAppVocabularyDao {
     }
 
     /**
-     * check if db contains a given (packageName, text, textType, previousClickText, previousClickContentDescription, previousClickChildText, previousClickChildContentDescription)
+     * check if db contains a given (packageName, text, textType, previousClickText, previousClickContentDescription, previousClickChildText, previousClickChildContentDescription, previousClickPackageName)
      * @param packageName
      * @param text
      * @param textType
@@ -173,10 +174,11 @@ public class SugiliteAppVocabularyDao {
      * @param previousClickContentDescription
      * @param previousClickChildText
      * @param previousClickChildContentDescription
+     * @param previousClickPackageName
      * @return
      * @throws Exception
      */
-    public boolean containsEntry(String packageName, String text, String textType, String previousClickText, String previousClickContentDescription, String previousClickChildText, String previousClickChildContentDescription) throws Exception {
+    public boolean containsEntry(String packageName, String text, String textType, String previousClickText, String previousClickContentDescription, String previousClickChildText, String previousClickChildContentDescription, String previousClickPackageName) throws Exception {
         String[] columnsToReturn = {SugiliteAppVocabularyDBContract.SugiliteAppVocabularRecordEntry.COLUMN_NAME_TEXT};
         String selection = SugiliteAppVocabularyDBContract.SugiliteAppVocabularRecordEntry.COLUMN_NAME_PACKAGE_NAME + " =? AND " +
                 SugiliteAppVocabularyDBContract.SugiliteAppVocabularRecordEntry.COLUMN_NAME_TEXT + " =? AND " +
@@ -184,9 +186,10 @@ public class SugiliteAppVocabularyDao {
                 SugiliteAppVocabularyDBContract.SugiliteAppVocabularRecordEntry.COLUMN_NAME_PREVIOUS_CLICK_TEXT + " =? AND " +
                 SugiliteAppVocabularyDBContract.SugiliteAppVocabularRecordEntry.COLUMN_NAME_PREVIOUS_CLICK_CONTENT_DESCRIPTION + " =? AND " +
                 SugiliteAppVocabularyDBContract.SugiliteAppVocabularRecordEntry.COLUMN_NAME_PREVIOUS_CLICK_CHILD_TEXT + " =? AND " +
-                SugiliteAppVocabularyDBContract.SugiliteAppVocabularRecordEntry.COLUMN_NAME_PREVIOUS_CLICK_CHILD_CONTENT_DESCRIPTION + " =?";
+                SugiliteAppVocabularyDBContract.SugiliteAppVocabularRecordEntry.COLUMN_NAME_PREVIOUS_CLICK_CHILD_CONTENT_DESCRIPTION + " =? AND " +
+                SugiliteAppVocabularyDBContract.SugiliteAppVocabularRecordEntry.COLUMN_NAME_PREVIOUS_CLICK_PACKAGE_NAME + " =?";
 
-        String[] selectionArgs = {packageName, text, textType, previousClickText, previousClickChildContentDescription, previousClickChildText, previousClickChildContentDescription};
+        String[] selectionArgs = {packageName, text, textType, previousClickText, previousClickContentDescription, previousClickChildText, previousClickChildContentDescription, previousClickPackageName};
 
         boolean containsEntry = false;
         try {

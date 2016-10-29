@@ -6,42 +6,34 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.graphics.Bitmap;
 import android.graphics.PixelFormat;
 import android.graphics.Rect;
 import android.net.Uri;
-import android.os.Environment;
 import android.provider.Settings;
 import android.util.DisplayMetrics;
 import android.view.GestureDetector;
 import android.view.Gravity;
-import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
 import android.view.accessibility.AccessibilityNodeInfo;
-import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Toast;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Random;
 
+import edu.cmu.hcii.sugilite.Const;
 import edu.cmu.hcii.sugilite.MainActivity;
 import edu.cmu.hcii.sugilite.R;
-import edu.cmu.hcii.sugilite.ScriptDetailActivity;
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.automation.Automator;
 import edu.cmu.hcii.sugilite.automation.ServiceStatusManager;
 import edu.cmu.hcii.sugilite.communication.SugiliteBlockJSONProcessor;
-import edu.cmu.hcii.sugilite.communication.SugiliteCommunicationController;
 import edu.cmu.hcii.sugilite.dao.SugiliteScreenshotManager;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
 import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
@@ -52,6 +44,10 @@ import edu.cmu.hcii.sugilite.model.block.UIElementMatchingFilter;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteOperation;
 import edu.cmu.hcii.sugilite.model.variable.Variable;
 import edu.cmu.hcii.sugilite.model.variable.VariableHelper;
+import edu.cmu.hcii.sugilite.recording.ReadableDescriptionGenerator;
+import edu.cmu.hcii.sugilite.ui.dialog.NewScriptDialog;
+import edu.cmu.hcii.sugilite.ui.dialog.SelectElementWithTextDialog;
+import edu.cmu.hcii.sugilite.ui.dialog.VariableSetValueDialog;
 
 /**
  * @author toby
@@ -277,6 +273,8 @@ public class StatusIconManager {
                             operationList.add("View Current Recording");
                             operationList.add("Add GO_HOME Operation Block");
                             operationList.add("Add Running a Subscript");
+                            if(Const.KEEP_ALL_TEXT_LABEL_LIST)
+                                operationList.add("Get a Text Element on the Screen");
                             operationList.add("End Recording");
                         }
                         else{
@@ -459,6 +457,10 @@ public class StatusIconManager {
                                     chooseSubscriptDialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
                                     chooseSubscriptDialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_box);
                                     chooseSubscriptDialog.show();
+                                    break;
+                                case "Get a Text Element on the Screen":
+                                    SelectElementWithTextDialog selectElementWithTextDialog = new SelectElementWithTextDialog(context, layoutInflater, sugiliteData);
+                                    selectElementWithTextDialog.show();
                                     break;
                                 default:
                                     //do nothing

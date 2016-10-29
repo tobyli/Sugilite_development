@@ -1,4 +1,4 @@
-package edu.cmu.hcii.sugilite;
+package edu.cmu.hcii.sugilite.ui;
 
 
 import android.annotation.TargetApi;
@@ -13,13 +13,11 @@ import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.SystemClock;
 import android.preference.EditTextPreference;
 import android.preference.ListPreference;
 import android.preference.Preference;
 import android.preference.PreferenceActivity;
 import android.preference.SwitchPreference;
-import android.provider.Settings;
 import android.support.v7.app.ActionBar;
 import android.preference.PreferenceFragment;
 import android.preference.PreferenceManager;
@@ -28,10 +26,8 @@ import android.text.TextUtils;
 import android.view.KeyEvent;
 import android.view.MenuItem;
 import android.support.v4.app.NavUtils;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
-import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.Toast;
 
@@ -39,12 +35,12 @@ import com.stericson.RootTools.RootTools;
 
 import java.util.List;
 
+import edu.cmu.hcii.sugilite.R;
+import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.automation.ServiceStatusManager;
 import edu.cmu.hcii.sugilite.communication.SugiliteBlockJSONProcessor;
-import edu.cmu.hcii.sugilite.communication.SugiliteCommunicationController;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
 import edu.cmu.hcii.sugilite.dao.SugiliteTrackingDao;
-import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.tracking.SugiliteTrackingHandler;
 

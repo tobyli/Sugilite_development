@@ -1,26 +1,20 @@
 package edu.cmu.hcii.sugilite.automation;
 
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.graphics.Rect;
 import android.os.Bundle;
 import android.os.Handler;
 import android.text.Html;
 import android.view.LayoutInflater;
-import android.view.MotionEvent;
-import android.view.View;
 import android.view.WindowManager;
 import android.view.accessibility.AccessibilityNodeInfo;
-import android.widget.Toast;
 
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -42,9 +36,11 @@ import edu.cmu.hcii.sugilite.model.variable.Variable;
 import edu.cmu.hcii.sugilite.model.variable.VariableHelper;
 import edu.cmu.hcii.sugilite.ui.BoundingBoxManager;
 import edu.cmu.hcii.sugilite.ui.StatusIconManager;
-import edu.cmu.hcii.sugilite.ui.VariableSetValueDialog;
+import edu.cmu.hcii.sugilite.ui.dialog.VariableSetValueDialog;
 
 import android.speech.tts.TextToSpeech;
+
+import static edu.cmu.hcii.sugilite.Const.DELAY;
 
 
 /**
@@ -56,7 +52,6 @@ public class Automator {
     private Context context;
     private BoundingBoxManager boundingBoxManager;
     private VariableHelper variableHelper;
-    private static final int DELAY = 3000;
     private TextToSpeech tts;
     private SugiliteScriptDao sugiliteScriptDao;
     private LayoutInflater layoutInflater;

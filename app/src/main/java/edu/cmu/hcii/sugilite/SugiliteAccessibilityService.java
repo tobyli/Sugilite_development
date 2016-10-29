@@ -45,6 +45,10 @@ import edu.cmu.hcii.sugilite.recording.mRecordingPopUpActivity;
 import edu.cmu.hcii.sugilite.tracking.SugiliteTrackingHandler;
 import edu.cmu.hcii.sugilite.ui.StatusIconManager;
 
+import static edu.cmu.hcii.sugilite.Const.BROADCASTING_ACCESSIBILITY_EVENT;
+import static edu.cmu.hcii.sugilite.Const.BUILDING_VOCAB;
+import static edu.cmu.hcii.sugilite.Const.KEEP_ALL_TEXT_LABEL_LIST;
+
 public class SugiliteAccessibilityService extends AccessibilityService {
     private WindowManager windowManager;
     private SharedPreferences sharedPreferences;
@@ -57,7 +61,6 @@ public class SugiliteAccessibilityService extends AccessibilityService {
     private Context context;
     private SugiliteTrackingHandler sugilteTrackingHandler;
     private SugiliteAppVocabularyDao vocabularyDao;
-    final private static boolean BUILDING_VOCAB = false;
     private Handler handler;
 
 
@@ -266,6 +269,30 @@ public class SugiliteAccessibilityService extends AccessibilityService {
             availableAlternatives.addAll(getAlternativeLabels(sourceNode, rootNode));
             availableAlternativeNodes.addAll(getAvailableAlternativeNodes(sourceNode, rootNode));
 
+            //refresh the elementsWithTextLabels list
+            if(KEEP_ALL_TEXT_LABEL_LIST && event.getPackageName() != null && (!exceptedPackages.contains(event.getPackageName()))){
+                List<AccessibilityNodeInfo> nodes = getAllNodesWithText(rootNode);
+                boolean toRefresh = true;
+                //hack used to avoid getting items in the duck popup
+                if(nodes.size() > 10)
+                    toRefresh = true;
+                else {
+                    for(AccessibilityNodeInfo node : nodes){
+                        if(node.getText() != null && node.getText().toString().contains("Quit Sugilite")){
+                            toRefresh = false;
+                            break;
+                        }
+                    }
+                    if(nodes.size() <= 0)
+                        toRefresh = false;
+                }
+                if(toRefresh) {
+                    sugiliteData.elementsWithTextLabels.clear();
+                    sugiliteData.elementsWithTextLabels.addAll(getAllNodesWithText(rootNode));
+                }
+                //System.out.println(event.getPackageName() + " " + sugiliteData.elementsWithTextLabels.size());
+            }
+
             //if the event is to be recorded, process it
             if (accessibilityEventSetToSend.contains(event.getEventType()) && (!exceptedPackages.contains(event.getPackageName()))) {
                 if (event.getEventType() == AccessibilityEvent.TYPE_VIEW_TEXT_CHANGED || event.getEventType() == AccessibilityEvent.TYPE_VIEW_FOCUSED){
@@ -341,33 +368,31 @@ public class SugiliteAccessibilityService extends AccessibilityService {
         }
 
         // broadcast the accessibility event received, for any app that may want to listen
-        try
-        {
-            if (accessibilityEventSetToTrack.contains(event.getEventType()) && (!trackingExcludedPackages.contains(event.getPackageName())))
-            {
-                SugiliteEventBroadcastingActivity.BroadcastingEvent broadcastingEvent = new SugiliteEventBroadcastingActivity.BroadcastingEvent(event);
-                Gson gson = new Gson();
+        if(BROADCASTING_ACCESSIBILITY_EVENT) {
+            try {
+                if (accessibilityEventSetToTrack.contains(event.getEventType()) && (!trackingExcludedPackages.contains(event.getPackageName()))) {
+                    SugiliteEventBroadcastingActivity.BroadcastingEvent broadcastingEvent = new SugiliteEventBroadcastingActivity.BroadcastingEvent(event);
+                    Gson gson = new Gson();
 
-                // what is teh event ? find the properties.
-                String desc = broadcastingEvent.contentDescription;
-                String pkg = broadcastingEvent.packageName;
-                String event_type = broadcastingEvent.eventType;
+                    // what is teh event ? find the properties.
+                    String desc = broadcastingEvent.contentDescription;
+                    String pkg = broadcastingEvent.packageName;
+                    String event_type = broadcastingEvent.eventType;
 
-                // if it is a home press event ...
-                //if(desc.contentEquals("Home") && event_type.contentEquals("TYPE_VIEW_CLICKED") && pkg.contentEquals("com.android.systemui"))
-                if (true)
-                {
-                    String messageToSend = gson.toJson(broadcastingEvent);
+                    // if it is a home press event ...
+                    //if(desc.contentEquals("Home") && event_type.contentEquals("TYPE_VIEW_CLICKED") && pkg.contentEquals("com.android.systemui"))
+                    if (true) {
+                        String messageToSend = gson.toJson(broadcastingEvent);
 
-                    Intent intent = new Intent();
-                    intent.setAction("edu.cmu.hcii.sugilite.SUGILITE_EVENT");
-                    intent.putExtra("event_string", messageToSend);
-                    sendBroadcast(intent);
+                        Intent intent = new Intent();
+                        intent.setAction("edu.cmu.hcii.sugilite.SUGILITE_EVENT");
+                        intent.putExtra("event_string", messageToSend);
+                        sendBroadcast(intent);
+                    }
                 }
+            } catch (Exception e) {
             }
         }
-        catch(Exception e)
-        {}
 
         if (sharedPreferences.getBoolean("tracking_in_process", false)) {
             //background tracking in progress
@@ -577,6 +602,18 @@ public class SugiliteAccessibilityService extends AccessibilityService {
         popUpIntent.putExtra("trigger", RecordingPopUpDialog.TRIGGERED_BY_NEW_EVENT);
         popUpIntent.putExtra("alternativeLabels", entryHashSet);
         return popUpIntent;
+    }
+
+    private List<AccessibilityNodeInfo> getAllNodesWithText(AccessibilityNodeInfo rootNode) {
+        List<AccessibilityNodeInfo> retList = new ArrayList<>();
+        List<AccessibilityNodeInfo> allNodes = Automator.preOrderTraverse(rootNode);
+        if (allNodes == null)
+            return retList;
+        for (AccessibilityNodeInfo node : allNodes) {
+            if(node.getText() != null)
+                retList.add(node);
+        }
+        return retList;
     }
 
     private HashSet<Map.Entry<String, String>> getAlternativeLabels (AccessibilityNodeInfo sourceNode, AccessibilityNodeInfo rootNode){

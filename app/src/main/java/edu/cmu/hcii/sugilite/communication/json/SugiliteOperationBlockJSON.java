@@ -10,7 +10,7 @@ import edu.cmu.hcii.sugilite.model.block.SugiliteAvailableFeaturePack;
 import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteOperation;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteSetTextOperation;
-import edu.cmu.hcii.sugilite.ui.ReadableDescriptionGenerator;
+import edu.cmu.hcii.sugilite.recording.ReadableDescriptionGenerator;
 
 /**
  * Created by toby on 7/14/16.

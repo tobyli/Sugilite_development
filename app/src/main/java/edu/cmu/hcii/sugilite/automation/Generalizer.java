@@ -17,7 +17,7 @@ import edu.cmu.hcii.sugilite.model.block.UIElementMatchingFilter;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteOperation;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteSetTextOperation;
 import edu.cmu.hcii.sugilite.model.variable.StringVariable;
-import edu.cmu.hcii.sugilite.ui.ReadableDescriptionGenerator;
+import edu.cmu.hcii.sugilite.recording.ReadableDescriptionGenerator;
 
 /**
  * @author toby

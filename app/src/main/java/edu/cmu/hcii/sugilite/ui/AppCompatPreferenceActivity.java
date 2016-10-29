@@ -1,4 +1,4 @@
-package edu.cmu.hcii.sugilite;
+package edu.cmu.hcii.sugilite.ui;
 
 import android.content.res.Configuration;
 import android.os.Bundle;

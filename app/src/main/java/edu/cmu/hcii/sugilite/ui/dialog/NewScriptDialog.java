@@ -1,4 +1,4 @@
-package edu.cmu.hcii.sugilite.ui;
+package edu.cmu.hcii.sugilite.ui.dialog;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -7,7 +7,6 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.view.KeyEvent;
-import android.view.View;
 import android.view.WindowManager;
 import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;

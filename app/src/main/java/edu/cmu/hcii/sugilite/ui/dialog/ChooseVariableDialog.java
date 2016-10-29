@@ -1,7 +1,6 @@
-package edu.cmu.hcii.sugilite.ui;
+package edu.cmu.hcii.sugilite.ui.dialog;
 
 import android.app.AlertDialog;
-import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.text.Editable;

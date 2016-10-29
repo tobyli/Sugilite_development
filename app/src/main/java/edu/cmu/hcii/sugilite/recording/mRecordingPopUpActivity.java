@@ -53,8 +53,7 @@ import edu.cmu.hcii.sugilite.model.block.UIElementMatchingFilter;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteOperation;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteSetTextOperation;
 import edu.cmu.hcii.sugilite.model.variable.Variable;
-import edu.cmu.hcii.sugilite.ui.ChooseVariableDialog;
-import edu.cmu.hcii.sugilite.ui.ReadableDescriptionGenerator;
+import edu.cmu.hcii.sugilite.ui.dialog.ChooseVariableDialog;
 
 @Deprecated
 public class mRecordingPopUpActivity extends AppCompatActivity {

@@ -7,6 +7,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.preference.PreferenceManager;
 import android.view.accessibility.AccessibilityEvent;
+import android.view.accessibility.AccessibilityNodeInfo;
 
 import com.google.gson.Gson;
 
@@ -27,7 +28,7 @@ import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.model.variable.Variable;
-import edu.cmu.hcii.sugilite.ui.AbstractSugiliteDialog;
+import edu.cmu.hcii.sugilite.ui.dialog.AbstractSugiliteDialog;
 
 /**
  * @author toby
@@ -52,6 +53,7 @@ public class SugiliteData extends Application {
 
     public Queue<AbstractSugiliteDialog> recordingPopupDialogQueue = new ArrayDeque<>();
     public boolean hasRecordingPopupActive = false;
+    public List<AccessibilityNodeInfo> elementsWithTextLabels = new ArrayList<>();
 
 
     public SugiliteStartingBlock getScriptHead(){

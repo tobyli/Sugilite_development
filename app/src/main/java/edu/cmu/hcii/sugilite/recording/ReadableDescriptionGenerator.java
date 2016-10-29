@@ -1,4 +1,4 @@
-package edu.cmu.hcii.sugilite.ui;
+package edu.cmu.hcii.sugilite.recording;
 
 import android.content.Context;
 import android.content.pm.ApplicationInfo;

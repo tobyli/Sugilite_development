@@ -1,4 +1,4 @@
-package edu.cmu.hcii.sugilite;
+package edu.cmu.hcii.sugilite.ui;
 
 import android.app.ActivityManager;
 import android.app.AlertDialog;
@@ -30,6 +30,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import edu.cmu.hcii.sugilite.MainActivity;
+import edu.cmu.hcii.sugilite.R;
+import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.automation.Automator;
 import edu.cmu.hcii.sugilite.automation.ServiceStatusManager;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
@@ -40,7 +43,9 @@ import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteSubscriptOperationBlock;
 import edu.cmu.hcii.sugilite.recording.RecordingPopUpDialog;
 import edu.cmu.hcii.sugilite.model.variable.Variable;
-import edu.cmu.hcii.sugilite.ui.VariableSetValueDialog;
+import edu.cmu.hcii.sugilite.ui.dialog.VariableSetValueDialog;
+
+import static edu.cmu.hcii.sugilite.Const.SCRIPT_DELAY;
 
 public class ScriptDetailActivity extends AppCompatActivity {
 
@@ -644,7 +649,7 @@ public class ScriptDetailActivity extends AppCompatActivity {
             sugiliteData.runScript(script, true);
             //need to have this delay to ensure that the killing has finished before we start executing
             try {
-                Thread.sleep(VariableSetValueDialog.SCRIPT_DELAY);
+                Thread.sleep(SCRIPT_DELAY);
             } catch (Exception e) {
                 // do nothing
             }

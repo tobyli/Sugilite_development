@@ -1,4 +1,4 @@
-package edu.cmu.hcii.sugilite.ui;
+package edu.cmu.hcii.sugilite.ui.dialog;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -15,10 +15,8 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -30,6 +28,8 @@ import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.model.variable.StringVariable;
 import edu.cmu.hcii.sugilite.model.variable.Variable;
+
+import static edu.cmu.hcii.sugilite.Const.SCRIPT_DELAY;
 
 /**
  * @author toby
@@ -45,7 +45,6 @@ public class VariableSetValueDialog extends AbstractSugiliteDialog{
     private SharedPreferences sharedPreferences;
     private SugiliteStartingBlock startingBlock;
     private SugiliteData sugiliteData;
-    public static final int SCRIPT_DELAY = 2000;
 
     public VariableSetValueDialog(final Context context, LayoutInflater inflater, SugiliteData sugiliteData, SugiliteStartingBlock startingBlock, SharedPreferences sharedPreferences){
         AlertDialog.Builder builder = new AlertDialog.Builder(context);

@@ -7,9 +7,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.WindowManager;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -29,7 +27,9 @@ import edu.cmu.hcii.sugilite.dao.SugiliteAppVocabularyDao;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
 import edu.cmu.hcii.sugilite.dao.SugiliteTrackingDao;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
-import edu.cmu.hcii.sugilite.ui.VariableSetValueDialog;
+import edu.cmu.hcii.sugilite.ui.dialog.VariableSetValueDialog;
+
+import static edu.cmu.hcii.sugilite.Const.SCRIPT_DELAY;
 
 public class SugiliteCommunicationActicvity extends Activity {
     TextView messageType, scriptName;
@@ -373,7 +373,7 @@ public class SugiliteCommunicationActicvity extends Activity {
             }
             sugiliteData.runScript(script, null);
             try {
-                Thread.sleep(VariableSetValueDialog.SCRIPT_DELAY);
+                Thread.sleep(SCRIPT_DELAY);
             } catch (Exception e) {
                 // do nothing
             }

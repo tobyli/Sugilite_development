@@ -44,7 +44,7 @@
         </service>
 
         <activity
-            android:name=".SettingsActivity"
+            android:name=".ui.SettingsActivity"
             android:label="@string/title_activity_settings"
             android:noHistory="true"
             android:parentActivityName=".MainActivity" >
@@ -58,7 +58,7 @@
             android:name=".recording.RecordingPopupSubMenuActivity"
             android:noHistory="true" >
         </activity>
-        <activity android:name=".ScriptDetailActivity" >
+        <activity android:name=".ui.ScriptDetailActivity" >
         </activity>
         <activity
             android:name=".recording.mRecordingPopUpActivity"

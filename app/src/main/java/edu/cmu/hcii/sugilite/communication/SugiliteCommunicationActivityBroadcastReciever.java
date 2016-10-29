@@ -1,13 +1,11 @@
 package edu.cmu.hcii.sugilite.communication;
 
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.WindowManager;
@@ -22,14 +20,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import edu.cmu.hcii.sugilite.R;
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.automation.ServiceStatusManager;
 import edu.cmu.hcii.sugilite.dao.SugiliteAppVocabularyDao;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
 import edu.cmu.hcii.sugilite.dao.SugiliteTrackingDao;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
-import edu.cmu.hcii.sugilite.ui.VariableSetValueDialog;
+import edu.cmu.hcii.sugilite.ui.dialog.VariableSetValueDialog;
+
+import static edu.cmu.hcii.sugilite.Const.SCRIPT_DELAY;
 
 public class SugiliteCommunicationActivityBroadcastReciever extends BroadcastReceiver
 {
@@ -402,9 +401,9 @@ public class SugiliteCommunicationActivityBroadcastReciever extends BroadcastRec
                     // do nothing, likely this exception is caused by non-rooted device
                 }
             }
-            sugiliteData.runScript(script);
+            sugiliteData.runScript(script, false);
             try {
-                Thread.sleep(VariableSetValueDialog.SCRIPT_DELAY);
+                Thread.sleep(SCRIPT_DELAY);
             } catch (Exception e) {
                 // do nothing
             }

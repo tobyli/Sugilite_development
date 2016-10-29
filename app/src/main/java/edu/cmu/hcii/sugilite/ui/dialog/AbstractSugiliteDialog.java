@@ -1,4 +1,4 @@
-package edu.cmu.hcii.sugilite.ui;
+package edu.cmu.hcii.sugilite.ui.dialog;
 
 /**
  * @author toby

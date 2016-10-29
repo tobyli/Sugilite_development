@@ -22,7 +22,7 @@ import edu.cmu.hcii.sugilite.model.block.SugiliteErrorHandlingForkBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteOperation;
-import edu.cmu.hcii.sugilite.ui.ReadableDescriptionGenerator;
+import edu.cmu.hcii.sugilite.recording.ReadableDescriptionGenerator;
 
 /**
  * @author toby
@@ -64,7 +64,8 @@ public class ErrorHandler {
      * execute at every accessibility event (when running)
      * @param event
      * @param nextInstruction
-     * @return true if there is an error in running the automation
+     * @return true if there is an error in running the automation`
+     *
      */
     public boolean checkError(AccessibilityEvent event, SugiliteBlock nextInstruction, long eventTime){
         if(nextInstruction == null)

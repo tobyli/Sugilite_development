@@ -19,18 +19,19 @@ import android.util.Log;
 import android.view.WindowManager;
 import android.widget.Toast;
 
-import com.google.gson.Gson;
-
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
+import edu.cmu.hcii.sugilite.Const;
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.automation.ServiceStatusManager;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
 import edu.cmu.hcii.sugilite.dao.SugiliteTrackingDao;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
-import edu.cmu.hcii.sugilite.ui.VariableSetValueDialog;
+import edu.cmu.hcii.sugilite.ui.dialog.VariableSetValueDialog;
+
+import static edu.cmu.hcii.sugilite.Const.SCRIPT_DELAY;
 
 /**
  * Created by oscarr on 7/7/16.
@@ -392,7 +393,7 @@ public class SugiliteCommunicationController {
                             }
                             sugiliteData.runScript(script, null);
                             try {
-                                Thread.sleep(VariableSetValueDialog.SCRIPT_DELAY);
+                                Thread.sleep(SCRIPT_DELAY);
                             } catch (Exception e) {
                                 // do nothing
                             }

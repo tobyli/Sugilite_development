@@ -44,7 +44,6 @@ import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.model.block.UIElementMatchingFilter;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteOperation;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteSetTextOperation;
-import edu.cmu.hcii.sugilite.ui.ReadableDescriptionGenerator;
 
 @Deprecated
 public class RecordingPopUpActivity extends AppCompatActivity {

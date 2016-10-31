@@ -6,7 +6,6 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.os.Handler;
 import android.text.Html;
 import android.view.LayoutInflater;
 import android.view.WindowManager;
@@ -25,8 +24,8 @@ import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
 import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteErrorHandlingForkBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
+import edu.cmu.hcii.sugilite.model.block.SugiliteSpecialOperationBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
-import edu.cmu.hcii.sugilite.model.block.SugiliteSubscriptOperationBlock;
 import edu.cmu.hcii.sugilite.model.block.UIElementMatchingFilter;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteLoadVariableOperation;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteOperation;
@@ -36,7 +35,6 @@ import edu.cmu.hcii.sugilite.model.variable.Variable;
 import edu.cmu.hcii.sugilite.model.variable.VariableHelper;
 import edu.cmu.hcii.sugilite.ui.BoundingBoxManager;
 import edu.cmu.hcii.sugilite.ui.StatusIconManager;
-import edu.cmu.hcii.sugilite.ui.dialog.VariableSetValueDialog;
 
 import android.speech.tts.TextToSpeech;
 
@@ -107,47 +105,17 @@ public class Automator {
             /**
              * for subscript operation blocks, the subscript should be executed
              */
-            else if (blockToMatch instanceof SugiliteSubscriptOperationBlock){
+            else if (blockToMatch instanceof SugiliteSpecialOperationBlock){
                 sugiliteData.removeInstructionQueueItem();
-                SugiliteSubscriptOperationBlock sugiliteSubscriptOperationBlock = (SugiliteSubscriptOperationBlock)blockToMatch;
-
-                //run the subscript
-                final SugiliteStartingBlock script = sugiliteScriptDao.read(sugiliteSubscriptOperationBlock.getSubscriptName());
-                if(script != null) {
-                    Handler mainHandler = new Handler(context.getMainLooper());
-                    final Context finalContext = context;
-                    Runnable myRunnable = new Runnable() {
-                        @Override
-                        public void run() {
-                            VariableSetValueDialog variableSetValueDialog = new VariableSetValueDialog(finalContext, layoutInflater, sugiliteData, script, sharedPreferences);
-                            if (script.variableNameDefaultValueMap.size() > 0) {
-                                //has variable
-                                sugiliteData.stringVariableMap.putAll(script.variableNameDefaultValueMap);
-                                boolean needUserInput = false;
-                                for (Map.Entry<String, Variable> entry : script.variableNameDefaultValueMap.entrySet()) {
-                                    if (entry.getValue().type == Variable.USER_INPUT) {
-                                        needUserInput = true;
-                                        break;
-                                    }
-                                }
-                                if (needUserInput)
-                                    //show the dialog to obtain user input
-                                    variableSetValueDialog.show();
-                                else
-                                    variableSetValueDialog.executeScript(((SugiliteSubscriptOperationBlock) blockToMatch).getNextBlock());
-                            } else {
-                                //execute the script without showing the dialog
-                                variableSetValueDialog.executeScript(((SugiliteSubscriptOperationBlock) blockToMatch).getNextBlock());
-                            }
-                        }
-                    };
-                    mainHandler.post(myRunnable);
+                SugiliteSpecialOperationBlock specialOperationBlock = (SugiliteSpecialOperationBlock) blockToMatch;
+                try{
+                    specialOperationBlock.run(context, sugiliteData, sugiliteScriptDao, sharedPreferences);
+                    return true;
                 }
-                else {
-                    //ERROR: CAN'T FIND THE SCRIPT
-                    System.out.println("Can't find the script " + sugiliteSubscriptOperationBlock.getSubscriptName());
+                catch (Exception e) {
+                    e.printStackTrace();
+                    return false;
                 }
-                return true;
             }
             else {
                 throw new RuntimeException("Unsupported Block Type!");
@@ -371,6 +339,7 @@ public class Automator {
         return false;
     }
 
+
     /**
      * traverse a tree from the root, and return all the notes in the tree
      * @param root
@@ -389,7 +358,6 @@ public class Automator {
         }
         return list;
     }
-
     public List<AccessibilityNodeInfo> getClickableList (List<AccessibilityNodeInfo> nodeInfos){
         List<AccessibilityNodeInfo> retList = new ArrayList<>();
         for(AccessibilityNodeInfo node : nodeInfos){
@@ -469,8 +437,8 @@ public class Automator {
                 }
             });
         }
-        else if (block instanceof SugiliteSubscriptOperationBlock)
-            sugiliteData.addInstruction(((SugiliteSubscriptOperationBlock) block).getNextBlock());
+        else if (block instanceof SugiliteSpecialOperationBlock)
+            sugiliteData.addInstruction(((SugiliteSpecialOperationBlock) block).getNextBlock());
         else
             throw new RuntimeException("Unsupported Block Type!");
     }

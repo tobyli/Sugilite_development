@@ -9,8 +9,8 @@ import java.util.Map;
 
 import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
+import edu.cmu.hcii.sugilite.model.block.SugiliteSpecialOperationBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
-import edu.cmu.hcii.sugilite.model.block.SugiliteSubscriptOperationBlock;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteOperation;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteSetTextOperation;
 
@@ -121,8 +121,8 @@ public class ReadableDescriptionGenerator {
                 message += "in " + setColor(getReadableName(((SugiliteOperationBlock) block).getElementMatchingFilter().getPackageName()), "#ff00ff") + " ";
             return message;
         }
-        else if (block instanceof SugiliteSubscriptOperationBlock){
-            return "<b> RUN SUBSCRIPT " + setColor(((SugiliteSubscriptOperationBlock) block).getSubscriptName(), "#bc002f") + "</b>";
+        else if (block instanceof SugiliteSpecialOperationBlock){
+            return "<b> SPECIAL OPERATION " + setColor(((SugiliteSpecialOperationBlock) block).getDescription(), "#bc002f") + "</b>";
         }
 
 

@@ -51,8 +51,8 @@ import edu.cmu.hcii.sugilite.model.block.SugiliteAvailableFeaturePack;
 import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteErrorHandlingForkBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
+import edu.cmu.hcii.sugilite.model.block.SugiliteSpecialOperationBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
-import edu.cmu.hcii.sugilite.model.block.SugiliteSubscriptOperationBlock;
 import edu.cmu.hcii.sugilite.model.block.UIElementMatchingFilter;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteLoadVariableOperation;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteOperation;
@@ -1164,8 +1164,8 @@ public class RecordingPopUpDialog extends AbstractSugiliteDialog {
                 else if (sugiliteData.getCurrentScriptBlock() instanceof SugiliteErrorHandlingForkBlock){
                     ((SugiliteErrorHandlingForkBlock) sugiliteData.getCurrentScriptBlock()).setAlternativeNextBlock(operationBlock);
                 }
-                else if (sugiliteData.getCurrentScriptBlock() instanceof SugiliteSubscriptOperationBlock){
-                    ((SugiliteSubscriptOperationBlock) sugiliteData.getCurrentScriptBlock()).setNextBlock(operationBlock);
+                else if (sugiliteData.getCurrentScriptBlock() instanceof SugiliteSpecialOperationBlock){
+                    ((SugiliteSpecialOperationBlock) sugiliteData.getCurrentScriptBlock()).setNextBlock(operationBlock);
                 }
                 else{
                     throw new RuntimeException("Unsupported Block Type!");

@@ -67,11 +67,11 @@ public class SugiliteStartingBlock extends SugiliteBlock implements Serializable
                 else
                     currentBlock = ((SugiliteOperationBlock) currentBlock).getNextBlock();
             }
-            else if(currentBlock instanceof  SugiliteSubscriptOperationBlock){
-                if(((SugiliteOperationBlock) currentBlock).getNextBlock() == null)
+            else if(currentBlock instanceof  SugiliteSpecialOperationBlock){
+                if(((SugiliteSpecialOperationBlock) currentBlock).getNextBlock() == null)
                     return currentBlock;
                 else
-                    currentBlock = ((SugiliteSubscriptOperationBlock) currentBlock).getNextBlock();
+                    currentBlock = ((SugiliteSpecialOperationBlock) currentBlock).getNextBlock();
             }
             else if(currentBlock instanceof SugiliteErrorHandlingForkBlock){
                 if(((SugiliteErrorHandlingForkBlock) currentBlock).getOriginalNextBlock() == null)

@@ -23,7 +23,6 @@ import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Queue;
 import java.util.Random;
 
@@ -37,17 +36,17 @@ import edu.cmu.hcii.sugilite.communication.SugiliteBlockJSONProcessor;
 import edu.cmu.hcii.sugilite.dao.SugiliteScreenshotManager;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
 import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
+import edu.cmu.hcii.sugilite.model.block.SugiliteDelaySpecialOperationBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
+import edu.cmu.hcii.sugilite.model.block.SugiliteSpecialOperationBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
-import edu.cmu.hcii.sugilite.model.block.SugiliteSubscriptOperationBlock;
+import edu.cmu.hcii.sugilite.model.block.SugiliteSubscriptSpecialOperationBlock;
 import edu.cmu.hcii.sugilite.model.block.UIElementMatchingFilter;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteOperation;
-import edu.cmu.hcii.sugilite.model.variable.Variable;
 import edu.cmu.hcii.sugilite.model.variable.VariableHelper;
 import edu.cmu.hcii.sugilite.recording.ReadableDescriptionGenerator;
 import edu.cmu.hcii.sugilite.ui.dialog.NewScriptDialog;
 import edu.cmu.hcii.sugilite.ui.dialog.SelectElementWithTextDialog;
-import edu.cmu.hcii.sugilite.ui.dialog.VariableSetValueDialog;
 
 /**
  * @author toby
@@ -275,6 +274,7 @@ public class StatusIconManager {
                             operationList.add("Add Running a Subscript");
                             if(Const.KEEP_ALL_TEXT_LABEL_LIST)
                                 operationList.add("Get a Text Element on the Screen");
+                            operationList.add("Add a Delay");
                             operationList.add("End Recording");
                         }
                         else{
@@ -362,8 +362,8 @@ public class StatusIconManager {
                                             ((SugiliteOperationBlock) currentBlock).setNextBlock(operationBlock);
                                         else if (currentBlock instanceof SugiliteStartingBlock)
                                             ((SugiliteStartingBlock) currentBlock).setNextBlock(operationBlock);
-                                        else if (currentBlock instanceof SugiliteSubscriptOperationBlock)
-                                            ((SugiliteSubscriptOperationBlock) currentBlock).setNextBlock(operationBlock);
+                                        else if (currentBlock instanceof SugiliteSpecialOperationBlock)
+                                            ((SugiliteSpecialOperationBlock) currentBlock).setNextBlock(operationBlock);
                                         else
                                             throw new Exception("UNSUPPORTED BLOCK TYPE");
                                         //TODO: deal with blocks other than operation block and starting block
@@ -380,7 +380,7 @@ public class StatusIconManager {
                                     }
                                     break;
                                 case "Add Running a Subscript":
-                                    final SugiliteSubscriptOperationBlock subscriptBlock = new SugiliteSubscriptOperationBlock();
+                                    final SugiliteSubscriptSpecialOperationBlock subscriptBlock = new SugiliteSubscriptSpecialOperationBlock();
                                     subscriptBlock.setDescription(descriptionGenerator.generateReadableDescription(subscriptBlock));
                                     List<String> subscriptNames = sugiliteScriptDao.getAllNames();
                                     AlertDialog.Builder chooseSubscriptDialogBuilder = new AlertDialog.Builder(context);
@@ -406,12 +406,12 @@ public class StatusIconManager {
                                                         ((SugiliteOperationBlock) currentBlock).setNextBlock(subscriptBlock);
                                                     else if (currentBlock instanceof SugiliteStartingBlock)
                                                         ((SugiliteStartingBlock) currentBlock).setNextBlock(subscriptBlock);
-                                                    else if (currentBlock instanceof SugiliteSubscriptOperationBlock)
-                                                        ((SugiliteSubscriptOperationBlock) currentBlock).setNextBlock(subscriptBlock);
+                                                    else if (currentBlock instanceof SugiliteSpecialOperationBlock)
+                                                        ((SugiliteSpecialOperationBlock) currentBlock).setNextBlock(subscriptBlock);
                                                     else
                                                         throw new Exception("UNSUPPORTED BLOCK TYPE");
 
-                                                    subscriptBlock.setDescription(descriptionGenerator.generateReadableDescription(subscriptBlock));
+                                                    //subscriptBlock.setDescription(descriptionGenerator.generateReadableDescription(subscriptBlock));
                                                     sugiliteData.setCurrentScriptBlock(subscriptBlock);
                                                     sugiliteScriptDao.save(sugiliteData.getScriptHead());
                                                 }
@@ -425,28 +425,12 @@ public class StatusIconManager {
                                                 prefEditor.putBoolean("recording_in_process", false);
                                                 prefEditor.commit();
 
-                                                VariableSetValueDialog variableSetValueDialog = new VariableSetValueDialog(context, layoutInflater, sugiliteData, script, sharedPreferences);
-                                                if (script.variableNameDefaultValueMap.size() > 0) {
-                                                    //has variable
-                                                    sugiliteData.stringVariableMap.putAll(script.variableNameDefaultValueMap);
-                                                    boolean needUserInput = false;
-                                                    for (Map.Entry<String, Variable> entry : script.variableNameDefaultValueMap.entrySet()) {
-                                                        if (entry.getValue().type == Variable.USER_INPUT) {
-                                                            needUserInput = true;
-                                                            break;
-                                                        }
-                                                    }
-                                                    if (needUserInput)
-                                                        //show the dialog to obtain user input
-                                                        variableSetValueDialog.show();
-                                                    else
-                                                        variableSetValueDialog.executeScript(null);
-                                                } else {
-                                                    //execute the script without showing the dialog
-                                                    variableSetValueDialog.executeScript(null);
+                                                try {
+                                                    subscriptBlock.run(context, sugiliteData, sugiliteScriptDao, sharedPreferences);
                                                 }
-
-
+                                                catch (Exception e){
+                                                    e.printStackTrace();
+                                                }
                                             }
 
 
@@ -458,6 +442,36 @@ public class StatusIconManager {
                                     chooseSubscriptDialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_box);
                                     chooseSubscriptDialog.show();
                                     break;
+
+
+                                case "Add a Delay":
+                                    SugiliteDelaySpecialOperationBlock delaySpecialOperationBlock = new SugiliteDelaySpecialOperationBlock(10000);
+                                    delaySpecialOperationBlock.setDescription("Delay for 10s");
+
+                                    try {
+                                        SugiliteBlock currentBlock = sugiliteData.getCurrentScriptBlock();
+                                        if(currentBlock == null || sugiliteData.getScriptHead() == null)
+                                            throw new Exception("NULL CURRENT BLOCK OR NULL SCRIPT");
+                                        delaySpecialOperationBlock.setPreviousBlock(currentBlock);
+                                        if (currentBlock instanceof SugiliteOperationBlock)
+                                            ((SugiliteOperationBlock) currentBlock).setNextBlock(delaySpecialOperationBlock);
+                                        else if (currentBlock instanceof SugiliteStartingBlock)
+                                            ((SugiliteStartingBlock) currentBlock).setNextBlock(delaySpecialOperationBlock);
+                                        else if (currentBlock instanceof SugiliteSpecialOperationBlock)
+                                            ((SugiliteSpecialOperationBlock) currentBlock).setNextBlock(delaySpecialOperationBlock);
+                                        else
+                                            throw new Exception("UNSUPPORTED BLOCK TYPE");
+
+                                        //subscriptBlock.setDescription(descriptionGenerator.generateReadableDescription(subscriptBlock));
+                                        sugiliteData.setCurrentScriptBlock(delaySpecialOperationBlock);
+                                        sugiliteScriptDao.save(sugiliteData.getScriptHead());
+                                    }
+                                    catch (Exception e){
+                                        e.printStackTrace();
+                                    }
+                                    break;
+
+
                                 case "Get a Text Element on the Screen":
                                     SelectElementWithTextDialog selectElementWithTextDialog = new SelectElementWithTextDialog(context, layoutInflater, sugiliteData);
                                     selectElementWithTextDialog.show();

@@ -39,8 +39,8 @@ import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
 import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteErrorHandlingForkBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
+import edu.cmu.hcii.sugilite.model.block.SugiliteSpecialOperationBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
-import edu.cmu.hcii.sugilite.model.block.SugiliteSubscriptOperationBlock;
 import edu.cmu.hcii.sugilite.recording.RecordingPopUpDialog;
 import edu.cmu.hcii.sugilite.model.variable.Variable;
 import edu.cmu.hcii.sugilite.ui.dialog.VariableSetValueDialog;
@@ -93,8 +93,8 @@ public class ScriptDetailActivity extends AppCompatActivity {
                 iterBlock = ((SugiliteStartingBlock) iterBlock).getNextBlock();
             else if (iterBlock instanceof SugiliteOperationBlock)
                 iterBlock = ((SugiliteOperationBlock) iterBlock).getNextBlock();
-            else if (iterBlock instanceof  SugiliteSubscriptOperationBlock)
-                iterBlock = ((SugiliteSubscriptOperationBlock) iterBlock).getNextBlock();
+            else if (iterBlock instanceof SugiliteSpecialOperationBlock)
+                iterBlock = ((SugiliteSpecialOperationBlock) iterBlock).getNextBlock();
             else if (iterBlock instanceof SugiliteErrorHandlingForkBlock)
                 break;
             else
@@ -122,7 +122,7 @@ public class ScriptDetailActivity extends AppCompatActivity {
             tv.setOnTouchListener(textViewOnTouchListener);
             registerForContextMenu(tv);
             return tv;
-        } else if (block instanceof SugiliteOperationBlock || block instanceof SugiliteSubscriptOperationBlock) {
+        } else if (block instanceof SugiliteOperationBlock || block instanceof SugiliteSpecialOperationBlock) {
             TextView tv = new TextView(context);
             tv.setText(Html.fromHtml(block.getDescription()));
             tv.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
@@ -153,8 +153,8 @@ public class ScriptDetailActivity extends AppCompatActivity {
                     iterBlock = ((SugiliteStartingBlock) iterBlock).getNextBlock();
                 else if (iterBlock instanceof SugiliteOperationBlock)
                     iterBlock = ((SugiliteOperationBlock) iterBlock).getNextBlock();
-                else if (iterBlock instanceof  SugiliteSubscriptOperationBlock)
-                    iterBlock = ((SugiliteSubscriptOperationBlock) iterBlock).getNextBlock();
+                else if (iterBlock instanceof  SugiliteSpecialOperationBlock)
+                    iterBlock = ((SugiliteSpecialOperationBlock) iterBlock).getNextBlock();
                 else if (iterBlock instanceof SugiliteErrorHandlingForkBlock)
                     break;
                 else
@@ -181,8 +181,8 @@ public class ScriptDetailActivity extends AppCompatActivity {
                     iterBlock = ((SugiliteStartingBlock) iterBlock).getNextBlock();
                 else if (iterBlock instanceof SugiliteOperationBlock)
                     iterBlock = ((SugiliteOperationBlock) iterBlock).getNextBlock();
-                else if (iterBlock instanceof  SugiliteSubscriptOperationBlock)
-                    iterBlock = ((SugiliteSubscriptOperationBlock) iterBlock).getNextBlock();
+                else if (iterBlock instanceof  SugiliteSpecialOperationBlock)
+                    iterBlock = ((SugiliteSpecialOperationBlock) iterBlock).getNextBlock();
                 else if (iterBlock instanceof SugiliteErrorHandlingForkBlock)
                     break;
                 else
@@ -310,8 +310,8 @@ public class ScriptDetailActivity extends AppCompatActivity {
             else if (currentBlock instanceof SugiliteErrorHandlingForkBlock){
                 currentBlock = ((SugiliteErrorHandlingForkBlock) currentBlock).getOriginalNextBlock();
             }
-            else if (currentBlock instanceof SugiliteSubscriptOperationBlock)
-                currentBlock = ((SugiliteSubscriptOperationBlock) currentBlock).getNextBlock();
+            else if (currentBlock instanceof SugiliteSpecialOperationBlock)
+                currentBlock = ((SugiliteSpecialOperationBlock) currentBlock).getNextBlock();
             else{
                 throw new RuntimeException("Unsupported Block Type!");
             }
@@ -398,7 +398,7 @@ public class ScriptDetailActivity extends AppCompatActivity {
                 } else {
                     currentBlock = ((SugiliteStartingBlock) currentBlock).getNextBlock();
                 }
-            } else if (currentBlock instanceof SugiliteSubscriptOperationBlock) {
+            } else if (currentBlock instanceof SugiliteSpecialOperationBlock) {
                 //TODO: do something
             } else if (currentBlock instanceof SugiliteErrorHandlingForkBlock) {
                 //TODO: do something
@@ -461,7 +461,7 @@ public class ScriptDetailActivity extends AppCompatActivity {
                 attemptToEdit(((SugiliteErrorHandlingForkBlock) currentBlock).getAlternativeNextBlock(), textView);
                 break;
             }
-            else if(currentBlock instanceof SugiliteSubscriptOperationBlock){
+            else if(currentBlock instanceof SugiliteSpecialOperationBlock){
                 //TODO: do something
             }
             else {

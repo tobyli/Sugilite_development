@@ -306,11 +306,11 @@ public class Automator {
                 StringVariable stringVariable = new StringVariable(variableName);
                 stringVariable.type = Variable.LOAD_RUNTIME;
 
-                if (block.getOperation().getParameter().contentEquals("Text")) {
+                if (block.getOperation().getParameter().toLowerCase().contentEquals("text")) {
                     if (node.getText() != null) {
                         stringVariable.setValue(node.getText().toString());
                     }
-                } else if (block.getOperation().getParameter().contentEquals("Child Text")) {
+                } else if (block.getOperation().getParameter().toLowerCase().contentEquals("child text")) {
                     List<AccessibilityNodeInfo> children = preOrderTraverse(node);
                     if (ttsReady && node != null && children != null && children.size() > 0) {
                         String childText = "";
@@ -322,7 +322,7 @@ public class Automator {
                             stringVariable.setValue(childText);
                         }
                     }
-                } else if (block.getOperation().getParameter().contentEquals("Content Description")) {
+                } else if (block.getOperation().getParameter().toLowerCase().contentEquals("content description")) {
                     if (node.getContentDescription() != null) {
                         stringVariable.setValue(node.getContentDescription().toString());
                     }

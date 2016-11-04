@@ -174,11 +174,11 @@ public class mRecordingPopUpActivity extends AppCompatActivity {
             ChooseVariableDialog dialog;
             switch (triggerMode) {
                 case TRIGGERED_BY_NEW_EVENT:
-                    dialog = new ChooseVariableDialog(this, actionParameter, getLayoutInflater(), sugiliteData, sugiliteData.getScriptHead(), label, defaultDefaultValue);
+                    dialog = new ChooseVariableDialog(this, actionParameter, getLayoutInflater(), sugiliteData, sugiliteData.getScriptHead(), label, defaultDefaultValue, false, null, null);
                     dialog.show();
                     break;
                 case TRIGGERED_BY_EDIT:
-                    dialog = new ChooseVariableDialog(this, actionParameter, getLayoutInflater(), sugiliteData, originalScript, label, defaultDefaultValue);
+                    dialog = new ChooseVariableDialog(this, actionParameter, getLayoutInflater(), sugiliteData, originalScript, label, defaultDefaultValue, false, null, null);
                     dialog.show();
                     break;
             }

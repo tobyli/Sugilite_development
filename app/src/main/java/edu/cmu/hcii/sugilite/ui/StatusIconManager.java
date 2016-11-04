@@ -473,7 +473,7 @@ public class StatusIconManager {
 
 
                                 case "Get a Text Element on the Screen":
-                                    SelectElementWithTextDialog selectElementWithTextDialog = new SelectElementWithTextDialog(context, layoutInflater, sugiliteData);
+                                    SelectElementWithTextDialog selectElementWithTextDialog = new SelectElementWithTextDialog(context, layoutInflater, sugiliteData, sugiliteScriptDao);
                                     selectElementWithTextDialog.show();
                                     break;
                                 default:

@@ -45,7 +45,7 @@ public class Generalizer {
             //go through the filters
             if(block instanceof SugiliteOperationBlock){
                 UIElementMatchingFilter filter = ((SugiliteOperationBlock) block).getElementMatchingFilter();
-                if(filter.getText() != null && command.toLowerCase().contains(filter.getText().toLowerCase())){
+                if(filter != null && filter.getText() != null && command.toLowerCase().contains(filter.getText().toLowerCase())){
                     script.variableNameDefaultValueMap.put(filter.getText(), new StringVariable(filter.getText(), filter.getText()));
                     addVariableAlternatives(filter.getText(), "text", script, (SugiliteOperationBlock) block);
                     filter.setText("@" + filter.getText());
@@ -53,7 +53,7 @@ public class Generalizer {
                     block.setDescription(descriptionGenerator.generateReadableDescription(block));
                     modified = true;
                 }
-                if(filter.getContentDescription() != null && command.toLowerCase().contains(filter.getContentDescription().toLowerCase())){
+                if(filter != null && filter.getContentDescription() != null && command.toLowerCase().contains(filter.getContentDescription().toLowerCase())){
                     script.variableNameDefaultValueMap.put(filter.getContentDescription(), new StringVariable(filter.getContentDescription(), filter.getContentDescription()));
                     addVariableAlternatives(filter.getContentDescription(), "contentDescription", script, (SugiliteOperationBlock) block);
                     filter.setContentDescription("@" + filter.getContentDescription());
@@ -61,7 +61,7 @@ public class Generalizer {
                     block.setDescription(descriptionGenerator.generateReadableDescription(block));
                     modified = true;
                 }
-                if(filter.getChildFilter() != null) {
+                if(filter != null && filter.getChildFilter() != null) {
                     if (filter.getChildFilter().getText() != null && command.toLowerCase().contains(filter.getChildFilter().getText().toLowerCase())) {
                         UIElementMatchingFilter childFilter = filter.getChildFilter();
                         script.variableNameDefaultValueMap.put(filter.getChildFilter().getText(), new StringVariable(filter.getChildFilter().getText(), filter.getChildFilter().getText()));
@@ -72,7 +72,7 @@ public class Generalizer {
                         block.setDescription(descriptionGenerator.generateReadableDescription(block));
                         modified = true;
                     }
-                    if (filter.getChildFilter().getContentDescription() != null && command.toLowerCase().contains(filter.getChildFilter().getContentDescription().toLowerCase())) {
+                    if (filter != null && filter.getChildFilter().getContentDescription() != null && command.toLowerCase().contains(filter.getChildFilter().getContentDescription().toLowerCase())) {
                         UIElementMatchingFilter childFilter = filter.getChildFilter();
                         script.variableNameDefaultValueMap.put(filter.getChildFilter().getContentDescription(), new StringVariable(filter.getChildFilter().getContentDescription(), filter.getChildFilter().getContentDescription()));
                         addVariableAlternatives(filter.getChildFilter().getContentDescription(), "childContentDescriptio", script, (SugiliteOperationBlock)block);

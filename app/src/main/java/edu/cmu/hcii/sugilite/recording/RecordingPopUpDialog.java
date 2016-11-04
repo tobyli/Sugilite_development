@@ -419,11 +419,11 @@ public class RecordingPopUpDialog extends AbstractSugiliteDialog {
             ChooseVariableDialog dialog;
             switch (triggerMode) {
                 case TRIGGERED_BY_NEW_EVENT:
-                    dialog = new ChooseVariableDialog(view.getContext(), actionParameter, layoutInflater, sugiliteData, sugiliteData.getScriptHead(), label, defaultDefaultValue);
+                    dialog = new ChooseVariableDialog(view.getContext(), actionParameter, layoutInflater, sugiliteData, sugiliteData.getScriptHead(), label, defaultDefaultValue, false, null, null);
                     dialog.show();
                     break;
                 case TRIGGERED_BY_EDIT:
-                    dialog = new ChooseVariableDialog(view.getContext(), actionParameter, layoutInflater, sugiliteData, originalScript, label, defaultDefaultValue);
+                    dialog = new ChooseVariableDialog(view.getContext(), actionParameter, layoutInflater, sugiliteData, originalScript, label, defaultDefaultValue, false, null, null);
                     dialog.show();
                     break;
             }
@@ -1354,7 +1354,7 @@ public class RecordingPopUpDialog extends AbstractSugiliteDialog {
                 sugiliteOperation.setParameter(selectionText.substring(0, selectionText.indexOf(":")));
                 String variableName = loadVariableVariableName.getText().toString();
                 ((SugiliteLoadVariableOperation)sugiliteOperation).setVariableName(variableName);
-                            }
+            }
         }
         if (actionSpinnerSelectedItem.contentEquals("Set Text")) {
             sugiliteOperation = new SugiliteSetTextOperation();
@@ -1393,13 +1393,25 @@ public class RecordingPopUpDialog extends AbstractSugiliteDialog {
     private LinearLayout generateRow(final CheckBox checkBox, final String label, final String defaultDefaultValue){
         LinearLayout linearLayout = new LinearLayout(dialogRootView.getContext());
         linearLayout.setOrientation(LinearLayout.VERTICAL);
-        TextView setVariableLink = new TextView(dialogRootView.getContext());
+        final TextView setVariableLink = new TextView(dialogRootView.getContext());
         setVariableLink.setText(Html.fromHtml("<u><i>Set as a parameter</i></u>"));
         setVariableLink.setTextColor(Color.parseColor("#8bb5f8"));
         setVariableLink.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                setAsAParameterOnClick(v, checkBox, label, defaultDefaultValue);
+                switch (label) {
+                    case "Text Label":
+                        setAsAParameterOnClick(v, checkBox, "Text", defaultDefaultValue);
+                        break;
+                    case "ContentDescription":
+                        setAsAParameterOnClick(v, checkBox, "ContentDescription", defaultDefaultValue);
+                        break;
+                    case "Object ID":
+                        setAsAParameterOnClick(v, checkBox, "ViewID", defaultDefaultValue);
+                        break;
+                    default:
+                        setAsAParameterOnClick(v, checkBox, label, defaultDefaultValue);
+                }
             }
         });
         LinearLayout.LayoutParams checkBoxParams = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);

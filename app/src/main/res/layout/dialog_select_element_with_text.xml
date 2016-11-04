@@ -17,6 +17,18 @@
             android:layout_height="wrap_content"
             android:id="@+id/textView15"
             android:textAppearance="@android:style/TextAppearance.Material.Medium"
+            tools:text="Choose the operation" />
+
+        <Spinner
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/text_select_action_spinner" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/textView16"
+            android:textAppearance="@android:style/TextAppearance.Material.Medium"
             tools:text="Choose the text element to select:" />
 
         <ListView
@@ -24,4 +36,5 @@
             android:layout_height="match_parent"
             android:id="@+id/text_element_list" />
     </LinearLayout>
+
 </LinearLayout>

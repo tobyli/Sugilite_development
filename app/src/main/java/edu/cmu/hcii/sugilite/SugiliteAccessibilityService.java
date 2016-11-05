@@ -370,7 +370,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
         // broadcast the accessibility event received, for any app that may want to listen
         if(BROADCASTING_ACCESSIBILITY_EVENT) {
             try {
-                if (accessibilityEventSetToTrack.contains(event.getEventType()) && (!trackingExcludedPackages.contains(event.getPackageName()))) {
+               if (accessibilityEventSetToTrack.contains(event.getEventType()) && (!trackingExcludedPackages.contains(event.getPackageName()))) {
                     SugiliteEventBroadcastingActivity.BroadcastingEvent broadcastingEvent = new SugiliteEventBroadcastingActivity.BroadcastingEvent(event);
                     Gson gson = new Gson();
 
@@ -384,10 +384,13 @@ public class SugiliteAccessibilityService extends AccessibilityService {
                     if (true) {
                         String messageToSend = gson.toJson(broadcastingEvent);
 
-                        Intent intent = new Intent();
-                        intent.setAction("edu.cmu.hcii.sugilite.SUGILITE_EVENT");
-                        intent.putExtra("event_string", messageToSend);
-                        sendBroadcast(intent);
+                        //FIXME: modified by Oscar
+                        sugiliteData.communicationController.sendMessage( Const.RESPONSE,
+                                Const.ACCESSIBILITY_EVENT, messageToSend);
+//                        Intent intent = new Intent();
+//                        intent.setAction("edu.cmu.hcii.sugilite.SUGILITE_EVENT");
+//                        intent.putExtra("event_string", messageToSend);
+//                        sendBroadcast(intent);
                     }
                 }
             } catch (Exception e) {
@@ -456,6 +459,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
 
     @Override
     public void onInterrupt() {
+        System.out.print("");
     }
 
     @Override

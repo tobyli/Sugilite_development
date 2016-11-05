@@ -84,11 +84,11 @@
         </activity>
 
         <!-- Broadcast reciever that provides the functionalities of SugiliteCommunicationActivity using broadcasts as the communication medium -->
-        <receiver android:name=".communication.SugiliteCommunicationActivityBroadcastReciever">
-            <intent-filter>
-                <action android:name="edu.cmu.hcii.sugilite.SUGILITE_SERVICES_BR"/>
-            </intent-filter>
-        </receiver>
+        <!--<receiver android:name=".communication.SugiliteCommunicationActivityBroadcastReciever">-->
+            <!--<intent-filter>-->
+                <!--<action android:name="edu.cmu.hcii.sugilite.SUGILITE_SERVICES_BR"/>-->
+            <!--</intent-filter>-->
+        <!--</receiver>-->
 
     </application>
 

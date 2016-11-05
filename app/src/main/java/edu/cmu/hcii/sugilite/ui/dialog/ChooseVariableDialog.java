@@ -3,14 +3,12 @@ package edu.cmu.hcii.sugilite.ui.dialog;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.graphics.Rect;
 import android.text.Editable;
 import android.text.Html;
 import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.WindowManager;
-import android.view.accessibility.AccessibilityNodeInfo;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
@@ -25,14 +23,7 @@ import java.util.Map;
 
 import edu.cmu.hcii.sugilite.R;
 import edu.cmu.hcii.sugilite.SugiliteData;
-import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
-import edu.cmu.hcii.sugilite.model.block.SugiliteErrorHandlingForkBlock;
-import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
-import edu.cmu.hcii.sugilite.model.block.SugiliteSpecialOperationBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
-import edu.cmu.hcii.sugilite.model.block.UIElementMatchingFilter;
-import edu.cmu.hcii.sugilite.model.operation.SugiliteLoadVariableOperation;
-import edu.cmu.hcii.sugilite.model.operation.SugiliteOperation;
 import edu.cmu.hcii.sugilite.model.variable.StringVariable;
 import edu.cmu.hcii.sugilite.model.variable.Variable;
 
@@ -51,25 +42,8 @@ public class ChooseVariableDialog extends AbstractSugiliteDialog {
     private final EditText defaultValueEditText;
     private final TextView editText;
     private final String label;
-    private SugiliteScriptDao sugiliteScriptDao;
-    private boolean saveTheBlock;
-    private AccessibilityNodeInfo selectedNode;
-    private String variableName = "";
 
-    /**
-     *
-     * @param context
-     * @param @nullable editText
-     * @param inflater
-     * @param sugiliteData
-     * @param startingBlock
-     * @param @nullable label
-     * @param defaultDefaultValue
-     * @param saveTheBlock whether to save this block at the end
-     * @param @nullable sugiliteScriptDao
-     * @param @nullable selectedNode
-     */
-    public ChooseVariableDialog(final Context context, final TextView editText, LayoutInflater inflater, SugiliteData sugiliteData, SugiliteStartingBlock startingBlock, String label, String defaultDefaultValue, boolean saveTheBlock, SugiliteScriptDao sugiliteScriptDao, AccessibilityNodeInfo selectedNode){
+    public ChooseVariableDialog(final Context context, final TextView editText, LayoutInflater inflater, SugiliteData sugiliteData, SugiliteStartingBlock startingBlock, String label, String defaultDefaultValue){
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
         View dialogView = inflater.inflate(R.layout.dialog_choose_variable, null);
         List<String> existingVariables = new ArrayList<>();
@@ -94,9 +68,6 @@ public class ChooseVariableDialog extends AbstractSugiliteDialog {
         this.context = context;
         this.sugiliteData = sugiliteData;
         this.label = label;
-        this.saveTheBlock = saveTheBlock;
-        this.sugiliteScriptDao = sugiliteScriptDao;
-        this.selectedNode = selectedNode;
         variableList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
@@ -152,8 +123,7 @@ public class ChooseVariableDialog extends AbstractSugiliteDialog {
         dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE);
 
     }
-
-    public void show(){
+     public void show(){
 
          dialog.show();
          dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(new View.OnClickListener()
@@ -169,7 +139,7 @@ public class ChooseVariableDialog extends AbstractSugiliteDialog {
                  } else {
                      if(newVariableNameEditText.getText().length() > 0){
                          //add the new variable and the new default value to the symbol table
-                         variableName = newVariableNameEditText.getText().toString();
+                         String variableName = newVariableNameEditText.getText().toString();
                          String defaultValue = defaultValueEditText.getText().toString();
                          defaultValueToShow = defaultValue;
                          if(sugiliteData.stringVariableMap == null)
@@ -183,69 +153,16 @@ public class ChooseVariableDialog extends AbstractSugiliteDialog {
                          if(defaultVariableValue != null && defaultVariableValue instanceof StringVariable)
                              defaultValueToShow = ((StringVariable) defaultVariableValue).getValue();
                      }
-
-                     if(editText != null && label != null) {
-                         if (label.length() > 0) {
-                             //choosing variable for a generated checkbox row
-                             editText.setText(Html.fromHtml("<b>" + label + ":</b> " + "@" + selectedItemName + ": (" + defaultValueToShow + ")"));
-                         } else
-                             editText.setText("@" + selectedItemName + ": (" + defaultValueToShow + ")");
+                     if(label.length() > 0){
+                         //choosing variable for a generated checkbox row
+                         editText.setText(Html.fromHtml("<b>" + label + ":</b> " + "@" + selectedItemName + ": (" + defaultValueToShow + ")"));
                      }
-                     if(saveTheBlock)
-                         saveBlock(selectedNode, variableName);
+                     else
+                        editText.setText("@" + selectedItemName + ": (" + defaultValueToShow + ")");
                      dialog.dismiss();
                  }
              }
          });
 
      }
-
-    /**
-     * this method should create a "load as a variable" block and add the block to the current recording
-     */
-    private void saveBlock(AccessibilityNodeInfo selectedNode, String variableName){
-        SugiliteOperationBlock operationBlock = new SugiliteOperationBlock();
-        SugiliteOperation sugiliteOperation = new SugiliteLoadVariableOperation();
-        sugiliteOperation.setOperationType(SugiliteOperation.LOAD_AS_VARIABLE);
-        sugiliteOperation.setParameter("text");
-        ((SugiliteLoadVariableOperation)sugiliteOperation).setVariableName(variableName);
-        UIElementMatchingFilter filter = new UIElementMatchingFilter();
-        if(selectedNode.getPackageName() != null)
-            filter.setPackageName(selectedNode.getPackageName().toString());
-        if(selectedNode.getClassName() != null)
-            filter.setClassName(selectedNode.getClassName().toString());
-        Rect boundsInScreen = new Rect();
-        selectedNode.getBoundsInScreen(boundsInScreen);
-        filter.setBoundsInScreen(boundsInScreen);
-
-        operationBlock.setOperation(sugiliteOperation);
-        operationBlock.setElementMatchingFilter(filter);
-        operationBlock.setDescription("Load the text at (" + boundsInScreen.toShortString() + ") to the variable " + variableName);
-        System.out.println("CREATE LOAD_AS_VARIABLE BLOCK FOR " + selectedNode.getText());
-        //save the block
-        operationBlock.setPreviousBlock(sugiliteData.getCurrentScriptBlock());
-        if (sugiliteData.getCurrentScriptBlock() instanceof SugiliteOperationBlock) {
-            ((SugiliteOperationBlock) sugiliteData.getCurrentScriptBlock()).setNextBlock(operationBlock);
-        }
-        else if (sugiliteData.getCurrentScriptBlock() instanceof SugiliteStartingBlock) {
-            ((SugiliteStartingBlock) sugiliteData.getCurrentScriptBlock()).setNextBlock(operationBlock);
-        }
-        else if (sugiliteData.getCurrentScriptBlock() instanceof SugiliteErrorHandlingForkBlock){
-            ((SugiliteErrorHandlingForkBlock) sugiliteData.getCurrentScriptBlock()).setAlternativeNextBlock(operationBlock);
-        }
-        else if (sugiliteData.getCurrentScriptBlock() instanceof SugiliteSpecialOperationBlock){
-            ((SugiliteSpecialOperationBlock) sugiliteData.getCurrentScriptBlock()).setNextBlock(operationBlock);
-        }
-        else{
-            throw new RuntimeException("Unsupported Block Type!");
-        }
-        sugiliteData.setCurrentScriptBlock(operationBlock);
-        try {
-            sugiliteScriptDao.save(sugiliteData.getScriptHead());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        System.out.println("saved read out block");
-
-    }
 }

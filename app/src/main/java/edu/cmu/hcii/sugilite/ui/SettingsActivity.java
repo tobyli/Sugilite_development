@@ -35,6 +35,7 @@ import com.stericson.RootTools.RootTools;
 
 import java.util.List;
 
+import edu.cmu.hcii.sugilite.Const;
 import edu.cmu.hcii.sugilite.R;
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.automation.ServiceStatusManager;
@@ -208,7 +209,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
                     else{
                         if(sugiliteData.initiatedExternally == true && sugiliteData.getScriptHead() != null)
                             sugiliteData.communicationController.sendRecordingFinishedSignal(sugiliteData.getScriptHead().getScriptName());
-                            sugiliteData.sendCallbackMsg("FINISHED_RECORDING", jsonProcessor.scriptToJson(sugiliteData.getScriptHead()), sugiliteData.callbackString);
+                            sugiliteData.sendCallbackMsg(Const.FINISHED_RECORDING, jsonProcessor.scriptToJson(sugiliteData.getScriptHead()), sugiliteData.callbackString);
                     }
                     break;
 

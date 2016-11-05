@@ -315,7 +315,7 @@ public class StatusIconManager {
                                     prefEditor.commit();
                                     if (sugiliteData.initiatedExternally == true && sugiliteData.getScriptHead() != null) {
                                         sugiliteData.communicationController.sendRecordingFinishedSignal(sugiliteData.getScriptHead().getScriptName());
-                                        sugiliteData.sendCallbackMsg("FINISHED_RECORDING", jsonProcessor.scriptToJson(sugiliteData.getScriptHead()), sugiliteData.callbackString);
+                                        sugiliteData.sendCallbackMsg(Const.FINISHED_RECORDING, jsonProcessor.scriptToJson(sugiliteData.getScriptHead()), sugiliteData.callbackString);
                                     }
                                     Toast.makeText(context, "end recording", Toast.LENGTH_SHORT).show();
                                     break;
@@ -473,7 +473,7 @@ public class StatusIconManager {
 
 
                                 case "Get a Text Element on the Screen":
-                                    SelectElementWithTextDialog selectElementWithTextDialog = new SelectElementWithTextDialog(context, layoutInflater, sugiliteData, sugiliteScriptDao);
+                                    SelectElementWithTextDialog selectElementWithTextDialog = new SelectElementWithTextDialog(context, layoutInflater, sugiliteData);
                                     selectElementWithTextDialog.show();
                                     break;
                                 default:

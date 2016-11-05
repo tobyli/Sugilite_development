@@ -41,6 +41,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TimeZone;
 
+import edu.cmu.hcii.sugilite.Const;
 import edu.cmu.hcii.sugilite.R;
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.communication.SugiliteBlockJSONProcessor;
@@ -308,7 +309,7 @@ public class RecordingPopUpDialog extends AbstractSugiliteDialog {
         prefEditor.commit();
         if(sugiliteData.initiatedExternally == true && sugiliteData.getScriptHead() != null)
             sugiliteData.communicationController.sendRecordingFinishedSignal(sugiliteData.getScriptHead().getScriptName());
-            sugiliteData.sendCallbackMsg("FINISHED_RECORDING", jsonProcessor.scriptToJson(sugiliteData.getScriptHead()), sugiliteData.callbackString);
+            sugiliteData.sendCallbackMsg(Const.FINISHED_RECORDING, jsonProcessor.scriptToJson(sugiliteData.getScriptHead()), sugiliteData.callbackString);
         dialog.dismiss();
     }
 
@@ -419,11 +420,11 @@ public class RecordingPopUpDialog extends AbstractSugiliteDialog {
             ChooseVariableDialog dialog;
             switch (triggerMode) {
                 case TRIGGERED_BY_NEW_EVENT:
-                    dialog = new ChooseVariableDialog(view.getContext(), actionParameter, layoutInflater, sugiliteData, sugiliteData.getScriptHead(), label, defaultDefaultValue, false, null, null);
+                    dialog = new ChooseVariableDialog(view.getContext(), actionParameter, layoutInflater, sugiliteData, sugiliteData.getScriptHead(), label, defaultDefaultValue);
                     dialog.show();
                     break;
                 case TRIGGERED_BY_EDIT:
-                    dialog = new ChooseVariableDialog(view.getContext(), actionParameter, layoutInflater, sugiliteData, originalScript, label, defaultDefaultValue, false, null, null);
+                    dialog = new ChooseVariableDialog(view.getContext(), actionParameter, layoutInflater, sugiliteData, originalScript, label, defaultDefaultValue);
                     dialog.show();
                     break;
             }
@@ -1354,7 +1355,7 @@ public class RecordingPopUpDialog extends AbstractSugiliteDialog {
                 sugiliteOperation.setParameter(selectionText.substring(0, selectionText.indexOf(":")));
                 String variableName = loadVariableVariableName.getText().toString();
                 ((SugiliteLoadVariableOperation)sugiliteOperation).setVariableName(variableName);
-            }
+                            }
         }
         if (actionSpinnerSelectedItem.contentEquals("Set Text")) {
             sugiliteOperation = new SugiliteSetTextOperation();
@@ -1393,25 +1394,13 @@ public class RecordingPopUpDialog extends AbstractSugiliteDialog {
     private LinearLayout generateRow(final CheckBox checkBox, final String label, final String defaultDefaultValue){
         LinearLayout linearLayout = new LinearLayout(dialogRootView.getContext());
         linearLayout.setOrientation(LinearLayout.VERTICAL);
-        final TextView setVariableLink = new TextView(dialogRootView.getContext());
+        TextView setVariableLink = new TextView(dialogRootView.getContext());
         setVariableLink.setText(Html.fromHtml("<u><i>Set as a parameter</i></u>"));
         setVariableLink.setTextColor(Color.parseColor("#8bb5f8"));
         setVariableLink.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                switch (label) {
-                    case "Text Label":
-                        setAsAParameterOnClick(v, checkBox, "Text", defaultDefaultValue);
-                        break;
-                    case "ContentDescription":
-                        setAsAParameterOnClick(v, checkBox, "ContentDescription", defaultDefaultValue);
-                        break;
-                    case "Object ID":
-                        setAsAParameterOnClick(v, checkBox, "ViewID", defaultDefaultValue);
-                        break;
-                    default:
-                        setAsAParameterOnClick(v, checkBox, label, defaultDefaultValue);
-                }
+                setAsAParameterOnClick(v, checkBox, label, defaultDefaultValue);
             }
         });
         LinearLayout.LayoutParams checkBoxParams = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);

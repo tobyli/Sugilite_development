@@ -193,16 +193,16 @@ public class SugiliteData extends Application {
     /*
     messageType, messageBody
     -------------------------
-    "FINISHED_RECORDING", scriptName
-    "START_RECORDING_EXCEPTION", exceptionMessage
-    "END_RECORDING_EXCEPTION", exceptionMessage
+    Const.FINISHED_RECORDING, scriptName
+    Const.START_RECORDING_EXCEPTION, exceptionMessage
+    "STOP_RECORDING_EXCEPTION", exceptionMessage
     "RUN_SCRIPT_EXCEPTION, exceptionMessage
-    "RUN_JSON_EXCEPTION", exceptionMessage
-    "ADD_JSON_AS_SCRIPT_EXCEPTION", exceptionMessage
+    Const.RUN_JSON_EXCEPTION, exceptionMessage
+    Const.ADD_JSON_AS_SCRIPT_EXCEPTION, exceptionMessage
 
      */
     public String callbackString = "";
-    public void sendCallbackMsg(String messageType, String messageBody, String callbackString){
+    public void sendCallbackMsg(int messageType, String messageBody, String callbackString){
         Intent intent = new Intent(callbackString);
         intent.putExtra("messageType", messageType);
         intent.putExtra("messageBody", messageBody);

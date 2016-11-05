@@ -40,6 +40,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TimeZone;
 
+import edu.cmu.hcii.sugilite.Const;
 import edu.cmu.hcii.sugilite.R;
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
@@ -129,7 +130,7 @@ public class mRecordingPopUpActivity extends AppCompatActivity {
         prefEditor.commit();
         if(sugiliteData.initiatedExternally == true && sugiliteData.getScriptHead() != null) {
             sugiliteData.communicationController.sendRecordingFinishedSignal(sugiliteData.getScriptHead().getScriptName());
-            sugiliteData.sendCallbackMsg("FINISHED_RECORDING", sugiliteData.getScriptHead().getScriptName(), sugiliteData.callbackString);
+            sugiliteData.sendCallbackMsg(Const.FINISHED_RECORDING, sugiliteData.getScriptHead().getScriptName(), sugiliteData.callbackString);
         }
         setResult(RESULT_CANCELED);
         finish();
@@ -174,11 +175,11 @@ public class mRecordingPopUpActivity extends AppCompatActivity {
             ChooseVariableDialog dialog;
             switch (triggerMode) {
                 case TRIGGERED_BY_NEW_EVENT:
-                    dialog = new ChooseVariableDialog(this, actionParameter, getLayoutInflater(), sugiliteData, sugiliteData.getScriptHead(), label, defaultDefaultValue, false, null, null);
+                    dialog = new ChooseVariableDialog(this, actionParameter, getLayoutInflater(), sugiliteData, sugiliteData.getScriptHead(), label, defaultDefaultValue);
                     dialog.show();
                     break;
                 case TRIGGERED_BY_EDIT:
-                    dialog = new ChooseVariableDialog(this, actionParameter, getLayoutInflater(), sugiliteData, originalScript, label, defaultDefaultValue, false, null, null);
+                    dialog = new ChooseVariableDialog(this, actionParameter, getLayoutInflater(), sugiliteData, originalScript, label, defaultDefaultValue);
                     dialog.show();
                     break;
             }

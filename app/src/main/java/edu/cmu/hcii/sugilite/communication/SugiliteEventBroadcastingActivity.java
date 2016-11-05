@@ -20,6 +20,7 @@ import java.util.Calendar;
 import java.util.HashSet;
 import java.util.Set;
 
+import edu.cmu.hcii.sugilite.Const;
 import edu.cmu.hcii.sugilite.R;
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.automation.Automator;
@@ -35,25 +36,26 @@ public class SugiliteEventBroadcastingActivity extends AppCompatActivity {
         this.sugiliteData = (SugiliteData)getApplication();
         this.sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         this.gson = new Gson();
-        String messageType = "", arg1 = "";
+        int messageType = 0;
+        String arg1 = "";
         if (getIntent().getExtras() != null) {
-            messageType = getIntent().getStringExtra("messageType");
+            messageType = getIntent().getIntExtra("messageType", 0);
             arg1 = getIntent().getStringExtra("arg1");
             handleRequest(messageType, arg1);
         }
         finish();
     }
 
-    private void handleRequest(String messageType, String arg1) {
+    private void handleRequest(int messageType, String arg1) {
         boolean broadcastingEnabled = sharedPreferences.getBoolean("broadcasting_enabled", false);
         switch (messageType) {
-            case "REGISTER":
+            case Const.REGISTER:
                 sugiliteData.registeredBroadcastingListener.add(arg1);
                 Intent returnIntent = new Intent();
                 returnIntent.putExtra("result", sugiliteData.registeredBroadcastingListener.toString());
                 setResult(Activity.RESULT_OK, returnIntent);
                 break;
-            case "UNREGISTER":
+            case Const.UNREGISTER:
                 if(sugiliteData.registeredBroadcastingListener.contains(arg1)) {
                     sugiliteData.registeredBroadcastingListener.remove(arg1);
                     Intent returnIntent2 = new Intent();

@@ -64,5 +64,6 @@
 
     <string name="pref_title_vibrate">Vibrate</string>
     <string name="title_activity_communication_interface">CommunicationInterfaceActivity</string>
+    <string name="accessibility_service_name">Sugilite - InMind</string>
 
 </resources>

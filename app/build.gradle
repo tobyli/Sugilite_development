@@ -1,4 +1,5 @@
 apply plugin: 'com.android.application'
+//apply plugin: 'com.android.library'
 
 android {
     compileSdkVersion 23
@@ -6,10 +7,11 @@ android {
 
     defaultConfig {
         applicationId "edu.cmu.hcii.sugilite"
-        minSdkVersion 19
+        minSdkVersion 21
         targetSdkVersion 23
         versionCode 1
         versionName "1.0"
+        multiDexEnabled true
     }
     buildTypes {
         release {
@@ -17,9 +19,36 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+
+    repositories {
+        mavenCentral()
+        // This is the maven repo where the Middleware component is deployed
+        maven {
+            credentials {
+                username 'inmind'
+                password '2015InMindYahoo'
+            }
+            url "http://www.cs.cmu.edu/afs/cs/project/inmind-cmu-yahoo/www/maven2"
+        }
+    }
+
     lintOptions {
         abortOnError false
     }
+}
+
+configurations.all {
+    // Check for updates every hour.
+    // You can force it to an immediate update by passing 0 instead of 3600
+    resolutionStrategy.cacheChangingModulesFor(0, 'seconds')
+    resolutionStrategy.cacheDynamicVersionsFor(0, 'seconds')
+}
+
+configurations {
+    deployerJars
+    compile.exclude module: 'stax'
+    compile.exclude module: 'stax-api'
+    compile.exclude module: 'xpp3'
 }
 
 dependencies {
@@ -32,8 +61,38 @@ dependencies {
     compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.4'
     compile files('libs/RootTools.jar')
 
+    deployerJars "org.apache.maven.wagon:wagon-ssh:2.9"
 }
 
-repositories {
-    mavenCentral()
+
+//We need this in order to deploy Sugilite as a maven library
+apply plugin: 'maven'
+
+uploadArchives {
+    repositories{
+        mavenDeployer {
+            configuration = configurations.deployerJars
+            repository( url: "scp://linux.gp.cs.cmu.edu:/afs/cs/project/inmind-cmu-yahoo/www/maven2/" ){
+                //http://stackoverflow.com/questions/12749225/where-to-put-gradle-configuration-i-e-credentials-that-should-not-be-committe
+                authentication(userName: mavenUser, password: mavenPassword)
+            }
+
+            pom.project {
+                name 'SUGILITE'
+                packaging 'aar'
+                description 'InMind\'s App Tracker - Sugilite'
+                pom.version = '1.0'
+                pom.artifactId = 'sugilite'
+                pom.groupId = "edu.cmu.hcii.sugilite"
+
+                licenses {
+                    license {
+                        name 'The Apache Software License, Version 2.0'
+                        url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                        distribution 'repo'
+                    }
+                }
+            }
+        }
+    }
 }

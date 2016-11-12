@@ -32,7 +32,7 @@ import edu.cmu.hcii.sugilite.ui.dialog.NewScriptDialog;
 import edu.cmu.hcii.sugilite.ui.ScriptDetailActivity;
 import edu.cmu.hcii.sugilite.ui.SettingsActivity;
 
-public class MainActivity extends AppCompatActivity {
+public class SugiliteMainActivity extends AppCompatActivity {
     private SugiliteData sugiliteData;
     private SharedPreferences sharedPreferences;
     private SugiliteScriptDao sugiliteScriptDao;

@@ -22,6 +22,15 @@ public class Const {
     public static final boolean KEEP_ALL_TEXT_LABEL_LIST = true;
 
 
+
+    public static final int ID_APP_TRACKER = 1001;
+    public static final String APP_TRACKER = "APP_TRACKER";
+    public static final String SCRIPT_NAME = "SCRIPT_NAME";
+    public static final String CALLBACK_STRING = "CALLBACK_STRING";
+    public static final String SCRIPT = "SCRIPT";
+    public static final String PACKAGE_NAME = "PACKAGE_NAME";
+    public static final String JSON_STRING = "JSON_STRING";
+    public static final String SHOULD_SEND_CALLBACK ="SHOULD_SEND_CALLBACK";
     public static final int REGISTER = 1;
     public static final int UNREGISTER = 2;
     public static final int RESPONSE = 3;
@@ -29,6 +38,7 @@ public class Const {
     public static final int STOP_TRACKING = 5;
     public static final int GET_ALL_TRACKING_SCRIPTS = 6;
     public static final int GET_TRACKING_SCRIPT = 7;
+    public static final int APP_TRACKER_EXCEPTION = 8;
     public static final int RUN = 9;
     public static final int RESPONSE_EXCEPTION = 10;
     public static final int START_RECORDING = 11;
@@ -49,5 +59,4 @@ public class Const {
     public static final int GET_ALL_PACKAGE_VOCAB = 26;
     public static final int GET_PACKAGE_VOCAB = 27;
     public static final int MULTIPURPOSE_REQUEST = 28;
-    public static final int APP_TRACKER_ID = 1001;
 }

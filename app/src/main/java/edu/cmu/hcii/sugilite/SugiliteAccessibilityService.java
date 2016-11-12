@@ -18,8 +18,6 @@ import android.widget.Toast;
 
 import com.google.gson.Gson;
 
-import org.json.JSONObject;
-
 import java.io.File;
 import java.util.AbstractMap;
 import java.util.ArrayList;
@@ -86,7 +84,8 @@ public class SugiliteAccessibilityService extends AccessibilityService {
         handler = new Handler();
         try {
             //TODO: periodically check the status of communication controller
-            sugiliteData.communicationController = new SugiliteCommunicationController(getApplicationContext(), sugiliteData, sharedPreferences);
+            sugiliteData.communicationController = SugiliteCommunicationController.getInstance(
+                    getApplicationContext(), sugiliteData, sharedPreferences);
             sugiliteData.communicationController.start();
         }
         catch (Exception e){

@@ -7,14 +7,13 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
-import android.content.pm.PackageManager;
-import android.content.pm.ResolveInfo;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
 import android.os.Messenger;
 import android.os.RemoteException;
+import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.WindowManager;
 import android.widget.Toast;
@@ -35,12 +34,11 @@ import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
 import edu.cmu.hcii.sugilite.dao.SugiliteTrackingDao;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 
-import static edu.cmu.hcii.sugilite.Const.SCRIPT_DELAY;
-
 /**
  * Created by oscarr on 7/7/16.
  */
 public class SugiliteCommunicationController {
+    private static SugiliteCommunicationController instance;
     private final String TAG = SugiliteCommunicationController.class.getName();
     private Messenger sender = null; //used to make an RPC invocation
     private Messenger receiver = null; //invocation replies are processed by this Messenger (Middleware)
@@ -56,8 +54,12 @@ public class SugiliteCommunicationController {
     private SharedPreferences sharedPreferences;
     //TODO: add start recording/stop recording
 
-    public SugiliteCommunicationController(Context context, SugiliteData sugiliteData,
-                                           SharedPreferences sharedPreferences) {
+    private SugiliteCommunicationController( Context context ) {
+        this(context, new SugiliteData(), PreferenceManager.getDefaultSharedPreferences(context) );
+    }
+
+    private SugiliteCommunicationController(Context context, SugiliteData sugiliteData,
+                                            SharedPreferences sharedPreferences) {
         this.connection = new RemoteServiceConnection();
         this.receiver = new Messenger(new IncomingHandler());
         this.context = context.getApplicationContext();
@@ -67,6 +69,21 @@ public class SugiliteCommunicationController {
         this.jsonProcessor = new SugiliteBlockJSONProcessor(context);
         this.sugiliteData = sugiliteData;
         this.sharedPreferences = sharedPreferences;
+    }
+
+    public static SugiliteCommunicationController getInstance(Context context, SugiliteData sugiliteData,
+                                                       SharedPreferences sharedPreferences) {
+        if( instance == null ){
+            instance = new SugiliteCommunicationController(context, sugiliteData, sharedPreferences);
+        }
+        return instance;
+    }
+
+    public static SugiliteCommunicationController getInstance(Context context){
+        if( instance == null ){
+            instance = new SugiliteCommunicationController(context);
+        }
+        return instance;
     }
 
 
@@ -89,8 +106,6 @@ public class SugiliteCommunicationController {
         @Override
         public void handleMessage(Message msg) {
             super.handleMessage(msg);
-            boolean recordingInProcess = sharedPreferences.getBoolean("recording_in_process", false);
-            boolean trackingInProcess = sharedPreferences.getBoolean("tracking_in_process", false);
             Bundle data = msg.getData();
             String callbackString = data.getString("callbackString");
             String request = msg.getData().getString("request");
@@ -100,16 +115,16 @@ public class SugiliteCommunicationController {
 
             switch(msg.what) {
                 case Const.START_RECORDING:
-                    startRecording(recordingInProcess, sendCallback, callbackString, request);
+                    startRecording(sendCallback, callbackString, request);
                     break;
                 case Const.STOP_RECORDING:
-                    stopRecording(recordingInProcess, sendCallback, callbackString, msg.arg1 );
+                    stopRecording(sendCallback, callbackString, msg.arg1 );
                     break;
                 case Const.START_TRACKING:
                     startTracking(request);
                     break;
                 case Const.STOP_TRACKING:
-                    stopTracking(trackingInProcess, msg.arg1);
+                    stopTracking(msg.arg1);
                     break;
                 case Const.GET_ALL_RECORDING_SCRIPTS:
                     sendAllScripts();
@@ -124,7 +139,7 @@ public class SugiliteCommunicationController {
                     sendTracking( request );
                     break;
                 case Const.RUN_SCRIPT:
-                    runScript( request, recordingInProcess, sendCallback, callbackString);
+                    runScript( request, sendCallback, callbackString);
                     break;
                 case Const.RUN_JSON:
                     runJson( request, sendCallback, callbackString);
@@ -151,11 +166,19 @@ public class SugiliteCommunicationController {
         }
     }
 
-    private void processMultipurposeRequest(String json) {
+    private boolean isTrackingInProcess() {
+        return sharedPreferences.getBoolean("tracking_in_process", false);
+    }
+
+    private boolean isRecordingInProcess() {
+        return sharedPreferences.getBoolean("recording_in_process", false);
+    }
+
+    public void processMultipurposeRequest(String json) {
         //TODO: process json object
     }
 
-    private void getPackageVocab(String packageName) {
+    public void getPackageVocab(String packageName) {
         Set<String> vocabSet = null;
         if(packageName != null) {
             try {
@@ -172,7 +195,7 @@ public class SugiliteCommunicationController {
         }
     }
 
-    private void getAllPackageVocab() {
+    public void getAllPackageVocab() {
         Map<String, Set<String>> appVocabMap =  null;
         try {
             appVocabMap = vocabularyDao.getTextsForAllPackages();
@@ -194,7 +217,7 @@ public class SugiliteCommunicationController {
         }
     }
 
-    private void clearTrackingList() {
+    public void clearTrackingList() {
         sugiliteTrackingDao.clear();
         sendMessage(Const.RESPONSE, Const.CLEAR_TRACKING_LIST, "");
     }
@@ -213,11 +236,11 @@ public class SugiliteCommunicationController {
     public void start(){
         //TODO: change the service name here
         //System.out.println("BIND SERVICE FOR CONTEXT " + context);
-        Intent intent = createExplicitFromImplicitIntent( context,
-                new Intent( "com.yahoo.inmind.services.generic.control.ExternalAppCommService" ) );
-        if(intent != null) {
-            context.bindService(intent, this.connection, Context.BIND_AUTO_CREATE);
-        }
+//        Intent intent = Util.createExplicitFromImplicitIntent( context, "com.yahoo.inmind",
+//                new Intent( "com.yahoo.inmind.services.generic.control.ExternalAppCommService" ) );
+//        if(intent != null) {
+//            context.bindService(intent, this.connection, Context.BIND_AUTO_CREATE);
+//        }
     }
 
     //stop() is called when SugiliteAccessibilityService is destroyed
@@ -304,7 +327,7 @@ public class SugiliteCommunicationController {
 
     public boolean sendMessage(int messageType, int arg2, String obj){
         if (isBound) {
-            Message message = Message.obtain(null, messageType, Const.APP_TRACKER_ID, 0);
+            Message message = Message.obtain(null, messageType, Const.ID_APP_TRACKER, 0);
             try {
                 message.replyTo = receiver;
                 message.arg2 = arg2;
@@ -323,8 +346,8 @@ public class SugiliteCommunicationController {
         }
     }
 
-    private void startRecording(boolean recordingInProcess, boolean sendCallback, String callbackString,
-                                final String scriptName) {
+    public void startRecording(boolean sendCallback, String callbackString, final String scriptName) {
+        boolean recordingInProcess = isRecordingInProcess();
         if(recordingInProcess) {
             //the exception message below will be sent when there's already recording in process
             SugiliteCommunicationController.this.sendMessage(Const.RESPONSE_EXCEPTION,
@@ -383,8 +406,8 @@ public class SugiliteCommunicationController {
         }
     }
 
-    private void stopRecording(boolean recordingInProcess, boolean sendCallback, String callbackString,
-                               int sendTracking) {
+    public void stopRecording(boolean sendCallback, String callbackString, int sendTracking) {
+        boolean recordingInProcess = isRecordingInProcess();
         if(recordingInProcess) {
             SharedPreferences.Editor prefEditor = sharedPreferences.edit();
             prefEditor.putBoolean("recording_in_process", false);
@@ -416,7 +439,7 @@ public class SugiliteCommunicationController {
         }
     }
 
-    private void startTracking(String trackingName) {
+    public void startTracking(String trackingName) {
         //commit preference change
         SharedPreferences.Editor prefEditor = sharedPreferences.edit();
         sugiliteData.initiateTracking(trackingName);
@@ -431,7 +454,8 @@ public class SugiliteCommunicationController {
         Log.d(TAG, "Start Tracking");
     }
 
-    private void stopTracking( boolean trackingInProcess, int sendTracking) {
+    public void stopTracking( int sendTracking) {
+        boolean trackingInProcess = isTrackingInProcess();
         if(trackingInProcess){
             SharedPreferences.Editor prefEditor2 = sharedPreferences.edit();
             prefEditor2.putBoolean("tracking_in_process", false);
@@ -452,7 +476,7 @@ public class SugiliteCommunicationController {
         }
     }
 
-    private void addJsonAsScript(String json, boolean sendCallback, String callbackString){
+    public void addJsonAsScript(String json, boolean sendCallback, String callbackString){
         if(json != null){
             try{
                 SugiliteStartingBlock script = jsonProcessor.jsonToScript(json);
@@ -471,7 +495,7 @@ public class SugiliteCommunicationController {
         }
     }
 
-    private void runJson(String jsonScript, boolean sendCallback, String callbackString) {
+    public void runJson(String jsonScript, boolean sendCallback, String callbackString) {
         if(jsonScript != null){
             Log.d("my_tag", jsonScript);
             SugiliteStartingBlock script = jsonProcessor.jsonToScript(jsonScript);
@@ -482,8 +506,8 @@ public class SugiliteCommunicationController {
         }
     }
 
-    private void runScript(String scriptName, boolean recordingInProcess, boolean sendCallback,
-                           String callbackString) {
+    public void runScript(String scriptName, boolean sendCallback, String callbackString) {
+        boolean recordingInProcess = isRecordingInProcess();
         if(recordingInProcess) {
             SugiliteCommunicationController.this.sendMessage(Const.RESPONSE_EXCEPTION,
                     Const.RUN, "Already recording in progress, can't run");
@@ -542,7 +566,7 @@ public class SugiliteCommunicationController {
                 }
                 sugiliteData.runScript(script, null);
                 try {
-                    Thread.sleep(SCRIPT_DELAY);
+                    Thread.sleep( Const.SCRIPT_DELAY);
                 } catch (Exception e) {
                     // do nothing
                 }
@@ -556,7 +580,7 @@ public class SugiliteCommunicationController {
     }
 
 
-    private void runScript(SugiliteStartingBlock script){
+    public void runScript(SugiliteStartingBlock script){
         sugiliteData.clearInstructionQueue();
         final ServiceStatusManager serviceStatusManager = new ServiceStatusManager(context);
         if(!serviceStatusManager.isRunning()){
@@ -595,7 +619,7 @@ public class SugiliteCommunicationController {
             }
             sugiliteData.runScript(script, false);
             try {
-                Thread.sleep(SCRIPT_DELAY);
+                Thread.sleep( Const.SCRIPT_DELAY);
             } catch (Exception e) {
                 // do nothing
             }
@@ -607,35 +631,4 @@ public class SugiliteCommunicationController {
             context.startActivity(startMain);
         }
     }
-
-
-    public Intent createExplicitFromImplicitIntent(Context context, Intent implicitIntent) {
-        // Retrieve all services that can match the given intent
-        PackageManager pm = context.getPackageManager();
-        List<ResolveInfo> resolveInfo = pm.queryIntentServices(implicitIntent, 0);
-
-        // Make sure only one match was found
-        if (resolveInfo == null || resolveInfo.size() != 1) {
-            return null;
-        }
-
-        // Get component info and create ComponentName
-        ResolveInfo serviceInfo = resolveInfo.get(0);
-        String packageName = serviceInfo.serviceInfo.packageName;
-        String className = serviceInfo.serviceInfo.name;
-        ComponentName component = new ComponentName(packageName, className);
-
-        // Create a new intent. Use the old one for extras and such reuse
-        Intent explicitIntent = new Intent(implicitIntent);
-
-        // Set the component to be explicit
-        explicitIntent.setComponent(component);
-        System.err.println("package: " + packageName + "  clasName: " + className);
-        Log.e("", "package: " + packageName + "  clasName: " + className);
-        return explicitIntent;
-    }
-
-
-    //TODO: add run methods
-
 }

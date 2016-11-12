@@ -27,7 +27,7 @@ import java.util.Queue;
 import java.util.Random;
 
 import edu.cmu.hcii.sugilite.Const;
-import edu.cmu.hcii.sugilite.MainActivity;
+import edu.cmu.hcii.sugilite.SugiliteMainActivity;
 import edu.cmu.hcii.sugilite.R;
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.automation.Automator;
@@ -292,7 +292,7 @@ public class StatusIconManager {
                         public void onClick(DialogInterface dialog, int which) {
                             switch (operationClone[which]) {
                                 case "View Script List":
-                                    Intent scriptListIntent = new Intent(context, MainActivity.class);
+                                    Intent scriptListIntent = new Intent(context, SugiliteMainActivity.class);
                                     scriptListIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
                                     context.startActivity(scriptListIntent);
                                     Toast.makeText(context, "view script list", Toast.LENGTH_SHORT).show();

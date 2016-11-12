@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="edu.cmu.hcii.sugilite" >
+    xmlns:tools="http://schemas.android.com/tools"
+    package="edu.cmu.hcii.sugilite">
 
     <uses-permission android:name="android.permission.BIND_ACCESSIBILITY_SERVICE" />
     <uses-permission android:name="android.permission.INTERNET" />
@@ -12,28 +13,31 @@
 
     <application
         android:name=".SugiliteData"
+        tools:replace="android:name"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/AppTheme" >
         <activity
-            android:name=".MainActivity"
+            android:name=".SugiliteMainActivity"
             android:label="Sugilite"
             android:noHistory="true"
-            android:theme="@style/AppTheme.NoActionBar" >
+            android:theme="@style/AppTheme.NoActionBar"
+            tools:node="merge">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
 
         <service
-            android:name=".SugiliteAccessibilityService"
+            android:name="edu.cmu.hcii.sugilite.SugiliteAccessibilityService"
+            android:label="@string/accessibility_service_name"
             android:enabled="true"
             android:exported="true"
-            android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE" >
+            android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE"
+            tools:node="merge">
             <meta-data
                 android:name="android.accessibilityservice"
                 android:resource="@xml/accessibility_service_config" />
@@ -47,28 +51,32 @@
             android:name=".ui.SettingsActivity"
             android:label="@string/title_activity_settings"
             android:noHistory="true"
-            android:parentActivityName=".MainActivity" >
+            android:parentActivityName=".SugiliteMainActivity"
+            tools:node="merge">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value="edu.cmu.hcii.sugilite.MainActivity" />
+                android:value="edu.cmu.hcii.sugilite.SugiliteMainActivity" />
         </activity>
-        <activity android:name=".recording.RecordingPopUpActivity" >
+        <activity android:name=".recording.RecordingPopUpActivity" tools:node="merge" >
         </activity>
         <activity
             android:name=".recording.RecordingPopupSubMenuActivity"
-            android:noHistory="true" >
+            android:noHistory="true"
+            tools:node="merge">
         </activity>
-        <activity android:name=".ui.ScriptDetailActivity" >
+        <activity android:name=".ui.ScriptDetailActivity" tools:node="merge" >
         </activity>
         <activity
             android:name=".recording.mRecordingPopUpActivity"
             android:label="Sugilite Script Recording"
-            android:noHistory="true" >
+            android:noHistory="true"
+            tools:node="merge">
         </activity>
         <activity
             android:name=".communication.SugiliteCommunicationActicvity"
             android:noHistory="true"
-            android:theme="@android:style/Theme.NoDisplay" >
+            android:theme="@android:style/Theme.NoDisplay"
+            tools:node="merge">
             <intent-filter>
                 <action android:name="edu.cmu.hcii.sugilite.COMMUNICATION" />
                 <category android:name="android.intent.category.DEFAULT" />
@@ -76,7 +84,8 @@
         </activity>
         <activity android:name=".communication.SugiliteEventBroadcastingActivity"
             android:noHistory="true"
-            android:theme="@android:style/Theme.NoDisplay" >
+            android:theme="@android:style/Theme.NoDisplay"
+            tools:node="merge">
             <intent-filter>
                 <action android:name="edu.cmu.hcii.sugilite.BROADCASTING" />
                 <category android:name="android.intent.category.DEFAULT" />

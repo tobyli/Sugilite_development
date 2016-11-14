@@ -337,7 +337,7 @@ public class SugiliteCommunicationActicvity extends Activity {
     private void runScript(SugiliteStartingBlock script){
 
         sugiliteData.clearInstructionQueue();
-        final ServiceStatusManager serviceStatusManager = new ServiceStatusManager(context);
+        final ServiceStatusManager serviceStatusManager = ServiceStatusManager.getInstance(context);
 
         if(!serviceStatusManager.isRunning()){
             //prompt the user if the accessiblity service is not active

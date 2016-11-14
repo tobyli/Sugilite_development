@@ -65,7 +65,7 @@ public class ScriptDetailActivity extends AppCompatActivity {
         setContentView(R.layout.activity_script_detail);
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         activityManager = (ActivityManager)getSystemService(Context.ACTIVITY_SERVICE);
-        serviceStatusManager = new ServiceStatusManager(this);
+        serviceStatusManager = ServiceStatusManager.getInstance(this);
         if (savedInstanceState == null) {
             scriptName = this.getIntent().getStringExtra("scriptName");
         } else {

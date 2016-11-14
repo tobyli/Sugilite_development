@@ -46,7 +46,7 @@ public class SugiliteMainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         View addButton = findViewById(R.id.addButton);
-        serviceStatusManager = new ServiceStatusManager(this);
+        serviceStatusManager = ServiceStatusManager.getInstance(this);
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         sugiliteScriptDao = new SugiliteScriptDao(this);
         sugiliteData = (SugiliteData)getApplication();

@@ -115,16 +115,16 @@ public class SugiliteCommunicationController {
 
             switch(msg.what) {
                 case Const.START_RECORDING:
-                    startRecording(sendCallback, callbackString, request);
+                    startRecording(sendCallback, callbackString, request, true);
                     break;
                 case Const.STOP_RECORDING:
-                    stopRecording(sendCallback, callbackString, msg.arg1 );
+                    stopRecording(sendCallback, callbackString, msg.arg1, true );
                     break;
                 case Const.START_TRACKING:
-                    startTracking(request);
+                    startTracking(request, true);
                     break;
                 case Const.STOP_TRACKING:
-                    stopTracking(msg.arg1);
+                    stopTracking(msg.arg1, true);
                     break;
                 case Const.GET_ALL_RECORDING_SCRIPTS:
                     sendAllScripts();
@@ -368,7 +368,8 @@ public class SugiliteCommunicationController {
         }
     }
 
-    public String startRecording(boolean sendCallback, String callbackString, final String scriptName) {
+    public String startRecording(boolean sendCallback, String callbackString, final String scriptName,
+                                 final boolean shouldUseToast) {
         boolean recordingInProcess = isRecordingInProcess();
         String message;
         if(recordingInProcess) {
@@ -411,10 +412,11 @@ public class SugiliteCommunicationController {
                                 } catch (Exception e) {
                                     e.printStackTrace();
                                 }
-
-                                Toast.makeText(context, "Recording new script " +
-                                                sharedPreferences.getString("scriptName", "NULL"),
-                                        Toast.LENGTH_SHORT).show();
+                                if( shouldUseToast ) {
+                                    Toast.makeText(context, "Recording new script " +
+                                                    sharedPreferences.getString("scriptName", "NULL"),
+                                            Toast.LENGTH_SHORT).show();
+                                }
 
                                 //go to home screen for recording
                                 Intent startMain = new Intent(Intent.ACTION_MAIN);
@@ -434,7 +436,8 @@ public class SugiliteCommunicationController {
         return message;
     }
 
-    public SugiliteStartingBlock stopRecording(boolean sendCallback, String callbackString, int sendTracking) {
+    public SugiliteStartingBlock stopRecording(boolean sendCallback, String callbackString,
+                                               int sendTracking, boolean shouldUseToast) {
         boolean recordingInProcess = isRecordingInProcess();
         if(recordingInProcess) {
             SharedPreferences.Editor prefEditor = sharedPreferences.edit();
@@ -447,7 +450,9 @@ public class SugiliteCommunicationController {
                             .scriptToJson(sugiliteData.getScriptHead()), callbackString);
                 }
             }
-            Toast.makeText(context, "end recording", Toast.LENGTH_SHORT).show();
+            if( shouldUseToast ) {
+                Toast.makeText(context, "end recording", Toast.LENGTH_SHORT).show();
+            }
             if (sendTracking == 1) {
                 // send back tracking log (script)? false == 0, true == 1.
                 SugiliteStartingBlock script = sugiliteData.getScriptHead();
@@ -469,7 +474,7 @@ public class SugiliteCommunicationController {
         return null;
     }
 
-    public String startTracking(String trackingName) {
+    public String startTracking(String trackingName, boolean shouldUseToast) {
         //commit preference change
         SharedPreferences.Editor prefEditor = sharedPreferences.edit();
         sugiliteData.initiateTracking(trackingName);
@@ -481,18 +486,22 @@ public class SugiliteCommunicationController {
             e.printStackTrace();
         }
         String message = "Start Tracking";
-        Toast.makeText(context, message, Toast.LENGTH_SHORT).show();
+        if( shouldUseToast ) {
+            Toast.makeText(context, message, Toast.LENGTH_SHORT).show();
+        }
         Log.d(TAG, message);
         return message;
     }
 
-    public SugiliteStartingBlock stopTracking( int sendTracking) {
+    public SugiliteStartingBlock stopTracking( int sendTracking, boolean shouldUseToast) {
         boolean trackingInProcess = isTrackingInProcess();
         if(trackingInProcess){
             SharedPreferences.Editor prefEditor2 = sharedPreferences.edit();
             prefEditor2.putBoolean("tracking_in_process", false);
             prefEditor2.commit();
-            Toast.makeText(context, "end tracking", Toast.LENGTH_SHORT).show();
+            if( shouldUseToast ) {
+                Toast.makeText(context, "end tracking", Toast.LENGTH_SHORT).show();
+            }
             if (sendTracking == 1) {
                 // send back tracking log (script)? false == 0, true == 1.
                 SugiliteStartingBlock tracking = sugiliteData.getTrackingHead();

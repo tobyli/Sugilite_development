@@ -70,7 +70,8 @@ public class SugiliteAccessibilityService extends AccessibilityService {
         super.onCreate();
         windowManager = (WindowManager) getSystemService(WINDOW_SERVICE);
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
-        sugiliteData = (SugiliteData)getApplication();
+        //Oscar: we need to do this validation in order to avoid Cast Exception when calling Sugilite from Middleware
+        sugiliteData = getApplication() instanceof SugiliteData? (SugiliteData) getApplication() : new SugiliteData();
         statusIconManager = new StatusIconManager(this, sugiliteData, sharedPreferences);
         screenshotManager = new SugiliteScreenshotManager(sharedPreferences, getApplicationContext());
         automator = new Automator(sugiliteData, this, statusIconManager, sharedPreferences);
@@ -159,8 +160,6 @@ public class SugiliteAccessibilityService extends AccessibilityService {
                 handler1.postDelayed(this, 500);
             }
         }, 500);
-
-
     }
 
 

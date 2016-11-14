@@ -1,11 +1,9 @@
 package edu.cmu.hcii.sugilite.automation;
 
-import android.app.Activity;
 import android.app.ActivityManager;
 import android.content.Context;
 import android.content.Intent;
 import android.provider.Settings;
-import android.widget.Toast;
 
 import edu.cmu.hcii.sugilite.SugiliteAccessibilityService;
 
@@ -15,9 +13,21 @@ import edu.cmu.hcii.sugilite.SugiliteAccessibilityService;
  * @time 5:03 PM
  */
 public class ServiceStatusManager {
-    private Context context;
-    public ServiceStatusManager(Context context){
+    private static Context context;
+    private static ServiceStatusManager instance;
+
+    //FIXME: modified by Oscar. SugiliteAccessibilityService cannot be found if looked at different
+    // contexts (e.g., Activities, Services, providers, etc). So we need: to make sure we use always
+    // the same context (app context)
+    private ServiceStatusManager(Context context){
         this.context = context;
+    }
+
+    public static ServiceStatusManager getInstance(Context ctx){
+        if( instance == null ){
+            instance = new ServiceStatusManager( ctx.getApplicationContext() );
+        }
+        return instance;
     }
 
     /**

@@ -75,7 +75,7 @@ public class StatusIconManager {
         this.sugiliteData = sugiliteData;
         this.sharedPreferences = sharedPreferences;
         this.sugiliteScriptDao = new SugiliteScriptDao(context);
-        this.serviceStatusManager = new ServiceStatusManager(context);
+        this.serviceStatusManager = ServiceStatusManager.getInstance(context);
         this.screenshotManager = new SugiliteScreenshotManager(sharedPreferences, context);
         this.layoutInflater = (LayoutInflater) context.getSystemService( Context.LAYOUT_INFLATER_SERVICE );
         variableHelper = new VariableHelper(sugiliteData.stringVariableMap);

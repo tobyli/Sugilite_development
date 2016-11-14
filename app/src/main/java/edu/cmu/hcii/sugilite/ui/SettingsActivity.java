@@ -71,7 +71,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
         super.onCreate(savedInstanceState);
         setupActionBar();
         prefs = PreferenceManager.getDefaultSharedPreferences(this);
-        serviceStatusManager = new ServiceStatusManager(this);
+        serviceStatusManager = ServiceStatusManager.getInstance(this);
         sugiliteData = (SugiliteData)getApplication();
         sugiliteScriptDao = new SugiliteScriptDao(this);
         sugiliteTrackingDao = new SugiliteTrackingDao(this);

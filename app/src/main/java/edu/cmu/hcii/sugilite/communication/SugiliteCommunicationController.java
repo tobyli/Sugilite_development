@@ -174,17 +174,19 @@ public class SugiliteCommunicationController {
         return sharedPreferences.getBoolean("recording_in_process", false);
     }
 
-    public void processMultipurposeRequest(String json) {
+    public String processMultipurposeRequest(String json) {
         //TODO: process json object
+        return "After processing json: " + json;
     }
 
-    public void getPackageVocab(String packageName) {
+    public Set<String> getPackageVocab(String packageName) {
         Set<String> vocabSet = null;
         if(packageName != null) {
             try {
                 vocabSet = vocabularyDao.getText(packageName);
                 Gson gson = new Gson();
                 sendMessage(Const.RESPONSE, Const.GET_PACKAGE_VOCAB, gson.toJson(vocabSet));
+                return vocabSet;
             }
             catch (Exception e){
                 e.printStackTrace();
@@ -193,9 +195,10 @@ public class SugiliteCommunicationController {
         else {
             //TODO: send exception
         }
+        return null;
     }
 
-    public void getAllPackageVocab() {
+    public String getAllPackageVocab() {
         Map<String, Set<String>> appVocabMap =  null;
         try {
             appVocabMap = vocabularyDao.getTextsForAllPackages();
@@ -211,10 +214,12 @@ public class SugiliteCommunicationController {
                 }
             }
             sendMessage(Const.RESPONSE, Const.GET_ALL_PACKAGE_VOCAB, retVal2);
+            return retVal2;
         }
         else{
             sendMessage(Const.RESPONSE, Const.GET_ALL_PACKAGE_VOCAB, "NULL");
         }
+        return null;
     }
 
     public void clearTrackingList() {
@@ -264,6 +269,11 @@ public class SugiliteCommunicationController {
 
 
     public boolean sendAllScripts(){
+        return sendMessage( Const.RESPONSE, Const.GET_ALL_RECORDING_SCRIPTS, jsonProcessor
+                .scriptsToJson( getRecordingScripts() ));
+    }
+
+    public List<SugiliteStartingBlock> getRecordingScripts(){
         List<String> allNames = sugiliteScriptDao.getAllNames();
         List<SugiliteStartingBlock> startingBlocks = new ArrayList<>();
         for(String name : allNames) {
@@ -274,11 +284,15 @@ public class SugiliteCommunicationController {
                 e.printStackTrace();
             }
         }
-        return sendMessage( Const.RESPONSE, Const.GET_ALL_RECORDING_SCRIPTS, jsonProcessor
-                .scriptsToJson(startingBlocks));
+        return startingBlocks;
     }
 
     public boolean sendAllTrackings(){
+        return sendMessage( Const.RESPONSE, Const.GET_ALL_TRACKING_SCRIPTS, jsonProcessor
+                .scriptsToJson( getTrackingScripts() ));
+    }
+
+    public List<SugiliteStartingBlock> getTrackingScripts(){
         List<String> allNames = sugiliteTrackingDao.getAllNames();
         List<SugiliteStartingBlock> startingBlocks = new ArrayList<>();
         for(String name : allNames) {
@@ -289,30 +303,38 @@ public class SugiliteCommunicationController {
                 e.printStackTrace();
             }
         }
-        return sendMessage( Const.RESPONSE, Const.GET_ALL_TRACKING_SCRIPTS, jsonProcessor
-                .scriptsToJson(startingBlocks));
+        return startingBlocks;
     }
 
     public boolean sendScript(String scriptName){
         // you should send back the script which name is "scriptName"... now, we are using a dummy
-        SugiliteStartingBlock script = sugiliteScriptDao.read(scriptName + ".SugiliteScript");
-        if(script != null)
+        SugiliteStartingBlock script = getRecordingScript(scriptName);
+        if(script != null) {
             return sendMessage(Const.RESPONSE, Const.GET_RECORDING_SCRIPT, jsonProcessor.scriptToJson(script));
-        else
+        }else {
             //the exception message below will be sent when can't find a script with provided name
             return sendMessage(Const.RESPONSE_EXCEPTION, Const.GET_RECORDING_SCRIPT,
                     "Can't find a script with provided name");
+        }
+    }
+
+    public SugiliteStartingBlock getRecordingScript(String scriptName){
+        return sugiliteScriptDao.read(scriptName + ".SugiliteScript");
     }
 
     public boolean sendTracking(String trackingName){
         // you should send back the script which name is "scriptName"... now, we are using a dummy
-        SugiliteStartingBlock tracking = sugiliteTrackingDao.read(trackingName);
+        SugiliteStartingBlock tracking = getTrackingScript( trackingName );
         if(tracking != null)
             return sendMessage(Const.RESPONSE, Const.GET_TRACKING_SCRIPT, jsonProcessor.scriptToJson(tracking));
         else
             //the exception message below will be sent when can't find a script with provided name
             return sendMessage(Const.RESPONSE_EXCEPTION, Const.GET_TRACKING_SCRIPT,
                     "Can't find a tracking with provided name");
+    }
+
+    public SugiliteStartingBlock getTrackingScript(String scriptName){
+        return sugiliteTrackingDao.read(scriptName);
     }
 
     //the below message will be sent when a externally initiated script has finished recording
@@ -346,12 +368,14 @@ public class SugiliteCommunicationController {
         }
     }
 
-    public void startRecording(boolean sendCallback, String callbackString, final String scriptName) {
+    public String startRecording(boolean sendCallback, String callbackString, final String scriptName) {
         boolean recordingInProcess = isRecordingInProcess();
+        String message;
         if(recordingInProcess) {
             //the exception message below will be sent when there's already recording in process
+            message = "Already recording in progress, can't start";
             SugiliteCommunicationController.this.sendMessage(Const.RESPONSE_EXCEPTION,
-                    Const.START_RECORDING, "Already recording in progress, can't start");
+                    Const.START_RECORDING, message);
             if( sendCallback ){
                 sugiliteData.sendCallbackMsg(Const.START_RECORDING_EXCEPTION,
                         "recording already in process", callbackString);
@@ -360,9 +384,10 @@ public class SugiliteCommunicationController {
         else {
             //NOTE: script name should be specified in msg.getData().getString("request");
             if (scriptName != null) {
+                message = "Now start recording new script " + scriptName;
                 AlertDialog.Builder builder = new AlertDialog.Builder(context);
                 builder.setTitle("New Recording")
-                        .setMessage("Now start recording new script " + scriptName)
+                        .setMessage(message)
                         .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
@@ -401,12 +426,15 @@ public class SugiliteCommunicationController {
                 AlertDialog dialog = builder.create();
                 dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
                 dialog.show();
+                Log.d(TAG, "Start Recording");
+            }else{
+                message = "Script name is null";
             }
-            Log.d(TAG, "Start Recording");
         }
+        return message;
     }
 
-    public void stopRecording(boolean sendCallback, String callbackString, int sendTracking) {
+    public SugiliteStartingBlock stopRecording(boolean sendCallback, String callbackString, int sendTracking) {
         boolean recordingInProcess = isRecordingInProcess();
         if(recordingInProcess) {
             SharedPreferences.Editor prefEditor = sharedPreferences.edit();
@@ -426,6 +454,7 @@ public class SugiliteCommunicationController {
                 if (script != null)
                     SugiliteCommunicationController.this.sendMessage(Const.RESPONSE,
                             Const.GET_RECORDING_SCRIPT, jsonProcessor.scriptToJson(script));
+                return script;
             }
         }
         else {
@@ -437,9 +466,10 @@ public class SugiliteCommunicationController {
                         "no recording in process", callbackString);
             }
         }
+        return null;
     }
 
-    public void startTracking(String trackingName) {
+    public String startTracking(String trackingName) {
         //commit preference change
         SharedPreferences.Editor prefEditor = sharedPreferences.edit();
         sugiliteData.initiateTracking(trackingName);
@@ -450,11 +480,13 @@ public class SugiliteCommunicationController {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        Toast.makeText(context, "start tracking", Toast.LENGTH_SHORT).show();
-        Log.d(TAG, "Start Tracking");
+        String message = "Start Tracking";
+        Toast.makeText(context, message, Toast.LENGTH_SHORT).show();
+        Log.d(TAG, message);
+        return message;
     }
 
-    public void stopTracking( int sendTracking) {
+    public SugiliteStartingBlock stopTracking( int sendTracking) {
         boolean trackingInProcess = isTrackingInProcess();
         if(trackingInProcess){
             SharedPreferences.Editor prefEditor2 = sharedPreferences.edit();
@@ -467,6 +499,7 @@ public class SugiliteCommunicationController {
                 if (tracking != null)
                     SugiliteCommunicationController.this.sendMessage(Const.RESPONSE,
                             Const.GET_TRACKING_SCRIPT, jsonProcessor.scriptToJson(tracking));
+                return tracking;
             }
         }
         else {
@@ -474,15 +507,17 @@ public class SugiliteCommunicationController {
             SugiliteCommunicationController.this.sendMessage(Const.RESPONSE_EXCEPTION,
                     Const.STOP_TRACKING, "No tracking in progress, can't stop");
         }
+        return null;
     }
 
-    public void addJsonAsScript(String json, boolean sendCallback, String callbackString){
+    public SugiliteStartingBlock addJsonAsScript(String json, boolean sendCallback, String callbackString){
         if(json != null){
             try{
                 SugiliteStartingBlock script = jsonProcessor.jsonToScript(json);
                 Log.d("mtemp",script.toString());
                 Log.d("mtemp",script.getNextBlock().getDescription());
                 sugiliteScriptDao.save(script);
+                return script;
             }
             catch (Exception e){
                 e.printStackTrace();
@@ -493,20 +528,23 @@ public class SugiliteCommunicationController {
         else if( sendCallback ){
             sugiliteData.sendCallbackMsg(Const.ADD_JSON_AS_SCRIPT, "null json", callbackString);
         }
+        return null;
     }
 
-    public void runJson(String jsonScript, boolean sendCallback, String callbackString) {
+    public SugiliteStartingBlock runJson(String jsonScript, boolean sendCallback, String callbackString) {
         if(jsonScript != null){
             Log.d("my_tag", jsonScript);
             SugiliteStartingBlock script = jsonProcessor.jsonToScript(jsonScript);
             runScript(script);
+            return script;
         }
         else if( sendCallback ){
             sugiliteData.sendCallbackMsg(Const.RUN_JSON_EXCEPTION, "null json", callbackString);
         }
+        return null;
     }
 
-    public void runScript(String scriptName, boolean sendCallback, String callbackString) {
+    public SugiliteStartingBlock runScript(String scriptName, boolean sendCallback, String callbackString) {
         boolean recordingInProcess = isRecordingInProcess();
         if(recordingInProcess) {
             SugiliteCommunicationController.this.sendMessage(Const.RESPONSE_EXCEPTION,
@@ -528,7 +566,7 @@ public class SugiliteCommunicationController {
                 }
             }
             sugiliteData.clearInstructionQueue();
-            final ServiceStatusManager serviceStatusManager = new ServiceStatusManager(context);
+            final ServiceStatusManager serviceStatusManager = ServiceStatusManager.getInstance(context);
 
             if(!serviceStatusManager.isRunning()){
                 //prompt the user if the accessiblity service is not active
@@ -576,13 +614,15 @@ public class SugiliteCommunicationController {
                 startMain.setFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
                 context.startActivity(startMain);
             }
+            return script;
         }
+        return null;
     }
 
 
-    public void runScript(SugiliteStartingBlock script){
+    private void runScript(SugiliteStartingBlock script){
         sugiliteData.clearInstructionQueue();
-        final ServiceStatusManager serviceStatusManager = new ServiceStatusManager(context);
+        final ServiceStatusManager serviceStatusManager = ServiceStatusManager.getInstance(context);
         if(!serviceStatusManager.isRunning()){
             //prompt the user if the accessiblity service is not active
             AlertDialog.Builder builder1 = new AlertDialog.Builder(context);

@@ -40,8 +40,8 @@ android {
 configurations.all {
     // Check for updates every hour.
     // You can force it to an immediate update by passing 0 instead of 3600
-    resolutionStrategy.cacheChangingModulesFor(0, 'seconds')
-    resolutionStrategy.cacheDynamicVersionsFor(0, 'seconds')
+    resolutionStrategy.cacheChangingModulesFor(3600, 'seconds')
+    resolutionStrategy.cacheDynamicVersionsFor(3600, 'seconds')
 }
 
 configurations {

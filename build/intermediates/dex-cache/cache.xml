@@ -12,21 +12,30 @@
     </item>
     <item
         is-multidex="true"
-        jar="/Users/oscarr/Development/Sugilite/app/libs/RootTools.jar"
-        jumboMode="false"
-        optimize="true"
-        revision="23.0.1"
-        sha1="5acf020c8db3eb87824b2f47949294732f04b019">
-        <dex dex="/Users/oscarr/Development/Sugilite/app/build/intermediates/transforms/dex/debug/folders/1000/2/RootTools_b36fa581d1b66516566a5ce0252db85dcf2d2c4d/classes.dex" />
-    </item>
-    <item
-        is-multidex="true"
         jar="/Users/oscarr/.gradle/caches/modules-2/files-2.1/org.apache.commons/commons-lang3/3.4/5fe28b9518e58819180a43a850fbc0dd24b7c050/commons-lang3-3.4.jar"
         jumboMode="false"
         optimize="true"
         revision="23.0.1"
         sha1="5fe28b9518e58819180a43a850fbc0dd24b7c050">
         <dex dex="/Users/oscarr/Development/Sugilite/app/build/intermediates/transforms/dex/debug/folders/1000/10/commons-lang3-3.4_99498ce7928379cacad5f8c1048cb495bd7b9eb3/classes.dex" />
+    </item>
+    <item
+        is-multidex="true"
+        jar="/Users/oscarr/Development/Sugilite/app/build/intermediates/exploded-aar/com.android.support/support-v4/23.0.1/jars/libs/internal_impl-23.0.1.jar"
+        jumboMode="false"
+        optimize="true"
+        revision="23.0.1"
+        sha1="aa92916125166649d8ad4ba3940c3dd7515596d3">
+        <dex dex="/Users/oscarr/Development/Sugilite/app/build/intermediates/transforms/dex/debug/folders/1000/10/internal_impl-23.0.1_4806612060ed0a03d788324844ef8ee7ac998e93/classes.dex" />
+    </item>
+    <item
+        is-multidex="true"
+        jar="/Users/oscarr/Development/Sugilite/app/libs/RootTools.jar"
+        jumboMode="false"
+        optimize="true"
+        revision="23.0.1"
+        sha1="5acf020c8db3eb87824b2f47949294732f04b019">
+        <dex dex="/Users/oscarr/Development/Sugilite/app/build/intermediates/transforms/dex/debug/folders/1000/2/RootTools_b36fa581d1b66516566a5ce0252db85dcf2d2c4d/classes.dex" />
     </item>
     <item
         is-multidex="true"
@@ -45,15 +54,6 @@
         revision="23.0.1"
         sha1="e5c61a3169221a89654ffcaaed47bba51cf071ad">
         <dex dex="/Users/oscarr/Development/Sugilite/app/build/intermediates/transforms/dex/debug/folders/1000/10/com.android.support-design-23.0.1_9bb4a5776528d3d19333d1e109b660987733a52e/classes.dex" />
-    </item>
-    <item
-        is-multidex="true"
-        jar="/Users/oscarr/Development/Sugilite/app/build/intermediates/exploded-aar/com.android.support/support-v4/23.0.1/jars/libs/internal_impl-23.0.1.jar"
-        jumboMode="false"
-        optimize="true"
-        revision="23.0.1"
-        sha1="aa92916125166649d8ad4ba3940c3dd7515596d3">
-        <dex dex="/Users/oscarr/Development/Sugilite/app/build/intermediates/transforms/dex/debug/folders/1000/10/internal_impl-23.0.1_4806612060ed0a03d788324844ef8ee7ac998e93/classes.dex" />
     </item>
     <item
         is-multidex="true"

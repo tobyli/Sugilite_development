@@ -63,10 +63,10 @@ public class SugiliteCommunicationController {
         this.connection = new RemoteServiceConnection();
         this.receiver = new Messenger(new IncomingHandler());
         this.context = context.getApplicationContext();
-        this.sugiliteScriptDao = new SugiliteScriptDao(context);
-        this.vocabularyDao = new SugiliteAppVocabularyDao(context);
-        this.sugiliteTrackingDao = new SugiliteTrackingDao(context);
-        this.jsonProcessor = new SugiliteBlockJSONProcessor(context);
+        this.sugiliteScriptDao = new SugiliteScriptDao(this.context);
+        this.vocabularyDao = new SugiliteAppVocabularyDao(this.context);
+        this.sugiliteTrackingDao = new SugiliteTrackingDao(this.context);
+        this.jsonProcessor = new SugiliteBlockJSONProcessor(this.context);
         this.sugiliteData = sugiliteData;
         this.sharedPreferences = sharedPreferences;
     }
@@ -175,11 +175,13 @@ public class SugiliteCommunicationController {
     }
 
     public String processMultipurposeRequest(String json) {
+        Log.d(TAG, "Request received: processMultipurposeRequest");
         //TODO: process json object
         return "After processing json: " + json;
     }
 
     public Set<String> getPackageVocab(String packageName) {
+        Log.d(TAG, "Request received: getPackageVocab");
         Set<String> vocabSet = null;
         if(packageName != null) {
             try {
@@ -199,6 +201,7 @@ public class SugiliteCommunicationController {
     }
 
     public String getAllPackageVocab() {
+        Log.d(TAG, "Request received: getAllPackageVocab");
         Map<String, Set<String>> appVocabMap =  null;
         try {
             appVocabMap = vocabularyDao.getTextsForAllPackages();
@@ -223,6 +226,7 @@ public class SugiliteCommunicationController {
     }
 
     public void clearTrackingList() {
+        Log.d(TAG, "Request received: clearTrackingList");
         sugiliteTrackingDao.clear();
         sendMessage(Const.RESPONSE, Const.CLEAR_TRACKING_LIST, "");
     }
@@ -269,11 +273,13 @@ public class SugiliteCommunicationController {
 
 
     public boolean sendAllScripts(){
+        Log.d(TAG, "Sending All Recording Scripts");
         return sendMessage( Const.RESPONSE, Const.GET_ALL_RECORDING_SCRIPTS, jsonProcessor
                 .scriptsToJson( getRecordingScripts() ));
     }
 
     public List<SugiliteStartingBlock> getRecordingScripts(){
+        Log.d(TAG, "Request received: getRecordingScripts");
         List<String> allNames = sugiliteScriptDao.getAllNames();
         List<SugiliteStartingBlock> startingBlocks = new ArrayList<>();
         for(String name : allNames) {
@@ -288,11 +294,13 @@ public class SugiliteCommunicationController {
     }
 
     public boolean sendAllTrackings(){
+        Log.d(TAG, "Sending All Tracking Scripts");
         return sendMessage( Const.RESPONSE, Const.GET_ALL_TRACKING_SCRIPTS, jsonProcessor
                 .scriptsToJson( getTrackingScripts() ));
     }
 
     public List<SugiliteStartingBlock> getTrackingScripts(){
+        Log.d(TAG, "Request received: getTrackingScripts");
         List<String> allNames = sugiliteTrackingDao.getAllNames();
         List<SugiliteStartingBlock> startingBlocks = new ArrayList<>();
         for(String name : allNames) {
@@ -307,6 +315,7 @@ public class SugiliteCommunicationController {
     }
 
     public boolean sendScript(String scriptName){
+        Log.d(TAG, "Sending Recording Script");
         // you should send back the script which name is "scriptName"... now, we are using a dummy
         SugiliteStartingBlock script = getRecordingScript(scriptName);
         if(script != null) {
@@ -319,10 +328,12 @@ public class SugiliteCommunicationController {
     }
 
     public SugiliteStartingBlock getRecordingScript(String scriptName){
+        Log.d(TAG, "Request received: getRecordingScript");
         return sugiliteScriptDao.read(scriptName + ".SugiliteScript");
     }
 
     public boolean sendTracking(String trackingName){
+        Log.d(TAG, "Sending Tracking Script");
         // you should send back the script which name is "scriptName"... now, we are using a dummy
         SugiliteStartingBlock tracking = getTrackingScript( trackingName );
         if(tracking != null)
@@ -334,6 +345,7 @@ public class SugiliteCommunicationController {
     }
 
     public SugiliteStartingBlock getTrackingScript(String scriptName){
+        Log.d(TAG, "Request received: getTrackingScript");
         return sugiliteTrackingDao.read(scriptName);
     }
 
@@ -370,6 +382,7 @@ public class SugiliteCommunicationController {
 
     public String startRecording(boolean sendCallback, String callbackString, final String scriptName,
                                  final boolean shouldUseToast) {
+        Log.d(TAG, "Request received: startRecording");
         boolean recordingInProcess = isRecordingInProcess();
         String message;
         if(recordingInProcess) {
@@ -438,6 +451,7 @@ public class SugiliteCommunicationController {
 
     public SugiliteStartingBlock stopRecording(boolean sendCallback, String callbackString,
                                                int sendTracking, boolean shouldUseToast) {
+        Log.d(TAG, "Request received: stopRecording");
         boolean recordingInProcess = isRecordingInProcess();
         if(recordingInProcess) {
             SharedPreferences.Editor prefEditor = sharedPreferences.edit();
@@ -475,6 +489,7 @@ public class SugiliteCommunicationController {
     }
 
     public String startTracking(String trackingName, boolean shouldUseToast) {
+        Log.d(TAG, "Request received: startTracking");
         //commit preference change
         SharedPreferences.Editor prefEditor = sharedPreferences.edit();
         sugiliteData.initiateTracking(trackingName);
@@ -494,6 +509,7 @@ public class SugiliteCommunicationController {
     }
 
     public SugiliteStartingBlock stopTracking( int sendTracking, boolean shouldUseToast) {
+        Log.d(TAG, "Request received: stopTracking");
         boolean trackingInProcess = isTrackingInProcess();
         if(trackingInProcess){
             SharedPreferences.Editor prefEditor2 = sharedPreferences.edit();
@@ -520,6 +536,7 @@ public class SugiliteCommunicationController {
     }
 
     public SugiliteStartingBlock addJsonAsScript(String json, boolean sendCallback, String callbackString){
+        Log.d(TAG, "Request received: addJsonAsScript");
         if(json != null){
             try{
                 SugiliteStartingBlock script = jsonProcessor.jsonToScript(json);
@@ -541,6 +558,7 @@ public class SugiliteCommunicationController {
     }
 
     public SugiliteStartingBlock runJson(String jsonScript, boolean sendCallback, String callbackString) {
+        Log.d(TAG, "Request received: runJson");
         if(jsonScript != null){
             Log.d("my_tag", jsonScript);
             SugiliteStartingBlock script = jsonProcessor.jsonToScript(jsonScript);
@@ -554,6 +572,7 @@ public class SugiliteCommunicationController {
     }
 
     public SugiliteStartingBlock runScript(String scriptName, boolean sendCallback, String callbackString) {
+        Log.d(TAG, "Request received: runScript");
         boolean recordingInProcess = isRecordingInProcess();
         if(recordingInProcess) {
             SugiliteCommunicationController.this.sendMessage(Const.RESPONSE_EXCEPTION,
@@ -630,6 +649,7 @@ public class SugiliteCommunicationController {
 
 
     private void runScript(SugiliteStartingBlock script){
+        Log.d(TAG, "Request received: runScript");
         sugiliteData.clearInstructionQueue();
         final ServiceStatusManager serviceStatusManager = ServiceStatusManager.getInstance(context);
         if(!serviceStatusManager.isRunning()){

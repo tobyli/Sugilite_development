@@ -11,27 +11,39 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="59e1dfad-f7c2-4898-af07-c87d271cc5e6" name="Default" comment="">
+      <change type="DELETED" beforePath="$PROJECT_DIR$/build/generated/mockable-android-23.jar" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/build/intermediates/dex-cache/cache.xml" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/build/intermediates/lint-cache/api-versions-8-24.0.4.bin" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/build/intermediates/lint-cache/typos-de.txt-2.bin" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/build/intermediates/lint-cache/typos-en.txt-2.bin" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/build/intermediates/lint-cache/typos-es.txt-2.bin" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/build/intermediates/lint-cache/typos-hu.txt-2.bin" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/build/intermediates/lint-cache/typos-it.txt-2.bin" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/build/intermediates/lint-cache/typos-nb.txt-2.bin" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/build/intermediates/lint-cache/typos-pt.txt-2.bin" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/build/intermediates/lint-cache/typos-tr.txt-2.bin" afterPath="" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.gradle/2.14.1/taskArtifacts/cache.properties.lock" afterPath="$PROJECT_DIR$/.gradle/2.14.1/taskArtifacts/cache.properties.lock" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.gradle/2.14.1/taskArtifacts/fileHashes.bin" afterPath="$PROJECT_DIR$/.gradle/2.14.1/taskArtifacts/fileHashes.bin" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.gradle/2.14.1/taskArtifacts/fileSnapshots.bin" afterPath="$PROJECT_DIR$/.gradle/2.14.1/taskArtifacts/fileSnapshots.bin" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.gradle/2.14.1/taskArtifacts/fileSnapshotsToTreeSnapshotsIndex.bin" afterPath="$PROJECT_DIR$/.gradle/2.14.1/taskArtifacts/fileSnapshotsToTreeSnapshotsIndex.bin" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.gradle/2.14.1/taskArtifacts/taskArtifacts.bin" afterPath="$PROJECT_DIR$/.gradle/2.14.1/taskArtifacts/taskArtifacts.bin" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.gradle/2.14.1/tasks/_app_compileReleaseJavaWithJavac/localClassSetAnalysis/localClassSetAnalysis.bin" afterPath="$PROJECT_DIR$/.gradle/2.14.1/tasks/_app_compileReleaseJavaWithJavac/localClassSetAnalysis/localClassSetAnalysis.bin" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.gradle/2.14.1/tasks/_app_compileReleaseJavaWithJavac/localClassSetAnalysis/localClassSetAnalysis.lock" afterPath="$PROJECT_DIR$/.gradle/2.14.1/tasks/_app_compileReleaseJavaWithJavac/localClassSetAnalysis/localClassSetAnalysis.lock" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.gradle/2.14.1/tasks/_app_compileReleaseJavaWithJavac/localJarClasspathSnapshot/localJarClasspathSnapshot.lock" afterPath="$PROJECT_DIR$/.gradle/2.14.1/tasks/_app_compileReleaseJavaWithJavac/localJarClasspathSnapshot/localJarClasspathSnapshot.lock" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.gradle/3.1/taskArtifacts/cache.properties.lock" afterPath="$PROJECT_DIR$/.gradle/3.1/taskArtifacts/cache.properties.lock" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.gradle/3.1/taskArtifacts/fileHashes.bin" afterPath="$PROJECT_DIR$/.gradle/3.1/taskArtifacts/fileHashes.bin" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.gradle/3.1/taskArtifacts/fileSnapshots.bin" afterPath="$PROJECT_DIR$/.gradle/3.1/taskArtifacts/fileSnapshots.bin" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.gradle/3.1/taskArtifacts/taskArtifacts.bin" afterPath="$PROJECT_DIR$/.gradle/3.1/taskArtifacts/taskArtifacts.bin" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.gradle/3.1/tasks/_app_compileDebugJavaWithJavac/localClassSetAnalysis/localClassSetAnalysis.bin" afterPath="$PROJECT_DIR$/.gradle/3.1/tasks/_app_compileDebugJavaWithJavac/localClassSetAnalysis/localClassSetAnalysis.bin" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.gradle/3.1/tasks/_app_compileDebugJavaWithJavac/localClassSetAnalysis/localClassSetAnalysis.lock" afterPath="$PROJECT_DIR$/.gradle/3.1/tasks/_app_compileDebugJavaWithJavac/localClassSetAnalysis/localClassSetAnalysis.lock" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.gradle/3.1/tasks/_app_compileDebugJavaWithJavac/localJarClasspathSnapshot/localJarClasspathSnapshot.lock" afterPath="$PROJECT_DIR$/.gradle/3.1/tasks/_app_compileDebugJavaWithJavac/localJarClasspathSnapshot/localJarClasspathSnapshot.lock" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.gradle/3.1/tasks/_app_compileReleaseJavaWithJavac/localClassSetAnalysis/localClassSetAnalysis.bin" afterPath="$PROJECT_DIR$/.gradle/3.1/tasks/_app_compileReleaseJavaWithJavac/localClassSetAnalysis/localClassSetAnalysis.bin" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.gradle/3.1/tasks/_app_compileReleaseJavaWithJavac/localClassSetAnalysis/localClassSetAnalysis.lock" afterPath="$PROJECT_DIR$/.gradle/3.1/tasks/_app_compileReleaseJavaWithJavac/localClassSetAnalysis/localClassSetAnalysis.lock" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.gradle/3.1/tasks/_app_compileReleaseJavaWithJavac/localJarClasspathSnapshot/localJarClasspathSnapshot.lock" afterPath="$PROJECT_DIR$/.gradle/3.1/tasks/_app_compileReleaseJavaWithJavac/localJarClasspathSnapshot/localJarClasspathSnapshot.lock" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/build/generated/mockable-android-23.jar" afterPath="$PROJECT_DIR$/build/generated/mockable-android-23.jar" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/misc.xml" afterPath="$PROJECT_DIR$/.idea/misc.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/app.iml" afterPath="$PROJECT_DIR$/app/app.iml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/build.gradle" afterPath="$PROJECT_DIR$/app/build.gradle" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/build/intermediates/dex-cache/cache.xml" afterPath="$PROJECT_DIR$/build/intermediates/dex-cache/cache.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/src/main/java/edu/cmu/hcii/sugilite/SugiliteMainActivity.java" afterPath="$PROJECT_DIR$/app/src/main/java/edu/cmu/hcii/sugilite/SugiliteMainActivity.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/src/main/java/edu/cmu/hcii/sugilite/communication/SugiliteCommunicationController.java" afterPath="$PROJECT_DIR$/app/src/main/java/edu/cmu/hcii/sugilite/communication/SugiliteCommunicationController.java" />
     </list>
     <ignored path="Sugilite.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -69,10 +81,20 @@
       <file leaf-file-name="SugiliteCommunicationController.java" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/app/src/main/java/edu/cmu/hcii/sugilite/communication/SugiliteCommunicationController.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="247">
-              <caret line="275" column="37" selection-start-line="275" selection-start-column="16" selection-end-line="275" selection-end-column="37" />
+            <state relative-caret-position="91">
+              <caret line="651" column="50" selection-start-line="651" selection-start-column="50" selection-end-line="651" selection-end-column="50" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="SugiliteScriptDao.java" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/app/src/main/java/edu/cmu/hcii/sugilite/dao/SugiliteScriptDao.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="180">
+              <caret line="28" column="22" selection-start-line="28" selection-start-column="22" selection-end-line="28" selection-end-column="22" />
               <folding>
-                <element signature="imports" expanded="true" />
+                <element signature="imports" expanded="false" />
               </folding>
             </state>
           </provider>
@@ -81,7 +103,7 @@
       <file leaf-file-name="build.gradle" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/app/build.gradle">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="169">
+            <state relative-caret-position="645">
               <caret line="43" column="50" selection-start-line="43" selection-start-column="50" selection-end-line="43" selection-end-column="50" />
               <folding />
             </state>
@@ -90,13 +112,77 @@
       </file>
       <file leaf-file-name="AndroidManifest.xml" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/app/src/main/AndroidManifest.xml">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="330">
+              <caret line="22" column="47" selection-start-line="22" selection-start-column="27" selection-end-line="22" selection-end-column="47" />
+              <folding />
+            </state>
+          </provider>
           <provider editor-type-id="android-manifest">
             <state />
           </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="SugiliteCommunicationActicvity.java" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/app/src/main/java/edu/cmu/hcii/sugilite/communication/SugiliteCommunicationActicvity.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="120">
-              <caret line="26" column="22" selection-start-line="26" selection-start-column="18" selection-end-line="26" selection-end-column="22" />
+            <state relative-caret-position="915">
+              <caret line="90" column="28" selection-start-line="90" selection-start-column="28" selection-end-line="90" selection-end-column="28" />
+              <folding>
+                <element signature="imports" expanded="false" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="SugiliteData.java" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/app/src/main/java/edu/cmu/hcii/sugilite/SugiliteData.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="135">
+              <caret line="37" column="25" selection-start-line="37" selection-start-column="25" selection-end-line="37" selection-end-column="25" />
+              <folding>
+                <element signature="imports" expanded="false" />
+                <element signature="e#2315#2316#0" expanded="false" />
+                <element signature="e#2348#2349#0" expanded="false" />
+                <element signature="e#2400#2401#0" expanded="false" />
+                <element signature="e#2435#2436#0" expanded="false" />
+                <element signature="e#2485#2486#0" expanded="false" />
+                <element signature="e#2526#2527#0" expanded="false" />
+                <element signature="e#2578#2579#0" expanded="false" />
+                <element signature="e#2621#2622#0" expanded="false" />
+                <element signature="e#2686#2687#0" expanded="false" />
+                <element signature="e#2730#2731#0" expanded="false" />
+                <element signature="e#5134#5135#0" expanded="false" />
+                <element signature="e#5174#5175#0" expanded="false" />
+                <element signature="e#5216#5217#0" expanded="false" />
+                <element signature="e#5262#5263#0" expanded="false" />
+                <element signature="e#6275#6276#0" expanded="false" />
+                <element signature="e#6321#6322#0" expanded="false" />
+                <element signature="e#6370#6371#0" expanded="false" />
+                <element signature="e#6416#6417#0" expanded="false" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="SugiliteAccessibilityService.java" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/app/src/main/java/edu/cmu/hcii/sugilite/SugiliteAccessibilityService.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="122">
+              <caret line="87" column="83" selection-start-line="87" selection-start-column="83" selection-end-line="87" selection-end-column="83" />
               <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="SugiliteEventBroadcastingActivity.java" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/app/src/main/java/edu/cmu/hcii/sugilite/communication/SugiliteEventBroadcastingActivity.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="60">
+              <caret line="26" column="13" selection-start-line="26" selection-start-column="13" selection-end-line="26" selection-end-column="13" />
+              <folding>
+                <element signature="imports" expanded="false" />
+              </folding>
             </state>
           </provider>
         </entry>
@@ -104,8 +190,24 @@
       <file leaf-file-name="ServiceStatusManager.java" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/app/src/main/java/edu/cmu/hcii/sugilite/automation/ServiceStatusManager.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="225">
-              <caret line="20" column="37" selection-start-line="20" selection-start-column="37" selection-end-line="20" selection-end-column="37" />
+            <state relative-caret-position="195">
+              <caret line="18" column="62" selection-start-line="18" selection-start-column="62" selection-end-line="18" selection-end-column="62" />
+              <folding>
+                <element signature="imports" expanded="false" />
+                <element signature="e#706#707#0" expanded="false" />
+                <element signature="e#744#745#0" expanded="false" />
+                <element signature="e#1643#1644#0" expanded="false" />
+                <element signature="e#1682#1683#0" expanded="false" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="SugiliteMainActivity.java" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/app/src/main/java/edu/cmu/hcii/sugilite/SugiliteMainActivity.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="315">
+              <caret line="51" column="116" selection-start-line="51" selection-start-column="116" selection-end-line="51" selection-end-column="116" />
               <folding />
             </state>
           </provider>
@@ -1432,7 +1534,7 @@
     </option>
     <option name="modificationStamps">
       <map>
-        <entry key="$PROJECT_DIR$" value="4435853709000" />
+        <entry key="$PROJECT_DIR$" value="4436395938000" />
       </map>
     </option>
     <option name="projectBuildClasspath">
@@ -1710,22 +1812,21 @@
         <option value="$PROJECT_DIR$/app/src/main/res/xml/accessibility_service_config.xml" />
         <option value="$PROJECT_DIR$/app/src/main/AndroidManifest.xml" />
         <option value="$PROJECT_DIR$/app/src/main/java/edu/cmu/hcii/sugilite/communication/SugiliteCommunicationActicvity.java" />
-        <option value="$PROJECT_DIR$/app/src/main/java/edu/cmu/hcii/sugilite/SugiliteMainActivity.java" />
         <option value="$PROJECT_DIR$/app/src/main/java/edu/cmu/hcii/sugilite/ui/ScriptDetailActivity.java" />
         <option value="$PROJECT_DIR$/app/src/main/java/edu/cmu/hcii/sugilite/ui/SettingsActivity.java" />
         <option value="$PROJECT_DIR$/app/src/main/java/edu/cmu/hcii/sugilite/SugiliteAccessibilityService.java" />
         <option value="$PROJECT_DIR$/app/src/main/java/edu/cmu/hcii/sugilite/automation/ServiceStatusManager.java" />
         <option value="$PROJECT_DIR$/app/src/main/java/edu/cmu/hcii/sugilite/ui/StatusIconManager.java" />
-        <option value="$PROJECT_DIR$/app/src/main/java/edu/cmu/hcii/sugilite/communication/SugiliteCommunicationController.java" />
         <option value="$PROJECT_DIR$/app/build.gradle" />
+        <option value="$PROJECT_DIR$/app/src/main/java/edu/cmu/hcii/sugilite/SugiliteMainActivity.java" />
+        <option value="$PROJECT_DIR$/app/src/main/java/edu/cmu/hcii/sugilite/communication/SugiliteCommunicationController.java" />
       </list>
     </option>
   </component>
   <component name="ProjectFrameBounds">
-    <option name="x" value="55" />
     <option name="y" value="23" />
-    <option name="width" value="1332" />
-    <option name="height" value="795" />
+    <option name="width" value="1440" />
+    <option name="height" value="797" />
   </component>
   <component name="ProjectLevelVcsManager" settingsEditedManually="false">
     <OptionsSetting value="true" id="Add" />
@@ -1752,11 +1853,8 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
-      <pane id="PackagesPane" />
       <pane id="Scope" />
-      <pane id="AndroidView">
-        <subPane />
-      </pane>
+      <pane id="Scratches" />
       <pane id="ProjectPane">
         <subPane>
           <PATH>
@@ -1831,11 +1929,14 @@
           </PATH>
         </subPane>
       </pane>
-      <pane id="Scratches" />
+      <pane id="AndroidView">
+        <subPane />
+      </pane>
+      <pane id="PackagesPane" />
     </panes>
   </component>
   <component name="PropertiesComponent">
-    <property name="SearchEverywhereHistoryKey" value="mRe&#9;FILE&#9;file:///Users/oscarr/Development/Sugilite/app/src/main/java/edu/cmu/hcii/sugilite/recording/mRecordingPopUpActivity.java&#10;StatusI&#9;FILE&#9;file:///Users/oscarr/Development/Sugilite/app/src/main/java/edu/cmu/hcii/sugilite/ui/StatusIconManager.java&#10;Automa&#9;FILE&#9;file:///Users/oscarr/Development/Sugilite/app/src/main/java/edu/cmu/hcii/sugilite/automation/Automator.java&#10;Sett&#9;FILE&#9;file:///Users/oscarr/Development/Sugilite/app/src/main/java/edu/cmu/hcii/sugilite/ui/SettingsActivity.java&#10;ScriptDe&#9;FILE&#9;file:///Users/oscarr/Development/Sugilite/app/src/main/java/edu/cmu/hcii/sugilite/ui/ScriptDetailActivity.java&#10;SugiliteMa&#9;FILE&#9;file:///Users/oscarr/Development/Sugilite/app/src/main/java/edu/cmu/hcii/sugilite/SugiliteMainActivity.java&#10;ugil&#9;FILE&#9;file:///Users/oscarr/Development/Sugilite/app/src/main/java/edu/cmu/hcii/sugilite/communication/SugiliteCommunicationActicvity.java&#10;Stat&#9;FILE&#9;file:///Users/oscarr/Development/Sugilite/app/src/main/java/edu/cmu/hcii/sugilite/automation/ServiceStatusManager.java&#10;Communi&#9;FILE&#9;file:///Users/oscarr/Development/Sugilite/app/src/main/java/edu/cmu/hcii/sugilite/communication/SugiliteCommunicationController.java&#10;Const&#9;FILE&#9;file:///Users/oscarr/Development/Sugilite/app/src/main/java/edu/cmu/hcii/sugilite/Const.java&#10;Setti&#9;PSI&#9;JAVA://edu.cmu.hcii.sugilite.ui.SettingsActivity&#10;StatusIc&#9;PSI&#9;JAVA://edu.cmu.hcii.sugilite.ui.StatusIconManager&#10;Varia&#9;PSI&#9;JAVA://edu.cmu.hcii.sugilite.ui.dialog.VariableSetValueDialog&#10;Selec&#9;PSI&#9;JAVA://edu.cmu.hcii.sugilite.ui.dialog.SelectElementWithTextDialog&#10;mReco&#9;PSI&#9;JAVA://edu.cmu.hcii.sugilite.recording.mRecordingPopUpActivity&#10;Recor&#9;PSI&#9;JAVA://edu.cmu.hcii.sugilite.recording.RecordingPopUpDialog" />
+    <property name="SearchEverywhereHistoryKey" value="SugiliteDa&#9;FILE&#9;file:///Users/oscarr/Development/Sugilite/app/src/main/java/edu/cmu/hcii/sugilite/SugiliteData.java&#10;SugiliteMa&#9;FILE&#9;file:///Users/oscarr/Development/Sugilite/app/src/main/java/edu/cmu/hcii/sugilite/SugiliteMainActivity.java&#10;Service&#9;FILE&#9;file:///Users/oscarr/Development/Sugilite/app/src/main/java/edu/cmu/hcii/sugilite/automation/ServiceStatusManager.java&#10;ServiceStatusManager&#9;FILE&#9;file:///Users/oscarr/Development/Sugilite/app/src/main/java/edu/cmu/hcii/sugilite/automation/ServiceStatusManager.java&#10;mRe&#9;FILE&#9;file:///Users/oscarr/Development/Sugilite/app/src/main/java/edu/cmu/hcii/sugilite/recording/mRecordingPopUpActivity.java&#10;StatusI&#9;FILE&#9;file:///Users/oscarr/Development/Sugilite/app/src/main/java/edu/cmu/hcii/sugilite/ui/StatusIconManager.java&#10;Automa&#9;FILE&#9;file:///Users/oscarr/Development/Sugilite/app/src/main/java/edu/cmu/hcii/sugilite/automation/Automator.java&#10;Sett&#9;FILE&#9;file:///Users/oscarr/Development/Sugilite/app/src/main/java/edu/cmu/hcii/sugilite/ui/SettingsActivity.java&#10;ScriptDe&#9;FILE&#9;file:///Users/oscarr/Development/Sugilite/app/src/main/java/edu/cmu/hcii/sugilite/ui/ScriptDetailActivity.java&#10;ugil&#9;FILE&#9;file:///Users/oscarr/Development/Sugilite/app/src/main/java/edu/cmu/hcii/sugilite/communication/SugiliteCommunicationActicvity.java&#10;Stat&#9;FILE&#9;file:///Users/oscarr/Development/Sugilite/app/src/main/java/edu/cmu/hcii/sugilite/automation/ServiceStatusManager.java&#10;Communi&#9;FILE&#9;file:///Users/oscarr/Development/Sugilite/app/src/main/java/edu/cmu/hcii/sugilite/communication/SugiliteCommunicationController.java&#10;Const&#9;FILE&#9;file:///Users/oscarr/Development/Sugilite/app/src/main/java/edu/cmu/hcii/sugilite/Const.java&#10;Setti&#9;PSI&#9;JAVA://edu.cmu.hcii.sugilite.ui.SettingsActivity&#10;StatusIc&#9;PSI&#9;JAVA://edu.cmu.hcii.sugilite.ui.StatusIconManager&#10;Varia&#9;PSI&#9;JAVA://edu.cmu.hcii.sugilite.ui.dialog.VariableSetValueDialog&#10;Selec&#9;PSI&#9;JAVA://edu.cmu.hcii.sugilite.ui.dialog.SelectElementWithTextDialog&#10;mReco&#9;PSI&#9;JAVA://edu.cmu.hcii.sugilite.recording.mRecordingPopUpActivity&#10;Recor&#9;PSI&#9;JAVA://edu.cmu.hcii.sugilite.recording.RecordingPopUpDialog" />
     <property name="device.picker.selection" value="LGD855a1048014" />
   </component>
   <component name="RunManager" selected="Android App.app">
@@ -2066,7 +2167,7 @@
     <servers />
   </component>
   <component name="ToolWindowManager">
-    <frame x="55" y="23" width="1332" height="795" extended-state="0" />
+    <frame x="0" y="23" width="1440" height="797" extended-state="1" />
     <editor active="false" />
     <layout>
       <window_info id="Nl-Palette" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
@@ -2086,11 +2187,11 @@
       <window_info id="Capture Analysis" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.3591623" sideWeight="0.49089906" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="10" side_tool="false" content_ui="tabs" />
-      <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25184095" sideWeight="0.648062" order="14" side_tool="false" content_ui="tabs" />
+      <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.22173275" sideWeight="0.6387697" order="14" side_tool="false" content_ui="tabs" />
       <window_info id="Captures" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
-      <window_info id="Gradle Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.42709866" sideWeight="0.54651165" order="13" side_tool="true" content_ui="tabs" />
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.20542635" sideWeight="0.7254902" order="0" side_tool="false" content_ui="combo" />
-      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.42709866" sideWeight="0.45348838" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Gradle Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.22173275" sideWeight="0.36123034" order="13" side_tool="true" content_ui="tabs" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.16523606" sideWeight="0.7254902" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4375918" sideWeight="0.42918456" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Gradle" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Theme Preview" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="10" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="4" side_tool="true" content_ui="tabs" />
@@ -2123,7 +2224,7 @@
       <breakpoints>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/app/src/main/java/edu/cmu/hcii/sugilite/communication/SugiliteCommunicationController.java</url>
-          <line>243</line>
+          <line>247</line>
           <properties />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
@@ -2138,13 +2239,6 @@
     <watches-manager />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/app/src/main/java/edu/cmu/hcii/sugilite/Const.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="375">
-          <caret line="25" column="38" selection-start-line="25" selection-start-column="28" selection-end-line="25" selection-end-column="38" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/app/src/main/java/edu/cmu/hcii/sugilite/communication/SugiliteEventBroadcastingActivity.java">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="510">
@@ -2156,10 +2250,7 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="60">
           <caret line="51" column="13" selection-start-line="51" selection-start-column="13" selection-end-line="51" selection-end-column="13" />
-          <folding>
-            <element signature="e#7553#7554#0" expanded="false" />
-            <element signature="e#7591#7592#0" expanded="false" />
-          </folding>
+          <folding />
         </state>
       </provider>
     </entry>
@@ -2239,13 +2330,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="129">
           <caret line="33" column="13" selection-start-line="33" selection-start-column="13" selection-end-line="33" selection-end-column="13" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/app/src/main/java/edu/cmu/hcii/sugilite/communication/SugiliteEventBroadcastingActivity.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="129">
-          <caret line="26" column="13" selection-start-line="26" selection-start-column="13" selection-end-line="26" selection-end-column="13" />
         </state>
       </provider>
     </entry>
@@ -2344,7 +2428,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="139">
           <caret line="31" column="19" selection-start-line="31" selection-start-column="19" selection-end-line="31" selection-end-column="19" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -2371,27 +2454,10 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/app/src/main/java/edu/cmu/hcii/sugilite/communication/SugiliteCommunicationActicvity.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="129">
-          <caret line="354" column="31" selection-start-line="354" selection-start-column="31" selection-end-line="354" selection-end-column="31" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/app/src/main/java/edu/cmu/hcii/sugilite/SugiliteMainActivity.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="129">
-          <caret line="81" column="29" selection-start-line="81" selection-start-column="29" selection-end-line="81" selection-end-column="29" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/app/src/main/java/edu/cmu/hcii/sugilite/ui/ScriptDetailActivity.java">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="129">
           <caret line="112" column="14" selection-start-line="112" selection-start-column="14" selection-end-line="112" selection-end-column="14" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -2413,14 +2479,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="129">
           <caret line="90" column="21" selection-start-line="90" selection-start-column="21" selection-end-line="90" selection-end-column="21" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/app/src/main/java/edu/cmu/hcii/sugilite/SugiliteData.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="108">
-          <caret line="37" column="25" selection-start-line="37" selection-start-column="13" selection-end-line="37" selection-end-column="25" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -2451,51 +2509,118 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/app/src/main/java/edu/cmu/hcii/sugilite/automation/ServiceStatusManager.java">
+    <entry file="file://$PROJECT_DIR$/app/src/main/java/edu/cmu/hcii/sugilite/communication/SugiliteEventBroadcastingActivity.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="225">
-          <caret line="20" column="37" selection-start-line="20" selection-start-column="37" selection-end-line="20" selection-end-column="37" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/app/src/main/java/edu/cmu/hcii/sugilite/SugiliteAccessibilityService.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="102">
-          <caret line="466" column="28" selection-start-line="466" selection-start-column="11" selection-end-line="466" selection-end-column="28" />
+        <state relative-caret-position="60">
+          <caret line="26" column="13" selection-start-line="26" selection-start-column="13" selection-end-line="26" selection-end-column="13" />
           <folding>
-            <element signature="e#7553#7554#0" expanded="false" />
-            <element signature="e#7591#7592#0" expanded="false" />
+            <element signature="imports" expanded="false" />
           </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/app/build.gradle">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="169">
+        <state relative-caret-position="645">
           <caret line="43" column="50" selection-start-line="43" selection-start-column="50" selection-end-line="43" selection-end-column="50" />
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/app/src/main/AndroidManifest.xml">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="330">
+          <caret line="22" column="47" selection-start-line="22" selection-start-column="27" selection-end-line="22" selection-end-column="47" />
+          <folding />
+        </state>
+      </provider>
       <provider editor-type-id="android-manifest">
         <state />
       </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/src/main/java/edu/cmu/hcii/sugilite/automation/ServiceStatusManager.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="120">
-          <caret line="26" column="22" selection-start-line="26" selection-start-column="18" selection-end-line="26" selection-end-column="22" />
+        <state relative-caret-position="195">
+          <caret line="18" column="62" selection-start-line="18" selection-start-column="62" selection-end-line="18" selection-end-column="62" />
+          <folding>
+            <element signature="imports" expanded="false" />
+            <element signature="e#706#707#0" expanded="false" />
+            <element signature="e#744#745#0" expanded="false" />
+            <element signature="e#1643#1644#0" expanded="false" />
+            <element signature="e#1682#1683#0" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/src/main/java/edu/cmu/hcii/sugilite/SugiliteMainActivity.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="315">
+          <caret line="51" column="116" selection-start-line="51" selection-start-column="116" selection-end-line="51" selection-end-column="116" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/src/main/java/edu/cmu/hcii/sugilite/communication/SugiliteCommunicationActicvity.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="915">
+          <caret line="90" column="28" selection-start-line="90" selection-start-column="28" selection-end-line="90" selection-end-column="28" />
+          <folding>
+            <element signature="imports" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/src/main/java/edu/cmu/hcii/sugilite/SugiliteData.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="135">
+          <caret line="37" column="25" selection-start-line="37" selection-start-column="25" selection-end-line="37" selection-end-column="25" />
+          <folding>
+            <element signature="imports" expanded="false" />
+            <element signature="e#2315#2316#0" expanded="false" />
+            <element signature="e#2348#2349#0" expanded="false" />
+            <element signature="e#2400#2401#0" expanded="false" />
+            <element signature="e#2435#2436#0" expanded="false" />
+            <element signature="e#2485#2486#0" expanded="false" />
+            <element signature="e#2526#2527#0" expanded="false" />
+            <element signature="e#2578#2579#0" expanded="false" />
+            <element signature="e#2621#2622#0" expanded="false" />
+            <element signature="e#2686#2687#0" expanded="false" />
+            <element signature="e#2730#2731#0" expanded="false" />
+            <element signature="e#5134#5135#0" expanded="false" />
+            <element signature="e#5174#5175#0" expanded="false" />
+            <element signature="e#5216#5217#0" expanded="false" />
+            <element signature="e#5262#5263#0" expanded="false" />
+            <element signature="e#6275#6276#0" expanded="false" />
+            <element signature="e#6321#6322#0" expanded="false" />
+            <element signature="e#6370#6371#0" expanded="false" />
+            <element signature="e#6416#6417#0" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/src/main/java/edu/cmu/hcii/sugilite/dao/SugiliteScriptDao.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="180">
+          <caret line="28" column="22" selection-start-line="28" selection-start-column="22" selection-end-line="28" selection-end-column="22" />
+          <folding>
+            <element signature="imports" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/src/main/java/edu/cmu/hcii/sugilite/SugiliteAccessibilityService.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="122">
+          <caret line="87" column="83" selection-start-line="87" selection-start-column="83" selection-end-line="87" selection-end-column="83" />
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/app/src/main/java/edu/cmu/hcii/sugilite/communication/SugiliteCommunicationController.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="247">
-          <caret line="275" column="37" selection-start-line="275" selection-start-column="16" selection-end-line="275" selection-end-column="37" />
-          <folding>
-            <element signature="imports" expanded="true" />
-          </folding>
+        <state relative-caret-position="91">
+          <caret line="651" column="50" selection-start-line="651" selection-start-column="50" selection-end-line="651" selection-end-column="50" />
+          <folding />
         </state>
       </provider>
     </entry>

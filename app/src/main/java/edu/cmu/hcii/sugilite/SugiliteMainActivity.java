@@ -49,7 +49,7 @@ public class SugiliteMainActivity extends AppCompatActivity {
         serviceStatusManager = ServiceStatusManager.getInstance(this);
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         sugiliteScriptDao = new SugiliteScriptDao(this);
-        sugiliteData = (SugiliteData)getApplication();
+        sugiliteData = getApplication() instanceof SugiliteData? (SugiliteData)getApplication() : new SugiliteData();
         generalizer = new Generalizer(this);
         setTitle("Sugilite Script List");
         //TODO: confirm overwrite when duplicated name

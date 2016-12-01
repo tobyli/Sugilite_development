@@ -1,9 +1,7 @@
 package edu.cmu.hcii.sugilite;
 
 import android.accessibilityservice.AccessibilityService;
-import android.app.AlertDialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Rect;
@@ -48,25 +46,28 @@ import static edu.cmu.hcii.sugilite.Const.BUILDING_VOCAB;
 import static edu.cmu.hcii.sugilite.Const.KEEP_ALL_TEXT_LABEL_LIST;
 
 public class SugiliteAccessibilityService extends AccessibilityService {
-    private WindowManager windowManager;
-    private SharedPreferences sharedPreferences;
-    private Automator automator;
-    private SugiliteData sugiliteData;
-    private StatusIconManager statusIconManager;
-    private SugiliteScreenshotManager screenshotManager;
-    private Set<Integer> accessibilityEventSetToHandle, accessibilityEventSetToSend, accessibilityEventSetToTrack;
-    private Thread automatorThread;
-    private Context context;
-    private SugiliteTrackingHandler sugilteTrackingHandler;
-    private SugiliteAppVocabularyDao vocabularyDao;
-    private Handler handler;
+    protected WindowManager windowManager;
+    protected SharedPreferences sharedPreferences;
+    protected Automator automator;
+    protected SugiliteData sugiliteData;
+    protected StatusIconManager statusIconManager;
+    protected SugiliteScreenshotManager screenshotManager;
+    protected Set<Integer> accessibilityEventSetToHandle, accessibilityEventSetToSend, accessibilityEventSetToTrack;
+    protected Thread automatorThread;
+    protected Context context;
+    protected SugiliteTrackingHandler sugilteTrackingHandler;
+    protected SugiliteAppVocabularyDao vocabularyDao;
+    protected Handler handler;
+    protected static final String TAG = SugiliteAccessibilityService.class.getSimpleName();
 
 
     public SugiliteAccessibilityService() {
+        Log.d( TAG, "inside constructor");
     }
 
     @Override
     public void onCreate(){
+        Log.d( TAG, "inside onCreate");
         super.onCreate();
         windowManager = (WindowManager) getSystemService(WINDOW_SERVICE);
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
@@ -166,6 +167,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
     @Override
     public void onServiceConnected() {
         super.onServiceConnected();
+        Log.d( TAG, "inside onServiceCreated");
 
     }
 
@@ -173,11 +175,11 @@ public class SugiliteAccessibilityService extends AccessibilityService {
         handler.post(runnable);
     }
 
-    private HashSet<Map.Entry<String, String>> availableAlternatives;
-    private HashSet<SerializableNodeInfo> availableAlternativeNodes;
-    private HashSet<Map.Entry<String, String>> packageVocabs;
+    protected HashSet<Map.Entry<String, String>> availableAlternatives;
+    protected HashSet<SerializableNodeInfo> availableAlternativeNodes;
+    protected HashSet<Map.Entry<String, String>> packageVocabs;
 
-    private HashSet<Map.Entry<String, String>> trackingPackageVocabs;
+    protected HashSet<Map.Entry<String, String>> trackingPackageVocabs;
 
     Set<String> exceptedPackages = new HashSet<>();
     Set<String> trackingExcludedPackages = new HashSet<>();
@@ -187,6 +189,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
     public void onAccessibilityEvent(AccessibilityEvent event) {
         //TODO problem: the status of "right after click" (try getParent()?)
         //TODO new rootNode method
+        Log.d( TAG, "inside onAccessibilityEvent");
         final AccessibilityNodeInfo rootNode = getRootInActiveWindow();
         AccessibilityNodeInfo sourceNode = event.getSource();
 
@@ -487,7 +490,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
 
 
 
-    private SugiliteAvailableFeaturePack generateFeaturePack(AccessibilityEvent event, AccessibilityNodeInfo rootNode, File screenshot, HashSet<SerializableNodeInfo> availableAlternativeNodes){
+    protected SugiliteAvailableFeaturePack generateFeaturePack(AccessibilityEvent event, AccessibilityNodeInfo rootNode, File screenshot, HashSet<SerializableNodeInfo> availableAlternativeNodes){
         SugiliteAvailableFeaturePack featurePack = new SugiliteAvailableFeaturePack();
         AccessibilityNodeInfo sourceNode = event.getSource();
         Rect boundsInParents = new Rect();
@@ -606,7 +609,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
         return popUpIntent;
     }
 
-    private List<AccessibilityNodeInfo> getAllNodesWithText(AccessibilityNodeInfo rootNode) {
+    protected List<AccessibilityNodeInfo> getAllNodesWithText(AccessibilityNodeInfo rootNode) {
         List<AccessibilityNodeInfo> retList = new ArrayList<>();
         List<AccessibilityNodeInfo> allNodes = Automator.preOrderTraverse(rootNode);
         if (allNodes == null)
@@ -618,7 +621,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
         return retList;
     }
 
-    private HashSet<Map.Entry<String, String>> getAlternativeLabels (AccessibilityNodeInfo sourceNode, AccessibilityNodeInfo rootNode){
+    protected HashSet<Map.Entry<String, String>> getAlternativeLabels (AccessibilityNodeInfo sourceNode, AccessibilityNodeInfo rootNode){
         HashSet<Map.Entry<String, String>> retMap = new HashSet<>();
         List<AccessibilityNodeInfo> allNodes = Automator.preOrderTraverse(rootNode);
         if(allNodes == null)
@@ -649,7 +652,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
         return retMap;
     }
 
-    private HashSet<SerializableNodeInfo> getAvailableAlternativeNodes (AccessibilityNodeInfo sourceNode, AccessibilityNodeInfo rootNode){
+    protected HashSet<SerializableNodeInfo> getAvailableAlternativeNodes (AccessibilityNodeInfo sourceNode, AccessibilityNodeInfo rootNode){
         List<AccessibilityNodeInfo> allNodes = Automator.preOrderTraverse(rootNode);
         HashSet<SerializableNodeInfo> retSet = new HashSet<>();
         if(allNodes == null)

@@ -15,6 +15,7 @@ import edu.cmu.hcii.sugilite.SugiliteAccessibilityService;
 public class ServiceStatusManager {
     private static Context context;
     private static ServiceStatusManager instance;
+    private Class serviceClass;
 
     //FIXME: modified by Oscar. SugiliteAccessibilityService cannot be found if looked at different
     // contexts (e.g., Activities, Services, providers, etc). So we need: to make sure we use always
@@ -30,14 +31,23 @@ public class ServiceStatusManager {
         return instance;
     }
 
+    public static ServiceStatusManager getInstance(Context ctx, Class serviceClass){
+        if( instance == null ){
+            instance = new ServiceStatusManager( ctx.getApplicationContext());
+        }
+        instance.serviceClass = serviceClass;
+        return instance;
+    }
+
     /**
      *
      * @return true if SugiliteAccessibilityService is active, false otherwise
      */
     public boolean isRunning() {
+        Class clazz = serviceClass == null? SugiliteAccessibilityService.class : serviceClass;
         ActivityManager manager = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
         for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
-            if (SugiliteAccessibilityService.class.getName().equals(service.service.getClassName())) {
+            if (clazz.getName().equals(service.service.getClassName())) {
                 return true;
             }
         }

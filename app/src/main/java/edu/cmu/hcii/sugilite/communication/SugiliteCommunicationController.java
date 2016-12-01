@@ -1,5 +1,6 @@
 package edu.cmu.hcii.sugilite.communication;
 
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.ComponentName;
 import android.content.Context;
@@ -48,14 +49,18 @@ public class SugiliteCommunicationController {
     SugiliteAppVocabularyDao vocabularyDao;
     SugiliteBlockJSONProcessor jsonProcessor;
     SugiliteData sugiliteData;
+    Activity activity;
     private ServiceConnection connection; //receives callbacks from bind and unbind invocations
     private Context context; //NOTE: application context
+    private String message;
     //TODO: implement tracking
     private SharedPreferences sharedPreferences;
+    private List<SugiliteMessageListener> subscribers;
     //TODO: add start recording/stop recording
 
-    private SugiliteCommunicationController( Context context ) {
+    private SugiliteCommunicationController( Context context, Activity activity ) {
         this(context, new SugiliteData(), PreferenceManager.getDefaultSharedPreferences(context) );
+        this.activity = activity;
     }
 
     private SugiliteCommunicationController(Context context, SugiliteData sugiliteData,
@@ -69,6 +74,7 @@ public class SugiliteCommunicationController {
         this.jsonProcessor = new SugiliteBlockJSONProcessor(this.context);
         this.sugiliteData = sugiliteData;
         this.sharedPreferences = sharedPreferences;
+        this.subscribers = new ArrayList<>();
     }
 
     public static SugiliteCommunicationController getInstance(Context context, SugiliteData sugiliteData,
@@ -79,9 +85,9 @@ public class SugiliteCommunicationController {
         return instance;
     }
 
-    public static SugiliteCommunicationController getInstance(Context context){
+    public static SugiliteCommunicationController getInstance(Context context, Activity activity){
         if( instance == null ){
-            instance = new SugiliteCommunicationController(context);
+            instance = new SugiliteCommunicationController(context, activity);
         }
         return instance;
     }
@@ -172,6 +178,18 @@ public class SugiliteCommunicationController {
 
     private boolean isRecordingInProcess() {
         return sharedPreferences.getBoolean("recording_in_process", false);
+    }
+
+    /**
+     * This method is called from outside (i.e., from Middleware)
+     * @param subcriber
+     */
+    public void addSubscriber(SugiliteMessageListener subcriber){
+        subscribers.add( subcriber );
+    }
+
+    public boolean removeSubscriber(SugiliteMessageListener subcriber){
+        return subscribers.remove( subcriber );
     }
 
     public String processMultipurposeRequest(String json) {
@@ -360,6 +378,7 @@ public class SugiliteCommunicationController {
 
 
     public boolean sendMessage(int messageType, int arg2, String obj){
+        processSubscribers( arg2, obj);
         if (isBound) {
             Message message = Message.obtain(null, messageType, Const.ID_APP_TRACKER, 0);
             try {
@@ -380,11 +399,16 @@ public class SugiliteCommunicationController {
         }
     }
 
-    public String startRecording(boolean sendCallback, String callbackString, final String scriptName,
-                                 final boolean shouldUseToast) {
+    private void processSubscribers(int messageType, String obj) {
+        for(SugiliteMessageListener subscriber : subscribers ){
+            subscriber.onReceiveMessage( messageType, obj);
+        }
+    }
+
+    public String startRecording(Boolean sendCallback, String callbackString, final String scriptName,
+                                 final Boolean shouldUseToast) {
         Log.d(TAG, "Request received: startRecording");
         boolean recordingInProcess = isRecordingInProcess();
-        String message;
         if(recordingInProcess) {
             //the exception message below will be sent when there's already recording in process
             message = "Already recording in progress, can't start";
@@ -398,50 +422,55 @@ public class SugiliteCommunicationController {
         else {
             //NOTE: script name should be specified in msg.getData().getString("request");
             if (scriptName != null) {
-                message = "Now start recording new script " + scriptName;
-                AlertDialog.Builder builder = new AlertDialog.Builder(context);
-                builder.setTitle("New Recording")
-                        .setMessage(message)
-                        .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                dialog.dismiss();
-                            }
-                        })
-                        .setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                sugiliteData.clearInstructionQueue();
-                                SharedPreferences.Editor editor = sharedPreferences.edit();
-                                editor.putString("scriptName", scriptName);
-                                editor.putBoolean("recording_in_process", true);
-                                editor.commit();
+                activity.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        message = "Now start recording new script " + scriptName;
+                        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+                        builder.setTitle("New Recording")
+                                .setMessage(message)
+                                .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        dialog.dismiss();
+                                    }
+                                })
+                                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        sugiliteData.clearInstructionQueue();
+                                        SharedPreferences.Editor editor = sharedPreferences.edit();
+                                        editor.putString("scriptName", scriptName);
+                                        editor.putBoolean("recording_in_process", true);
+                                        editor.commit();
 
-                                sugiliteData.initiateScript(scriptName + ".SugiliteScript");
-                                sugiliteData.initiatedExternally = true;
+                                        sugiliteData.initiateScript(scriptName + ".SugiliteScript");
+                                        sugiliteData.initiatedExternally = true;
 
-                                try {
-                                    sugiliteScriptDao.save(sugiliteData.getScriptHead());
-                                } catch (Exception e) {
-                                    e.printStackTrace();
-                                }
-                                if( shouldUseToast ) {
-                                    Toast.makeText(context, "Recording new script " +
-                                                    sharedPreferences.getString("scriptName", "NULL"),
-                                            Toast.LENGTH_SHORT).show();
-                                }
+                                        try {
+                                            sugiliteScriptDao.save(sugiliteData.getScriptHead());
+                                        } catch (Exception e) {
+                                            e.printStackTrace();
+                                        }
+                                        if( shouldUseToast ) {
+                                            Toast.makeText(context, "Recording new script " +
+                                                            sharedPreferences.getString("scriptName", "NULL"),
+                                                    Toast.LENGTH_SHORT).show();
+                                        }
 
-                                //go to home screen for recording
-                                Intent startMain = new Intent(Intent.ACTION_MAIN);
-                                startMain.addCategory(Intent.CATEGORY_HOME);
-                                startMain.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                                context.startActivity(startMain);
-                            }
-                        });
-                AlertDialog dialog = builder.create();
-                dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
-                dialog.show();
-                Log.d(TAG, "Start Recording");
+                                        //go to home screen for recording
+                                        Intent startMain = new Intent(Intent.ACTION_MAIN);
+                                        startMain.addCategory(Intent.CATEGORY_HOME);
+                                        startMain.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                                        context.startActivity(startMain);
+                                    }
+                                });
+                        AlertDialog dialog = builder.create();
+                        dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
+                        dialog.show();
+                        Log.d(TAG, "Start Recording");
+                    }
+                });
             }else{
                 message = "Script name is null";
             }
@@ -449,8 +478,8 @@ public class SugiliteCommunicationController {
         return message;
     }
 
-    public SugiliteStartingBlock stopRecording(boolean sendCallback, String callbackString,
-                                               int sendTracking, boolean shouldUseToast) {
+    public SugiliteStartingBlock stopRecording(Boolean sendCallback, String callbackString,
+                                               int sendTracking, Boolean shouldUseToast) {
         Log.d(TAG, "Request received: stopRecording");
         boolean recordingInProcess = isRecordingInProcess();
         if(recordingInProcess) {
@@ -488,7 +517,7 @@ public class SugiliteCommunicationController {
         return null;
     }
 
-    public String startTracking(String trackingName, boolean shouldUseToast) {
+    public String startTracking(String trackingName, Boolean shouldUseToast) {
         Log.d(TAG, "Request received: startTracking");
         //commit preference change
         SharedPreferences.Editor prefEditor = sharedPreferences.edit();
@@ -508,7 +537,7 @@ public class SugiliteCommunicationController {
         return message;
     }
 
-    public SugiliteStartingBlock stopTracking( int sendTracking, boolean shouldUseToast) {
+    public SugiliteStartingBlock stopTracking( int sendTracking, Boolean shouldUseToast) {
         Log.d(TAG, "Request received: stopTracking");
         boolean trackingInProcess = isTrackingInProcess();
         if(trackingInProcess){
@@ -535,7 +564,7 @@ public class SugiliteCommunicationController {
         return null;
     }
 
-    public SugiliteStartingBlock addJsonAsScript(String json, boolean sendCallback, String callbackString){
+    public SugiliteStartingBlock addJsonAsScript(String json, Boolean sendCallback, String callbackString){
         Log.d(TAG, "Request received: addJsonAsScript");
         if(json != null){
             try{
@@ -557,7 +586,7 @@ public class SugiliteCommunicationController {
         return null;
     }
 
-    public SugiliteStartingBlock runJson(String jsonScript, boolean sendCallback, String callbackString) {
+    public SugiliteStartingBlock runJson(String jsonScript, Boolean sendCallback, String callbackString) {
         Log.d(TAG, "Request received: runJson");
         if(jsonScript != null){
             Log.d("my_tag", jsonScript);
@@ -571,7 +600,7 @@ public class SugiliteCommunicationController {
         return null;
     }
 
-    public SugiliteStartingBlock runScript(String scriptName, boolean sendCallback, String callbackString) {
+    public SugiliteStartingBlock runScript(String scriptName, Boolean sendCallback, String callbackString) {
         Log.d(TAG, "Request received: runScript");
         boolean recordingInProcess = isRecordingInProcess();
         if(recordingInProcess) {
@@ -598,20 +627,25 @@ public class SugiliteCommunicationController {
 
             if(!serviceStatusManager.isRunning()){
                 //prompt the user if the accessiblity service is not active
-                AlertDialog.Builder builder1 = new AlertDialog.Builder(context);
-                builder1.setTitle("Service not running")
-                        .setMessage("The Sugilite accessiblity service is not enabled. " +
-                                "Please enable the service in the phone settings before recording.")
-                        .setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                serviceStatusManager.promptEnabling();
-                                //do nothing
-                            }
-                        });
-                AlertDialog dialog = builder1.create();
-                dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
-                dialog.show();
+                activity.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        AlertDialog.Builder builder1 = new AlertDialog.Builder(context);
+                        builder1.setTitle("Service not running")
+                                .setMessage("The Sugilite accessiblity service is not enabled. " +
+                                        "Please enable the service in the phone settings before recording.")
+                                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        serviceStatusManager.promptEnabling();
+                                        //do nothing
+                                    }
+                                });
+                        AlertDialog dialog = builder1.create();
+                        dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
+                        dialog.show();
+                    }
+                });
             }
             else {
                 sugiliteData.stringVariableMap.putAll(script.variableNameDefaultValueMap);
@@ -654,20 +688,25 @@ public class SugiliteCommunicationController {
         final ServiceStatusManager serviceStatusManager = ServiceStatusManager.getInstance(context);
         if(!serviceStatusManager.isRunning()){
             //prompt the user if the accessiblity service is not active
-            AlertDialog.Builder builder1 = new AlertDialog.Builder(context);
-            builder1.setTitle("Service not running")
-                    .setMessage("The Sugilite accessiblity service is not enabled. " +
-                            "Please enable the service in the phone settings before recording.")
-                    .setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            serviceStatusManager.promptEnabling();
-                            //do nothing
-                        }
-                    });
-            AlertDialog dialog = builder1.create();
-            dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
-            dialog.show();
+            activity.runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    AlertDialog.Builder builder1 = new AlertDialog.Builder(context);
+                    builder1.setTitle("Service not running")
+                            .setMessage("The Sugilite accessiblity service is not enabled. " +
+                                    "Please enable the service in the phone settings before recording.")
+                            .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    serviceStatusManager.promptEnabling();
+                                    //do nothing
+                                }
+                            });
+                    AlertDialog dialog = builder1.create();
+                    dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
+                    dialog.show();
+                }
+            });
         }
         else {
             sugiliteData.stringVariableMap.putAll(script.variableNameDefaultValueMap);

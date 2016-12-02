@@ -647,7 +647,7 @@ public class SugiliteCommunicationController {
                     }
                 });
             }
-            else {
+            else if( script != null ){
                 sugiliteData.stringVariableMap.putAll(script.variableNameDefaultValueMap);
 
                 //kill all the relevant packages

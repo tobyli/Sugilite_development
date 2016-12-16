@@ -31,6 +31,8 @@ public class Const {
     public static final String PACKAGE_NAME = "PACKAGE_NAME";
     public static final String JSON_STRING = "JSON_STRING";
     public static final String SHOULD_SEND_CALLBACK ="SHOULD_SEND_CALLBACK";
+
+    //const code for communicating with InMind Middleware
     public static final int REGISTER = 1;
     public static final int UNREGISTER = 2;
     public static final int RESPONSE = 3;

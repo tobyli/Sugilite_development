@@ -4,6 +4,7 @@ import android.content.Context;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
@@ -17,11 +18,19 @@ public class SugiliteScriptJSON {
     public SugiliteScriptJSON(SugiliteStartingBlock startingBlock){
         this.scriptName = new String(startingBlock.getScriptName());
         this.scriptName.replace(".SugiliteScript", "");
-        variables = new HashMap<>();
+        variableDefaultValues = new HashMap<>();
+        variableAlternativeValues = new HashMap<>();
+
         for(Map.Entry<String, Variable> entry : startingBlock.variableNameDefaultValueMap.entrySet()){
             if(entry.getValue() instanceof StringVariable)
-                this.variables.put(entry.getKey(), ((StringVariable) entry.getValue()).getValue());
+                this.variableDefaultValues.put(entry.getKey(), ((StringVariable) entry.getValue()).getValue());
         }
+
+        for(Map.Entry<String, Set<String>> entry : startingBlock.variableNameAlternativeValueMap.entrySet()){
+            if(entry.getValue() != null)
+                this.variableAlternativeValues.put(entry.getKey(), entry.getValue());
+        }
+
         if(startingBlock.getNextBlock() != null && startingBlock.getNextBlock() instanceof SugiliteOperationBlock)
             nextBlock = new SugiliteOperationBlockJSON((SugiliteOperationBlock)startingBlock.getNextBlock());
         this.createdTime = createdTime;
@@ -37,7 +46,8 @@ public class SugiliteScriptJSON {
 
     String scriptName;
     SugiliteOperationBlockJSON nextBlock;
-    Map<String, String> variables;
+    Map<String, String> variableDefaultValues;
+    Map<String, Set<String>> variableAlternativeValues;
     long createdTime;
 
 

@@ -36,6 +36,8 @@ import edu.cmu.hcii.sugilite.dao.SugiliteTrackingDao;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 
 /**
+ * This is the controller used for communicating with InMind Middleware
+ *
  * Created by oscarr on 7/7/16.
  */
 public class SugiliteCommunicationController {
@@ -405,6 +407,18 @@ public class SugiliteCommunicationController {
         }
     }
 
+    //TODO: modify the "scriptName" field to use a JSON instead
+    /*
+    {
+        "scriptName" : [SCRIPT_NAME],
+        "variableValues" : {
+        [VARIABLE_NAME_1] : [VARIABLE_VALUE_1],
+        [VARIABLE_NAME_2] : [VARIABLE_VALUE_2],
+        ...
+        [VARIABLE_NAME_N] : [VARIABLE_VALUE_N]
+        }
+    }
+    */
     public String startRecording(Boolean sendCallback, String callbackString, final String scriptName,
                                  final Boolean shouldUseToast) {
         Log.d(TAG, "Request received: startRecording");

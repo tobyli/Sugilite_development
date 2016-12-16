@@ -31,6 +31,10 @@ import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 
 import static edu.cmu.hcii.sugilite.Const.SCRIPT_DELAY;
 
+/**
+ * This is the activty used for communicating with external apps through the Android Intent Mechanism
+ */
+
 public class SugiliteCommunicationActicvity extends Activity {
     TextView messageType, scriptName;
     SugiliteScriptDao sugiliteScriptDao;

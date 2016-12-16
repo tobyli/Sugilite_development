@@ -74,7 +74,7 @@ uploadArchives {
             configuration = configurations.deployerJars
             repository( url: "scp://linux.gp.cs.cmu.edu:/afs/cs/project/inmind-cmu-yahoo/www/maven2/" ){
                 //http://stackoverflow.com/questions/12749225/where-to-put-gradle-configuration-i-e-credentials-that-should-not-be-committe
-                authentication(userName: mavenUser, password: mavenPassword)
+                authentication(userName: "inmind", password: "2015InMindYahoo")
             }
 
             pom.project {

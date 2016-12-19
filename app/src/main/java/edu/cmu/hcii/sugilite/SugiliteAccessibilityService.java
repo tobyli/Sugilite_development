@@ -189,7 +189,6 @@ public class SugiliteAccessibilityService extends AccessibilityService {
     public void onAccessibilityEvent(AccessibilityEvent event) {
         //TODO problem: the status of "right after click" (try getParent()?)
         //TODO new rootNode method
-        Log.d( TAG, "inside onAccessibilityEvent");
         final AccessibilityNodeInfo rootNode = getRootInActiveWindow();
         AccessibilityNodeInfo sourceNode = event.getSource();
 

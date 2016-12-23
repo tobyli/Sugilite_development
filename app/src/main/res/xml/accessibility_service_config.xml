@@ -8,7 +8,4 @@
     android:notificationTimeout="0"
     android:canRetrieveWindowContent="true"
     android:settingsActivity="edu.cmu.hcii.sugilite.SettingsActivity"
-
-
-
     />

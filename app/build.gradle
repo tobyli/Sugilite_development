@@ -2,13 +2,13 @@ apply plugin: 'com.android.application'
 //apply plugin: 'com.android.library'
 
 android {
-    compileSdkVersion 23
-    buildToolsVersion "23.0.1"
+    compileSdkVersion 24
+    buildToolsVersion "24.0.2"
 
     defaultConfig {
         applicationId "edu.cmu.hcii.sugilite"
         minSdkVersion 21
-        targetSdkVersion 23
+        targetSdkVersion 24
         versionCode 1
         versionName "1.0"
         multiDexEnabled true
@@ -22,14 +22,6 @@ android {
 
     repositories {
         mavenCentral()
-        // This is the maven repo where the Middleware component is deployed
-        maven {
-            credentials {
-                username 'inmind'
-                password '2015InMindYahoo'
-            }
-            url "http://www.cs.cmu.edu/afs/cs/project/inmind-cmu-yahoo/www/maven2"
-        }
     }
 
     lintOptions {
@@ -52,18 +44,16 @@ configurations {
 }
 
 dependencies {
-    compile fileTree(dir: 'libs', include: ['*.jar'])
+    compile fileTree(include: ['*.jar'], dir: 'libs')
     testCompile 'junit:junit:4.12'
-    compile 'com.android.support:appcompat-v7:23.0.1'
-    compile 'com.android.support:design:23.0.1'
-    compile 'com.android.support:support-v4:23.0.1'
+    compile 'com.android.support:appcompat-v7:24.1.1'
+    compile 'com.android.support:design:24.1.1'
+    compile 'com.android.support:support-v4:24.1.1'
     compile 'com.google.code.gson:gson:2.2.4'
-    compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.4'
+    compile 'org.apache.commons:commons-lang3:3.4'
     compile files('libs/RootTools.jar')
-
     deployerJars "org.apache.maven.wagon:wagon-ssh:2.9"
 }
-
 
 //We need this in order to deploy Sugilite as a maven library
 apply plugin: 'maven'
@@ -71,6 +61,7 @@ apply plugin: 'maven'
 uploadArchives {
     repositories{
         mavenDeployer {
+//            repository(url: mavenLocal().url)
             configuration = configurations.deployerJars
             repository( url: "scp://linux.gp.cs.cmu.edu:/afs/cs/project/inmind-cmu-yahoo/www/maven2/" ){
                 //http://stackoverflow.com/questions/12749225/where-to-put-gradle-configuration-i-e-credentials-that-should-not-be-committe

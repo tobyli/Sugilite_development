@@ -31,6 +31,10 @@ import edu.cmu.hcii.sugilite.ui.dialog.VariableSetValueDialog;
 
 import static edu.cmu.hcii.sugilite.Const.SCRIPT_DELAY;
 
+/**
+ * This class has been replaced by SugiliteCommunicationController
+ */
+@Deprecated
 public class SugiliteCommunicationActivityBroadcastReciever extends BroadcastReceiver
 {
     TextView messageType, scriptName;

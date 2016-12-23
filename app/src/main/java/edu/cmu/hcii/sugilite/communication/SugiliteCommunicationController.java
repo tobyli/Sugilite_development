@@ -43,22 +43,24 @@ import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 public class SugiliteCommunicationController {
     private static SugiliteCommunicationController instance;
     private final String TAG = SugiliteCommunicationController.class.getName();
-    private Messenger sender = null; //used to make an RPC invocation
-    private Messenger receiver = null; //invocation replies are processed by this Messenger (Middleware)
-    private boolean isBound = false;
     SugiliteScriptDao sugiliteScriptDao;
     SugiliteTrackingDao sugiliteTrackingDao;
     SugiliteAppVocabularyDao vocabularyDao;
     SugiliteBlockJSONProcessor jsonProcessor;
     SugiliteData sugiliteData;
     Activity activity;
-    private ServiceConnection connection; //receives callbacks from bind and unbind invocations
     private Context context; //NOTE: application context
     private String message;
     //TODO: implement tracking
     private SharedPreferences sharedPreferences;
     private List<SugiliteMessageListener> subscribers;
     //TODO: add start recording/stop recording
+
+
+    private SugiliteCommunicationController( Context context, SugiliteData sugiliteData, Activity activity ) {
+        this(context, sugiliteData, PreferenceManager.getDefaultSharedPreferences(context) );
+        this.activity = activity;
+    }
 
     private SugiliteCommunicationController( Context context, Activity activity ) {
         this(context, new SugiliteData(), PreferenceManager.getDefaultSharedPreferences(context) );
@@ -67,8 +69,6 @@ public class SugiliteCommunicationController {
 
     private SugiliteCommunicationController(Context context, SugiliteData sugiliteData,
                                             SharedPreferences sharedPreferences) {
-        this.connection = new RemoteServiceConnection();
-        this.receiver = new Messenger(new IncomingHandler());
         this.context = context.getApplicationContext();
         this.sugiliteScriptDao = new SugiliteScriptDao(this.context);
         this.vocabularyDao = new SugiliteAppVocabularyDao(this.context);
@@ -77,6 +77,11 @@ public class SugiliteCommunicationController {
         this.sugiliteData = sugiliteData;
         this.sharedPreferences = sharedPreferences;
         this.subscribers = new ArrayList<>();
+    }
+
+
+    public static SugiliteCommunicationController getInstance(){
+        return instance;
     }
 
     public static SugiliteCommunicationController getInstance(Context context, SugiliteData sugiliteData,
@@ -94,91 +99,25 @@ public class SugiliteCommunicationController {
         return instance;
     }
 
-
-    private class RemoteServiceConnection implements ServiceConnection {
-        @Override
-        public void onServiceConnected(ComponentName component, IBinder binder) {
-            sender = new Messenger(binder);
-            isBound = true;
-            register();
+    public static SugiliteCommunicationController getInstance(Context context, SugiliteData sugiliteData,
+                                                              Activity activity){
+        if( instance == null ){
+            instance = new SugiliteCommunicationController(context, sugiliteData, activity);
         }
+        return instance;
+    }
 
-        @Override
-        public void onServiceDisconnected(ComponentName component) {
-            sender = null;
-            isBound = false;
+    public void setActivity(Activity activity) {
+        if( this.activity == null || ( this.activity != null && activity != null ) ) {
+            this.activity = activity;
         }
     }
 
-    private class IncomingHandler extends Handler {
-        @Override
-        public void handleMessage(Message msg) {
-            super.handleMessage(msg);
-            Bundle data = msg.getData();
-            String callbackString = data.getString("callbackString");
-            String request = msg.getData().getString("request");
-            if(callbackString != null)
-                sugiliteData.callbackString = new String(callbackString);
-            boolean sendCallback = data.getBoolean("shouldSendCallback", false);
-
-            switch(msg.what) {
-                case Const.START_RECORDING:
-                    startRecording(sendCallback, callbackString, request, true);
-                    break;
-                case Const.STOP_RECORDING:
-                    stopRecording(sendCallback, callbackString, msg.arg1, true );
-                    break;
-                case Const.START_TRACKING:
-                    startTracking(request, true);
-                    break;
-                case Const.STOP_TRACKING:
-                    stopTracking(msg.arg1, true);
-                    break;
-                case Const.GET_ALL_RECORDING_SCRIPTS:
-                    sendAllScripts();
-                    break;
-                case Const.GET_RECORDING_SCRIPT:
-                    sendScript( request );
-                    break;
-                case Const.GET_ALL_TRACKING_SCRIPTS:
-                    sendAllTrackings();
-                    break;
-                case Const.GET_TRACKING_SCRIPT:
-                    sendTracking( request );
-                    break;
-                case Const.RUN_SCRIPT:
-                    runScript( request, sendCallback, callbackString);
-                    break;
-                case Const.RUN_JSON:
-                    runJson( request, sendCallback, callbackString);
-                    break;
-                case Const.ADD_JSON_AS_SCRIPT:
-                    addJsonAsScript( request, sendCallback, callbackString);
-                    break;
-                case Const.CLEAR_TRACKING_LIST:
-                    clearTrackingList();
-                    break;
-                case Const.GET_ALL_PACKAGE_VOCAB:
-                    getAllPackageVocab();
-                    break;
-                case Const.GET_PACKAGE_VOCAB:
-                    getPackageVocab( data.getString("packageName") );
-                    break;
-                case Const.MULTIPURPOSE_REQUEST:
-                    processMultipurposeRequest( data.getString("json") );
-                    break;
-                default:
-                    Log.e( TAG, "Message not supported!");
-                    break;
-            }
-        }
-    }
-
-    private boolean isTrackingInProcess() {
+    public boolean isTrackingInProcess() {
         return sharedPreferences.getBoolean("tracking_in_process", false);
     }
 
-    private boolean isRecordingInProcess() {
+    public boolean isRecordingInProcess() {
         return sharedPreferences.getBoolean("recording_in_process", false);
     }
 
@@ -249,46 +188,6 @@ public class SugiliteCommunicationController {
         Log.d(TAG, "Request received: clearTrackingList");
         sugiliteTrackingDao.clear();
         sendMessage(Const.RESPONSE, Const.CLEAR_TRACKING_LIST, "");
-    }
-
-    /**
-     *
-     * @return true if connection is good, false otherwise
-     */
-    public boolean checkConnectionStatus(){
-        if(connection == null)
-            return false;
-        return isBound;
-    }
-
-    //start() is called when SugiliteAccessibilityService is created
-    public void start(){
-        //TODO: change the service name here
-        //System.out.println("BIND SERVICE FOR CONTEXT " + context);
-//        Intent intent = Util.createExplicitFromImplicitIntent( context, "com.yahoo.inmind",
-//                new Intent( "com.yahoo.inmind.services.generic.control.ExternalAppCommService" ) );
-//        if(intent != null) {
-//            context.bindService(intent, this.connection, Context.BIND_AUTO_CREATE);
-//        }
-    }
-
-    //stop() is called when SugiliteAccessibilityService is destroyed
-    public void stop() {
-        if (this.isBound) {
-            context.unbindService(connection);
-            this.isBound = false;
-        }
-    }
-
-    //register() is called when SugiliteAccessibilityService is created
-    public boolean register(){
-        System.out.println("REGISTER");
-        return sendMessage(Const.REGISTER, 0, null);
-    }
-
-    //unregister() is called when SugiliteAccessibilityService is destroyed
-    public boolean unregister(){
-        return sendMessage(Const.UNREGISTER, 0, null);
     }
 
 
@@ -381,24 +280,7 @@ public class SugiliteCommunicationController {
 
     public boolean sendMessage(int messageType, int arg2, String obj){
         processSubscribers( arg2, obj);
-        if (isBound) {
-            Message message = Message.obtain(null, messageType, Const.ID_APP_TRACKER, 0);
-            try {
-                message.replyTo = receiver;
-                message.arg2 = arg2;
-                if( obj != null ){
-                    Bundle bundle = new Bundle();
-                    bundle.putString( "response", obj );
-                    message.setData( bundle );
-                }
-                sender.send(message);
-                return true;
-            } catch (RemoteException rme) {
-                return false;
-            }
-        } else {
-            return false;
-        }
+        return true;
     }
 
     private void processSubscribers(int messageType, String obj) {
@@ -422,8 +304,7 @@ public class SugiliteCommunicationController {
     public String startRecording(Boolean sendCallback, String callbackString, final String scriptName,
                                  final Boolean shouldUseToast) {
         Log.d(TAG, "Request received: startRecording");
-        boolean recordingInProcess = isRecordingInProcess();
-        if(recordingInProcess) {
+        if( isRecordingInProcess() ) {
             //the exception message below will be sent when there's already recording in process
             message = "Already recording in progress, can't start";
             SugiliteCommunicationController.this.sendMessage(Const.RESPONSE_EXCEPTION,
@@ -533,17 +414,21 @@ public class SugiliteCommunicationController {
 
     public String startTracking(String trackingName, Boolean shouldUseToast) {
         Log.d(TAG, "Request received: startTracking");
-        //commit preference change
-        SharedPreferences.Editor prefEditor = sharedPreferences.edit();
-        sugiliteData.initiateTracking(trackingName);
-        prefEditor.putBoolean("tracking_in_process", true);
-        prefEditor.commit();
-        try {
-            sugiliteTrackingDao.save(sugiliteData.getTrackingHead());
-        } catch (Exception e) {
-            e.printStackTrace();
+        if( !isTrackingInProcess() ){
+            //commit preference change
+            SharedPreferences.Editor prefEditor = sharedPreferences.edit();
+            sugiliteData.initiateTracking(trackingName);
+            prefEditor.putBoolean("tracking_in_process", true);
+            prefEditor.commit();
+            try {
+                sugiliteTrackingDao.save(sugiliteData.getTrackingHead());
+                message = "Start Tracking";
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }else{
+            message = "Already tracking in progress, can't start";
         }
-        String message = "Start Tracking";
         if( shouldUseToast ) {
             Toast.makeText(context, message, Toast.LENGTH_SHORT).show();
         }
@@ -553,8 +438,7 @@ public class SugiliteCommunicationController {
 
     public SugiliteStartingBlock stopTracking( int sendTracking, Boolean shouldUseToast) {
         Log.d(TAG, "Request received: stopTracking");
-        boolean trackingInProcess = isTrackingInProcess();
-        if(trackingInProcess){
+        if( isTrackingInProcess() ){
             SharedPreferences.Editor prefEditor2 = sharedPreferences.edit();
             prefEditor2.putBoolean("tracking_in_process", false);
             prefEditor2.commit();

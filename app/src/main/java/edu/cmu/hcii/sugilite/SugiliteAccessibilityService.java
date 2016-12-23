@@ -72,7 +72,9 @@ public class SugiliteAccessibilityService extends AccessibilityService {
         windowManager = (WindowManager) getSystemService(WINDOW_SERVICE);
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         //Oscar: we need to do this validation in order to avoid Cast Exception when calling Sugilite from Middleware
-        sugiliteData = getApplication() instanceof SugiliteData? (SugiliteData) getApplication() : new SugiliteData();
+        if( getApplication() instanceof  SugiliteData ) {
+            sugiliteData = (SugiliteData) getApplication();
+        }
         statusIconManager = new StatusIconManager(this, sugiliteData, sharedPreferences);
         screenshotManager = new SugiliteScreenshotManager(sharedPreferences, getApplicationContext());
         automator = new Automator(sugiliteData, this, statusIconManager, sharedPreferences);
@@ -88,7 +90,6 @@ public class SugiliteAccessibilityService extends AccessibilityService {
             //TODO: periodically check the status of communication controller
             sugiliteData.communicationController = SugiliteCommunicationController.getInstance(
                     getApplicationContext(), sugiliteData, sharedPreferences);
-            sugiliteData.communicationController.start();
         }
         catch (Exception e){
             e.printStackTrace();
@@ -128,7 +129,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
         if(sugiliteData.errorHandler == null){
             sugiliteData.errorHandler = new ErrorHandler(this, sugiliteData, sharedPreferences);
         }
-        if(sugiliteData.trackingName.contentEquals("default")){
+        if(sugiliteData.trackingName != null && sugiliteData.trackingName.contentEquals("default")){
             sugiliteData.initiateTracking(sugilteTrackingHandler.getDefaultTrackingName());
         }
 
@@ -475,14 +476,6 @@ public class SugiliteAccessibilityService extends AccessibilityService {
                 e.printStackTrace();
             }
         //windowManager.removeView(statusIcon);
-
-        try {
-            sugiliteData.communicationController.unregister();
-            sugiliteData.communicationController.stop();
-        }
-        catch (Exception e){
-            e.printStackTrace();
-        }
 
     }
 

@@ -1,7 +1,7 @@
 # Sugilite
 ##Installation:
 
-1. Install the app using the APK
+1. Install the app using the APK (app-release.apk)
 
 2. Grant the storage access permission (Go to Settings -> Apps -> Sugilite -> Permissions)
 

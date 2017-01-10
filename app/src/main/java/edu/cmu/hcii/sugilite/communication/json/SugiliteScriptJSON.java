@@ -2,6 +2,7 @@ package edu.cmu.hcii.sugilite.communication.json;
 
 import android.content.Context;
 
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -33,7 +34,7 @@ public class SugiliteScriptJSON {
 
         if(startingBlock.getNextBlock() != null && startingBlock.getNextBlock() instanceof SugiliteOperationBlock)
             nextBlock = new SugiliteOperationBlockJSON((SugiliteOperationBlock)startingBlock.getNextBlock());
-        this.createdTime = createdTime;
+        this.createdTime = Calendar.getInstance().getTimeInMillis();
     }
 
     public SugiliteStartingBlock toSugiliteStartingBlock(Context context){
@@ -49,6 +50,5 @@ public class SugiliteScriptJSON {
     Map<String, String> variableDefaultValues;
     Map<String, Set<String>> variableAlternativeValues;
     long createdTime;
-
 
 }

@@ -53,12 +53,47 @@ public class SugiliteCommunicationActicvity extends Activity {
         scriptName = (TextView)findViewById(R.id.receive_message_script_name);
         gson = new Gson();
         messageType.setText("TEST MESSAGE TYPE");
-        int messageType = 0;
+        int messageTypeInt = 0;
         String arg1 = "", arg2 = "";
         if (getIntent().getExtras() != null)
         {
-            messageType = getIntent().getIntExtra("messageType", Const.ACCESSIBILITY_EVENT);
-            this.messageType.setText(messageType);
+            String requestedMessageTypeString = getIntent().getStringExtra("messageType");
+            this.messageType.setText(requestedMessageTypeString);
+            switch (requestedMessageTypeString){
+                case "START_RECORDING":
+                    messageTypeInt = Const.START_RECORDING;
+                    break;
+                case "END_RECORDING":
+                    messageTypeInt = Const.STOP_RECORDING;
+                    break;
+                case "END_TRACKING":
+                    messageTypeInt = Const.STOP_TRACKING;
+                    break;
+                case "START_TRACKING":
+                    messageTypeInt = Const.START_TRACKING;
+                    break;
+                case "RUN_SCRIPT":
+                    messageTypeInt = Const.RUN_SCRIPT;
+                    break;
+                case "GET_SCRIPT":
+                    messageTypeInt = Const.GET_RECORDING_SCRIPT;
+                    break;
+                case "GET_TRACKING_LIST":
+                    messageTypeInt = Const.GET_ALL_TRACKING_SCRIPTS;
+                    break;
+                case "GET_SCRIPT_LIST":
+                    messageTypeInt = Const.GET_ALL_RECORDING_SCRIPTS;
+                    break;
+                case "CLEAR_TRACKING_LIST":
+                    messageTypeInt = Const.CLEAR_TRACKING_LIST;
+                    break;
+                case "RUN_JSON":
+                    messageTypeInt = Const.RUN_JSON;
+                    break;
+                case "ADD_JSON_AS_SCRIPT":
+                    messageTypeInt = Const.ADD_JSON_AS_SCRIPT;
+                    break;
+            }
             /*
 
             messageType, arg1, arg2
@@ -93,7 +128,7 @@ public class SugiliteCommunicationActicvity extends Activity {
         this.sugiliteData = (SugiliteData)getApplication();
         this.sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         this.context = this;
-        handleRequest(messageType, arg1, arg2);
+        handleRequest(messageTypeInt, arg1, arg2);
         finish();
 
     }
@@ -222,6 +257,8 @@ public class SugiliteCommunicationActicvity extends Activity {
                 if(arg1 != null){
                     try{
                         SugiliteStartingBlock script = jsonProcessor.jsonToScript(arg1);
+                        if(!script.getScriptName().contains(".SugiliteScript"))
+                            script.setScriptName(script.getScriptName() + ".SugiliteScript");
                         sugiliteScriptDao.save(script);
                     }
                     catch (Exception e){

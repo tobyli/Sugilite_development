@@ -21,6 +21,12 @@ public class Const {
     //TRUE to keep a list of all elements with text labels
     public static final boolean KEEP_ALL_TEXT_LABEL_LIST = true;
 
+    //contain package names for launchers so they won't be killed
+    public static final String[] HOME_SCREEN_PACKAGE_NAMES = {"com.google.android.googlequicksearchbox", "com.google.android.apps.nexuslauncher"};
+
+    //package names to excluded for recording & tracking
+    public static final String[] ACCESSIBILITY_SERVICE_EXCEPTED_PACKAGE_NAMES = {"edu.cmu.hcii.sugilite", "com.android.systemui", "edu.cmu.hcii.sugilitecommunicationtest"};
+    public static final String[] ACCESSIBILITY_SERVICE_TRACKING_EXCLUDED_PACKAGE_NAMES = {"edu.cmu.hcii.sugilitecommunicationtest", "edu.cmu.hcii.sugilite"};
 
 
     public static final int ID_APP_TRACKER = 1001;

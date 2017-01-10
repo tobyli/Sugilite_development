@@ -245,13 +245,9 @@ public class SugiliteAccessibilityService extends AccessibilityService {
                 previousClickContentDescription = "NULL";
         }
 
-
-        exceptedPackages.add("edu.cmu.hcii.sugilite");
-        exceptedPackages.add("com.android.systemui");
-        exceptedPackages.add("edu.cmu.hcii.sugilitecommunicationtest");
-
-        trackingExcludedPackages.add("edu.cmu.hcii.sugilitecommunicationtest");
-        trackingExcludedPackages.add("edu.cmu.hcii.sugilite");
+        //packages within the excepted package will be totally excepted from the accessibility service tracking
+        exceptedPackages.addAll(Arrays.asList(Const.ACCESSIBILITY_SERVICE_EXCEPTED_PACKAGE_NAMES));
+        trackingExcludedPackages.addAll(Arrays.asList(Const.ACCESSIBILITY_SERVICE_TRACKING_EXCLUDED_PACKAGE_NAMES));
 
         if (sugiliteData.getInstructionQueueSize() > 0 && !sharedPreferences.getBoolean("recording_in_process", true) && !exceptedPackages.contains(event.getPackageName()) && sugiliteData.errorHandler != null){
             //script running in progress

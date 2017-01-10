@@ -6,6 +6,7 @@ import com.google.gson.Gson;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 import edu.cmu.hcii.sugilite.communication.json.SugiliteScriptJSON;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
@@ -29,9 +30,14 @@ public class SugiliteBlockJSONProcessor {
         return json;
     }
 
-    public SugiliteStartingBlock jsonToScript(String json){
+    public SugiliteStartingBlock jsonToScript(String json) throws Exception{
         SugiliteScriptJSON jsonBlock = gson.fromJson(json, SugiliteScriptJSON.class);
-        return jsonBlock.toSugiliteStartingBlock(context);
+        if(jsonBlock != null) {
+            return jsonBlock.toSugiliteStartingBlock(context);
+        }
+        else {
+            throw new Exception("invalid json string!\n\n" + json);
+        }
     }
 
     public String scriptsToJson(List<SugiliteStartingBlock> startingBlockList){

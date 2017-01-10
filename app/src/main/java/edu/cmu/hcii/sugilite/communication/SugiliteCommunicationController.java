@@ -469,6 +469,8 @@ public class SugiliteCommunicationController {
                 SugiliteStartingBlock script = jsonProcessor.jsonToScript(json);
                 Log.d("mtemp",script.toString());
                 Log.d("mtemp",script.getNextBlock().getDescription());
+                if(!script.getScriptName().contains(".SugiliteScript"))
+                    script.setScriptName(script.getScriptName() + ".SugiliteScript");
                 sugiliteScriptDao.save(script);
                 return script;
             }
@@ -487,14 +489,22 @@ public class SugiliteCommunicationController {
     public SugiliteStartingBlock runJson(String jsonScript, Boolean sendCallback, String callbackString) {
         Log.d(TAG, "Request received: runJson");
         if(jsonScript != null){
-            Log.d("my_tag", jsonScript);
-            SugiliteStartingBlock script = jsonProcessor.jsonToScript(jsonScript);
-            runScript(script);
-            return script;
+            try {
+                Log.d("my_tag", jsonScript);
+                SugiliteStartingBlock script = jsonProcessor.jsonToScript(jsonScript);
+                runScript(script);
+                return script;
+            }
+            catch (Exception e){
+                e.printStackTrace();
+                sugiliteData.sendCallbackMsg(Const.RUN_JSON_EXCEPTION,
+                        "error in json parsing", callbackString);
+            }
         }
         else if( sendCallback ){
             sugiliteData.sendCallbackMsg(Const.RUN_JSON_EXCEPTION, "null json", callbackString);
         }
+
         return null;
     }
 

@@ -109,6 +109,7 @@ public class SugiliteScriptDao {
             db = sugiliteScriptDBHelper.getReadableDatabase();
             Cursor cursor = db.rawQuery("SELECT * FROM " + SugiliteScriptDbContract.SugiliteScriptRecordEntry.TABLE_NAME + " WHERE " + SugiliteScriptDbContract.SugiliteScriptRecordEntry.COLUMN_NAME_SCRIPT_NAME + " = \'" + key + "\';", null);
             if (cursor.getCount() == 0) {
+                db.close();
                 return null;
             }
             cursor.moveToFirst();
@@ -129,6 +130,7 @@ public class SugiliteScriptDao {
             db = sugiliteScriptDBHelper.getReadableDatabase();
             Cursor cursor = db.rawQuery("SELECT * FROM " + SugiliteScriptDbContract.SugiliteScriptRecordEntry.TABLE_NAME + " WHERE " + SugiliteScriptDbContract.SugiliteScriptRecordEntry._ID + " = \'" + id + "\';", null);
             if (cursor.getCount() == 0) {
+                db.close();
                 return null;
             }
             cursor.moveToFirst();

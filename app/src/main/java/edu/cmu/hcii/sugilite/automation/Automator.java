@@ -13,11 +13,14 @@ import android.view.accessibility.AccessibilityNodeInfo;
 
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import edu.cmu.hcii.sugilite.Const;
 import edu.cmu.hcii.sugilite.SugiliteAccessibilityService;
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
@@ -39,6 +42,7 @@ import edu.cmu.hcii.sugilite.ui.StatusIconManager;
 import android.speech.tts.TextToSpeech;
 
 import static edu.cmu.hcii.sugilite.Const.DELAY;
+import static edu.cmu.hcii.sugilite.Const.HOME_SCREEN_PACKAGE_NAMES;
 
 
 /**
@@ -55,7 +59,7 @@ public class Automator {
     private LayoutInflater layoutInflater;
     private SharedPreferences sharedPreferences;
     private boolean ttsReady = false;
-
+    static private Set<String> homeScreenPackageNameSet;
 
     public Automator(SugiliteData sugiliteData, SugiliteAccessibilityService context, StatusIconManager statusIconManager, SharedPreferences sharedPreferences){
         this.sugiliteData = sugiliteData;
@@ -70,8 +74,8 @@ public class Automator {
                 ttsReady = true;
             }
         });
-
-
+        homeScreenPackageNameSet = new HashSet<>();
+        homeScreenPackageNameSet.addAll(Arrays.asList(HOME_SCREEN_PACKAGE_NAMES));
     }
 
 
@@ -386,7 +390,7 @@ public class Automator {
      */
     static public void killPackage(String packageName){
         //don't kill the home screen
-        if(packageName.equals("com.google.android.googlequicksearchbox"))
+        if(homeScreenPackageNameSet.contains(packageName))
             return;
         try {
             Process sh = Runtime.getRuntime().exec("su", null, null);

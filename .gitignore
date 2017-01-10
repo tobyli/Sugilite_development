@@ -37,3 +37,6 @@ captures/
 
 # Keystore files
 *.jks
+
+.DS_Store
+_config.yml

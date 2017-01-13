@@ -7,4 +7,6 @@
     android:orderInCategory="2" app:showAsAction="never" />
     <item android:id="@+id/clear_script_list" android:title="Clear Script List"
         android:orderInCategory="3" app:showAsAction="never" />
+    <item android:id="@+id/add_trigger" android:title="Add a Script Trigger"
+        android:orderInCategory="4" app:showAsAction="never" />
 </menu>

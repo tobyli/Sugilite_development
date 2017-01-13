@@ -28,6 +28,7 @@ import edu.cmu.hcii.sugilite.automation.ServiceStatusManager;
 import edu.cmu.hcii.sugilite.communication.SugiliteBlockJSONProcessor;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
+import edu.cmu.hcii.sugilite.ui.dialog.AddTriggerDialog;
 import edu.cmu.hcii.sugilite.ui.dialog.NewScriptDialog;
 import edu.cmu.hcii.sugilite.ui.ScriptDetailActivity;
 import edu.cmu.hcii.sugilite.ui.SettingsActivity;
@@ -102,7 +103,7 @@ public class SugiliteMainActivity extends AppCompatActivity {
     private static final int ITEM_4 = Menu.FIRST + 3;
     private static final int ITEM_5 = Menu.FIRST + 4;
 
-
+    //context menu are the long-click menus for each script
     @Override
     public void onCreateContextMenu(ContextMenu menu, View view, ContextMenu.ContextMenuInfo info){
         super.onCreateContextMenu(menu, view, info);
@@ -117,7 +118,6 @@ public class SugiliteMainActivity extends AppCompatActivity {
         menu.add(0, ITEM_5, 0, "Delete");
     }
 
-    //TODO:implement context menu
     @Override
     public boolean onContextItemSelected(MenuItem item) {
         final AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
@@ -267,6 +267,11 @@ public class SugiliteMainActivity extends AppCompatActivity {
                     })
                     .setIcon(android.R.drawable.ic_dialog_alert)
                     .show();
+            return true;
+        }
+
+        if(id == R.id.add_trigger){
+            new AddTriggerDialog(this, getLayoutInflater(), sugiliteData, sugiliteScriptDao, getPackageManager()).show();
             return true;
         }
 

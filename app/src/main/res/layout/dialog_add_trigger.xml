@@ -5,10 +5,23 @@
     android:padding="15dp">
 
     <TextView
+        android:text="Trigger Name:"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+    <EditText
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:inputType="textPersonName"
+        android:ems="10"
+        android:id="@+id/editText_trigger_name" />
+
+    <TextView
         android:text="Choose trigger type:"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:id="@+id/textView16" />
+        android:id="@+id/textView16"
+        android:paddingTop="30dp" />
 
     <Spinner
         android:layout_width="match_parent"

@@ -30,7 +30,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import edu.cmu.hcii.sugilite.SugiliteMainActivity;
 import edu.cmu.hcii.sugilite.R;
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.automation.Automator;
@@ -44,6 +43,7 @@ import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.recording.RecordingPopUpDialog;
 import edu.cmu.hcii.sugilite.model.variable.Variable;
 import edu.cmu.hcii.sugilite.ui.dialog.VariableSetValueDialog;
+import edu.cmu.hcii.sugilite.ui.main.SugiliteMainActivity;
 
 import static edu.cmu.hcii.sugilite.Const.SCRIPT_DELAY;
 

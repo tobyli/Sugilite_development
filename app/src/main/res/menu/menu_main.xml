@@ -1,12 +1,14 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools" tools:context=".SugiliteMainActivity">
+    xmlns:tools="http://schemas.android.com/tools" tools:context=".ui.main.SugiliteMainActivity">
     <item android:id="@+id/action_settings" android:title="@string/action_settings"
         android:orderInCategory="1" app:showAsAction="never" />
     <item android:id="@+id/clear_automation_queue" android:title="Clear Automation Queue"
     android:orderInCategory="2" app:showAsAction="never" />
     <item android:id="@+id/clear_script_list" android:title="Clear Script List"
         android:orderInCategory="3" app:showAsAction="never" />
-    <item android:id="@+id/add_trigger" android:title="Add a Script Trigger"
+    <item android:id="@+id/clear_trigger_list" android:title="Clear Trigger List"
         android:orderInCategory="4" app:showAsAction="never" />
+    <item android:id="@+id/add_trigger" android:title="Add a Script Trigger"
+        android:orderInCategory="5" app:showAsAction="never" />
 </menu>

@@ -27,7 +27,6 @@ import java.util.Queue;
 import java.util.Random;
 
 import edu.cmu.hcii.sugilite.Const;
-import edu.cmu.hcii.sugilite.SugiliteMainActivity;
 import edu.cmu.hcii.sugilite.R;
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.automation.Automator;
@@ -47,6 +46,7 @@ import edu.cmu.hcii.sugilite.model.variable.VariableHelper;
 import edu.cmu.hcii.sugilite.recording.ReadableDescriptionGenerator;
 import edu.cmu.hcii.sugilite.ui.dialog.NewScriptDialog;
 import edu.cmu.hcii.sugilite.ui.dialog.SelectElementWithTextDialog;
+import edu.cmu.hcii.sugilite.ui.main.SugiliteMainActivity;
 
 /**
  * @author toby

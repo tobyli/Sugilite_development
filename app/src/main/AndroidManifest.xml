@@ -20,10 +20,10 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme" >
         <activity
-            android:name=".SugiliteMainActivity"
+            android:name=".ui.main.SugiliteMainActivity"
             android:label="Sugilite"
             android:noHistory="true"
-            android:theme="@style/AppTheme.NoActionBar"
+            android:theme="@style/AppTheme"
             tools:node="merge">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -48,11 +48,11 @@
             android:name=".ui.SettingsActivity"
             android:label="@string/title_activity_settings"
             android:noHistory="true"
-            android:parentActivityName=".SugiliteMainActivity"
+            android:parentActivityName=".ui.main.SugiliteMainActivity"
             tools:node="merge">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value="edu.cmu.hcii.sugilite.SugiliteMainActivity" />
+                android:value="edu.cmu.hcii.sugilite.ui.main.SugiliteMainActivity" />
         </activity>
         <activity android:name=".recording.RecordingPopUpActivity" tools:node="merge" >
         </activity>

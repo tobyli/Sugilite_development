@@ -97,6 +97,7 @@ public class ErrorHandler {
         }
 
         //handle wrong package error
+        /*
         if(relevantPackages != null && relevantPackages.size() > 0 && event.getSource() != null && event.getSource().getPackageName() != null) {
             String currentPackageName = event.getSource().getPackageName().toString();
             if (!relevantPackages.contains(currentPackageName) &&
@@ -106,6 +107,7 @@ public class ErrorHandler {
                 return true;
             }
         }
+        */
 
         //handle timeout error
         return checkError(nextInstruction);

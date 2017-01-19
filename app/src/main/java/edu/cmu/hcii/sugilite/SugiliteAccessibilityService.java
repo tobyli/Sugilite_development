@@ -36,6 +36,7 @@ import edu.cmu.hcii.sugilite.model.block.SerializableNodeInfo;
 import edu.cmu.hcii.sugilite.model.block.SugiliteAvailableFeaturePack;
 import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
+import edu.cmu.hcii.sugilite.model.trigger.SugiliteTriggerHandler;
 import edu.cmu.hcii.sugilite.recording.RecordingPopUpDialog;
 import edu.cmu.hcii.sugilite.recording.mRecordingPopUpActivity;
 import edu.cmu.hcii.sugilite.tracking.SugiliteTrackingHandler;
@@ -59,6 +60,8 @@ public class SugiliteAccessibilityService extends AccessibilityService {
     protected SugiliteAppVocabularyDao vocabularyDao;
     protected Handler handler;
     protected static final String TAG = SugiliteAccessibilityService.class.getSimpleName();
+    protected SugiliteTriggerHandler triggerHandler;
+    protected String lastPackageName = "";
 
 
     public SugiliteAccessibilityService() {
@@ -85,6 +88,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
         packageVocabs = new HashSet<>();
         vocabularyDao = new SugiliteAppVocabularyDao(getApplicationContext());
         context = this;
+        triggerHandler = new SugiliteTriggerHandler(context, sugiliteData, sharedPreferences);
         handler = new Handler();
         try {
             //TODO: periodically check the status of communication controller
@@ -200,6 +204,15 @@ public class SugiliteAccessibilityService extends AccessibilityService {
         //return if the event is not among the accessibilityEventArrayToHandle
         if(!accessibilityEventSetToHandle.contains(Integer.valueOf(event.getEventType()))) {
             return;
+        }
+
+        //check for the trigger
+        if(event.getEventType() == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED){
+            if(event.getSource() != null && event.getSource().getPackageName() != null && (!lastPackageName.contentEquals(event.getSource().getPackageName()))) {
+                triggerHandler.checkForAppLaunchTrigger(event.getPackageName().toString());
+                //lastPackageName used to avoid sync issue between threads
+                lastPackageName = event.getSource().getPackageName().toString();
+            }
         }
 
         //check communication status

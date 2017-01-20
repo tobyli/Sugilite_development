@@ -30,6 +30,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import edu.cmu.hcii.sugilite.Const;
 import edu.cmu.hcii.sugilite.R;
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.automation.Automator;
@@ -624,7 +625,7 @@ public class ScriptDetailActivity extends AppCompatActivity {
             //prompt the user if the accessiblity service is not active
             AlertDialog.Builder builder1 = new AlertDialog.Builder(this);
             builder1.setTitle("Service not running")
-                    .setMessage("The Sugilite accessiblity service is not enabled. Please enable the service in the phone settings before recording.")
+                    .setMessage("The " + Const.appNameUpperCase + " accessiblity service is not enabled. Please enable the service in the phone settings before recording.")
                     .setPositiveButton("OK", new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {

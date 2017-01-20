@@ -90,7 +90,7 @@ public class SelectElementWithTextDialog extends AbstractSugiliteDialog {
                 }
 
                 builder.setView(dialogView)
-                        .setTitle("Sugilite Text Selection")
+                        .setTitle(Const.appNameUpperCase + " Text Selection")
                         .setPositiveButton("OK", new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {

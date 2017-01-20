@@ -29,6 +29,10 @@ public class Const {
     public static final String[] ACCESSIBILITY_SERVICE_TRACKING_EXCLUDED_PACKAGE_NAMES = {"edu.cmu.hcii.sugilitecommunicationtest", "edu.cmu.hcii.sugilite", "edu.cmu.helpr"};
 
 
+    //App name to display
+    public static final String appName = "Epidosite";
+    public static final String appNameUpperCase = "EPIDOSITE";
+
     public static final int ID_APP_TRACKER = 1001;
     public static final String APP_TRACKER = "APP_TRACKER";
     public static final String SCRIPT_NAME = "SCRIPT_NAME";

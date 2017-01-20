@@ -14,6 +14,7 @@ import android.view.MenuItem;
 import android.view.Window;
 
 
+import edu.cmu.hcii.sugilite.Const;
 import edu.cmu.hcii.sugilite.R;
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
@@ -42,7 +43,7 @@ public class SugiliteMainActivity extends AppCompatActivity {
 
 
         ActionBar actionBar = getSupportActionBar();
-        actionBar.setTitle("EPIDOSITE");
+        actionBar.setTitle(Const.appNameUpperCase);
 
         // Hide Actionbar Icon
         actionBar.setDisplayShowHomeEnabled(true);

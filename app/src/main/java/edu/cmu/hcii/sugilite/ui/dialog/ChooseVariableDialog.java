@@ -21,6 +21,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import edu.cmu.hcii.sugilite.Const;
 import edu.cmu.hcii.sugilite.R;
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
@@ -104,7 +105,7 @@ public class ChooseVariableDialog extends AbstractSugiliteDialog {
 
 
         builder.setView(dialogView)
-                .setTitle("Sugilite Variable Selection")
+                .setTitle(Const.appNameUpperCase + " Variable Selection")
                 .setPositiveButton("OK", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {

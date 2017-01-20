@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import edu.cmu.hcii.sugilite.Const;
 import edu.cmu.hcii.sugilite.R;
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.automation.Automator;
@@ -112,7 +113,7 @@ public class VariableSetValueDialog extends AbstractSugiliteDialog{
         }
 
         builder.setView(dialogView)
-                .setTitle("Sugilite Parameter Settings")
+                .setTitle(Const.appNameUpperCase + " Parameter Settings")
                 .setPositiveButton("OK", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {

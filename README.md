@@ -10,4 +10,4 @@
 4. Enable the accessibility service (Go to Settings -> Accessibility -> Sugilite)
 
 ## Reference:
-Toby Jia-Jun Li, Amos Azaria and Brad A. Myers. 2017. [SUGILITE: Creating Multimodal Smartphone Automation by Demonstration](http://www.toby.li/sugilite_paper) Proceedings of the 2017 CHI Conference on Human Factors in Computing Systems  (CHI 2017)
+Toby Jia-Jun Li, Amos Azaria and Brad A. Myers. 2017. [SUGILITE: Creating Multimodal Smartphone Automation by Demonstration.](http://www.toby.li/sugilite_paper) Proceedings of the 2017 CHI Conference on Human Factors in Computing Systems  (CHI 2017)

@@ -39,11 +39,16 @@ public class SugiliteData extends Application {
     //used to store the current active script
     private SugiliteStartingBlock scriptHead, trackingHead;
     private SugiliteBlock currentScriptBlock, currentTrackingBlock;
+
+    //the queue used for execution. the system should be in the execution mode whenever the queue is non-empty
     private Queue<SugiliteBlock> instructionQueue = new ArrayDeque<>();
     public Map<String, Variable> stringVariableMap = new HashMap<>();
     public Set<String> registeredBroadcastingListener = new HashSet<>();
     public SugiliteBlock afterExecutionOperation = null;
+
+
     private Gson gson = new Gson();
+
     //true if the current recording script is initiated externally
     public boolean initiatedExternally  = false;
     public SugiliteCommunicationController communicationController;
@@ -51,10 +56,24 @@ public class SugiliteData extends Application {
     public String trackingName = "default";
     private boolean startRecordingWhenFinishExecuting = false;
 
+    //used to manage the recording popup, so the later ones won't cover the eariler ones.
     public Queue<AbstractSugiliteDialog> recordingPopupDialogQueue = new ArrayDeque<>();
     public boolean hasRecordingPopupActive = false;
+
     public List<AccessibilityNodeInfo> elementsWithTextLabels = new ArrayList<>();
 
+    private int currentSystemState = DEFAULT_STATE;
+
+
+
+    //used to indicate the state of the sugilite system
+    public static final int DEFAULT_STATE = 0, RECORDING_STATE = 1, RECORDING_FOR_ERROR_HANDLING_STATE = 2, EXECUTION_STATE = 3, REGULAR_DEBUG_STATE = 4, SINGLE_STEP_DEBUG_STATE = 5, PAUSED_FOR_DUCK_MENU_STATE = 6, PAUSED_FOR_ERROR_HANDLING_STATE = 7, PAUSED_FOR_CRUCIAL_STEP_STATE = 8;
+    public int getCurrentSystemState(){
+        return currentSystemState;
+    }
+    public void setCurrentSystemState(int systemState){
+        this.currentSystemState = systemState;
+    }
 
     public SugiliteStartingBlock getScriptHead(){
         return scriptHead;
@@ -101,6 +120,9 @@ public class SugiliteData extends Application {
         errorHandler.reportSuccess(Calendar.getInstance().getTimeInMillis());
         List<SugiliteBlock> blocks = traverseBlock(startingBlock);
         addInstruction(startingBlock);
+
+        //set the system state to the execution state
+        setCurrentSystemState(EXECUTION_STATE);
     }
 
     public void runScript(SugiliteStartingBlock startingBlock, boolean isForResuming){

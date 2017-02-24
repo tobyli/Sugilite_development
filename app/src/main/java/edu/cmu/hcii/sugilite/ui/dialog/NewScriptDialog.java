@@ -56,6 +56,10 @@ public class NewScriptDialog extends AbstractSugiliteDialog {
                             editor.putString("scriptName", scriptName.getText().toString());
                             editor.putBoolean("recording_in_process", true);
                             editor.commit();
+
+                            //set the system state
+                            sugiliteData.setCurrentSystemState(SugiliteData.RECORDING_STATE);
+
                             //set the active script to the newly created script
                             sugiliteData.initiateScript(scriptName.getText().toString() + ".SugiliteScript");
                             sugiliteData.initiatedExternally = false;

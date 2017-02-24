@@ -97,6 +97,8 @@ public class SugiliteMainActivity extends AppCompatActivity {
                     .setPositiveButton("OK", new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int which) {
                             sugiliteData.clearInstructionQueue();
+                            //set the system state back to DEFAULT_STATE
+                            sugiliteData.setCurrentSystemState(SugiliteData.DEFAULT_STATE);
                         }
                     })
                     .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {

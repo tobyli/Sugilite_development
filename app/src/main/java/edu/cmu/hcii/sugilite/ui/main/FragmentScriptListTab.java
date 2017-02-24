@@ -34,6 +34,7 @@ import edu.cmu.hcii.sugilite.automation.ServiceStatusManager;
 import edu.cmu.hcii.sugilite.communication.SugiliteBlockJSONProcessor;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
+import edu.cmu.hcii.sugilite.ui.ScriptDebuggingActivity;
 import edu.cmu.hcii.sugilite.ui.ScriptDetailActivity;
 import edu.cmu.hcii.sugilite.ui.SettingsActivity;
 import edu.cmu.hcii.sugilite.ui.dialog.AddTriggerDialog;
@@ -113,6 +114,8 @@ public class FragmentScriptListTab extends Fragment {
     private static final int ITEM_3 = Menu.FIRST + 2;
     private static final int ITEM_4 = Menu.FIRST + 3;
     private static final int ITEM_5 = Menu.FIRST + 4;
+    private static final int ITEM_6 = Menu.FIRST + 5;
+
 
     //context menu are the long-click menus for each script
     @Override
@@ -123,10 +126,11 @@ public class FragmentScriptListTab extends Fragment {
         else
             menu.setHeaderTitle("Sugilite Operation Menu");
         menu.add(0, ITEM_1, 0, "View");
-        menu.add(0, ITEM_2, 0, "Rename");
-        menu.add(0, ITEM_3, 0, "Share");
-        menu.add(0, ITEM_4, 0, "Generalize");
-        menu.add(0, ITEM_5, 0, "Delete");
+        menu.add(0, ITEM_2, 0, "Debug");
+        menu.add(0, ITEM_3, 0, "Rename");
+        menu.add(0, ITEM_4, 0, "Share");
+        menu.add(0, ITEM_5, 0, "Generalize");
+        menu.add(0, ITEM_6, 0, "Delete");
     }
 
     @Override
@@ -146,6 +150,16 @@ public class FragmentScriptListTab extends Fragment {
                 }
                 break;
             case ITEM_2:
+                //open the debug activity
+                if(info.targetView instanceof TextView && ((TextView) info.targetView).getText() != null) {
+                    String scriptName = ((TextView) info.targetView).getText().toString() + ".SugiliteScript";
+                    final Intent scriptDetailIntent = new Intent(activity, ScriptDebuggingActivity.class);
+                    scriptDetailIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                    scriptDetailIntent.putExtra("scriptName", scriptName);
+                    startActivity(scriptDetailIntent);
+                }
+                break;
+            case ITEM_3:
                 if(info.targetView instanceof TextView && ((TextView) info.targetView).getText() != null) {
                     final String scriptName = ((TextView) info.targetView).getText().toString() + ".SugiliteScript";
                     AlertDialog.Builder builder = new AlertDialog.Builder(activity);
@@ -175,7 +189,7 @@ public class FragmentScriptListTab extends Fragment {
 
                 }
                 break;
-            case ITEM_3:
+            case ITEM_4:
                 final String scriptName = ((TextView) info.targetView).getText().toString() + ".SugiliteScript";
                 SugiliteStartingBlock startingBlock = sugiliteScriptDao.read(scriptName);
                 SugiliteBlockJSONProcessor processor = new SugiliteBlockJSONProcessor(activity);
@@ -194,13 +208,13 @@ public class FragmentScriptListTab extends Fragment {
                 }
                 Toast.makeText(activity, "Sharing Script is not supported yet!", Toast.LENGTH_SHORT).show();
                 break;
-            case ITEM_4:
+            case ITEM_5:
                 final String scriptName1 = ((TextView) info.targetView).getText().toString() + ".SugiliteScript";
                 SugiliteStartingBlock startingBlock1 = sugiliteScriptDao.read(scriptName1);
                 generalizer.generalize(startingBlock1);
                 setUpScriptList();
                 break;
-            case ITEM_5:
+            case ITEM_6:
                 if(info.targetView instanceof TextView && ((TextView) info.targetView).getText() != null) {
                     sugiliteScriptDao.delete(((TextView) info.targetView).getText().toString() + ".SugiliteScript");
                     setUpScriptList();

@@ -147,6 +147,8 @@ public class ErrorHandler {
         //pause the execution when the duck is clicked
         final Queue<SugiliteBlock> storedQueue =  sugiliteData.getCopyOfInstructionQueue();
         sugiliteData.clearInstructionQueue();
+        final int previousState = sugiliteData.getCurrentSystemState();
+        sugiliteData.setCurrentSystemState(SugiliteData.PAUSED_FOR_ERROR_HANDLING_STATE);
 
         AlertDialog.Builder builder = new AlertDialog.Builder(applicationContext);
         builder.setTitle("Script Execution Error")
@@ -157,6 +159,7 @@ public class ErrorHandler {
                         //reset the timer when the user chooses to keep waiting
                         reportSuccess(Calendar.getInstance().getTimeInMillis());
                         sugiliteData.addInstructions(storedQueue);
+                        sugiliteData.setCurrentSystemState(previousState);
                         dialog.dismiss();
                     }
                 })
@@ -164,6 +167,7 @@ public class ErrorHandler {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         sugiliteData.clearInstructionQueue();
+                        sugiliteData.setCurrentSystemState(SugiliteData.DEFAULT_STATE);
                         Toast.makeText(applicationContext, "Cleared Operation Queue!", Toast.LENGTH_SHORT).show();
                         dialog.dismiss();
                     }
@@ -190,6 +194,7 @@ public class ErrorHandler {
                                     @Override
                                     public void onClick(DialogInterface dialog, int which) {
                                         forkResumeRecording(startingBlock, currentBlock);
+                                        sugiliteData.setCurrentSystemState(SugiliteData.RECORDING_FOR_ERROR_HANDLING_STATE);
                                     }
                                 })
                                 .setNegativeButton("New Fork", new DialogInterface.OnClickListener() {
@@ -197,6 +202,7 @@ public class ErrorHandler {
                                     @Override
                                     public void onClick(DialogInterface dialog, int which) {
                                         forkParallelBranchResumeRecording(startingBlock, currentBlock);
+                                        sugiliteData.setCurrentSystemState(SugiliteData.RECORDING_FOR_ERROR_HANDLING_STATE);
                                     }
                                 });
                         AlertDialog replaceOrParallelDialog = replaceOrParallelDialogBuilder.create();

@@ -63,6 +63,8 @@
         </activity>
         <activity android:name=".ui.ScriptDetailActivity" tools:node="merge" >
         </activity>
+        <activity android:name=".ui.ScriptDebuggingActivity" tools:node="merge" >
+        </activity>
         <activity
             android:name=".recording.mRecordingPopUpActivity"
             android:label="Sugilite Script Recording"

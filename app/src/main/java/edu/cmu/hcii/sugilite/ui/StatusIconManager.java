@@ -252,10 +252,16 @@ public class StatusIconManager {
                     boolean recordingInProgress = sharedPreferences.getBoolean("recording_in_process", false);
                     final boolean runningInProgress = sugiliteData.getInstructionQueueSize() > 0;
 
+
+
                     //pause the execution when the duck is clicked
                     final Queue<SugiliteBlock> storedQueue = runningInProgress ? sugiliteData.getCopyOfInstructionQueue() : null;
-                    if(runningInProgress)
+                    final int previousState = sugiliteData.getCurrentSystemState();
+                    if(runningInProgress) {
                         sugiliteData.clearInstructionQueue();
+                        sugiliteData.setCurrentSystemState(SugiliteData.PAUSED_FOR_DUCK_MENU_STATE);
+                    }
+
 
 
                     List<String> operationList = new ArrayList<>();
@@ -296,6 +302,8 @@ public class StatusIconManager {
                                     scriptListIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
                                     context.startActivity(scriptListIntent);
                                     Toast.makeText(context, "view script list", Toast.LENGTH_SHORT).show();
+                                    if(runningInProgress)
+                                        sugiliteData.setCurrentSystemState(SugiliteData.DEFAULT_STATE);
                                     break;
                                 //bring the user to the script list activity
                                 case "View Last Recording":
@@ -307,6 +315,8 @@ public class StatusIconManager {
                                         context.startActivity(intent);
                                     }
                                     Toast.makeText(context, "view current script", Toast.LENGTH_SHORT).show();
+                                    if(runningInProgress)
+                                        sugiliteData.setCurrentSystemState(SugiliteData.DEFAULT_STATE);
                                     break;
                                 case "End Recording":
                                     //end recording
@@ -317,6 +327,7 @@ public class StatusIconManager {
                                         sugiliteData.communicationController.sendRecordingFinishedSignal(sugiliteData.getScriptHead().getScriptName());
                                         sugiliteData.sendCallbackMsg(Const.FINISHED_RECORDING, jsonProcessor.scriptToJson(sugiliteData.getScriptHead()), sugiliteData.callbackString);
                                     }
+                                    sugiliteData.setCurrentSystemState(SugiliteData.DEFAULT_STATE);
                                     Toast.makeText(context, "end recording", Toast.LENGTH_SHORT).show();
                                     break;
                                 case "New Recording":
@@ -331,6 +342,7 @@ public class StatusIconManager {
                                     prefEditor2.putBoolean("recording_in_process", true);
                                     prefEditor2.commit();
                                     Toast.makeText(context, "resume recording", Toast.LENGTH_SHORT).show();
+                                    sugiliteData.setCurrentSystemState(SugiliteData.RECORDING_STATE);
                                     break;
                                 case "Quit Sugilite":
                                     Toast.makeText(context, "quit sugilite", Toast.LENGTH_SHORT).show();
@@ -342,6 +354,7 @@ public class StatusIconManager {
                                     break;
                                 case "Clear Instruction Queue":
                                     sugiliteData.clearInstructionQueue();
+                                    sugiliteData.setCurrentSystemState(SugiliteData.DEFAULT_STATE);
                                     storedQueue.clear();
                                     break;
                                 case "Resume Running":
@@ -488,6 +501,7 @@ public class StatusIconManager {
                             if (runningInProgress) {
                                 //restore execution
                                 sugiliteData.addInstructions(storedQueue);
+                                sugiliteData.setCurrentSystemState(previousState);
                             }
                         }
                     });

@@ -361,8 +361,10 @@ public class RecordingPopUpDialog extends AbstractSugiliteDialog {
                 }
                 saveBlock(operationBlock, dialogRootView.getContext());
                 //fill in the text box if the operation is of SET_TEXT type
-                if (operationBlock.getOperation().getOperationType() == SugiliteOperation.SET_TEXT && triggerMode == TRIGGERED_BY_NEW_EVENT)
+                if (operationBlock.getOperation().getOperationType() == SugiliteOperation.SET_TEXT && triggerMode == TRIGGERED_BY_NEW_EVENT) {
+                    //should NOT change the current state in SugiliteData here because this is only one step added to specifically handle text entry recording
                     sugiliteData.addInstruction(operationBlock);
+                }
                 if (editCallback != null) {
                     System.out.println("calling callback");
                     editCallback.onClick(null, 0);

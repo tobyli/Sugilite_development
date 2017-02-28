@@ -413,7 +413,7 @@ public class SugiliteCommunicationActicvity extends Activity {
                     // do nothing, likely this exception is caused by non-rooted device
                 }
             }
-            sugiliteData.runScript(script, null);
+            sugiliteData.runScript(script, null, SugiliteData.EXECUTION_STATE);
             try {
                 Thread.sleep(SCRIPT_DELAY);
             } catch (Exception e) {

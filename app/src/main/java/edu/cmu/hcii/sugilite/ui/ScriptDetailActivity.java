@@ -225,7 +225,7 @@ public class ScriptDetailActivity extends AppCompatActivity {
                                     }).show();
                         }
                         else {
-                            VariableSetValueDialog variableSetValueDialog = new VariableSetValueDialog(activityContext, getLayoutInflater(), sugiliteData, script, sharedPreferences);
+                            VariableSetValueDialog variableSetValueDialog = new VariableSetValueDialog(activityContext, getLayoutInflater(), sugiliteData, script, sharedPreferences, SugiliteData.EXECUTION_STATE);
                             if(script.variableNameDefaultValueMap.size() > 0) {
                                 //has variable
                                 sugiliteData.stringVariableMap.putAll(script.variableNameDefaultValueMap);
@@ -647,7 +647,7 @@ public class ScriptDetailActivity extends AppCompatActivity {
             for (String packageName : script.relevantPackages) {
                 Automator.killPackage(packageName);
             }
-            sugiliteData.runScript(script, true);
+            sugiliteData.runScript(script, true, SugiliteData.EXECUTION_STATE);
             //need to have this delay to ensure that the killing has finished before we start executing
             try {
                 Thread.sleep(SCRIPT_DELAY);

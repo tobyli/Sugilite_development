@@ -69,7 +69,7 @@ public class SugiliteTriggerHandler {
                 Toast.makeText(context, "TRIGGERING SCRIPT " + trigger.getScriptName(), Toast.LENGTH_SHORT).show();
                 SugiliteStartingBlock script = sugiliteScriptDao.read(trigger.getScriptName());
                 if (script != null) {
-                    VariableSetValueDialog variableSetValueDialog = new VariableSetValueDialog(context, layoutInflater, sugiliteData, script, sharedPreferences);
+                    VariableSetValueDialog variableSetValueDialog = new VariableSetValueDialog(context, layoutInflater, sugiliteData, script, sharedPreferences, SugiliteData.EXECUTION_STATE);
                     if (script.variableNameDefaultValueMap.size() > 0) {
                         //has variable
                         sugiliteData.stringVariableMap.putAll(script.variableNameDefaultValueMap);

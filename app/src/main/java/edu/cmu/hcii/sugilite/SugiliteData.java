@@ -42,6 +42,9 @@ public class SugiliteData extends Application {
 
     //the queue used for execution. the system should be in the execution mode whenever the queue is non-empty
     private Queue<SugiliteBlock> instructionQueue = new ArrayDeque<>();
+    //this queue is used for storing the content of instruction queue for pausing
+    public Queue<SugiliteBlock> storedInstructionQueueForPause = new ArrayDeque<>();
+
     public Map<String, Variable> stringVariableMap = new HashMap<>();
     public Set<String> registeredBroadcastingListener = new HashSet<>();
     public SugiliteBlock afterExecutionOperation = null;
@@ -67,7 +70,7 @@ public class SugiliteData extends Application {
 
 
     //used to indicate the state of the sugilite system
-    public static final int DEFAULT_STATE = 0, RECORDING_STATE = 1, RECORDING_FOR_ERROR_HANDLING_STATE = 2, EXECUTION_STATE = 3, REGULAR_DEBUG_STATE = 4, SINGLE_STEP_DEBUG_STATE = 5, PAUSED_FOR_DUCK_MENU_STATE = 6, PAUSED_FOR_ERROR_HANDLING_STATE = 7, PAUSED_FOR_CRUCIAL_STEP_STATE = 8;
+    public static final int DEFAULT_STATE = 0, RECORDING_STATE = 1, RECORDING_FOR_ERROR_HANDLING_STATE = 2, EXECUTION_STATE = 3, REGULAR_DEBUG_STATE = 4, PAUSED_FOR_DUCK_MENU_STATE = 6, PAUSED_FOR_ERROR_HANDLING_STATE = 7, PAUSED_FOR_CRUCIAL_STEP_STATE = 8, PAUSED_FOR_BREAKPOINT_STATE = 9;
     public int getCurrentSystemState(){
         return currentSystemState;
     }
@@ -111,7 +114,7 @@ public class SugiliteData extends Application {
         this.trackingName = trackingName;
     }
 
-    public void runScript(SugiliteStartingBlock startingBlock, SugiliteBlock afterExecutionOperation){
+    public void runScript(SugiliteStartingBlock startingBlock, SugiliteBlock afterExecutionOperation, int state){
         startRecordingWhenFinishExecuting = false;
         this.afterExecutionOperation = afterExecutionOperation;
         this.instructionQueue.clear();
@@ -122,11 +125,11 @@ public class SugiliteData extends Application {
         addInstruction(startingBlock);
 
         //set the system state to the execution state
-        setCurrentSystemState(EXECUTION_STATE);
+        setCurrentSystemState(state);
     }
 
-    public void runScript(SugiliteStartingBlock startingBlock, boolean isForResuming){
-        runScript(startingBlock, null);
+    public void runScript(SugiliteStartingBlock startingBlock, boolean isForResuming, int state){
+        runScript(startingBlock, null, state);
         startRecordingWhenFinishExecuting = isForResuming;
     }
 
@@ -143,6 +146,7 @@ public class SugiliteData extends Application {
                 instructionQueue.add(afterExecutionOperation);
                 afterExecutionOperation = null;
             }
+            setCurrentSystemState(DEFAULT_STATE);
             return;
         }
         instructionQueue.add(block);
@@ -172,6 +176,7 @@ public class SugiliteData extends Application {
                     SharedPreferences.Editor prefEditor = sharedPreferences.edit();
                     prefEditor.putBoolean("recording_in_process", true);
                     prefEditor.commit();
+                    setCurrentSystemState(RECORDING_STATE);
                 }
             }, 1500);
         }

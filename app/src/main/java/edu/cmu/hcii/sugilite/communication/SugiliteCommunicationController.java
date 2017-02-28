@@ -51,11 +51,9 @@ public class SugiliteCommunicationController {
     Activity activity;
     private Context context; //NOTE: application context
     private String message;
-    //TODO: implement tracking
     private SharedPreferences sharedPreferences;
     private List<SugiliteMessageListener> subscribers;
-    //TODO: add start recording/stop recording
-
+    //TODO: CHANGE SugiliteData.currentSystemStatus for external actions
 
     private SugiliteCommunicationController( Context context, SugiliteData sugiliteData, Activity activity ) {
         this(context, sugiliteData, PreferenceManager.getDefaultSharedPreferences(context) );
@@ -572,7 +570,7 @@ public class SugiliteCommunicationController {
                         // do nothing, likely this exception is caused by non-rooted device
                     }
                 }
-                sugiliteData.runScript(script, null);
+                sugiliteData.runScript(script, null, SugiliteData.EXECUTION_STATE);
                 try {
                     Thread.sleep( Const.SCRIPT_DELAY);
                 } catch (Exception e) {
@@ -633,7 +631,7 @@ public class SugiliteCommunicationController {
                     // do nothing, likely this exception is caused by non-rooted device
                 }
             }
-            sugiliteData.runScript(script, false);
+            sugiliteData.runScript(script, false, SugiliteData.EXECUTION_STATE);
             try {
                 Thread.sleep( Const.SCRIPT_DELAY);
             } catch (Exception e) {

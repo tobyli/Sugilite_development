@@ -83,6 +83,7 @@ public class ScriptDebuggingActivity extends AppCompatActivity {
         }
         sugiliteData = (SugiliteData)getApplication();
         sugiliteScriptDao = new SugiliteScriptDao(this);
+        //script is read from the DB
         script = sugiliteScriptDao.read(scriptName);
         this.context = this;
         if(scriptName != null)
@@ -132,8 +133,8 @@ public class ScriptDebuggingActivity extends AppCompatActivity {
             tv.setOnTouchListener(textViewOnTouchListener);
             registerForContextMenu(tv);
             return tv;
-        } else if (block instanceof SugiliteOperationBlock || block instanceof SugiliteSpecialOperationBlock) {
-            return new DebuggingOperationView(context, Html.fromHtml(block.getDescription()));
+        } else if (block instanceof SugiliteOperationBlock) {
+            return new DebuggingOperationView(context, (SugiliteOperationBlock) block);
         } else if (block instanceof SugiliteErrorHandlingForkBlock) {
             LinearLayout mainLayout = new LinearLayout(context);
             mainLayout.setOrientation(LinearLayout.VERTICAL);
@@ -203,8 +204,7 @@ public class ScriptDebuggingActivity extends AppCompatActivity {
 
     }
 
-
-    public void scriptDetailRunButtonOnClick (final View view){
+    public void scriptDebugRunButtonOnClick (final View view){
         //kill the relevant apps before executing the script
         final Context activityContext = this;
         new AlertDialog.Builder(this)
@@ -228,7 +228,7 @@ public class ScriptDebuggingActivity extends AppCompatActivity {
                                     }).show();
                         }
                         else {
-                            VariableSetValueDialog variableSetValueDialog = new VariableSetValueDialog(activityContext, getLayoutInflater(), sugiliteData, script, sharedPreferences);
+                            VariableSetValueDialog variableSetValueDialog = new VariableSetValueDialog(activityContext, getLayoutInflater(), sugiliteData, script, sharedPreferences, SugiliteData.REGULAR_DEBUG_STATE);
                             if(script.variableNameDefaultValueMap.size() > 0) {
                                 //has variable
                                 sugiliteData.stringVariableMap.putAll(script.variableNameDefaultValueMap);
@@ -261,7 +261,90 @@ public class ScriptDebuggingActivity extends AppCompatActivity {
                 .show();
     }
 
-    public void scriptDetailCancelButtonOnClick (View view){
+    /**
+     * set a breakpoint for every operation block in the script
+     * @param block
+     */
+    private void addABreakpointForEveryOperationBlock(SugiliteBlock block){
+        if(block == null)
+            return;
+        if(block instanceof SugiliteStartingBlock){
+            addABreakpointForEveryOperationBlock(((SugiliteStartingBlock) block).getNextBlock());
+        }
+        else if(block instanceof SugiliteOperationBlock){
+            ((SugiliteOperationBlock) block).isSetAsABreakPoint = true;
+            addABreakpointForEveryOperationBlock(((SugiliteOperationBlock) block).getNextBlock());
+        }
+        else if(block instanceof  SugiliteSpecialOperationBlock){
+            addABreakpointForEveryOperationBlock(((SugiliteSpecialOperationBlock) block).getNextBlock());
+        }
+        else if(block instanceof SugiliteErrorHandlingForkBlock){
+            addABreakpointForEveryOperationBlock(((SugiliteErrorHandlingForkBlock) block).getAlternativeNextBlock());
+            addABreakpointForEveryOperationBlock(((SugiliteErrorHandlingForkBlock) block).getOriginalNextBlock());
+        }
+    }
+
+    public void scriptDebugSingleStepButtonOnClick (final View view){
+        //add a breakpoint at every single operation block
+        addABreakpointForEveryOperationBlock(script);
+
+        //kill the relevant apps before executing the script
+        final Context activityContext = this;
+        new AlertDialog.Builder(this)
+                .setTitle("Run Script")
+                .setMessage("Are you sure you want to run this script?")
+                .setPositiveButton("Run", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        //clear the queue first before adding new instructions
+
+                        if(!serviceStatusManager.isRunning()){
+                            //prompt the user if the accessiblity service is not active
+                            AlertDialog.Builder builder1 = new AlertDialog.Builder(view.getContext());
+                            builder1.setTitle("Service not running")
+                                    .setMessage("The Sugilite accessiblity service is not enabled. Please enable the service in the phone settings before recording.")
+                                    .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                                        @Override
+                                        public void onClick(DialogInterface dialog, int which) {
+                                            serviceStatusManager.promptEnabling();
+                                            //do nothing
+                                        }
+                                    }).show();
+                        }
+                        else {
+                            VariableSetValueDialog variableSetValueDialog = new VariableSetValueDialog(activityContext, getLayoutInflater(), sugiliteData, script, sharedPreferences, SugiliteData.REGULAR_DEBUG_STATE);
+                            if(script.variableNameDefaultValueMap.size() > 0) {
+                                //has variable
+                                sugiliteData.stringVariableMap.putAll(script.variableNameDefaultValueMap);
+                                boolean needUserInput = false;
+                                for(Map.Entry<String, Variable> entry : script.variableNameDefaultValueMap.entrySet()){
+                                    if(entry.getValue().type == Variable.USER_INPUT){
+                                        needUserInput = true;
+                                        break;
+                                    }
+                                }
+                                if(needUserInput)
+                                    //show the dialog to obtain user input
+                                    variableSetValueDialog.show();
+                                else
+                                    variableSetValueDialog.executeScript(null);
+                            }
+                            else{
+                                //execute the script without showing the dialog
+                                variableSetValueDialog.executeScript(null);
+                            }
+                        }
+                    }
+                })
+                .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        // do nothing
+                    }
+                })
+                .setIcon(android.R.drawable.ic_dialog_alert)
+                .show();
+    }
+
+    public void scriptDebugCancelButtonOnClick (View view){
         onBackPressed();
     }
 
@@ -273,7 +356,7 @@ public class ScriptDebuggingActivity extends AppCompatActivity {
         startActivity(intent);
     }
 
-    public void scriptDetailDeleteButtonOnClick (View view){
+    public void scriptDebugDeleteButtonOnClick (View view){
         new AlertDialog.Builder(this)
                 .setTitle("Confirm Deleting")
                 .setMessage("Are you sure you want to delete this script?")
@@ -650,7 +733,7 @@ public class ScriptDebuggingActivity extends AppCompatActivity {
             for (String packageName : script.relevantPackages) {
                 Automator.killPackage(packageName);
             }
-            sugiliteData.runScript(script, true);
+            sugiliteData.runScript(script, true, SugiliteData.EXECUTION_STATE);
             //need to have this delay to ensure that the killing has finished before we start executing
             try {
                 Thread.sleep(SCRIPT_DELAY);
@@ -703,16 +786,18 @@ public class ScriptDebuggingActivity extends AppCompatActivity {
         private TextView operationTextView;
         public boolean isBreakpointSet = false;
         private ImageView operationIconImageView;
+        SugiliteOperationBlock block;
 
         public DebuggingOperationView(Context context){
             super(context);
             init();
         }
 
-        public DebuggingOperationView(Context context, CharSequence text){
+        public DebuggingOperationView(Context context, SugiliteOperationBlock block){
             super(context);
             init();
-            setText(text);
+            setText(Html.fromHtml(block.getDescription()));
+            this.block = block;
         }
 
         public DebuggingOperationView(Context context, AttributeSet attrs){
@@ -739,11 +824,13 @@ public class ScriptDebuggingActivity extends AppCompatActivity {
                         isBreakpointSet = false;
                         //change icon back to false
                         operationIconImageView.setImageResource(R.drawable.gray_dot_icon);
+                        block.isSetAsABreakPoint = false;
                     }
                     else{
                         isBreakpointSet = true;
                         //change icon back to true
                         operationIconImageView.setImageResource(R.drawable.red_dot_icon);
+                        block.isSetAsABreakPoint = true;
 
                     }
                 }

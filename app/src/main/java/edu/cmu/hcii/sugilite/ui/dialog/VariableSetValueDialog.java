@@ -46,19 +46,22 @@ public class VariableSetValueDialog extends AbstractSugiliteDialog{
     private SharedPreferences sharedPreferences;
     private SugiliteStartingBlock startingBlock;
     private SugiliteData sugiliteData;
+    private int state;
 
-    public VariableSetValueDialog(final Context context, LayoutInflater inflater, SugiliteData sugiliteData, SugiliteStartingBlock startingBlock, SharedPreferences sharedPreferences){
+    public VariableSetValueDialog(final Context context, LayoutInflater inflater, SugiliteData sugiliteData, SugiliteStartingBlock startingBlock, SharedPreferences sharedPreferences, int state){
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
         this.context = context;
         this.sharedPreferences = sharedPreferences;
         this.startingBlock = startingBlock;
         this.sugiliteData = sugiliteData;
+        this.state = state;
         View dialogView = inflater.inflate(R.layout.dialog_variable_set_value, null);
         LinearLayout mainLayout = (LinearLayout)dialogView.findViewById(R.id.layout_variable_set_value);
         variableDefaultValueMap = startingBlock.variableNameDefaultValueMap;
         variableNameAlternativeValueMap = startingBlock.variableNameAlternativeValueMap;
         stringVariableMap = sugiliteData.stringVariableMap;
         variableSelectionViewMap = new HashMap<>();
+
 
         for(Map.Entry<String, Variable> entry : variableDefaultValueMap.entrySet()){
             if(entry.getValue().type == Variable.LOAD_RUNTIME)
@@ -168,6 +171,7 @@ public class VariableSetValueDialog extends AbstractSugiliteDialog{
 
     /**
      * @param afterExecutionOperation @nullable, this operation will be pushed into the queue after the exeution
+     * this is used for resume recording
      */
     public void executeScript(SugiliteBlock afterExecutionOperation){
         SharedPreferences.Editor prefEditor = sharedPreferences.edit();
@@ -178,7 +182,7 @@ public class VariableSetValueDialog extends AbstractSugiliteDialog{
         for (String packageName : startingBlock.relevantPackages) {
             Automator.killPackage(packageName);
         }
-        sugiliteData.runScript(startingBlock, afterExecutionOperation);
+        sugiliteData.runScript(startingBlock, afterExecutionOperation, this.state);
         //need to have this delay to ensure that the killing has finished before we start executing
         try {
             Thread.sleep(SCRIPT_DELAY);

@@ -78,7 +78,7 @@ public class Automator {
         homeScreenPackageNameSet.addAll(Arrays.asList(HOME_SCREEN_PACKAGE_NAMES));
     }
 
-
+    //the return value is not used?
     public boolean handleLiveEvent (AccessibilityNodeInfo rootNode, Context context){
         //TODO: fix the highlighting for matched element
         if(sugiliteData.getInstructionQueueSize() == 0 || rootNode == null)
@@ -87,10 +87,11 @@ public class Automator {
         final SugiliteBlock blockToMatch = sugiliteData.peekInstructionQueue();
         if(blockToMatch == null)
             return false;
+
         if (!(blockToMatch instanceof SugiliteOperationBlock)) {
             //handle non Sugilite operation blocks
             /**
-             * nothing really special needed for starting blocks
+             * nothing really special needed for starting blocks, just add the next block to the queue
              */
             if (blockToMatch instanceof SugiliteStartingBlock) {
                 //Toast.makeText(context, "Start running script " + ((SugiliteStartingBlock)blockToMatch).getScriptName(), Toast.LENGTH_SHORT).show();
@@ -126,122 +127,132 @@ public class Automator {
             }
         }
 
-        SugiliteOperationBlock operationBlock = (SugiliteOperationBlock)blockToMatch;
+        else {
+            //the blockToMatch is an operation block
+            SugiliteOperationBlock operationBlock = (SugiliteOperationBlock) blockToMatch;
 
-        if(operationBlock.getElementMatchingFilter() == null){
-            if(operationBlock.getOperation().getOperationType() == SugiliteOperation.SPECIAL_GO_HOME){
-                //perform the go home operation - because the go home operation will have a null filter
-                boolean retVal = performAction(null, operationBlock);
-                if(retVal) {
-                    sugiliteData.errorHandler.reportSuccess(Calendar.getInstance().getTimeInMillis());
-                    sugiliteData.removeInstructionQueueItem();
-                    addNextBlockToQueue(operationBlock);
-                    try {
-                        Thread.sleep(DELAY / 2);
+            if(operationBlock.isSetAsABreakPoint) {
+                sugiliteData.storedInstructionQueueForPause.clear();
+                sugiliteData.storedInstructionQueueForPause.addAll(sugiliteData.getCopyOfInstructionQueue());
+                sugiliteData.clearInstructionQueue();
+                sugiliteData.setCurrentSystemState(SugiliteData.PAUSED_FOR_BREAKPOINT_STATE);
+                return false;
+            }
+
+            if (operationBlock.getElementMatchingFilter() == null) {
+                //there is no element matching fileter in the operation block
+                if (operationBlock.getOperation().getOperationType() == SugiliteOperation.SPECIAL_GO_HOME) {
+                    //perform the go home operation - because the go home operation will have a null filter
+                    boolean retVal = performAction(null, operationBlock);
+                    if (retVal) {
+                        sugiliteData.errorHandler.reportSuccess(Calendar.getInstance().getTimeInMillis());
+                        sugiliteData.removeInstructionQueueItem();
+                        addNextBlockToQueue(operationBlock);
+                        try {
+                            Thread.sleep(DELAY / 2);
+                        } catch (Exception e) {
+                            // do nothing
+                        }
                     }
-                    catch (Exception e){
+                    return retVal;
+
+                } else
+                    return false;
+            }
+            else {
+                //the operation has an element matching filter
+                variableHelper = new VariableHelper(sugiliteData.stringVariableMap);
+                //if we can match this event, perform the action and remove the head object
+                List<AccessibilityNodeInfo> allNodes = preOrderTraverse(rootNode);
+                List<AccessibilityNodeInfo> filteredNodes = new ArrayList<>();
+                for (AccessibilityNodeInfo node : allNodes) {
+                    if (operationBlock.getElementMatchingFilter().filter(node, variableHelper))
+                        filteredNodes.add(node);
+                }
+
+                if (operationBlock.getElementMatchingFilter().getTextOrChildTextOrContentDescription() != null) {
+                    //process the order of TextOrChildOrContentDescription
+                    UIElementMatchingFilter filter = operationBlock.getElementMatchingFilter();
+                    List<AccessibilityNodeInfo> textMatchedNodes = new ArrayList<>();
+                    List<AccessibilityNodeInfo> contentDescriptionMatchedNodes = new ArrayList<>();
+                    List<AccessibilityNodeInfo> childTextMatchedNodes = new ArrayList<>();
+                    List<AccessibilityNodeInfo> childContentDescriptionMatchedNodes = new ArrayList<>();
+
+                    for (AccessibilityNodeInfo node : filteredNodes) {
+
+                        if (node.getText() != null && UIElementMatchingFilter.equalsToIgnoreCaseTrimSymbols(filter.getTextOrChildTextOrContentDescription(), node.getText()))
+                            textMatchedNodes.add(node);
+                        if (node.getContentDescription() != null && UIElementMatchingFilter.equalsToIgnoreCaseTrimSymbols(filter.getTextOrChildTextOrContentDescription(), node.getContentDescription()))
+                            contentDescriptionMatchedNodes.add(node);
+                        boolean childTextMatched = false;
+                        boolean childContentDescriptionMatched = false;
+                        for (AccessibilityNodeInfo childNode : preOrderTraverse(node)) {
+                            if (childTextMatched == false &&
+                                    childNode.getText() != null &&
+                                    UIElementMatchingFilter.equalsToIgnoreCaseTrimSymbols(filter.getTextOrChildTextOrContentDescription(), childNode.getText())) {
+                                childTextMatchedNodes.add(node);
+                                childTextMatched = true;
+                            }
+                            if (childContentDescriptionMatched == false &&
+                                    childNode.getContentDescription() != null &&
+                                    UIElementMatchingFilter.equalsToIgnoreCaseTrimSymbols(filter.getTextOrChildTextOrContentDescription(), childNode.getContentDescription())) {
+                                childContentDescriptionMatchedNodes.add(node);
+                                childContentDescriptionMatched = true;
+                            }
+                        }
+                    }
+
+                    filteredNodes = new ArrayList<>();
+                    if (textMatchedNodes.size() > 0)
+                        filteredNodes.addAll(textMatchedNodes);
+                    else if (contentDescriptionMatchedNodes.size() > 0)
+                        filteredNodes.addAll(contentDescriptionMatchedNodes);
+                    else if (childTextMatchedNodes.size() > 0)
+                        filteredNodes.addAll(childTextMatchedNodes);
+                    else if (childContentDescriptionMatchedNodes.size() > 0)
+                        filteredNodes.addAll(childContentDescriptionMatchedNodes);
+                }
+
+
+                if (filteredNodes.size() == 0)
+                    return false;
+
+                boolean succeeded = false;
+                for (AccessibilityNodeInfo node : filteredNodes) {
+                    //TODO: scrolling to find more nodes -- not only the ones displayed on the current screen
+                    if (operationBlock.getOperation().getOperationType() == SugiliteOperation.CLICK && (!node.isClickable()))
+                        continue;
+                    try {
+                        //Thread.sleep(DELAY / 2);
+                    } catch (Exception e) {
                         // do nothing
                     }
-                }
-                return retVal;
-            }
-            else
-                return false;
-        }
-
-        variableHelper = new VariableHelper(sugiliteData.stringVariableMap);
-        //if we can match this event, perform the action and remove the head object
-        List<AccessibilityNodeInfo> allNodes = preOrderTraverse(rootNode);
-        List<AccessibilityNodeInfo> filteredNodes = new ArrayList<>();
-        for(AccessibilityNodeInfo node : allNodes){
-            if(operationBlock.getElementMatchingFilter().filter(node, variableHelper))
-                filteredNodes.add(node);
-        }
-
-        if(operationBlock.getElementMatchingFilter().getTextOrChildTextOrContentDescription() != null) {
-            //process the order of TextOrChildOrContentDescription
-            UIElementMatchingFilter filter = operationBlock.getElementMatchingFilter();
-            List<AccessibilityNodeInfo> textMatchedNodes = new ArrayList<>();
-            List<AccessibilityNodeInfo> contentDescriptionMatchedNodes = new ArrayList<>();
-            List<AccessibilityNodeInfo> childTextMatchedNodes = new ArrayList<>();
-            List<AccessibilityNodeInfo> childContentDescriptionMatchedNodes = new ArrayList<>();
-
-            for (AccessibilityNodeInfo node : filteredNodes){
-
-                if(node.getText() != null && UIElementMatchingFilter.equalsToIgnoreCaseTrimSymbols(filter.getTextOrChildTextOrContentDescription(), node.getText()))
-                    textMatchedNodes.add(node);
-                if(node.getContentDescription() != null && UIElementMatchingFilter.equalsToIgnoreCaseTrimSymbols(filter.getTextOrChildTextOrContentDescription(), node.getContentDescription()))
-                    contentDescriptionMatchedNodes.add(node);
-                boolean childTextMatched = false;
-                boolean childContentDescriptionMatched = false;
-                for(AccessibilityNodeInfo childNode : preOrderTraverse(node)){
-                    if(childTextMatched == false &&
-                            childNode.getText() != null &&
-                            UIElementMatchingFilter.equalsToIgnoreCaseTrimSymbols(filter.getTextOrChildTextOrContentDescription(), childNode.getText())) {
-                        childTextMatchedNodes.add(node);
-                        childTextMatched = true;
-                    }
-                    if(childContentDescriptionMatched == false &&
-                            childNode.getContentDescription() != null &&
-                            UIElementMatchingFilter.equalsToIgnoreCaseTrimSymbols(filter.getTextOrChildTextOrContentDescription(), childNode.getContentDescription())) {
-                        childContentDescriptionMatchedNodes.add(node);
-                        childContentDescriptionMatched = true;
-                    }
-                }
-            }
-
-            filteredNodes = new ArrayList<>();
-            if(textMatchedNodes.size() > 0)
-                filteredNodes.addAll(textMatchedNodes);
-            else if (contentDescriptionMatchedNodes.size() > 0)
-                filteredNodes.addAll(contentDescriptionMatchedNodes);
-            else if (childTextMatchedNodes.size() > 0)
-                filteredNodes.addAll(childTextMatchedNodes);
-            else if (childContentDescriptionMatchedNodes.size() > 0)
-                filteredNodes.addAll(childContentDescriptionMatchedNodes);
-        }
-
-
-
-
-        if(filteredNodes.size() == 0)
-            return false;
-
-        boolean succeeded = false;
-        for(AccessibilityNodeInfo node : filteredNodes){
-            //TODO: scrolling
-            if(operationBlock.getOperation().getOperationType() == SugiliteOperation.CLICK && (!node.isClickable()))
-                continue;
-            try {
-                //Thread.sleep(DELAY / 2);
-            }
-            catch (Exception e){
-                // do nothing
-            }
-            boolean retVal = performAction(node, operationBlock);
-            if(retVal) {
+                    //TODO: add handle breakpoint for debugging
+                    boolean retVal = performAction(node, operationBlock);
+                    if (retVal) {
                 /*
                 Rect tempRect = new Rect();
                 node.getBoundsInScreen(tempRect);
                 statusIconManager.moveIcon(tempRect.centerX(), tempRect.centerY());
                 */
-                if(!succeeded) {
-                    sugiliteData.errorHandler.reportSuccess(Calendar.getInstance().getTimeInMillis());
-                    if(sugiliteData.getInstructionQueueSize() > 0)
-                        sugiliteData.removeInstructionQueueItem();
-                    addNextBlockToQueue(operationBlock);
-                }
-                succeeded = true;
+                        if (!succeeded) {
+                            sugiliteData.errorHandler.reportSuccess(Calendar.getInstance().getTimeInMillis());
+                            if (sugiliteData.getInstructionQueueSize() > 0)
+                                sugiliteData.removeInstructionQueueItem();
+                            addNextBlockToQueue(operationBlock);
+                        }
+                        succeeded = true;
 
-                try {
-                    Thread.sleep(DELAY / 2);
+                        try {
+                            Thread.sleep(DELAY / 2);
+                        } catch (Exception e) {
+                            // do nothing
+                        }
+                    }
                 }
-                catch (Exception e){
-                    // do nothing
-                }
+                return succeeded;
             }
         }
-        return succeeded;
     }
 
     public boolean performAction(AccessibilityNodeInfo node, SugiliteOperationBlock block) {

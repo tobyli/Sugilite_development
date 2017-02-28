@@ -160,6 +160,7 @@ public class StatusIconManager {
                 boolean recordingInProcess = sharedPreferences.getBoolean("recording_in_process", false);
                 boolean trackingInProcess = sharedPreferences.getBoolean("tracking_in_process", false);
                 boolean broadcastingInProcess = sharedPreferences.getBoolean("broadcasting_enabled", false);
+
                 if(recordingInProcess)
                     statusIcon.setImageResource(R.mipmap.duck_icon_recording);
                 else if(sugiliteData.getInstructionQueueSize() > 0) {
@@ -181,6 +182,9 @@ public class StatusIconManager {
                 }
                 else if(trackingInProcess || (broadcastingInProcess && sugiliteData.registeredBroadcastingListener.size() > 0)){
                     statusIcon.setImageResource(R.mipmap.duck_icon_spying);
+                }
+                else if(sugiliteData.getCurrentSystemState() == SugiliteData.PAUSED_FOR_BREAKPOINT_STATE){
+                    statusIcon.setImageResource(R.mipmap.debug_icon);
                 }
                 else
                     statusIcon.setImageResource(R.mipmap.ic_launcher);
@@ -240,6 +244,10 @@ public class StatusIconManager {
                     //set pop up title
                     if(recordingInProcess){
                         textDialogBuilder.setTitle("RECORDING: " + scriptDefinedName);
+
+                        if(sugiliteData.getCurrentSystemState() == SugiliteData.PAUSED_FOR_BREAKPOINT_STATE){
+                            textDialogBuilder.setTitle("PAUSED FOR A BREAKPOINT");
+                        }
                     }
                     else if (sugiliteData.getScriptHead() != null){
                         textDialogBuilder.setTitle("NOT RECORDING\nLAST RECORDED: " + scriptDefinedName);
@@ -259,13 +267,24 @@ public class StatusIconManager {
                     final int previousState = sugiliteData.getCurrentSystemState();
                     if(runningInProgress) {
                         sugiliteData.clearInstructionQueue();
-                        sugiliteData.setCurrentSystemState(SugiliteData.PAUSED_FOR_DUCK_MENU_STATE);
+                        if(sugiliteData.getCurrentSystemState() == SugiliteData.PAUSED_FOR_BREAKPOINT_STATE
+                                || sugiliteData.getCurrentSystemState() == SugiliteData.PAUSED_FOR_ERROR_HANDLING_STATE
+                                || sugiliteData.getCurrentSystemState() == SugiliteData.PAUSED_FOR_CRUCIAL_STEP_STATE){
+                            //TODO: change the icon based on the current status
+                        }
+                        else {
+                            sugiliteData.setCurrentSystemState(SugiliteData.PAUSED_FOR_DUCK_MENU_STATE);
+                        }
                     }
 
-
+                    //TODO: show different menu intems for different state
 
                     List<String> operationList = new ArrayList<>();
-                    if(runningInProgress) {
+                    if(sugiliteData.getCurrentSystemState() == SugiliteData.PAUSED_FOR_BREAKPOINT_STATE){
+                        operationList.add("Resume Next Step");
+                        operationList.add("Quit Debugging");
+                    }
+                    if(sugiliteData.getCurrentSystemState() == SugiliteData.PAUSED_FOR_DUCK_MENU_STATE) {
                         operationList.add("Resume Running");
                         operationList.add("Clear Instruction Queue");
                     }
@@ -489,6 +508,20 @@ public class StatusIconManager {
                                     SelectElementWithTextDialog selectElementWithTextDialog = new SelectElementWithTextDialog(context, layoutInflater, sugiliteData);
                                     selectElementWithTextDialog.show();
                                     break;
+                                case "Resume Next Step":
+                                    if(sugiliteData.storedInstructionQueueForPause.peek() != null && sugiliteData.storedInstructionQueueForPause.peek() instanceof SugiliteOperationBlock)
+                                        ((SugiliteOperationBlock) sugiliteData.storedInstructionQueueForPause.peek()).isSetAsABreakPoint = false;
+                                    sugiliteData.addInstructions(sugiliteData.storedInstructionQueueForPause);
+                                    sugiliteData.storedInstructionQueueForPause.clear();
+                                    sugiliteData.setCurrentSystemState(SugiliteData.REGULAR_DEBUG_STATE);
+                                    dialog.dismiss();
+                                    break;
+                                case "Quit Debugging":
+                                    sugiliteData.storedInstructionQueueForPause.clear();
+                                    sugiliteData.setCurrentSystemState(SugiliteData.DEFAULT_STATE);
+                                    dialog.dismiss();
+                                    break;
+
                                 default:
                                     //do nothing
                             }
@@ -498,7 +531,7 @@ public class StatusIconManager {
                     dialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
                         @Override
                         public void onDismiss(DialogInterface dialog) {
-                            if (runningInProgress) {
+                            if (sugiliteData.getCurrentSystemState() == SugiliteData.PAUSED_FOR_DUCK_MENU_STATE) {
                                 //restore execution
                                 sugiliteData.addInstructions(storedQueue);
                                 sugiliteData.setCurrentSystemState(previousState);

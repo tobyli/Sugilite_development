@@ -15,6 +15,8 @@ public class SugiliteOperationBlock extends SugiliteBlock implements Serializabl
     private SugiliteOperation operation;
     private SugiliteAvailableFeaturePack featurePack;
 
+    public boolean isSetAsABreakPoint = false;
+
     public SugiliteOperationBlock(){
         super();
         this.blockType = SugiliteBlock.REGULAR_OPERATION;

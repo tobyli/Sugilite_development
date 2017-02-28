@@ -310,6 +310,7 @@ public class RecordingPopUpDialog extends AbstractSugiliteDialog {
         if(sugiliteData.initiatedExternally == true && sugiliteData.getScriptHead() != null)
             sugiliteData.communicationController.sendRecordingFinishedSignal(sugiliteData.getScriptHead().getScriptName());
             sugiliteData.sendCallbackMsg(Const.FINISHED_RECORDING, jsonProcessor.scriptToJson(sugiliteData.getScriptHead()), sugiliteData.callbackString);
+        sugiliteData.setCurrentSystemState(SugiliteData.DEFAULT_STATE);
         dialog.dismiss();
     }
 

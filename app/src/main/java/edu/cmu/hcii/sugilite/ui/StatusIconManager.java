@@ -17,6 +17,8 @@ import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
+import android.view.accessibility.AccessibilityEvent;
+import android.view.accessibility.AccessibilityManager;
 import android.view.accessibility.AccessibilityNodeInfo;
 import android.widget.ImageView;
 import android.widget.Toast;
@@ -68,8 +70,9 @@ public class StatusIconManager {
     private VariableHelper variableHelper;
     private LayoutInflater layoutInflater;
     private Random random;
+    private AccessibilityManager accessibilityManager;
 
-    public StatusIconManager(Context context, SugiliteData sugiliteData, SharedPreferences sharedPreferences){
+    public StatusIconManager(Context context, SugiliteData sugiliteData, SharedPreferences sharedPreferences, AccessibilityManager accessibilityManager){
         this.context = context;
         windowManager = (WindowManager) context.getSystemService(context.WINDOW_SERVICE);
         this.sugiliteData = sugiliteData;
@@ -78,6 +81,7 @@ public class StatusIconManager {
         this.serviceStatusManager = ServiceStatusManager.getInstance(context);
         this.screenshotManager = new SugiliteScreenshotManager(sharedPreferences, context);
         this.layoutInflater = (LayoutInflater) context.getSystemService( Context.LAYOUT_INFLATER_SERVICE );
+        this.accessibilityManager = accessibilityManager;
         variableHelper = new VariableHelper(sugiliteData.stringVariableMap);
         jsonProcessor = new SugiliteBlockJSONProcessor(context);
         descriptionGenerator = new ReadableDescriptionGenerator(context);
@@ -179,15 +183,22 @@ public class StatusIconManager {
                     }
 
                     windowManager.updateViewLayout(statusIcon, params);
+                    AccessibilityEvent e = AccessibilityEvent.obtain();
+                    e.setEventType(AccessibilityEvent.TYPE_ANNOUNCEMENT);
+                    e.getText().add("NULL");
+                    //System.out.println(e);
+                    accessibilityManager.sendAccessibilityEvent(e);
+
                 }
                 else if(trackingInProcess || (broadcastingInProcess && sugiliteData.registeredBroadcastingListener.size() > 0)){
                     statusIcon.setImageResource(R.mipmap.duck_icon_spying);
                 }
                 else if(sugiliteData.getCurrentSystemState() == SugiliteData.PAUSED_FOR_BREAKPOINT_STATE){
-                    statusIcon.setImageResource(R.mipmap.debug_icon);
+                    statusIcon.setImageResource(R.mipmap.debug_transparent_icon);
                 }
                 else
                     statusIcon.setImageResource(R.mipmap.ic_launcher);
+
 
             }
 

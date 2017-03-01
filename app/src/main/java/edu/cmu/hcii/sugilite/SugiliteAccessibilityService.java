@@ -11,6 +11,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.WindowManager;
 import android.view.accessibility.AccessibilityEvent;
+import android.view.accessibility.AccessibilityManager;
 import android.view.accessibility.AccessibilityNodeInfo;
 import android.widget.Toast;
 
@@ -78,7 +79,8 @@ public class SugiliteAccessibilityService extends AccessibilityService {
         if( getApplication() instanceof  SugiliteData ) {
             sugiliteData = (SugiliteData) getApplication();
         }
-        statusIconManager = new StatusIconManager(this, sugiliteData, sharedPreferences);
+        AccessibilityManager accessibilityManager = (AccessibilityManager) this.getSystemService(Context.ACCESSIBILITY_SERVICE);
+        statusIconManager = new StatusIconManager(this, sugiliteData, sharedPreferences, accessibilityManager);
         screenshotManager = new SugiliteScreenshotManager(sharedPreferences, getApplicationContext());
         automator = new Automator(sugiliteData, this, statusIconManager, sharedPreferences);
         sugilteTrackingHandler = new SugiliteTrackingHandler(sugiliteData, getApplicationContext());
@@ -107,7 +109,8 @@ public class SugiliteAccessibilityService extends AccessibilityService {
                 AccessibilityEvent.TYPE_VIEW_TEXT_SELECTION_CHANGED,
                 AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED,
                 AccessibilityEvent.TYPE_WINDOWS_CHANGED,
-                AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED};
+                AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED,
+                AccessibilityEvent.TYPE_ANNOUNCEMENT};
         Integer[] accessiblityEventArrayToSend = {AccessibilityEvent.TYPE_VIEW_CLICKED,
                 AccessibilityEvent.TYPE_VIEW_LONG_CLICKED,
                 AccessibilityEvent.TYPE_VIEW_TEXT_CHANGED};
@@ -450,6 +453,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
 
 
         if(sugiliteData.getInstructionQueueSize() > 0) {
+            //System.out.println("attemping to run automation on the rootnode " + rootNode);
             //run automation
             if(automatorThread == null) {
                 automatorThread = new Thread(new Runnable() {

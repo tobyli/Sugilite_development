@@ -71,4 +71,8 @@ public class Const {
     public static final int GET_ALL_PACKAGE_VOCAB = 26;
     public static final int GET_PACKAGE_VOCAB = 27;
     public static final int MULTIPURPOSE_REQUEST = 28;
+
+    //colors
+    public static final String SCRIPT_ACTION_COLOR = "#ffa500", SCRIPT_ACTION_PARAMETER_COLOR = "#bc002f", SCRIPT_TARGET_TYPE_COLOR = "#36a095"
+            , SCRIPT_IDENTIFYING_FEATURE_COLOR = "#008400", SCRIPT_VIEW_ID_COLOR = "#800080", SCRIPT_WITHIN_APP_COLOR = "#ff00ff", SCRIPT_LINK_COLOR = "#2e159f";
 }

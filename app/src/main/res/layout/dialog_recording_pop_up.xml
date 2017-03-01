@@ -61,7 +61,7 @@
                         android:id="@+id/action_parameter_label"
                         android:layout_marginTop="10dp"
                         android:textStyle="bold"
-                        android:textColor="#ff0000" />
+                        android:textColor="@color/script_action_parameter_color" />
 
                     <LinearLayout
                         android:orientation="horizontal"
@@ -83,7 +83,7 @@
                         android:text="Set as a parameter"
                         android:id="@+id/parameterLink"
                         android:layout_gravity="right"
-                        android:textColor="#8bb5f8"
+                        android:textColor="@color/script_link_color"
                         android:textStyle="italic"
                         android:singleLine="false"
                         android:nestedScrollingEnabled="false" />
@@ -105,7 +105,7 @@
                         android:id="@+id/textView8"
                         android:layout_marginTop="10dp"
                         android:textStyle="bold"
-                        android:textColor="#ff0000" />
+                        android:textColor="@color/script_action_parameter_color" />
 
                     <LinearLayout
                         android:orientation="horizontal"
@@ -129,7 +129,7 @@
                         android:id="@+id/textView9"
                         android:layout_marginTop="10dp"
                         android:textStyle="bold"
-                        android:textColor="#c6c6c6" />
+                        android:textColor="#000000" />
 
                     <EditText
                         android:layout_width="fill_parent"
@@ -144,7 +144,7 @@
                         android:id="@+id/textView10"
                         android:layout_marginTop="10dp"
                         android:textStyle="bold"
-                        android:textColor="#FFC6C6C6" />
+                        android:textColor="#000000" />
 
                     <EditText
                         android:layout_width="fill_parent"
@@ -211,7 +211,7 @@
                     android:text="Target Type"
                     android:id="@+id/target_type_label"
                     android:textStyle="bold"
-                    android:textColor="#57ffee" />
+                    android:textColor="@color/script_target_type_color" />
 
                 <Spinner
                     android:layout_width="fill_parent"
@@ -238,7 +238,7 @@
                     android:textAppearance="?android:attr/textAppearanceMedium"
                     android:text="Identifying Features"
                     android:id="@+id/identifier_label"
-                    android:textColor="#00f100"
+                    android:textColor="@color/script_identifying_feature_color"
                     android:textStyle="bold" />
 
             </LinearLayout>
@@ -259,7 +259,7 @@
                     android:text="Within App"
                     android:id="@+id/within_app_label"
                     android:textStyle="bold"
-                    android:textColor="#ff00ff" />
+                    android:textColor="@color/script_within_app_color" />
 
                 <Spinner
                     android:layout_width="fill_parent"
@@ -279,7 +279,7 @@
                 android:textAppearance="?android:attr/textAppearanceSmall"
                 android:text="Alternative Labels"
                 android:id="@+id/see_alternative_link"
-                android:textColor="#8bb5f8" />
+                android:textColor="@color/script_link_color" />
 
             <LinearLayout
                 android:orientation="vertical"

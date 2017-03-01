@@ -8,4 +8,23 @@
     <color name="primary_material_light">#4f4f4f</color>
     <color name="primary_dark_material_light">#646464</color>
     <color name="background_light">#545454</color>
+
+
+
+    <color name="background_color_center">#CCECECEC</color>
+    <color name="background_color_start">#CCF2F2F2</color>
+    <color name="background_color_end">#CCE6E6E6</color>
+
+    <color name="script_action_color">#ffa500</color>
+    <color name="script_action_parameter_color">#bc002f</color>
+    <color name="script_target_type_color">#36a095</color>
+    <color name="script_identifying_feature_color">#008400</color>
+    <color name="script_view_id_color">#800080</color>
+    <color name="script_within_app_color">#ff00ff</color>
+    <color name="script_link_color">#2e159f</color>
+
+
+
+
+
 </resources>

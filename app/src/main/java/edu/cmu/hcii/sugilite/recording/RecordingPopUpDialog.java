@@ -1399,7 +1399,7 @@ public class RecordingPopUpDialog extends AbstractSugiliteDialog {
         linearLayout.setOrientation(LinearLayout.VERTICAL);
         TextView setVariableLink = new TextView(dialogRootView.getContext());
         setVariableLink.setText(Html.fromHtml("<u><i>Set as a parameter</i></u>"));
-        setVariableLink.setTextColor(Color.parseColor("#8bb5f8"));
+        setVariableLink.setTextColor(Color.parseColor(Const.SCRIPT_LINK_COLOR));
         setVariableLink.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

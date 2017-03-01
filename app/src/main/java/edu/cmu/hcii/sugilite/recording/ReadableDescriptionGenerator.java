@@ -7,6 +7,7 @@ import android.content.pm.PackageManager;
 import java.util.HashMap;
 import java.util.Map;
 
+import edu.cmu.hcii.sugilite.Const;
 import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteSpecialOperationBlock;
@@ -39,22 +40,22 @@ public class ReadableDescriptionGenerator {
             //print the operation
             switch (operation.getOperationType()){
                 case SugiliteOperation.CLICK:
-                    message += setColor("Click ", "#ffa500") + "on ";
+                    message += setColor("Click ", Const.SCRIPT_ACTION_COLOR) + "on ";
                     break;
                 case SugiliteOperation.SELECT:
-                    message += setColor("Select ", "#ffa500");
+                    message += setColor("Select ", Const.SCRIPT_ACTION_COLOR);
                     break;
                 case SugiliteOperation.SET_TEXT:
-                    message += setColor("Set Text ", "#ffa500") + "to \"" + setColor(((SugiliteSetTextOperation)((SugiliteOperationBlock) block).getOperation()).getText(), "#ff0000") + "\" for ";
+                    message += setColor("Set Text ", Const.SCRIPT_ACTION_COLOR) + "to \"" + setColor(((SugiliteSetTextOperation)((SugiliteOperationBlock) block).getOperation()).getText(), Const.SCRIPT_ACTION_PARAMETER_COLOR) + "\" for ";
                     break;
                 case SugiliteOperation.LONG_CLICK:
-                    message += setColor("Long click ", "#ffa500") + "on ";
+                    message += setColor("Long click ", Const.SCRIPT_ACTION_COLOR) + "on ";
                     break;
                 case SugiliteOperation.READ_OUT:
-                    message += setColor("Read out ", "#ffa500") + "the " + setColor(((SugiliteOperationBlock)block).getOperation().getParameter(), "#ff0000") + " for ";
+                    message += setColor("Read out ", Const.SCRIPT_ACTION_COLOR) + "the " + setColor(((SugiliteOperationBlock)block).getOperation().getParameter(), Const.SCRIPT_ACTION_PARAMETER_COLOR) + " for ";
                     break;
                 case SugiliteOperation.LOAD_AS_VARIABLE:
-                    message += setColor("Load the value ", "#ffa500") + "of the" + setColor(((SugiliteOperationBlock)block).getOperation().getParameter(), "#ff0000") + " as a variable for ";
+                    message += setColor("Load the value ", Const.SCRIPT_ACTION_COLOR) + "of the" + setColor(((SugiliteOperationBlock)block).getOperation().getParameter(), Const.SCRIPT_ACTION_PARAMETER_COLOR) + " as a variable for ";
                 case SugiliteOperation.SPECIAL_GO_HOME:
                     return "<b>GO TO HOME SCREEN</b>";
             }
@@ -64,9 +65,9 @@ public class ReadableDescriptionGenerator {
                 String className =  ((SugiliteOperationBlock) block).getElementMatchingFilter().getClassName();
                 int lastIndex = className.lastIndexOf('.');
                 if(lastIndex > -1)
-                    message += setColor("the " + className.substring(lastIndex + 1) + " object ", "#57ffee");
+                    message += setColor("the " + className.substring(lastIndex + 1) + " object ", Const.SCRIPT_TARGET_TYPE_COLOR);
                 else
-                    message += setColor("the object ", "#57ffee");
+                    message += setColor("the object ", Const.SCRIPT_TARGET_TYPE_COLOR);
             }
             boolean thatPrinted = false;
 
@@ -87,42 +88,42 @@ public class ReadableDescriptionGenerator {
 
             if(labels.size() == 1){
                 for(Map.Entry<String, String> entry : labels.entrySet()){
-                    message += "\"" + setColor(entry.getValue(), "#00f100") + "\" ";
+                    message += "\"" + setColor(entry.getValue(), Const.SCRIPT_IDENTIFYING_FEATURE_COLOR) + "\" ";
                 }
             }
             else if(labels.size() > 1){
                 int count = 0;
                 for(Map.Entry<String, String> entry : labels.entrySet()){
-                    message += (thatPrinted ? "" : "that ") + "has " + entry.getKey() + " \"" + setColor(entry.getValue(), "#00f100") + "\" " + (count == labels.size() - 2 ? "and " :(count == labels.size() - 1 ? ", " : " "));
+                    message += (thatPrinted ? "" : "that ") + "has " + entry.getKey() + " \"" + setColor(entry.getValue(), Const.SCRIPT_IDENTIFYING_FEATURE_COLOR) + "\" " + (count == labels.size() - 2 ? "and " :(count == labels.size() - 1 ? ", " : " "));
                     thatPrinted = true;
                     count ++;
                 }
             }
 
             if (((SugiliteOperationBlock) block).getElementMatchingFilter().getChildFilter()!= null && ((SugiliteOperationBlock) block).getElementMatchingFilter().getChildFilter().getViewId() != null){
-                message += (thatPrinted ? "" : "that ") + "has child Object ID \"" + setColor(((SugiliteOperationBlock) block).getElementMatchingFilter().getChildFilter().getViewId(), "#800080") + "\" ";
+                message += (thatPrinted ? "" : "that ") + "has child Object ID \"" + setColor(((SugiliteOperationBlock) block).getElementMatchingFilter().getChildFilter().getViewId(), Const.SCRIPT_VIEW_ID_COLOR) + "\" ";
                 thatPrinted = true;            }
 
 
             if(((SugiliteOperationBlock) block).getElementMatchingFilter().getViewId() != null){
-                message += (thatPrinted ? "" : "that ") + "has the Object ID \"" + setColor(((SugiliteOperationBlock) block).getElementMatchingFilter().getViewId(), "#800080") + "\" ";
+                message += (thatPrinted ? "" : "that ") + "has the Object ID \"" + setColor(((SugiliteOperationBlock) block).getElementMatchingFilter().getViewId(), Const.SCRIPT_VIEW_ID_COLOR) + "\" ";
                 thatPrinted = true;
             }
 
             if(((SugiliteOperationBlock) block).getElementMatchingFilter().getBoundsInScreen() != null){
-                message += "at the screen location (" + setColor(((SugiliteOperationBlock) block).getElementMatchingFilter().getBoundsInScreen(), "#00f100") + ") ";
+                message += "at the screen location (" + setColor(((SugiliteOperationBlock) block).getElementMatchingFilter().getBoundsInScreen(), Const.SCRIPT_IDENTIFYING_FEATURE_COLOR) + ") ";
             }
 
             if(((SugiliteOperationBlock) block).getElementMatchingFilter().getBoundsInParent() != null){
-                message += "at the parent location (" + setColor(((SugiliteOperationBlock) block).getElementMatchingFilter().getBoundsInParent(), "#00f100") + ") ";
+                message += "at the parent location (" + setColor(((SugiliteOperationBlock) block).getElementMatchingFilter().getBoundsInParent(), Const.SCRIPT_IDENTIFYING_FEATURE_COLOR) + ") ";
             }
 
             if(((SugiliteOperationBlock) block).getElementMatchingFilter().getPackageName() != null)
-                message += "in " + setColor(getReadableName(((SugiliteOperationBlock) block).getElementMatchingFilter().getPackageName()), "#ff00ff") + " ";
+                message += "in " + setColor(getReadableName(((SugiliteOperationBlock) block).getElementMatchingFilter().getPackageName()), Const.SCRIPT_WITHIN_APP_COLOR) + " ";
             return message;
         }
         else if (block instanceof SugiliteSpecialOperationBlock){
-            return "<b> SPECIAL OPERATION " + setColor(((SugiliteSpecialOperationBlock) block).getDescription(), "#bc002f") + "</b>";
+            return "<b> SPECIAL OPERATION " + setColor(((SugiliteSpecialOperationBlock) block).getDescription(), Const.SCRIPT_ACTION_PARAMETER_COLOR) + "</b>";
         }
 
 

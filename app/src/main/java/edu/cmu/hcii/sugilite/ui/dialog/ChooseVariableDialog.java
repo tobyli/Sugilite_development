@@ -39,6 +39,7 @@ public class ChooseVariableDialog extends AbstractSugiliteDialog {
     private String selectedItemName;
     private SugiliteData sugiliteData;
     private SugiliteStartingBlock startingBlock;
+    private String defaultDefaultValue;
     private final EditText newVariableNameEditText;
     private final EditText defaultValueEditText;
     private final TextView editText;
@@ -63,12 +64,12 @@ public class ChooseVariableDialog extends AbstractSugiliteDialog {
 
         newVariableNameEditText = (EditText)dialogView.findViewById(R.id.new_variable_name);
         defaultValueEditText = (EditText)dialogView.findViewById(R.id.variable_default_value);
-        defaultValueEditText.setText(defaultDefaultValue);
         this.startingBlock = startingBlock;
         this.editText = editText;
         this.context = context;
         this.sugiliteData = sugiliteData;
         this.label = label;
+        this.defaultDefaultValue = defaultDefaultValue;
         variableList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
@@ -120,7 +121,7 @@ public class ChooseVariableDialog extends AbstractSugiliteDialog {
                 });
 
         dialog = builder.create();
-        dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
+        dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ERROR);
         dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE);
 
     }
@@ -164,6 +165,9 @@ public class ChooseVariableDialog extends AbstractSugiliteDialog {
                  }
              }
          });
+         defaultValueEditText.setText(defaultDefaultValue);
+         newVariableNameEditText.setText("");
+
 
      }
 }

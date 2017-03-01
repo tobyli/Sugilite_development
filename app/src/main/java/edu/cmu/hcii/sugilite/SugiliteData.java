@@ -70,7 +70,7 @@ public class SugiliteData extends Application {
 
 
     //used to indicate the state of the sugilite system
-    public static final int DEFAULT_STATE = 0, RECORDING_STATE = 1, RECORDING_FOR_ERROR_HANDLING_STATE = 2, EXECUTION_STATE = 3, REGULAR_DEBUG_STATE = 4, PAUSED_FOR_DUCK_MENU_STATE = 6, PAUSED_FOR_ERROR_HANDLING_STATE = 7, PAUSED_FOR_CRUCIAL_STEP_STATE = 8, PAUSED_FOR_BREAKPOINT_STATE = 9;
+    public static final int DEFAULT_STATE = 0, RECORDING_STATE = 1, RECORDING_FOR_ERROR_HANDLING_STATE = 2, EXECUTION_STATE = 3, REGULAR_DEBUG_STATE = 4, PAUSED_FOR_DUCK_MENU_IN_REGULAR_EXECUTION_STATE = 6, PAUSED_FOR_ERROR_HANDLING_STATE = 7, PAUSED_FOR_CRUCIAL_STEP_STATE = 8, PAUSED_FOR_BREAKPOINT_STATE = 9, PAUSED_FOR_DUCK_MENU_IN_DEBUG_MODE = 10;
     public int getCurrentSystemState(){
         return currentSystemState;
     }
@@ -259,6 +259,33 @@ public class SugiliteData extends Application {
                 e.printStackTrace();
             }
         }
+    }
+
+    public static String getStringforState(int state){
+        switch (state){
+            case DEFAULT_STATE:
+                return "DEFAULT_STATE";
+            case RECORDING_STATE:
+                return "RECORDING_STATE";
+            case RECORDING_FOR_ERROR_HANDLING_STATE:
+                return "RECORDING_FOR_ERROR_HANDLING_STATE";
+            case EXECUTION_STATE:
+                return "EXECUTION_STATE";
+            case REGULAR_DEBUG_STATE:
+                return "REGULAR_DEBUG_STATE";
+            case PAUSED_FOR_DUCK_MENU_IN_REGULAR_EXECUTION_STATE:
+                return "PAUSED_FOR_DUCK_MENU_IN_REGULAR_EXECUTION_STATE";
+            case PAUSED_FOR_ERROR_HANDLING_STATE:
+                return "PAUSED_FOR_ERROR_HANDLING_STATE";
+            case PAUSED_FOR_CRUCIAL_STEP_STATE:
+                return "PAUSED_FOR_CRUCIAL_STEP_STATE";
+            case PAUSED_FOR_BREAKPOINT_STATE:
+                return "PAUSED_FOR_BREAKPOINT_STATE";
+            case PAUSED_FOR_DUCK_MENU_IN_DEBUG_MODE:
+                return "PAUSED_FOR_DUCK_MENU_IN_DEBUG_MODE";
+        }
+        return "";
+
     }
 
 

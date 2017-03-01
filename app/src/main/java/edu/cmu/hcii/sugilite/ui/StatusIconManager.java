@@ -6,10 +6,12 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.graphics.PixelFormat;
 import android.graphics.Rect;
 import android.net.Uri;
 import android.provider.Settings;
+import android.text.Html;
 import android.util.DisplayMetrics;
 import android.view.GestureDetector;
 import android.view.Gravity;
@@ -21,7 +23,10 @@ import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityManager;
 import android.view.accessibility.AccessibilityNodeInfo;
 import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
+
+import org.w3c.dom.Text;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -66,11 +71,12 @@ public class StatusIconManager {
     private SugiliteScreenshotManager screenshotManager;
     private SugiliteBlockJSONProcessor jsonProcessor;
     private ReadableDescriptionGenerator descriptionGenerator;
-    private WindowManager.LayoutParams params;
+    private WindowManager.LayoutParams iconParams, textViewParams;
     private VariableHelper variableHelper;
     private LayoutInflater layoutInflater;
     private Random random;
     private AccessibilityManager accessibilityManager;
+    private TextView statusTextView;
 
     public StatusIconManager(Context context, SugiliteData sugiliteData, SharedPreferences sharedPreferences, AccessibilityManager accessibilityManager){
         this.context = context;
@@ -95,7 +101,8 @@ public class StatusIconManager {
     public void addStatusIcon(){
         statusIcon = new ImageView(context);
         statusIcon.setImageResource(R.mipmap.ic_launcher);
-        params = new WindowManager.LayoutParams(
+        statusTextView = getTextViewForCurrentState();
+        iconParams = new WindowManager.LayoutParams(
                 WindowManager.LayoutParams.WRAP_CONTENT,
                 WindowManager.LayoutParams.WRAP_CONTENT,
                 WindowManager.LayoutParams.TYPE_PHONE,
@@ -106,20 +113,31 @@ public class StatusIconManager {
         windowManager.getDefaultDisplay().getMetrics(displaymetrics);
 
 
-        params.gravity = Gravity.TOP | Gravity.LEFT;
-        params.x = displaymetrics.widthPixels;
-        params.y = 200;
-        addCrumpledPaperOnTouchListener(statusIcon, params, displaymetrics, windowManager);
+        iconParams.gravity = Gravity.TOP | Gravity.LEFT;
+        iconParams.x = displaymetrics.widthPixels;
+        iconParams.y = 200;
+        addCrumpledPaperOnTouchListener(statusIcon, iconParams, displaymetrics, windowManager);
+
+
+        textViewParams = new WindowManager.LayoutParams(
+                WindowManager.LayoutParams.WRAP_CONTENT,
+                WindowManager.LayoutParams.WRAP_CONTENT,
+                WindowManager.LayoutParams.TYPE_PHONE,
+                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
+                PixelFormat.TRANSLUCENT);
+        textViewParams.gravity = Gravity.BOTTOM | Gravity.CENTER;
 
         //NEEDED TO BE CONFIGURED AT APPS->SETTINGS-DRAW OVER OTHER APPS on API>=23
         int currentApiVersion = android.os.Build.VERSION.SDK_INT;
         if(currentApiVersion >= 23){
             checkDrawOverlayPermission();
             if(Settings.canDrawOverlays(context))
-                windowManager.addView(statusIcon, params);
+                windowManager.addView(statusIcon, iconParams);
+                windowManager.addView(statusTextView, textViewParams);
         }
         else {
-            windowManager.addView(statusIcon, params);
+            windowManager.addView(statusIcon, iconParams);
+            windowManager.addView(statusTextView, textViewParams);
         }
 
 
@@ -170,19 +188,20 @@ public class StatusIconManager {
                 else if(sugiliteData.getInstructionQueueSize() > 0) {
                     statusIcon.setImageResource(R.mipmap.duck_icon_playing);
                     if(matched) {
-                        params.x = (rect.centerX() > 150 ? rect.centerX()  - 150 : 0);
-                        params.y = (rect.centerY() > 150 ? rect.centerY()  - 150 : 0);
+                        iconParams.x = (rect.centerX() > 150 ? rect.centerX()  - 150 : 0);
+                        iconParams.y = (rect.centerY() > 150 ? rect.centerY()  - 150 : 0);
                     }
                     if(offset % 2 == 0) {
-                        params.x = params.x + offset;
-                        params.y = params.y - offset;
+                        iconParams.x = iconParams.x + offset;
+                        iconParams.y = iconParams.y - offset;
                     }
                     else {
-                        params.x = params.x - offset;
-                        params.y = params.y + offset;
+                        iconParams.x = iconParams.x - offset;
+                        iconParams.y = iconParams.y + offset;
                     }
 
-                    windowManager.updateViewLayout(statusIcon, params);
+                    windowManager.updateViewLayout(statusIcon, iconParams);
+                    //send out empty accessibility event for triggering the automator
                     AccessibilityEvent e = AccessibilityEvent.obtain();
                     e.setEventType(AccessibilityEvent.TYPE_ANNOUNCEMENT);
                     e.getText().add("NULL");
@@ -199,7 +218,12 @@ public class StatusIconManager {
                 else
                     statusIcon.setImageResource(R.mipmap.ic_launcher);
 
-
+            }
+            if(statusTextView != null){
+                if(sugiliteData.getCurrentSystemState() == SugiliteData.DEFAULT_STATE)
+                    statusTextView.setText("");
+                else
+                    statusTextView.setText(SugiliteData.getStringforState(sugiliteData.getCurrentSystemState()));
             }
 
         }
@@ -284,7 +308,10 @@ public class StatusIconManager {
                             //TODO: change the icon based on the current status
                         }
                         else {
-                            sugiliteData.setCurrentSystemState(SugiliteData.PAUSED_FOR_DUCK_MENU_STATE);
+                            if(previousState == SugiliteData.REGULAR_DEBUG_STATE)
+                                sugiliteData.setCurrentSystemState(SugiliteData.PAUSED_FOR_DUCK_MENU_IN_DEBUG_MODE);
+                            else
+                                sugiliteData.setCurrentSystemState(SugiliteData.PAUSED_FOR_DUCK_MENU_IN_REGULAR_EXECUTION_STATE);
                         }
                     }
 
@@ -295,7 +322,8 @@ public class StatusIconManager {
                         operationList.add("Resume Next Step");
                         operationList.add("Quit Debugging");
                     }
-                    if(sugiliteData.getCurrentSystemState() == SugiliteData.PAUSED_FOR_DUCK_MENU_STATE) {
+                    if(sugiliteData.getCurrentSystemState() == SugiliteData.PAUSED_FOR_DUCK_MENU_IN_REGULAR_EXECUTION_STATE
+                            || sugiliteData.getCurrentSystemState() == SugiliteData.PAUSED_FOR_DUCK_MENU_IN_DEBUG_MODE) {
                         operationList.add("Resume Running");
                         operationList.add("Clear Instruction Queue");
                     }
@@ -542,7 +570,8 @@ public class StatusIconManager {
                     dialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
                         @Override
                         public void onDismiss(DialogInterface dialog) {
-                            if (sugiliteData.getCurrentSystemState() == SugiliteData.PAUSED_FOR_DUCK_MENU_STATE) {
+                            if (sugiliteData.getCurrentSystemState() == SugiliteData.PAUSED_FOR_DUCK_MENU_IN_REGULAR_EXECUTION_STATE
+                                    || sugiliteData.getCurrentSystemState() == SugiliteData.PAUSED_FOR_DUCK_MENU_IN_DEBUG_MODE) {
                                 //restore execution
                                 sugiliteData.addInstructions(storedQueue);
                                 sugiliteData.setCurrentSystemState(previousState);
@@ -586,6 +615,7 @@ public class StatusIconManager {
         });
     }
 
+    @Deprecated
     public void moveIcon (int x ,int y){
         if(statusIcon == null)
             return;
@@ -600,6 +630,16 @@ public class StatusIconManager {
         params.y = y;
         windowManager.updateViewLayout(statusIcon, params);
         statusIcon.invalidate();
+    }
+
+    private TextView getTextViewForCurrentState(){
+        TextView textView = new TextView(context);
+        int state = sugiliteData.getCurrentSystemState();
+        String stateMsg = SugiliteData.getStringforState(state);
+        textView.setText(stateMsg);
+        textView.setTextColor(Color.YELLOW);
+        textView.setBackgroundColor(Color.parseColor("#80000000"));
+        return textView;
     }
 
 

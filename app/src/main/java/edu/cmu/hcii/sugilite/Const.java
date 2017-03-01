@@ -16,7 +16,7 @@ public class Const {
     public static final int SCRIPT_DELAY = 2000;
 
     //delay before executing each operation block in Automator
-    public static final int DELAY = 2000;
+    public static final int DELAY = 3000;
 
     //TRUE to keep a list of all elements with text labels
     public static final boolean KEEP_ALL_TEXT_LABEL_LIST = true;

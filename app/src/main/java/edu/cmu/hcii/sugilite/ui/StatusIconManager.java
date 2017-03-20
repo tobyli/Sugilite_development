@@ -23,10 +23,9 @@ import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityManager;
 import android.view.accessibility.AccessibilityNodeInfo;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
-
-import org.w3c.dom.Text;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -39,7 +38,7 @@ import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.automation.Automator;
 import edu.cmu.hcii.sugilite.automation.ServiceStatusManager;
 import edu.cmu.hcii.sugilite.communication.SugiliteBlockJSONProcessor;
-import edu.cmu.hcii.sugilite.dao.SugiliteScreenshotManager;
+import edu.cmu.hcii.sugilite.recording.SugiliteScreenshotManager;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
 import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteDelaySpecialOperationBlock;
@@ -76,7 +75,8 @@ public class StatusIconManager {
     private LayoutInflater layoutInflater;
     private Random random;
     private AccessibilityManager accessibilityManager;
-    private TextView statusTextView;
+    private CurrentStateView statusView;
+    private Queue<SugiliteBlock> storedQueue;
 
     public StatusIconManager(Context context, SugiliteData sugiliteData, SharedPreferences sharedPreferences, AccessibilityManager accessibilityManager){
         this.context = context;
@@ -101,7 +101,7 @@ public class StatusIconManager {
     public void addStatusIcon(){
         statusIcon = new ImageView(context);
         statusIcon.setImageResource(R.mipmap.ic_launcher);
-        statusTextView = getTextViewForCurrentState();
+        statusView = getViewForCurrentState("");
         iconParams = new WindowManager.LayoutParams(
                 WindowManager.LayoutParams.WRAP_CONTENT,
                 WindowManager.LayoutParams.WRAP_CONTENT,
@@ -133,11 +133,11 @@ public class StatusIconManager {
             checkDrawOverlayPermission();
             if(Settings.canDrawOverlays(context))
                 windowManager.addView(statusIcon, iconParams);
-                windowManager.addView(statusTextView, textViewParams);
+                windowManager.addView(statusView, textViewParams);
         }
         else {
             windowManager.addView(statusIcon, iconParams);
-            windowManager.addView(statusTextView, textViewParams);
+            windowManager.addView(statusView, textViewParams);
         }
 
 
@@ -178,14 +178,15 @@ public class StatusIconManager {
         int offset = random.nextInt(5);
 
         try{
+            SugiliteBlock nextBlock = null;
             if(statusIcon != null){
                 boolean recordingInProcess = sharedPreferences.getBoolean("recording_in_process", false);
                 boolean trackingInProcess = sharedPreferences.getBoolean("tracking_in_process", false);
                 boolean broadcastingInProcess = sharedPreferences.getBoolean("broadcasting_enabled", false);
-
                 if(recordingInProcess)
                     statusIcon.setImageResource(R.mipmap.duck_icon_recording);
                 else if(sugiliteData.getInstructionQueueSize() > 0) {
+                    nextBlock = sugiliteData.peekInstructionQueue();
                     statusIcon.setImageResource(R.mipmap.duck_icon_playing);
                     if(matched) {
                         iconParams.x = (rect.centerX() > 150 ? rect.centerX()  - 150 : 0);
@@ -219,12 +220,32 @@ public class StatusIconManager {
                     statusIcon.setImageResource(R.mipmap.ic_launcher);
 
             }
-            if(statusTextView != null){
-                if(sugiliteData.getCurrentSystemState() == SugiliteData.DEFAULT_STATE)
-                    statusTextView.setText("");
-                else
-                    statusTextView.setText(SugiliteData.getStringforState(sugiliteData.getCurrentSystemState()));
+            //refresh the status view based on the current state
+            if(nextBlock != null && sugiliteData.getCurrentSystemState() == SugiliteData.REGULAR_DEBUG_STATE){
+                statusView.setCurrentStateView(sugiliteData.getCurrentSystemState(), nextBlock.getDescription());
             }
+            else if(sugiliteData.getCurrentSystemState() == SugiliteData.PAUSED_FOR_DUCK_MENU_IN_DEBUG_MODE || sugiliteData.getCurrentSystemState() == SugiliteData.PAUSED_FOR_DUCK_MENU_IN_REGULAR_EXECUTION_STATE){
+                if(storedQueue != null && storedQueue.size() > 0) {
+                    SugiliteBlock block = storedQueue.peek();
+                    if(block != null) {
+                        statusView.setCurrentStateView(sugiliteData.getCurrentSystemState(), storedQueue.peek().getDescription());
+                        System.out.print("show paused_for_duck_menu status view for " + storedQueue.peek().getDescription());
+                    }
+                }
+            }
+            else if(sugiliteData.getCurrentSystemState() == SugiliteData.PAUSED_FOR_BREAKPOINT_STATE){
+                if(sugiliteData.storedInstructionQueueForPause != null && sugiliteData.storedInstructionQueueForPause.size() > 0) {
+                    SugiliteBlock block = sugiliteData.storedInstructionQueueForPause.peek();
+                    if(block != null) {
+                        statusView.setCurrentStateView(sugiliteData.getCurrentSystemState(), block.getDescription());
+                        System.out.print("show paused_for_breakpoint_state status view for " + block.getDescription());
+                    }
+                }
+            }
+            else {
+                statusView.setCurrentStateView(sugiliteData.getCurrentSystemState(), "");
+            }
+
 
         }
         catch (Exception e){
@@ -298,7 +319,7 @@ public class StatusIconManager {
 
 
                     //pause the execution when the duck is clicked
-                    final Queue<SugiliteBlock> storedQueue = runningInProgress ? sugiliteData.getCopyOfInstructionQueue() : null;
+                    storedQueue = runningInProgress ? sugiliteData.getCopyOfInstructionQueue() : null;
                     final int previousState = sugiliteData.getCurrentSystemState();
                     if(runningInProgress) {
                         sugiliteData.clearInstructionQueue();
@@ -405,7 +426,7 @@ public class StatusIconManager {
                                 case "Quit Sugilite":
                                     Toast.makeText(context, "quit sugilite", Toast.LENGTH_SHORT).show();
                                     try {
-                                        screenshotManager.take(false);
+                                        screenshotManager.take(false, SugiliteScreenshotManager.DIRECTORY_PATH, SugiliteScreenshotManager.getScreenshotFileNameWithDate());
                                     } catch (Exception e) {
                                         e.printStackTrace();
                                     }
@@ -632,14 +653,67 @@ public class StatusIconManager {
         statusIcon.invalidate();
     }
 
-    private TextView getTextViewForCurrentState(){
-        TextView textView = new TextView(context);
+    /**
+     * class used to display the state overlay shown at the bottom of the screen
+     */
+    class CurrentStateView extends LinearLayout{
+        private TextView currentStateView;
+        private TextView nextOperationView;
+        private int currentState;
+
+        public CurrentStateView(Context context, int currentState, String nextOperationHTMLDescription){
+            super(context);
+            this.currentState = currentState;
+            currentStateView = new TextView(context);
+            nextOperationView = new TextView(context);
+            this.setOrientation(VERTICAL);
+            if(currentState == SugiliteData.DEFAULT_STATE){
+                currentStateView.setTextColor(Color.YELLOW);
+                currentStateView.setText("");
+                nextOperationView.setTextColor(Color.WHITE);
+                nextOperationView.setText("");
+            }
+            else{
+                currentStateView.setText(SugiliteData.getStringforState(currentState));
+                currentStateView.setTextColor(Color.YELLOW);
+                currentStateView.setBackgroundColor(Const.SEMI_TRANSPARENT_GRAY_BACKGROUND);
+                nextOperationView.setTextColor(Color.WHITE);
+                nextOperationView.setText("");
+                if(currentState == SugiliteData.REGULAR_DEBUG_STATE || currentState == SugiliteData.PAUSED_FOR_DUCK_MENU_IN_DEBUG_MODE) {
+                    nextOperationView.setText(Html.fromHtml("<b>Next Operation: </b>" + nextOperationHTMLDescription));
+                    nextOperationView.setBackgroundColor(Const.SEMI_TRANSPARENT_GRAY_BACKGROUND);
+                }
+            }
+            this.addView(currentStateView);
+            this.addView(nextOperationView);
+        }
+
+        public void setCurrentStateView(int currentState, String nextOperationHTMLDescription){
+            this.currentState = currentState;
+            this.setOrientation(VERTICAL);
+            if(currentState == SugiliteData.DEFAULT_STATE){
+                currentStateView.setBackground(null);
+                currentStateView.setText("");
+                nextOperationView.setBackground(null);
+                nextOperationView.setText("");
+            }
+            else{
+                currentStateView.setText(SugiliteData.getStringforState(currentState));
+                currentStateView.setTextColor(Color.YELLOW);
+                currentStateView.setBackgroundColor(Const.SEMI_TRANSPARENT_GRAY_BACKGROUND);
+                nextOperationView.setText("");
+                nextOperationView.setBackground(null);
+                if(currentState == SugiliteData.REGULAR_DEBUG_STATE || currentState == SugiliteData.PAUSED_FOR_DUCK_MENU_IN_DEBUG_MODE || currentState == SugiliteData.PAUSED_FOR_BREAKPOINT_STATE || currentState == SugiliteData.PAUSED_FOR_DUCK_MENU_IN_REGULAR_EXECUTION_STATE) {
+                    nextOperationView.setBackgroundColor(Const.SEMI_TRANSPARENT_GRAY_BACKGROUND);
+                    nextOperationView.setText(Html.fromHtml("<b>Next Operation: </b>" + nextOperationHTMLDescription));
+                }
+            }
+        }
+    }
+
+    private CurrentStateView getViewForCurrentState(String nextOperationHTMLDescription){
         int state = sugiliteData.getCurrentSystemState();
-        String stateMsg = SugiliteData.getStringforState(state);
-        textView.setText(stateMsg);
-        textView.setTextColor(Color.YELLOW);
-        textView.setBackgroundColor(Color.parseColor("#80000000"));
-        return textView;
+        return new CurrentStateView(context, state, nextOperationHTMLDescription);
     }
 
 

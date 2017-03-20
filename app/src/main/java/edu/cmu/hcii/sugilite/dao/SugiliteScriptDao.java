@@ -107,7 +107,7 @@ public class SugiliteScriptDao {
         SugiliteStartingBlock block = null;
         try {
             db = sugiliteScriptDBHelper.getReadableDatabase();
-            Cursor cursor = db.rawQuery("SELECT * FROM " + SugiliteScriptDbContract.SugiliteScriptRecordEntry.TABLE_NAME + " WHERE " + SugiliteScriptDbContract.SugiliteScriptRecordEntry.COLUMN_NAME_SCRIPT_NAME + " = \'" + key + "\';", null);
+            Cursor cursor = db.rawQuery("SELECT " + SugiliteScriptDbContract.SugiliteScriptRecordEntry.COLUMN_NAME_SCRIPT_BODY + " FROM " + SugiliteScriptDbContract.SugiliteScriptRecordEntry.TABLE_NAME + " WHERE " + SugiliteScriptDbContract.SugiliteScriptRecordEntry.COLUMN_NAME_SCRIPT_NAME + " = \'" + key + "\';", null);
             if (cursor.getCount() == 0) {
                 db.close();
                 return null;
@@ -128,7 +128,7 @@ public class SugiliteScriptDao {
         SugiliteStartingBlock block = null;
         try {
             db = sugiliteScriptDBHelper.getReadableDatabase();
-            Cursor cursor = db.rawQuery("SELECT * FROM " + SugiliteScriptDbContract.SugiliteScriptRecordEntry.TABLE_NAME + " WHERE " + SugiliteScriptDbContract.SugiliteScriptRecordEntry._ID + " = \'" + id + "\';", null);
+            Cursor cursor = db.rawQuery("SELECT " + SugiliteScriptDbContract.SugiliteScriptRecordEntry.COLUMN_NAME_SCRIPT_BODY + " FROM " + SugiliteScriptDbContract.SugiliteScriptRecordEntry.TABLE_NAME + " WHERE " + SugiliteScriptDbContract.SugiliteScriptRecordEntry._ID + " = \'" + id + "\';", null);
             if (cursor.getCount() == 0) {
                 db.close();
                 return null;
@@ -191,7 +191,7 @@ public class SugiliteScriptDao {
         List<String> names = new ArrayList<>();
         try {
             db = sugiliteScriptDBHelper.getReadableDatabase();
-            Cursor cursor = db.rawQuery("SELECT * FROM " + SugiliteScriptDbContract.SugiliteScriptRecordEntry.TABLE_NAME + ";", null);
+            Cursor cursor = db.rawQuery("SELECT " + SugiliteScriptDbContract.SugiliteScriptRecordEntry.COLUMN_NAME_SCRIPT_NAME + " FROM " + SugiliteScriptDbContract.SugiliteScriptRecordEntry.TABLE_NAME + ";", null);
             cursor.moveToFirst();
             while (!cursor.isAfterLast()) {
                 String name = cursor.getString(cursor.getColumnIndex(SugiliteScriptDbContract.SugiliteScriptRecordEntry.COLUMN_NAME_SCRIPT_NAME));

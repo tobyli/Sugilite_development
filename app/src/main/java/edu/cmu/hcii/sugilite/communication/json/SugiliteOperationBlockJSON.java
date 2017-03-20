@@ -5,6 +5,7 @@ import android.content.Context;
 import java.util.ArrayList;
 import java.util.List;
 
+import edu.cmu.hcii.sugilite.Const;
 import edu.cmu.hcii.sugilite.model.block.SerializableNodeInfo;
 import edu.cmu.hcii.sugilite.model.block.SugiliteAvailableFeaturePack;
 import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
@@ -49,7 +50,8 @@ public class SugiliteOperationBlockJSON {
         if(block.getNextBlock() != null && block.getNextBlock() instanceof SugiliteOperationBlock)
             nextBlock = new SugiliteOperationBlockJSON((SugiliteOperationBlock)block.getNextBlock());
         createdTime = block.getCreatedTime();
-        if(block.getFeaturePack() != null){
+
+        if(block.getFeaturePack() != null && Const.KEEP_ALL_NODES_IN_THE_FEATURE_PACK){
             SugiliteAvailableFeaturePack featurePack = block.getFeaturePack();
             List<SerializableNodeInfo> childNodes = featurePack.childNodes;
             if(childNodes != null && childNodes.size() > 0) {
@@ -59,6 +61,7 @@ public class SugiliteOperationBlockJSON {
                 }
             }
         }
+
     }
 
     public SugiliteOperationBlock toSugiliteOperationBlock(Context context){

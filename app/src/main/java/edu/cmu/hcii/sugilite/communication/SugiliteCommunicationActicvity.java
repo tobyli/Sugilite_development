@@ -28,6 +28,8 @@ import edu.cmu.hcii.sugilite.dao.SugiliteAppVocabularyDao;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
 import edu.cmu.hcii.sugilite.dao.SugiliteTrackingDao;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
+import edu.cmu.hcii.sugilite.model.variable.StringVariable;
+import edu.cmu.hcii.sugilite.model.variable.Variable;
 
 import static edu.cmu.hcii.sugilite.Const.SCRIPT_DELAY;
 
@@ -92,6 +94,9 @@ public class SugiliteCommunicationActicvity extends Activity {
                     break;
                 case "ADD_JSON_AS_SCRIPT":
                     messageTypeInt = Const.ADD_JSON_AS_SCRIPT;
+                    break;
+                case "RUN_SCRIPT_WITH_PARAMETERS":
+                    messageTypeInt = Const.RUN_SCRIPT_WITH_PARAMETERS;
                     break;
             }
             /*
@@ -169,6 +174,7 @@ public class SugiliteCommunicationActicvity extends Activity {
 
                                         sugiliteData.initiateScript(arg1 + ".SugiliteScript");
                                         sugiliteData.initiatedExternally = true;
+                                        sugiliteData.setCurrentSystemState(SugiliteData.RECORDING_STATE);
 
                                         try {
                                             sugiliteScriptDao.save(sugiliteData.getScriptHead());
@@ -204,6 +210,7 @@ public class SugiliteCommunicationActicvity extends Activity {
                         sugiliteData.sendCallbackMsg(Const.FINISHED_RECORDING, jsonProcessor.scriptToJson(sugiliteData.getScriptHead()), arg2);
 
                     Toast.makeText(context, "recording ended", Toast.LENGTH_SHORT).show();
+                    sugiliteData.setCurrentSystemState(SugiliteData.DEFAULT_STATE);
                     sendReturnValue("");
                 }
                 else {
@@ -212,6 +219,8 @@ public class SugiliteCommunicationActicvity extends Activity {
                     finish();
                 }
                 break;
+            //TODO: add run script with parameter
+            //TODO: get a script and its parameter & alternative value lists
             case Const.RUN_SCRIPT:
                 //arg1 = scriptName, arg2 = callbackString
                 if(arg2 != null)
@@ -221,6 +230,7 @@ public class SugiliteCommunicationActicvity extends Activity {
                     finish();
                 }
                 else {
+                    //run the script
                     SugiliteStartingBlock script = sugiliteScriptDao.read(arg1 + ".SugiliteScript");
 
                     if(script == null) {
@@ -228,7 +238,45 @@ public class SugiliteCommunicationActicvity extends Activity {
                         finish();
                     }
                     else {
-                        runScript(script);
+                        runScript(script, null);
+                    }
+                }
+                break;
+            case Const.RUN_SCRIPT_WITH_PARAMETERS:
+                /**
+                 * arg1 = JSON in the format:
+                 * {
+                 *  scriptName: SCRIPT_NAME,
+                 *  variables:[
+                 *      {name: PARAMETER_NAME1, value: PARAMETER_VALUE1},
+                 *      {name: PARAMETER_NAME2, value: PARAMETER_VALUE2},
+                 *      ...
+                 *   ]
+                 * }
+                 *
+                 * arg2 = callbackString
+                 */
+                if(arg2 != null)
+                    sugiliteData.callbackString = new String(arg2);
+                if(recordingInProcess) {
+                    sugiliteData.sendCallbackMsg(Const.RUN_SCRIPT_EXCEPTION, "recording already in process", arg2);
+                    finish();
+                }
+                else {
+                    //run the script
+                    try {
+                        RunScriptWithParametersWrapper parametersWrapper = gson.fromJson(arg1, RunScriptWithParametersWrapper.class);
+                        SugiliteStartingBlock script = sugiliteScriptDao.read(parametersWrapper.scriptName + ".SugiliteScript");
+
+                        if (script == null) {
+                            sugiliteData.sendCallbackMsg(Const.RUN_SCRIPT_EXCEPTION, "null script", arg2);
+                            finish();
+                        } else {
+                            runScript(script, parametersWrapper.variables);
+                        }
+                    }
+                    catch (Exception e){
+                        e.printStackTrace();
                     }
                 }
                 break;
@@ -239,7 +287,7 @@ public class SugiliteCommunicationActicvity extends Activity {
                 if(arg1 != null){
                     try{
                         SugiliteStartingBlock script = jsonProcessor.jsonToScript(arg1);
-                        runScript(script);
+                        runScript(script, null);
                     }
                     catch (Exception e){
                         e.printStackTrace();
@@ -375,7 +423,7 @@ public class SugiliteCommunicationActicvity extends Activity {
         }
     }
 
-    private void runScript(SugiliteStartingBlock script){
+    private void runScript(SugiliteStartingBlock script, List<VariableWrapper> variables){
 
         sugiliteData.clearInstructionQueue();
         final ServiceStatusManager serviceStatusManager = ServiceStatusManager.getInstance(context);
@@ -398,6 +446,15 @@ public class SugiliteCommunicationActicvity extends Activity {
         }
         else {
             sugiliteData.stringVariableMap.putAll(script.variableNameDefaultValueMap);
+
+            if(variables != null){
+                //put in the values for the variables
+                for(VariableWrapper variable: variables){
+                    if(sugiliteData.stringVariableMap.containsKey(variable.name)){
+                        sugiliteData.stringVariableMap.put(variable.name, new StringVariable(variable.name, variable.value));
+                    }
+                }
+            }
 
             //kill all the relevant packages
             for (String packageName : script.relevantPackages) {
@@ -433,5 +490,23 @@ public class SugiliteCommunicationActicvity extends Activity {
         returnIntent.putExtra("result", retVal);
         setResult(Activity.RESULT_OK,returnIntent);
         finish();
+    }
+
+    class RunScriptWithParametersWrapper {
+        public String scriptName;
+        public List<VariableWrapper> variables;
+        public RunScriptWithParametersWrapper(String scriptName, List<VariableWrapper> variables){
+            this.scriptName = scriptName;
+            this.variables = variables;
+        }
+    }
+
+    class VariableWrapper {
+        public String name;
+        public String value;
+        public VariableWrapper(String name, String value){
+            this.name = name;
+            this.value = value;
+        }
     }
 }

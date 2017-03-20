@@ -94,6 +94,7 @@ public class FragmentScriptListTab extends Fragment {
         for(String name : names){
             displayNames.add(new String(name).replace(".SugiliteScript", ""));
         }
+        System.out.println("showing " + names.size() + " scripts: " + displayNames);
         scriptList.setAdapter(new ArrayAdapter<String>(activity, android.R.layout.simple_list_item_1, displayNames));
         final Context activityContext = activity;
         scriptList.setOnItemClickListener(new AdapterView.OnItemClickListener() {

@@ -1,16 +1,10 @@
 package edu.cmu.hcii.sugilite.ui;
 
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.graphics.PixelFormat;
 import android.view.Gravity;
 import android.view.WindowManager;
 import android.view.accessibility.AccessibilityNodeInfo;
-
-import edu.cmu.hcii.sugilite.SugiliteData;
-import edu.cmu.hcii.sugilite.automation.ServiceStatusManager;
-import edu.cmu.hcii.sugilite.dao.SugiliteScreenshotManager;
-import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
 
 /**
  * @author toby

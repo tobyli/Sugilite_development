@@ -92,8 +92,10 @@ public class ErrorHandler {
         if(event.getSource() != null && event.getSource().getPackageName() != null) {
             String oldPackage = lastPackageName;
             lastPackageName = event.getSource().getPackageName().toString();
+            /*
             if(oldPackage != null && lastPackageName != null && !oldPackage.equals(lastPackageName))
                 System.out.println("last package set to " + lastPackageName);
+                */
         }
 
         //handle wrong package error
@@ -125,8 +127,7 @@ public class ErrorHandler {
         long sinceLastWindowChange = currentTime - lastWindowChange;
         long sinceLastSuccesss = currentTime - lastSuccess;
         lastCheckTime = currentTime;
-        System.out.println("Since last success: " + (currentTime - lastSuccess) + "\n" +
-        "Since last window change: " + (currentTime - lastWindowChange) + "\n\n");
+        //System.out.println("Since last success: " + (currentTime - lastSuccess) + "\n" + "Since last window change: " + (currentTime - lastWindowChange) + "\n\n");
         if(sinceLastSuccesss > LAST_SUCCESSFUL_OPERATION){
             //stucked
             handleError("The current window is not responding in executing the next operation: " + nextInstruction.getDescription() + "<br><br>" + "sinceLastSuccess: " + sinceLastSuccesss + "<br>" + "Stucked! Too long since the last success.");

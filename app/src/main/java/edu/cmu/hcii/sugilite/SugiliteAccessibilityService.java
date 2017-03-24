@@ -380,8 +380,9 @@ public class SugiliteAccessibilityService extends AccessibilityService {
             }
         }
 
-        // broadcast the accessibility event received, for any app that may want to listen
-        if(BROADCASTING_ACCESSIBILITY_EVENT) {
+        ////// broadcast the accessibility event received, for any app that may want to listen
+
+        if(BROADCASTING_ACCESSIBILITY_EVENT) { // if broadcasting is enabled
             try {
                if (accessibilityEventSetToTrack.contains(event.getEventType()) && (!trackingExcludedPackages.contains(event.getPackageName()))) {
                     SugiliteEventBroadcastingActivity.BroadcastingEvent broadcastingEvent = new SugiliteEventBroadcastingActivity.BroadcastingEvent(event);
@@ -392,18 +393,20 @@ public class SugiliteAccessibilityService extends AccessibilityService {
                     String pkg = broadcastingEvent.packageName;
                     String event_type = broadcastingEvent.eventType;
 
-                    // if it is a home press event ...
+                    // filter on what kinds of events should to be broadcasted ...
                     //if(desc.contentEquals("Home") && event_type.contentEquals("TYPE_VIEW_CLICKED") && pkg.contentEquals("com.android.systemui"))
                     if (true) {
                         String messageToSend = gson.toJson(broadcastingEvent);
 
-                        //FIXME: modified by Oscar
-                        sugiliteData.communicationController.sendMessage( Const.RESPONSE,
-                                Const.ACCESSIBILITY_EVENT, messageToSend);
-//                        Intent intent = new Intent();
-//                        intent.setAction("edu.cmu.hcii.sugilite.SUGILITE_EVENT");
-//                        intent.putExtra("event_string", messageToSend);
-//                        sendBroadcast(intent);
+                        // send info to middleware
+//                        sugiliteData.communicationController.sendMessage( Const.RESPONSE,
+//                                Const.ACCESSIBILITY_EVENT, messageToSend);
+
+                        // broadcast info for receivers of other apps
+                        Intent intent = new Intent();
+                        intent.setAction("edu.cmu.hcii.sugilite.SUGILITE_ACC_EVENT");
+                        intent.putExtra("accEvent", messageToSend);
+                        sendBroadcast(intent);
                     }
                 }
             } catch (Exception e) {

@@ -49,7 +49,7 @@ public class SugiliteCommunicationController {
     SugiliteBlockJSONProcessor jsonProcessor;
     SugiliteData sugiliteData;
     Activity activity;
-    private Context context; //NOTE: application context
+    private Context context; //NOTE: application receivedContext
     private String message;
     private SharedPreferences sharedPreferences;
     private List<SugiliteMessageListener> subscribers;

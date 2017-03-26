@@ -28,6 +28,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 import java.util.Queue;
 import java.util.Random;
@@ -36,6 +37,7 @@ import edu.cmu.hcii.sugilite.Const;
 import edu.cmu.hcii.sugilite.R;
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.automation.Automator;
+import edu.cmu.hcii.sugilite.automation.ErrorHandler;
 import edu.cmu.hcii.sugilite.automation.ServiceStatusManager;
 import edu.cmu.hcii.sugilite.communication.SugiliteBlockJSONProcessor;
 import edu.cmu.hcii.sugilite.recording.SugiliteScreenshotManager;
@@ -202,12 +204,30 @@ public class StatusIconManager {
                     }
 
                     windowManager.updateViewLayout(statusIcon, iconParams);
-                    //send out empty accessibility event for triggering the automator
-                    AccessibilityEvent e = AccessibilityEvent.obtain();
-                    e.setEventType(AccessibilityEvent.TYPE_ANNOUNCEMENT);
-                    e.getText().add("NULL");
-                    //System.out.println(e);
-                    accessibilityManager.sendAccessibilityEvent(e);
+
+
+                    /**
+                     *
+                     *
+                     *  send out empty accessibility event for triggering the automator
+                     *
+                     *
+                     */
+
+                    //only send this out when the previous successful operation (check the error handler) was more than X seconds ago
+                    long sinceLastWindowChange = -1;
+                    if(sugiliteData.errorHandler != null) {
+                        Calendar calendar = Calendar.getInstance();
+                        long currentTime = calendar.getTimeInMillis();
+                        sinceLastWindowChange = currentTime - sugiliteData.errorHandler.getLastWindowChange();
+                    }
+                    if(sinceLastWindowChange < 0 || sinceLastWindowChange > Const.THRESHOLD_FOR_START_SENDING_ACCESSIBILITY_EVENT) {
+                        System.out.println("INFO: SENDING GENERATED ACCESSIBILITY EVENT: sinceLastWindowChange = " + sinceLastWindowChange);
+                        AccessibilityEvent event = AccessibilityEvent.obtain();
+                        event.setEventType(AccessibilityEvent.TYPE_ANNOUNCEMENT);
+                        event.getText().add("NULL");
+                        accessibilityManager.sendAccessibilityEvent(event);
+                    }
 
                 }
                 else if(trackingInProcess || (broadcastingInProcess && sugiliteData.registeredBroadcastingListener.size() > 0)){

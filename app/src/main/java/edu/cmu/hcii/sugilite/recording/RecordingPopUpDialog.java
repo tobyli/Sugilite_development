@@ -1383,8 +1383,7 @@ public class RecordingPopUpDialog extends AbstractSugiliteDialog {
 
         final SugiliteOperationBlock operationBlock = new SugiliteOperationBlock();
         operationBlock.setOperation(sugiliteOperation);
-        if(Const.KEEP_ALL_NODES_IN_THE_FEATURE_PACK)
-            operationBlock.setFeaturePack(featurePack);
+        operationBlock.setFeaturePack(featurePack);
         operationBlock.setElementMatchingFilter(generateFilter());
         operationBlock.setScreenshot(featurePack.screenshot);
         operationBlock.setDescription(readableDescriptionGenerator.generateReadableDescription(operationBlock));

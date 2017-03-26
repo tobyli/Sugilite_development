@@ -54,6 +54,10 @@ public class ErrorHandler {
         excludedPackageFromWrongPackage = new HashSet<>(Arrays.asList(excludedPackageSet));
     }
 
+    public long getLastWindowChange(){
+        return lastWindowChange;
+    }
+
     /*
     ideas: long delay since last success
     wrong package

@@ -14,6 +14,11 @@ import edu.cmu.hcii.sugilite.model.AccessibilityNodeInfoList;
 /**
  * Created by toby on 6/28/16.
  */
+
+
+/**
+ * this class is used for storing a serializable copy of all the features extracted from an AccessibilityEvent
+ */
 public class SugiliteAvailableFeaturePack implements Serializable{
     public SugiliteAvailableFeaturePack(){
         //do nothing
@@ -63,7 +68,16 @@ public class SugiliteAvailableFeaturePack implements Serializable{
     public int eventType;
     public File screenshot;
     public SerializableNodeInfo parentNode;
+    /**
+     * allNodes: all nodes present (from traversing the root view)
+     * childNodes: all child nodes of the source nodes (from traversing the source node)
+     */
     public ArrayList<SerializableNodeInfo> childNodes, allNodes;
+
+
+    /**
+     * from SugiliteAccessibilityService.getAvailableAlternativeNodes()
+     */
     public Set<SerializableNodeInfo> alternativeNodes;
 
     public Set<String> alternativeTextList;

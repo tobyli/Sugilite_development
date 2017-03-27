@@ -673,7 +673,10 @@ public class SugiliteAccessibilityService extends AccessibilityService {
         for(AccessibilityNodeInfo node : allNodes){
             if(exceptedPackages.contains(node.getPackageName()))
                 continue;
-            if(sourceNode.getClassName() != null &&
+            if(sourceNode != null &&
+                    node != null &&
+                    node.getClassName() != null &&
+                    sourceNode.getClassName() != null &&
                     (!sourceNode.getClassName().toString().equals(node.getClassName().toString())))
                 continue;
             if(!node.isClickable())

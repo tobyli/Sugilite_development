@@ -19,6 +19,7 @@
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/AppTheme" >
+
         <activity
             android:name=".ui.main.SugiliteMainActivity"
             android:label="Sugilite"
@@ -72,7 +73,7 @@
             tools:node="merge">
         </activity>
         <activity
-            android:name=".communication.SugiliteCommunicationActicvity"
+            android:name=".communication.SugiliteCommunicationActivity"
             android:noHistory="true"
             android:theme="@android:style/Theme.NoDisplay"
             tools:node="merge">
@@ -92,11 +93,11 @@
         </activity>
 
         <!-- Broadcast reciever that provides the functionalities of SugiliteCommunicationActivity using broadcasts as the communication medium -->
-        <!--<receiver android:name=".communication.SugiliteCommunicationActivityBroadcastReciever">-->
-            <!--<intent-filter>-->
-                <!--<action android:name="edu.cmu.hcii.sugilite.SUGILITE_SERVICES_BR"/>-->
-            <!--</intent-filter>-->
-        <!--</receiver>-->
+        <receiver android:name=".communication.SugiliteCommunicationBroadcastReciever">
+            <intent-filter>
+                <action android:name="edu.cmu.hcii.sugilite.SUGILITE_SERVICES_BR"/>
+            </intent-filter>
+        </receiver>
 
     </application>
 

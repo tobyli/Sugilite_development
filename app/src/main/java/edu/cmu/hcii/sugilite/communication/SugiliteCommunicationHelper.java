@@ -1,15 +1,12 @@
 package edu.cmu.hcii.sugilite.communication;
 
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
-import android.os.Bundle;
 import android.view.WindowManager;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.gson.Gson;
@@ -21,7 +18,6 @@ import java.util.Map;
 import java.util.Set;
 
 import edu.cmu.hcii.sugilite.Const;
-import edu.cmu.hcii.sugilite.R;
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.automation.ServiceStatusManager;
 import edu.cmu.hcii.sugilite.dao.SugiliteAppVocabularyDao;
@@ -29,7 +25,6 @@ import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
 import edu.cmu.hcii.sugilite.dao.SugiliteTrackingDao;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.model.variable.StringVariable;
-import edu.cmu.hcii.sugilite.model.variable.Variable;
 
 import static edu.cmu.hcii.sugilite.Const.SCRIPT_DELAY;
 
@@ -37,66 +32,83 @@ import static edu.cmu.hcii.sugilite.Const.SCRIPT_DELAY;
  * This is the activty used for communicating with external apps through the Android Intent Mechanism
  */
 
-public class SugiliteCommunicationActicvity extends Activity {
-    TextView messageType, scriptName;
+public class SugiliteCommunicationHelper {
+
+    // received information
+    Context receivedContext;
+    Intent receivedIntent;
+    SugiliteData sugiliteData;
+
+    // extracted request parameters
+    String requestedMessageTypeString="";
+    int messageTypeInt = 0;
+    String arg1 = "", arg2 = "";
+
+    // classes to help process the request
     SugiliteScriptDao sugiliteScriptDao;
     SugiliteBlockJSONProcessor jsonProcessor;
-    SugiliteData sugiliteData;
     SharedPreferences sharedPreferences;
     SugiliteTrackingDao sugiliteTrackingDao;
     SugiliteAppVocabularyDao vocabularyDao;
-    Context context;
     Gson gson;
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_sugilite_communication_acticvity);
-        messageType = (TextView)findViewById(R.id.receive_message_textview);
-        scriptName = (TextView)findViewById(R.id.receive_message_script_name);
+
+    // results
+    Intent resultIntent; // in case any result needs to be returned, this intent contains it. otherwise, this is null. and null is returned.
+
+    public SugiliteCommunicationHelper(Context receivedContext, Intent receivedIntent, SugiliteData sugiliteData)
+    {
+        this.receivedContext = receivedContext;
+        this.receivedIntent = receivedIntent;
+        this.sugiliteData = sugiliteData;
+
         gson = new Gson();
-        messageType.setText("TEST MESSAGE TYPE");
-        int messageTypeInt = 0;
-        String arg1 = "", arg2 = "";
-        if (getIntent().getExtras() != null)
+
+        // extract parameters from request, and prepare for processing
+        if (receivedIntent.getExtras() != null)
         {
-            String requestedMessageTypeString = getIntent().getStringExtra("messageType");
-            this.messageType.setText(requestedMessageTypeString);
+            requestedMessageTypeString = receivedIntent.getStringExtra("messageType");
             switch (requestedMessageTypeString){
+
                 case "START_RECORDING":
                     messageTypeInt = Const.START_RECORDING;
                     break;
                 case "END_RECORDING":
                     messageTypeInt = Const.STOP_RECORDING;
                     break;
+                case "GET_SCRIPT":
+                    messageTypeInt = Const.GET_RECORDING_SCRIPT;
+                    break;
+                case "GET_SCRIPT_LIST":
+                    messageTypeInt = Const.GET_ALL_RECORDING_SCRIPTS;
+                    break;
+                case "ADD_JSON_AS_SCRIPT":
+                    messageTypeInt = Const.ADD_JSON_AS_SCRIPT;
+                    break;
+
+                case "RUN_SCRIPT":
+                    messageTypeInt = Const.RUN_SCRIPT;
+                    break;
+                case "RUN_JSON":
+                    messageTypeInt = Const.RUN_JSON;
+                    break;
+                case "RUN_SCRIPT_WITH_PARAMETERS":
+                    messageTypeInt = Const.RUN_SCRIPT_WITH_PARAMETERS;
+                    break;
+
                 case "END_TRACKING":
                     messageTypeInt = Const.STOP_TRACKING;
                     break;
                 case "START_TRACKING":
                     messageTypeInt = Const.START_TRACKING;
                     break;
-                case "RUN_SCRIPT":
-                    messageTypeInt = Const.RUN_SCRIPT;
-                    break;
-                case "GET_SCRIPT":
-                    messageTypeInt = Const.GET_RECORDING_SCRIPT;
+                case "GET_TRACKING": // added ...
+                    messageTypeInt = Const.GET_TRACKING_SCRIPT;
                     break;
                 case "GET_TRACKING_LIST":
                     messageTypeInt = Const.GET_ALL_TRACKING_SCRIPTS;
                     break;
-                case "GET_SCRIPT_LIST":
-                    messageTypeInt = Const.GET_ALL_RECORDING_SCRIPTS;
-                    break;
                 case "CLEAR_TRACKING_LIST":
                     messageTypeInt = Const.CLEAR_TRACKING_LIST;
-                    break;
-                case "RUN_JSON":
-                    messageTypeInt = Const.RUN_JSON;
-                    break;
-                case "ADD_JSON_AS_SCRIPT":
-                    messageTypeInt = Const.ADD_JSON_AS_SCRIPT;
-                    break;
-                case "RUN_SCRIPT_WITH_PARAMETERS":
-                    messageTypeInt = Const.RUN_SCRIPT_WITH_PARAMETERS;
                     break;
             }
             /*
@@ -121,28 +133,31 @@ public class SugiliteCommunicationActicvity extends Activity {
             GET_PACKAGE_VOCAB, "NULL", NULL" //return value returned as activity result instead
             */
 
-            arg1 = getIntent().getStringExtra("arg1");
-            arg2 = getIntent().getStringExtra("arg2");
-            scriptName.setText(arg1);
-
+            arg1 = receivedIntent.getStringExtra("arg1");
+            arg2 = receivedIntent.getStringExtra("arg2");
         }
-        this.sugiliteScriptDao = new SugiliteScriptDao(this);
-        this.sugiliteTrackingDao = new SugiliteTrackingDao(this);
-        this.vocabularyDao = new SugiliteAppVocabularyDao(this);
-        this.jsonProcessor = new SugiliteBlockJSONProcessor(this);
-        this.sugiliteData = (SugiliteData)getApplication();
-        this.sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
-        this.context = this;
-        handleRequest(messageTypeInt, arg1, arg2);
-        finish();
+
+        // data structures for processing the request
+        this.sugiliteScriptDao = new SugiliteScriptDao(receivedContext);
+        this.sugiliteTrackingDao = new SugiliteTrackingDao(receivedContext);
+        this.vocabularyDao = new SugiliteAppVocabularyDao(receivedContext);
+        this.jsonProcessor = new SugiliteBlockJSONProcessor(receivedContext);
+        this.sharedPreferences = PreferenceManager.getDefaultSharedPreferences(receivedContext);
+        //this.receivedContext = this;
+
+        //handleRequest(messageTypeInt, arg1, arg2);
 
     }
 
-    private void handleRequest(int messageType, final String arg1, final String arg2){
+    public Intent handleRequest(){
         boolean recordingInProcess = sharedPreferences.getBoolean("recording_in_process", false);
         boolean trackingInProcess = sharedPreferences.getBoolean("tracking_in_process", false);
-        switch (messageType){
-            //
+        switch (messageTypeInt){
+
+
+            ////// recording scripts related
+
+
             case Const.START_RECORDING:
                 //arg1 = scriptName, arg2 = callbackString
                 if(arg2 != null)
@@ -150,11 +165,11 @@ public class SugiliteCommunicationActicvity extends Activity {
                 if(recordingInProcess) {
                     //the exception message below will be sent when there's already recording in process
                     sugiliteData.sendCallbackMsg(Const.START_RECORDING_EXCEPTION, "recording already in process", arg2);
-                    finish();
+                    return(resultIntent);
                 }
                 else {
                     if (arg1 != null) {
-                        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                        AlertDialog.Builder builder = new AlertDialog.Builder(receivedContext);
                         builder.setTitle("New Recording")
                                 .setMessage("Now start recording new script " + arg1)
                                 .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
@@ -182,13 +197,13 @@ public class SugiliteCommunicationActicvity extends Activity {
                                             e.printStackTrace();
                                         }
 
-                                        Toast.makeText(getApplicationContext(), "Recording new script " + sharedPreferences.getString("scriptName", "NULL"), Toast.LENGTH_SHORT).show();
+                                        Toast.makeText(receivedContext.getApplicationContext(), "Recording new script " + sharedPreferences.getString("scriptName", "NULL"), Toast.LENGTH_SHORT).show();
 
                                         //go to home screen for recording
                                         Intent startMain = new Intent(Intent.ACTION_MAIN);
                                         startMain.addCategory(Intent.CATEGORY_HOME);
                                         startMain.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                                        startActivity(startMain);
+                                        receivedContext.startActivity(startMain);
                                     }
                                 });
                         AlertDialog dialog = builder.create();
@@ -197,6 +212,7 @@ public class SugiliteCommunicationActicvity extends Activity {
                     }
                 }
                 break;
+
             case Const.STOP_RECORDING:
                 //arg1 = "NULL", arg2 = callbackString
                 if(arg2 != null)
@@ -209,97 +225,41 @@ public class SugiliteCommunicationActicvity extends Activity {
                     if(sugiliteData.initiatedExternally == true && sugiliteData.getScriptHead() != null)
                         sugiliteData.sendCallbackMsg(Const.FINISHED_RECORDING, jsonProcessor.scriptToJson(sugiliteData.getScriptHead()), arg2);
 
-                    Toast.makeText(context, "recording ended", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(receivedContext, "recording ended", Toast.LENGTH_SHORT).show();
                     sugiliteData.setCurrentSystemState(SugiliteData.DEFAULT_STATE);
-                    sendReturnValue("");
+                    setReturnValue("");
                 }
                 else {
                     //the exception message below will be sent when there's no recording in process
                     sugiliteData.sendCallbackMsg(Const.END_RECORDING_EXCEPTION, "no recording in process", arg2);
-                    finish();
+                    return(resultIntent);
                 }
                 break;
-            //TODO: add run script with parameter
-            //TODO: get a script and its parameter & alternative value lists
-            case Const.RUN_SCRIPT:
-                //arg1 = scriptName, arg2 = callbackString
-                if(arg2 != null)
-                    sugiliteData.callbackString = new String(arg2);
-                if(recordingInProcess) {
-                    sugiliteData.sendCallbackMsg(Const.RUN_SCRIPT_EXCEPTION, "recording already in process", arg2);
-                    finish();
-                }
-                else {
-                    //run the script
+
+            case Const.GET_RECORDING_SCRIPT:
+                //arg1 = scriptName, arg2 = "NULL"
+                {
                     SugiliteStartingBlock script = sugiliteScriptDao.read(arg1 + ".SugiliteScript");
+                    if(script != null) {
+                        setReturnValue(jsonProcessor.scriptToJson(script));
+                        return(resultIntent);
+                    }
+                    // else
+                        //the exception message below will be sent when can't find a script with provided name
+                        //TODO: send exception message
+                    break;
+                }
 
-                    if(script == null) {
-                        sugiliteData.sendCallbackMsg(Const.RUN_SCRIPT_EXCEPTION, "null script", arg2);
-                        finish();
-                    }
-                    else {
-                        runScript(script, null);
-                    }
-                }
-                break;
-            case Const.RUN_SCRIPT_WITH_PARAMETERS:
-                /**
-                 * arg1 = JSON in the format:
-                 * {
-                 *  scriptName: SCRIPT_NAME,
-                 *  variables:[
-                 *      {name: PARAMETER_NAME1, value: PARAMETER_VALUE1},
-                 *      {name: PARAMETER_NAME2, value: PARAMETER_VALUE2},
-                 *      ...
-                 *   ]
-                 * }
-                 *
-                 * arg2 = callbackString
-                 */
-                if(arg2 != null)
-                    sugiliteData.callbackString = new String(arg2);
-                if(recordingInProcess) {
-                    sugiliteData.sendCallbackMsg(Const.RUN_SCRIPT_EXCEPTION, "recording already in process", arg2);
-                    finish();
-                }
-                else {
-                    //run the script
-                    try {
-                        RunScriptWithParametersWrapper parametersWrapper = gson.fromJson(arg1, RunScriptWithParametersWrapper.class);
-                        SugiliteStartingBlock script = sugiliteScriptDao.read(parametersWrapper.scriptName + ".SugiliteScript");
+            case Const.GET_ALL_RECORDING_SCRIPTS:
+                //arg1 = scriptName, arg2 = "NULL"
+                List<String> allNames = sugiliteScriptDao.getAllNames();
+                List<String> retVal = new ArrayList<>();
+                for(String name : allNames)
+                    retVal.add(name.replace(".SugiliteScript", ""));
 
-                        if (script == null) {
-                            sugiliteData.sendCallbackMsg(Const.RUN_SCRIPT_EXCEPTION, "null script", arg2);
-                            finish();
-                        } else {
-                            runScript(script, parametersWrapper.variables);
-                        }
-                    }
-                    catch (Exception e){
-                        e.printStackTrace();
-                    }
-                }
-                break;
-            case Const.RUN_JSON:
-                //arg1 = JSON, arg2 = callbackString
-                if(arg2 != null)
-                    sugiliteData.callbackString = new String(arg2);
-                if(arg1 != null){
-                    try{
-                        SugiliteStartingBlock script = jsonProcessor.jsonToScript(arg1);
-                        runScript(script, null);
-                    }
-                    catch (Exception e){
-                        e.printStackTrace();
-                        sugiliteData.sendCallbackMsg(Const.RUN_JSON_EXCEPTION, "error in json parsing", arg2);
-                        finish();
-                    }
-                }
-                else {
-                    sugiliteData.sendCallbackMsg(Const.RUN_JSON_EXCEPTION, "null json", arg2);
-                    finish();
-                }
-                break;
+                setReturnValue(new Gson().toJson(retVal));
+                return(resultIntent);
+
             case Const.ADD_JSON_AS_SCRIPT:
                 //arg1 = JSON, arg2 = "NULL"
                 if(arg1 != null){
@@ -319,28 +279,99 @@ public class SugiliteCommunicationActicvity extends Activity {
                     sugiliteData.sendCallbackMsg(Const.ADD_JSON_AS_SCRIPT, "null json", arg2);
                 }
                 break;
-            case Const.GET_RECORDING_SCRIPT:
-                //arg1 = scriptName, arg2 = "NULL"
-                SugiliteStartingBlock script = sugiliteScriptDao.read(arg1 + ".SugiliteScript");
-                if(script != null)
-                    sendReturnValue(jsonProcessor.scriptToJson(script));
-                else
-                    //the exception message below will be sent when can't find a script with provided name
-                    //TODO: send exception message
+
+
+            /////// running scripts
+
+
+            //TODO: add run script with parameter
+            //TODO: get a script and its parameter & alternative value lists
+            case Const.RUN_SCRIPT:
+                //arg1 = scriptName, arg2 = callbackString
+                if(arg2 != null)
+                    sugiliteData.callbackString = new String(arg2);
+                if(recordingInProcess) {
+                    sugiliteData.sendCallbackMsg(Const.RUN_SCRIPT_EXCEPTION, "recording already in process", arg2);
+                    return(resultIntent);
+                }
+                else {
+                    //run the script
+                    SugiliteStartingBlock script = sugiliteScriptDao.read(arg1 + ".SugiliteScript");
+
+                    if(script == null) {
+                        sugiliteData.sendCallbackMsg(Const.RUN_SCRIPT_EXCEPTION, "null script", arg2);
+                        return(resultIntent);
+                    }
+                    else {
+                        runScript(script, null);
+                    }
+                }
                 break;
-            case Const.GET_ALL_RECORDING_SCRIPTS:
-                //arg1 = scriptName, arg2 = "NULL"
-                List<String> allNames = sugiliteScriptDao.getAllNames();
-                List<String> retVal = new ArrayList<>();
-                for(String name : allNames)
-                    retVal.add(name.replace(".SugiliteScript", ""));
-                sendReturnValue(new Gson().toJson(retVal));
+
+            case Const.RUN_SCRIPT_WITH_PARAMETERS:
+                /**
+                 * arg1 = JSON in the format:
+                 * {
+                 *  scriptName: SCRIPT_NAME,
+                 *  variables:[
+                 *      {name: PARAMETER_NAME1, value: PARAMETER_VALUE1},
+                 *      {name: PARAMETER_NAME2, value: PARAMETER_VALUE2},
+                 *      ...
+                 *   ]
+                 * }
+                 *
+                 * arg2 = callbackString
+                 */
+                if(arg2 != null)
+                    sugiliteData.callbackString = new String(arg2);
+                if(recordingInProcess) {
+                    sugiliteData.sendCallbackMsg(Const.RUN_SCRIPT_EXCEPTION, "recording already in process", arg2);
+                    return(resultIntent);
+                }
+                else {
+                    //run the script
+                    try {
+                        RunScriptWithParametersWrapper parametersWrapper = gson.fromJson(arg1, RunScriptWithParametersWrapper.class);
+                        SugiliteStartingBlock script = sugiliteScriptDao.read(parametersWrapper.scriptName + ".SugiliteScript");
+
+                        if (script == null) {
+                            sugiliteData.sendCallbackMsg(Const.RUN_SCRIPT_EXCEPTION, "null script", arg2);
+                            return(resultIntent);
+                        } else {
+                            runScript(script, parametersWrapper.variables);
+                        }
+                    }
+                    catch (Exception e){
+                        e.printStackTrace();
+                    }
+                }
+                break;
+
+            case Const.RUN_JSON:
+                //arg1 = JSON, arg2 = callbackString
+                if(arg2 != null)
+                    sugiliteData.callbackString = new String(arg2);
+                if(arg1 != null){
+                    try{
+                        SugiliteStartingBlock script = jsonProcessor.jsonToScript(arg1);
+                        runScript(script, null);
+                    }
+                    catch (Exception e){
+                        e.printStackTrace();
+                        sugiliteData.sendCallbackMsg(Const.RUN_JSON_EXCEPTION, "error in json parsing", arg2);
+                        return(resultIntent);
+                    }
+                }
+                else {
+                    sugiliteData.sendCallbackMsg(Const.RUN_JSON_EXCEPTION, "null json", arg2);
+                    return(resultIntent);
+                }
                 break;
 
 
+            ////// tracking
 
 
-            //*******
             case Const.START_TRACKING:
                 //commit preference change
                 SharedPreferences.Editor prefEditor = sharedPreferences.edit();
@@ -352,37 +383,47 @@ public class SugiliteCommunicationActicvity extends Activity {
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
-                sendReturnValue("");
-                Toast.makeText(context, "tracking started", Toast.LENGTH_SHORT).show();
+                setReturnValue("");
+                Toast.makeText(receivedContext, "tracking started", Toast.LENGTH_SHORT).show();
                 break;
+
             case Const.STOP_TRACKING:
                 if(trackingInProcess) {
                     SharedPreferences.Editor prefEditor2 = sharedPreferences.edit();
                     prefEditor2.putBoolean("tracking_in_process", false);
                     prefEditor2.commit();
-                    Toast.makeText(context, "tracking ended", Toast.LENGTH_SHORT).show();
-                    sendReturnValue("");
+                    Toast.makeText(receivedContext, "tracking ended", Toast.LENGTH_SHORT).show();
+                    setReturnValue("");
                 }
                 break;
+
             case Const.GET_TRACKING_SCRIPT:
                 SugiliteStartingBlock tracking = sugiliteTrackingDao.read(arg1);
-                if(tracking != null)
-                    sendReturnValue(jsonProcessor.scriptToJson(tracking));
-                else
+                if(tracking != null){
+                    setReturnValue(jsonProcessor.scriptToJson(tracking));
+                    return(resultIntent);
+                }
+                // else
                     //the exception message below will be sent when can't find a script with provided name
                     //TODO: send exception message
                 break;
+
             case Const.GET_ALL_TRACKING_SCRIPTS:
                 List<String> allTrackingNames = sugiliteTrackingDao.getAllNames();
                 List<String> trackingRetVal = new ArrayList<>();
                 for(String name : allTrackingNames)
                     trackingRetVal.add(name);
-                sendReturnValue(new Gson().toJson(trackingRetVal));
-                break;
+                setReturnValue(new Gson().toJson(trackingRetVal));
+                return(resultIntent);
+
             case Const.CLEAR_TRACKING_LIST:
                 sugiliteTrackingDao.clear();
-                sendReturnValue("");
+                setReturnValue("");
                 break;
+
+
+            ////// misc
+
 
             case Const.GET_ALL_PACKAGE_VOCAB:
                 Map<String, Set<String>> appVocabMap =  null;
@@ -399,10 +440,10 @@ public class SugiliteCommunicationActicvity extends Activity {
                             retVal2 += entry.getKey() + ": " + text + "\n";
                         }
                     }
-                    sendReturnValue(retVal2);
+                    setReturnValue(retVal2);
                 }
                 else{
-                    sendReturnValue("NULL");
+                    setReturnValue("NULL");
                 }
                 break;
 
@@ -411,7 +452,7 @@ public class SugiliteCommunicationActicvity extends Activity {
                 if(arg1 != null) {
                     try {
                         vocabSet = vocabularyDao.getText(arg1);
-                        sendReturnValue(gson.toJson(vocabSet));
+                        setReturnValue(gson.toJson(vocabSet));
                     }
                     catch (Exception e){
                         e.printStackTrace();
@@ -421,16 +462,18 @@ public class SugiliteCommunicationActicvity extends Activity {
                     //TODO: send exception
                 }
         }
+
+        return(null);
     }
 
     private void runScript(SugiliteStartingBlock script, List<VariableWrapper> variables){
 
         sugiliteData.clearInstructionQueue();
-        final ServiceStatusManager serviceStatusManager = ServiceStatusManager.getInstance(context);
+        final ServiceStatusManager serviceStatusManager = ServiceStatusManager.getInstance(receivedContext);
 
         if(!serviceStatusManager.isRunning()){
             //prompt the user if the accessiblity service is not active
-            AlertDialog.Builder builder1 = new AlertDialog.Builder(context);
+            AlertDialog.Builder builder1 = new AlertDialog.Builder(receivedContext);
             builder1.setTitle("Service not running")
                     .setMessage("The Sugilite accessiblity service is not enabled. Please enable the service in the phone settings before recording.")
                     .setPositiveButton("OK", new DialogInterface.OnClickListener() {
@@ -480,16 +523,17 @@ public class SugiliteCommunicationActicvity extends Activity {
             Intent startMain = new Intent(Intent.ACTION_MAIN);
             startMain.addCategory(Intent.CATEGORY_HOME);
             startMain.setFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
-            context.startActivity(startMain);
+            receivedContext.startActivity(startMain);
         }
 
     }
 
-    private void sendReturnValue(String retVal){
+    private void setReturnValue(String retVal){
         Intent returnIntent = new Intent();
         returnIntent.putExtra("result", retVal);
-        setResult(Activity.RESULT_OK,returnIntent);
-        finish();
+        returnIntent.putExtra("messageType", requestedMessageTypeString);
+
+        this.resultIntent = returnIntent;
     }
 
     class RunScriptWithParametersWrapper {

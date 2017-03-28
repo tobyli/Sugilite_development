@@ -15,7 +15,7 @@ import android.widget.TextView;
 import edu.cmu.hcii.sugilite.Const;
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.automation.ServiceStatusManager;
-import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
+import edu.cmu.hcii.sugilite.dao.SugiliteScriptSQLDao;
 
 /**
  * @author toby
@@ -24,7 +24,7 @@ import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
  */
 public class NewScriptDialog extends AbstractSugiliteDialog {
     private AlertDialog dialog;
-    public NewScriptDialog(final Context context, final SugiliteScriptDao sugiliteScriptDao, final ServiceStatusManager serviceStatusManager,
+    public NewScriptDialog(final Context context, final SugiliteScriptSQLDao sugiliteScriptDao, final ServiceStatusManager serviceStatusManager,
                            final SharedPreferences sharedPreferences, final SugiliteData sugiliteData, boolean isSystemAlert, final Dialog.OnClickListener positiveCallback, final Dialog.OnClickListener negativeCallback){
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
         sugiliteData.clearInstructionQueue();

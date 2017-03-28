@@ -8,7 +8,7 @@ import android.view.LayoutInflater;
 import java.util.Map;
 
 import edu.cmu.hcii.sugilite.SugiliteData;
-import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
+import edu.cmu.hcii.sugilite.dao.SugiliteScriptSQLDao;
 import edu.cmu.hcii.sugilite.model.variable.Variable;
 import edu.cmu.hcii.sugilite.ui.dialog.VariableSetValueDialog;
 
@@ -42,7 +42,7 @@ public class SugiliteSubscriptSpecialOperationBlock extends SugiliteSpecialOpera
     }
 
     @Override
-    public void run(Context context, final SugiliteData sugiliteData, SugiliteScriptDao sugiliteScriptDao, final SharedPreferences sharedPreferences) throws Exception{
+    public void run(Context context, final SugiliteData sugiliteData, SugiliteScriptSQLDao sugiliteScriptDao, final SharedPreferences sharedPreferences) throws Exception{
         final SugiliteStartingBlock script = sugiliteScriptDao.read(subscriptName);
         if(script != null) {
             Handler mainHandler = new Handler(context.getMainLooper());

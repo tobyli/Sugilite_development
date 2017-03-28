@@ -2,18 +2,10 @@ package edu.cmu.hcii.sugilite.communication;
 
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.ServiceConnection;
 import android.content.SharedPreferences;
-import android.os.Bundle;
-import android.os.Handler;
-import android.os.IBinder;
-import android.os.Message;
-import android.os.Messenger;
-import android.os.RemoteException;
 import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.WindowManager;
@@ -31,7 +23,7 @@ import edu.cmu.hcii.sugilite.Const;
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.automation.ServiceStatusManager;
 import edu.cmu.hcii.sugilite.dao.SugiliteAppVocabularyDao;
-import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
+import edu.cmu.hcii.sugilite.dao.SugiliteScriptSQLDao;
 import edu.cmu.hcii.sugilite.dao.SugiliteTrackingDao;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 
@@ -43,7 +35,7 @@ import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 public class SugiliteCommunicationController {
     private static SugiliteCommunicationController instance;
     private final String TAG = SugiliteCommunicationController.class.getName();
-    SugiliteScriptDao sugiliteScriptDao;
+    SugiliteScriptSQLDao sugiliteScriptDao;
     SugiliteTrackingDao sugiliteTrackingDao;
     SugiliteAppVocabularyDao vocabularyDao;
     SugiliteBlockJSONProcessor jsonProcessor;
@@ -68,7 +60,7 @@ public class SugiliteCommunicationController {
     private SugiliteCommunicationController(Context context, SugiliteData sugiliteData,
                                             SharedPreferences sharedPreferences) {
         this.context = context.getApplicationContext();
-        this.sugiliteScriptDao = new SugiliteScriptDao(this.context);
+        this.sugiliteScriptDao = new SugiliteScriptSQLDao(this.context);
         this.vocabularyDao = new SugiliteAppVocabularyDao(this.context);
         this.sugiliteTrackingDao = new SugiliteTrackingDao(this.context);
         this.jsonProcessor = new SugiliteBlockJSONProcessor(this.context);

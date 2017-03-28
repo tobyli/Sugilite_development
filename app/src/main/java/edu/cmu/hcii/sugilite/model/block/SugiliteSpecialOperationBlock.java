@@ -6,7 +6,7 @@ import android.content.SharedPreferences;
 import java.io.Serializable;
 
 import edu.cmu.hcii.sugilite.SugiliteData;
-import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
+import edu.cmu.hcii.sugilite.dao.SugiliteScriptSQLDao;
 
 /**
  * @author toby
@@ -15,7 +15,7 @@ import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
  */
 public abstract class SugiliteSpecialOperationBlock extends SugiliteBlock implements Serializable {
     private SugiliteBlock nextBlock;
-    abstract public void run(Context context, SugiliteData sugiliteData, SugiliteScriptDao sugiliteScriptDao, SharedPreferences sharedPreferences) throws Exception;
+    abstract public void run(Context context, SugiliteData sugiliteData, SugiliteScriptSQLDao sugiliteScriptDao, SharedPreferences sharedPreferences) throws Exception;
 
     public SugiliteSpecialOperationBlock(){
         this.blockType = SPECIAL_OPERATION;

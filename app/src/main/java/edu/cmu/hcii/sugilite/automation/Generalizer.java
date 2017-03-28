@@ -7,7 +7,7 @@ import android.content.DialogInterface;
 import java.util.HashSet;
 import java.util.Set;
 
-import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
+import edu.cmu.hcii.sugilite.dao.SugiliteScriptSQLDao;
 import edu.cmu.hcii.sugilite.model.block.SerializableNodeInfo;
 import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteErrorHandlingForkBlock;
@@ -26,12 +26,12 @@ import edu.cmu.hcii.sugilite.recording.ReadableDescriptionGenerator;
  */
 public class Generalizer {
 
-    private SugiliteScriptDao sugiliteScriptDao;
+    private SugiliteScriptSQLDao sugiliteScriptDao;
     private ReadableDescriptionGenerator descriptionGenerator;
     private Context context;
     public Generalizer(Context context){
         this.context = context;
-        sugiliteScriptDao = new SugiliteScriptDao(context);
+        sugiliteScriptDao = new SugiliteScriptSQLDao(context);
         descriptionGenerator = new ReadableDescriptionGenerator(context);
     }
 

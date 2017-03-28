@@ -25,7 +25,7 @@ import edu.cmu.hcii.sugilite.R;
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.automation.ServiceStatusManager;
 import edu.cmu.hcii.sugilite.dao.SugiliteAppVocabularyDao;
-import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
+import edu.cmu.hcii.sugilite.dao.SugiliteScriptSQLDao;
 import edu.cmu.hcii.sugilite.dao.SugiliteTrackingDao;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 
@@ -37,7 +37,7 @@ import static edu.cmu.hcii.sugilite.Const.SCRIPT_DELAY;
 
 public class SugiliteCommunicationActicvity extends Activity {
     TextView messageType, scriptName;
-    SugiliteScriptDao sugiliteScriptDao;
+    SugiliteScriptSQLDao sugiliteScriptDao;
     SugiliteBlockJSONProcessor jsonProcessor;
     SugiliteData sugiliteData;
     SharedPreferences sharedPreferences;
@@ -121,7 +121,7 @@ public class SugiliteCommunicationActicvity extends Activity {
             scriptName.setText(arg1);
 
         }
-        this.sugiliteScriptDao = new SugiliteScriptDao(this);
+        this.sugiliteScriptDao = new SugiliteScriptSQLDao(this);
         this.sugiliteTrackingDao = new SugiliteTrackingDao(this);
         this.vocabularyDao = new SugiliteAppVocabularyDao(this);
         this.jsonProcessor = new SugiliteBlockJSONProcessor(this);

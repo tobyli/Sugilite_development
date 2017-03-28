@@ -35,7 +35,7 @@ import edu.cmu.hcii.sugilite.R;
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.automation.Automator;
 import edu.cmu.hcii.sugilite.automation.ServiceStatusManager;
-import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
+import edu.cmu.hcii.sugilite.dao.SugiliteScriptSQLDao;
 import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteErrorHandlingForkBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
@@ -54,7 +54,7 @@ public class ScriptDetailActivity extends AppCompatActivity {
     private SugiliteData sugiliteData;
     private String scriptName;
     private SharedPreferences sharedPreferences;
-    private SugiliteScriptDao sugiliteScriptDao;
+    private SugiliteScriptSQLDao sugiliteScriptDao;
     private SugiliteStartingBlock script;
     private ActivityManager activityManager;
     private ServiceStatusManager serviceStatusManager;
@@ -73,7 +73,7 @@ public class ScriptDetailActivity extends AppCompatActivity {
             scriptName = savedInstanceState.getString("scriptName");
         }
         sugiliteData = (SugiliteData)getApplication();
-        sugiliteScriptDao = new SugiliteScriptDao(this);
+        sugiliteScriptDao = new SugiliteScriptSQLDao(this);
         script = sugiliteScriptDao.read(scriptName);
         this.context = this;
         if(scriptName != null)

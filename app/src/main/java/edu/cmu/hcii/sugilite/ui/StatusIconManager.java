@@ -11,7 +11,6 @@ import android.graphics.PixelFormat;
 import android.graphics.Rect;
 import android.net.Uri;
 import android.provider.Settings;
-import android.text.Html;
 import android.util.DisplayMetrics;
 import android.view.GestureDetector;
 import android.view.Gravity;
@@ -26,8 +25,6 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import org.w3c.dom.Text;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Queue;
@@ -40,7 +37,7 @@ import edu.cmu.hcii.sugilite.automation.Automator;
 import edu.cmu.hcii.sugilite.automation.ServiceStatusManager;
 import edu.cmu.hcii.sugilite.communication.SugiliteBlockJSONProcessor;
 import edu.cmu.hcii.sugilite.dao.SugiliteScreenshotManager;
-import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
+import edu.cmu.hcii.sugilite.dao.SugiliteScriptSQLDao;
 import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteDelaySpecialOperationBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
@@ -66,7 +63,7 @@ public class StatusIconManager {
     private WindowManager windowManager;
     private SugiliteData sugiliteData;
     private SharedPreferences sharedPreferences;
-    private SugiliteScriptDao sugiliteScriptDao;
+    private SugiliteScriptSQLDao sugiliteScriptDao;
     private ServiceStatusManager serviceStatusManager;
     private SugiliteScreenshotManager screenshotManager;
     private SugiliteBlockJSONProcessor jsonProcessor;
@@ -83,7 +80,7 @@ public class StatusIconManager {
         windowManager = (WindowManager) context.getSystemService(context.WINDOW_SERVICE);
         this.sugiliteData = sugiliteData;
         this.sharedPreferences = sharedPreferences;
-        this.sugiliteScriptDao = new SugiliteScriptDao(context);
+        this.sugiliteScriptDao = new SugiliteScriptSQLDao(context);
         this.serviceStatusManager = ServiceStatusManager.getInstance(context);
         this.screenshotManager = new SugiliteScreenshotManager(sharedPreferences, context);
         this.layoutInflater = (LayoutInflater) context.getSystemService( Context.LAYOUT_INFLATER_SERVICE );

@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Map;
 
 import edu.cmu.hcii.sugilite.SugiliteData;
-import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
+import edu.cmu.hcii.sugilite.dao.SugiliteScriptSQLDao;
 import edu.cmu.hcii.sugilite.dao.SugiliteTriggerDao;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.model.variable.Variable;
@@ -23,7 +23,7 @@ import edu.cmu.hcii.sugilite.ui.dialog.VariableSetValueDialog;
 public class SugiliteTriggerHandler {
     private Context context;
     private SugiliteTriggerDao sugiliteTriggerDao;
-    private SugiliteScriptDao sugiliteScriptDao;
+    private SugiliteScriptSQLDao sugiliteScriptDao;
     private List<SugiliteTrigger> allTriggers;
     private LayoutInflater layoutInflater;
     private SugiliteData sugiliteData;
@@ -37,7 +37,7 @@ public class SugiliteTriggerHandler {
         this.sharedPreferences = sharedPreferences;
         lastTriggerRan = "";
         sugiliteTriggerDao = new SugiliteTriggerDao(context);
-        sugiliteScriptDao = new SugiliteScriptDao(context);
+        sugiliteScriptDao = new SugiliteScriptSQLDao(context);
         allTriggers = sugiliteTriggerDao.getAllTriggers();
     }
 

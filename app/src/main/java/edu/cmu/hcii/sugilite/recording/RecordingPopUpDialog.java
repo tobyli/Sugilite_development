@@ -46,7 +46,7 @@ import edu.cmu.hcii.sugilite.R;
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.communication.SugiliteBlockJSONProcessor;
 import edu.cmu.hcii.sugilite.dao.SugiliteScreenshotManager;
-import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
+import edu.cmu.hcii.sugilite.dao.SugiliteScriptSQLDao;
 import edu.cmu.hcii.sugilite.model.block.SerializableNodeInfo;
 import edu.cmu.hcii.sugilite.model.block.SugiliteAvailableFeaturePack;
 import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
@@ -73,7 +73,7 @@ public class RecordingPopUpDialog extends AbstractSugiliteDialog {
     private int triggerMode;
     private SugiliteAvailableFeaturePack featurePack;
     private SharedPreferences sharedPreferences;
-    private SugiliteScriptDao sugiliteScriptDao;
+    private SugiliteScriptSQLDao sugiliteScriptDao;
     private SugiliteBlockJSONProcessor jsonProcessor;
     private Set<Map.Entry<String, String>> allParentFeatures = new HashSet<>();
     private Set<Map.Entry<String, String>> allChildFeatures = new HashSet<>();
@@ -127,7 +127,7 @@ public class RecordingPopUpDialog extends AbstractSugiliteDialog {
         this.filterTester = new AlternativeNodesFilterTester();
         this.scriptName = sugiliteData.getScriptHead().getScriptName();
         jsonProcessor = new SugiliteBlockJSONProcessor(applicationContext);
-        sugiliteScriptDao = new SugiliteScriptDao(applicationContext);
+        sugiliteScriptDao = new SugiliteScriptSQLDao(applicationContext);
         readableDescriptionGenerator = new ReadableDescriptionGenerator(applicationContext);
         checkBoxChildEntryMap = new HashMap<>();
         checkBoxParentEntryMap = new HashMap<>();
@@ -174,7 +174,7 @@ public class RecordingPopUpDialog extends AbstractSugiliteDialog {
         else
             this.alternativeLabels = new HashSet<>();
         this.screenshotManager = new SugiliteScreenshotManager(sharedPreferences, applicationContext);
-        sugiliteScriptDao = new SugiliteScriptDao(applicationContext);
+        sugiliteScriptDao = new SugiliteScriptSQLDao(applicationContext);
         readableDescriptionGenerator = new ReadableDescriptionGenerator(applicationContext);
         checkBoxChildEntryMap = new HashMap<>();
         checkBoxParentEntryMap = new HashMap<>();

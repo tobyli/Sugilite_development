@@ -17,7 +17,7 @@ import android.view.Window;
 import edu.cmu.hcii.sugilite.Const;
 import edu.cmu.hcii.sugilite.R;
 import edu.cmu.hcii.sugilite.SugiliteData;
-import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
+import edu.cmu.hcii.sugilite.dao.SugiliteScriptSQLDao;
 import edu.cmu.hcii.sugilite.dao.SugiliteTriggerDao;
 import edu.cmu.hcii.sugilite.ui.SettingsActivity;
 import edu.cmu.hcii.sugilite.ui.dialog.AddTriggerDialog;
@@ -27,7 +27,7 @@ public class SugiliteMainActivity extends AppCompatActivity {
     ActionBar.Tab scriptListTab, triggerListTab;
     Fragment fragmentScriptListTab = new FragmentScriptListTab();
     Fragment fragmentTriggerListTab = new FragmentTriggerListTab();
-    private SugiliteScriptDao sugiliteScriptDao;
+    private SugiliteScriptSQLDao sugiliteScriptDao;
     private SugiliteTriggerDao sugiliteTriggerDao;
     private SugiliteData sugiliteData;
 
@@ -38,7 +38,7 @@ public class SugiliteMainActivity extends AppCompatActivity {
         requestWindowFeature(Window.FEATURE_ACTION_BAR);
         setContentView(R.layout.activity_main);
         sugiliteData = getApplication() instanceof SugiliteData? (SugiliteData)getApplication() : new SugiliteData();
-        sugiliteScriptDao = new SugiliteScriptDao(this);
+        sugiliteScriptDao = new SugiliteScriptSQLDao(this);
         sugiliteTriggerDao = new SugiliteTriggerDao(this);
 
 

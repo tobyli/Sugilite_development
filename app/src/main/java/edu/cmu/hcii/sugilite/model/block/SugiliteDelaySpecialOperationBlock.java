@@ -4,7 +4,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 
 import edu.cmu.hcii.sugilite.SugiliteData;
-import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
+import edu.cmu.hcii.sugilite.dao.SugiliteScriptSQLDao;
 
 /**
  * @author toby
@@ -21,7 +21,7 @@ public class SugiliteDelaySpecialOperationBlock extends SugiliteSpecialOperation
     }
 
     @Override
-    public void run(Context context, SugiliteData sugiliteData, SugiliteScriptDao sugiliteScriptDao, SharedPreferences sharedPreferences) throws Exception{
+    public void run(Context context, SugiliteData sugiliteData, SugiliteScriptSQLDao sugiliteScriptDao, SharedPreferences sharedPreferences) throws Exception{
             Thread.sleep(delayInMilliseconds);
     }
 

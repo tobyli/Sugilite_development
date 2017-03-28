@@ -9,8 +9,6 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
 import android.view.ContextMenu;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -32,12 +30,10 @@ import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.automation.Generalizer;
 import edu.cmu.hcii.sugilite.automation.ServiceStatusManager;
 import edu.cmu.hcii.sugilite.communication.SugiliteBlockJSONProcessor;
-import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
+import edu.cmu.hcii.sugilite.dao.SugiliteScriptSQLDao;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.ui.ScriptDebuggingActivity;
 import edu.cmu.hcii.sugilite.ui.ScriptDetailActivity;
-import edu.cmu.hcii.sugilite.ui.SettingsActivity;
-import edu.cmu.hcii.sugilite.ui.dialog.AddTriggerDialog;
 import edu.cmu.hcii.sugilite.ui.dialog.NewScriptDialog;
 
 /**
@@ -47,7 +43,7 @@ import edu.cmu.hcii.sugilite.ui.dialog.NewScriptDialog;
 public class FragmentScriptListTab extends Fragment {
     private SugiliteData sugiliteData;
     private SharedPreferences sharedPreferences;
-    private SugiliteScriptDao sugiliteScriptDao;
+    private SugiliteScriptSQLDao sugiliteScriptDao;
     private ServiceStatusManager serviceStatusManager;
     private Generalizer generalizer;
     private View rootView;
@@ -62,7 +58,7 @@ public class FragmentScriptListTab extends Fragment {
         View addButton = rootView.findViewById(R.id.addButton);
         serviceStatusManager = ServiceStatusManager.getInstance(activity);
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(activity);
-        sugiliteScriptDao = new SugiliteScriptDao(activity);
+        sugiliteScriptDao = new SugiliteScriptSQLDao(activity);
         sugiliteData = activity.getApplication() instanceof SugiliteData? (SugiliteData)activity.getApplication() : new SugiliteData();
         generalizer = new Generalizer(activity);
         activity.setTitle("Sugilite Script List");

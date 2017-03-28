@@ -20,10 +20,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import edu.cmu.hcii.sugilite.Const;
 import edu.cmu.hcii.sugilite.SugiliteAccessibilityService;
 import edu.cmu.hcii.sugilite.SugiliteData;
-import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
+import edu.cmu.hcii.sugilite.dao.SugiliteScriptSQLDao;
 import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteErrorHandlingForkBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
@@ -55,7 +54,7 @@ public class Automator {
     private BoundingBoxManager boundingBoxManager;
     private VariableHelper variableHelper;
     private TextToSpeech tts;
-    private SugiliteScriptDao sugiliteScriptDao;
+    private SugiliteScriptSQLDao sugiliteScriptDao;
     private LayoutInflater layoutInflater;
     private SharedPreferences sharedPreferences;
     private boolean ttsReady = false;
@@ -65,7 +64,7 @@ public class Automator {
         this.sugiliteData = sugiliteData;
         this.serviceContext = context;
         this.boundingBoxManager = new BoundingBoxManager(context);
-        this.sugiliteScriptDao = new SugiliteScriptDao(context);
+        this.sugiliteScriptDao = new SugiliteScriptSQLDao(context);
         this.layoutInflater = (LayoutInflater) context.getSystemService( Context.LAYOUT_INFLATER_SERVICE );
         this.sharedPreferences = sharedPreferences;
         tts = new TextToSpeech(context, new TextToSpeech.OnInitListener() {

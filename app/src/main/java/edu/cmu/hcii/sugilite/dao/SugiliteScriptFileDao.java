@@ -5,6 +5,7 @@ import android.content.Context;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.ObjectOutputStream;
+import java.util.ArrayList;
 import java.util.List;
 
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
@@ -55,7 +56,19 @@ public class SugiliteScriptFileDao implements SugiliteScriptDao {
     }
 
     public int size(){
-        return 0;
+        int count = 0;
+        try {
+            for (File file : scriptDir.listFiles()){
+                if(file.getName().contains(".SugiliteScript"))
+                    count ++;
+            }
+        }
+        catch (Exception e){
+            e.printStackTrace();
+            throw e;
+            //TODO: error handling
+        }
+        return count;
     }
     public SugiliteStartingBlock read(String key){
         return null;
@@ -76,15 +89,56 @@ public class SugiliteScriptFileDao implements SugiliteScriptDao {
         }
     }
     public int clear(){
-        return 0;
+        int count = 0;
+        try {
+            for (File file : scriptDir.listFiles()){
+                if(file.getName().contains(".SugiliteScript")) {
+                    file.delete();
+                    count ++;
+                }
+            }
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+            throw e;
+            //TODO: error handling
+        }
+        return count;
     }
+
     public List<String> getAllNames(){
-        return null;
+        List<String> names = new ArrayList<>();
+        try {
+            for (File file : scriptDir.listFiles()){
+                if(file.getName().contains(".SugiliteScript")) {
+                    names.add(file.getName());
+                }
+            }
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+            throw e;
+            //TODO: error handling
+        }
+        return names;
     }
+
     public List<SugiliteStartingBlock> getAllScripts(){
         return null;
     }
+
     public String getNextAvailableDefaultName(){
-        return null;
+        int i = 1;
+        String prefix = "Untitled Script ";
+        List<String> allNames = getAllNames();
+        while(true){
+            String scriptName = prefix + String.valueOf(i);
+            if(allNames.contains(scriptName + ".SugiliteScript")){
+                i++;
+                continue;
+            }
+            else
+                return scriptName;
+        }
     }
 }

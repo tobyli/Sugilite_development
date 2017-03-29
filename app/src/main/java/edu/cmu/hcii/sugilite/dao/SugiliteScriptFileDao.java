@@ -25,7 +25,7 @@ public class SugiliteScriptFileDao implements SugiliteScriptDao {
         this.context = context;
         try {
             File rootDataDir = context.getFilesDir();
-            File scriptDir = new File(rootDataDir.getPath() + "/scripts");
+            scriptDir = new File(rootDataDir.getPath() + "/scripts");
             if (!scriptDir.exists() || !scriptDir.isDirectory())
                 scriptDir.mkdir();
         }

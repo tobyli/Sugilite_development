@@ -37,6 +37,8 @@ import edu.cmu.hcii.sugilite.automation.Automator;
 import edu.cmu.hcii.sugilite.automation.ServiceStatusManager;
 import edu.cmu.hcii.sugilite.communication.SugiliteBlockJSONProcessor;
 import edu.cmu.hcii.sugilite.dao.SugiliteScreenshotManager;
+import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
+import edu.cmu.hcii.sugilite.dao.SugiliteScriptFileDao;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptSQLDao;
 import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteDelaySpecialOperationBlock;
@@ -52,6 +54,8 @@ import edu.cmu.hcii.sugilite.ui.dialog.NewScriptDialog;
 import edu.cmu.hcii.sugilite.ui.dialog.SelectElementWithTextDialog;
 import edu.cmu.hcii.sugilite.ui.main.SugiliteMainActivity;
 
+import static edu.cmu.hcii.sugilite.Const.SQL_SCRIPT_DAO;
+
 /**
  * @author toby
  * @date 6/20/16
@@ -63,7 +67,7 @@ public class StatusIconManager {
     private WindowManager windowManager;
     private SugiliteData sugiliteData;
     private SharedPreferences sharedPreferences;
-    private SugiliteScriptSQLDao sugiliteScriptDao;
+    private SugiliteScriptDao sugiliteScriptDao;
     private ServiceStatusManager serviceStatusManager;
     private SugiliteScreenshotManager screenshotManager;
     private SugiliteBlockJSONProcessor jsonProcessor;
@@ -80,7 +84,10 @@ public class StatusIconManager {
         windowManager = (WindowManager) context.getSystemService(context.WINDOW_SERVICE);
         this.sugiliteData = sugiliteData;
         this.sharedPreferences = sharedPreferences;
-        this.sugiliteScriptDao = new SugiliteScriptSQLDao(context);
+        if(Const.DAO_TO_USE == SQL_SCRIPT_DAO)
+            sugiliteScriptDao = new SugiliteScriptSQLDao(context);
+        else
+            sugiliteScriptDao = new SugiliteScriptFileDao(context);
         this.serviceStatusManager = ServiceStatusManager.getInstance(context);
         this.screenshotManager = new SugiliteScreenshotManager(sharedPreferences, context);
         this.layoutInflater = (LayoutInflater) context.getSystemService( Context.LAYOUT_INFLATER_SERVICE );
@@ -450,7 +457,13 @@ public class StatusIconManager {
                                 case "Add Running a Subscript":
                                     final SugiliteSubscriptSpecialOperationBlock subscriptBlock = new SugiliteSubscriptSpecialOperationBlock();
                                     subscriptBlock.setDescription(descriptionGenerator.generateReadableDescription(subscriptBlock));
-                                    List<String> subscriptNames = sugiliteScriptDao.getAllNames();
+                                    List<String> subscriptNames = new ArrayList<String>();
+                                    try {
+                                        subscriptNames = sugiliteScriptDao.getAllNames();
+                                    }
+                                    catch (Exception e){
+                                        e.printStackTrace();
+                                    }
                                     AlertDialog.Builder chooseSubscriptDialogBuilder = new AlertDialog.Builder(context);
                                     String[] subscripts = new String[subscriptNames.size()];
                                     subscripts = subscriptNames.toArray(subscripts);
@@ -463,7 +476,13 @@ public class StatusIconManager {
                                             String chosenScriptName = subscriptClone[which];
                                             //add a subscript operation block with the script name "chosenScriptName"
                                             subscriptBlock.setSubscriptName(chosenScriptName);
-                                            SugiliteStartingBlock script = sugiliteScriptDao.read(chosenScriptName);
+                                            SugiliteStartingBlock script = null;
+                                            try {
+                                                script = sugiliteScriptDao.read(chosenScriptName);
+                                            }
+                                            catch (Exception e){
+                                                e.printStackTrace();
+                                            }
                                             if(script != null) {
                                                 try {
                                                     SugiliteBlock currentBlock = sugiliteData.getCurrentScriptBlock();

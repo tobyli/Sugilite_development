@@ -46,6 +46,8 @@ import edu.cmu.hcii.sugilite.R;
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.communication.SugiliteBlockJSONProcessor;
 import edu.cmu.hcii.sugilite.dao.SugiliteScreenshotManager;
+import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
+import edu.cmu.hcii.sugilite.dao.SugiliteScriptFileDao;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptSQLDao;
 import edu.cmu.hcii.sugilite.model.block.SerializableNodeInfo;
 import edu.cmu.hcii.sugilite.model.block.SugiliteAvailableFeaturePack;
@@ -63,6 +65,8 @@ import edu.cmu.hcii.sugilite.model.variable.Variable;
 import edu.cmu.hcii.sugilite.ui.dialog.AbstractSugiliteDialog;
 import edu.cmu.hcii.sugilite.ui.dialog.ChooseVariableDialog;
 
+import static edu.cmu.hcii.sugilite.Const.SQL_SCRIPT_DAO;
+
 /**
  * @author toby
  * @date 7/22/16
@@ -73,7 +77,7 @@ public class RecordingPopUpDialog extends AbstractSugiliteDialog {
     private int triggerMode;
     private SugiliteAvailableFeaturePack featurePack;
     private SharedPreferences sharedPreferences;
-    private SugiliteScriptSQLDao sugiliteScriptDao;
+    private SugiliteScriptDao sugiliteScriptDao;
     private SugiliteBlockJSONProcessor jsonProcessor;
     private Set<Map.Entry<String, String>> allParentFeatures = new HashSet<>();
     private Set<Map.Entry<String, String>> allChildFeatures = new HashSet<>();
@@ -127,7 +131,10 @@ public class RecordingPopUpDialog extends AbstractSugiliteDialog {
         this.filterTester = new AlternativeNodesFilterTester();
         this.scriptName = sugiliteData.getScriptHead().getScriptName();
         jsonProcessor = new SugiliteBlockJSONProcessor(applicationContext);
-        sugiliteScriptDao = new SugiliteScriptSQLDao(applicationContext);
+        if(Const.DAO_TO_USE == SQL_SCRIPT_DAO)
+            this.sugiliteScriptDao = new SugiliteScriptSQLDao(applicationContext);
+        else
+            this.sugiliteScriptDao = new SugiliteScriptFileDao(applicationContext);
         readableDescriptionGenerator = new ReadableDescriptionGenerator(applicationContext);
         checkBoxChildEntryMap = new HashMap<>();
         checkBoxParentEntryMap = new HashMap<>();
@@ -174,7 +181,10 @@ public class RecordingPopUpDialog extends AbstractSugiliteDialog {
         else
             this.alternativeLabels = new HashSet<>();
         this.screenshotManager = new SugiliteScreenshotManager(sharedPreferences, applicationContext);
-        sugiliteScriptDao = new SugiliteScriptSQLDao(applicationContext);
+        if(Const.DAO_TO_USE == SQL_SCRIPT_DAO)
+            sugiliteScriptDao = new SugiliteScriptSQLDao(applicationContext);
+        else
+            sugiliteScriptDao = new SugiliteScriptFileDao(applicationContext);
         readableDescriptionGenerator = new ReadableDescriptionGenerator(applicationContext);
         checkBoxChildEntryMap = new HashMap<>();
         checkBoxParentEntryMap = new HashMap<>();

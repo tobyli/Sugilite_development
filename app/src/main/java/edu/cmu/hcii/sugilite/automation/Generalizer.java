@@ -7,6 +7,9 @@ import android.content.DialogInterface;
 import java.util.HashSet;
 import java.util.Set;
 
+import edu.cmu.hcii.sugilite.Const;
+import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
+import edu.cmu.hcii.sugilite.dao.SugiliteScriptFileDao;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptSQLDao;
 import edu.cmu.hcii.sugilite.model.block.SerializableNodeInfo;
 import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
@@ -19,6 +22,8 @@ import edu.cmu.hcii.sugilite.model.operation.SugiliteSetTextOperation;
 import edu.cmu.hcii.sugilite.model.variable.StringVariable;
 import edu.cmu.hcii.sugilite.recording.ReadableDescriptionGenerator;
 
+import static edu.cmu.hcii.sugilite.Const.SQL_SCRIPT_DAO;
+
 /**
  * @author toby
  * @date 8/24/16
@@ -26,12 +31,15 @@ import edu.cmu.hcii.sugilite.recording.ReadableDescriptionGenerator;
  */
 public class Generalizer {
 
-    private SugiliteScriptSQLDao sugiliteScriptDao;
+    private SugiliteScriptDao sugiliteScriptDao;
     private ReadableDescriptionGenerator descriptionGenerator;
     private Context context;
     public Generalizer(Context context){
         this.context = context;
-        sugiliteScriptDao = new SugiliteScriptSQLDao(context);
+        if(Const.DAO_TO_USE == SQL_SCRIPT_DAO)
+            this.sugiliteScriptDao = new SugiliteScriptSQLDao(context);
+        else
+            this.sugiliteScriptDao = new SugiliteScriptFileDao(context);
         descriptionGenerator = new ReadableDescriptionGenerator(context);
     }
 

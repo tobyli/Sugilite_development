@@ -40,10 +40,14 @@ import edu.cmu.hcii.sugilite.R;
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.automation.ServiceStatusManager;
 import edu.cmu.hcii.sugilite.communication.SugiliteBlockJSONProcessor;
+import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
+import edu.cmu.hcii.sugilite.dao.SugiliteScriptFileDao;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptSQLDao;
 import edu.cmu.hcii.sugilite.dao.SugiliteTrackingDao;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.tracking.SugiliteTrackingHandler;
+
+import static edu.cmu.hcii.sugilite.Const.SQL_SCRIPT_DAO;
 
 /**
  * A {@link PreferenceActivity} that presents a set of application settings. On
@@ -60,7 +64,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
     private static SharedPreferences prefs;
     private static ServiceStatusManager serviceStatusManager;
     private static SugiliteData sugiliteData;
-    private static SugiliteScriptSQLDao sugiliteScriptDao;
+    private static SugiliteScriptDao sugiliteScriptDao;
     private static SugiliteTrackingDao sugiliteTrackingDao;
     private static SugiliteTrackingHandler trackingHandler;
     private static SugiliteBlockJSONProcessor jsonProcessor;
@@ -73,7 +77,10 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
         prefs = PreferenceManager.getDefaultSharedPreferences(this);
         serviceStatusManager = ServiceStatusManager.getInstance(this);
         sugiliteData = (SugiliteData)getApplication();
-        sugiliteScriptDao = new SugiliteScriptSQLDao(this);
+        if(Const.DAO_TO_USE == SQL_SCRIPT_DAO)
+            sugiliteScriptDao = new SugiliteScriptSQLDao(this);
+        else
+            sugiliteScriptDao = new SugiliteScriptFileDao(this);
         sugiliteTrackingDao = new SugiliteTrackingDao(this);
         trackingHandler = new SugiliteTrackingHandler(sugiliteData, this);
         jsonProcessor = new SugiliteBlockJSONProcessor(this);

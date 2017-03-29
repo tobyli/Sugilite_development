@@ -25,11 +25,14 @@ import edu.cmu.hcii.sugilite.R;
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.automation.ServiceStatusManager;
 import edu.cmu.hcii.sugilite.dao.SugiliteAppVocabularyDao;
+import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
+import edu.cmu.hcii.sugilite.dao.SugiliteScriptFileDao;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptSQLDao;
 import edu.cmu.hcii.sugilite.dao.SugiliteTrackingDao;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 
 import static edu.cmu.hcii.sugilite.Const.SCRIPT_DELAY;
+import static edu.cmu.hcii.sugilite.Const.SQL_SCRIPT_DAO;
 
 /**
  * This is the activty used for communicating with external apps through the Android Intent Mechanism
@@ -37,7 +40,7 @@ import static edu.cmu.hcii.sugilite.Const.SCRIPT_DELAY;
 
 public class SugiliteCommunicationActicvity extends Activity {
     TextView messageType, scriptName;
-    SugiliteScriptSQLDao sugiliteScriptDao;
+    SugiliteScriptDao sugiliteScriptDao;
     SugiliteBlockJSONProcessor jsonProcessor;
     SugiliteData sugiliteData;
     SharedPreferences sharedPreferences;
@@ -121,7 +124,10 @@ public class SugiliteCommunicationActicvity extends Activity {
             scriptName.setText(arg1);
 
         }
-        this.sugiliteScriptDao = new SugiliteScriptSQLDao(this);
+        if(Const.DAO_TO_USE == SQL_SCRIPT_DAO)
+            sugiliteScriptDao = new SugiliteScriptSQLDao(this);
+        else
+            sugiliteScriptDao = new SugiliteScriptFileDao(this);
         this.sugiliteTrackingDao = new SugiliteTrackingDao(this);
         this.vocabularyDao = new SugiliteAppVocabularyDao(this);
         this.jsonProcessor = new SugiliteBlockJSONProcessor(this);
@@ -221,7 +227,13 @@ public class SugiliteCommunicationActicvity extends Activity {
                     finish();
                 }
                 else {
-                    SugiliteStartingBlock script = sugiliteScriptDao.read(arg1 + ".SugiliteScript");
+                    SugiliteStartingBlock script = null;
+                    try {
+                        script = sugiliteScriptDao.read(arg1 + ".SugiliteScript");
+                    }
+                    catch (Exception e){
+                        e.printStackTrace();
+                    }
 
                     if(script == null) {
                         sugiliteData.sendCallbackMsg(Const.RUN_SCRIPT_EXCEPTION, "null script", arg2);
@@ -273,7 +285,13 @@ public class SugiliteCommunicationActicvity extends Activity {
                 break;
             case Const.GET_RECORDING_SCRIPT:
                 //arg1 = scriptName, arg2 = "NULL"
-                SugiliteStartingBlock script = sugiliteScriptDao.read(arg1 + ".SugiliteScript");
+                SugiliteStartingBlock script = null;
+                try {
+                    script = sugiliteScriptDao.read(arg1 + ".SugiliteScript");
+                }
+                catch (Exception e){
+                    e.printStackTrace();
+                }
                 if(script != null)
                     sendReturnValue(jsonProcessor.scriptToJson(script));
                 else
@@ -282,7 +300,13 @@ public class SugiliteCommunicationActicvity extends Activity {
                 break;
             case Const.GET_ALL_RECORDING_SCRIPTS:
                 //arg1 = scriptName, arg2 = "NULL"
-                List<String> allNames = sugiliteScriptDao.getAllNames();
+                List<String> allNames = new ArrayList<>();
+                try {
+                    allNames = sugiliteScriptDao.getAllNames();
+                }
+                catch (Exception e){
+                    e.printStackTrace();
+                }
                 List<String> retVal = new ArrayList<>();
                 for(String name : allNames)
                     retVal.add(name.replace(".SugiliteScript", ""));

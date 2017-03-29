@@ -44,6 +44,8 @@ import java.util.TimeZone;
 import edu.cmu.hcii.sugilite.Const;
 import edu.cmu.hcii.sugilite.R;
 import edu.cmu.hcii.sugilite.SugiliteData;
+import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
+import edu.cmu.hcii.sugilite.dao.SugiliteScriptFileDao;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptSQLDao;
 import edu.cmu.hcii.sugilite.model.AccessibilityNodeInfoList;
 import edu.cmu.hcii.sugilite.model.block.SerializableNodeInfo;
@@ -57,13 +59,15 @@ import edu.cmu.hcii.sugilite.model.operation.SugiliteSetTextOperation;
 import edu.cmu.hcii.sugilite.model.variable.Variable;
 import edu.cmu.hcii.sugilite.ui.dialog.ChooseVariableDialog;
 
+import static edu.cmu.hcii.sugilite.Const.SQL_SCRIPT_DAO;
+
 @Deprecated
 public class mRecordingPopUpActivity extends AppCompatActivity {
 
     private int triggerMode;
     private SugiliteAvailableFeaturePack featurePack;
     private SharedPreferences sharedPreferences;
-    private SugiliteScriptSQLDao sugiliteScriptDao;
+    private SugiliteScriptDao sugiliteScriptDao;
     private Set<Map.Entry<String, String>> allParentFeatures = new HashSet<>();
     private Set<Map.Entry<String, String>> allChildFeatures = new HashSet<>();
     private Set<Map.Entry<String, String>> selectedParentFeatures = new HashSet<>();
@@ -99,7 +103,10 @@ public class mRecordingPopUpActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         sugiliteData = (SugiliteData)getApplication();
-        sugiliteScriptDao = new SugiliteScriptSQLDao(this);
+        if(Const.DAO_TO_USE == SQL_SCRIPT_DAO)
+            sugiliteScriptDao = new SugiliteScriptSQLDao(this);
+        else
+            sugiliteScriptDao = new SugiliteScriptFileDao(this);
         readableDescriptionGenerator = new ReadableDescriptionGenerator(getApplicationContext());
         checkBoxChildEntryMap = new HashMap<>();
         checkBoxParentEntryMap = new HashMap<>();

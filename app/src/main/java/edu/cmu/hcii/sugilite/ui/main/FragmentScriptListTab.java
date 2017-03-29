@@ -24,17 +24,23 @@ import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 
+import edu.cmu.hcii.sugilite.Const;
 import edu.cmu.hcii.sugilite.R;
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.automation.Generalizer;
 import edu.cmu.hcii.sugilite.automation.ServiceStatusManager;
 import edu.cmu.hcii.sugilite.communication.SugiliteBlockJSONProcessor;
+import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
+import edu.cmu.hcii.sugilite.dao.SugiliteScriptFileDao;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptSQLDao;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.ui.ScriptDebuggingActivity;
 import edu.cmu.hcii.sugilite.ui.ScriptDetailActivity;
 import edu.cmu.hcii.sugilite.ui.dialog.NewScriptDialog;
+
+import static edu.cmu.hcii.sugilite.Const.SQL_SCRIPT_DAO;
 
 /**
  * Created by toby on 1/16/17.
@@ -43,7 +49,7 @@ import edu.cmu.hcii.sugilite.ui.dialog.NewScriptDialog;
 public class FragmentScriptListTab extends Fragment {
     private SugiliteData sugiliteData;
     private SharedPreferences sharedPreferences;
-    private SugiliteScriptSQLDao sugiliteScriptDao;
+    private SugiliteScriptDao sugiliteScriptDao;
     private ServiceStatusManager serviceStatusManager;
     private Generalizer generalizer;
     private View rootView;
@@ -58,7 +64,10 @@ public class FragmentScriptListTab extends Fragment {
         View addButton = rootView.findViewById(R.id.addButton);
         serviceStatusManager = ServiceStatusManager.getInstance(activity);
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(activity);
-        sugiliteScriptDao = new SugiliteScriptSQLDao(activity);
+        if(Const.DAO_TO_USE == SQL_SCRIPT_DAO)
+            this.sugiliteScriptDao = new SugiliteScriptSQLDao(activity);
+        else
+            this.sugiliteScriptDao = new SugiliteScriptFileDao(activity);
         sugiliteData = activity.getApplication() instanceof SugiliteData? (SugiliteData)activity.getApplication() : new SugiliteData();
         generalizer = new Generalizer(activity);
         activity.setTitle("Sugilite Script List");
@@ -70,20 +79,30 @@ public class FragmentScriptListTab extends Fragment {
                 NewScriptDialog newScriptDialog = new NewScriptDialog(v.getContext(), sugiliteScriptDao, serviceStatusManager, sharedPreferences, sugiliteData, false, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        setUpScriptList();
+                        try {
+                            setUpScriptList();
+                        }
+                        catch (Exception e){
+                            e.printStackTrace();
+                        }
                     }
                 }, null);
                 newScriptDialog.show();
             }
         });
-        setUpScriptList();
+        try {
+            setUpScriptList();
+        }
+        catch (Exception e){
+            e.printStackTrace();
+        }
         return rootView;
     }
 
     /**
      * update the script list displayed at the main activity according to the DB
      */
-    public void setUpScriptList(){
+    public void setUpScriptList() throws Exception{
         final ListView scriptList = (ListView)rootView.findViewById(R.id.scriptList);
         List<String> names = sugiliteScriptDao.getAllNames();
         List<String> displayNames = new ArrayList<>();
@@ -134,88 +153,98 @@ public class FragmentScriptListTab extends Fragment {
         final AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
         if(info == null)
             return super.onContextItemSelected(item);
-        switch (item.getItemId()){
-            case ITEM_1:
-                //open the view script activity
-                if(info.targetView instanceof TextView && ((TextView) info.targetView).getText() != null) {
-                    String scriptName = ((TextView) info.targetView).getText().toString() + ".SugiliteScript";
-                    final Intent scriptDetailIntent = new Intent(activity, ScriptDetailActivity.class);
-                    scriptDetailIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                    scriptDetailIntent.putExtra("scriptName", scriptName);
-                    startActivity(scriptDetailIntent);
-                }
-                break;
-            case ITEM_2:
-                //open the debug activity
-                if(info.targetView instanceof TextView && ((TextView) info.targetView).getText() != null) {
-                    String scriptName = ((TextView) info.targetView).getText().toString() + ".SugiliteScript";
-                    final Intent scriptDetailIntent = new Intent(activity, ScriptDebuggingActivity.class);
-                    scriptDetailIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                    scriptDetailIntent.putExtra("scriptName", scriptName);
-                    startActivity(scriptDetailIntent);
-                }
-                break;
-            case ITEM_3:
-                if(info.targetView instanceof TextView && ((TextView) info.targetView).getText() != null) {
-                    final String scriptName = ((TextView) info.targetView).getText().toString() + ".SugiliteScript";
-                    AlertDialog.Builder builder = new AlertDialog.Builder(activity);
-                    final EditText newName = new EditText(activity);
-                    builder.setView(newName)
-                            .setTitle("Enter the new name for \"" + ((TextView) info.targetView).getText().toString() + "\"")
-                            .setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-                                    SugiliteStartingBlock startingBlock = sugiliteScriptDao.read(scriptName);
-                                    startingBlock.setScriptName(newName.getText().toString() + ".SugiliteScript");
-                                    try {
-                                        sugiliteScriptDao.save(startingBlock);
-                                        setUpScriptList();
-                                        sugiliteScriptDao.delete(scriptName);
-                                    } catch (Exception e) {
-                                        e.printStackTrace();
+        try {
+            switch (item.getItemId()) {
+                case ITEM_1:
+                    //open the view script activity
+                    if (info.targetView instanceof TextView && ((TextView) info.targetView).getText() != null) {
+                        String scriptName = ((TextView) info.targetView).getText().toString() + ".SugiliteScript";
+                        final Intent scriptDetailIntent = new Intent(activity, ScriptDetailActivity.class);
+                        scriptDetailIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                        scriptDetailIntent.putExtra("scriptName", scriptName);
+                        startActivity(scriptDetailIntent);
+                    }
+                    break;
+                case ITEM_2:
+                    //open the debug activity
+                    if (info.targetView instanceof TextView && ((TextView) info.targetView).getText() != null) {
+                        String scriptName = ((TextView) info.targetView).getText().toString() + ".SugiliteScript";
+                        final Intent scriptDetailIntent = new Intent(activity, ScriptDebuggingActivity.class);
+                        scriptDetailIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                        scriptDetailIntent.putExtra("scriptName", scriptName);
+                        startActivity(scriptDetailIntent);
+                    }
+                    break;
+                case ITEM_3:
+                    if (info.targetView instanceof TextView && ((TextView) info.targetView).getText() != null) {
+                        final String scriptName = ((TextView) info.targetView).getText().toString() + ".SugiliteScript";
+                        AlertDialog.Builder builder = new AlertDialog.Builder(activity);
+                        final EditText newName = new EditText(activity);
+                        builder.setView(newName)
+                                .setTitle("Enter the new name for \"" + ((TextView) info.targetView).getText().toString() + "\"")
+                                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        SugiliteStartingBlock startingBlock = null;
+                                        try {
+                                             startingBlock = sugiliteScriptDao.read(scriptName);
+                                        }
+                                        catch (Exception e){
+                                            e.printStackTrace();
+                                        }
+                                        startingBlock.setScriptName(newName.getText().toString() + ".SugiliteScript");
+                                        try {
+                                            sugiliteScriptDao.save(startingBlock);
+                                            setUpScriptList();
+                                            sugiliteScriptDao.delete(scriptName);
+                                        } catch (Exception e) {
+                                            e.printStackTrace();
+                                        }
                                     }
-                                }
-                            })
-                            .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-                                    dialog.dismiss();
-                                }
-                            }).show();
+                                })
+                                .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        dialog.dismiss();
+                                    }
+                                }).show();
 
-                }
-                break;
-            case ITEM_4:
-                final String scriptName = ((TextView) info.targetView).getText().toString() + ".SugiliteScript";
-                SugiliteStartingBlock startingBlock = sugiliteScriptDao.read(scriptName);
-                SugiliteBlockJSONProcessor processor = new SugiliteBlockJSONProcessor(activity);
-                try {
-                    String json = processor.scriptToJson(startingBlock);
-                    System.out.println(json);
-                    SugiliteStartingBlock recoveredFromJSON = processor.jsonToScript(json);
-                    recoveredFromJSON.setScriptName("recovered_" + recoveredFromJSON.getScriptName());
-                    sugiliteScriptDao.save(recoveredFromJSON);
-                    setUpScriptList();
+                    }
+                    break;
+                case ITEM_4:
+                    final String scriptName = ((TextView) info.targetView).getText().toString() + ".SugiliteScript";
+                    SugiliteStartingBlock startingBlock = sugiliteScriptDao.read(scriptName);
+                    SugiliteBlockJSONProcessor processor = new SugiliteBlockJSONProcessor(activity);
+                    try {
+                        String json = processor.scriptToJson(startingBlock);
+                        System.out.println(json);
+                        SugiliteStartingBlock recoveredFromJSON = processor.jsonToScript(json);
+                        recoveredFromJSON.setScriptName("recovered_" + recoveredFromJSON.getScriptName());
+                        sugiliteScriptDao.save(recoveredFromJSON);
+                        setUpScriptList();
 
-                    sugiliteData.communicationController.sendAllScripts();
-                }
-                catch (Exception e){
-                    e.printStackTrace();
-                }
-                Toast.makeText(activity, "Sharing Script is not supported yet!", Toast.LENGTH_SHORT).show();
-                break;
-            case ITEM_5:
-                final String scriptName1 = ((TextView) info.targetView).getText().toString() + ".SugiliteScript";
-                SugiliteStartingBlock startingBlock1 = sugiliteScriptDao.read(scriptName1);
-                generalizer.generalize(startingBlock1);
-                setUpScriptList();
-                break;
-            case ITEM_6:
-                if(info.targetView instanceof TextView && ((TextView) info.targetView).getText() != null) {
-                    sugiliteScriptDao.delete(((TextView) info.targetView).getText().toString() + ".SugiliteScript");
+                        sugiliteData.communicationController.sendAllScripts();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                    Toast.makeText(activity, "Sharing Script is not supported yet!", Toast.LENGTH_SHORT).show();
+                    break;
+                case ITEM_5:
+                    final String scriptName1 = ((TextView) info.targetView).getText().toString() + ".SugiliteScript";
+                    SugiliteStartingBlock startingBlock1 = sugiliteScriptDao.read(scriptName1);
+                    generalizer.generalize(startingBlock1);
                     setUpScriptList();
-                }
-                break;
+                    break;
+                case ITEM_6:
+                    if (info.targetView instanceof TextView && ((TextView) info.targetView).getText() != null) {
+                        sugiliteScriptDao.delete(((TextView) info.targetView).getText().toString() + ".SugiliteScript");
+                        setUpScriptList();
+                    }
+                    break;
+            }
+        }
+        catch (Exception e){
+            e.printStackTrace();
         }
         return super.onContextItemSelected(item);
     }
@@ -223,7 +252,12 @@ public class FragmentScriptListTab extends Fragment {
     @Override
     public void onResume(){
         super.onResume();
-        setUpScriptList();
+        try {
+            setUpScriptList();
+        }
+        catch (Exception e){
+            e.printStackTrace();
+        }
     }
 
 

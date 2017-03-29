@@ -35,6 +35,8 @@ import edu.cmu.hcii.sugilite.R;
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.automation.Automator;
 import edu.cmu.hcii.sugilite.automation.ServiceStatusManager;
+import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
+import edu.cmu.hcii.sugilite.dao.SugiliteScriptFileDao;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptSQLDao;
 import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteErrorHandlingForkBlock;
@@ -47,6 +49,7 @@ import edu.cmu.hcii.sugilite.ui.dialog.VariableSetValueDialog;
 import edu.cmu.hcii.sugilite.ui.main.SugiliteMainActivity;
 
 import static edu.cmu.hcii.sugilite.Const.SCRIPT_DELAY;
+import static edu.cmu.hcii.sugilite.Const.SQL_SCRIPT_DAO;
 
 public class ScriptDetailActivity extends AppCompatActivity {
 
@@ -54,7 +57,7 @@ public class ScriptDetailActivity extends AppCompatActivity {
     private SugiliteData sugiliteData;
     private String scriptName;
     private SharedPreferences sharedPreferences;
-    private SugiliteScriptSQLDao sugiliteScriptDao;
+    private SugiliteScriptDao sugiliteScriptDao;
     private SugiliteStartingBlock script;
     private ActivityManager activityManager;
     private ServiceStatusManager serviceStatusManager;
@@ -73,8 +76,16 @@ public class ScriptDetailActivity extends AppCompatActivity {
             scriptName = savedInstanceState.getString("scriptName");
         }
         sugiliteData = (SugiliteData)getApplication();
-        sugiliteScriptDao = new SugiliteScriptSQLDao(this);
-        script = sugiliteScriptDao.read(scriptName);
+        if(Const.DAO_TO_USE == SQL_SCRIPT_DAO)
+            sugiliteScriptDao = new SugiliteScriptSQLDao(this);
+        else
+            sugiliteScriptDao = new SugiliteScriptFileDao(this);
+        try {
+            script = sugiliteScriptDao.read(scriptName);
+        }
+        catch (Exception e){
+            e.printStackTrace();
+        }
         this.context = this;
         if(scriptName != null)
             setTitle("View Script: " + scriptName.replace(".SugiliteScript", ""));
@@ -432,7 +443,12 @@ public class ScriptDetailActivity extends AppCompatActivity {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
                             System.out.println("callback called");
-                            script = sugiliteScriptDao.read(scriptName);
+                            try {
+                                script = sugiliteScriptDao.read(scriptName);
+                            }
+                            catch (Exception e){
+                                e.printStackTrace();
+                            }
                             loadOperationList();
                         }
                     };
@@ -491,7 +507,12 @@ public class ScriptDetailActivity extends AppCompatActivity {
             // Make sure the request was successful
             if (resultCode == RESULT_OK) {
                 Toast.makeText(this, "Successfully Editing the Operation", Toast.LENGTH_SHORT).show();
-                script = sugiliteScriptDao.read(scriptName);
+                try {
+                    script = sugiliteScriptDao.read(scriptName);
+                }
+                catch (Exception e){
+                    e.printStackTrace();
+                }
                 loadOperationList();
             }
             else {
@@ -505,7 +526,12 @@ public class ScriptDetailActivity extends AppCompatActivity {
         if(textView == null)
             return;
         attemptToDelete(script, textView);
-        script = sugiliteScriptDao.read(scriptName);
+        try {
+            script = sugiliteScriptDao.read(scriptName);
+        }
+        catch (Exception e){
+            e.printStackTrace();
+        }
         loadOperationList();
     }
 
@@ -576,7 +602,13 @@ public class ScriptDetailActivity extends AppCompatActivity {
                         .setPositiveButton("OK", new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
-                                SugiliteStartingBlock startingBlock = sugiliteScriptDao.read(scriptName);
+                                SugiliteStartingBlock startingBlock = null;
+                                try {
+                                    startingBlock = sugiliteScriptDao.read(scriptName);
+                                }
+                                catch (Exception e){
+                                    e.printStackTrace();
+                                }
                                 startingBlock.setScriptName(newName.getText().toString() + ".SugiliteScript");
                                 try {
                                     sugiliteScriptDao.save(startingBlock);
@@ -604,7 +636,12 @@ public class ScriptDetailActivity extends AppCompatActivity {
                         .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
-                                sugiliteScriptDao.delete(scriptName);
+                                try {
+                                    sugiliteScriptDao.delete(scriptName);
+                                }
+                                catch (Exception e){
+                                    e.printStackTrace();
+                                }
                                 onBackPressed();
                             }
                         })

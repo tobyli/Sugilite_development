@@ -10,6 +10,7 @@ import com.google.gson.Gson;
 
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.dao.SugiliteAppVocabularyDao;
+import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptSQLDao;
 import edu.cmu.hcii.sugilite.dao.SugiliteTrackingDao;
 
@@ -20,7 +21,7 @@ import edu.cmu.hcii.sugilite.dao.SugiliteTrackingDao;
 public class SugiliteCommunicationActivityBroadcastReciever extends BroadcastReceiver
 {
     TextView messageType, scriptName;
-    SugiliteScriptSQLDao sugiliteScriptDao;
+    SugiliteScriptDao sugiliteScriptDao;
     SugiliteBlockJSONProcessor jsonProcessor;
     SugiliteData sugiliteData;
     SharedPreferences sharedPreferences;

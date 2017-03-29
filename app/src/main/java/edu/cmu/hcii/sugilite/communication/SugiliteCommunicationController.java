@@ -23,9 +23,13 @@ import edu.cmu.hcii.sugilite.Const;
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.automation.ServiceStatusManager;
 import edu.cmu.hcii.sugilite.dao.SugiliteAppVocabularyDao;
+import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
+import edu.cmu.hcii.sugilite.dao.SugiliteScriptFileDao;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptSQLDao;
 import edu.cmu.hcii.sugilite.dao.SugiliteTrackingDao;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
+
+import static edu.cmu.hcii.sugilite.Const.SQL_SCRIPT_DAO;
 
 /**
  * This is the controller used for communicating with InMind Middleware
@@ -35,7 +39,7 @@ import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 public class SugiliteCommunicationController {
     private static SugiliteCommunicationController instance;
     private final String TAG = SugiliteCommunicationController.class.getName();
-    SugiliteScriptSQLDao sugiliteScriptDao;
+    SugiliteScriptDao sugiliteScriptDao;
     SugiliteTrackingDao sugiliteTrackingDao;
     SugiliteAppVocabularyDao vocabularyDao;
     SugiliteBlockJSONProcessor jsonProcessor;
@@ -60,7 +64,10 @@ public class SugiliteCommunicationController {
     private SugiliteCommunicationController(Context context, SugiliteData sugiliteData,
                                             SharedPreferences sharedPreferences) {
         this.context = context.getApplicationContext();
-        this.sugiliteScriptDao = new SugiliteScriptSQLDao(this.context);
+        if(Const.DAO_TO_USE == SQL_SCRIPT_DAO)
+            sugiliteScriptDao = new SugiliteScriptSQLDao(this.context);
+        else
+            sugiliteScriptDao = new SugiliteScriptFileDao(this.context);
         this.vocabularyDao = new SugiliteAppVocabularyDao(this.context);
         this.sugiliteTrackingDao = new SugiliteTrackingDao(this.context);
         this.jsonProcessor = new SugiliteBlockJSONProcessor(this.context);
@@ -189,7 +196,13 @@ public class SugiliteCommunicationController {
 
     public List<SugiliteStartingBlock> getRecordingScripts(){
         Log.d(TAG, "Request received: getRecordingScripts");
-        List<String> allNames = sugiliteScriptDao.getAllNames();
+        List<String> allNames = new ArrayList<>();
+        try {
+            allNames = sugiliteScriptDao.getAllNames();
+        }
+        catch (Exception e){
+            e.printStackTrace();
+        }
         List<SugiliteStartingBlock> startingBlocks = new ArrayList<>();
         for(String name : allNames) {
             try {
@@ -238,7 +251,13 @@ public class SugiliteCommunicationController {
 
     public SugiliteStartingBlock getRecordingScript(String scriptName){
         Log.d(TAG, "Request received: getRecordingScript");
-        return sugiliteScriptDao.read(scriptName + ".SugiliteScript");
+        try {
+            return sugiliteScriptDao.read(scriptName + ".SugiliteScript");
+        }
+        catch (Exception e){
+            e.printStackTrace();
+        }
+        return null;
     }
 
     public boolean sendTracking(String trackingName){
@@ -510,8 +529,14 @@ public class SugiliteCommunicationController {
             }
         }
         else {
-            SugiliteStartingBlock script = sugiliteScriptDao.read(scriptName +
-                    ".SugiliteScript");
+            SugiliteStartingBlock script = null;
+            try {
+                script = sugiliteScriptDao.read(scriptName +
+                        ".SugiliteScript");
+            }
+            catch (Exception e){
+                e.printStackTrace();
+            }
             if(script == null) {
                 SugiliteCommunicationController.this.sendMessage(Const.RESPONSE_EXCEPTION,
                         Const.RUN, "Can't find the script");

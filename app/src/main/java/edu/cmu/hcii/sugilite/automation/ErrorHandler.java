@@ -15,7 +15,10 @@ import java.util.HashSet;
 import java.util.Queue;
 import java.util.Set;
 
+import edu.cmu.hcii.sugilite.Const;
 import edu.cmu.hcii.sugilite.SugiliteData;
+import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
+import edu.cmu.hcii.sugilite.dao.SugiliteScriptFileDao;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptSQLDao;
 import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteErrorHandlingForkBlock;
@@ -23,6 +26,8 @@ import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteOperation;
 import edu.cmu.hcii.sugilite.recording.ReadableDescriptionGenerator;
+
+import static edu.cmu.hcii.sugilite.Const.SQL_SCRIPT_DAO;
 
 /**
  * @author toby
@@ -39,7 +44,7 @@ public class ErrorHandler {
     private ReadableDescriptionGenerator descriptionGenerator;
     private SharedPreferences sharedPreferences;
     private Set<String> excludedPackageFromWrongPackage;
-    private SugiliteScriptSQLDao sugiliteScriptDao;
+    private SugiliteScriptDao sugiliteScriptDao;
     private String[] excludedPackageSet = {"com.google.android.inputmethod.pinyin", "com.inMind.inMindAgent", "com.google.android.inputmethod.latin"};
 
     static final private int LAST_WINDOW_CHANGE_TIMEOUT = 20000, LAST_SUCCESSFUL_OPERATION = 40000;
@@ -50,7 +55,10 @@ public class ErrorHandler {
         this.sugiliteData = sugiliteData;
         this.descriptionGenerator = new ReadableDescriptionGenerator(context);
         this.sharedPreferences = sharedPreferences;
-        sugiliteScriptDao = new SugiliteScriptSQLDao(context);
+        if(Const.DAO_TO_USE == SQL_SCRIPT_DAO)
+            this.sugiliteScriptDao = new SugiliteScriptSQLDao(context);
+        else
+            this.sugiliteScriptDao = new SugiliteScriptFileDao(context);
         excludedPackageFromWrongPackage = new HashSet<>(Arrays.asList(excludedPackageSet));
     }
 

@@ -3,11 +3,14 @@ package edu.cmu.hcii.sugilite.dao;
 import android.content.Context;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
+import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 
 /**
@@ -70,8 +73,28 @@ public class SugiliteScriptFileDao implements SugiliteScriptDao {
         }
         return count;
     }
-    public SugiliteStartingBlock read(String key){
-        return null;
+
+    public SugiliteStartingBlock read(String key) throws Exception{
+        FileInputStream fin = null;
+        ObjectInputStream ois = null;
+        SugiliteStartingBlock block = null;
+        try {
+            fin = new FileInputStream(scriptDir.getPath() + "/" + key);
+            ois = new ObjectInputStream(fin);
+            block = (SugiliteStartingBlock) ois.readObject();
+        }
+        catch (Exception e){
+            e.printStackTrace();
+            throw e;
+            //TODO: error handling
+        }
+        finally {
+            if(fin != null)
+                fin.close();
+            if(ois != null)
+                ois.close();
+        }
+            return block;
     }
     public int delete(String key){
         try {
@@ -105,7 +128,6 @@ public class SugiliteScriptFileDao implements SugiliteScriptDao {
         }
         return count;
     }
-
     public List<String> getAllNames(){
         List<String> names = new ArrayList<>();
         try {
@@ -123,8 +145,19 @@ public class SugiliteScriptFileDao implements SugiliteScriptDao {
         return names;
     }
 
-    public List<SugiliteStartingBlock> getAllScripts(){
-        return null;
+    public List<SugiliteStartingBlock> getAllScripts() throws Exception{
+        List<SugiliteStartingBlock> scripts = new ArrayList<>();
+        for(String name : getAllNames()){
+            try{
+                SugiliteStartingBlock script = read(name);
+                scripts.add(script);
+            }
+            catch (Exception e){
+                e.printStackTrace();
+                continue;
+            }
+        }
+        return scripts;
     }
 
     public String getNextAvailableDefaultName(){

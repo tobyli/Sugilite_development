@@ -23,6 +23,7 @@ import java.util.Map;
 
 import edu.cmu.hcii.sugilite.R;
 import edu.cmu.hcii.sugilite.SugiliteData;
+import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptSQLDao;
 import edu.cmu.hcii.sugilite.dao.SugiliteTriggerDao;
 import edu.cmu.hcii.sugilite.model.trigger.SugiliteTrigger;
@@ -40,7 +41,7 @@ public class AddTriggerDialog extends AbstractSugiliteDialog {
     private Context context;
     private AlertDialog dialog;
     private SugiliteData sugiliteData;
-    private SugiliteScriptSQLDao sugiliteScriptDao;
+    private SugiliteScriptDao sugiliteScriptDao;
     private Spinner triggerTypeSpinner, chooseTriggerAppSpinner, chooseNotificationTriggerAppSpinner, chooseScriptTriggerSpinner;
     private TextView chooseTriggerAppTextView, chooseNotificationTriggerAppTextView, notificationTriggerContentTextView;
     private EditText notificationTriggerContentEditText, triggerNameEditText;
@@ -50,7 +51,7 @@ public class AddTriggerDialog extends AbstractSugiliteDialog {
 
 
 
-    public AddTriggerDialog(final Context context, LayoutInflater inflater, SugiliteData sugiliteData, SugiliteScriptSQLDao sugiliteScriptDao, PackageManager pm, Fragment triggerListTab){
+    public AddTriggerDialog(final Context context, LayoutInflater inflater, SugiliteData sugiliteData, SugiliteScriptDao sugiliteScriptDao, PackageManager pm, Fragment triggerListTab) throws Exception{
         this.context = context;
         this.sugiliteData = sugiliteData;
         this.sugiliteScriptDao = sugiliteScriptDao;

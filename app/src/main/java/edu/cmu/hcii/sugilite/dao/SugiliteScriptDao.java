@@ -20,39 +20,39 @@ public interface SugiliteScriptDao {
     /**
      * @return the number of total scripts
      */
-    int size();
+    int size() throws Exception;
 
     /**
      * return the script with name key
      * @param key
      * @return the result script
      */
-    SugiliteStartingBlock read(String key);
+    SugiliteStartingBlock read(String key) throws Exception;
 
     /**
      * delete the script with name key
      * @param key
      * @return the number of scripts deleted
      */
-    int delete(String key);
+    int delete(String key) throws Exception;
 
     /**
      * delete all scripts
      * @return the number of scripts deleted
      */
-    int clear();
+    int clear() throws Exception;
 
     /**
      *
      * @return the names of all scripts
      */
-    List<String> getAllNames();
+    List<String> getAllNames() throws Exception;
 
     /**
      *
      * @return all scripts
      */
-    List<SugiliteStartingBlock> getAllScripts();
+    List<SugiliteStartingBlock> getAllScripts() throws Exception;
 
     /**
      *

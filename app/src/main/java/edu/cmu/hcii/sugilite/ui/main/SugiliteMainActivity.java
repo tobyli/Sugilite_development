@@ -17,17 +17,21 @@ import android.view.Window;
 import edu.cmu.hcii.sugilite.Const;
 import edu.cmu.hcii.sugilite.R;
 import edu.cmu.hcii.sugilite.SugiliteData;
+import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
+import edu.cmu.hcii.sugilite.dao.SugiliteScriptFileDao;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptSQLDao;
 import edu.cmu.hcii.sugilite.dao.SugiliteTriggerDao;
 import edu.cmu.hcii.sugilite.ui.SettingsActivity;
 import edu.cmu.hcii.sugilite.ui.dialog.AddTriggerDialog;
+
+import static edu.cmu.hcii.sugilite.Const.SQL_SCRIPT_DAO;
 
 
 public class SugiliteMainActivity extends AppCompatActivity {
     ActionBar.Tab scriptListTab, triggerListTab;
     Fragment fragmentScriptListTab = new FragmentScriptListTab();
     Fragment fragmentTriggerListTab = new FragmentTriggerListTab();
-    private SugiliteScriptSQLDao sugiliteScriptDao;
+    private SugiliteScriptDao sugiliteScriptDao;
     private SugiliteTriggerDao sugiliteTriggerDao;
     private SugiliteData sugiliteData;
 
@@ -38,7 +42,10 @@ public class SugiliteMainActivity extends AppCompatActivity {
         requestWindowFeature(Window.FEATURE_ACTION_BAR);
         setContentView(R.layout.activity_main);
         sugiliteData = getApplication() instanceof SugiliteData? (SugiliteData)getApplication() : new SugiliteData();
-        sugiliteScriptDao = new SugiliteScriptSQLDao(this);
+        if(Const.DAO_TO_USE == SQL_SCRIPT_DAO)
+            sugiliteScriptDao = new SugiliteScriptSQLDao(this);
+        else
+            sugiliteScriptDao = new SugiliteScriptFileDao(this);
         sugiliteTriggerDao = new SugiliteTriggerDao(this);
 
 
@@ -113,32 +120,52 @@ public class SugiliteMainActivity extends AppCompatActivity {
         }
 
         if (id == R.id.clear_script_list) {
-            int count = (int)sugiliteScriptDao.size();
-            new AlertDialog.Builder(this)
-                    .setTitle("Confirm Clearing Script List")
-                    .setMessage("Are you sure to clear " + count + " scripts?")
-                    .setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                        public void onClick(DialogInterface dialog, int which) {
-                            sugiliteScriptDao.clear();
-                            if(fragmentScriptListTab instanceof  FragmentScriptListTab)
-                                ((FragmentScriptListTab)fragmentScriptListTab).setUpScriptList();
-                        }
-                    })
-                    .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            if(fragmentScriptListTab instanceof  FragmentScriptListTab)
-                                ((FragmentScriptListTab)fragmentScriptListTab).setUpScriptList();
-                            dialog.dismiss();
-                        }
-                    })
-                    .setIcon(android.R.drawable.ic_dialog_alert)
-                    .show();
+            try {
+                int count = (int) sugiliteScriptDao.size();
+                new AlertDialog.Builder(this)
+                        .setTitle("Confirm Clearing Script List")
+                        .setMessage("Are you sure to clear " + count + " scripts?")
+                        .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int which) {
+                                try {
+                                    sugiliteScriptDao.clear();
+                                    if (fragmentScriptListTab instanceof FragmentScriptListTab)
+                                        ((FragmentScriptListTab) fragmentScriptListTab).setUpScriptList();
+                                }
+                                catch (Exception e){
+                                    e.printStackTrace();
+                                }
+                            }
+                        })
+                        .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                try {
+                                    if (fragmentScriptListTab instanceof FragmentScriptListTab)
+                                        ((FragmentScriptListTab) fragmentScriptListTab).setUpScriptList();
+                                    dialog.dismiss();
+                                }
+                                catch (Exception e){
+                                    e.printStackTrace();
+                                }
+                            }
+                        })
+                        .setIcon(android.R.drawable.ic_dialog_alert)
+                        .show();
+            }
+            catch (Exception e){
+                e.printStackTrace();
+            }
             return true;
         }
 
         if(id == R.id.add_trigger){
-            new AddTriggerDialog(this, getLayoutInflater(), sugiliteData, sugiliteScriptDao, getPackageManager(), fragmentTriggerListTab).show();
+            try {
+                new AddTriggerDialog(this, getLayoutInflater(), sugiliteData, sugiliteScriptDao, getPackageManager(), fragmentTriggerListTab).show();
+            }
+            catch (Exception e){
+                e.printStackTrace();
+            }
             return true;
         }
 

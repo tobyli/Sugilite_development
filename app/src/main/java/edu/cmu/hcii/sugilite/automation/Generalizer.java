@@ -46,6 +46,7 @@ public class Generalizer {
 
 
     public void generalize (SugiliteStartingBlock script){
+        //command: often the utterance the user used
         String command = script.getScriptName();
         boolean modified = false;
         //for each operation block, go through the filters, if find match in the command, replace.

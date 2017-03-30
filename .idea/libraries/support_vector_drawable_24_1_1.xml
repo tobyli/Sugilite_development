@@ -1,13 +1,12 @@
 <component name="libraryTable">
   <library name="support-vector-drawable-24.1.1">
     <CLASSES>
-      <root url="file://$PROJECT_DIR$/app/build/intermediates/exploded-aar/com.android.support/support-vector-drawable/24.1.1/res" />
-      <root url="jar://$PROJECT_DIR$/app/build/intermediates/exploded-aar/com.android.support/support-vector-drawable/24.1.1/jars/classes.jar!/" />
+      <root url="file://$USER_HOME$/.android/build-cache/e8cb3a47c266d8b78156fd897fdb10a65b4f3a4d/output/res" />
+      <root url="jar://$USER_HOME$/.android/build-cache/e8cb3a47c266d8b78156fd897fdb10a65b4f3a4d/output/jars/classes.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES>
       <root url="jar://$USER_HOME$/Library/Android/sdk/extras/android/m2repository/com/android/support/support-vector-drawable/24.1.1/support-vector-drawable-24.1.1-sources.jar!/" />
-      <root url="jar://E:/Users/toby/AppData/Local/Android/sdk/extras/android/m2repository/com/android/support/support-vector-drawable/24.1.1/support-vector-drawable-24.1.1-sources.jar!/" />
     </SOURCES>
   </library>
 </component>

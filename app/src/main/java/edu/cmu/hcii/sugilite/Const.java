@@ -1,5 +1,7 @@
 package edu.cmu.hcii.sugilite;
 
+import android.graphics.Color;
+
 /**
  * @author toby
  * @date 10/25/16
@@ -17,9 +19,19 @@ public class Const {
 
     //delay before executing each operation block in Automator
     public static final int DELAY = 3000;
+    public static final int DEBUG_DELAY = 8000;
 
-    //TRUE to keep a list of all elements with text labels
-    public static final boolean KEEP_ALL_TEXT_LABEL_LIST = true;
+    public static final long THRESHOLD_FOR_START_SENDING_ACCESSIBILITY_EVENT = 5000;
+
+    //TRUE to save a list of all elements with text labels
+    public static final boolean KEEP_ALL_TEXT_LABEL_LIST = false;
+
+    //TRUE to save all available nodes in the feature pack
+    public static final boolean KEEP_ALL_NODES_IN_THE_FEATURE_PACK = false;
+
+    //TRUE to save all alternative clickables in the filter
+    public static final boolean KEEP_ALL_ALTERNATIVES_IN_THE_FILTER = false;
+
 
     //contain package names for launchers so they won't be killed
     public static final String[] HOME_SCREEN_PACKAGE_NAMES = {"com.google.android.googlequicksearchbox", "com.google.android.apps.nexuslauncher"};
@@ -71,10 +83,17 @@ public class Const {
     public static final int GET_ALL_PACKAGE_VOCAB = 26;
     public static final int GET_PACKAGE_VOCAB = 27;
     public static final int MULTIPURPOSE_REQUEST = 28;
+    public static final int RUN_SCRIPT_WITH_PARAMETERS = 29;
+
 
     //colors
     public static final String SCRIPT_ACTION_COLOR = "#ffa500", SCRIPT_ACTION_PARAMETER_COLOR = "#bc002f", SCRIPT_TARGET_TYPE_COLOR = "#36a095"
             , SCRIPT_IDENTIFYING_FEATURE_COLOR = "#008400", SCRIPT_VIEW_ID_COLOR = "#800080", SCRIPT_WITHIN_APP_COLOR = "#ff00ff", SCRIPT_LINK_COLOR = "#2e159f";
+
+    public static final int SEMI_TRANSPARENT_GRAY_BACKGROUND = Color.parseColor("#80000000");
+
+
+
 
 
     public static final int FILE_SCRIPT_DAO = 1, SQL_SCRIPT_DAO = 2;

@@ -45,7 +45,6 @@ import edu.cmu.hcii.sugilite.Const;
 import edu.cmu.hcii.sugilite.R;
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.communication.SugiliteBlockJSONProcessor;
-import edu.cmu.hcii.sugilite.dao.SugiliteScreenshotManager;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptFileDao;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptSQLDao;
@@ -125,7 +124,10 @@ public class RecordingPopUpDialog extends AbstractSugiliteDialog {
         this.featurePack = featurePack;
         this.triggerMode = triggerMode;
         this.layoutInflater = inflater;
-        this.alternativeLabels = new HashSet<>(alternativeLabels);
+        if(Const.KEEP_ALL_ALTERNATIVES_IN_THE_FILTER)
+            this.alternativeLabels = new HashSet<>(alternativeLabels);
+        else
+            this.alternativeLabels = new HashSet<>();
         this.screenshotManager = new SugiliteScreenshotManager(sharedPreferences, applicationContext);
         this.skipManager = new RecordingSkipManager();
         this.filterTester = new AlternativeNodesFilterTester();
@@ -368,11 +370,11 @@ public class RecordingPopUpDialog extends AbstractSugiliteDialog {
                 if (sharedPreferences.getBoolean("root_enabled", false)) {
                     try {
                         System.out.println("taking screen shot");
-                        screenshot = screenshotManager.take(false);
+                        screenshot = screenshotManager.take(false, SugiliteScreenshotManager.DIRECTORY_PATH, SugiliteScreenshotManager.getScreenshotFileNameWithDate());
                         operationBlock.setScreenshot(screenshot);
 
                     } catch (Exception e) {
-                        //e.printStackTrace();
+                        e.printStackTrace();
                         System.err.println("[ERROR] Error in taking screenshot, is root access granted?");
                     }
                 }

@@ -87,7 +87,7 @@ public class StatusIconManager {
         if(Const.DAO_TO_USE == SQL_SCRIPT_DAO)
             sugiliteScriptDao = new SugiliteScriptSQLDao(context);
         else
-            sugiliteScriptDao = new SugiliteScriptFileDao(context);
+            sugiliteScriptDao = new SugiliteScriptFileDao(context, sugiliteData);
         this.serviceStatusManager = ServiceStatusManager.getInstance(context);
         this.screenshotManager = new SugiliteScreenshotManager(sharedPreferences, context);
         this.layoutInflater = (LayoutInflater) context.getSystemService( Context.LAYOUT_INFLATER_SERVICE );
@@ -384,7 +384,13 @@ public class StatusIconManager {
                                     //end recording
                                     SharedPreferences.Editor prefEditor = sharedPreferences.edit();
                                     prefEditor.putBoolean("recording_in_process", false);
-                                    prefEditor.commit();
+                                    prefEditor.apply();
+                                    try {
+                                        sugiliteScriptDao.commitSave();
+                                    }
+                                    catch (Exception e){
+                                        e.printStackTrace();
+                                    }
                                     if (sugiliteData.initiatedExternally == true && sugiliteData.getScriptHead() != null) {
                                         sugiliteData.communicationController.sendRecordingFinishedSignal(sugiliteData.getScriptHead().getScriptName());
                                         sugiliteData.sendCallbackMsg(Const.FINISHED_RECORDING, jsonProcessor.scriptToJson(sugiliteData.getScriptHead()), sugiliteData.callbackString);
@@ -402,7 +408,7 @@ public class StatusIconManager {
                                     sugiliteData.initiatedExternally = false;
                                     SharedPreferences.Editor prefEditor2 = sharedPreferences.edit();
                                     prefEditor2.putBoolean("recording_in_process", true);
-                                    prefEditor2.commit();
+                                    prefEditor2.apply();
                                     Toast.makeText(context, "resume recording", Toast.LENGTH_SHORT).show();
                                     sugiliteData.setCurrentSystemState(SugiliteData.RECORDING_STATE);
                                     break;

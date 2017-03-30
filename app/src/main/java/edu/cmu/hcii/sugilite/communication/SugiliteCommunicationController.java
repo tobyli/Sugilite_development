@@ -67,7 +67,7 @@ public class SugiliteCommunicationController {
         if(Const.DAO_TO_USE == SQL_SCRIPT_DAO)
             sugiliteScriptDao = new SugiliteScriptSQLDao(this.context);
         else
-            sugiliteScriptDao = new SugiliteScriptFileDao(this.context);
+            sugiliteScriptDao = new SugiliteScriptFileDao(this.context, sugiliteData);
         this.vocabularyDao = new SugiliteAppVocabularyDao(this.context);
         this.sugiliteTrackingDao = new SugiliteTrackingDao(this.context);
         this.jsonProcessor = new SugiliteBlockJSONProcessor(this.context);
@@ -353,6 +353,7 @@ public class SugiliteCommunicationController {
 
                                         try {
                                             sugiliteScriptDao.save(sugiliteData.getScriptHead());
+                                            sugiliteScriptDao.commitSave();
                                         } catch (Exception e) {
                                             e.printStackTrace();
                                         }
@@ -481,6 +482,7 @@ public class SugiliteCommunicationController {
                 if(!script.getScriptName().contains(".SugiliteScript"))
                     script.setScriptName(script.getScriptName() + ".SugiliteScript");
                 sugiliteScriptDao.save(script);
+                sugiliteScriptDao.commitSave();
                 return script;
             }
             catch (Exception e){

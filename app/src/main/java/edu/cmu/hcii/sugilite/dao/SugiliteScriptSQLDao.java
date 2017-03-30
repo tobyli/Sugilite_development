@@ -61,6 +61,10 @@ public class SugiliteScriptSQLDao implements SugiliteScriptDao {
         }
     }
 
+    public void commitSave(){
+        //TODO: implement the buffer
+    }
+
     /**
      *
      * @return # of rows in DB

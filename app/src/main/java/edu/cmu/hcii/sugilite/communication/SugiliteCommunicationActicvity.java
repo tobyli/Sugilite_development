@@ -124,14 +124,14 @@ public class SugiliteCommunicationActicvity extends Activity {
             scriptName.setText(arg1);
 
         }
-        if(Const.DAO_TO_USE == SQL_SCRIPT_DAO)
-            sugiliteScriptDao = new SugiliteScriptSQLDao(this);
-        else
-            sugiliteScriptDao = new SugiliteScriptFileDao(this);
         this.sugiliteTrackingDao = new SugiliteTrackingDao(this);
         this.vocabularyDao = new SugiliteAppVocabularyDao(this);
         this.jsonProcessor = new SugiliteBlockJSONProcessor(this);
         this.sugiliteData = (SugiliteData)getApplication();
+        if(Const.DAO_TO_USE == SQL_SCRIPT_DAO)
+            sugiliteScriptDao = new SugiliteScriptSQLDao(this);
+        else
+            sugiliteScriptDao = new SugiliteScriptFileDao(this, sugiliteData);
         this.sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         this.context = this;
         handleRequest(messageTypeInt, arg1, arg2);
@@ -178,6 +178,7 @@ public class SugiliteCommunicationActicvity extends Activity {
 
                                         try {
                                             sugiliteScriptDao.save(sugiliteData.getScriptHead());
+                                            sugiliteScriptDao.commitSave();
                                         } catch (Exception e) {
                                             e.printStackTrace();
                                         }
@@ -272,6 +273,7 @@ public class SugiliteCommunicationActicvity extends Activity {
                         if(!script.getScriptName().contains(".SugiliteScript"))
                             script.setScriptName(script.getScriptName() + ".SugiliteScript");
                         sugiliteScriptDao.save(script);
+                        sugiliteScriptDao.commitSave();
                     }
                     catch (Exception e){
                         e.printStackTrace();

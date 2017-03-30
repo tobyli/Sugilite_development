@@ -80,7 +80,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
         if(Const.DAO_TO_USE == SQL_SCRIPT_DAO)
             sugiliteScriptDao = new SugiliteScriptSQLDao(this);
         else
-            sugiliteScriptDao = new SugiliteScriptFileDao(this);
+            sugiliteScriptDao = new SugiliteScriptFileDao(this, sugiliteData);
         sugiliteTrackingDao = new SugiliteTrackingDao(this);
         trackingHandler = new SugiliteTrackingHandler(sugiliteData, this);
         jsonProcessor = new SugiliteBlockJSONProcessor(this);
@@ -175,9 +175,11 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
                                             //set the active script to the newly created script
                                             sugiliteData.initiateScript(scriptName.getText().toString() + ".SugiliteScript");
                                             sugiliteData.initiatedExternally = false;
+                                            sugiliteData.setCurrentSystemState(SugiliteData.RECORDING_STATE);
                                             //save the newly created script to DB
                                             try {
                                                 sugiliteScriptDao.save((SugiliteStartingBlock) sugiliteData.getScriptHead());
+                                                sugiliteScriptDao.commitSave();
                                             } catch (Exception e) {
                                                 e.printStackTrace();
                                             }
@@ -214,9 +216,17 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
 
                     }
                     else{
-                        if(sugiliteData.initiatedExternally == true && sugiliteData.getScriptHead() != null)
+                        sugiliteData.setCurrentSystemState(SugiliteData.DEFAULT_STATE);
+                        try {
+                            sugiliteScriptDao.commitSave();
+                        }
+                        catch (Exception e){
+                            e.printStackTrace();
+                        }
+                        if(sugiliteData.initiatedExternally == true && sugiliteData.getScriptHead() != null) {
                             sugiliteData.communicationController.sendRecordingFinishedSignal(sugiliteData.getScriptHead().getScriptName());
                             sugiliteData.sendCallbackMsg(Const.FINISHED_RECORDING, jsonProcessor.scriptToJson(sugiliteData.getScriptHead()), sugiliteData.callbackString);
+                        }
                     }
                     break;
 

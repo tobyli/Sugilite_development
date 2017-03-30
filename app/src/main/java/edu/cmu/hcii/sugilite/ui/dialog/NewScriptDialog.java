@@ -67,6 +67,7 @@ public class NewScriptDialog extends AbstractSugiliteDialog {
                             //save the newly created script to DB
                             try {
                                 sugiliteScriptDao.save(sugiliteData.getScriptHead());
+                                sugiliteScriptDao.commitSave();
                             }
                             catch (Exception e){
                                 e.printStackTrace();

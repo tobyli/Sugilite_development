@@ -71,7 +71,7 @@ public class Automator {
         if(Const.DAO_TO_USE == SQL_SCRIPT_DAO)
             this.sugiliteScriptDao = new SugiliteScriptSQLDao(context);
         else
-            this.sugiliteScriptDao = new SugiliteScriptFileDao(context);
+            this.sugiliteScriptDao = new SugiliteScriptFileDao(context, sugiliteData);
         this.layoutInflater = (LayoutInflater) context.getSystemService( Context.LAYOUT_INFLATER_SERVICE );
         this.sharedPreferences = sharedPreferences;
         tts = new TextToSpeech(context, new TextToSpeech.OnInitListener() {

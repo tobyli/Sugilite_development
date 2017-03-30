@@ -134,7 +134,7 @@ public class RecordingPopUpDialog extends AbstractSugiliteDialog {
         if(Const.DAO_TO_USE == SQL_SCRIPT_DAO)
             this.sugiliteScriptDao = new SugiliteScriptSQLDao(applicationContext);
         else
-            this.sugiliteScriptDao = new SugiliteScriptFileDao(applicationContext);
+            this.sugiliteScriptDao = new SugiliteScriptFileDao(applicationContext, sugiliteData);
         readableDescriptionGenerator = new ReadableDescriptionGenerator(applicationContext);
         checkBoxChildEntryMap = new HashMap<>();
         checkBoxParentEntryMap = new HashMap<>();
@@ -184,7 +184,7 @@ public class RecordingPopUpDialog extends AbstractSugiliteDialog {
         if(Const.DAO_TO_USE == SQL_SCRIPT_DAO)
             sugiliteScriptDao = new SugiliteScriptSQLDao(applicationContext);
         else
-            sugiliteScriptDao = new SugiliteScriptFileDao(applicationContext);
+            sugiliteScriptDao = new SugiliteScriptFileDao(applicationContext, sugiliteData);
         readableDescriptionGenerator = new ReadableDescriptionGenerator(applicationContext);
         checkBoxChildEntryMap = new HashMap<>();
         checkBoxParentEntryMap = new HashMap<>();
@@ -316,7 +316,13 @@ public class RecordingPopUpDialog extends AbstractSugiliteDialog {
     {
         SharedPreferences.Editor prefEditor = sharedPreferences.edit();
         prefEditor.putBoolean("recording_in_process", false);
-        prefEditor.commit();
+        prefEditor.apply();
+        try {
+            sugiliteScriptDao.commitSave();
+        }
+        catch (Exception e){
+            e.printStackTrace();
+        }
         if(sugiliteData.initiatedExternally == true && sugiliteData.getScriptHead() != null)
             sugiliteData.communicationController.sendRecordingFinishedSignal(sugiliteData.getScriptHead().getScriptName());
             sugiliteData.sendCallbackMsg(Const.FINISHED_RECORDING, jsonProcessor.scriptToJson(sugiliteData.getScriptHead()), sugiliteData.callbackString);
@@ -1218,6 +1224,8 @@ public class RecordingPopUpDialog extends AbstractSugiliteDialog {
                                 try {
                                     originalScript.relevantPackages.add(featurePack.packageName);
                                     sugiliteScriptDao.save(originalScript);
+                                    //commit save for triggered_by_edit
+                                    sugiliteScriptDao.commitSave();
                                     success = true;
                                 }
                                 catch (Exception e){
@@ -1232,6 +1240,8 @@ public class RecordingPopUpDialog extends AbstractSugiliteDialog {
                                 operationBlock.setNextBlock(((SugiliteOperationBlock) currentBlock).getNextBlock());
                                 try {
                                     sugiliteScriptDao.save(originalScript);
+                                    //commit save for triggered_by_edit
+                                    sugiliteScriptDao.commitSave();
                                     success = true;
                                 }
                                 catch (Exception e){

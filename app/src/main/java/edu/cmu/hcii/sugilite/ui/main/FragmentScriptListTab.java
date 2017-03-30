@@ -64,12 +64,12 @@ public class FragmentScriptListTab extends Fragment {
         View addButton = rootView.findViewById(R.id.addButton);
         serviceStatusManager = ServiceStatusManager.getInstance(activity);
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(activity);
+        sugiliteData = activity.getApplication() instanceof SugiliteData? (SugiliteData)activity.getApplication() : new SugiliteData();
         if(Const.DAO_TO_USE == SQL_SCRIPT_DAO)
             this.sugiliteScriptDao = new SugiliteScriptSQLDao(activity);
         else
-            this.sugiliteScriptDao = new SugiliteScriptFileDao(activity);
-        sugiliteData = activity.getApplication() instanceof SugiliteData? (SugiliteData)activity.getApplication() : new SugiliteData();
-        generalizer = new Generalizer(activity);
+            this.sugiliteScriptDao = new SugiliteScriptFileDao(activity, sugiliteData);
+        generalizer = new Generalizer(activity, sugiliteData);
         activity.setTitle("Sugilite Script List");
         //TODO: confirm overwrite when duplicated name
         //TODO: combine the two instances of script creation
@@ -195,6 +195,7 @@ public class FragmentScriptListTab extends Fragment {
                                         startingBlock.setScriptName(newName.getText().toString() + ".SugiliteScript");
                                         try {
                                             sugiliteScriptDao.save(startingBlock);
+                                            sugiliteScriptDao.commitSave();
                                             setUpScriptList();
                                             sugiliteScriptDao.delete(scriptName);
                                         } catch (Exception e) {
@@ -221,6 +222,7 @@ public class FragmentScriptListTab extends Fragment {
                         SugiliteStartingBlock recoveredFromJSON = processor.jsonToScript(json);
                         recoveredFromJSON.setScriptName("recovered_" + recoveredFromJSON.getScriptName());
                         sugiliteScriptDao.save(recoveredFromJSON);
+                        sugiliteScriptDao.commitSave();
                         setUpScriptList();
 
                         sugiliteData.communicationController.sendAllScripts();

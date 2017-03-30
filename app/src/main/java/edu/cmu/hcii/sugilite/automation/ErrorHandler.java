@@ -58,7 +58,7 @@ public class ErrorHandler {
         if(Const.DAO_TO_USE == SQL_SCRIPT_DAO)
             this.sugiliteScriptDao = new SugiliteScriptSQLDao(context);
         else
-            this.sugiliteScriptDao = new SugiliteScriptFileDao(context);
+            this.sugiliteScriptDao = new SugiliteScriptFileDao(context, sugiliteData);
         excludedPackageFromWrongPackage = new HashSet<>(Arrays.asList(excludedPackageSet));
     }
 

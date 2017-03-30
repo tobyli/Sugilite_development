@@ -2,6 +2,7 @@ package edu.cmu.hcii.sugilite.dao;
 
 import java.util.List;
 
+import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 
 /**
@@ -16,6 +17,12 @@ public interface SugiliteScriptDao {
      * @throws Exception
      */
     void save(SugiliteStartingBlock sugiliteBlock) throws Exception;
+
+    /**
+     * write the changes to the disk
+     * @throws Exception
+     */
+    void commitSave() throws Exception;
 
     /**
      * @return the number of total scripts

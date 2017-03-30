@@ -8,6 +8,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import edu.cmu.hcii.sugilite.Const;
+import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptFileDao;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptSQLDao;
@@ -34,12 +35,12 @@ public class Generalizer {
     private SugiliteScriptDao sugiliteScriptDao;
     private ReadableDescriptionGenerator descriptionGenerator;
     private Context context;
-    public Generalizer(Context context){
+    public Generalizer(Context context, SugiliteData sugiliteData){
         this.context = context;
         if(Const.DAO_TO_USE == SQL_SCRIPT_DAO)
             this.sugiliteScriptDao = new SugiliteScriptSQLDao(context);
         else
-            this.sugiliteScriptDao = new SugiliteScriptFileDao(context);
+            this.sugiliteScriptDao = new SugiliteScriptFileDao(context, sugiliteData);
         descriptionGenerator = new ReadableDescriptionGenerator(context);
     }
 
@@ -126,6 +127,7 @@ public class Generalizer {
             script.setScriptName(fileName + "_generalized" + ".SugiliteScript");
             try {
                 sugiliteScriptDao.save(script);
+                sugiliteScriptDao.commitSave();
                 builder.setMessage("Generalization successful!");
             } catch (Exception e) {
                 e.printStackTrace();

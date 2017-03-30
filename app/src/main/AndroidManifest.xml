@@ -81,6 +81,16 @@
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
+        <activity
+            android:name=".communication.SugiliteKeyboardCommunicationAdapterActivity"
+            android:noHistory="true"
+            android:theme="@android:style/Theme.NoDisplay"
+            tools:node="merge">
+            <intent-filter>
+                <action android:name="edu.cmu.hcii.sugilite.KEYBOARD_ADAPTER" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
         <activity android:name=".communication.SugiliteEventBroadcastingActivity"
             android:noHistory="true"
             android:theme="@android:style/Theme.NoDisplay"

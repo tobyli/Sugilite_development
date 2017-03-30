@@ -45,7 +45,7 @@ public class SugiliteTriggerHandler {
         if(Const.DAO_TO_USE == SQL_SCRIPT_DAO)
             sugiliteScriptDao = new SugiliteScriptSQLDao(context);
         else
-            sugiliteScriptDao = new SugiliteScriptFileDao(context);
+            sugiliteScriptDao = new SugiliteScriptFileDao(context, sugiliteData);
         allTriggers = sugiliteTriggerDao.getAllTriggers();
     }
 

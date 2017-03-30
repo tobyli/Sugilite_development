@@ -81,7 +81,7 @@ public class RecordingPopUpActivity extends AppCompatActivity {
         if(Const.DAO_TO_USE == SQL_SCRIPT_DAO)
             this.sugiliteScriptDao = new SugiliteScriptSQLDao(this);
         else
-            this.sugiliteScriptDao = new SugiliteScriptFileDao(this);
+            this.sugiliteScriptDao = new SugiliteScriptFileDao(this, sugiliteData);
         scriptName = sugiliteData.getScriptHead().getScriptName();
         readableDescriptionGenerator = new ReadableDescriptionGenerator(getApplicationContext());
         setContentView(R.layout.activity_recoding_pop_up);

@@ -88,7 +88,7 @@ public class ScriptDebuggingActivity extends AppCompatActivity {
         if(Const.DAO_TO_USE == SQL_SCRIPT_DAO)
             sugiliteScriptDao = new SugiliteScriptSQLDao(this);
         else
-            sugiliteScriptDao = new SugiliteScriptFileDao(this);        //script is read from the DB
+            sugiliteScriptDao = new SugiliteScriptFileDao(this, sugiliteData);        //script is read from the DB
         try {
             script = sugiliteScriptDao.read(scriptName);
         }
@@ -634,6 +634,7 @@ public class ScriptDebuggingActivity extends AppCompatActivity {
                     ((SugiliteOperationBlock) currentBlock).delete();
                     try {
                         sugiliteScriptDao.save(script);
+                        sugiliteScriptDao.commitSave();
                     }
                     catch (Exception e){
                         e.printStackTrace();
@@ -698,6 +699,7 @@ public class ScriptDebuggingActivity extends AppCompatActivity {
                                 try {
                                     sugiliteScriptDao.save(startingBlock);
                                     sugiliteScriptDao.delete(scriptName);
+                                    sugiliteScriptDao.commitSave();
                                     Intent intent = new Intent(context, ScriptDebuggingActivity.class);
                                     intent.putExtra("scriptName", startingBlock.getScriptName());
                                     intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);

@@ -106,7 +106,7 @@ public class mRecordingPopUpActivity extends AppCompatActivity {
         if(Const.DAO_TO_USE == SQL_SCRIPT_DAO)
             sugiliteScriptDao = new SugiliteScriptSQLDao(this);
         else
-            sugiliteScriptDao = new SugiliteScriptFileDao(this);
+            sugiliteScriptDao = new SugiliteScriptFileDao(this, sugiliteData);
         readableDescriptionGenerator = new ReadableDescriptionGenerator(getApplicationContext());
         checkBoxChildEntryMap = new HashMap<>();
         checkBoxParentEntryMap = new HashMap<>();

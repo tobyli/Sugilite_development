@@ -16,12 +16,8 @@ public class SugiliteTextboxHandler {
 
     public void handle(AccessibilityEvent event, AccessibilityNodeInfo sourceNode){
         lastTextbox = sourceNode;
-        save(operationBlock);
     }
 
 
-    private void save(SugiliteOperationBlock operationBlock){
-
-    }
 
 }

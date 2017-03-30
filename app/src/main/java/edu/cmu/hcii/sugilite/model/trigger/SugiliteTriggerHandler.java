@@ -20,6 +20,7 @@ import edu.cmu.hcii.sugilite.ui.dialog.VariableSetValueDialog;
  * Created by toby on 1/15/17.
  */
 
+
 public class SugiliteTriggerHandler {
     private Context context;
     private SugiliteTriggerDao sugiliteTriggerDao;

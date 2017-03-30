@@ -42,6 +42,7 @@ import edu.cmu.hcii.sugilite.recording.RecordingPopUpDialog;
 import edu.cmu.hcii.sugilite.recording.mRecordingPopUpActivity;
 import edu.cmu.hcii.sugilite.tracking.SugiliteTrackingHandler;
 import edu.cmu.hcii.sugilite.ui.StatusIconManager;
+import edu.cmu.hcii.sugilite.recording.SugiliteTextboxHandler;
 
 import static edu.cmu.hcii.sugilite.Const.BROADCASTING_ACCESSIBILITY_EVENT;
 import static edu.cmu.hcii.sugilite.Const.BUILDING_VOCAB;
@@ -64,6 +65,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
     protected SugiliteTriggerHandler triggerHandler;
     protected String lastPackageName = "";
 
+    protected SugiliteTextboxHandler sugiliteTextboxHandler;
 
     public SugiliteAccessibilityService() {
         Log.d( TAG, "inside constructor");
@@ -308,10 +310,12 @@ public class SugiliteAccessibilityService extends AccessibilityService {
 
             //if the event is to be recorded, process it
             if (accessibilityEventSetToSend.contains(event.getEventType()) && (!exceptedPackages.contains(event.getPackageName()))) {
-                if (event.getEventType() == AccessibilityEvent.TYPE_VIEW_TEXT_CHANGED || event.getEventType() == AccessibilityEvent.TYPE_VIEW_FOCUSED){
+                if (event.getEventType() == AccessibilityEvent.TYPE_VIEW_FOCUSED){
                     //pop up warning dialog if focus on text box
+
                     if(sourceNode != null && sourceNode.isEditable()){
-                        Toast.makeText(context, "For recording text entry, please type into the Sugilite recording dialog instead of directly in the textbox. Click on the textbox to show the Sugilite recording dialog.", Toast.LENGTH_SHORT).show();
+                        sugiliteTextboxHandler.handle(event, sourceNode);
+
                     }
                 }
                 else {

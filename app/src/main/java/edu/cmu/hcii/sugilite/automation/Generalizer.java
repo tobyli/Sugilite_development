@@ -7,7 +7,11 @@ import android.content.DialogInterface;
 import java.util.HashSet;
 import java.util.Set;
 
+import edu.cmu.hcii.sugilite.Const;
+import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
+import edu.cmu.hcii.sugilite.dao.SugiliteScriptFileDao;
+import edu.cmu.hcii.sugilite.dao.SugiliteScriptSQLDao;
 import edu.cmu.hcii.sugilite.model.block.SerializableNodeInfo;
 import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteErrorHandlingForkBlock;
@@ -19,6 +23,8 @@ import edu.cmu.hcii.sugilite.model.operation.SugiliteSetTextOperation;
 import edu.cmu.hcii.sugilite.model.variable.StringVariable;
 import edu.cmu.hcii.sugilite.recording.ReadableDescriptionGenerator;
 
+import static edu.cmu.hcii.sugilite.Const.SQL_SCRIPT_DAO;
+
 /**
  * @author toby
  * @date 8/24/16
@@ -29,14 +35,18 @@ public class Generalizer {
     private SugiliteScriptDao sugiliteScriptDao;
     private ReadableDescriptionGenerator descriptionGenerator;
     private Context context;
-    public Generalizer(Context context){
+    public Generalizer(Context context, SugiliteData sugiliteData){
         this.context = context;
-        sugiliteScriptDao = new SugiliteScriptDao(context);
+        if(Const.DAO_TO_USE == SQL_SCRIPT_DAO)
+            this.sugiliteScriptDao = new SugiliteScriptSQLDao(context);
+        else
+            this.sugiliteScriptDao = new SugiliteScriptFileDao(context, sugiliteData);
         descriptionGenerator = new ReadableDescriptionGenerator(context);
     }
 
 
     public void generalize (SugiliteStartingBlock script){
+        //command: often the utterance the user used
         String command = script.getScriptName();
         boolean modified = false;
         //for each operation block, go through the filters, if find match in the command, replace.
@@ -118,6 +128,7 @@ public class Generalizer {
             script.setScriptName(fileName + "_generalized" + ".SugiliteScript");
             try {
                 sugiliteScriptDao.save(script);
+                sugiliteScriptDao.commitSave();
                 builder.setMessage("Generalization successful!");
             } catch (Exception e) {
                 e.printStackTrace();

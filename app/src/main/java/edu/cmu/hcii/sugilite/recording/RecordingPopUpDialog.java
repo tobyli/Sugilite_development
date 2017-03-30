@@ -46,6 +46,8 @@ import edu.cmu.hcii.sugilite.R;
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.communication.SugiliteBlockJSONProcessor;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
+import edu.cmu.hcii.sugilite.dao.SugiliteScriptFileDao;
+import edu.cmu.hcii.sugilite.dao.SugiliteScriptSQLDao;
 import edu.cmu.hcii.sugilite.model.block.SerializableNodeInfo;
 import edu.cmu.hcii.sugilite.model.block.SugiliteAvailableFeaturePack;
 import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
@@ -61,6 +63,8 @@ import edu.cmu.hcii.sugilite.model.variable.StringVariable;
 import edu.cmu.hcii.sugilite.model.variable.Variable;
 import edu.cmu.hcii.sugilite.ui.dialog.AbstractSugiliteDialog;
 import edu.cmu.hcii.sugilite.ui.dialog.ChooseVariableDialog;
+
+import static edu.cmu.hcii.sugilite.Const.SQL_SCRIPT_DAO;
 
 /**
  * @author toby
@@ -129,7 +133,10 @@ public class RecordingPopUpDialog extends AbstractSugiliteDialog {
         this.filterTester = new AlternativeNodesFilterTester();
         this.scriptName = sugiliteData.getScriptHead().getScriptName();
         jsonProcessor = new SugiliteBlockJSONProcessor(applicationContext);
-        sugiliteScriptDao = new SugiliteScriptDao(applicationContext);
+        if(Const.DAO_TO_USE == SQL_SCRIPT_DAO)
+            this.sugiliteScriptDao = new SugiliteScriptSQLDao(applicationContext);
+        else
+            this.sugiliteScriptDao = new SugiliteScriptFileDao(applicationContext, sugiliteData);
         readableDescriptionGenerator = new ReadableDescriptionGenerator(applicationContext);
         checkBoxChildEntryMap = new HashMap<>();
         checkBoxParentEntryMap = new HashMap<>();
@@ -176,7 +183,10 @@ public class RecordingPopUpDialog extends AbstractSugiliteDialog {
         else
             this.alternativeLabels = new HashSet<>();
         this.screenshotManager = new SugiliteScreenshotManager(sharedPreferences, applicationContext);
-        sugiliteScriptDao = new SugiliteScriptDao(applicationContext);
+        if(Const.DAO_TO_USE == SQL_SCRIPT_DAO)
+            sugiliteScriptDao = new SugiliteScriptSQLDao(applicationContext);
+        else
+            sugiliteScriptDao = new SugiliteScriptFileDao(applicationContext, sugiliteData);
         readableDescriptionGenerator = new ReadableDescriptionGenerator(applicationContext);
         checkBoxChildEntryMap = new HashMap<>();
         checkBoxParentEntryMap = new HashMap<>();
@@ -308,7 +318,13 @@ public class RecordingPopUpDialog extends AbstractSugiliteDialog {
     {
         SharedPreferences.Editor prefEditor = sharedPreferences.edit();
         prefEditor.putBoolean("recording_in_process", false);
-        prefEditor.commit();
+        prefEditor.apply();
+        try {
+            sugiliteScriptDao.commitSave();
+        }
+        catch (Exception e){
+            e.printStackTrace();
+        }
         if(sugiliteData.initiatedExternally == true && sugiliteData.getScriptHead() != null)
             sugiliteData.communicationController.sendRecordingFinishedSignal(sugiliteData.getScriptHead().getScriptName());
             sugiliteData.sendCallbackMsg(Const.FINISHED_RECORDING, jsonProcessor.scriptToJson(sugiliteData.getScriptHead()), sugiliteData.callbackString);
@@ -1210,6 +1226,8 @@ public class RecordingPopUpDialog extends AbstractSugiliteDialog {
                                 try {
                                     originalScript.relevantPackages.add(featurePack.packageName);
                                     sugiliteScriptDao.save(originalScript);
+                                    //commit save for triggered_by_edit
+                                    sugiliteScriptDao.commitSave();
                                     success = true;
                                 }
                                 catch (Exception e){
@@ -1224,6 +1242,8 @@ public class RecordingPopUpDialog extends AbstractSugiliteDialog {
                                 operationBlock.setNextBlock(((SugiliteOperationBlock) currentBlock).getNextBlock());
                                 try {
                                     sugiliteScriptDao.save(originalScript);
+                                    //commit save for triggered_by_edit
+                                    sugiliteScriptDao.commitSave();
                                     success = true;
                                 }
                                 catch (Exception e){
@@ -1383,8 +1403,7 @@ public class RecordingPopUpDialog extends AbstractSugiliteDialog {
 
         final SugiliteOperationBlock operationBlock = new SugiliteOperationBlock();
         operationBlock.setOperation(sugiliteOperation);
-        if(Const.KEEP_ALL_NODES_IN_THE_FEATURE_PACK)
-            operationBlock.setFeaturePack(featurePack);
+        operationBlock.setFeaturePack(featurePack);
         operationBlock.setElementMatchingFilter(generateFilter());
         operationBlock.setScreenshot(featurePack.screenshot);
         operationBlock.setDescription(readableDescriptionGenerator.generateReadableDescription(operationBlock));

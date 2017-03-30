@@ -8,7 +8,6 @@ import android.content.pm.PackageManager;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
@@ -21,11 +20,11 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutionException;
 
 import edu.cmu.hcii.sugilite.R;
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
+import edu.cmu.hcii.sugilite.dao.SugiliteScriptSQLDao;
 import edu.cmu.hcii.sugilite.dao.SugiliteTriggerDao;
 import edu.cmu.hcii.sugilite.model.trigger.SugiliteTrigger;
 import edu.cmu.hcii.sugilite.ui.main.FragmentScriptListTab;
@@ -52,7 +51,7 @@ public class AddTriggerDialog extends AbstractSugiliteDialog {
 
 
 
-    public AddTriggerDialog(final Context context, LayoutInflater inflater, SugiliteData sugiliteData, SugiliteScriptDao sugiliteScriptDao, PackageManager pm, Fragment triggerListTab){
+    public AddTriggerDialog(final Context context, LayoutInflater inflater, SugiliteData sugiliteData, SugiliteScriptDao sugiliteScriptDao, PackageManager pm, Fragment triggerListTab) throws Exception{
         this.context = context;
         this.sugiliteData = sugiliteData;
         this.sugiliteScriptDao = sugiliteScriptDao;

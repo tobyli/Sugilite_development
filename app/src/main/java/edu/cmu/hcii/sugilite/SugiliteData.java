@@ -50,6 +50,11 @@ public class SugiliteData extends Application {
     public SugiliteBlock afterExecutionOperation = null;
 
 
+    //caches for file IO through the SugiliteScriptFileDao
+    public Map<String, SugiliteStartingBlock> sugiliteFileScriptDaoSavingCache = new HashMap<>();
+    public Map<String, SugiliteStartingBlock> sugiliteFileScriptDaoReadingCache = new HashMap<>();
+
+
     private Gson gson = new Gson();
 
     //true if the current recording script is initiated externally

@@ -11,7 +11,6 @@ import android.graphics.PixelFormat;
 import android.graphics.Rect;
 import android.net.Uri;
 import android.provider.Settings;
-import android.text.Html;
 import android.util.DisplayMetrics;
 import android.view.GestureDetector;
 import android.view.Gravity;
@@ -28,6 +27,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 import java.util.Queue;
 import java.util.Random;
@@ -36,10 +36,13 @@ import edu.cmu.hcii.sugilite.Const;
 import edu.cmu.hcii.sugilite.R;
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.automation.Automator;
+import edu.cmu.hcii.sugilite.automation.ErrorHandler;
 import edu.cmu.hcii.sugilite.automation.ServiceStatusManager;
 import edu.cmu.hcii.sugilite.communication.SugiliteBlockJSONProcessor;
 import edu.cmu.hcii.sugilite.recording.SugiliteScreenshotManager;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
+import edu.cmu.hcii.sugilite.dao.SugiliteScriptFileDao;
+import edu.cmu.hcii.sugilite.dao.SugiliteScriptSQLDao;
 import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteDelaySpecialOperationBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
@@ -53,6 +56,8 @@ import edu.cmu.hcii.sugilite.recording.ReadableDescriptionGenerator;
 import edu.cmu.hcii.sugilite.ui.dialog.NewScriptDialog;
 import edu.cmu.hcii.sugilite.ui.dialog.SelectElementWithTextDialog;
 import edu.cmu.hcii.sugilite.ui.main.SugiliteMainActivity;
+
+import static edu.cmu.hcii.sugilite.Const.SQL_SCRIPT_DAO;
 
 /**
  * @author toby
@@ -83,7 +88,10 @@ public class StatusIconManager {
         windowManager = (WindowManager) context.getSystemService(context.WINDOW_SERVICE);
         this.sugiliteData = sugiliteData;
         this.sharedPreferences = sharedPreferences;
-        this.sugiliteScriptDao = new SugiliteScriptDao(context);
+        if(Const.DAO_TO_USE == SQL_SCRIPT_DAO)
+            sugiliteScriptDao = new SugiliteScriptSQLDao(context);
+        else
+            sugiliteScriptDao = new SugiliteScriptFileDao(context, sugiliteData);
         this.serviceStatusManager = ServiceStatusManager.getInstance(context);
         this.screenshotManager = new SugiliteScreenshotManager(sharedPreferences, context);
         this.layoutInflater = (LayoutInflater) context.getSystemService( Context.LAYOUT_INFLATER_SERVICE );
@@ -202,12 +210,30 @@ public class StatusIconManager {
                     }
 
                     windowManager.updateViewLayout(statusIcon, iconParams);
-                    //send out empty accessibility event for triggering the automator
-                    AccessibilityEvent e = AccessibilityEvent.obtain();
-                    e.setEventType(AccessibilityEvent.TYPE_ANNOUNCEMENT);
-                    e.getText().add("NULL");
-                    //System.out.println(e);
-                    accessibilityManager.sendAccessibilityEvent(e);
+
+
+                    /**
+                     *
+                     *
+                     *  send out empty accessibility event for triggering the automator
+                     *
+                     *
+                     */
+
+                    //only send this out when the previous successful operation (check the error handler) was more than X seconds ago
+                    long sinceLastWindowChange = -1;
+                    if(sugiliteData.errorHandler != null) {
+                        Calendar calendar = Calendar.getInstance();
+                        long currentTime = calendar.getTimeInMillis();
+                        sinceLastWindowChange = currentTime - sugiliteData.errorHandler.getLastWindowChange();
+                    }
+                    if(sinceLastWindowChange < 0 || sinceLastWindowChange > Const.THRESHOLD_FOR_START_SENDING_ACCESSIBILITY_EVENT) {
+                        System.out.println("INFO: SENDING GENERATED ACCESSIBILITY EVENT: sinceLastWindowChange = " + sinceLastWindowChange);
+                        AccessibilityEvent event = AccessibilityEvent.obtain();
+                        event.setEventType(AccessibilityEvent.TYPE_ANNOUNCEMENT);
+                        event.getText().add("NULL");
+                        accessibilityManager.sendAccessibilityEvent(event);
+                    }
 
                 }
                 else if(trackingInProcess || (broadcastingInProcess && sugiliteData.registeredBroadcastingListener.size() > 0)){
@@ -401,7 +427,13 @@ public class StatusIconManager {
                                     //end recording
                                     SharedPreferences.Editor prefEditor = sharedPreferences.edit();
                                     prefEditor.putBoolean("recording_in_process", false);
-                                    prefEditor.commit();
+                                    prefEditor.apply();
+                                    try {
+                                        sugiliteScriptDao.commitSave();
+                                    }
+                                    catch (Exception e){
+                                        e.printStackTrace();
+                                    }
                                     if (sugiliteData.initiatedExternally == true && sugiliteData.getScriptHead() != null) {
                                         sugiliteData.communicationController.sendRecordingFinishedSignal(sugiliteData.getScriptHead().getScriptName());
                                         sugiliteData.sendCallbackMsg(Const.FINISHED_RECORDING, jsonProcessor.scriptToJson(sugiliteData.getScriptHead()), sugiliteData.callbackString);
@@ -419,7 +451,7 @@ public class StatusIconManager {
                                     sugiliteData.initiatedExternally = false;
                                     SharedPreferences.Editor prefEditor2 = sharedPreferences.edit();
                                     prefEditor2.putBoolean("recording_in_process", true);
-                                    prefEditor2.commit();
+                                    prefEditor2.apply();
                                     Toast.makeText(context, "resume recording", Toast.LENGTH_SHORT).show();
                                     sugiliteData.setCurrentSystemState(SugiliteData.RECORDING_STATE);
                                     break;
@@ -474,7 +506,13 @@ public class StatusIconManager {
                                 case "Add Running a Subscript":
                                     final SugiliteSubscriptSpecialOperationBlock subscriptBlock = new SugiliteSubscriptSpecialOperationBlock();
                                     subscriptBlock.setDescription(descriptionGenerator.generateReadableDescription(subscriptBlock));
-                                    List<String> subscriptNames = sugiliteScriptDao.getAllNames();
+                                    List<String> subscriptNames = new ArrayList<String>();
+                                    try {
+                                        subscriptNames = sugiliteScriptDao.getAllNames();
+                                    }
+                                    catch (Exception e){
+                                        e.printStackTrace();
+                                    }
                                     AlertDialog.Builder chooseSubscriptDialogBuilder = new AlertDialog.Builder(context);
                                     String[] subscripts = new String[subscriptNames.size()];
                                     subscripts = subscriptNames.toArray(subscripts);
@@ -487,7 +525,13 @@ public class StatusIconManager {
                                             String chosenScriptName = subscriptClone[which];
                                             //add a subscript operation block with the script name "chosenScriptName"
                                             subscriptBlock.setSubscriptName(chosenScriptName);
-                                            SugiliteStartingBlock script = sugiliteScriptDao.read(chosenScriptName);
+                                            SugiliteStartingBlock script = null;
+                                            try {
+                                                script = sugiliteScriptDao.read(chosenScriptName);
+                                            }
+                                            catch (Exception e){
+                                                e.printStackTrace();
+                                            }
                                             if(script != null) {
                                                 try {
                                                     SugiliteBlock currentBlock = sugiliteData.getCurrentScriptBlock();

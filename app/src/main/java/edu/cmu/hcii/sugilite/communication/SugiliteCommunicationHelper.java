@@ -22,11 +22,14 @@ import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.automation.ServiceStatusManager;
 import edu.cmu.hcii.sugilite.dao.SugiliteAppVocabularyDao;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
+import edu.cmu.hcii.sugilite.dao.SugiliteScriptFileDao;
+import edu.cmu.hcii.sugilite.dao.SugiliteScriptSQLDao;
 import edu.cmu.hcii.sugilite.dao.SugiliteTrackingDao;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.model.variable.StringVariable;
 
 import static edu.cmu.hcii.sugilite.Const.SCRIPT_DELAY;
+import static edu.cmu.hcii.sugilite.Const.SQL_SCRIPT_DAO;
 
 /**
  * This is the activty used for communicating with external apps through the Android Intent Mechanism
@@ -47,9 +50,11 @@ public class SugiliteCommunicationHelper {
     // classes to help process the request
     SugiliteScriptDao sugiliteScriptDao;
     SugiliteBlockJSONProcessor jsonProcessor;
+    SugiliteData sugiliteData;
     SharedPreferences sharedPreferences;
     SugiliteTrackingDao sugiliteTrackingDao;
     SugiliteAppVocabularyDao vocabularyDao;
+    Context context;
     Gson gson;
 
     // results
@@ -146,6 +151,18 @@ public class SugiliteCommunicationHelper {
         //this.receivedContext = this;
 
         //handleRequest(messageTypeInt, arg1, arg2);
+        this.sugiliteTrackingDao = new SugiliteTrackingDao(this);
+        this.vocabularyDao = new SugiliteAppVocabularyDao(this);
+        this.jsonProcessor = new SugiliteBlockJSONProcessor(this);
+        this.sugiliteData = (SugiliteData)getApplication();
+        if(Const.DAO_TO_USE == SQL_SCRIPT_DAO)
+            sugiliteScriptDao = new SugiliteScriptSQLDao(this);
+        else
+            sugiliteScriptDao = new SugiliteScriptFileDao(this, sugiliteData);
+        this.sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        this.context = this;
+        handleRequest(messageTypeInt, arg1, arg2);
+        finish();
 
     }
 
@@ -193,6 +210,7 @@ public class SugiliteCommunicationHelper {
 
                                         try {
                                             sugiliteScriptDao.save(sugiliteData.getScriptHead());
+                                            sugiliteScriptDao.commitSave();
                                         } catch (Exception e) {
                                             e.printStackTrace();
                                         }
@@ -295,6 +313,13 @@ public class SugiliteCommunicationHelper {
                     return(resultIntent);
                 }
                 else {
+                    SugiliteStartingBlock script = null;
+                    try {
+                        script = sugiliteScriptDao.read(arg1 + ".SugiliteScript");
+                    }
+                    catch (Exception e){
+                        e.printStackTrace();
+                    }
                     //run the script
                     SugiliteStartingBlock script = sugiliteScriptDao.read(arg1 + ".SugiliteScript");
 
@@ -367,7 +392,55 @@ public class SugiliteCommunicationHelper {
                     return(resultIntent);
                 }
                 break;
+            case Const.ADD_JSON_AS_SCRIPT:
+                //arg1 = JSON, arg2 = "NULL"
+                if(arg1 != null){
+                    try{
+                        SugiliteStartingBlock script = jsonProcessor.jsonToScript(arg1);
+                        if(!script.getScriptName().contains(".SugiliteScript"))
+                            script.setScriptName(script.getScriptName() + ".SugiliteScript");
+                        sugiliteScriptDao.save(script);
+                        sugiliteScriptDao.commitSave();
+                    }
+                    catch (Exception e){
+                        e.printStackTrace();
+                        sugiliteData.sendCallbackMsg(Const.ADD_JSON_AS_SCRIPT_EXCEPTION, "error in json parsing", arg2);
+                    }
 
+                }
+                else {
+                    sugiliteData.sendCallbackMsg(Const.ADD_JSON_AS_SCRIPT, "null json", arg2);
+                }
+                break;
+            case Const.GET_RECORDING_SCRIPT:
+                //arg1 = scriptName, arg2 = "NULL"
+                SugiliteStartingBlock script = null;
+                try {
+                    script = sugiliteScriptDao.read(arg1 + ".SugiliteScript");
+                }
+                catch (Exception e){
+                    e.printStackTrace();
+                }
+                if(script != null)
+                    sendReturnValue(jsonProcessor.scriptToJson(script));
+                else
+                    //the exception message below will be sent when can't find a script with provided name
+                    //TODO: send exception message
+                break;
+            case Const.GET_ALL_RECORDING_SCRIPTS:
+                //arg1 = scriptName, arg2 = "NULL"
+                List<String> allNames = new ArrayList<>();
+                try {
+                    allNames = sugiliteScriptDao.getAllNames();
+                }
+                catch (Exception e){
+                    e.printStackTrace();
+                }
+                List<String> retVal = new ArrayList<>();
+                for(String name : allNames)
+                    retVal.add(name.replace(".SugiliteScript", ""));
+                sendReturnValue(new Gson().toJson(retVal));
+                break;
 
             ////// tracking
 

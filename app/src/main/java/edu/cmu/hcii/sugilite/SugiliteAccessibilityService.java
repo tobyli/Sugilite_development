@@ -660,6 +660,14 @@ public class SugiliteAccessibilityService extends AccessibilityService {
         return retMap;
     }
 
+    /**
+     * get alternative nodes: anything that is clickable, of the same class type as the source node
+     * and not in the excepted packages
+     *
+     * @param sourceNode
+     * @param rootNode
+     * @return
+     */
     protected HashSet<SerializableNodeInfo> getAvailableAlternativeNodes (AccessibilityNodeInfo sourceNode, AccessibilityNodeInfo rootNode){
         List<AccessibilityNodeInfo> allNodes = Automator.preOrderTraverse(rootNode);
         HashSet<SerializableNodeInfo> retSet = new HashSet<>();
@@ -667,6 +675,12 @@ public class SugiliteAccessibilityService extends AccessibilityService {
             return retSet;
         for(AccessibilityNodeInfo node : allNodes){
             if(exceptedPackages.contains(node.getPackageName()))
+                continue;
+            if(sourceNode != null &&
+                    node != null &&
+                    node.getClassName() != null &&
+                    sourceNode.getClassName() != null &&
+                    (!sourceNode.getClassName().toString().equals(node.getClassName().toString())))
                 continue;
             if(!node.isClickable())
                 continue;

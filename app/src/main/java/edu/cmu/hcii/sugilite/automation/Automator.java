@@ -24,6 +24,8 @@ import edu.cmu.hcii.sugilite.Const;
 import edu.cmu.hcii.sugilite.SugiliteAccessibilityService;
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
+import edu.cmu.hcii.sugilite.dao.SugiliteScriptFileDao;
+import edu.cmu.hcii.sugilite.dao.SugiliteScriptSQLDao;
 import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteErrorHandlingForkBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
@@ -45,6 +47,7 @@ import android.speech.tts.TextToSpeech;
 import static edu.cmu.hcii.sugilite.Const.DEBUG_DELAY;
 import static edu.cmu.hcii.sugilite.Const.DELAY;
 import static edu.cmu.hcii.sugilite.Const.HOME_SCREEN_PACKAGE_NAMES;
+import static edu.cmu.hcii.sugilite.Const.SQL_SCRIPT_DAO;
 
 
 /**
@@ -68,7 +71,10 @@ public class Automator {
         this.sugiliteData = sugiliteData;
         this.serviceContext = context;
         this.boundingBoxManager = new BoundingBoxManager(context);
-        this.sugiliteScriptDao = new SugiliteScriptDao(context);
+        if(Const.DAO_TO_USE == SQL_SCRIPT_DAO)
+            this.sugiliteScriptDao = new SugiliteScriptSQLDao(context);
+        else
+            this.sugiliteScriptDao = new SugiliteScriptFileDao(context, sugiliteData);
         this.layoutInflater = (LayoutInflater) context.getSystemService( Context.LAYOUT_INFLATER_SERVICE );
         this.sharedPreferences = sharedPreferences;
         tts = new TextToSpeech(context, new TextToSpeech.OnInitListener() {

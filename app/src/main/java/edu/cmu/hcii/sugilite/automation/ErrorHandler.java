@@ -15,14 +15,19 @@ import java.util.HashSet;
 import java.util.Queue;
 import java.util.Set;
 
+import edu.cmu.hcii.sugilite.Const;
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
+import edu.cmu.hcii.sugilite.dao.SugiliteScriptFileDao;
+import edu.cmu.hcii.sugilite.dao.SugiliteScriptSQLDao;
 import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteErrorHandlingForkBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteOperation;
 import edu.cmu.hcii.sugilite.recording.ReadableDescriptionGenerator;
+
+import static edu.cmu.hcii.sugilite.Const.SQL_SCRIPT_DAO;
 
 /**
  * @author toby
@@ -50,8 +55,15 @@ public class ErrorHandler {
         this.sugiliteData = sugiliteData;
         this.descriptionGenerator = new ReadableDescriptionGenerator(context);
         this.sharedPreferences = sharedPreferences;
-        sugiliteScriptDao = new SugiliteScriptDao(context);
+        if(Const.DAO_TO_USE == SQL_SCRIPT_DAO)
+            this.sugiliteScriptDao = new SugiliteScriptSQLDao(context);
+        else
+            this.sugiliteScriptDao = new SugiliteScriptFileDao(context, sugiliteData);
         excludedPackageFromWrongPackage = new HashSet<>(Arrays.asList(excludedPackageSet));
+    }
+
+    public long getLastWindowChange(){
+        return lastWindowChange;
     }
 
     /*

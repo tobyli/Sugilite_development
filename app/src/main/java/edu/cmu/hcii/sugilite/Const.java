@@ -15,19 +15,21 @@ public class Const {
     public static final boolean BROADCASTING_ACCESSIBILITY_EVENT = true;
 
     //delay before running a script after clicking on OK in the VariableSetValueDialog
-    public static final int SCRIPT_DELAY = 3000;
+    public static final int SCRIPT_DELAY = 2000;
 
     //delay before executing each operation block in Automator
-    public static final int DELAY = 5000;
+    public static final int DELAY = 3000;
     public static final int DEBUG_DELAY = 8000;
 
-    //TRUE to keep a list of all elements with text labels
+    public static final long THRESHOLD_FOR_START_SENDING_ACCESSIBILITY_EVENT = 5000;
+
+    //TRUE to save a list of all elements with text labels
     public static final boolean KEEP_ALL_TEXT_LABEL_LIST = false;
 
-    //TRUE to keep all available nodes in the feature pack
+    //TRUE to save all available nodes in the feature pack
     public static final boolean KEEP_ALL_NODES_IN_THE_FEATURE_PACK = false;
 
-    //TRUE to keep all alternative clickables in the filter
+    //TRUE to save all alternative clickables in the filter
     public static final boolean KEEP_ALL_ALTERNATIVES_IN_THE_FILTER = false;
 
 
@@ -92,4 +94,8 @@ public class Const {
 
 
 
+
+
+    public static final int FILE_SCRIPT_DAO = 1, SQL_SCRIPT_DAO = 2;
+    public static final int DAO_TO_USE = FILE_SCRIPT_DAO;
 }

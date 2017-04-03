@@ -11,6 +11,7 @@ import android.graphics.PixelFormat;
 import android.graphics.Rect;
 import android.net.Uri;
 import android.provider.Settings;
+import android.text.Html;
 import android.util.DisplayMetrics;
 import android.view.GestureDetector;
 import android.view.Gravity;

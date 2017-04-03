@@ -1,5 +1,6 @@
 package edu.cmu.hcii.sugilite.recording;
 
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -43,6 +44,7 @@ import java.util.TimeZone;
 
 import edu.cmu.hcii.sugilite.Const;
 import edu.cmu.hcii.sugilite.R;
+import edu.cmu.hcii.sugilite.SugiliteAccessibilityService;
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.communication.SugiliteBlockJSONProcessor;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
@@ -95,6 +97,9 @@ public class RecordingPopUpDialog extends AbstractSugiliteDialog {
     private AlternativeNodesFilterTester filterTester;
     private String childText = "";
     private String scriptName;
+    private AlertDialog progressDialog;
+    private Context context;
+
 
 
 
@@ -118,32 +123,33 @@ public class RecordingPopUpDialog extends AbstractSugiliteDialog {
     public static final int TRIGGERED_BY_NEW_EVENT = 1;
     public static final int TRIGGERED_BY_EDIT = 2;
 
-    public RecordingPopUpDialog(final SugiliteData sugiliteData, Context applicationContext, SugiliteAvailableFeaturePack featurePack, SharedPreferences sharedPreferences, LayoutInflater inflater, int triggerMode, Set<Map.Entry<String, String>> alternativeLabels){
+    public RecordingPopUpDialog(final SugiliteData sugiliteData, Context context, SugiliteAvailableFeaturePack featurePack, SharedPreferences sharedPreferences, LayoutInflater inflater, int triggerMode, Set<Map.Entry<String, String>> alternativeLabels){
         this.sharedPreferences = sharedPreferences;
         this.sugiliteData = sugiliteData;
         this.featurePack = featurePack;
         this.triggerMode = triggerMode;
         this.layoutInflater = inflater;
+        this.context = context;
         if(Const.KEEP_ALL_ALTERNATIVES_IN_THE_FILTER)
             this.alternativeLabels = new HashSet<>(alternativeLabels);
         else
             this.alternativeLabels = new HashSet<>();
-        this.screenshotManager = new SugiliteScreenshotManager(sharedPreferences, applicationContext);
+        this.screenshotManager = new SugiliteScreenshotManager(sharedPreferences, context);
         this.skipManager = new RecordingSkipManager();
         this.filterTester = new AlternativeNodesFilterTester();
         this.scriptName = sugiliteData.getScriptHead().getScriptName();
-        jsonProcessor = new SugiliteBlockJSONProcessor(applicationContext);
+        jsonProcessor = new SugiliteBlockJSONProcessor(context);
         if(Const.DAO_TO_USE == SQL_SCRIPT_DAO)
-            this.sugiliteScriptDao = new SugiliteScriptSQLDao(applicationContext);
+            this.sugiliteScriptDao = new SugiliteScriptSQLDao(context);
         else
-            this.sugiliteScriptDao = new SugiliteScriptFileDao(applicationContext, sugiliteData);
-        readableDescriptionGenerator = new ReadableDescriptionGenerator(applicationContext);
+            this.sugiliteScriptDao = new SugiliteScriptFileDao(context, sugiliteData);
+        readableDescriptionGenerator = new ReadableDescriptionGenerator(context);
         checkBoxChildEntryMap = new HashMap<>();
         checkBoxParentEntryMap = new HashMap<>();
         identifierCheckboxMap = new HashMap<>();
         dialogRootView = inflater.inflate(R.layout.dialog_recording_pop_up, null);
-        ContextThemeWrapper ctw = new ContextThemeWrapper(applicationContext, R.style.AlertDialogCustom);
-        AlertDialog.Builder builder = new AlertDialog.Builder(applicationContext);
+        ContextThemeWrapper ctw = new ContextThemeWrapper(context, R.style.AlertDialogCustom);
+        AlertDialog.Builder builder = new AlertDialog.Builder(context);
         builder.setView(dialogRootView)
                 .setTitle("Sugilite Recording Panel");
         dialog = builder.create();
@@ -165,7 +171,7 @@ public class RecordingPopUpDialog extends AbstractSugiliteDialog {
     }
 
     //THIS CONSTRUCTOR IS USED FOR EDITING ONLY!
-    public RecordingPopUpDialog(final SugiliteData sugiliteData, Context applicationContext, SugiliteStartingBlock originalScript, SharedPreferences sharedPreferences, SugiliteOperationBlock blockToEdit, LayoutInflater inflater, int triggerMode, DialogInterface.OnClickListener callback){
+    public RecordingPopUpDialog(final SugiliteData sugiliteData, Context context, SugiliteStartingBlock originalScript, SharedPreferences sharedPreferences, SugiliteOperationBlock blockToEdit, LayoutInflater inflater, int triggerMode, DialogInterface.OnClickListener callback){
         this.sharedPreferences = sharedPreferences;
         this.sugiliteData = sugiliteData;
         this.featurePack = blockToEdit.getFeaturePack();
@@ -177,22 +183,23 @@ public class RecordingPopUpDialog extends AbstractSugiliteDialog {
         this.skipManager = new RecordingSkipManager();
         this.filterTester = new AlternativeNodesFilterTester();
         this.scriptName = originalScript.getScriptName();
-        jsonProcessor = new SugiliteBlockJSONProcessor(applicationContext);
+        this.context = context;
+        jsonProcessor = new SugiliteBlockJSONProcessor(context);
         if(blockToEdit.getElementMatchingFilter().alternativeLabels != null)
             this.alternativeLabels = new HashSet<>(blockToEdit.getElementMatchingFilter().alternativeLabels);
         else
             this.alternativeLabels = new HashSet<>();
-        this.screenshotManager = new SugiliteScreenshotManager(sharedPreferences, applicationContext);
+        this.screenshotManager = new SugiliteScreenshotManager(sharedPreferences, context);
         if(Const.DAO_TO_USE == SQL_SCRIPT_DAO)
-            sugiliteScriptDao = new SugiliteScriptSQLDao(applicationContext);
+            sugiliteScriptDao = new SugiliteScriptSQLDao(context);
         else
-            sugiliteScriptDao = new SugiliteScriptFileDao(applicationContext, sugiliteData);
-        readableDescriptionGenerator = new ReadableDescriptionGenerator(applicationContext);
+            sugiliteScriptDao = new SugiliteScriptFileDao(context, sugiliteData);
+        readableDescriptionGenerator = new ReadableDescriptionGenerator(context);
         checkBoxChildEntryMap = new HashMap<>();
         checkBoxParentEntryMap = new HashMap<>();
         identifierCheckboxMap = new HashMap<>();
         dialogRootView = inflater.inflate(R.layout.dialog_recording_pop_up, null);
-        AlertDialog.Builder builder = new AlertDialog.Builder(applicationContext);
+        AlertDialog.Builder builder = new AlertDialog.Builder(context);
         builder.setView(dialogRootView)
                 .setTitle("Sugilite Recording Panel");
         dialog = builder.create();
@@ -319,12 +326,36 @@ public class RecordingPopUpDialog extends AbstractSugiliteDialog {
         SharedPreferences.Editor prefEditor = sharedPreferences.edit();
         prefEditor.putBoolean("recording_in_process", false);
         prefEditor.apply();
-        try {
-            sugiliteScriptDao.commitSave();
-        }
-        catch (Exception e){
-            e.printStackTrace();
-        }
+
+        progressDialog = new AlertDialog.Builder(context).setMessage(Const.SAVING_MESSAGE).create();
+        progressDialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
+        progressDialog.setCanceledOnTouchOutside(false);
+        progressDialog.show();
+        new Thread(new Runnable() {
+            @Override
+            public void run()
+            {
+                try {
+                    sugiliteScriptDao.commitSave();
+                }
+                catch (Exception e){
+                    e.printStackTrace();
+                }
+                Runnable dismissDialog = new Runnable() {
+                    @Override
+                    public void run() {
+                        progressDialog.dismiss();
+                    }
+                };
+                if(context instanceof SugiliteAccessibilityService) {
+                    ((SugiliteAccessibilityService) context).runOnUiThread(dismissDialog);
+                }
+                else if(context instanceof Activity){
+                    ((Activity)context).runOnUiThread(dismissDialog);
+                }
+            }
+        }).start();
+
         if(sugiliteData.initiatedExternally == true && sugiliteData.getScriptHead() != null)
             sugiliteData.communicationController.sendRecordingFinishedSignal(sugiliteData.getScriptHead().getScriptName());
             sugiliteData.sendCallbackMsg(Const.FINISHED_RECORDING, jsonProcessor.scriptToJson(sugiliteData.getScriptHead()), sugiliteData.callbackString);
@@ -1227,7 +1258,35 @@ public class RecordingPopUpDialog extends AbstractSugiliteDialog {
                                     originalScript.relevantPackages.add(featurePack.packageName);
                                     sugiliteScriptDao.save(originalScript);
                                     //commit save for triggered_by_edit
-                                    sugiliteScriptDao.commitSave();
+
+                                    progressDialog = new AlertDialog.Builder(context).setMessage(Const.SAVING_MESSAGE).create();
+                                    progressDialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
+                                    progressDialog.setCanceledOnTouchOutside(false);
+                                    progressDialog.show();
+                                    new Thread(new Runnable() {
+                                        @Override
+                                        public void run()
+                                        {
+                                            try {
+                                                sugiliteScriptDao.commitSave();
+                                            }
+                                            catch (Exception e){
+                                                e.printStackTrace();
+                                            }
+                                            Runnable dismissDialog = new Runnable() {
+                                                @Override
+                                                public void run() {
+                                                    progressDialog.dismiss();
+                                                }
+                                            };
+                                            if(context instanceof SugiliteAccessibilityService) {
+                                                ((SugiliteAccessibilityService) context).runOnUiThread(dismissDialog);
+                                            }
+                                            else if(context instanceof Activity){
+                                                ((Activity)context).runOnUiThread(dismissDialog);
+                                            }
+                                        }
+                                    }).start();
                                     success = true;
                                 }
                                 catch (Exception e){
@@ -1243,7 +1302,34 @@ public class RecordingPopUpDialog extends AbstractSugiliteDialog {
                                 try {
                                     sugiliteScriptDao.save(originalScript);
                                     //commit save for triggered_by_edit
-                                    sugiliteScriptDao.commitSave();
+                                    progressDialog = new AlertDialog.Builder(context).setMessage(Const.SAVING_MESSAGE).create();
+                                    progressDialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
+                                    progressDialog.setCanceledOnTouchOutside(false);
+                                    progressDialog.show();
+                                    new Thread(new Runnable() {
+                                        @Override
+                                        public void run()
+                                        {
+                                            try {
+                                                sugiliteScriptDao.commitSave();
+                                            }
+                                            catch (Exception e){
+                                                e.printStackTrace();
+                                            }
+                                            Runnable dismissDialog = new Runnable() {
+                                                @Override
+                                                public void run() {
+                                                    progressDialog.dismiss();
+                                                }
+                                            };
+                                            if(context instanceof SugiliteAccessibilityService) {
+                                                ((SugiliteAccessibilityService) context).runOnUiThread(dismissDialog);
+                                            }
+                                            else if(context instanceof Activity){
+                                                ((Activity)context).runOnUiThread(dismissDialog);
+                                            }
+                                        }
+                                    }).start();
                                     success = true;
                                 }
                                 catch (Exception e){

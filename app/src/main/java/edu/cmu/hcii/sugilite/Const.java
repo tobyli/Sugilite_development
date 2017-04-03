@@ -15,13 +15,13 @@ public class Const {
     public static final boolean BROADCASTING_ACCESSIBILITY_EVENT = true;
 
     //delay before running a script after clicking on OK in the VariableSetValueDialog
-    public static final int SCRIPT_DELAY = 2000;
+    public static final int SCRIPT_DELAY = 5000;
 
     //delay before executing each operation block in Automator
-    public static final int DELAY = 3000;
+    public static final int DELAY = 4000;
     public static final int DEBUG_DELAY = 8000;
 
-    public static final long THRESHOLD_FOR_START_SENDING_ACCESSIBILITY_EVENT = 5000;
+    public static final long THRESHOLD_FOR_START_SENDING_ACCESSIBILITY_EVENT = 7000;
 
     //TRUE to save a list of all elements with text labels
     public static final boolean KEEP_ALL_TEXT_LABEL_LIST = false;
@@ -93,7 +93,7 @@ public class Const {
     public static final int SEMI_TRANSPARENT_GRAY_BACKGROUND = Color.parseColor("#80000000");
 
 
-
+    public static final String LOADING_MESSAGE = "Loading the script...\n", SAVING_MESSAGE = "Saving the script... \n";
 
 
     public static final int FILE_SCRIPT_DAO = 1, SQL_SCRIPT_DAO = 2;

@@ -1,7 +1,10 @@
 package edu.cmu.hcii.sugilite.ui;
 
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.app.ProgressDialog;
+import android.app.Service;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -35,6 +38,7 @@ import java.util.Random;
 
 import edu.cmu.hcii.sugilite.Const;
 import edu.cmu.hcii.sugilite.R;
+import edu.cmu.hcii.sugilite.SugiliteAccessibilityService;
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.automation.Automator;
 import edu.cmu.hcii.sugilite.automation.ErrorHandler;
@@ -83,6 +87,7 @@ public class StatusIconManager {
     private AccessibilityManager accessibilityManager;
     private CurrentStateView statusView;
     private Queue<SugiliteBlock> storedQueue;
+    private AlertDialog progressDialog;
 
     public StatusIconManager(Context context, SugiliteData sugiliteData, SharedPreferences sharedPreferences, AccessibilityManager accessibilityManager){
         this.context = context;
@@ -429,12 +434,37 @@ public class StatusIconManager {
                                     SharedPreferences.Editor prefEditor = sharedPreferences.edit();
                                     prefEditor.putBoolean("recording_in_process", false);
                                     prefEditor.apply();
-                                    try {
-                                        sugiliteScriptDao.commitSave();
-                                    }
-                                    catch (Exception e){
-                                        e.printStackTrace();
-                                    }
+
+                                    progressDialog = new AlertDialog.Builder(context).setMessage(Const.SAVING_MESSAGE).create();
+                                    progressDialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
+                                    progressDialog.setCanceledOnTouchOutside(false);
+                                    progressDialog.show();
+                                    new Thread(new Runnable() {
+                                        @Override
+                                        public void run()
+                                        {
+                                            try {
+                                                sugiliteScriptDao.commitSave();
+                                            }
+                                            catch (Exception e){
+                                                e.printStackTrace();
+                                            }
+                                            Runnable dismissDialog = new Runnable() {
+                                                @Override
+                                                public void run() {
+                                                    progressDialog.dismiss();
+                                                }
+                                            };
+                                            if(context instanceof SugiliteAccessibilityService) {
+                                                ((SugiliteAccessibilityService) context).runOnUiThread(dismissDialog);
+                                            }
+                                            else if(context instanceof Activity){
+                                                ((Activity)context).runOnUiThread(dismissDialog);
+                                            }
+                                        }
+                                    }).start();
+
+
                                     if (sugiliteData.initiatedExternally == true && sugiliteData.getScriptHead() != null) {
                                         sugiliteData.communicationController.sendRecordingFinishedSignal(sugiliteData.getScriptHead().getScriptName());
                                         sugiliteData.sendCallbackMsg(Const.FINISHED_RECORDING, jsonProcessor.scriptToJson(sugiliteData.getScriptHead()), sugiliteData.callbackString);

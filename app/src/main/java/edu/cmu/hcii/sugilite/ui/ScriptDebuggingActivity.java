@@ -1,5 +1,6 @@
 package edu.cmu.hcii.sugilite.ui;
 
+import android.app.Activity;
 import android.app.ActivityManager;
 import android.app.AlertDialog;
 import android.content.Context;
@@ -20,6 +21,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -33,6 +35,7 @@ import java.util.Map;
 
 import edu.cmu.hcii.sugilite.Const;
 import edu.cmu.hcii.sugilite.R;
+import edu.cmu.hcii.sugilite.SugiliteAccessibilityService;
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.automation.Automator;
 import edu.cmu.hcii.sugilite.automation.ServiceStatusManager;
@@ -71,6 +74,7 @@ public class ScriptDebuggingActivity extends AppCompatActivity {
     private ActivityManager activityManager;
     private ServiceStatusManager serviceStatusManager;
     private Context context;
+    private AlertDialog progressDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -98,7 +102,42 @@ public class ScriptDebuggingActivity extends AppCompatActivity {
         this.context = this;
         if(scriptName != null)
             setTitle("View Script: " + scriptName.replace(".SugiliteScript", ""));
-        loadOperationList();
+
+        progressDialog = new AlertDialog.Builder(context).setMessage(Const.LOADING_MESSAGE).create();
+        progressDialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
+        progressDialog.show();
+        new Thread(new Runnable() {
+            @Override
+            public void run()
+            {
+                try {
+                    script = sugiliteScriptDao.read(scriptName);
+                }
+                catch (Exception e){
+                    e.printStackTrace();
+                }
+                Runnable dismissDialog = new Runnable() {
+                    @Override
+                    public void run() {
+                        progressDialog.dismiss();
+                    }
+                };
+                Runnable loadOperation = new Runnable() {
+                    @Override
+                    public void run() {
+                        loadOperationList();
+                    }
+                };
+                if(context instanceof SugiliteAccessibilityService) {
+                    ((SugiliteAccessibilityService) context).runOnUiThread(loadOperation);
+                    ((SugiliteAccessibilityService) context).runOnUiThread(dismissDialog);
+                }
+                else if(context instanceof Activity){
+                    ((Activity)context).runOnUiThread(loadOperation);
+                    ((Activity)context).runOnUiThread(dismissDialog);
+                }
+            }
+        }).start();
 
     }
 
@@ -537,7 +576,7 @@ public class ScriptDebuggingActivity extends AppCompatActivity {
                             loadOperationList();
                         }
                     };
-                    RecordingPopUpDialog recordingPopUpDialog = new RecordingPopUpDialog(sugiliteData, getApplicationContext(), script, sharedPreferences, (SugiliteOperationBlock)currentBlock, LayoutInflater.from(getApplicationContext()), RecordingPopUpDialog.TRIGGERED_BY_EDIT, callback);
+                    RecordingPopUpDialog recordingPopUpDialog = new RecordingPopUpDialog(sugiliteData, this, script, sharedPreferences, (SugiliteOperationBlock)currentBlock, LayoutInflater.from(getApplicationContext()), RecordingPopUpDialog.TRIGGERED_BY_EDIT, callback);
                     sugiliteData.initiatedExternally = false;
                     recordingPopUpDialog.show(true);
                     break;

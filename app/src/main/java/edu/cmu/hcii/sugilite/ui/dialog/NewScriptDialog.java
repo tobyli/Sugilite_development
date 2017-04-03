@@ -23,6 +23,10 @@ import edu.cmu.hcii.sugilite.dao.SugiliteScriptSQLDao;
  * @date 8/3/16
  * @time 6:14 PM
  */
+
+/**
+ * Dialog used for creating a new script -> asking the user to give the script a name and set the system into the recording state
+ */
 public class NewScriptDialog extends AbstractSugiliteDialog {
     private AlertDialog dialog;
     public NewScriptDialog(final Context context, final SugiliteScriptDao sugiliteScriptDao, final ServiceStatusManager serviceStatusManager,

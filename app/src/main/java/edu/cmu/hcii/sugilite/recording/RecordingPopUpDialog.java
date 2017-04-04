@@ -101,9 +101,6 @@ public class RecordingPopUpDialog extends AbstractSugiliteDialog {
     private Context context;
 
 
-
-
-
     private Spinner actionSpinner, targetTypeSpinner, withInAppSpinner, readoutParameterSpinner, loadVariableParameterSpinner;
     private CheckBox textCheckbox, contentDescriptionCheckbox, viewIdCheckbox, boundsInParentCheckbox, boundsInScreenCheckbox;
     private EditText setTextEditText, loadVariableVariableDefaultValue, loadVariableVariableName;
@@ -116,9 +113,6 @@ public class RecordingPopUpDialog extends AbstractSugiliteDialog {
     private SugiliteOperationBlock blockToEdit;
 
     private AlertDialog dialog;
-
-    static final int PICK_CHILD_FEATURE = 1;
-    static final int PICK_PARENT_FEATURE = 2;
 
     public static final int TRIGGERED_BY_NEW_EVENT = 1;
     public static final int TRIGGERED_BY_EDIT = 2;
@@ -225,6 +219,7 @@ public class RecordingPopUpDialog extends AbstractSugiliteDialog {
 
     public void show(boolean doNotSkip){
 
+        //show() needs to be on the UI Thread.
         Runnable runnable = new Runnable() {
             @Override
             public void run() {
@@ -258,6 +253,7 @@ public class RecordingPopUpDialog extends AbstractSugiliteDialog {
         }
         //to show the full popup
         else {
+            //context can be either from an activity (editing) or the accessibility service
             if(context instanceof SugiliteAccessibilityService) {
                 ((SugiliteAccessibilityService)context).runOnUiThread(runnable);
             }

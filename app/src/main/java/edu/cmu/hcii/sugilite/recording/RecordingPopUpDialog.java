@@ -224,24 +224,46 @@ public class RecordingPopUpDialog extends AbstractSugiliteDialog {
     }
 
     public void show(boolean doNotSkip){
+
+        Runnable runnable = new Runnable() {
+            @Override
+            public void run() {
+                dialog.show();
+                dialog.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM);
+            }
+        };
+
         //to skip
         if(skipManager.checkSkip(featurePack, triggerMode, generateFilter(), featurePack.alternativeNodes).contentEquals("skip") && (!doNotSkip))
             OKButtonOnClick(null);
         //to show the disambiguation panel
+
         else if (skipManager.checkSkip(featurePack, triggerMode, generateFilter(), featurePack.alternativeNodes).contentEquals("disambiguation")){
             hideUnrelevantInfo(true, "Sugilite finds multiple possible features for the object you've just opearted on and can't determine the best feature to use.\n\nCan you choose the best feature to use for identifying this object in future executions of this script?");
-            dialog.show();
-            dialog.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM);
+            if(context instanceof SugiliteAccessibilityService) {
+                ((SugiliteAccessibilityService)context).runOnUiThread(runnable);
+            }
+            else if(context instanceof Activity){
+                ((Activity) context).runOnUiThread(runnable);
+            }
         }
         else if (skipManager.checkSkip(featurePack, triggerMode, generateFilter(), featurePack.alternativeNodes).contentEquals("multipleMatch")){
             hideUnrelevantInfo(false, "Sugilte's automatically generated feature set can match more than one objects on the current screen.\n\nCan you choose the best set of features to use for identifying this object in future executions of this script?");
-            dialog.show();
-            dialog.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM);
+            if(context instanceof SugiliteAccessibilityService) {
+                ((SugiliteAccessibilityService)context).runOnUiThread(runnable);
+            }
+            else if(context instanceof Activity){
+                ((Activity) context).runOnUiThread(runnable);
+            }
         }
         //to show the full popup
         else {
-            dialog.show();
-            dialog.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM);
+            if(context instanceof SugiliteAccessibilityService) {
+                ((SugiliteAccessibilityService)context).runOnUiThread(runnable);
+            }
+            else if(context instanceof Activity){
+                ((Activity) context).runOnUiThread(runnable);
+            }
         }
     }
 
@@ -330,7 +352,21 @@ public class RecordingPopUpDialog extends AbstractSugiliteDialog {
         progressDialog = new AlertDialog.Builder(context).setMessage(Const.SAVING_MESSAGE).create();
         progressDialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
         progressDialog.setCanceledOnTouchOutside(false);
-        progressDialog.show();
+
+        Runnable showProgressDialogRunnable = new Runnable() {
+            @Override
+            public void run() {
+                progressDialog.show();
+            }
+        };
+        if(context instanceof SugiliteAccessibilityService) {
+            ((SugiliteAccessibilityService)context).runOnUiThread(showProgressDialogRunnable);
+        }
+        else if(context instanceof Activity){
+            ((Activity) context).runOnUiThread(showProgressDialogRunnable);
+        }
+
+
         new Thread(new Runnable() {
             @Override
             public void run()
@@ -350,8 +386,8 @@ public class RecordingPopUpDialog extends AbstractSugiliteDialog {
                 if(context instanceof SugiliteAccessibilityService) {
                     ((SugiliteAccessibilityService) context).runOnUiThread(dismissDialog);
                 }
-                else if(context instanceof Activity){
-                    ((Activity)context).runOnUiThread(dismissDialog);
+                else if (context instanceof Activity){
+                    ((Activity) context).runOnUiThread(dismissDialog);
                 }
             }
         }).start();
@@ -369,13 +405,24 @@ public class RecordingPopUpDialog extends AbstractSugiliteDialog {
         if (actionSpinnerSelectedItem.contentEquals("Load as Variable")){
             if(loadVariableVariableName.getText().length() < 1){
                 //variable name not filled, popup window
-                AlertDialog.Builder builder = new AlertDialog.Builder(dialog.getContext());
-                builder.setTitle("Variable Name not Set").setMessage("Please set the name of the varilable").setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                Runnable popupRunnable = new Runnable() {
                     @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        dialog.dismiss();
+                    public void run() {
+                        AlertDialog.Builder builder = new AlertDialog.Builder(dialog.getContext());
+                        builder.setTitle("Variable Name not Set").setMessage("Please set the name of the varilable").setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                dialog.dismiss();
+                            }
+                        }).show();
                     }
-                }).show();
+                };
+                if(context instanceof SugiliteAccessibilityService) {
+                    ((SugiliteAccessibilityService) context).runOnUiThread(popupRunnable);
+                }
+                else if (context instanceof Activity){
+                    ((Activity) context).runOnUiThread(popupRunnable);
+                }
                 return;
             }
         }
@@ -391,9 +438,9 @@ public class RecordingPopUpDialog extends AbstractSugiliteDialog {
         }
 
         final SugiliteOperationBlock operationBlock = generateBlock();
+
         AlertDialog.Builder builder = new AlertDialog.Builder(dialog.getContext());
         //disable the confirmation dialog
-
         DialogInterface.OnClickListener onClickListener = new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
@@ -438,7 +485,7 @@ public class RecordingPopUpDialog extends AbstractSugiliteDialog {
                             show(true);
                         }
                     });
-            AlertDialog dialog = builder.create();
+            final AlertDialog dialog = builder.create();
             dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
             dialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
                 @Override
@@ -450,7 +497,19 @@ public class RecordingPopUpDialog extends AbstractSugiliteDialog {
                     }
                 }
             });
-            dialog.show();
+            Runnable showDialogRunnable = new Runnable() {
+                @Override
+                public void run() {
+                    dialog.show();
+                }
+            };
+
+            if(context instanceof SugiliteAccessibilityService) {
+                ((SugiliteAccessibilityService) context).runOnUiThread(showDialogRunnable);
+            }
+            else if (context instanceof Activity){
+                ((Activity) context).runOnUiThread(showDialogRunnable);
+            }
         }
 
         else {
@@ -467,22 +526,32 @@ public class RecordingPopUpDialog extends AbstractSugiliteDialog {
     }
 
 
-    public void setAsAParameterOnClick(View view, TextView actionParameter, String label, String defaultDefaultValue){
+    public void setAsAParameterOnClick(final View view, final TextView actionParameter, final String label, final String defaultDefaultValue){
         Toast.makeText(view.getContext(), "set as a parameter", Toast.LENGTH_SHORT).show();
+        ChooseVariableDialog chooseVariableDialog = null;
         if(actionParameter != null) {
-            ChooseVariableDialog dialog;
             switch (triggerMode) {
                 case TRIGGERED_BY_NEW_EVENT:
-                    dialog = new ChooseVariableDialog(view.getContext(), actionParameter, layoutInflater, sugiliteData, sugiliteData.getScriptHead(), label, defaultDefaultValue);
-                    dialog.show();
+                    chooseVariableDialog = new ChooseVariableDialog(view.getContext(), actionParameter, layoutInflater, sugiliteData, sugiliteData.getScriptHead(), label, defaultDefaultValue);
                     break;
                 case TRIGGERED_BY_EDIT:
-                    dialog = new ChooseVariableDialog(view.getContext(), actionParameter, layoutInflater, sugiliteData, originalScript, label, defaultDefaultValue);
-                    dialog.show();
+                    chooseVariableDialog = new ChooseVariableDialog(view.getContext(), actionParameter, layoutInflater, sugiliteData, originalScript, label, defaultDefaultValue);
                     break;
             }
         }
-        //prompt new parameter, open the parameter management popup, click on a parameter
+        final ChooseVariableDialog finalChooseVariableDialog = chooseVariableDialog;
+        Runnable showChooseVariableDialogRunnable = new Runnable() {
+            @Override
+            public void run() {
+                finalChooseVariableDialog.show();
+            }
+        };
+        if(context instanceof SugiliteAccessibilityService) {
+            ((SugiliteAccessibilityService) context).runOnUiThread(showChooseVariableDialogRunnable);
+        }
+        else if (context instanceof Activity){
+            ((Activity) context).runOnUiThread(showChooseVariableDialogRunnable);
+        }
     }
 
     public void seeAlternativeLabelLinkOnClick(View view) {
@@ -495,7 +564,7 @@ public class RecordingPopUpDialog extends AbstractSugiliteDialog {
         ListView listView = new ListView(view.getContext());
         ArrayAdapter<String> adapter = new ArrayAdapter<String>(dialog.getContext(), android.R.layout.simple_list_item_single_choice, labelList);
         listView.setAdapter(adapter);
-        AlertDialog.Builder builder = new AlertDialog.Builder(dialog.getContext());
+        final AlertDialog.Builder builder = new AlertDialog.Builder(dialog.getContext());
         builder.setTitle("Alternative Labels")
                 .setPositiveButton("OK", new DialogInterface.OnClickListener() {
                     @Override
@@ -504,9 +573,20 @@ public class RecordingPopUpDialog extends AbstractSugiliteDialog {
                     }
                 })
                 .setView(listView);
-        AlertDialog dialog = builder.create();
-        dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
-        dialog.show();
+        Runnable showDialogRunnable = new Runnable() {
+            @Override
+            public void run() {
+                AlertDialog dialog = builder.create();
+                dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
+                dialog.show();
+            }
+        };
+        if(context instanceof SugiliteAccessibilityService) {
+            ((SugiliteAccessibilityService) context).runOnUiThread(showDialogRunnable);
+        }
+        else if (context instanceof Activity){
+            ((Activity) context).runOnUiThread(showDialogRunnable);
+        }
     }
 
     private void setupSelections(){
@@ -902,7 +982,7 @@ public class RecordingPopUpDialog extends AbstractSugiliteDialog {
         setTextEditText.setOnClickListener(new View.OnClickListener() {
             //force the keyboard to show when edit text on click
             @Override
-            public void onClick(View v) {
+            public void onClick(final View v) {
                 imm.showSoftInput(v, InputMethodManager.SHOW_IMPLICIT);
             }
         });
@@ -1263,7 +1343,20 @@ public class RecordingPopUpDialog extends AbstractSugiliteDialog {
                                     progressDialog = new AlertDialog.Builder(context).setMessage(Const.SAVING_MESSAGE).create();
                                     progressDialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
                                     progressDialog.setCanceledOnTouchOutside(false);
-                                    progressDialog.show();
+                                    Runnable showProgressDialogRunnable = new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            progressDialog.show();
+                                        }
+                                    };
+
+                                    if(context instanceof SugiliteAccessibilityService) {
+                                        ((SugiliteAccessibilityService) context).runOnUiThread(showProgressDialogRunnable);
+                                    }
+                                    else if (context instanceof Activity){
+                                        ((Activity) context).runOnUiThread(showProgressDialogRunnable);
+                                    }
+
                                     new Thread(new Runnable() {
                                         @Override
                                         public void run()
@@ -1284,7 +1377,7 @@ public class RecordingPopUpDialog extends AbstractSugiliteDialog {
                                                 ((SugiliteAccessibilityService) context).runOnUiThread(dismissDialog);
                                             }
                                             else if(context instanceof Activity){
-                                                ((Activity)context).runOnUiThread(dismissDialog);
+                                                ((Activity) context).runOnUiThread(dismissDialog);
                                             }
                                         }
                                     }).start();
@@ -1306,7 +1399,21 @@ public class RecordingPopUpDialog extends AbstractSugiliteDialog {
                                     progressDialog = new AlertDialog.Builder(context).setMessage(Const.SAVING_MESSAGE).create();
                                     progressDialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
                                     progressDialog.setCanceledOnTouchOutside(false);
-                                    progressDialog.show();
+
+                                    Runnable showProgressDialogRunnable = new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            progressDialog.show();
+                                        }
+                                    };
+
+                                    if(context instanceof SugiliteAccessibilityService) {
+                                        ((SugiliteAccessibilityService) context).runOnUiThread(showProgressDialogRunnable);
+                                    }
+                                    else if (context instanceof Activity){
+                                        ((Activity) context).runOnUiThread(showProgressDialogRunnable);
+                                    }
+
                                     new Thread(new Runnable() {
                                         @Override
                                         public void run()
@@ -1327,7 +1434,7 @@ public class RecordingPopUpDialog extends AbstractSugiliteDialog {
                                                 ((SugiliteAccessibilityService) context).runOnUiThread(dismissDialog);
                                             }
                                             else if(context instanceof Activity){
-                                                ((Activity)context).runOnUiThread(dismissDialog);
+                                                ((Activity) context).runOnUiThread(dismissDialog);
                                             }
                                         }
                                     }).start();

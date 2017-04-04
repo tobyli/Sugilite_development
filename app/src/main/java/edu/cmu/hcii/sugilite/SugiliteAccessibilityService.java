@@ -56,7 +56,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
     protected SugiliteScreenshotManager screenshotManager;
     protected Set<Integer> accessibilityEventSetToHandle, accessibilityEventSetToSend, accessibilityEventSetToTrack;
     protected Thread automatorThread;
-    protected Context context;
+    protected SugiliteAccessibilityService context;
     protected SugiliteTrackingHandler sugilteTrackingHandler;
     protected SugiliteAppVocabularyDao vocabularyDao;
     protected Handler handler;
@@ -285,103 +285,126 @@ public class SugiliteAccessibilityService extends AccessibilityService {
                 preOrderTraverseSourceNode = Automator.preOrderTraverse(sourceNode);
             if(preOrderTraverseRootNode == null)
                 preOrderTraverseRootNode = Automator.preOrderTraverse(rootNode);
-            //add package name to the relevant package set
-            if(sugiliteData.getScriptHead() != null && event.getPackageName() != null && (!exceptedPackages.contains(event.getPackageName())))
-                sugiliteData.getScriptHead().relevantPackages.add(event.getPackageName().toString());
-            //skip internal interactions and interactions on system ui
-            availableAlternatives.addAll(getAlternativeLabels(sourceNode, rootNode, preOrderTraverseRootNode));
-            availableAlternativeNodes.addAll(getAvailableAlternativeNodes(sourceNode, rootNode, preOrderTraverseRootNode));
 
-            //refresh the elementsWithTextLabels list
-            if(KEEP_ALL_TEXT_LABEL_LIST && event.getPackageName() != null && (!exceptedPackages.contains(event.getPackageName()))){
-                List<AccessibilityNodeInfo> nodes = getAllNodesWithText(rootNode, preOrderTraverseRootNode);
-                boolean toRefresh = true;
-                //hack used to avoid getting items in the duck popup
-                if(nodes.size() > 10)
-                    toRefresh = true;
-                else {
-                    for(AccessibilityNodeInfo node : nodes){
-                        if(node.getText() != null && node.getText().toString().contains("Quit Sugilite")){
-                            toRefresh = false;
-                            break;
+            final AccessibilityNodeInfo rootNodeForRecording = rootNode;
+            final List<AccessibilityNodeInfo> preOrderTraverseSourceNodeForRecording = preOrderTraverseSourceNode;
+            final List<AccessibilityNodeInfo> preOrderTracerseRootNodeForRecording = preOrderTraverseRootNode;
+
+
+            //====
+
+            Runnable handleRecording = new Runnable() {
+                @Override
+                public void run() {
+                    //add package name to the relevant package set
+                    if(sugiliteData.getScriptHead() != null && event.getPackageName() != null && (!exceptedPackages.contains(event.getPackageName())))
+                        sugiliteData.getScriptHead().relevantPackages.add(event.getPackageName().toString());
+                    //skip internal interactions and interactions on system ui
+                    availableAlternatives.addAll(getAlternativeLabels(sourceNode, rootNodeForRecording, preOrderTracerseRootNodeForRecording));
+                    availableAlternativeNodes.addAll(getAvailableAlternativeNodes(sourceNode, rootNodeForRecording, preOrderTracerseRootNodeForRecording));
+
+                    //refresh the elementsWithTextLabels list
+                    if(KEEP_ALL_TEXT_LABEL_LIST && event.getPackageName() != null && (!exceptedPackages.contains(event.getPackageName()))){
+                        List<AccessibilityNodeInfo> nodes = getAllNodesWithText(rootNodeForRecording, preOrderTracerseRootNodeForRecording);
+                        boolean toRefresh = true;
+                        //hack used to avoid getting items in the duck popup
+                        if(nodes.size() > 10)
+                            toRefresh = true;
+                        else {
+                            for(AccessibilityNodeInfo node : nodes){
+                                if(node.getText() != null && node.getText().toString().contains("Quit Sugilite")){
+                                    toRefresh = false;
+                                    break;
+                                }
+                            }
+                            if(nodes.size() <= 0)
+                                toRefresh = false;
                         }
+                        if(toRefresh) {
+                            sugiliteData.elementsWithTextLabels.clear();
+                            sugiliteData.elementsWithTextLabels.addAll(nodes);
+                        }
+                        //System.out.println(event.getPackageName() + " " + sugiliteData.elementsWithTextLabels.size());
                     }
-                    if(nodes.size() <= 0)
-                        toRefresh = false;
-                }
-                if(toRefresh) {
-                    sugiliteData.elementsWithTextLabels.clear();
-                    sugiliteData.elementsWithTextLabels.addAll(nodes);
-                }
-                //System.out.println(event.getPackageName() + " " + sugiliteData.elementsWithTextLabels.size());
-            }
 
-            //if the event is to be recorded, process it
-            if (accessibilityEventSetToSend.contains(event.getEventType()) && (!exceptedPackages.contains(event.getPackageName()))) {
-                if (event.getEventType() == AccessibilityEvent.TYPE_VIEW_TEXT_CHANGED || event.getEventType() == AccessibilityEvent.TYPE_VIEW_FOCUSED){
-                    //pop up warning dialog if focus on text box
-                    if(sourceNode != null && sourceNode.isEditable()){
-                        Toast.makeText(context, "For recording text entry, please type into the Sugilite recording dialog instead of directly in the textbox. Click on the textbox to show the Sugilite recording dialog.", Toast.LENGTH_SHORT).show();
-                    }
-                }
-                else {
-                    //temp hack for ViewGroup in Google Now Launcher
-                    if(sourceNode != null && sourceNode.getClassName() != null && sourceNode.getPackageName() != null && sourceNode.getClassName().toString().contentEquals("android.view.ViewGroup") && sourceNode.getPackageName().equals("com.google.android.googlequicksearchbox"))
-                    {/*do nothing (don't show popup)*/}
-                    else {
+                    //if the event is to be recorded, process it
+                    if (accessibilityEventSetToSend.contains(event.getEventType()) && (!exceptedPackages.contains(event.getPackageName()))) {
+                        if (event.getEventType() == AccessibilityEvent.TYPE_VIEW_TEXT_CHANGED || event.getEventType() == AccessibilityEvent.TYPE_VIEW_FOCUSED){
+                            //pop up warning dialog if focus on text box
+                            if(sourceNode != null && sourceNode.isEditable()){
+                                runOnUiThread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        Toast.makeText(context, "For recording text entry, please type into the Sugilite recording dialog instead of directly in the textbox. Click on the textbox to show the Sugilite recording dialog.", Toast.LENGTH_SHORT).show();
 
-                        File screenshot = null;
-                        if (sharedPreferences.getBoolean("root_enabled", false)) {
-                            //take screenshot
-                            try {
+                                    }
+                                });
+                            }
+                        }
+                        else {
+                            //temp hack for ViewGroup in Google Now Launcher
+                            if(sourceNode != null && sourceNode.getClassName() != null && sourceNode.getPackageName() != null && sourceNode.getClassName().toString().contentEquals("android.view.ViewGroup") && sourceNode.getPackageName().equals("com.google.android.googlequicksearchbox"))
+                            {/*do nothing (don't show popup)*/}
+                            else {
+
+                                File screenshot = null;
+                                if (sharedPreferences.getBoolean("root_enabled", false)) {
+                                    //take screenshot
+                                    try {
                         /*
                         System.out.println("taking screen shot");
                         screenshot = screenshotManager.take(false);
                         */
-                            } catch (Exception e) {
-                                e.printStackTrace();
+                                    } catch (Exception e) {
+                                        e.printStackTrace();
+                                    }
+                                }
+
+                                //send the event to recording pop up dialog
+                                RecordingPopUpDialog recordingPopUpDialog = new RecordingPopUpDialog(sugiliteData, context, generateFeaturePack(event, rootNodeForRecording, screenshot, availableAlternativeNodes, preOrderTraverseSourceNodeForRecording, preOrderTracerseRootNodeForRecording), sharedPreferences, LayoutInflater.from(getApplicationContext()), RecordingPopUpDialog.TRIGGERED_BY_NEW_EVENT, availableAlternatives);
+                                sugiliteData.recordingPopupDialogQueue.add(recordingPopUpDialog);
+                                if(!sugiliteData.recordingPopupDialogQueue.isEmpty() && sugiliteData.hasRecordingPopupActive == false) {
+                                    sugiliteData.hasRecordingPopupActive = true;
+                                    sugiliteData.recordingPopupDialogQueue.poll().show();
+                                }
+                            }
+                        }
+                    }
+                    if(BUILDING_VOCAB) {
+                        //add alternative nodes to the app vocab set
+                        for (SerializableNodeInfo node : availableAlternativeNodes) {
+                            if (node.packageName != null && node.text != null)
+                                packageVocabs.add(new AbstractMap.SimpleEntry<String, String>(node.packageName, node.text));
+                            if (node.packageName != null && node.childText != null && node.childText.size() > 0) {
+                                for (String childText : node.childText)
+                                    packageVocabs.add(new AbstractMap.SimpleEntry<String, String>(node.packageName, childText));
+                            }
+                        }
+                    }
+
+                    if (accessibilityEventSetToSend.contains(event.getEventType()) && (!exceptedPackages.contains(event.getPackageName()))) {
+
+                        if(BUILDING_VOCAB) {
+                            for (Map.Entry<String, String> entry : packageVocabs) {
+                                try {
+                                    vocabularyDao.save(entry.getKey(), entry.getValue(), "meh", previousClickText, previousClickContentDescription, previousClickChildText, previousClickChildContentDescription, previousClickPackageName);
+                                } catch (Exception e) {
+                                    e.printStackTrace();
+                                }
                             }
                         }
 
-                        //send the event to recording pop up dialog
-                        RecordingPopUpDialog recordingPopUpDialog = new RecordingPopUpDialog(sugiliteData, this, generateFeaturePack(event, rootNode, screenshot, availableAlternativeNodes, preOrderTraverseSourceNode, preOrderTraverseRootNode), sharedPreferences, LayoutInflater.from(getApplicationContext()), RecordingPopUpDialog.TRIGGERED_BY_NEW_EVENT, availableAlternatives);
-                        sugiliteData.recordingPopupDialogQueue.add(recordingPopUpDialog);
-                        if(!sugiliteData.recordingPopupDialogQueue.isEmpty() && sugiliteData.hasRecordingPopupActive == false) {
-                            sugiliteData.hasRecordingPopupActive = true;
-                            sugiliteData.recordingPopupDialogQueue.poll().show();
-                        }
+                        availableAlternatives.clear();
+                        availableAlternativeNodes.clear();
+                        if(BUILDING_VOCAB)
+                            packageVocabs.clear();
                     }
-                }
-            }
-            if(BUILDING_VOCAB) {
-                //add alternative nodes to the app vocab set
-                for (SerializableNodeInfo node : availableAlternativeNodes) {
-                    if (node.packageName != null && node.text != null)
-                        packageVocabs.add(new AbstractMap.SimpleEntry<String, String>(node.packageName, node.text));
-                    if (node.packageName != null && node.childText != null && node.childText.size() > 0) {
-                        for (String childText : node.childText)
-                            packageVocabs.add(new AbstractMap.SimpleEntry<String, String>(node.packageName, childText));
-                    }
-                }
-            }
 
-            if (accessibilityEventSetToSend.contains(event.getEventType()) && (!exceptedPackages.contains(event.getPackageName()))) {
-
-                if(BUILDING_VOCAB) {
-                    for (Map.Entry<String, String> entry : packageVocabs) {
-                        try {
-                            vocabularyDao.save(entry.getKey(), entry.getValue(), "meh", previousClickText, previousClickContentDescription, previousClickChildText, previousClickChildContentDescription, previousClickPackageName);
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
-                    }
                 }
+            };
 
-                availableAlternatives.clear();
-                availableAlternativeNodes.clear();
-                if(BUILDING_VOCAB)
-                    packageVocabs.clear();
-            }
+            new Thread(handleRecording).run();
+            //====
 
         }
 

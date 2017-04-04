@@ -15,6 +15,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
@@ -28,6 +29,7 @@ import java.util.concurrent.ExecutionException;
 
 import edu.cmu.hcii.sugilite.Const;
 import edu.cmu.hcii.sugilite.R;
+import edu.cmu.hcii.sugilite.SugiliteAccessibilityService;
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.automation.Generalizer;
 import edu.cmu.hcii.sugilite.automation.ServiceStatusManager;
@@ -54,6 +56,8 @@ public class FragmentScriptListTab extends Fragment {
     private Generalizer generalizer;
     private View rootView;
     private Activity activity;
+    private AlertDialog progressDialog;
+
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -234,9 +238,35 @@ public class FragmentScriptListTab extends Fragment {
                     break;
                 case ITEM_5:
                     final String scriptName1 = ((TextView) info.targetView).getText().toString() + ".SugiliteScript";
-                    SugiliteStartingBlock startingBlock1 = sugiliteScriptDao.read(scriptName1);
-                    generalizer.generalize(startingBlock1);
-                    setUpScriptList();
+                    final SugiliteStartingBlock startingBlock1 = sugiliteScriptDao.read(scriptName1);
+
+                    progressDialog = new AlertDialog.Builder(activity).setMessage(Const.LOADING_MESSAGE).create();
+                    progressDialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
+                    progressDialog.setCanceledOnTouchOutside(false);
+                    progressDialog.show();
+                    new Thread(new Runnable() {
+                        @Override
+                        public void run()
+                        {
+                            try {
+                                generalizer.generalize(startingBlock1);
+                                setUpScriptList();
+                            }
+                            catch (Exception e){
+                                e.printStackTrace();
+                            }
+                            Runnable dismissDialog = new Runnable() {
+                                @Override
+                                public void run() {
+                                    progressDialog.dismiss();
+                                }
+                            };
+                            if(activity instanceof Activity){
+                                activity.runOnUiThread(dismissDialog);
+                            }
+                        }
+                    }).start();
+
                     break;
                 case ITEM_6:
                     if (info.targetView instanceof TextView && ((TextView) info.targetView).getText() != null) {

@@ -198,10 +198,10 @@ public class SugiliteAccessibilityService extends AccessibilityService {
 
     String previousClickText = "NULL", previousClickContentDescription = "NULL", previousClickChildText = "NULL", previousClickChildContentDescription = "NULL", previousClickPackageName = "NULL";
     @Override
-    public void onAccessibilityEvent(AccessibilityEvent event) {
+    public void onAccessibilityEvent(final AccessibilityEvent event) {
         //TODO problem: the status of "right after click" (try getParent()?)
         //TODO new rootNode method
-        AccessibilityNodeInfo sourceNode = event.getSource();
+        final AccessibilityNodeInfo sourceNode = event.getSource();
         AccessibilityNodeInfo rootNode = null;
         List<AccessibilityNodeInfo> preOrderTraverseSourceNode = null;
         List<AccessibilityNodeInfo> preOrderTraverseRootNode = null;
@@ -427,39 +427,53 @@ public class SugiliteAccessibilityService extends AccessibilityService {
         if (sharedPreferences.getBoolean("tracking_in_process", false)) {
             if(rootNode == null)
                 rootNode = getRootInActiveWindow();
+
             if(preOrderTraverseSourceNode == null)
                 preOrderTraverseSourceNode = Automator.preOrderTraverse(sourceNode);
+
             if(preOrderTraverseRootNode == null)
                 preOrderTraverseRootNode = Automator.preOrderTraverse(rootNode);
 
-            //background tracking in progress
-            if (accessibilityEventSetToTrack.contains(event.getEventType()) && (!trackingExcludedPackages.contains(event.getPackageName()))) {
-                sugilteTrackingHandler.handle(event, sourceNode, generateFeaturePack(event, rootNode, null, null, preOrderTraverseSourceNode, preOrderTraverseRootNode));
-            }
+            final AccessibilityNodeInfo rootNodeForTracking = rootNode;
+            final List<AccessibilityNodeInfo> preOrderTraverseSourceNodeForTracking = preOrderTraverseSourceNode;
+            final List<AccessibilityNodeInfo> preOrderTracerseRootNodeForTracking = preOrderTraverseRootNode;
 
-            //add all seen clickable nodes to package vocab DB
-            if(BUILDING_VOCAB) {
-                for (SerializableNodeInfo node : getAvailableAlternativeNodes(sourceNode, rootNode, preOrderTraverseRootNode)) {
-                    if (node.packageName != null && node.text != null)
-                        packageVocabs.add(new AbstractMap.SimpleEntry<>(node.packageName, node.text));
-                    if (node.packageName != null && node.childText != null && node.childText.size() > 0) {
-                        for (String childText : node.childText)
-                            packageVocabs.add(new AbstractMap.SimpleEntry<>(node.packageName, childText));
+            Runnable handleTracking = new Runnable() {
+                @Override
+                public void run() {
+                    //background tracking in progress
+                    if (accessibilityEventSetToTrack.contains(event.getEventType()) && (!trackingExcludedPackages.contains(event.getPackageName()))) {
+                        sugilteTrackingHandler.handle(event, sourceNode, generateFeaturePack(event, rootNodeForTracking, null, null, preOrderTraverseSourceNodeForTracking, preOrderTracerseRootNodeForTracking));
                     }
-                }
-                //only read/write DB at every click -> to optimize performance
-                if (event.getEventType() == AccessibilityEvent.TYPE_VIEW_CLICKED) {
-                    for (Map.Entry<String, String> entry : packageVocabs) {
-                        try {
-                            vocabularyDao.save(entry.getKey(), entry.getValue(), "meh", previousClickText, previousClickContentDescription, previousClickChildText, previousClickChildContentDescription, previousClickPackageName);
-                        } catch (Exception e) {
-                            e.printStackTrace();
+
+                    //add all seen clickable nodes to package vocab DB
+                    if(BUILDING_VOCAB) {
+                        for (SerializableNodeInfo node : getAvailableAlternativeNodes(sourceNode, rootNodeForTracking, preOrderTracerseRootNodeForTracking)) {
+                            if (node.packageName != null && node.text != null)
+                                packageVocabs.add(new AbstractMap.SimpleEntry<>(node.packageName, node.text));
+                            if (node.packageName != null && node.childText != null && node.childText.size() > 0) {
+                                for (String childText : node.childText)
+                                    packageVocabs.add(new AbstractMap.SimpleEntry<>(node.packageName, childText));
+                            }
+                        }
+                        //only read/write DB at every click -> to optimize performance
+                        if (event.getEventType() == AccessibilityEvent.TYPE_VIEW_CLICKED) {
+                            for (Map.Entry<String, String> entry : packageVocabs) {
+                                try {
+                                    vocabularyDao.save(entry.getKey(), entry.getValue(), "meh", previousClickText, previousClickContentDescription, previousClickChildText, previousClickChildContentDescription, previousClickPackageName);
+                                } catch (Exception e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                            trackingPackageVocabs.clear();
                         }
                     }
-                    trackingPackageVocabs.clear();
+
                 }
-            }
+            };
+            new Thread(handleTracking).run();
         }
+
 
         SugiliteBlock currentBlock = sugiliteData.peekInstructionQueue();
         //refresh status icon
@@ -471,8 +485,6 @@ public class SugiliteAccessibilityService extends AccessibilityService {
         else{
             statusIconManager.refreshStatusIcon(null, null);
         }
-
-        boolean retVal = false;
 
 
         if(sugiliteData.getInstructionQueueSize() > 0) {

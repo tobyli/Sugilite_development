@@ -179,6 +179,10 @@ public class SugiliteAccessibilityService extends AccessibilityService {
 
     }
 
+    /**
+     * run the runnable on UI thread
+     * @param runnable
+     */
     public void runOnUiThread(Runnable runnable) {
         handler.post(runnable);
     }
@@ -197,9 +201,10 @@ public class SugiliteAccessibilityService extends AccessibilityService {
     public void onAccessibilityEvent(AccessibilityEvent event) {
         //TODO problem: the status of "right after click" (try getParent()?)
         //TODO new rootNode method
-        final AccessibilityNodeInfo rootNode = getRootInActiveWindow();
         AccessibilityNodeInfo sourceNode = event.getSource();
-
+        AccessibilityNodeInfo rootNode = null;
+        List<AccessibilityNodeInfo> preOrderTraverseSourceNode = null;
+        List<AccessibilityNodeInfo> preOrderTraverseRootNode = null;
 
 
 
@@ -241,11 +246,12 @@ public class SugiliteAccessibilityService extends AccessibilityService {
                 previousClickPackageName = sourceNode.getPackageName().toString();
             else
                 previousClickPackageName = "NULL";
+            if(preOrderTraverseSourceNode == null)
+                preOrderTraverseSourceNode = Automator.preOrderTraverse(sourceNode);
 
-            List<AccessibilityNodeInfo> childNodes = Automator.preOrderTraverse(sourceNode);
             Set<String> childTexts = new HashSet<>();
             Set<String> childContentDescriptions = new HashSet<>();
-            for(AccessibilityNodeInfo childNode : childNodes){
+            for(AccessibilityNodeInfo childNode : preOrderTraverseSourceNode){
                 if(childNode.getText() != null)
                     childTexts.add(childNode.getText().toString());
                 if(childNode.getContentDescription() != null)
@@ -273,18 +279,22 @@ public class SugiliteAccessibilityService extends AccessibilityService {
 
         if (sharedPreferences.getBoolean("recording_in_process", false)) {
             //recording in progress
-
+            if(rootNode == null)
+                rootNode = getRootInActiveWindow();
+            if(preOrderTraverseSourceNode == null)
+                preOrderTraverseSourceNode = Automator.preOrderTraverse(sourceNode);
+            if(preOrderTraverseRootNode == null)
+                preOrderTraverseRootNode = Automator.preOrderTraverse(rootNode);
             //add package name to the relevant package set
             if(sugiliteData.getScriptHead() != null && event.getPackageName() != null && (!exceptedPackages.contains(event.getPackageName())))
                 sugiliteData.getScriptHead().relevantPackages.add(event.getPackageName().toString());
-
             //skip internal interactions and interactions on system ui
-            availableAlternatives.addAll(getAlternativeLabels(sourceNode, rootNode));
-            availableAlternativeNodes.addAll(getAvailableAlternativeNodes(sourceNode, rootNode));
+            availableAlternatives.addAll(getAlternativeLabels(sourceNode, rootNode, preOrderTraverseRootNode));
+            availableAlternativeNodes.addAll(getAvailableAlternativeNodes(sourceNode, rootNode, preOrderTraverseRootNode));
 
             //refresh the elementsWithTextLabels list
             if(KEEP_ALL_TEXT_LABEL_LIST && event.getPackageName() != null && (!exceptedPackages.contains(event.getPackageName()))){
-                List<AccessibilityNodeInfo> nodes = getAllNodesWithText(rootNode);
+                List<AccessibilityNodeInfo> nodes = getAllNodesWithText(rootNode, preOrderTraverseRootNode);
                 boolean toRefresh = true;
                 //hack used to avoid getting items in the duck popup
                 if(nodes.size() > 10)
@@ -301,7 +311,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
                 }
                 if(toRefresh) {
                     sugiliteData.elementsWithTextLabels.clear();
-                    sugiliteData.elementsWithTextLabels.addAll(getAllNodesWithText(rootNode));
+                    sugiliteData.elementsWithTextLabels.addAll(nodes);
                 }
                 //System.out.println(event.getPackageName() + " " + sugiliteData.elementsWithTextLabels.size());
             }
@@ -315,11 +325,11 @@ public class SugiliteAccessibilityService extends AccessibilityService {
                     }
                 }
                 else {
-                    //temp hack
+                    //temp hack for ViewGroup in Google Now Launcher
                     if(sourceNode != null && sourceNode.getClassName() != null && sourceNode.getPackageName() != null && sourceNode.getClassName().toString().contentEquals("android.view.ViewGroup") && sourceNode.getPackageName().equals("com.google.android.googlequicksearchbox"))
                     {/*do nothing (don't show popup)*/}
                     else {
-                        //send the event to recording pop up dialog
+
                         File screenshot = null;
                         if (sharedPreferences.getBoolean("root_enabled", false)) {
                             //take screenshot
@@ -332,8 +342,9 @@ public class SugiliteAccessibilityService extends AccessibilityService {
                                 e.printStackTrace();
                             }
                         }
-                        //start the popup activity
-                        RecordingPopUpDialog recordingPopUpDialog = new RecordingPopUpDialog(sugiliteData, this, generateFeaturePack(event, rootNode, screenshot, availableAlternativeNodes), sharedPreferences, LayoutInflater.from(getApplicationContext()), RecordingPopUpDialog.TRIGGERED_BY_NEW_EVENT, availableAlternatives);
+
+                        //send the event to recording pop up dialog
+                        RecordingPopUpDialog recordingPopUpDialog = new RecordingPopUpDialog(sugiliteData, this, generateFeaturePack(event, rootNode, screenshot, availableAlternativeNodes, preOrderTraverseSourceNode, preOrderTraverseRootNode), sharedPreferences, LayoutInflater.from(getApplicationContext()), RecordingPopUpDialog.TRIGGERED_BY_NEW_EVENT, availableAlternatives);
                         sugiliteData.recordingPopupDialogQueue.add(recordingPopUpDialog);
                         if(!sugiliteData.recordingPopupDialogQueue.isEmpty() && sugiliteData.hasRecordingPopupActive == false) {
                             sugiliteData.hasRecordingPopupActive = true;
@@ -414,14 +425,21 @@ public class SugiliteAccessibilityService extends AccessibilityService {
         }
 
         if (sharedPreferences.getBoolean("tracking_in_process", false)) {
+            if(rootNode == null)
+                rootNode = getRootInActiveWindow();
+            if(preOrderTraverseSourceNode == null)
+                preOrderTraverseSourceNode = Automator.preOrderTraverse(sourceNode);
+            if(preOrderTraverseRootNode == null)
+                preOrderTraverseRootNode = Automator.preOrderTraverse(rootNode);
+
             //background tracking in progress
             if (accessibilityEventSetToTrack.contains(event.getEventType()) && (!trackingExcludedPackages.contains(event.getPackageName()))) {
-                sugilteTrackingHandler.handle(event, sourceNode, generateFeaturePack(event, rootNode, null, null));
+                sugilteTrackingHandler.handle(event, sourceNode, generateFeaturePack(event, rootNode, null, null, preOrderTraverseSourceNode, preOrderTraverseRootNode));
             }
 
             //add all seen clickable nodes to package vocab DB
             if(BUILDING_VOCAB) {
-                for (SerializableNodeInfo node : getAvailableAlternativeNodes(sourceNode, rootNode)) {
+                for (SerializableNodeInfo node : getAvailableAlternativeNodes(sourceNode, rootNode, preOrderTraverseRootNode)) {
                     if (node.packageName != null && node.text != null)
                         packageVocabs.add(new AbstractMap.SimpleEntry<>(node.packageName, node.text));
                     if (node.packageName != null && node.childText != null && node.childText.size() > 0) {
@@ -446,6 +464,8 @@ public class SugiliteAccessibilityService extends AccessibilityService {
         SugiliteBlock currentBlock = sugiliteData.peekInstructionQueue();
         //refresh status icon
         if(currentBlock instanceof SugiliteOperationBlock) {
+            if(rootNode == null)
+                rootNode = getRootInActiveWindow();
             statusIconManager.refreshStatusIcon(rootNode, ((SugiliteOperationBlock) currentBlock).getElementMatchingFilter());
         }
         else{
@@ -458,11 +478,14 @@ public class SugiliteAccessibilityService extends AccessibilityService {
         if(sugiliteData.getInstructionQueueSize() > 0) {
             //System.out.println("attemping to run automation on the rootnode " + rootNode);
             //run automation
+            if(rootNode == null)
+                rootNode = getRootInActiveWindow();
+            final AccessibilityNodeInfo finalRootNode = rootNode;
             if(automatorThread == null) {
                 automatorThread = new Thread(new Runnable() {
                     @Override
                     public void run() {
-                        automator.handleLiveEvent(rootNode, getApplicationContext());
+                        automator.handleLiveEvent(finalRootNode, getApplicationContext());
                         automatorThread = null;
                     }
                 });
@@ -498,7 +521,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
 
 
 
-    protected SugiliteAvailableFeaturePack generateFeaturePack(AccessibilityEvent event, AccessibilityNodeInfo rootNode, File screenshot, HashSet<SerializableNodeInfo> availableAlternativeNodes){
+    protected SugiliteAvailableFeaturePack generateFeaturePack(AccessibilityEvent event, AccessibilityNodeInfo rootNode, File screenshot, HashSet<SerializableNodeInfo> availableAlternativeNodes, List<AccessibilityNodeInfo> preOrderTraverseSourceNode, List<AccessibilityNodeInfo> preOderTraverseRootNode){
         SugiliteAvailableFeaturePack featurePack = new SugiliteAvailableFeaturePack();
         AccessibilityNodeInfo sourceNode = event.getSource();
         Rect boundsInParents = new Rect();
@@ -511,13 +534,13 @@ public class SugiliteAccessibilityService extends AccessibilityService {
         }
         //NOTE: NOT ONLY COUNTING THE IMMEDIATE CHILDREN NOW
         ArrayList<AccessibilityNodeInfo> childrenNodes = null;
-        if(sourceNode != null && Automator.preOrderTraverse(sourceNode) != null)
-            childrenNodes = new ArrayList<>(Automator.preOrderTraverse(sourceNode));
+        if(sourceNode != null && preOrderTraverseSourceNode != null)
+            childrenNodes = new ArrayList<>(preOrderTraverseSourceNode);
         else
             childrenNodes = new ArrayList<>();
         ArrayList<AccessibilityNodeInfo> allNodes = null;
-        if(rootNode != null && Automator.preOrderTraverse(rootNode) != null)
-            allNodes = new ArrayList<>(Automator.preOrderTraverse(rootNode));
+        if(rootNode != null && preOderTraverseRootNode != null)
+            allNodes = new ArrayList<>(preOderTraverseRootNode);
         else
             allNodes = new ArrayList<>();
         //TODO:AccessibilityNodeInfo is not serializable
@@ -575,7 +598,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
     }
 
     @Deprecated
-    private Intent generatePopUpActivityIntentFromEvent(AccessibilityEvent event, AccessibilityNodeInfo rootNode, File screenshot, HashSet<Map.Entry<String, String>> entryHashSet){
+    private Intent generatePopUpActivityIntentFromEvent(AccessibilityEvent event, AccessibilityNodeInfo rootNode, File screenshot, HashSet<Map.Entry<String, String>> entryHashSet, List<AccessibilityNodeInfo> preOrderTraverseSourceNode, List<AccessibilityNodeInfo> preOderTraverseRootNode){
         AccessibilityNodeInfo sourceNode = event.getSource();
         Rect boundsInParents = new Rect();
         Rect boundsInScreen = new Rect();
@@ -584,13 +607,13 @@ public class SugiliteAccessibilityService extends AccessibilityService {
         AccessibilityNodeInfo parentNode = sourceNode.getParent();
         //NOTE: NOT ONLY COUNTING THE IMMEDIATE CHILDREN NOW
         ArrayList<AccessibilityNodeInfo> childrenNodes = null;
-        if(sourceNode != null && Automator.preOrderTraverse(sourceNode) != null)
-             childrenNodes = new ArrayList<>(Automator.preOrderTraverse(sourceNode));
+        if(sourceNode != null && preOrderTraverseSourceNode != null)
+             childrenNodes = new ArrayList<>(preOrderTraverseSourceNode);
         else
             childrenNodes = new ArrayList<>();
         ArrayList<AccessibilityNodeInfo> allNodes = new ArrayList<>();
         if(rootNode != null)
-             allNodes = new ArrayList<>(Automator.preOrderTraverse(rootNode));
+             allNodes = new ArrayList<>(preOderTraverseRootNode);
         //TODO:AccessibilityNodeInfo is not serializable
 
         //pop up the selection window
@@ -617,9 +640,9 @@ public class SugiliteAccessibilityService extends AccessibilityService {
         return popUpIntent;
     }
 
-    protected List<AccessibilityNodeInfo> getAllNodesWithText(AccessibilityNodeInfo rootNode) {
+    protected List<AccessibilityNodeInfo> getAllNodesWithText(AccessibilityNodeInfo rootNode, List<AccessibilityNodeInfo> preOderTraverseRootNode) {
         List<AccessibilityNodeInfo> retList = new ArrayList<>();
-        List<AccessibilityNodeInfo> allNodes = Automator.preOrderTraverse(rootNode);
+        List<AccessibilityNodeInfo> allNodes = preOderTraverseRootNode;
         if (allNodes == null)
             return retList;
         for (AccessibilityNodeInfo node : allNodes) {
@@ -629,9 +652,9 @@ public class SugiliteAccessibilityService extends AccessibilityService {
         return retList;
     }
 
-    protected HashSet<Map.Entry<String, String>> getAlternativeLabels (AccessibilityNodeInfo sourceNode, AccessibilityNodeInfo rootNode){
+    protected HashSet<Map.Entry<String, String>> getAlternativeLabels (AccessibilityNodeInfo sourceNode, AccessibilityNodeInfo rootNode, List<AccessibilityNodeInfo> preOderTraverseRootNode){
         HashSet<Map.Entry<String, String>> retMap = new HashSet<>();
-        List<AccessibilityNodeInfo> allNodes = Automator.preOrderTraverse(rootNode);
+        List<AccessibilityNodeInfo> allNodes = preOderTraverseRootNode;
         if(allNodes == null)
             return retMap;
         for(AccessibilityNodeInfo node : allNodes){
@@ -668,8 +691,8 @@ public class SugiliteAccessibilityService extends AccessibilityService {
      * @param rootNode
      * @return
      */
-    protected HashSet<SerializableNodeInfo> getAvailableAlternativeNodes (AccessibilityNodeInfo sourceNode, AccessibilityNodeInfo rootNode){
-        List<AccessibilityNodeInfo> allNodes = Automator.preOrderTraverse(rootNode);
+    protected HashSet<SerializableNodeInfo> getAvailableAlternativeNodes (AccessibilityNodeInfo sourceNode, AccessibilityNodeInfo rootNode, List<AccessibilityNodeInfo> preOderTraverseRootNode){
+        List<AccessibilityNodeInfo> allNodes = preOderTraverseRootNode;
         HashSet<SerializableNodeInfo> retSet = new HashSet<>();
         if(allNodes == null)
             return retSet;

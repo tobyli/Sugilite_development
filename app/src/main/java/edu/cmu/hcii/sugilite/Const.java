@@ -97,5 +97,7 @@ public class Const {
 
 
     public static final int FILE_SCRIPT_DAO = 1, SQL_SCRIPT_DAO = 2;
+
+    //switch between using SQL Dao and File Dao (SQL Dao has a max script size issue)
     public static final int DAO_TO_USE = FILE_SCRIPT_DAO;
 }

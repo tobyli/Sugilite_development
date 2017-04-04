@@ -393,6 +393,7 @@ public class RecordingPopUpDialog extends AbstractSugiliteDialog {
         final SugiliteOperationBlock operationBlock = generateBlock();
         AlertDialog.Builder builder = new AlertDialog.Builder(dialog.getContext());
         //disable the confirmation dialog
+
         DialogInterface.OnClickListener onClickListener = new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {

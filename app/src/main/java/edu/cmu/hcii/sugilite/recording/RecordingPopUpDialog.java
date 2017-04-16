@@ -872,6 +872,10 @@ public class RecordingPopUpDialog extends AbstractSugiliteDialog {
             actionSpinnerItems.add("Set Text");
             actionOrderMap.put(SugiliteOperation.SET_TEXT, actionSpinnerItemCount ++);
         }
+        if(featurePack.eventType == AccessibilityEvent.TYPE_VIEW_SELECTED) {
+            actionSpinnerItems.add("Select");
+            actionOrderMap.put(SugiliteOperation.SELECT, actionSpinnerItemCount++);
+        }
         actionSpinnerItems.add("Click");
         actionOrderMap.put(SugiliteOperation.CLICK, actionSpinnerItemCount++);
         if(featurePack.eventType == AccessibilityEvent.TYPE_VIEW_LONG_CLICKED) {
@@ -1555,6 +1559,8 @@ public class RecordingPopUpDialog extends AbstractSugiliteDialog {
             sugiliteOperation.setOperationType(SugiliteOperation.CLICK);
         if (actionSpinnerSelectedItem.contentEquals("Long Click"))
             sugiliteOperation.setOperationType(SugiliteOperation.LONG_CLICK);
+        if(actionSpinnerSelectedItem.contentEquals("Select"))
+            sugiliteOperation.setOperationType(SugiliteOperation.SELECT);
         if (actionSpinnerSelectedItem.contentEquals("Read Out")) {
             sugiliteOperation.setOperationType(SugiliteOperation.READ_OUT);
             if(dialogRootView.findViewById(R.id.text_to_read_out_spinner) != null){

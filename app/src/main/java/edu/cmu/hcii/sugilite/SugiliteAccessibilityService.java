@@ -45,6 +45,7 @@ import edu.cmu.hcii.sugilite.ui.StatusIconManager;
 
 import static edu.cmu.hcii.sugilite.Const.BROADCASTING_ACCESSIBILITY_EVENT;
 import static edu.cmu.hcii.sugilite.Const.BUILDING_VOCAB;
+import static edu.cmu.hcii.sugilite.Const.HOME_SCREEN_PACKAGE_NAMES;
 import static edu.cmu.hcii.sugilite.Const.KEEP_ALL_TEXT_LABEL_LIST;
 
 public class SugiliteAccessibilityService extends AccessibilityService {
@@ -63,6 +64,9 @@ public class SugiliteAccessibilityService extends AccessibilityService {
     protected static final String TAG = SugiliteAccessibilityService.class.getSimpleName();
     protected SugiliteTriggerHandler triggerHandler;
     protected String lastPackageName = "";
+    private static Set<String> homeScreenPackageNameSet;
+
+
 
 
     public SugiliteAccessibilityService() {
@@ -92,6 +96,8 @@ public class SugiliteAccessibilityService extends AccessibilityService {
         context = this;
         triggerHandler = new SugiliteTriggerHandler(context, sugiliteData, sharedPreferences);
         handler = new Handler();
+        homeScreenPackageNameSet = new HashSet<>();
+        homeScreenPackageNameSet.addAll(Arrays.asList(HOME_SCREEN_PACKAGE_NAMES));
         try {
             //TODO: periodically check the status of communication controller
             sugiliteData.communicationController = SugiliteCommunicationController.getInstance(
@@ -112,6 +118,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
                 AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED,
                 AccessibilityEvent.TYPE_ANNOUNCEMENT};
         Integer[] accessiblityEventArrayToSend = {AccessibilityEvent.TYPE_VIEW_CLICKED,
+                AccessibilityEvent.TYPE_VIEW_SELECTED,
                 AccessibilityEvent.TYPE_VIEW_LONG_CLICKED,
                 AccessibilityEvent.TYPE_VIEW_TEXT_CHANGED};
         Integer[] accessibilityEventArrayToTrack = {
@@ -343,7 +350,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
                         }
                         else {
                             //temp hack for ViewGroup in Google Now Launcher
-                            if(sourceNode != null && sourceNode.getClassName() != null && sourceNode.getPackageName() != null && sourceNode.getClassName().toString().contentEquals("android.view.ViewGroup") && sourceNode.getPackageName().equals("com.google.android.googlequicksearchbox"))
+                            if(sourceNode != null && sourceNode.getClassName() != null && sourceNode.getPackageName() != null && sourceNode.getClassName().toString().contentEquals("android.view.ViewGroup") && homeScreenPackageNameSet.contains(sourceNode.getPackageName().toString()))
                             {/*do nothing (don't show popup)*/}
                             else {
 

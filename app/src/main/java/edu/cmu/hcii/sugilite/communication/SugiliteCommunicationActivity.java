@@ -41,7 +41,6 @@ import static edu.cmu.hcii.sugilite.Const.SCRIPT_DELAY;
 
 public class SugiliteCommunicationActivity extends Activity {
 
-    TextView messageType, scriptName;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,8 +51,7 @@ public class SugiliteCommunicationActivity extends Activity {
         if (getIntent().getExtras() != null)
         {
             String requestedMessageTypeString = getIntent().getStringExtra("messageType");
-            this.messageType.setText(requestedMessageTypeString);
-            this.scriptName.setText(getIntent().getStringExtra("arg1"));
+
 
             // call helper class to process request
             SugiliteCommunicationHelper sugiliteCommunicationHelper = new SugiliteCommunicationHelper(this, getIntent(), (SugiliteData)getApplication());

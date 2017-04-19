@@ -98,6 +98,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
         handler = new Handler();
         homeScreenPackageNameSet = new HashSet<>();
         homeScreenPackageNameSet.addAll(Arrays.asList(HOME_SCREEN_PACKAGE_NAMES));
+
         try {
             //TODO: periodically check the status of communication controller
             sugiliteData.communicationController = SugiliteCommunicationController.getInstance(
@@ -276,6 +277,8 @@ public class SugiliteAccessibilityService extends AccessibilityService {
 
         //packages within the excepted package will be totally excepted from the accessibility service tracking
         exceptedPackages.addAll(Arrays.asList(Const.ACCESSIBILITY_SERVICE_EXCEPTED_PACKAGE_NAMES));
+        exceptedPackages.addAll(Arrays.asList(Const.INPUT_METHOD_PACKAGE_NAMES));
+
         trackingExcludedPackages.addAll(Arrays.asList(Const.ACCESSIBILITY_SERVICE_TRACKING_EXCLUDED_PACKAGE_NAMES));
 
         if (sugiliteData.getInstructionQueueSize() > 0 && !sharedPreferences.getBoolean("recording_in_process", true) && !exceptedPackages.contains(event.getPackageName()) && sugiliteData.errorHandler != null){

@@ -363,30 +363,10 @@ public class SugiliteAccessibilityService extends AccessibilityService {
                                 if (sharedPreferences.getBoolean("root_enabled", false)) {
                                     //take screenshot
                                     try {
-            //if the event is to be recorded, process it
-            if (accessibilityEventSetToSend.contains(event.getEventType()) && (!exceptedPackages.contains(event.getPackageName()))) {
-                if (event.getEventType() == AccessibilityEvent.TYPE_VIEW_FOCUSED){
-                    //pop up warning dialog if focus on text box
-
-                    if(sourceNode != null && sourceNode.isEditable()){
-                        sugiliteTextboxHandler.handle(event, sourceNode);
-
-                    }
-                }
-                else {
-                    //temp hack
-                    if(sourceNode != null && sourceNode.getClassName() != null && sourceNode.getPackageName() != null && sourceNode.getClassName().toString().contentEquals("android.view.ViewGroup") && sourceNode.getPackageName().equals("com.google.android.googlequicksearchbox"))
-                    {/*do nothing (don't show popup)*/}
-                    else {
-                        //send the event to recording pop up dialog
-                        File screenshot = null;
-                        if (sharedPreferences.getBoolean("root_enabled", false)) {
-                            //take screenshot
-                            try {
-                        /*
-                        System.out.println("taking screen shot");
-                        screenshot = screenshotManager.take(false);
-                        */
+                                    /*
+                                    System.out.println("taking screen shot");
+                                    screenshot = screenshotManager.take(false);
+                                    */
                                     } catch (Exception e) {
                                         e.printStackTrace();
                                     }

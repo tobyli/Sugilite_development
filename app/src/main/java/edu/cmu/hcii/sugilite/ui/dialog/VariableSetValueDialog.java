@@ -6,8 +6,10 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.os.Handler;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.LinearLayout;
@@ -23,6 +25,7 @@ import java.util.Set;
 
 import edu.cmu.hcii.sugilite.Const;
 import edu.cmu.hcii.sugilite.R;
+import edu.cmu.hcii.sugilite.SugiliteAccessibilityService;
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.automation.Automator;
 import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
@@ -168,12 +171,12 @@ public class VariableSetValueDialog extends AbstractSugiliteDialog{
             }
         });
     }
-
+    AlertDialog progressDialog;
     /**
      * @param afterExecutionOperation @nullable, this operation will be pushed into the queue after the exeution
      * this is used for resume recording
      */
-    public void executeScript(SugiliteBlock afterExecutionOperation){
+    public void executeScript(final SugiliteBlock afterExecutionOperation){
         SharedPreferences.Editor prefEditor = sharedPreferences.edit();
         //turn off the recording before executing
         prefEditor.putBoolean("recording_in_process", false);
@@ -182,13 +185,33 @@ public class VariableSetValueDialog extends AbstractSugiliteDialog{
         for (String packageName : startingBlock.relevantPackages) {
             Automator.killPackage(packageName);
         }
-        sugiliteData.runScript(startingBlock, afterExecutionOperation, this.state);
-        //need to have this delay to ensure that the killing has finished before we start executing
-        try {
-            Thread.sleep(SCRIPT_DELAY);
-        } catch (Exception e) {
-            // do nothing
-        }
+
+        progressDialog = new AlertDialog.Builder(context).setMessage(Const.LOADING_MESSAGE).create();
+        progressDialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
+        progressDialog.setCanceledOnTouchOutside(false);
+        progressDialog.show();
+
+        Runnable delayAndRunScript = new Runnable() {
+            @Override
+            public void run() {
+                Runnable dismissDialog = new Runnable() {
+                    @Override
+                    public void run() {
+                        progressDialog.dismiss();
+                    }
+                };
+                sugiliteData.runScript(startingBlock, afterExecutionOperation, state);
+                if(context instanceof SugiliteAccessibilityService) {
+                    ((SugiliteAccessibilityService) context).runOnUiThread(dismissDialog);
+                }
+                else if(context instanceof Activity){
+                    ((Activity)context).runOnUiThread(dismissDialog);
+                }
+            }
+        };
+        Handler handler = new Handler();
+        handler.postDelayed(delayAndRunScript, SCRIPT_DELAY);
+
         //go to home screen for running the automation
         Intent startMain = new Intent(Intent.ACTION_MAIN);
         startMain.addCategory(Intent.CATEGORY_HOME);

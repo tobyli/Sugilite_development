@@ -9,12 +9,17 @@ import android.widget.Toast;
 import java.util.List;
 import java.util.Map;
 
+import edu.cmu.hcii.sugilite.Const;
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
+import edu.cmu.hcii.sugilite.dao.SugiliteScriptFileDao;
+import edu.cmu.hcii.sugilite.dao.SugiliteScriptSQLDao;
 import edu.cmu.hcii.sugilite.dao.SugiliteTriggerDao;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.model.variable.Variable;
 import edu.cmu.hcii.sugilite.ui.dialog.VariableSetValueDialog;
+
+import static edu.cmu.hcii.sugilite.Const.SQL_SCRIPT_DAO;
 
 /**
  * Created by toby on 1/15/17.
@@ -38,7 +43,10 @@ public class SugiliteTriggerHandler {
         this.sharedPreferences = sharedPreferences;
         lastTriggerRan = "";
         sugiliteTriggerDao = new SugiliteTriggerDao(context);
-        sugiliteScriptDao = new SugiliteScriptDao(context);
+        if(Const.DAO_TO_USE == SQL_SCRIPT_DAO)
+            sugiliteScriptDao = new SugiliteScriptSQLDao(context);
+        else
+            sugiliteScriptDao = new SugiliteScriptFileDao(context, sugiliteData);
         allTriggers = sugiliteTriggerDao.getAllTriggers();
     }
 
@@ -68,7 +76,13 @@ public class SugiliteTriggerHandler {
                     }
                 }, 5000);
                 Toast.makeText(context, "TRIGGERING SCRIPT " + trigger.getScriptName(), Toast.LENGTH_SHORT).show();
-                SugiliteStartingBlock script = sugiliteScriptDao.read(trigger.getScriptName());
+                SugiliteStartingBlock script = null;
+                try {
+                    script = sugiliteScriptDao.read(trigger.getScriptName());
+                }
+                catch (Exception e){
+                    e.printStackTrace();
+                }
                 if (script != null) {
                     VariableSetValueDialog variableSetValueDialog = new VariableSetValueDialog(context, layoutInflater, sugiliteData, script, sharedPreferences, SugiliteData.EXECUTION_STATE);
                     if (script.variableNameDefaultValueMap.size() > 0) {

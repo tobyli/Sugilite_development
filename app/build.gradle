@@ -3,7 +3,7 @@ apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion 24
-    buildToolsVersion "24.0.2"
+    buildToolsVersion "25.0.2"
 
     defaultConfig {
         applicationId "edu.cmu.hcii.sugilite"
@@ -50,6 +50,7 @@ dependencies {
     compile 'com.android.support:design:24.1.1'
     compile 'com.android.support:support-v4:24.1.1'
     compile 'com.google.code.gson:gson:2.2.4'
+    compile 'com.opencsv:opencsv:3.9'
     compile 'org.apache.commons:commons-lang3:3.4'
     compile files('libs/RootTools.jar')
     deployerJars "org.apache.maven.wagon:wagon-ssh:2.9"

@@ -30,7 +30,7 @@ import java.util.Set;
 import edu.cmu.hcii.sugilite.communication.SugiliteCommunicationController;
 import edu.cmu.hcii.sugilite.communication.SugiliteEventBroadcastingActivity;
 import edu.cmu.hcii.sugilite.dao.SugiliteAppVocabularyDao;
-import edu.cmu.hcii.sugilite.dao.SugiliteScreenshotManager;
+import edu.cmu.hcii.sugilite.recording.SugiliteScreenshotManager;
 import edu.cmu.hcii.sugilite.model.AccessibilityNodeInfoList;
 import edu.cmu.hcii.sugilite.automation.*;
 import edu.cmu.hcii.sugilite.model.block.SerializableNodeInfo;
@@ -46,6 +46,7 @@ import edu.cmu.hcii.sugilite.recording.SugiliteTextboxHandler;
 
 import static edu.cmu.hcii.sugilite.Const.BROADCASTING_ACCESSIBILITY_EVENT;
 import static edu.cmu.hcii.sugilite.Const.BUILDING_VOCAB;
+import static edu.cmu.hcii.sugilite.Const.HOME_SCREEN_PACKAGE_NAMES;
 import static edu.cmu.hcii.sugilite.Const.KEEP_ALL_TEXT_LABEL_LIST;
 
 public class SugiliteAccessibilityService extends AccessibilityService {
@@ -57,13 +58,16 @@ public class SugiliteAccessibilityService extends AccessibilityService {
     protected SugiliteScreenshotManager screenshotManager;
     protected Set<Integer> accessibilityEventSetToHandle, accessibilityEventSetToSend, accessibilityEventSetToTrack;
     protected Thread automatorThread;
-    protected Context context;
+    protected SugiliteAccessibilityService context;
     protected SugiliteTrackingHandler sugilteTrackingHandler;
     protected SugiliteAppVocabularyDao vocabularyDao;
     protected Handler handler;
     protected static final String TAG = SugiliteAccessibilityService.class.getSimpleName();
     protected SugiliteTriggerHandler triggerHandler;
     protected String lastPackageName = "";
+    private static Set<String> homeScreenPackageNameSet;
+
+
 
     protected SugiliteTextboxHandler sugiliteTextboxHandler;
 
@@ -94,6 +98,9 @@ public class SugiliteAccessibilityService extends AccessibilityService {
         context = this;
         triggerHandler = new SugiliteTriggerHandler(context, sugiliteData, sharedPreferences);
         handler = new Handler();
+        homeScreenPackageNameSet = new HashSet<>();
+        homeScreenPackageNameSet.addAll(Arrays.asList(HOME_SCREEN_PACKAGE_NAMES));
+
         try {
             //TODO: periodically check the status of communication controller
             sugiliteData.communicationController = SugiliteCommunicationController.getInstance(
@@ -114,6 +121,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
                 AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED,
                 AccessibilityEvent.TYPE_ANNOUNCEMENT};
         Integer[] accessiblityEventArrayToSend = {AccessibilityEvent.TYPE_VIEW_CLICKED,
+                AccessibilityEvent.TYPE_VIEW_SELECTED,
                 AccessibilityEvent.TYPE_VIEW_LONG_CLICKED,
                 AccessibilityEvent.TYPE_VIEW_TEXT_CHANGED};
         Integer[] accessibilityEventArrayToTrack = {
@@ -181,6 +189,10 @@ public class SugiliteAccessibilityService extends AccessibilityService {
 
     }
 
+    /**
+     * run the runnable on UI thread
+     * @param runnable
+     */
     public void runOnUiThread(Runnable runnable) {
         handler.post(runnable);
     }
@@ -196,12 +208,13 @@ public class SugiliteAccessibilityService extends AccessibilityService {
 
     String previousClickText = "NULL", previousClickContentDescription = "NULL", previousClickChildText = "NULL", previousClickChildContentDescription = "NULL", previousClickPackageName = "NULL";
     @Override
-    public void onAccessibilityEvent(AccessibilityEvent event) {
+    public void onAccessibilityEvent(final AccessibilityEvent event) {
         //TODO problem: the status of "right after click" (try getParent()?)
         //TODO new rootNode method
-        final AccessibilityNodeInfo rootNode = getRootInActiveWindow();
-        AccessibilityNodeInfo sourceNode = event.getSource();
-
+        final AccessibilityNodeInfo sourceNode = event.getSource();
+        AccessibilityNodeInfo rootNode = null;
+        List<AccessibilityNodeInfo> preOrderTraverseSourceNode = null;
+        List<AccessibilityNodeInfo> preOrderTraverseRootNode = null;
 
 
 
@@ -243,11 +256,12 @@ public class SugiliteAccessibilityService extends AccessibilityService {
                 previousClickPackageName = sourceNode.getPackageName().toString();
             else
                 previousClickPackageName = "NULL";
+            if(preOrderTraverseSourceNode == null)
+                preOrderTraverseSourceNode = Automator.preOrderTraverse(sourceNode);
 
-            List<AccessibilityNodeInfo> childNodes = Automator.preOrderTraverse(sourceNode);
             Set<String> childTexts = new HashSet<>();
             Set<String> childContentDescriptions = new HashSet<>();
-            for(AccessibilityNodeInfo childNode : childNodes){
+            for(AccessibilityNodeInfo childNode : preOrderTraverseSourceNode){
                 if(childNode.getText() != null)
                     childTexts.add(childNode.getText().toString());
                 if(childNode.getContentDescription() != null)
@@ -265,6 +279,8 @@ public class SugiliteAccessibilityService extends AccessibilityService {
 
         //packages within the excepted package will be totally excepted from the accessibility service tracking
         exceptedPackages.addAll(Arrays.asList(Const.ACCESSIBILITY_SERVICE_EXCEPTED_PACKAGE_NAMES));
+        exceptedPackages.addAll(Arrays.asList(Const.INPUT_METHOD_PACKAGE_NAMES));
+
         trackingExcludedPackages.addAll(Arrays.asList(Const.ACCESSIBILITY_SERVICE_TRACKING_EXCLUDED_PACKAGE_NAMES));
 
         if (sugiliteData.getInstructionQueueSize() > 0 && !sharedPreferences.getBoolean("recording_in_process", true) && !exceptedPackages.contains(event.getPackageName()) && sugiliteData.errorHandler != null){
@@ -275,39 +291,78 @@ public class SugiliteAccessibilityService extends AccessibilityService {
 
         if (sharedPreferences.getBoolean("recording_in_process", false)) {
             //recording in progress
+            if(rootNode == null)
+                rootNode = getRootInActiveWindow();
+            if(preOrderTraverseSourceNode == null)
+                preOrderTraverseSourceNode = Automator.preOrderTraverse(sourceNode);
+            if(preOrderTraverseRootNode == null)
+                preOrderTraverseRootNode = Automator.preOrderTraverse(rootNode);
 
-            //add package name to the relevant package set
-            if(sugiliteData.getScriptHead() != null && event.getPackageName() != null && (!exceptedPackages.contains(event.getPackageName())))
-                sugiliteData.getScriptHead().relevantPackages.add(event.getPackageName().toString());
+            final AccessibilityNodeInfo rootNodeForRecording = rootNode;
+            final List<AccessibilityNodeInfo> preOrderTraverseSourceNodeForRecording = preOrderTraverseSourceNode;
+            final List<AccessibilityNodeInfo> preOrderTracerseRootNodeForRecording = preOrderTraverseRootNode;
 
-            //skip internal interactions and interactions on system ui
-            availableAlternatives.addAll(getAlternativeLabels(sourceNode, rootNode));
-            availableAlternativeNodes.addAll(getAvailableAlternativeNodes(sourceNode, rootNode));
 
-            //refresh the elementsWithTextLabels list
-            if(KEEP_ALL_TEXT_LABEL_LIST && event.getPackageName() != null && (!exceptedPackages.contains(event.getPackageName()))){
-                List<AccessibilityNodeInfo> nodes = getAllNodesWithText(rootNode);
-                boolean toRefresh = true;
-                //hack used to avoid getting items in the duck popup
-                if(nodes.size() > 10)
-                    toRefresh = true;
-                else {
-                    for(AccessibilityNodeInfo node : nodes){
-                        if(node.getText() != null && node.getText().toString().contains("Quit Sugilite")){
-                            toRefresh = false;
-                            break;
+            //====
+
+            Runnable handleRecording = new Runnable() {
+                @Override
+                public void run() {
+                    //add package name to the relevant package set
+                    if(sugiliteData.getScriptHead() != null && event.getPackageName() != null && (!exceptedPackages.contains(event.getPackageName())))
+                        sugiliteData.getScriptHead().relevantPackages.add(event.getPackageName().toString());
+                    //skip internal interactions and interactions on system ui
+                    availableAlternatives.addAll(getAlternativeLabels(sourceNode, rootNodeForRecording, preOrderTracerseRootNodeForRecording));
+                    availableAlternativeNodes.addAll(getAvailableAlternativeNodes(sourceNode, rootNodeForRecording, preOrderTracerseRootNodeForRecording));
+
+                    //refresh the elementsWithTextLabels list
+                    if(KEEP_ALL_TEXT_LABEL_LIST && event.getPackageName() != null && (!exceptedPackages.contains(event.getPackageName()))){
+                        List<AccessibilityNodeInfo> nodes = getAllNodesWithText(rootNodeForRecording, preOrderTracerseRootNodeForRecording);
+                        boolean toRefresh = true;
+                        //hack used to avoid getting items in the duck popup
+                        if(nodes.size() > 10)
+                            toRefresh = true;
+                        else {
+                            for(AccessibilityNodeInfo node : nodes){
+                                if(node.getText() != null && node.getText().toString().contains("Quit Sugilite")){
+                                    toRefresh = false;
+                                    break;
+                                }
+                            }
+                            if(nodes.size() <= 0)
+                                toRefresh = false;
                         }
+                        if(toRefresh) {
+                            sugiliteData.elementsWithTextLabels.clear();
+                            sugiliteData.elementsWithTextLabels.addAll(nodes);
+                        }
+                        //System.out.println(event.getPackageName() + " " + sugiliteData.elementsWithTextLabels.size());
                     }
-                    if(nodes.size() <= 0)
-                        toRefresh = false;
-                }
-                if(toRefresh) {
-                    sugiliteData.elementsWithTextLabels.clear();
-                    sugiliteData.elementsWithTextLabels.addAll(getAllNodesWithText(rootNode));
-                }
-                //System.out.println(event.getPackageName() + " " + sugiliteData.elementsWithTextLabels.size());
-            }
 
+                    //if the event is to be recorded, process it
+                    if (accessibilityEventSetToSend.contains(event.getEventType()) && (!exceptedPackages.contains(event.getPackageName()))) {
+                        if (event.getEventType() == AccessibilityEvent.TYPE_VIEW_TEXT_CHANGED || event.getEventType() == AccessibilityEvent.TYPE_VIEW_FOCUSED){
+                            //pop up warning dialog if focus on text box
+                            if(sourceNode != null && sourceNode.isEditable()){
+                                runOnUiThread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        Toast.makeText(context, "For recording text entry, please type into the Sugilite recording dialog instead of directly in the textbox. Click on the textbox to show the Sugilite recording dialog.", Toast.LENGTH_SHORT).show();
+
+                                    }
+                                });
+                            }
+                        }
+                        else {
+                            //temp hack for ViewGroup in Google Now Launcher
+                            if(sourceNode != null && sourceNode.getClassName() != null && sourceNode.getPackageName() != null && sourceNode.getClassName().toString().contentEquals("android.view.ViewGroup") && homeScreenPackageNameSet.contains(sourceNode.getPackageName().toString()))
+                            {/*do nothing (don't show popup)*/}
+                            else {
+
+                                File screenshot = null;
+                                if (sharedPreferences.getBoolean("root_enabled", false)) {
+                                    //take screenshot
+                                    try {
             //if the event is to be recorded, process it
             if (accessibilityEventSetToSend.contains(event.getEventType()) && (!exceptedPackages.contains(event.getPackageName()))) {
                 if (event.getEventType() == AccessibilityEvent.TYPE_VIEW_FOCUSED){
@@ -332,49 +387,56 @@ public class SugiliteAccessibilityService extends AccessibilityService {
                         System.out.println("taking screen shot");
                         screenshot = screenshotManager.take(false);
                         */
-                            } catch (Exception e) {
-                                e.printStackTrace();
+                                    } catch (Exception e) {
+                                        e.printStackTrace();
+                                    }
+                                }
+
+                                //send the event to recording pop up dialog
+                                RecordingPopUpDialog recordingPopUpDialog = new RecordingPopUpDialog(sugiliteData, context, generateFeaturePack(event, rootNodeForRecording, screenshot, availableAlternativeNodes, preOrderTraverseSourceNodeForRecording, preOrderTracerseRootNodeForRecording), sharedPreferences, LayoutInflater.from(getApplicationContext()), RecordingPopUpDialog.TRIGGERED_BY_NEW_EVENT, availableAlternatives);
+                                sugiliteData.recordingPopupDialogQueue.add(recordingPopUpDialog);
+                                if(!sugiliteData.recordingPopupDialogQueue.isEmpty() && sugiliteData.hasRecordingPopupActive == false) {
+                                    sugiliteData.hasRecordingPopupActive = true;
+                                    sugiliteData.recordingPopupDialogQueue.poll().show();
+                                }
                             }
                         }
-                        //start the popup activity
-                        RecordingPopUpDialog recordingPopUpDialog = new RecordingPopUpDialog(sugiliteData, getApplicationContext(), generateFeaturePack(event, rootNode, screenshot, availableAlternativeNodes), sharedPreferences, LayoutInflater.from(getApplicationContext()), RecordingPopUpDialog.TRIGGERED_BY_NEW_EVENT, availableAlternatives);
-                        sugiliteData.recordingPopupDialogQueue.add(recordingPopUpDialog);
-                        if(!sugiliteData.recordingPopupDialogQueue.isEmpty() && sugiliteData.hasRecordingPopupActive == false) {
-                            sugiliteData.hasRecordingPopupActive = true;
-                            sugiliteData.recordingPopupDialogQueue.poll().show();
+                    }
+                    if(BUILDING_VOCAB) {
+                        //add alternative nodes to the app vocab set
+                        for (SerializableNodeInfo node : availableAlternativeNodes) {
+                            if (node.packageName != null && node.text != null)
+                                packageVocabs.add(new AbstractMap.SimpleEntry<String, String>(node.packageName, node.text));
+                            if (node.packageName != null && node.childText != null && node.childText.size() > 0) {
+                                for (String childText : node.childText)
+                                    packageVocabs.add(new AbstractMap.SimpleEntry<String, String>(node.packageName, childText));
+                            }
                         }
                     }
-                }
-            }
-            if(BUILDING_VOCAB) {
-                //add alternative nodes to the app vocab set
-                for (SerializableNodeInfo node : availableAlternativeNodes) {
-                    if (node.packageName != null && node.text != null)
-                        packageVocabs.add(new AbstractMap.SimpleEntry<String, String>(node.packageName, node.text));
-                    if (node.packageName != null && node.childText != null && node.childText.size() > 0) {
-                        for (String childText : node.childText)
-                            packageVocabs.add(new AbstractMap.SimpleEntry<String, String>(node.packageName, childText));
-                    }
-                }
-            }
 
-            if (accessibilityEventSetToSend.contains(event.getEventType()) && (!exceptedPackages.contains(event.getPackageName()))) {
+                    if (accessibilityEventSetToSend.contains(event.getEventType()) && (!exceptedPackages.contains(event.getPackageName()))) {
 
-                if(BUILDING_VOCAB) {
-                    for (Map.Entry<String, String> entry : packageVocabs) {
-                        try {
-                            vocabularyDao.save(entry.getKey(), entry.getValue(), "meh", previousClickText, previousClickContentDescription, previousClickChildText, previousClickChildContentDescription, previousClickPackageName);
-                        } catch (Exception e) {
-                            e.printStackTrace();
+                        if(BUILDING_VOCAB) {
+                            for (Map.Entry<String, String> entry : packageVocabs) {
+                                try {
+                                    vocabularyDao.save(entry.getKey(), entry.getValue(), "meh", previousClickText, previousClickContentDescription, previousClickChildText, previousClickChildContentDescription, previousClickPackageName);
+                                } catch (Exception e) {
+                                    e.printStackTrace();
+                                }
+                            }
                         }
-                    }
-                }
 
-                availableAlternatives.clear();
-                availableAlternativeNodes.clear();
-                if(BUILDING_VOCAB)
-                    packageVocabs.clear();
-            }
+                        availableAlternatives.clear();
+                        availableAlternativeNodes.clear();
+                        if(BUILDING_VOCAB)
+                            packageVocabs.clear();
+                    }
+
+                }
+            };
+
+            new Thread(handleRecording).run();
+            //====
 
         }
 
@@ -384,8 +446,9 @@ public class SugiliteAccessibilityService extends AccessibilityService {
             }
         }
 
-        // broadcast the accessibility event received, for any app that may want to listen
-        if(BROADCASTING_ACCESSIBILITY_EVENT) {
+        ////// broadcast the accessibility event received, for any app that may want to listen
+
+        if(BROADCASTING_ACCESSIBILITY_EVENT) { // if broadcasting is enabled
             try {
                if (accessibilityEventSetToTrack.contains(event.getEventType()) && (!trackingExcludedPackages.contains(event.getPackageName()))) {
                     SugiliteEventBroadcastingActivity.BroadcastingEvent broadcastingEvent = new SugiliteEventBroadcastingActivity.BroadcastingEvent(event);
@@ -396,18 +459,20 @@ public class SugiliteAccessibilityService extends AccessibilityService {
                     String pkg = broadcastingEvent.packageName;
                     String event_type = broadcastingEvent.eventType;
 
-                    // if it is a home press event ...
+                    // filter on what kinds of events should to be broadcasted ...
                     //if(desc.contentEquals("Home") && event_type.contentEquals("TYPE_VIEW_CLICKED") && pkg.contentEquals("com.android.systemui"))
                     if (true) {
                         String messageToSend = gson.toJson(broadcastingEvent);
 
-                        //FIXME: modified by Oscar
-                        sugiliteData.communicationController.sendMessage( Const.RESPONSE,
-                                Const.ACCESSIBILITY_EVENT, messageToSend);
-//                        Intent intent = new Intent();
-//                        intent.setAction("edu.cmu.hcii.sugilite.SUGILITE_EVENT");
-//                        intent.putExtra("event_string", messageToSend);
-//                        sendBroadcast(intent);
+                        // send info to middleware
+//                        sugiliteData.communicationController.sendMessage( Const.RESPONSE,
+//                                Const.ACCESSIBILITY_EVENT, messageToSend);
+
+                        // broadcast info for receivers of other apps
+                        Intent intent = new Intent();
+                        intent.setAction("edu.cmu.hcii.sugilite.SUGILITE_ACC_EVENT");
+                        intent.putExtra("accEvent", messageToSend);
+                        sendBroadcast(intent);
                     }
                 }
             } catch (Exception e) {
@@ -415,55 +480,79 @@ public class SugiliteAccessibilityService extends AccessibilityService {
         }
 
         if (sharedPreferences.getBoolean("tracking_in_process", false)) {
-            //background tracking in progress
-            if (accessibilityEventSetToTrack.contains(event.getEventType()) && (!trackingExcludedPackages.contains(event.getPackageName()))) {
-                sugilteTrackingHandler.handle(event, sourceNode, generateFeaturePack(event, rootNode, null, null));
-            }
+            if(rootNode == null)
+                rootNode = getRootInActiveWindow();
 
-            //add all seen clickable nodes to package vocab DB
-            if(BUILDING_VOCAB) {
-                for (SerializableNodeInfo node : getAvailableAlternativeNodes(sourceNode, rootNode)) {
-                    if (node.packageName != null && node.text != null)
-                        packageVocabs.add(new AbstractMap.SimpleEntry<>(node.packageName, node.text));
-                    if (node.packageName != null && node.childText != null && node.childText.size() > 0) {
-                        for (String childText : node.childText)
-                            packageVocabs.add(new AbstractMap.SimpleEntry<>(node.packageName, childText));
+            if(preOrderTraverseSourceNode == null)
+                preOrderTraverseSourceNode = Automator.preOrderTraverse(sourceNode);
+
+            if(preOrderTraverseRootNode == null)
+                preOrderTraverseRootNode = Automator.preOrderTraverse(rootNode);
+
+            final AccessibilityNodeInfo rootNodeForTracking = rootNode;
+            final List<AccessibilityNodeInfo> preOrderTraverseSourceNodeForTracking = preOrderTraverseSourceNode;
+            final List<AccessibilityNodeInfo> preOrderTracerseRootNodeForTracking = preOrderTraverseRootNode;
+
+            Runnable handleTracking = new Runnable() {
+                @Override
+                public void run() {
+                    //background tracking in progress
+                    if (accessibilityEventSetToTrack.contains(event.getEventType()) && (!trackingExcludedPackages.contains(event.getPackageName()))) {
+                        sugilteTrackingHandler.handle(event, sourceNode, generateFeaturePack(event, rootNodeForTracking, null, null, preOrderTraverseSourceNodeForTracking, preOrderTracerseRootNodeForTracking));
                     }
-                }
-                //only read/write DB at every click -> to optimize performance
-                if (event.getEventType() == AccessibilityEvent.TYPE_VIEW_CLICKED) {
-                    for (Map.Entry<String, String> entry : packageVocabs) {
-                        try {
-                            vocabularyDao.save(entry.getKey(), entry.getValue(), "meh", previousClickText, previousClickContentDescription, previousClickChildText, previousClickChildContentDescription, previousClickPackageName);
-                        } catch (Exception e) {
-                            e.printStackTrace();
+
+                    //add all seen clickable nodes to package vocab DB
+                    if(BUILDING_VOCAB) {
+                        for (SerializableNodeInfo node : getAvailableAlternativeNodes(sourceNode, rootNodeForTracking, preOrderTracerseRootNodeForTracking)) {
+                            if (node.packageName != null && node.text != null)
+                                packageVocabs.add(new AbstractMap.SimpleEntry<>(node.packageName, node.text));
+                            if (node.packageName != null && node.childText != null && node.childText.size() > 0) {
+                                for (String childText : node.childText)
+                                    packageVocabs.add(new AbstractMap.SimpleEntry<>(node.packageName, childText));
+                            }
+                        }
+                        //only read/write DB at every click -> to optimize performance
+                        if (event.getEventType() == AccessibilityEvent.TYPE_VIEW_CLICKED) {
+                            for (Map.Entry<String, String> entry : packageVocabs) {
+                                try {
+                                    vocabularyDao.save(entry.getKey(), entry.getValue(), "meh", previousClickText, previousClickContentDescription, previousClickChildText, previousClickChildContentDescription, previousClickPackageName);
+                                } catch (Exception e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                            trackingPackageVocabs.clear();
                         }
                     }
-                    trackingPackageVocabs.clear();
+
                 }
-            }
+            };
+            new Thread(handleTracking).run();
         }
+
 
         SugiliteBlock currentBlock = sugiliteData.peekInstructionQueue();
         //refresh status icon
         if(currentBlock instanceof SugiliteOperationBlock) {
+            if(rootNode == null)
+                rootNode = getRootInActiveWindow();
             statusIconManager.refreshStatusIcon(rootNode, ((SugiliteOperationBlock) currentBlock).getElementMatchingFilter());
         }
         else{
             statusIconManager.refreshStatusIcon(null, null);
         }
 
-        boolean retVal = false;
-
 
         if(sugiliteData.getInstructionQueueSize() > 0) {
             //System.out.println("attemping to run automation on the rootnode " + rootNode);
             //run automation
+            if(rootNode == null)
+                rootNode = getRootInActiveWindow();
+            final AccessibilityNodeInfo finalRootNode = rootNode;
             if(automatorThread == null) {
                 automatorThread = new Thread(new Runnable() {
                     @Override
                     public void run() {
-                        automator.handleLiveEvent(rootNode, getApplicationContext());
+                        automator.handleLiveEvent(finalRootNode, getApplicationContext());
                         automatorThread = null;
                     }
                 });
@@ -499,7 +588,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
 
 
 
-    protected SugiliteAvailableFeaturePack generateFeaturePack(AccessibilityEvent event, AccessibilityNodeInfo rootNode, File screenshot, HashSet<SerializableNodeInfo> availableAlternativeNodes){
+    protected SugiliteAvailableFeaturePack generateFeaturePack(AccessibilityEvent event, AccessibilityNodeInfo rootNode, File screenshot, HashSet<SerializableNodeInfo> availableAlternativeNodes, List<AccessibilityNodeInfo> preOrderTraverseSourceNode, List<AccessibilityNodeInfo> preOderTraverseRootNode){
         SugiliteAvailableFeaturePack featurePack = new SugiliteAvailableFeaturePack();
         AccessibilityNodeInfo sourceNode = event.getSource();
         Rect boundsInParents = new Rect();
@@ -512,13 +601,13 @@ public class SugiliteAccessibilityService extends AccessibilityService {
         }
         //NOTE: NOT ONLY COUNTING THE IMMEDIATE CHILDREN NOW
         ArrayList<AccessibilityNodeInfo> childrenNodes = null;
-        if(sourceNode != null && Automator.preOrderTraverse(sourceNode) != null)
-            childrenNodes = new ArrayList<>(Automator.preOrderTraverse(sourceNode));
+        if(sourceNode != null && preOrderTraverseSourceNode != null)
+            childrenNodes = new ArrayList<>(preOrderTraverseSourceNode);
         else
             childrenNodes = new ArrayList<>();
         ArrayList<AccessibilityNodeInfo> allNodes = null;
-        if(rootNode != null && Automator.preOrderTraverse(rootNode) != null)
-            allNodes = new ArrayList<>(Automator.preOrderTraverse(rootNode));
+        if(rootNode != null && preOderTraverseRootNode != null)
+            allNodes = new ArrayList<>(preOderTraverseRootNode);
         else
             allNodes = new ArrayList<>();
         //TODO:AccessibilityNodeInfo is not serializable
@@ -576,7 +665,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
     }
 
     @Deprecated
-    private Intent generatePopUpActivityIntentFromEvent(AccessibilityEvent event, AccessibilityNodeInfo rootNode, File screenshot, HashSet<Map.Entry<String, String>> entryHashSet){
+    private Intent generatePopUpActivityIntentFromEvent(AccessibilityEvent event, AccessibilityNodeInfo rootNode, File screenshot, HashSet<Map.Entry<String, String>> entryHashSet, List<AccessibilityNodeInfo> preOrderTraverseSourceNode, List<AccessibilityNodeInfo> preOderTraverseRootNode){
         AccessibilityNodeInfo sourceNode = event.getSource();
         Rect boundsInParents = new Rect();
         Rect boundsInScreen = new Rect();
@@ -585,13 +674,13 @@ public class SugiliteAccessibilityService extends AccessibilityService {
         AccessibilityNodeInfo parentNode = sourceNode.getParent();
         //NOTE: NOT ONLY COUNTING THE IMMEDIATE CHILDREN NOW
         ArrayList<AccessibilityNodeInfo> childrenNodes = null;
-        if(sourceNode != null && Automator.preOrderTraverse(sourceNode) != null)
-             childrenNodes = new ArrayList<>(Automator.preOrderTraverse(sourceNode));
+        if(sourceNode != null && preOrderTraverseSourceNode != null)
+             childrenNodes = new ArrayList<>(preOrderTraverseSourceNode);
         else
             childrenNodes = new ArrayList<>();
         ArrayList<AccessibilityNodeInfo> allNodes = new ArrayList<>();
         if(rootNode != null)
-             allNodes = new ArrayList<>(Automator.preOrderTraverse(rootNode));
+             allNodes = new ArrayList<>(preOderTraverseRootNode);
         //TODO:AccessibilityNodeInfo is not serializable
 
         //pop up the selection window
@@ -618,9 +707,9 @@ public class SugiliteAccessibilityService extends AccessibilityService {
         return popUpIntent;
     }
 
-    protected List<AccessibilityNodeInfo> getAllNodesWithText(AccessibilityNodeInfo rootNode) {
+    protected List<AccessibilityNodeInfo> getAllNodesWithText(AccessibilityNodeInfo rootNode, List<AccessibilityNodeInfo> preOderTraverseRootNode) {
         List<AccessibilityNodeInfo> retList = new ArrayList<>();
-        List<AccessibilityNodeInfo> allNodes = Automator.preOrderTraverse(rootNode);
+        List<AccessibilityNodeInfo> allNodes = preOderTraverseRootNode;
         if (allNodes == null)
             return retList;
         for (AccessibilityNodeInfo node : allNodes) {
@@ -630,9 +719,9 @@ public class SugiliteAccessibilityService extends AccessibilityService {
         return retList;
     }
 
-    protected HashSet<Map.Entry<String, String>> getAlternativeLabels (AccessibilityNodeInfo sourceNode, AccessibilityNodeInfo rootNode){
+    protected HashSet<Map.Entry<String, String>> getAlternativeLabels (AccessibilityNodeInfo sourceNode, AccessibilityNodeInfo rootNode, List<AccessibilityNodeInfo> preOderTraverseRootNode){
         HashSet<Map.Entry<String, String>> retMap = new HashSet<>();
-        List<AccessibilityNodeInfo> allNodes = Automator.preOrderTraverse(rootNode);
+        List<AccessibilityNodeInfo> allNodes = preOderTraverseRootNode;
         if(allNodes == null)
             return retMap;
         for(AccessibilityNodeInfo node : allNodes){
@@ -661,13 +750,27 @@ public class SugiliteAccessibilityService extends AccessibilityService {
         return retMap;
     }
 
-    protected HashSet<SerializableNodeInfo> getAvailableAlternativeNodes (AccessibilityNodeInfo sourceNode, AccessibilityNodeInfo rootNode){
-        List<AccessibilityNodeInfo> allNodes = Automator.preOrderTraverse(rootNode);
+    /**
+     * get alternative nodes: anything that is clickable, of the same class type as the source node
+     * and not in the excepted packages
+     *
+     * @param sourceNode
+     * @param rootNode
+     * @return
+     */
+    protected HashSet<SerializableNodeInfo> getAvailableAlternativeNodes (AccessibilityNodeInfo sourceNode, AccessibilityNodeInfo rootNode, List<AccessibilityNodeInfo> preOderTraverseRootNode){
+        List<AccessibilityNodeInfo> allNodes = preOderTraverseRootNode;
         HashSet<SerializableNodeInfo> retSet = new HashSet<>();
         if(allNodes == null)
             return retSet;
         for(AccessibilityNodeInfo node : allNodes){
             if(exceptedPackages.contains(node.getPackageName()))
+                continue;
+            if(sourceNode != null &&
+                    node != null &&
+                    node.getClassName() != null &&
+                    sourceNode.getClassName() != null &&
+                    (!sourceNode.getClassName().toString().equals(node.getClassName().toString())))
                 continue;
             if(!node.isClickable())
                 continue;

@@ -16,11 +16,16 @@ import edu.cmu.hcii.sugilite.Const;
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.automation.ServiceStatusManager;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
+import edu.cmu.hcii.sugilite.dao.SugiliteScriptSQLDao;
 
 /**
  * @author toby
  * @date 8/3/16
  * @time 6:14 PM
+ */
+
+/**
+ * Dialog used for creating a new script -> asking the user to give the script a name and set the system into the recording state
  */
 public class NewScriptDialog extends AbstractSugiliteDialog {
     private AlertDialog dialog;
@@ -66,6 +71,7 @@ public class NewScriptDialog extends AbstractSugiliteDialog {
                             //save the newly created script to DB
                             try {
                                 sugiliteScriptDao.save(sugiliteData.getScriptHead());
+                                sugiliteScriptDao.commitSave();
                             }
                             catch (Exception e){
                                 e.printStackTrace();

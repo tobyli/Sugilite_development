@@ -34,7 +34,8 @@ public class SugiliteScriptJSON {
 
         if(startingBlock.getNextBlock() != null && startingBlock.getNextBlock() instanceof SugiliteOperationBlock)
             nextBlock = new SugiliteOperationBlockJSON((SugiliteOperationBlock)startingBlock.getNextBlock());
-        this.createdTime = Calendar.getInstance().getTimeInMillis();
+        this.JSONCreatedTime = Calendar.getInstance().getTimeInMillis();
+        this.createdTime = startingBlock.getCreatedTime();
     }
 
     public SugiliteStartingBlock toSugiliteStartingBlock(Context context){
@@ -49,6 +50,6 @@ public class SugiliteScriptJSON {
     SugiliteOperationBlockJSON nextBlock;
     Map<String, String> variableDefaultValues;
     Map<String, Set<String>> variableAlternativeValues;
-    long createdTime;
+    long createdTime, JSONCreatedTime;
 
 }

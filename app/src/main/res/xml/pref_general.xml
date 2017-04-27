@@ -12,6 +12,12 @@
         android:summary="@string/pref_description_tracking_in_progress"
         android:defaultValue="false" />
 
+    <SwitchPreference
+        android:key="uploading_data"
+        android:title="Uploading Study Data"
+        android:summary="Uploading created scripts to the SUGILITE server for research purpose"
+        android:defaultValue="true" />
+
     <!-- NOTE: EditTextPreference accepts EditText attributes. -->
     <!-- NOTE: EditTextPreference's summary should be set to its value by the activity code. -->
     <EditTextPreference

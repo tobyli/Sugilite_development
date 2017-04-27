@@ -24,6 +24,8 @@ import edu.cmu.hcii.sugilite.Const;
 import edu.cmu.hcii.sugilite.SugiliteAccessibilityService;
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
+import edu.cmu.hcii.sugilite.dao.SugiliteScriptFileDao;
+import edu.cmu.hcii.sugilite.dao.SugiliteScriptSQLDao;
 import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteErrorHandlingForkBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
@@ -36,13 +38,16 @@ import edu.cmu.hcii.sugilite.model.operation.SugiliteSetTextOperation;
 import edu.cmu.hcii.sugilite.model.variable.StringVariable;
 import edu.cmu.hcii.sugilite.model.variable.Variable;
 import edu.cmu.hcii.sugilite.model.variable.VariableHelper;
+import edu.cmu.hcii.sugilite.recording.SugiliteScreenshotManager;
 import edu.cmu.hcii.sugilite.ui.BoundingBoxManager;
 import edu.cmu.hcii.sugilite.ui.StatusIconManager;
 
 import android.speech.tts.TextToSpeech;
 
+import static edu.cmu.hcii.sugilite.Const.DEBUG_DELAY;
 import static edu.cmu.hcii.sugilite.Const.DELAY;
 import static edu.cmu.hcii.sugilite.Const.HOME_SCREEN_PACKAGE_NAMES;
+import static edu.cmu.hcii.sugilite.Const.SQL_SCRIPT_DAO;
 
 
 /**
@@ -59,13 +64,17 @@ public class Automator {
     private LayoutInflater layoutInflater;
     private SharedPreferences sharedPreferences;
     private boolean ttsReady = false;
+    private SugiliteScreenshotManager screenshotManager;
     static private Set<String> homeScreenPackageNameSet;
 
     public Automator(SugiliteData sugiliteData, SugiliteAccessibilityService context, StatusIconManager statusIconManager, SharedPreferences sharedPreferences){
         this.sugiliteData = sugiliteData;
         this.serviceContext = context;
         this.boundingBoxManager = new BoundingBoxManager(context);
-        this.sugiliteScriptDao = new SugiliteScriptDao(context);
+        if(Const.DAO_TO_USE == SQL_SCRIPT_DAO)
+            this.sugiliteScriptDao = new SugiliteScriptSQLDao(context);
+        else
+            this.sugiliteScriptDao = new SugiliteScriptFileDao(context, sugiliteData);
         this.layoutInflater = (LayoutInflater) context.getSystemService( Context.LAYOUT_INFLATER_SERVICE );
         this.sharedPreferences = sharedPreferences;
         tts = new TextToSpeech(context, new TextToSpeech.OnInitListener() {
@@ -74,6 +83,7 @@ public class Automator {
                 ttsReady = true;
             }
         });
+        screenshotManager = new SugiliteScreenshotManager(sharedPreferences, context);
         homeScreenPackageNameSet = new HashSet<>();
         homeScreenPackageNameSet.addAll(Arrays.asList(HOME_SCREEN_PACKAGE_NAMES));
     }
@@ -148,8 +158,21 @@ public class Automator {
                         sugiliteData.errorHandler.reportSuccess(Calendar.getInstance().getTimeInMillis());
                         sugiliteData.removeInstructionQueueItem();
                         addNextBlockToQueue(operationBlock);
+                        if(sugiliteData.getCurrentSystemState() == SugiliteData.REGULAR_DEBUG_STATE) {
+                            try {
+                                screenshotManager.take(false, SugiliteScreenshotManager.DIRECTORY_PATH, SugiliteScreenshotManager.getDebugScreenshotFileNameWithDate());
+                            }
+                            catch (Exception e){
+                                e.printStackTrace();
+                            }
+                        }
+
                         try {
-                            Thread.sleep(DELAY / 2);
+                            //wait for DELAY/2 after adding the next block to queue
+                            if(sugiliteData.getCurrentSystemState() == SugiliteData.REGULAR_DEBUG_STATE)
+                                Thread.sleep(DEBUG_DELAY / 2);
+                            else
+                                Thread.sleep(DELAY / 2);
                         } catch (Exception e) {
                             // do nothing
                         }
@@ -223,7 +246,6 @@ public class Automator {
                     if (operationBlock.getOperation().getOperationType() == SugiliteOperation.CLICK && (!node.isClickable()))
                         continue;
                     try {
-                        //Thread.sleep(DELAY / 2);
                     } catch (Exception e) {
                         // do nothing
                     }
@@ -244,7 +266,11 @@ public class Automator {
                         succeeded = true;
 
                         try {
-                            Thread.sleep(DELAY / 2);
+                            //delay delay/2 length after successfuly performing the action
+                            if(sugiliteData.getCurrentSystemState() == SugiliteData.DEFAULT_STATE)
+                                Thread.sleep(DEBUG_DELAY / 2);
+                            else
+                                Thread.sleep(DELAY / 2);
                         } catch (Exception e) {
                             // do nothing
                         }

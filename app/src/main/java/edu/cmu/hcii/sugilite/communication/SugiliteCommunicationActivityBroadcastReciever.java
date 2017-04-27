@@ -1,35 +1,18 @@
 package edu.cmu.hcii.sugilite.communication;
 
-import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.preference.PreferenceManager;
-import android.util.Log;
-import android.view.WindowManager;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.google.gson.Gson;
 
-import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import edu.cmu.hcii.sugilite.Const;
 import edu.cmu.hcii.sugilite.SugiliteData;
-import edu.cmu.hcii.sugilite.automation.ServiceStatusManager;
 import edu.cmu.hcii.sugilite.dao.SugiliteAppVocabularyDao;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
+import edu.cmu.hcii.sugilite.dao.SugiliteScriptSQLDao;
 import edu.cmu.hcii.sugilite.dao.SugiliteTrackingDao;
-import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
-import edu.cmu.hcii.sugilite.ui.dialog.VariableSetValueDialog;
-
-import static edu.cmu.hcii.sugilite.Const.SCRIPT_DELAY;
 
 /**
  * This class has been replaced by SugiliteCommunicationController
@@ -90,7 +73,7 @@ public class SugiliteCommunicationActivityBroadcastReciever extends BroadcastRec
 //                arg2 = intent.getStringExtra("arg2");
 //
 //            }
-//            this.sugiliteScriptDao = new SugiliteScriptDao(context);
+//            this.sugiliteScriptDao = new SugiliteScriptSQLDao(context);
 //            this.sugiliteTrackingDao = new SugiliteTrackingDao(context);
 //            this.vocabularyDao = new SugiliteAppVocabularyDao(context);
 //            this.jsonProcessor = new SugiliteBlockJSONProcessor(context);

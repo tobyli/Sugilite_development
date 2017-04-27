@@ -31,9 +31,12 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TimeZone;
 
+import edu.cmu.hcii.sugilite.Const;
 import edu.cmu.hcii.sugilite.R;
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
+import edu.cmu.hcii.sugilite.dao.SugiliteScriptFileDao;
+import edu.cmu.hcii.sugilite.dao.SugiliteScriptSQLDao;
 import edu.cmu.hcii.sugilite.model.AccessibilityNodeInfoList;
 import edu.cmu.hcii.sugilite.model.SetMapEntrySerializableWrapper;
 import edu.cmu.hcii.sugilite.model.block.SerializableNodeInfo;
@@ -44,6 +47,8 @@ import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.model.block.UIElementMatchingFilter;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteOperation;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteSetTextOperation;
+
+import static edu.cmu.hcii.sugilite.Const.SQL_SCRIPT_DAO;
 
 @Deprecated
 public class RecordingPopUpActivity extends AppCompatActivity {
@@ -73,7 +78,10 @@ public class RecordingPopUpActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         sugiliteData = (SugiliteData)getApplication();
-        sugiliteScriptDao = new SugiliteScriptDao(this);
+        if(Const.DAO_TO_USE == SQL_SCRIPT_DAO)
+            this.sugiliteScriptDao = new SugiliteScriptSQLDao(this);
+        else
+            this.sugiliteScriptDao = new SugiliteScriptFileDao(this, sugiliteData);
         scriptName = sugiliteData.getScriptHead().getScriptName();
         readableDescriptionGenerator = new ReadableDescriptionGenerator(getApplicationContext());
         setContentView(R.layout.activity_recoding_pop_up);

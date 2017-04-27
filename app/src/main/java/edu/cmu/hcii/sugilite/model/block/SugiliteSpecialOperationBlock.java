@@ -7,6 +7,7 @@ import java.io.Serializable;
 
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
+import edu.cmu.hcii.sugilite.dao.SugiliteScriptSQLDao;
 
 /**
  * @author toby

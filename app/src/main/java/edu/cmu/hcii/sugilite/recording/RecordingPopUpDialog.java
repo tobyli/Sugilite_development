@@ -1,5 +1,6 @@
 package edu.cmu.hcii.sugilite.recording;
 
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -43,10 +44,12 @@ import java.util.TimeZone;
 
 import edu.cmu.hcii.sugilite.Const;
 import edu.cmu.hcii.sugilite.R;
+import edu.cmu.hcii.sugilite.SugiliteAccessibilityService;
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.communication.SugiliteBlockJSONProcessor;
-import edu.cmu.hcii.sugilite.dao.SugiliteScreenshotManager;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
+import edu.cmu.hcii.sugilite.dao.SugiliteScriptFileDao;
+import edu.cmu.hcii.sugilite.dao.SugiliteScriptSQLDao;
 import edu.cmu.hcii.sugilite.model.block.SerializableNodeInfo;
 import edu.cmu.hcii.sugilite.model.block.SugiliteAvailableFeaturePack;
 import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
@@ -62,6 +65,8 @@ import edu.cmu.hcii.sugilite.model.variable.StringVariable;
 import edu.cmu.hcii.sugilite.model.variable.Variable;
 import edu.cmu.hcii.sugilite.ui.dialog.AbstractSugiliteDialog;
 import edu.cmu.hcii.sugilite.ui.dialog.ChooseVariableDialog;
+
+import static edu.cmu.hcii.sugilite.Const.SQL_SCRIPT_DAO;
 
 /**
  * @author toby
@@ -92,8 +97,8 @@ public class RecordingPopUpDialog extends AbstractSugiliteDialog {
     private AlternativeNodesFilterTester filterTester;
     private String childText = "";
     private String scriptName;
-
-
+    private AlertDialog progressDialog;
+    private Context context;
 
 
     private Spinner actionSpinner, targetTypeSpinner, withInAppSpinner, readoutParameterSpinner, loadVariableParameterSpinner;
@@ -109,32 +114,36 @@ public class RecordingPopUpDialog extends AbstractSugiliteDialog {
 
     private AlertDialog dialog;
 
-    static final int PICK_CHILD_FEATURE = 1;
-    static final int PICK_PARENT_FEATURE = 2;
-
     public static final int TRIGGERED_BY_NEW_EVENT = 1;
     public static final int TRIGGERED_BY_EDIT = 2;
 
-    public RecordingPopUpDialog(final SugiliteData sugiliteData, Context applicationContext, SugiliteAvailableFeaturePack featurePack, SharedPreferences sharedPreferences, LayoutInflater inflater, int triggerMode, Set<Map.Entry<String, String>> alternativeLabels){
+    public RecordingPopUpDialog(final SugiliteData sugiliteData, Context context, SugiliteAvailableFeaturePack featurePack, SharedPreferences sharedPreferences, LayoutInflater inflater, int triggerMode, Set<Map.Entry<String, String>> alternativeLabels){
         this.sharedPreferences = sharedPreferences;
         this.sugiliteData = sugiliteData;
         this.featurePack = featurePack;
         this.triggerMode = triggerMode;
         this.layoutInflater = inflater;
-        this.alternativeLabels = new HashSet<>(alternativeLabels);
-        this.screenshotManager = new SugiliteScreenshotManager(sharedPreferences, applicationContext);
+        this.context = context;
+        if(Const.KEEP_ALL_ALTERNATIVES_IN_THE_FILTER)
+            this.alternativeLabels = new HashSet<>(alternativeLabels);
+        else
+            this.alternativeLabels = new HashSet<>();
+        this.screenshotManager = new SugiliteScreenshotManager(sharedPreferences, context);
         this.skipManager = new RecordingSkipManager();
         this.filterTester = new AlternativeNodesFilterTester();
         this.scriptName = sugiliteData.getScriptHead().getScriptName();
-        jsonProcessor = new SugiliteBlockJSONProcessor(applicationContext);
-        sugiliteScriptDao = new SugiliteScriptDao(applicationContext);
-        readableDescriptionGenerator = new ReadableDescriptionGenerator(applicationContext);
+        jsonProcessor = new SugiliteBlockJSONProcessor(context);
+        if(Const.DAO_TO_USE == SQL_SCRIPT_DAO)
+            this.sugiliteScriptDao = new SugiliteScriptSQLDao(context);
+        else
+            this.sugiliteScriptDao = new SugiliteScriptFileDao(context, sugiliteData);
+        readableDescriptionGenerator = new ReadableDescriptionGenerator(context);
         checkBoxChildEntryMap = new HashMap<>();
         checkBoxParentEntryMap = new HashMap<>();
         identifierCheckboxMap = new HashMap<>();
         dialogRootView = inflater.inflate(R.layout.dialog_recording_pop_up, null);
-        ContextThemeWrapper ctw = new ContextThemeWrapper(applicationContext, R.style.AlertDialogCustom);
-        AlertDialog.Builder builder = new AlertDialog.Builder(applicationContext);
+        ContextThemeWrapper ctw = new ContextThemeWrapper(context, R.style.AlertDialogCustom);
+        AlertDialog.Builder builder = new AlertDialog.Builder(context);
         builder.setView(dialogRootView)
                 .setTitle("Sugilite Recording Panel");
         dialog = builder.create();
@@ -156,7 +165,7 @@ public class RecordingPopUpDialog extends AbstractSugiliteDialog {
     }
 
     //THIS CONSTRUCTOR IS USED FOR EDITING ONLY!
-    public RecordingPopUpDialog(final SugiliteData sugiliteData, Context applicationContext, SugiliteStartingBlock originalScript, SharedPreferences sharedPreferences, SugiliteOperationBlock blockToEdit, LayoutInflater inflater, int triggerMode, DialogInterface.OnClickListener callback){
+    public RecordingPopUpDialog(final SugiliteData sugiliteData, Context context, SugiliteStartingBlock originalScript, SharedPreferences sharedPreferences, SugiliteOperationBlock blockToEdit, LayoutInflater inflater, int triggerMode, DialogInterface.OnClickListener callback){
         this.sharedPreferences = sharedPreferences;
         this.sugiliteData = sugiliteData;
         this.featurePack = blockToEdit.getFeaturePack();
@@ -168,19 +177,23 @@ public class RecordingPopUpDialog extends AbstractSugiliteDialog {
         this.skipManager = new RecordingSkipManager();
         this.filterTester = new AlternativeNodesFilterTester();
         this.scriptName = originalScript.getScriptName();
-        jsonProcessor = new SugiliteBlockJSONProcessor(applicationContext);
+        this.context = context;
+        jsonProcessor = new SugiliteBlockJSONProcessor(context);
         if(blockToEdit.getElementMatchingFilter().alternativeLabels != null)
             this.alternativeLabels = new HashSet<>(blockToEdit.getElementMatchingFilter().alternativeLabels);
         else
             this.alternativeLabels = new HashSet<>();
-        this.screenshotManager = new SugiliteScreenshotManager(sharedPreferences, applicationContext);
-        sugiliteScriptDao = new SugiliteScriptDao(applicationContext);
-        readableDescriptionGenerator = new ReadableDescriptionGenerator(applicationContext);
+        this.screenshotManager = new SugiliteScreenshotManager(sharedPreferences, context);
+        if(Const.DAO_TO_USE == SQL_SCRIPT_DAO)
+            sugiliteScriptDao = new SugiliteScriptSQLDao(context);
+        else
+            sugiliteScriptDao = new SugiliteScriptFileDao(context, sugiliteData);
+        readableDescriptionGenerator = new ReadableDescriptionGenerator(context);
         checkBoxChildEntryMap = new HashMap<>();
         checkBoxParentEntryMap = new HashMap<>();
         identifierCheckboxMap = new HashMap<>();
         dialogRootView = inflater.inflate(R.layout.dialog_recording_pop_up, null);
-        AlertDialog.Builder builder = new AlertDialog.Builder(applicationContext);
+        AlertDialog.Builder builder = new AlertDialog.Builder(context);
         builder.setView(dialogRootView)
                 .setTitle("Sugilite Recording Panel");
         dialog = builder.create();
@@ -205,24 +218,48 @@ public class RecordingPopUpDialog extends AbstractSugiliteDialog {
     }
 
     public void show(boolean doNotSkip){
+
+        //show() needs to be on the UI Thread.
+        Runnable runnable = new Runnable() {
+            @Override
+            public void run() {
+                dialog.show();
+                dialog.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM);
+            }
+        };
+
         //to skip
         if(skipManager.checkSkip(featurePack, triggerMode, generateFilter(), featurePack.alternativeNodes).contentEquals("skip") && (!doNotSkip))
             OKButtonOnClick(null);
         //to show the disambiguation panel
+
         else if (skipManager.checkSkip(featurePack, triggerMode, generateFilter(), featurePack.alternativeNodes).contentEquals("disambiguation")){
             hideUnrelevantInfo(true, "Sugilite finds multiple possible features for the object you've just opearted on and can't determine the best feature to use.\n\nCan you choose the best feature to use for identifying this object in future executions of this script?");
-            dialog.show();
-            dialog.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM);
+            if(context instanceof SugiliteAccessibilityService) {
+                ((SugiliteAccessibilityService)context).runOnUiThread(runnable);
+            }
+            else if(context instanceof Activity){
+                ((Activity) context).runOnUiThread(runnable);
+            }
         }
         else if (skipManager.checkSkip(featurePack, triggerMode, generateFilter(), featurePack.alternativeNodes).contentEquals("multipleMatch")){
             hideUnrelevantInfo(false, "Sugilte's automatically generated feature set can match more than one objects on the current screen.\n\nCan you choose the best set of features to use for identifying this object in future executions of this script?");
-            dialog.show();
-            dialog.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM);
+            if(context instanceof SugiliteAccessibilityService) {
+                ((SugiliteAccessibilityService)context).runOnUiThread(runnable);
+            }
+            else if(context instanceof Activity){
+                ((Activity) context).runOnUiThread(runnable);
+            }
         }
         //to show the full popup
         else {
-            dialog.show();
-            dialog.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM);
+            //context can be either from an activity (editing) or the accessibility service
+            if(context instanceof SugiliteAccessibilityService) {
+                ((SugiliteAccessibilityService)context).runOnUiThread(runnable);
+            }
+            else if(context instanceof Activity){
+                ((Activity) context).runOnUiThread(runnable);
+            }
         }
     }
 
@@ -306,7 +343,51 @@ public class RecordingPopUpDialog extends AbstractSugiliteDialog {
     {
         SharedPreferences.Editor prefEditor = sharedPreferences.edit();
         prefEditor.putBoolean("recording_in_process", false);
-        prefEditor.commit();
+        prefEditor.apply();
+
+        progressDialog = new AlertDialog.Builder(context).setMessage(Const.SAVING_MESSAGE).create();
+        progressDialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
+        progressDialog.setCanceledOnTouchOutside(false);
+
+        Runnable showProgressDialogRunnable = new Runnable() {
+            @Override
+            public void run() {
+                progressDialog.show();
+            }
+        };
+        if(context instanceof SugiliteAccessibilityService) {
+            ((SugiliteAccessibilityService)context).runOnUiThread(showProgressDialogRunnable);
+        }
+        else if(context instanceof Activity){
+            ((Activity) context).runOnUiThread(showProgressDialogRunnable);
+        }
+
+
+        new Thread(new Runnable() {
+            @Override
+            public void run()
+            {
+                try {
+                    sugiliteScriptDao.commitSave();
+                }
+                catch (Exception e){
+                    e.printStackTrace();
+                }
+                Runnable dismissDialog = new Runnable() {
+                    @Override
+                    public void run() {
+                        progressDialog.dismiss();
+                    }
+                };
+                if(context instanceof SugiliteAccessibilityService) {
+                    ((SugiliteAccessibilityService) context).runOnUiThread(dismissDialog);
+                }
+                else if (context instanceof Activity){
+                    ((Activity) context).runOnUiThread(dismissDialog);
+                }
+            }
+        }).start();
+
         if(sugiliteData.initiatedExternally == true && sugiliteData.getScriptHead() != null)
             sugiliteData.communicationController.sendRecordingFinishedSignal(sugiliteData.getScriptHead().getScriptName());
             sugiliteData.sendCallbackMsg(Const.FINISHED_RECORDING, jsonProcessor.scriptToJson(sugiliteData.getScriptHead()), sugiliteData.callbackString);
@@ -320,13 +401,24 @@ public class RecordingPopUpDialog extends AbstractSugiliteDialog {
         if (actionSpinnerSelectedItem.contentEquals("Load as Variable")){
             if(loadVariableVariableName.getText().length() < 1){
                 //variable name not filled, popup window
-                AlertDialog.Builder builder = new AlertDialog.Builder(dialog.getContext());
-                builder.setTitle("Variable Name not Set").setMessage("Please set the name of the varilable").setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                Runnable popupRunnable = new Runnable() {
                     @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        dialog.dismiss();
+                    public void run() {
+                        AlertDialog.Builder builder = new AlertDialog.Builder(dialog.getContext());
+                        builder.setTitle("Variable Name not Set").setMessage("Please set the name of the varilable").setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                dialog.dismiss();
+                            }
+                        }).show();
                     }
-                }).show();
+                };
+                if(context instanceof SugiliteAccessibilityService) {
+                    ((SugiliteAccessibilityService) context).runOnUiThread(popupRunnable);
+                }
+                else if (context instanceof Activity){
+                    ((Activity) context).runOnUiThread(popupRunnable);
+                }
                 return;
             }
         }
@@ -342,6 +434,7 @@ public class RecordingPopUpDialog extends AbstractSugiliteDialog {
         }
 
         final SugiliteOperationBlock operationBlock = generateBlock();
+
         AlertDialog.Builder builder = new AlertDialog.Builder(dialog.getContext());
         //disable the confirmation dialog
         DialogInterface.OnClickListener onClickListener = new DialogInterface.OnClickListener() {
@@ -352,11 +445,11 @@ public class RecordingPopUpDialog extends AbstractSugiliteDialog {
                 if (sharedPreferences.getBoolean("root_enabled", false)) {
                     try {
                         System.out.println("taking screen shot");
-                        screenshot = screenshotManager.take(false);
+                        screenshot = screenshotManager.take(false, SugiliteScreenshotManager.DIRECTORY_PATH, SugiliteScreenshotManager.getScreenshotFileNameWithDate());
                         operationBlock.setScreenshot(screenshot);
 
                     } catch (Exception e) {
-                        //e.printStackTrace();
+                        e.printStackTrace();
                         System.err.println("[ERROR] Error in taking screenshot, is root access granted?");
                     }
                 }
@@ -388,7 +481,7 @@ public class RecordingPopUpDialog extends AbstractSugiliteDialog {
                             show(true);
                         }
                     });
-            AlertDialog dialog = builder.create();
+            final AlertDialog dialog = builder.create();
             dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
             dialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
                 @Override
@@ -400,7 +493,19 @@ public class RecordingPopUpDialog extends AbstractSugiliteDialog {
                     }
                 }
             });
-            dialog.show();
+            Runnable showDialogRunnable = new Runnable() {
+                @Override
+                public void run() {
+                    dialog.show();
+                }
+            };
+
+            if(context instanceof SugiliteAccessibilityService) {
+                ((SugiliteAccessibilityService) context).runOnUiThread(showDialogRunnable);
+            }
+            else if (context instanceof Activity){
+                ((Activity) context).runOnUiThread(showDialogRunnable);
+            }
         }
 
         else {
@@ -417,22 +522,32 @@ public class RecordingPopUpDialog extends AbstractSugiliteDialog {
     }
 
 
-    public void setAsAParameterOnClick(View view, TextView actionParameter, String label, String defaultDefaultValue){
+    public void setAsAParameterOnClick(final View view, final TextView actionParameter, final String label, final String defaultDefaultValue){
         Toast.makeText(view.getContext(), "set as a parameter", Toast.LENGTH_SHORT).show();
+        ChooseVariableDialog chooseVariableDialog = null;
         if(actionParameter != null) {
-            ChooseVariableDialog dialog;
             switch (triggerMode) {
                 case TRIGGERED_BY_NEW_EVENT:
-                    dialog = new ChooseVariableDialog(view.getContext(), actionParameter, layoutInflater, sugiliteData, sugiliteData.getScriptHead(), label, defaultDefaultValue);
-                    dialog.show();
+                    chooseVariableDialog = new ChooseVariableDialog(view.getContext(), actionParameter, layoutInflater, sugiliteData, sugiliteData.getScriptHead(), label, defaultDefaultValue);
                     break;
                 case TRIGGERED_BY_EDIT:
-                    dialog = new ChooseVariableDialog(view.getContext(), actionParameter, layoutInflater, sugiliteData, originalScript, label, defaultDefaultValue);
-                    dialog.show();
+                    chooseVariableDialog = new ChooseVariableDialog(view.getContext(), actionParameter, layoutInflater, sugiliteData, originalScript, label, defaultDefaultValue);
                     break;
             }
         }
-        //prompt new parameter, open the parameter management popup, click on a parameter
+        final ChooseVariableDialog finalChooseVariableDialog = chooseVariableDialog;
+        Runnable showChooseVariableDialogRunnable = new Runnable() {
+            @Override
+            public void run() {
+                finalChooseVariableDialog.show();
+            }
+        };
+        if(context instanceof SugiliteAccessibilityService) {
+            ((SugiliteAccessibilityService) context).runOnUiThread(showChooseVariableDialogRunnable);
+        }
+        else if (context instanceof Activity){
+            ((Activity) context).runOnUiThread(showChooseVariableDialogRunnable);
+        }
     }
 
     public void seeAlternativeLabelLinkOnClick(View view) {
@@ -445,7 +560,7 @@ public class RecordingPopUpDialog extends AbstractSugiliteDialog {
         ListView listView = new ListView(view.getContext());
         ArrayAdapter<String> adapter = new ArrayAdapter<String>(dialog.getContext(), android.R.layout.simple_list_item_single_choice, labelList);
         listView.setAdapter(adapter);
-        AlertDialog.Builder builder = new AlertDialog.Builder(dialog.getContext());
+        final AlertDialog.Builder builder = new AlertDialog.Builder(dialog.getContext());
         builder.setTitle("Alternative Labels")
                 .setPositiveButton("OK", new DialogInterface.OnClickListener() {
                     @Override
@@ -454,9 +569,20 @@ public class RecordingPopUpDialog extends AbstractSugiliteDialog {
                     }
                 })
                 .setView(listView);
-        AlertDialog dialog = builder.create();
-        dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
-        dialog.show();
+        Runnable showDialogRunnable = new Runnable() {
+            @Override
+            public void run() {
+                AlertDialog dialog = builder.create();
+                dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
+                dialog.show();
+            }
+        };
+        if(context instanceof SugiliteAccessibilityService) {
+            ((SugiliteAccessibilityService) context).runOnUiThread(showDialogRunnable);
+        }
+        else if (context instanceof Activity){
+            ((Activity) context).runOnUiThread(showDialogRunnable);
+        }
     }
 
     private void setupSelections(){
@@ -746,6 +872,10 @@ public class RecordingPopUpDialog extends AbstractSugiliteDialog {
             actionSpinnerItems.add("Set Text");
             actionOrderMap.put(SugiliteOperation.SET_TEXT, actionSpinnerItemCount ++);
         }
+        if(featurePack.eventType == AccessibilityEvent.TYPE_VIEW_SELECTED) {
+            actionSpinnerItems.add("Select");
+            actionOrderMap.put(SugiliteOperation.SELECT, actionSpinnerItemCount++);
+        }
         actionSpinnerItems.add("Click");
         actionOrderMap.put(SugiliteOperation.CLICK, actionSpinnerItemCount++);
         if(featurePack.eventType == AccessibilityEvent.TYPE_VIEW_LONG_CLICKED) {
@@ -852,7 +982,7 @@ public class RecordingPopUpDialog extends AbstractSugiliteDialog {
         setTextEditText.setOnClickListener(new View.OnClickListener() {
             //force the keyboard to show when edit text on click
             @Override
-            public void onClick(View v) {
+            public void onClick(final View v) {
                 imm.showSoftInput(v, InputMethodManager.SHOW_IMPLICIT);
             }
         });
@@ -1208,6 +1338,49 @@ public class RecordingPopUpDialog extends AbstractSugiliteDialog {
                                 try {
                                     originalScript.relevantPackages.add(featurePack.packageName);
                                     sugiliteScriptDao.save(originalScript);
+                                    //commit save for triggered_by_edit
+
+                                    progressDialog = new AlertDialog.Builder(context).setMessage(Const.SAVING_MESSAGE).create();
+                                    progressDialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
+                                    progressDialog.setCanceledOnTouchOutside(false);
+                                    Runnable showProgressDialogRunnable = new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            progressDialog.show();
+                                        }
+                                    };
+
+                                    if(context instanceof SugiliteAccessibilityService) {
+                                        ((SugiliteAccessibilityService) context).runOnUiThread(showProgressDialogRunnable);
+                                    }
+                                    else if (context instanceof Activity){
+                                        ((Activity) context).runOnUiThread(showProgressDialogRunnable);
+                                    }
+
+                                    new Thread(new Runnable() {
+                                        @Override
+                                        public void run()
+                                        {
+                                            try {
+                                                sugiliteScriptDao.commitSave();
+                                            }
+                                            catch (Exception e){
+                                                e.printStackTrace();
+                                            }
+                                            Runnable dismissDialog = new Runnable() {
+                                                @Override
+                                                public void run() {
+                                                    progressDialog.dismiss();
+                                                }
+                                            };
+                                            if(context instanceof SugiliteAccessibilityService) {
+                                                ((SugiliteAccessibilityService) context).runOnUiThread(dismissDialog);
+                                            }
+                                            else if(context instanceof Activity){
+                                                ((Activity) context).runOnUiThread(dismissDialog);
+                                            }
+                                        }
+                                    }).start();
                                     success = true;
                                 }
                                 catch (Exception e){
@@ -1222,6 +1395,49 @@ public class RecordingPopUpDialog extends AbstractSugiliteDialog {
                                 operationBlock.setNextBlock(((SugiliteOperationBlock) currentBlock).getNextBlock());
                                 try {
                                     sugiliteScriptDao.save(originalScript);
+                                    //commit save for triggered_by_edit
+                                    progressDialog = new AlertDialog.Builder(context).setMessage(Const.SAVING_MESSAGE).create();
+                                    progressDialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
+                                    progressDialog.setCanceledOnTouchOutside(false);
+
+                                    Runnable showProgressDialogRunnable = new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            progressDialog.show();
+                                        }
+                                    };
+
+                                    if(context instanceof SugiliteAccessibilityService) {
+                                        ((SugiliteAccessibilityService) context).runOnUiThread(showProgressDialogRunnable);
+                                    }
+                                    else if (context instanceof Activity){
+                                        ((Activity) context).runOnUiThread(showProgressDialogRunnable);
+                                    }
+
+                                    new Thread(new Runnable() {
+                                        @Override
+                                        public void run()
+                                        {
+                                            try {
+                                                sugiliteScriptDao.commitSave();
+                                            }
+                                            catch (Exception e){
+                                                e.printStackTrace();
+                                            }
+                                            Runnable dismissDialog = new Runnable() {
+                                                @Override
+                                                public void run() {
+                                                    progressDialog.dismiss();
+                                                }
+                                            };
+                                            if(context instanceof SugiliteAccessibilityService) {
+                                                ((SugiliteAccessibilityService) context).runOnUiThread(dismissDialog);
+                                            }
+                                            else if(context instanceof Activity){
+                                                ((Activity) context).runOnUiThread(dismissDialog);
+                                            }
+                                        }
+                                    }).start();
                                     success = true;
                                 }
                                 catch (Exception e){
@@ -1343,6 +1559,8 @@ public class RecordingPopUpDialog extends AbstractSugiliteDialog {
             sugiliteOperation.setOperationType(SugiliteOperation.CLICK);
         if (actionSpinnerSelectedItem.contentEquals("Long Click"))
             sugiliteOperation.setOperationType(SugiliteOperation.LONG_CLICK);
+        if(actionSpinnerSelectedItem.contentEquals("Select"))
+            sugiliteOperation.setOperationType(SugiliteOperation.SELECT);
         if (actionSpinnerSelectedItem.contentEquals("Read Out")) {
             sugiliteOperation.setOperationType(SugiliteOperation.READ_OUT);
             if(dialogRootView.findViewById(R.id.text_to_read_out_spinner) != null){

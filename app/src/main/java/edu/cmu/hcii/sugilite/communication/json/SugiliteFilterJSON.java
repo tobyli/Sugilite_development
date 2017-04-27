@@ -7,6 +7,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import edu.cmu.hcii.sugilite.Const;
 import edu.cmu.hcii.sugilite.model.block.UIElementMatchingFilter;
 
 /**
@@ -28,7 +29,7 @@ public class SugiliteFilterJSON {
                 this.parentFilter = new SugiliteFilterJSON(filter.getParentFilter());
             if(filter.getChildFilter() != null)
                 this.childFilter = new SugiliteFilterJSON(filter.getChildFilter());
-            if(filter.alternativeLabels != null && filter.alternativeLabels.size() > 0) {
+            if(filter.alternativeLabels != null && filter.alternativeLabels.size() > 0 && Const.KEEP_ALL_ALTERNATIVES_IN_THE_FILTER) {
                 this.alternativeLabels = new HashSet<>();
                 for(Map.Entry<String, String> entry : filter.alternativeLabels){
                     this.alternativeLabels.add(new SugiliteAlternativePairJSON(entry.getKey(), entry.getValue()));

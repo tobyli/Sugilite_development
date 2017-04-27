@@ -8,10 +8,16 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
 
+import edu.cmu.hcii.sugilite.Const;
 import edu.cmu.hcii.sugilite.model.AccessibilityNodeInfoList;
 
 /**
  * Created by toby on 6/28/16.
+ */
+
+
+/**
+ * this class is used for storing a serializable copy of all the features extracted from an AccessibilityEvent
  */
 public class SugiliteAvailableFeaturePack implements Serializable{
     public SugiliteAvailableFeaturePack(){
@@ -29,17 +35,32 @@ public class SugiliteAvailableFeaturePack implements Serializable{
         this.time = featurePack.time;
         this.eventType = featurePack.eventType;
         this.screenshot = featurePack.screenshot;
-        this.parentNode = featurePack.parentNode;
-        this.childNodes = new ArrayList<>(featurePack.childNodes);
-        this.allNodes = new ArrayList<>(featurePack.allNodes);
-        if(featurePack.alternativeChildTextList != null)
-            this.alternativeChildTextList = new HashSet<>(featurePack.alternativeChildTextList);
-        else
+
+        if(Const.KEEP_ALL_NODES_IN_THE_FEATURE_PACK) {
+            this.parentNode = featurePack.parentNode;
+            this.childNodes = new ArrayList<>(featurePack.childNodes);
+            this.allNodes = new ArrayList<>(featurePack.allNodes);
+        }
+        else{
+            this.parentNode = null;
+            this.childNodes = new ArrayList<>();
+            this.allNodes = new ArrayList<>();
+        }
+
+        if(Const.KEEP_ALL_TEXT_LABEL_LIST) {
+            if (featurePack.alternativeChildTextList != null)
+                this.alternativeChildTextList = new HashSet<>(featurePack.alternativeChildTextList);
+            else
+                this.alternativeChildTextList = new HashSet<>();
+            if (featurePack.alternativeTextList != null)
+                this.alternativeTextList = new HashSet<>(featurePack.alternativeTextList);
+            else
+                this.alternativeTextList = new HashSet<>();
+        }
+        else{
             this.alternativeChildTextList = new HashSet<>();
-        if(featurePack.alternativeTextList != null)
-            this.alternativeTextList = new HashSet<>(featurePack.alternativeTextList);
-        else
             this.alternativeTextList = new HashSet<>();
+        }
     }
     public String packageName, className, text, contentDescription, viewId, boundsInParent, boundsInScreen;
     public boolean isEditable;
@@ -47,7 +68,16 @@ public class SugiliteAvailableFeaturePack implements Serializable{
     public int eventType;
     public File screenshot;
     public SerializableNodeInfo parentNode;
+    /**
+     * allNodes: all nodes present (from traversing the root view)
+     * childNodes: all child nodes of the source nodes (from traversing the source node)
+     */
     public ArrayList<SerializableNodeInfo> childNodes, allNodes;
+
+
+    /**
+     * from SugiliteAccessibilityService.getAvailableAlternativeNodes()
+     */
     public Set<SerializableNodeInfo> alternativeNodes;
 
     public Set<String> alternativeTextList;

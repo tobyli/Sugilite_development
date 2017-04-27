@@ -28,6 +28,7 @@ import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.model.variable.Variable;
+import edu.cmu.hcii.sugilite.recording.RecordingPopUpDialog;
 import edu.cmu.hcii.sugilite.ui.dialog.AbstractSugiliteDialog;
 
 /**
@@ -50,6 +51,11 @@ public class SugiliteData extends Application {
     public SugiliteBlock afterExecutionOperation = null;
 
 
+    //caches for file IO through the SugiliteScriptFileDao
+    public Map<String, SugiliteStartingBlock> sugiliteFileScriptDaoSavingCache = new HashMap<>();
+    public Map<String, SugiliteStartingBlock> sugiliteFileScriptDaoReadingCache = new HashMap<>();
+
+
     private Gson gson = new Gson();
 
     //true if the current recording script is initiated externally
@@ -60,7 +66,7 @@ public class SugiliteData extends Application {
     private boolean startRecordingWhenFinishExecuting = false;
 
     //used to manage the recording popup, so the later ones won't cover the eariler ones.
-    public Queue<AbstractSugiliteDialog> recordingPopupDialogQueue = new ArrayDeque<>();
+    public Queue<RecordingPopUpDialog> recordingPopupDialogQueue = new ArrayDeque<>();
     public boolean hasRecordingPopupActive = false;
 
     public List<AccessibilityNodeInfo> elementsWithTextLabels = new ArrayList<>();

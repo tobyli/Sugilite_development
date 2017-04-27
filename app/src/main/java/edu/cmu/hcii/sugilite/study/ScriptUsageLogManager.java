@@ -63,4 +63,12 @@ public class ScriptUsageLogManager {
             e.printStackTrace();
         }
     }
+
+    public void clearLog() {
+        File file = new File(StudyConst.SCRIPT_USAGE_LOG_FILE_NAME);
+        if (file.exists())
+            file.delete();
+    }
+
+
 }

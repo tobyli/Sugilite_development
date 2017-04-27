@@ -260,6 +260,11 @@ public class SugiliteMainActivity extends AppCompatActivity {
             }).start();
             return true;
         }
+
+        if(id == R.id.clear_usage_log){
+            new ScriptUsageLogManager().clearLog();
+            return true;
+        }
         return super.onOptionsItemSelected(item);
     }
 }

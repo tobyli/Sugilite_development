@@ -48,6 +48,7 @@ import edu.cmu.hcii.sugilite.model.block.SugiliteSpecialOperationBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.recording.RecordingPopUpDialog;
 import edu.cmu.hcii.sugilite.model.variable.Variable;
+import edu.cmu.hcii.sugilite.study.ScriptUsageLogManager;
 import edu.cmu.hcii.sugilite.ui.dialog.VariableSetValueDialog;
 import edu.cmu.hcii.sugilite.ui.main.SugiliteMainActivity;
 
@@ -326,6 +327,8 @@ public class ScriptDetailActivity extends AppCompatActivity {
                         // continue with delete
                         try {
                             sugiliteScriptDao.delete(scriptName);
+                            sugiliteData.logUsageData(ScriptUsageLogManager.REMOVE_SCRIPT, scriptName);
+
                         }
                         catch (Exception e){
                             e.printStackTrace();
@@ -489,6 +492,7 @@ public class ScriptDetailActivity extends AppCompatActivity {
                     };
                     RecordingPopUpDialog recordingPopUpDialog = new RecordingPopUpDialog(sugiliteData, this, script, sharedPreferences, (SugiliteOperationBlock)currentBlock, LayoutInflater.from(getApplicationContext()), RecordingPopUpDialog.TRIGGERED_BY_EDIT, callback);
                     sugiliteData.initiatedExternally = false;
+                    sugiliteData.logUsageData(ScriptUsageLogManager.EDIT_SCRIPT, scriptName);
                     recordingPopUpDialog.show(true);
                     break;
                     //match, pop up the edit

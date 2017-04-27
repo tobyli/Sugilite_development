@@ -29,6 +29,7 @@ import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.model.variable.Variable;
 import edu.cmu.hcii.sugilite.recording.RecordingPopUpDialog;
+import edu.cmu.hcii.sugilite.study.ScriptUsageLogManager;
 import edu.cmu.hcii.sugilite.ui.dialog.AbstractSugiliteDialog;
 
 /**
@@ -40,6 +41,7 @@ public class SugiliteData extends Application {
     //used to store the current active script
     private SugiliteStartingBlock scriptHead, trackingHead;
     private SugiliteBlock currentScriptBlock, currentTrackingBlock;
+    private ScriptUsageLogManager usageLogManager;
 
     //the queue used for execution. the system should be in the execution mode whenever the queue is non-empty
     private Queue<SugiliteBlock> instructionQueue = new ArrayDeque<>();
@@ -103,6 +105,12 @@ public class SugiliteData extends Application {
         this.trackingHead = trackingHead;
     }
 
+    public void logUsageData(int type, String scriptName){
+        if(usageLogManager == null)
+            usageLogManager = new ScriptUsageLogManager();
+        usageLogManager.addLog(type, scriptName);
+    }
+
     /**
      * set the script head to a new SugiliteStartingBlock with name = scriptName, and set the current script block to that block
      * @param scriptName
@@ -112,6 +120,8 @@ public class SugiliteData extends Application {
         this.stringVariableMap.clear();
         this.setScriptHead(new SugiliteStartingBlock(scriptName));
         this.setCurrentScriptBlock(scriptHead);
+
+        logUsageData(ScriptUsageLogManager.CREATE_SCRIPT, scriptName);
     }
 
     public void initiateTracking(String trackingName){

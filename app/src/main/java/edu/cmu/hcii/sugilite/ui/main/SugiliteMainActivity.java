@@ -18,6 +18,7 @@ import android.view.WindowManager;
 import android.widget.Toast;
 
 
+import java.io.File;
 import java.util.List;
 
 import edu.cmu.hcii.sugilite.Const;
@@ -29,6 +30,8 @@ import edu.cmu.hcii.sugilite.dao.SugiliteScriptFileDao;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptSQLDao;
 import edu.cmu.hcii.sugilite.dao.SugiliteTriggerDao;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
+import edu.cmu.hcii.sugilite.study.ScriptUsageLogManager;
+import edu.cmu.hcii.sugilite.study.StudyConst;
 import edu.cmu.hcii.sugilite.study.StudyDataUploadManager;
 import edu.cmu.hcii.sugilite.ui.SettingsActivity;
 import edu.cmu.hcii.sugilite.ui.dialog.AddTriggerDialog;
@@ -144,6 +147,7 @@ public class SugiliteMainActivity extends AppCompatActivity {
                             public void onClick(DialogInterface dialog, int which) {
                                 try {
                                     sugiliteScriptDao.clear();
+                                    sugiliteData.logUsageData(ScriptUsageLogManager.CLEAR_ALL_SCRIPTS, "N/A");
                                     if (fragmentScriptListTab instanceof FragmentScriptListTab)
                                         ((FragmentScriptListTab) fragmentScriptListTab).setUpScriptList();
                                 }
@@ -230,9 +234,13 @@ public class SugiliteMainActivity extends AppCompatActivity {
                                 uploadJSONCount ++;
                                 if (sugiliteScriptDao instanceof SugiliteScriptFileDao) {
                                     //upload file
-                                    ((SugiliteScriptFileDao) sugiliteScriptDao).getScriptPath(script.getScriptName());
+                                    String scriptPath = ((SugiliteScriptFileDao) sugiliteScriptDao).getScriptPath(script.getScriptName());
+                                    uploadManager.uploadScript(scriptPath);
                                     uploadFileCount ++;
                                 }
+                                File usageLog = new File(StudyConst.SCRIPT_USAGE_LOG_FILE_NAME);
+                                if(usageLog.exists())
+                                    uploadManager.uploadScript(usageLog.getPath());
                             }
                         }
                     }

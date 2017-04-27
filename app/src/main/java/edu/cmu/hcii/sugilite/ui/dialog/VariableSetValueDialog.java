@@ -32,6 +32,7 @@ import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.model.variable.StringVariable;
 import edu.cmu.hcii.sugilite.model.variable.Variable;
+import edu.cmu.hcii.sugilite.study.ScriptUsageLogManager;
 
 import static edu.cmu.hcii.sugilite.Const.SCRIPT_DELAY;
 
@@ -191,6 +192,9 @@ public class VariableSetValueDialog extends AbstractSugiliteDialog{
         progressDialog.setCanceledOnTouchOutside(false);
         progressDialog.show();
 
+        sugiliteData.logUsageData(ScriptUsageLogManager.EXECUTE_SCRIPT, startingBlock.getScriptName());
+
+
         Runnable delayAndRunScript = new Runnable() {
             @Override
             public void run() {
@@ -211,6 +215,8 @@ public class VariableSetValueDialog extends AbstractSugiliteDialog{
         };
         Handler handler = new Handler();
         handler.postDelayed(delayAndRunScript, SCRIPT_DELAY);
+
+
 
         //go to home screen for running the automation
         Intent startMain = new Intent(Intent.ACTION_MAIN);

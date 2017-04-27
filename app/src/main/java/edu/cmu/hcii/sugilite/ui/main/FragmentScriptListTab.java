@@ -38,6 +38,7 @@ import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptFileDao;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptSQLDao;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
+import edu.cmu.hcii.sugilite.study.ScriptUsageLogManager;
 import edu.cmu.hcii.sugilite.ui.ScriptDebuggingActivity;
 import edu.cmu.hcii.sugilite.ui.ScriptDetailActivity;
 import edu.cmu.hcii.sugilite.ui.dialog.NewScriptDialog;
@@ -203,6 +204,7 @@ public class FragmentScriptListTab extends Fragment {
                                             sugiliteScriptDao.commitSave();
                                             setUpScriptList();
                                             sugiliteScriptDao.delete(scriptName);
+                                            sugiliteData.logUsageData(ScriptUsageLogManager.REMOVE_SCRIPT, scriptName);
                                         } catch (Exception e) {
                                             e.printStackTrace();
                                         }

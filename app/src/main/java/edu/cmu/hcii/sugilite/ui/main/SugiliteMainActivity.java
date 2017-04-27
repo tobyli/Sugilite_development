@@ -1,7 +1,9 @@
 package edu.cmu.hcii.sugilite.ui.main;
 
 
+import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.support.v4.app.Fragment;
@@ -12,15 +14,22 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.Window;
+import android.view.WindowManager;
+import android.widget.Toast;
 
+
+import java.util.List;
 
 import edu.cmu.hcii.sugilite.Const;
 import edu.cmu.hcii.sugilite.R;
+import edu.cmu.hcii.sugilite.SugiliteAccessibilityService;
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptFileDao;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptSQLDao;
 import edu.cmu.hcii.sugilite.dao.SugiliteTriggerDao;
+import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
+import edu.cmu.hcii.sugilite.study.StudyDataUploadManager;
 import edu.cmu.hcii.sugilite.ui.SettingsActivity;
 import edu.cmu.hcii.sugilite.ui.dialog.AddTriggerDialog;
 
@@ -34,6 +43,10 @@ public class SugiliteMainActivity extends AppCompatActivity {
     private SugiliteScriptDao sugiliteScriptDao;
     private SugiliteTriggerDao sugiliteTriggerDao;
     private SugiliteData sugiliteData;
+    private AlertDialog progressDialog;
+    StudyDataUploadManager uploadManager;
+    Context context;
+
 
 
     @Override
@@ -41,12 +54,14 @@ public class SugiliteMainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         requestWindowFeature(Window.FEATURE_ACTION_BAR);
         setContentView(R.layout.activity_main);
+        uploadManager = new StudyDataUploadManager(this);
         sugiliteData = getApplication() instanceof SugiliteData? (SugiliteData)getApplication() : new SugiliteData();
         if(Const.DAO_TO_USE == SQL_SCRIPT_DAO)
             sugiliteScriptDao = new SugiliteScriptSQLDao(this);
         else
             sugiliteScriptDao = new SugiliteScriptFileDao(this, sugiliteData);
         sugiliteTriggerDao = new SugiliteTriggerDao(this);
+        this.context = this;
 
 
         ActionBar actionBar = getSupportActionBar();
@@ -194,6 +209,49 @@ public class SugiliteMainActivity extends AppCompatActivity {
             return true;
         }
 
+        if(id == R.id.upload_scripts){
+            //progress dialog for loading the script
+            progressDialog = new AlertDialog.Builder(this).setMessage(Const.LOADING_MESSAGE).create();
+            progressDialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
+            progressDialog.setCanceledOnTouchOutside(false);
+            progressDialog.show();
+            new Thread(new Runnable() {
+                @Override
+                public void run()
+                {
+                    List<SugiliteStartingBlock> scripts = null;
+                    int uploadJSONCount = 0, uploadFileCount = 0;
+                    try {
+                        scripts = sugiliteScriptDao.getAllScripts();
+                        if(scripts != null && uploadManager != null){
+                            //upload JSON first
+                            for(SugiliteStartingBlock script : scripts) {
+                                uploadManager.uploadScriptJSON(script);
+                                uploadJSONCount ++;
+                                if (sugiliteScriptDao instanceof SugiliteScriptFileDao) {
+                                    //upload file
+                                    ((SugiliteScriptFileDao) sugiliteScriptDao).getScriptPath(script.getScriptName());
+                                    uploadFileCount ++;
+                                }
+                            }
+                        }
+                    }
+                    catch (Exception e){
+                        e.printStackTrace();
+                    }
+                    final int finalJSONCount = uploadJSONCount, finalFileCount = uploadFileCount;
+                    Runnable dismissDialog = new Runnable() {
+                        @Override
+                        public void run() {
+                            progressDialog.dismiss();
+                            Toast.makeText(context, "Uploaded " + finalJSONCount + " JSONs and " + finalFileCount + " files", Toast.LENGTH_SHORT).show();
+                        }
+                    };
+                    runOnUiThread(dismissDialog);
+                }
+            }).start();
+            return true;
+        }
         return super.onOptionsItemSelected(item);
     }
 }

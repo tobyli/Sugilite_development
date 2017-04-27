@@ -10,5 +10,7 @@
     <item android:id="@+id/clear_trigger_list" android:title="Clear Trigger List"
         android:orderInCategory="4" app:showAsAction="never" />
     <item android:id="@+id/add_trigger" android:title="Add a Script Trigger"
-        android:orderInCategory="5" app:showAsAction="never" />
+    android:orderInCategory="5" app:showAsAction="never" />
+    <item android:id="@+id/upload_scripts" android:title="Upload Scripts"
+        android:orderInCategory="6" app:showAsAction="never" />
 </menu>

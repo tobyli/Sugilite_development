@@ -219,4 +219,12 @@ public class SugiliteScriptFileDao implements SugiliteScriptDao {
                 return scriptName;
         }
     }
+
+    public String getDir(){
+        return scriptDir.getPath();
+    }
+
+    public String getScriptPath(String name){
+        return scriptDir.getPath() + "/" + name;
+    }
 }

@@ -37,5 +37,4 @@ public class StudyDataUploadManager {
         out.print(jsonProcessor.scriptToJson(script));
     }
 
-
 }

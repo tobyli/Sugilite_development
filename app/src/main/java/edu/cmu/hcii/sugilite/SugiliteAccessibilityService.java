@@ -344,13 +344,15 @@ public class SugiliteAccessibilityService extends AccessibilityService {
                         if (event.getEventType() == AccessibilityEvent.TYPE_VIEW_TEXT_CHANGED || event.getEventType() == AccessibilityEvent.TYPE_VIEW_FOCUSED){
                             //pop up warning dialog if focus on text box
                             if(sourceNode != null && sourceNode.isEditable()){
-                                runOnUiThread(new Runnable() {
+                                /*runOnUiThread(new Runnable() {
                                     @Override
                                     public void run() {
                                         Toast.makeText(context, "For recording text entry, please type into the Sugilite recording dialog instead of directly in the textbox. Click on the textbox to show the Sugilite recording dialog.", Toast.LENGTH_SHORT).show();
 
                                     }
-                                });
+                                });*/
+                                sugiliteTextboxHandler.handle(event, sourceNode);
+
                             }
                         }
                         else {

@@ -19,6 +19,7 @@ import android.widget.Toast;
 
 
 import java.io.File;
+import java.util.Calendar;
 import java.util.List;
 
 import edu.cmu.hcii.sugilite.Const;
@@ -57,7 +58,7 @@ public class SugiliteMainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         requestWindowFeature(Window.FEATURE_ACTION_BAR);
         setContentView(R.layout.activity_main);
-        uploadManager = new StudyDataUploadManager(this);
+        uploadManager = new StudyDataUploadManager(this, sugiliteData);
         sugiliteData = getApplication() instanceof SugiliteData? (SugiliteData)getApplication() : new SugiliteData();
         if(Const.DAO_TO_USE == SQL_SCRIPT_DAO)
             sugiliteScriptDao = new SugiliteScriptSQLDao(this);
@@ -235,12 +236,19 @@ public class SugiliteMainActivity extends AppCompatActivity {
                                 if (sugiliteScriptDao instanceof SugiliteScriptFileDao) {
                                     //upload file
                                     String scriptPath = ((SugiliteScriptFileDao) sugiliteScriptDao).getScriptPath(script.getScriptName());
-                                    uploadManager.uploadScript(scriptPath);
+                                    uploadManager.uploadScript(scriptPath, script.getCreatedTime());
                                     uploadFileCount ++;
                                 }
-                                File usageLog = new File(StudyConst.SCRIPT_USAGE_LOG_FILE_NAME);
-                                if(usageLog.exists())
-                                    uploadManager.uploadScript(usageLog.getPath());
+
+                            }
+                            String directoryPath = context.getFilesDir().getPath().toString();
+                            File usageLog = new File(directoryPath + "/" + StudyConst.SCRIPT_USAGE_LOG_FILE_NAME);
+                            if(usageLog.exists()) {
+                                uploadManager.uploadScript(usageLog.getPath(), Calendar.getInstance().getTimeInMillis());
+                                System.out.println("USAGE LOG UPLOADED");
+                            }
+                            else {
+                                System.out.println("usage log doesn't exist!");
                             }
                         }
                     }
@@ -262,7 +270,7 @@ public class SugiliteMainActivity extends AppCompatActivity {
         }
 
         if(id == R.id.clear_usage_log){
-            new ScriptUsageLogManager().clearLog();
+            new ScriptUsageLogManager(context).clearLog();
             return true;
         }
         return super.onOptionsItemSelected(item);

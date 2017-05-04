@@ -497,7 +497,8 @@ public class StatusIconManager {
                                 case "Clear Instruction Queue":
                                     sugiliteData.clearInstructionQueue();
                                     sugiliteData.setCurrentSystemState(SugiliteData.DEFAULT_STATE);
-                                    storedQueue.clear();
+                                    if(storedQueue != null)
+                                        storedQueue.clear();
                                     break;
                                 case "Resume Running":
                                     dialog.dismiss();

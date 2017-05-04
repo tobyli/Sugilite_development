@@ -119,7 +119,6 @@ public class SugiliteAccessibilityService extends AccessibilityService {
                 AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED,
                 AccessibilityEvent.TYPE_ANNOUNCEMENT};
         Integer[] accessiblityEventArrayToSend = {AccessibilityEvent.TYPE_VIEW_CLICKED,
-                AccessibilityEvent.TYPE_VIEW_SELECTED,
                 AccessibilityEvent.TYPE_VIEW_LONG_CLICKED,
                 AccessibilityEvent.TYPE_VIEW_TEXT_CHANGED};
         Integer[] accessibilityEventArrayToTrack = {

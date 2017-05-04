@@ -107,7 +107,7 @@ public class SugiliteData extends Application {
 
     public void logUsageData(int type, String scriptName){
         if(usageLogManager == null)
-            usageLogManager = new ScriptUsageLogManager();
+            usageLogManager = new ScriptUsageLogManager(getBaseContext());
         usageLogManager.addLog(type, scriptName);
     }
 

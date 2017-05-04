@@ -32,12 +32,12 @@ public class StudyDataScriptFileUploadTask extends AsyncTask<String, Void, Strin
     //strings[0] is the path of the file, strings[1] is the url to send the file to, strings[2] is the clientidentifier
     protected String doInBackground(String... strings) {
         try {
-            DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ", Locale.US);
             URL url = new URL(strings[1]);
             FileInputStream fileInputStream = new FileInputStream(strings[0]);
+            String timeStampString = strings[3];
             File file = new File(strings[0]);
             Calendar c = Calendar.getInstance();
-            String fileName = strings[2] + "_" + dateFormat.format(c.getTime()) + "_" + file.getName();
+            String fileName = strings[2] + "_" + timeStampString + "_" + file.getName();
 
 
             //this is ugly :(

@@ -142,12 +142,14 @@ public class ErrorHandler {
         //System.out.println("Since last success: " + (currentTime - lastSuccess) + "\n" + "Since last window change: " + (currentTime - lastWindowChange) + "\n\n");
         if(sinceLastSuccesss > LAST_SUCCESSFUL_OPERATION){
             //stucked
-            handleError("The current window is not responding in executing the next operation: " + nextInstruction.getDescription() + "<br><br>" + "sinceLastSuccess: " + sinceLastSuccesss + "<br>" + "Stucked! Too long since the last success.");
+            //handleError("The current window is not responding in executing the next operation: " + nextInstruction.getDescription() + "<br><br>" + "sinceLastSuccess: " + sinceLastSuccesss + "<br>" + "Stucked! Too long since the last success.");
+            handleError("Can't find the target UI element in the current screen for executing the next operation: " + nextInstruction.getDescription());
             return true;
         }
         if(sinceLastWindowChange > LAST_WINDOW_CHANGE_TIMEOUT){
             //stucked
-            handleError("The current window is not responding in executing the next operation: " + nextInstruction.getDescription() + "<br><br>" + "sinceLastWindowChange: " + sinceLastWindowChange + "<br>" + "Stucked! Too long since the last window content change.");
+            //handleError("The current window is not responding in executing the next operation: " + nextInstruction.getDescription() + "<br><br>" + "sinceLastWindowChange: " + sinceLastWindowChange + "<br>" + "Stucked! Too long since the last window content change.");
+            handleError("Can't find the target UI element in the current screen for executing the next operation: " + nextInstruction.getDescription());
             return true;
         }
         return false;
@@ -164,7 +166,7 @@ public class ErrorHandler {
         sugiliteData.setCurrentSystemState(SugiliteData.PAUSED_FOR_ERROR_HANDLING_STATE);
 
         AlertDialog.Builder builder = new AlertDialog.Builder(applicationContext);
-        builder.setTitle("Script Execution Error")
+        builder.setTitle("Script Execution Exception")
                 .setMessage(Html.fromHtml(errorMsg))
                 .setPositiveButton("Keep Waiting", new DialogInterface.OnClickListener() {
                     @Override
@@ -210,7 +212,7 @@ public class ErrorHandler {
                                         sugiliteData.setCurrentSystemState(SugiliteData.RECORDING_FOR_ERROR_HANDLING_STATE);
                                     }
                                 })
-                                .setNegativeButton("New Fork", new DialogInterface.OnClickListener() {
+                                .setNegativeButton("Create Fork", new DialogInterface.OnClickListener() {
                                     //create a parallel fork and resume recording
                                     @Override
                                     public void onClick(DialogInterface dialog, int which) {

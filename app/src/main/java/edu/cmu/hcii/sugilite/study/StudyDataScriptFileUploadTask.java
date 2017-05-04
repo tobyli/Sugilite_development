@@ -145,7 +145,7 @@ public class StudyDataScriptFileUploadTask extends AsyncTask<String, Void, Strin
             editor.putInt("lastSuccessfulUpdate", (int) (Calendar.getInstance().getTimeInMillis() / 1000));
             editor.commit();
         }
-        Toast.makeText(context, result, Toast.LENGTH_SHORT).show();
+        //Toast.makeText(context, result, Toast.LENGTH_SHORT).show();
 
 
     }

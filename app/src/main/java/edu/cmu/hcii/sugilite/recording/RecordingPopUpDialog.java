@@ -454,11 +454,13 @@ public class RecordingPopUpDialog extends AbstractSugiliteDialog {
                     }
                 }
                 saveBlock(operationBlock, dialogRootView.getContext());
+                /*
                 //fill in the text box if the operation is of SET_TEXT type
                 if (operationBlock.getOperation().getOperationType() == SugiliteOperation.SET_TEXT && triggerMode == TRIGGERED_BY_NEW_EVENT) {
                     //should NOT change the current state in SugiliteData here because this is only one step added to specifically handle text entry recording
                     sugiliteData.addInstruction(operationBlock);
                 }
+                */
                 if (editCallback != null) {
                     System.out.println("calling callback");
                     editCallback.onClick(null, 0);
@@ -622,11 +624,11 @@ public class RecordingPopUpDialog extends AbstractSugiliteDialog {
         //populate parent features
         if(featurePack.parentNode != null){
             if(featurePack.parentNode.text != null)
-                allParentFeatures.add(new AbstractMap.SimpleEntry<>("Text", featurePack.parentNode.text.toString()));
+                allParentFeatures.add(new AbstractMap.SimpleEntry<>("Parent Text", featurePack.parentNode.text.toString()));
             if(featurePack.parentNode.contentDescription != null)
-                allParentFeatures.add(new AbstractMap.SimpleEntry<>("ContentDescription", featurePack.parentNode.contentDescription.toString()));
+                allParentFeatures.add(new AbstractMap.SimpleEntry<>("Parent ContentDescription", featurePack.parentNode.contentDescription.toString()));
             if(featurePack.parentNode.viewId != null)
-                allParentFeatures.add(new AbstractMap.SimpleEntry<>("ViewID", featurePack.parentNode.viewId));
+                allParentFeatures.add(new AbstractMap.SimpleEntry<>("Parent ViewID", featurePack.parentNode.viewId));
         }
 
 
@@ -635,11 +637,11 @@ public class RecordingPopUpDialog extends AbstractSugiliteDialog {
         for(SerializableNodeInfo childNode : featurePack.childNodes){
             if(childNode != null){
                 if(childNode.text != null)
-                    allChildFeatures.add(new AbstractMap.SimpleEntry<>("Text", childNode.text.toString()));
+                    allChildFeatures.add(new AbstractMap.SimpleEntry<>("Child Text", childNode.text.toString()));
                 if(childNode.contentDescription != null)
-                    allChildFeatures.add(new AbstractMap.SimpleEntry<>("ContentDescription", childNode.contentDescription.toString()));
+                    allChildFeatures.add(new AbstractMap.SimpleEntry<>("Child ContentDescription", childNode.contentDescription.toString()));
                 if(childNode.viewId != null)
-                    allChildFeatures.add(new AbstractMap.SimpleEntry<>("ViewID", childNode.viewId));
+                    allChildFeatures.add(new AbstractMap.SimpleEntry<>("Child ViewID", childNode.viewId));
             }
         }
 
@@ -992,6 +994,9 @@ public class RecordingPopUpDialog extends AbstractSugiliteDialog {
             if(text != null) {
                 setTextEditText.setText(text);
             }
+        }
+        else if(featurePack.beforeText != null && featurePack.afterText != null){
+            setTextEditText.setText(featurePack.afterText);
         }
 
         //fill the above two edittext

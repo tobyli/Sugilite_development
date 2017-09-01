@@ -28,6 +28,13 @@ public class ReadableDescriptionGenerator {
         setupPackageNameReadableNameMap();
         packageManager = applicationContext.getPackageManager();
     }
+
+    /**
+     * generate the readable description for a block
+     *
+     * @param block
+     * @return
+     */
     public String generateReadableDescription(SugiliteBlock block){
         String message = "";
         if(block instanceof SugiliteStartingBlock)

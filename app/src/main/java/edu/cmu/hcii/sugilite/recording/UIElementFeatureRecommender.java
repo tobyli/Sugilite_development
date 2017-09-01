@@ -12,6 +12,10 @@ import edu.cmu.hcii.sugilite.model.block.UIElementMatchingFilter;
  * @date 6/24/16
  * @time 1:53 PM
  */
+
+/**
+ * this class returns whether to select a feature by default for recording an operation
+ */
 public class UIElementFeatureRecommender {
 
     private String packageName, className, text, contentDescription, viewId, boundsInParent, boundsInScreen;
@@ -79,7 +83,10 @@ public class UIElementFeatureRecommender {
     }
 
     public boolean chooseBoundsInParent(){
-        return false;
+        if(contentDescription.contentEquals("NULL") && (text.contentEquals("NULL") || text.contentEquals("")) && isEditable)
+            return true;
+        else
+            return false;
     }
 
     public Set<Map.Entry<String, String>> chooseParentFeatures(){

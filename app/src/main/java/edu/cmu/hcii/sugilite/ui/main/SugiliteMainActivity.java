@@ -60,10 +60,12 @@ public class SugiliteMainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         uploadManager = new StudyDataUploadManager(this, sugiliteData);
         sugiliteData = getApplication() instanceof SugiliteData? (SugiliteData)getApplication() : new SugiliteData();
-        if(Const.DAO_TO_USE == SQL_SCRIPT_DAO)
+        if(Const.DAO_TO_USE == SQL_SCRIPT_DAO) {
             sugiliteScriptDao = new SugiliteScriptSQLDao(this);
-        else
+        }
+        else {
             sugiliteScriptDao = new SugiliteScriptFileDao(this, sugiliteData);
+        }
         sugiliteTriggerDao = new SugiliteTriggerDao(this);
         this.context = this;
 
@@ -234,7 +236,7 @@ public class SugiliteMainActivity extends AppCompatActivity {
                                 uploadManager.uploadScriptJSON(script);
                                 uploadJSONCount ++;
                                 if (sugiliteScriptDao instanceof SugiliteScriptFileDao) {
-                                    //upload file
+                                    //upload script file only if SugiliteScriptFileDao is in use
                                     String scriptPath = ((SugiliteScriptFileDao) sugiliteScriptDao).getScriptPath(script.getScriptName());
                                     uploadManager.uploadScript(scriptPath, script.getCreatedTime());
                                     uploadFileCount ++;
@@ -242,6 +244,8 @@ public class SugiliteMainActivity extends AppCompatActivity {
 
                             }
                             String directoryPath = context.getFilesDir().getPath().toString();
+
+                            //start uploading the usage log
                             File usageLog = new File(directoryPath + "/" + StudyConst.SCRIPT_USAGE_LOG_FILE_NAME);
                             if(usageLog.exists()) {
                                 uploadManager.uploadScript(usageLog.getPath(), Calendar.getInstance().getTimeInMillis());
@@ -250,6 +254,8 @@ public class SugiliteMainActivity extends AppCompatActivity {
                             else {
                                 System.out.println("usage log doesn't exist!");
                             }
+                            //finish uploading the usage log
+
                         }
                     }
                     catch (Exception e){

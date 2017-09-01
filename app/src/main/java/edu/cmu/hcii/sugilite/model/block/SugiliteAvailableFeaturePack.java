@@ -83,4 +83,7 @@ public class SugiliteAvailableFeaturePack implements Serializable{
     public Set<String> alternativeTextList;
     public Set<String> alternativeChildTextList;
 
+    //for VIEW_TEXT_CHANGED events only
+    public String beforeText, afterText;
+
 }

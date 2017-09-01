@@ -39,6 +39,7 @@ import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
 import edu.cmu.hcii.sugilite.model.trigger.SugiliteTriggerHandler;
 import edu.cmu.hcii.sugilite.recording.RecordingPopUpDialog;
+import edu.cmu.hcii.sugilite.recording.TextChangedEventHandler;
 import edu.cmu.hcii.sugilite.recording.mRecordingPopUpActivity;
 import edu.cmu.hcii.sugilite.tracking.SugiliteTrackingHandler;
 import edu.cmu.hcii.sugilite.ui.StatusIconManager;
@@ -63,6 +64,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
     protected Handler handler;
     protected static final String TAG = SugiliteAccessibilityService.class.getSimpleName();
     protected SugiliteTriggerHandler triggerHandler;
+    protected TextChangedEventHandler textChangedEventHandler;
     protected String lastPackageName = "";
     private static Set<String> homeScreenPackageNameSet;
 
@@ -95,6 +97,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
         vocabularyDao = new SugiliteAppVocabularyDao(getApplicationContext());
         context = this;
         triggerHandler = new SugiliteTriggerHandler(context, sugiliteData, sharedPreferences);
+        textChangedEventHandler = new TextChangedEventHandler(sugiliteData, context, sharedPreferences);
         handler = new Handler();
         homeScreenPackageNameSet = new HashSet<>();
         homeScreenPackageNameSet.addAll(Arrays.asList(HOME_SCREEN_PACKAGE_NAMES));
@@ -221,7 +224,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
             return;
         }
 
-        //check for the trigger
+        //check for the trigger, see if an app launch trigger should be triggered
         if(event.getEventType() == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED){
             if(event.getSource() != null && event.getSource().getPackageName() != null && (!lastPackageName.contentEquals(event.getSource().getPackageName()))) {
                 triggerHandler.checkForAppLaunchTrigger(event.getPackageName().toString());
@@ -281,13 +284,13 @@ public class SugiliteAccessibilityService extends AccessibilityService {
         trackingExcludedPackages.addAll(Arrays.asList(Const.ACCESSIBILITY_SERVICE_TRACKING_EXCLUDED_PACKAGE_NAMES));
 
         if (sugiliteData.getInstructionQueueSize() > 0 && !sharedPreferences.getBoolean("recording_in_process", true) && !exceptedPackages.contains(event.getPackageName()) && sugiliteData.errorHandler != null){
-            //script running in progress
+            //if the script running is in progress
             //invoke the error handler
             sugiliteData.errorHandler.checkError(event, sugiliteData.peekInstructionQueue(), Calendar.getInstance().getTimeInMillis());
         }
 
         if (sharedPreferences.getBoolean("recording_in_process", false)) {
-            //recording in progress
+            //if recording is in progress
             if(rootNode == null)
                 rootNode = getRootInActiveWindow();
             if(preOrderTraverseSourceNode == null)
@@ -300,7 +303,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
             final List<AccessibilityNodeInfo> preOrderTracerseRootNodeForRecording = preOrderTraverseRootNode;
 
 
-            //====
+            //==== the thread of handling recording
 
             Runnable handleRecording = new Runnable() {
                 @Override
@@ -336,48 +339,50 @@ public class SugiliteAccessibilityService extends AccessibilityService {
                         //System.out.println(event.getPackageName() + " " + sugiliteData.elementsWithTextLabels.size());
                     }
 
-                    //if the event is to be recorded, process it
+                    //if the event is to be recorded, process it //TODO: send text change event to TextChangedEventHandler instead
                     if (accessibilityEventSetToSend.contains(event.getEventType()) && (!exceptedPackages.contains(event.getPackageName()))) {
-                        if (event.getEventType() == AccessibilityEvent.TYPE_VIEW_TEXT_CHANGED || event.getEventType() == AccessibilityEvent.TYPE_VIEW_FOCUSED){
-                            //pop up warning dialog if focus on text box
-                            if(sourceNode != null && sourceNode.isEditable()){
-                                runOnUiThread(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        Toast.makeText(context, "For recording text entry, please type into the Sugilite recording dialog instead of directly in the textbox. Click on the textbox to show the Sugilite recording dialog.", Toast.LENGTH_SHORT).show();
 
-                                    }
-                                });
-                            }
-                        }
+                        //temp hack for ViewGroup in Google Now Launcher
+                        if(sourceNode != null && sourceNode.getClassName() != null && sourceNode.getPackageName() != null && sourceNode.getClassName().toString().contentEquals("android.view.ViewGroup") && homeScreenPackageNameSet.contains(sourceNode.getPackageName().toString()))
+                        {/*do nothing (don't show popup for ViewGroup in home screen)*/}
                         else {
-                            //temp hack for ViewGroup in Google Now Launcher
-                            if(sourceNode != null && sourceNode.getClassName() != null && sourceNode.getPackageName() != null && sourceNode.getClassName().toString().contentEquals("android.view.ViewGroup") && homeScreenPackageNameSet.contains(sourceNode.getPackageName().toString()))
-                            {/*do nothing (don't show popup)*/}
-                            else {
 
-                                File screenshot = null;
-                                if (sharedPreferences.getBoolean("root_enabled", false)) {
-                                    //take screenshot
-                                    try {
-                        /*
-                        System.out.println("taking screen shot");
-                        screenshot = screenshotManager.take(false);
-                        */
-                                    } catch (Exception e) {
-                                        e.printStackTrace();
-                                    }
+                            File screenshot = null;
+                            if (sharedPreferences.getBoolean("root_enabled", false)) {
+                                //take screenshot
+                                try {
+                    /*
+                    System.out.println("taking screen shot");
+                    screenshot = screenshotManager.take(false);
+                    */
+                                } catch (Exception e) {
+                                    e.printStackTrace();
                                 }
+                            }
 
-                                //send the event to recording pop up dialog
-                                RecordingPopUpDialog recordingPopUpDialog = new RecordingPopUpDialog(sugiliteData, context, generateFeaturePack(event, rootNodeForRecording, screenshot, availableAlternativeNodes, preOrderTraverseSourceNodeForRecording, preOrderTracerseRootNodeForRecording), sharedPreferences, LayoutInflater.from(getApplicationContext()), RecordingPopUpDialog.TRIGGERED_BY_NEW_EVENT, availableAlternatives);
+                            //send the event to recording pop up dialog
+                            SugiliteAvailableFeaturePack featurePack = generateFeaturePack(event, rootNodeForRecording, screenshot, availableAlternativeNodes, preOrderTraverseSourceNodeForRecording, preOrderTracerseRootNodeForRecording);
+                            LayoutInflater layoutInflater = LayoutInflater.from(getApplicationContext());
+
+                            if(featurePack.isEditable){
+                                if(event.getEventType() == AccessibilityEvent.TYPE_VIEW_TEXT_CHANGED){
+                                    //TODO: add TextChangedEventHandlerHere
+                                    textChangedEventHandler.handle(featurePack, availableAlternatives, layoutInflater);
+                                }
+                            }
+                            else {
+                                System.out.println("flush from service");
+                                textChangedEventHandler.flush();
+                                RecordingPopUpDialog recordingPopUpDialog = new RecordingPopUpDialog(sugiliteData, context, featurePack, sharedPreferences, layoutInflater, RecordingPopUpDialog.TRIGGERED_BY_NEW_EVENT, availableAlternatives);
                                 sugiliteData.recordingPopupDialogQueue.add(recordingPopUpDialog);
-                                if(!sugiliteData.recordingPopupDialogQueue.isEmpty() && sugiliteData.hasRecordingPopupActive == false) {
+                                if (!sugiliteData.recordingPopupDialogQueue.isEmpty() && sugiliteData.hasRecordingPopupActive == false) {
                                     sugiliteData.hasRecordingPopupActive = true;
                                     sugiliteData.recordingPopupDialogQueue.poll().show();
                                 }
                             }
+
                         }
+
                     }
                     if(BUILDING_VOCAB) {
                         //add alternative nodes to the app vocab set
@@ -635,6 +640,15 @@ public class SugiliteAccessibilityService extends AccessibilityService {
             featurePack.alternativeNodes = new HashSet<>(availableAlternativeNodes);
         else
             featurePack.alternativeNodes = new HashSet<>();
+
+        if(event.getEventType() == AccessibilityEvent.TYPE_VIEW_TEXT_CHANGED){
+            if(event.getBeforeText() == null) {
+                featurePack.beforeText = "NULL";
+            }
+            else{
+                featurePack.beforeText = event.getBeforeText().toString();
+            }
+        }
 
         return featurePack;
 

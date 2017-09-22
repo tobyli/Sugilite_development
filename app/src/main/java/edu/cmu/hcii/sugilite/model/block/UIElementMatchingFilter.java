@@ -1,6 +1,7 @@
 package edu.cmu.hcii.sugilite.model.block;
 
 import android.graphics.Rect;
+import android.provider.Contacts;
 import android.view.accessibility.AccessibilityNodeInfo;
 
 import java.io.Serializable;
@@ -8,6 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.HashSet;
 
 import edu.cmu.hcii.sugilite.automation.Automator;
 import edu.cmu.hcii.sugilite.model.variable.Variable;
@@ -29,17 +31,19 @@ public class UIElementMatchingFilter implements Serializable {
     private String className;
     private String boundsInScreen;
     private String boundsInParent;
+    // also takes into account sibling nodes and their children too now
     private String textOrChildTextOrContentDescription;
     private UIElementMatchingFilter parentFilter;
-    private UIElementMatchingFilter childFilter;
+    private Set<UIElementMatchingFilter> childFilter;
+    private Set<UIElementMatchingFilter> siblingFilter;
     private Boolean isClickable = false;
     public Set<Map.Entry<String, String>> alternativeLabels;
 
     //TODO: add possible alternatives
 
     public UIElementMatchingFilter(){
-
-
+        childFilter = new HashSet<UIElementMatchingFilter>();
+        siblingFilter = new HashSet<UIElementMatchingFilter>();
     }
 
     /**
@@ -98,7 +102,17 @@ public class UIElementMatchingFilter implements Serializable {
      * @return
      */
     public UIElementMatchingFilter setChildFilter(UIElementMatchingFilter childFilter){
-        this.childFilter = childFilter;
+        this.childFilter.add(childFilter);
+        return this;
+    }
+
+    /**
+     *
+     * @param siblingFilter true if siblingFilter returns true for ANY of the siblings of the UI element
+     * @return
+     */
+    public UIElementMatchingFilter setSiblingFilter(UIElementMatchingFilter siblingFilter){
+        this.siblingFilter.add(siblingFilter);
         return this;
     }
 
@@ -188,9 +202,9 @@ public class UIElementMatchingFilter implements Serializable {
         return parentFilter;
     }
 
-    public UIElementMatchingFilter getChildFilter(){
-        return childFilter;
-    }
+    public Set<UIElementMatchingFilter> getChildFilter(){return childFilter;}
+
+    public Set<UIElementMatchingFilter> getSiblingFilter(){return siblingFilter;}
 
     public boolean filter (AccessibilityNodeInfo nodeInfo) {
         if (nodeInfo == null)
@@ -209,8 +223,15 @@ public class UIElementMatchingFilter implements Serializable {
             return false;
         if (isClickable != null && isClickable && (!nodeInfo.isClickable()))
             return false;
+
+        Rect boundsInParent = new Rect(), boundsInScreen = new Rect();
+        nodeInfo.getBoundsInParent(boundsInParent);
+        nodeInfo.getBoundsInScreen(boundsInScreen);
+
         if (textOrChildTextOrContentDescription != null && (! (equalsToIgnoreCaseTrimSymbols(textOrChildTextOrContentDescription, nodeInfo.getText()) || equalsToIgnoreCaseTrimSymbols(textOrChildTextOrContentDescription, nodeInfo.getContentDescription())))){
             boolean matchedChild = false;
+            boolean matchedSibling = false;
+            // try to match children nodes
             for (AccessibilityNodeInfo childNode : Automator.preOrderTraverse(nodeInfo)){
                 if(childNode == null)
                     continue;
@@ -223,14 +244,24 @@ public class UIElementMatchingFilter implements Serializable {
                     break;
                 }
             }
-            if(!matchedChild)
+            // try to match sibling nodes
+            for (AccessibilityNodeInfo siblingNode : Automator.preOrderTraverseSiblings(nodeInfo)){
+                if(siblingNode == null)
+                    continue;
+                if(equalsToIgnoreCaseTrimSymbols(textOrChildTextOrContentDescription, siblingNode.getText())){
+                    matchedSibling = true;
+                    break;
+                }
+                if(equalsToIgnoreCaseTrimSymbols(textOrChildTextOrContentDescription, siblingNode.getContentDescription())){
+                    matchedSibling = true;
+                    break;
+                }
+            }
+
+            if(!matchedChild && !matchedSibling)
                 return false;
         }
 
-
-        Rect boundsInParent = new Rect(), boundsInScreen = new Rect();
-        nodeInfo.getBoundsInParent(boundsInParent);
-        nodeInfo.getBoundsInScreen(boundsInScreen);
 
         if (this.boundsInParent != null && (boundsInParent == null || (!this.boundsInParent.contentEquals(boundsInParent.flattenToString()))))
             return false;
@@ -238,20 +269,48 @@ public class UIElementMatchingFilter implements Serializable {
             return false;
 
 
-        boolean childFilterFlag = false;
-        if(childFilter == null){
-            childFilterFlag = true;
+        boolean childFilterFlag = true;
+        boolean siblingFilterFlag = true;
+        if(childFilter == null || childFilter.size() == 0) {
         }
         else {
             List<AccessibilityNodeInfo> nodes = Automator.preOrderTraverse(nodeInfo);
-            for(AccessibilityNodeInfo node : nodes){
-                if(childFilter.filter(node)){
-                    childFilterFlag = true;
+
+            for(UIElementMatchingFilter cf : childFilter){
+                boolean matched = false;
+                for(AccessibilityNodeInfo node : nodes) {
+                    if (cf.filter(node)) {
+                        matched = true;
+                        break;
+                    }
+                }
+                if(!matched) {
+                    childFilterFlag = false;
                     break;
                 }
             }
         }
-        if(childFilterFlag == false)
+
+        if(siblingFilter == null || siblingFilter.size() == 0){
+        }
+        else {
+            List<AccessibilityNodeInfo> nodes = Automator.preOrderTraverseSiblings(nodeInfo);
+
+            for(UIElementMatchingFilter sf : siblingFilter) {
+                boolean matched = false;
+                for (AccessibilityNodeInfo node : nodes) {
+                    if (sf.filter(node)) {
+                        matched = true;
+                        break;
+                    }
+                }
+                if (!matched) {
+                    siblingFilterFlag = false;
+                    break;
+                }
+            }
+        }
+        if(childFilterFlag == false || siblingFilterFlag == false)
             return false;
 
         return true;
@@ -278,9 +337,16 @@ public class UIElementMatchingFilter implements Serializable {
             return false;
         if (textOrChildTextOrContentDescription != null && (! (equalsToIgnoreCaseTrimSymbols(textOrChildTextOrContentDescription, nodeInfo.text) || equalsToIgnoreCaseTrimSymbols(textOrChildTextOrContentDescription, nodeInfo.contentDescription)))){
             boolean matchedChild = false;
+            boolean matchedSibling = false;
             for (String cText : nodeInfo.childText) {
                 if (equalsToIgnoreCaseTrimSymbols(textOrChildTextOrContentDescription, cText)) {
                     matchedChild = true;
+                    break;
+                }
+            }
+            for (String cText : nodeInfo.siblingText) {
+                if (equalsToIgnoreCaseTrimSymbols(textOrChildTextOrContentDescription, cText)) {
+                    matchedSibling = true;
                     break;
                 }
             }
@@ -293,49 +359,103 @@ public class UIElementMatchingFilter implements Serializable {
                     break;
                 }
             }
-            if(!matchedChild)
+            for (String cContentDescription : nodeInfo.siblingContentDescription){
+                if(matchedSibling)
+                    break;
+                if(equalsToIgnoreCaseTrimSymbols(textOrChildTextOrContentDescription, cContentDescription)){
+                    matchedSibling = true;
+                    break;
+                }
+            }
+
+            if(!matchedChild && !matchedSibling)
                 return false;
         }
 
-        if(this.childFilter != null){
-            if(this.childFilter.getText() != null){
-                if(nodeInfo.childText == null)
-                    return false;
-                boolean matched = false;
-                for(String text : nodeInfo.childText){
-                    if(this.childFilter.getText().equalsIgnoreCase(text)){
-                        matched = true;
-                        break;
+        if(this.childFilter != null && this.childFilter.size() != 0){
+            for(UIElementMatchingFilter cf : childFilter){
+                if(cf.getText() != null) {
+                    if(nodeInfo.childText == null) return false;
+                    boolean matched = false;
+                    for (String text : nodeInfo.childText) {
+                        if (cf.getText().equalsIgnoreCase(text)) {
+                            matched = true;
+                            break;
+                        }
+                    }
+                    if(!matched) {
+                        return false;
                     }
                 }
-                if(matched == false)
-                    return false;
+
+                if(cf.getContentDescription() != null) {
+                    if(nodeInfo.childContentDescription == null) return false;
+                    boolean matched = false;
+                    for (String contentDescription : nodeInfo.childContentDescription) {
+                        if (cf.getContentDescription().equalsIgnoreCase(contentDescription)) {
+                            matched = true;
+                            break;
+                        }
+                    }
+                    if(!matched) {
+                        return false;
+                    }
+                }
+
+                if(cf.getViewId() != null) {
+                    if(nodeInfo.childViewId == null) return false;
+                    boolean matched = false;
+                    for (String viewId : nodeInfo.childViewId) {
+                        if (cf.getViewId().equalsIgnoreCase(viewId)) {
+                            matched = true;
+                            break;
+                        }
+                    }
+                    if(!matched) {
+                        return false;
+                    }
+                }
             }
-            if(this.childFilter.getContentDescription() != null){
-                if(nodeInfo.childContentDescription == null)
-                    return false;
-                boolean matched = false;
-                for(String contentDescription : nodeInfo.childContentDescription){
-                    if(this.childFilter.getContentDescription().equalsIgnoreCase(contentDescription)){
-                        matched = true;
-                        break;
+        }
+
+
+        if(this.siblingFilter != null && this.siblingFilter.size() != 0){
+            for(UIElementMatchingFilter sf : siblingFilter){
+                if(sf.getText() != null) {
+                    if(nodeInfo.siblingText == null) return false;
+                    boolean matched = false;
+                    for (String text : nodeInfo.siblingText) {
+                        if (sf.getText().equalsIgnoreCase(text)) {
+                            matched = true;
+                            break;
+                        }
                     }
+                    if(!matched) return false;
                 }
-                if(matched == false)
-                    return false;
-            }
-            if(this.childFilter.getViewId() != null){
-                if(nodeInfo.childViewId == null)
-                    return false;
-                boolean matched = false;
-                for(String viewId : nodeInfo.childViewId){
-                    if(this.childFilter.getViewId().equalsIgnoreCase(viewId)){
-                        matched = true;
-                        break;
+
+                if(sf.getContentDescription() != null) {
+                    if(nodeInfo.siblingContentDescription == null) return false;
+                    boolean matched = false;
+                    for (String contentDescription : nodeInfo.siblingContentDescription) {
+                        if (sf.getContentDescription().equalsIgnoreCase(contentDescription)) {
+                            matched = true;
+                            break;
+                        }
                     }
+                    if(!matched) return false;
                 }
-                if(matched == false)
-                    return false;
+
+                if(sf.getViewId() != null) {
+                    if(nodeInfo.siblingViewId == null) return false;
+                    boolean matched = false;
+                    for (String viewId : nodeInfo.siblingViewId) {
+                        if (sf.getViewId().equalsIgnoreCase(viewId)) {
+                            matched = true;
+                            break;
+                        }
+                    }
+                    if(!matched) return false;
+                }
             }
         }
         return true;
@@ -369,37 +489,92 @@ public class UIElementMatchingFilter implements Serializable {
 
         if (textOrChildTextOrContentDescription != null && (! (equalsToIgnoreCaseTrimSymbols(helper.parse(textOrChildTextOrContentDescription), nodeInfo.getText()) || equalsToIgnoreCaseTrimSymbols(helper.parse(textOrChildTextOrContentDescription), nodeInfo.getContentDescription())))){
             boolean matchedChild = false;
-            for (AccessibilityNodeInfo childNode : Automator.preOrderTraverse(nodeInfo)){
-                if(childNode == null)
+            boolean matchedSibling = false;
+            for (AccessibilityNodeInfo childNode : Automator.preOrderTraverse(nodeInfo)) {
+                if (childNode == null)
                     continue;
-                if(equalsToIgnoreCaseTrimSymbols(helper.parse(textOrChildTextOrContentDescription), childNode.getText())){
+                if (equalsToIgnoreCaseTrimSymbols(helper.parse(textOrChildTextOrContentDescription), childNode.getText())) {
                     matchedChild = true;
                     break;
                 }
-                if(equalsToIgnoreCaseTrimSymbols(helper.parse(textOrChildTextOrContentDescription), childNode.getContentDescription())){
+                if (equalsToIgnoreCaseTrimSymbols(helper.parse(textOrChildTextOrContentDescription), childNode.getContentDescription())) {
                     matchedChild = true;
                     break;
                 }
             }
-            if(!matchedChild)
+
+            for(AccessibilityNodeInfo node : Automator.preOrderTraverseSiblings(nodeInfo)) {
+                if (node == null)
+                    continue;
+                if (equalsToIgnoreCaseTrimSymbols(helper.parse(textOrChildTextOrContentDescription), node.getText())) {
+                    matchedSibling = true;
+                    break;
+                }
+                if (equalsToIgnoreCaseTrimSymbols(helper.parse(textOrChildTextOrContentDescription), node.getContentDescription())) {
+                    matchedSibling = true;
+                    break;
+                }
+            }
+
+            if(!matchedChild && !matchedSibling)
                 return false;
         }
 
 
-        boolean childFilterFlag = false;
-        if(childFilter == null){
-            childFilterFlag = true;
+        boolean childFilterFlag = true;
+        boolean siblingFilterFlag = true;
+        if(childFilter == null || childFilter.size() == 0){
         }
         else {
             List<AccessibilityNodeInfo> nodes = Automator.preOrderTraverse(nodeInfo);
-            for(AccessibilityNodeInfo node : nodes){
-                if(childFilter.filter(node, helper)){
-                    childFilterFlag = true;
+
+            for(UIElementMatchingFilter cf : childFilter){
+                boolean matched = false;
+                for (AccessibilityNodeInfo node : nodes) {
+                    if (cf.filter(node, helper)) {
+                        matched = true;
+                        break;
+                    }
+                }
+                if(!matched){
+                    childFilterFlag = false;
                     break;
                 }
             }
         }
-        if(childFilterFlag == false)
+
+        if(siblingFilter == null || siblingFilter.size() == 0){
+        }
+        else{
+            List<AccessibilityNodeInfo> nodes = Automator.preOrderTraverseSiblings(nodeInfo);
+
+            // handle special "EditText" case
+            if(nodeInfo.getClassName().toString().contains("EditText")){
+                AccessibilityNodeInfo parent = nodeInfo.getParent();
+                while(parent != null){
+                    if(parent.getClassName().toString().contains("TextInputLayout")){
+                        nodes.add(parent);
+                        break;
+                    }
+                    else parent = parent.getParent();
+                }
+            }
+
+            for(UIElementMatchingFilter sf : this.siblingFilter){
+                boolean matched = false;
+                for(AccessibilityNodeInfo node : nodes) {
+                    if (sf.filter(node, helper)) {
+                        matched = true;
+                        break;
+                    }
+                }
+                if(!matched) {
+                    siblingFilterFlag = false;
+                    break;
+                }
+            }
+        }
+        if(childFilterFlag == false || siblingFilterFlag == false)
             return false;
 
         return true;

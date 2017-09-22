@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Rect;
 import android.os.Bundle;
 import android.text.Html;
 import android.view.LayoutInflater;
@@ -150,7 +151,7 @@ public class Automator {
             }
 
             if (operationBlock.getElementMatchingFilter() == null) {
-                //there is no element matching fileter in the operation block
+                //there is no element matching filter in the operation block
                 if (operationBlock.getOperation().getOperationType() == SugiliteOperation.SPECIAL_GO_HOME) {
                     //perform the go home operation - because the go home operation will have a null filter
                     boolean retVal = performAction(null, operationBlock);
@@ -189,8 +190,14 @@ public class Automator {
                 List<AccessibilityNodeInfo> allNodes = preOrderTraverse(rootNode);
                 List<AccessibilityNodeInfo> filteredNodes = new ArrayList<>();
                 for (AccessibilityNodeInfo node : allNodes) {
-                    if (operationBlock.getElementMatchingFilter().filter(node, variableHelper))
-                        filteredNodes.add(node);
+                    if(node.getClassName().toString().contains("EditText")){
+                        if (operationBlock.getElementMatchingFilter().filter(node, variableHelper))
+                            filteredNodes.add(node);
+                    }
+                    else {
+                        if (operationBlock.getElementMatchingFilter().filter(node, variableHelper))
+                            filteredNodes.add(node);
+                    }
                 }
 
                 if (operationBlock.getElementMatchingFilter().getTextOrChildTextOrContentDescription() != null) {
@@ -381,6 +388,39 @@ public class Automator {
     }
 
 
+    private static boolean isChild(AccessibilityNodeInfo child, AccessibilityNodeInfo parent) {
+        Rect childBox = new Rect();
+        Rect compBox = new Rect();
+        child.getBoundsInScreen(childBox);
+
+        int numChildren = parent.getChildCount();
+        for(int i = 0; i < numChildren; i++){
+            AccessibilityNodeInfo c = parent.getChild(i);
+            if(c == null) continue;
+            c.getBoundsInScreen(compBox);
+            if(child.getClassName().toString().equals(c.getClassName().toString()) &&
+                    childBox.contains(compBox) && compBox.contains(childBox)){
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static AccessibilityNodeInfo customGetParent(AccessibilityNodeInfo child) {
+        AccessibilityNodeInfo potentialParent = child.getParent();
+        if(potentialParent == null) return null;
+        if(isChild(child, potentialParent)) return potentialParent;
+
+        // this is the wrong parent :(
+        int numChildren = potentialParent.getChildCount();
+        for(int i = 0 ; i < numChildren; i++){
+            AccessibilityNodeInfo newPotentialParent = potentialParent.getChild(i);
+            if(newPotentialParent == null) continue;
+            if(isChild(child, newPotentialParent)) return newPotentialParent;
+        }
+        return null;
+    }
+
     /**
      * traverse a tree from the root, and return all the notes in the tree
      * @param root
@@ -399,6 +439,36 @@ public class Automator {
         }
         return list;
     }
+
+    public static List<AccessibilityNodeInfo> preOrderTraverseSiblings(AccessibilityNodeInfo node){
+        if(node == null) return null;
+        List<AccessibilityNodeInfo> siblingNodes = new ArrayList<AccessibilityNodeInfo>();
+        AccessibilityNodeInfo parent = node.getParent();
+        if(parent == null) return siblingNodes;
+        // adding parent for now
+        siblingNodes.add(parent);
+        Rect nodeRect = new Rect();
+        Rect compRect = new Rect();
+        node.getBoundsInScreen(nodeRect);
+        int numSibling = parent.getChildCount();
+        for (int i = 0; i < numSibling; i++){
+            AccessibilityNodeInfo currSib = parent.getChild(i);
+            if(currSib == null) continue;
+            currSib.getBoundsInScreen(compRect);
+            // checking bounding screen + name for equality
+            if(currSib.getClassName().toString().equals(node.getClassName().toString()) &&
+                    nodeRect.contains(compRect) && compRect.contains(nodeRect)) continue;
+            siblingNodes.add(currSib);
+        }
+
+        List<AccessibilityNodeInfo> preOrderTraverseSibNode = new ArrayList<AccessibilityNodeInfo>();
+        for (AccessibilityNodeInfo sib : siblingNodes) {
+            // add all children of the sibling node
+            preOrderTraverseSibNode.addAll(Automator.preOrderTraverse(sib));
+        }
+        return preOrderTraverseSibNode;
+    }
+
     public List<AccessibilityNodeInfo> getClickableList (List<AccessibilityNodeInfo> nodeInfos){
         List<AccessibilityNodeInfo> retList = new ArrayList<>();
         for(AccessibilityNodeInfo node : nodeInfos){

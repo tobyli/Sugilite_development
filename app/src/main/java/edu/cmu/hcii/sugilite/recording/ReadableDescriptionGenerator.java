@@ -3,15 +3,18 @@ package edu.cmu.hcii.sugilite.recording;
 import android.content.Context;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
+import android.provider.Contacts;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 import edu.cmu.hcii.sugilite.Const;
 import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteSpecialOperationBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
+import edu.cmu.hcii.sugilite.model.block.UIElementMatchingFilter;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteOperation;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteSetTextOperation;
 
@@ -86,11 +89,45 @@ public class ReadableDescriptionGenerator {
             if (((SugiliteOperationBlock) block).getElementMatchingFilter().getContentDescription() != null){
                 labels.put("content description", ((SugiliteOperationBlock)block).getElementMatchingFilter().getContentDescription());
             }
-            if (((SugiliteOperationBlock) block).getElementMatchingFilter().getChildFilter()!= null && ((SugiliteOperationBlock) block).getElementMatchingFilter().getChildFilter().getText() != null){
-                labels.put("child text", ((SugiliteOperationBlock) block).getElementMatchingFilter().getChildFilter().getText());
+
+            Set<UIElementMatchingFilter> childFilters = ((SugiliteOperationBlock) block).getElementMatchingFilter().getChildFilter();
+            if(childFilters != null && childFilters.size() != 0){
+                for (UIElementMatchingFilter cf : childFilters) {
+                    String sText = cf.getText();
+                    String sContent = cf.getContentDescription();
+                    String sViewId = cf.getViewId();
+
+                    if(sText != null) {
+                        labels.put("child text", sText);
+                    }
+                    if(sContent != null) {
+                        labels.put("child content description", sContent);
+                    }
+                    if(sViewId != null){
+                        message += (thatPrinted ? "" : "that ") + "has child Object ID \"" + setColor(sViewId, Const.SCRIPT_VIEW_ID_COLOR) + "\" ";
+                        thatPrinted = true;
+                    }
+                }
             }
-            if (((SugiliteOperationBlock) block).getElementMatchingFilter().getChildFilter()!= null && ((SugiliteOperationBlock) block).getElementMatchingFilter().getChildFilter().getContentDescription() != null){
-                labels.put("child content description", ((SugiliteOperationBlock) block).getElementMatchingFilter().getChildFilter().getContentDescription());
+
+            Set<UIElementMatchingFilter> siblingFilters = ((SugiliteOperationBlock) block).getElementMatchingFilter().getSiblingFilter();
+            if(siblingFilters != null && siblingFilters.size() != 0){
+                for (UIElementMatchingFilter sf : siblingFilters) {
+                    String sText = sf.getText();
+                    String sContent = sf.getContentDescription();
+                    String sViewId = sf.getViewId();
+
+                    if(sText != null) {
+                        labels.put("sibling text", sText);
+                    }
+                    if(sContent != null) {
+                        labels.put("sibling content description", sContent);
+                    }
+                    if(sViewId != null){
+                        message += (thatPrinted ? "" : "that ") + "has sibling Object ID \"" + setColor(sViewId, Const.SCRIPT_VIEW_ID_COLOR) + "\" ";
+                        thatPrinted = true;
+                    }
+                }
             }
 
             if(labels.size() == 1){
@@ -106,11 +143,6 @@ public class ReadableDescriptionGenerator {
                     count ++;
                 }
             }
-
-            if (((SugiliteOperationBlock) block).getElementMatchingFilter().getChildFilter()!= null && ((SugiliteOperationBlock) block).getElementMatchingFilter().getChildFilter().getViewId() != null){
-                message += (thatPrinted ? "" : "that ") + "has child Object ID \"" + setColor(((SugiliteOperationBlock) block).getElementMatchingFilter().getChildFilter().getViewId(), Const.SCRIPT_VIEW_ID_COLOR) + "\" ";
-                thatPrinted = true;            }
-
 
             if(((SugiliteOperationBlock) block).getElementMatchingFilter().getViewId() != null){
                 message += (thatPrinted ? "" : "that ") + "has the Object ID \"" + setColor(((SugiliteOperationBlock) block).getElementMatchingFilter().getViewId(), Const.SCRIPT_VIEW_ID_COLOR) + "\" ";

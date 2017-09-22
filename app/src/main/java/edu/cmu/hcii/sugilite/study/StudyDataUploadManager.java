@@ -71,6 +71,9 @@ public class StudyDataUploadManager {
     private String getLocalBluetoothName(){
         if(mBluetoothAdapter == null){
             mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+            if(mBluetoothAdapter == null){
+                return "NULL";
+            }
         }
         String name = mBluetoothAdapter.getName();
         if(name == null){

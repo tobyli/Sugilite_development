@@ -4,6 +4,7 @@ import android.graphics.Rect;
 import android.view.accessibility.AccessibilityNodeInfo;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 
@@ -26,13 +27,19 @@ public class SerializableNodeInfo implements Serializable {
         childText = new HashSet<>();
         childContentDescription = new HashSet<>();
         childViewId = new HashSet<>();
-
+        siblingText = new HashSet<>();
+        siblingContentDescription = new HashSet<>();
+        siblingViewId = new HashSet<>();
     }
     public SerializableNodeInfo(AccessibilityNodeInfo nodeInfo){
         if(nodeInfo != null) {
             childText = new HashSet<>();
             childContentDescription = new HashSet<>();
             childViewId = new HashSet<>();
+            siblingText = new HashSet<>();
+            siblingContentDescription = new HashSet<>();
+            siblingViewId = new HashSet<>();
+
             this.text = (nodeInfo.getText() == null ? null : nodeInfo.getText().toString());
             this.contentDescription = (nodeInfo.getContentDescription() == null ? null : nodeInfo.getContentDescription().toString());
             this.viewId = nodeInfo.getViewIdResourceName();
@@ -44,6 +51,7 @@ public class SerializableNodeInfo implements Serializable {
             this.boundsInScreen = inScreenRect.flattenToString();
             this.className = (nodeInfo.getClassName() == null ? null : nodeInfo.getClassName().toString());
             this.packageName = (nodeInfo.getPackageName() == null ? null : nodeInfo.getPackageName().toString());
+
             List<AccessibilityNodeInfo> children = Automator.preOrderTraverse(nodeInfo);
             for(AccessibilityNodeInfo node : children){
                 if(node.getText() != null)
@@ -52,6 +60,15 @@ public class SerializableNodeInfo implements Serializable {
                     childContentDescription.add(node.getContentDescription().toString());
                 if(node.getViewIdResourceName() != null)
                     childViewId.add(node.getViewIdResourceName());
+            }
+
+            for(AccessibilityNodeInfo node : Automator.preOrderTraverseSiblings(nodeInfo)) {
+                if(node.getText() != null)
+                    siblingText.add(node.getText().toString());
+                if(node.getContentDescription() != null)
+                    siblingContentDescription.add(node.getContentDescription().toString());
+                if(node.getViewIdResourceName() != null)
+                    siblingViewId.add(node.getViewIdResourceName());
             }
         }
     }
@@ -97,6 +114,25 @@ public class SerializableNodeInfo implements Serializable {
             return false;
         if(this.childViewId.size() != node.childViewId.size())
             return false;
+
+        for(String text : this.siblingText){
+            if(!node.siblingText.contains(text))
+                return false;
+        }
+        for(String contentDescription : this.siblingContentDescription){
+            if(!node.siblingContentDescription.contains(contentDescription))
+                return false;
+        }
+        for(String viewId : this.siblingViewId){
+            if(!node.siblingViewId.contains(viewId))
+                return false;
+        }
+        if(this.siblingText.size() != node.siblingText.size())
+            return false;
+        if(this.siblingContentDescription.size() != node.siblingContentDescription.size())
+            return false;
+        if(this.siblingViewId.size() != node.siblingViewId.size())
+            return false;
         Rect boundsInParentRect = Rect.unflattenFromString(boundsInParent);
         Rect boundsInScreenRect = Rect.unflattenFromString(boundsInScreen);
 
@@ -118,4 +154,5 @@ public class SerializableNodeInfo implements Serializable {
     public String text, contentDescription, viewId, boundsInParent, boundsInScreen, className, packageName;
     public boolean isClickable;
     public HashSet<String> childText, childContentDescription, childViewId;
+    public HashSet<String> siblingText, siblingContentDescription, siblingViewId;
 }

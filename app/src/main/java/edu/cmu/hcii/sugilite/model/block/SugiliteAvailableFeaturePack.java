@@ -71,8 +71,9 @@ public class SugiliteAvailableFeaturePack implements Serializable{
     /**
      * allNodes: all nodes present (from traversing the root view)
      * childNodes: all child nodes of the source nodes (from traversing the source node)
+     * siblingNodes: all sibling nodes of the source node and their children
      */
-    public ArrayList<SerializableNodeInfo> childNodes, allNodes;
+    public ArrayList<SerializableNodeInfo> childNodes, allNodes, siblingNodes;
 
 
     /**

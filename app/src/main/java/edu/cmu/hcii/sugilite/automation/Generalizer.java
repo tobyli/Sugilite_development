@@ -71,26 +71,60 @@ public class Generalizer {
                     block.setDescription(descriptionGenerator.generateReadableDescription(block));
                     modified = true;
                 }
-                if(filter.getChildFilter() != null) {
-                    if (filter.getChildFilter().getText() != null && command.toLowerCase().contains(filter.getChildFilter().getText().toLowerCase())) {
-                        UIElementMatchingFilter childFilter = filter.getChildFilter();
-                        script.variableNameDefaultValueMap.put(filter.getChildFilter().getText(), new StringVariable(filter.getChildFilter().getText(), filter.getChildFilter().getText()));
-                        addVariableAlternatives(filter.getChildFilter().getText(), "childText", script, (SugiliteOperationBlock) block);
-                        childFilter.setText("@" + filter.getChildFilter().getText());
-                        filter.setChildFilter(childFilter);
-                        ((SugiliteOperationBlock) block).setElementMatchingFilter(filter);
-                        block.setDescription(descriptionGenerator.generateReadableDescription(block));
-                        modified = true;
+
+                Set<UIElementMatchingFilter> childFilter = filter.getChildFilter();
+                if(childFilter != null && childFilter.size() != 0) {
+                    for(UIElementMatchingFilter cf : childFilter){
+                        String sText = cf.getText();
+                        String sContent = cf.getContentDescription();
+
+                        if (sText != null && command.toLowerCase().contains(sText.toLowerCase())) {
+                            script.variableNameDefaultValueMap.put(sText, new StringVariable(sText, sText));
+                            addVariableAlternatives(sText, "childText", script, (SugiliteOperationBlock) block);
+                            cf.setText("@" + sText);
+                            // don't have to reset cf here because we are changing the text of the object so it should be updated automatically in the set
+                            ((SugiliteOperationBlock) block).setElementMatchingFilter(filter);
+                            block.setDescription(descriptionGenerator.generateReadableDescription(block));
+                            modified = true;
+                        }
+
+                        if (sContent != null && command.toLowerCase().contains(sContent.toLowerCase())) {
+                            script.variableNameDefaultValueMap.put(sContent, new StringVariable(sContent, sContent));
+                            addVariableAlternatives(sContent, "childContentDescription", script, (SugiliteOperationBlock) block);
+                            cf.setContentDescription("@" + sContent);
+                            // don't have to reset cf here because we are changing the text of the object so it should be updated automatically in the set
+                            ((SugiliteOperationBlock) block).setElementMatchingFilter(filter);
+                            block.setDescription(descriptionGenerator.generateReadableDescription(block));
+                            modified = true;
+                        }
                     }
-                    if (filter.getChildFilter().getContentDescription() != null && command.toLowerCase().contains(filter.getChildFilter().getContentDescription().toLowerCase())) {
-                        UIElementMatchingFilter childFilter = filter.getChildFilter();
-                        script.variableNameDefaultValueMap.put(filter.getChildFilter().getContentDescription(), new StringVariable(filter.getChildFilter().getContentDescription(), filter.getChildFilter().getContentDescription()));
-                        addVariableAlternatives(filter.getChildFilter().getContentDescription(), "childContentDescriptio", script, (SugiliteOperationBlock)block);
-                        childFilter.setContentDescription("@" + filter.getChildFilter().getContentDescription());
-                        filter.setChildFilter(childFilter);
-                        ((SugiliteOperationBlock) block).setElementMatchingFilter(filter);
-                        block.setDescription(descriptionGenerator.generateReadableDescription(block));
-                        modified = true;
+                }
+
+                Set<UIElementMatchingFilter> siblingFilter = filter.getSiblingFilter();
+                if(siblingFilter != null && siblingFilter.size() != 0) {
+                    for(UIElementMatchingFilter sf : siblingFilter){
+                        String sText = sf.getText();
+                        String sContent = sf.getContentDescription();
+
+                        if (sText != null && command.toLowerCase().contains(sText.toLowerCase())) {
+                            script.variableNameDefaultValueMap.put(sText, new StringVariable(sText, sText));
+                            addVariableAlternatives(sText, "siblingText", script, (SugiliteOperationBlock) block);
+                            sf.setText("@" + sText);
+                            // don't have to reset cf here because we are changing the text of the object so it should be updated automatically in the set
+                            ((SugiliteOperationBlock) block).setElementMatchingFilter(filter);
+                            block.setDescription(descriptionGenerator.generateReadableDescription(block));
+                            modified = true;
+                        }
+
+                        if (sContent != null && command.toLowerCase().contains(sContent.toLowerCase())) {
+                            script.variableNameDefaultValueMap.put(sContent, new StringVariable(sContent, sContent));
+                            addVariableAlternatives(sContent, "siblingContentDescription", script, (SugiliteOperationBlock) block);
+                            sf.setContentDescription("@" + sContent);
+                            // don't have to reset cf here because we are changing the text of the object so it should be updated automatically in the set
+                            ((SugiliteOperationBlock) block).setElementMatchingFilter(filter);
+                            block.setDescription(descriptionGenerator.generateReadableDescription(block));
+                            modified = true;
+                        }
                     }
                 }
                 SugiliteOperation operation = ((SugiliteOperationBlock) block).getOperation();

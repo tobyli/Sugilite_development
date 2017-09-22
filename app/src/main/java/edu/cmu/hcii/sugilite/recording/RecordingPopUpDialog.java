@@ -82,13 +82,16 @@ public class RecordingPopUpDialog extends AbstractSugiliteDialog {
     private SugiliteBlockJSONProcessor jsonProcessor;
     private Set<Map.Entry<String, String>> allParentFeatures = new HashSet<>();
     private Set<Map.Entry<String, String>> allChildFeatures = new HashSet<>();
+    private Set<Map.Entry<String, String>> allSiblingFeatures = new HashSet<>();
     private Set<Map.Entry<String, String>> selectedParentFeatures = new HashSet<>();
     private Set<Map.Entry<String, String>> selectedChildFeatures = new HashSet<>();
+    private Set<Map.Entry<String, String>> selectedSiblingFeatures = new HashSet<>();
     private SugiliteData sugiliteData;
     private ReadableDescriptionGenerator readableDescriptionGenerator;
     private UIElementFeatureRecommender recommender;
     private Map<Map.Entry<String, String>, CheckBox> checkBoxChildEntryMap;
     private Map<Map.Entry<String, String>, CheckBox> checkBoxParentEntryMap;
+    private Map<Map.Entry<String, String>, CheckBox> checkBoxSiblingEntryMap;
     private Map<String, CheckBox> identifierCheckboxMap;
     private Set<Map.Entry<String, String>> alternativeLabels;
     private SugiliteScreenshotManager screenshotManager;
@@ -96,6 +99,7 @@ public class RecordingPopUpDialog extends AbstractSugiliteDialog {
     private RecordingSkipManager skipManager;
     private AlternativeNodesFilterTester filterTester;
     private String childText = "";
+    private String siblingText = "";
     private String scriptName;
     private AlertDialog progressDialog;
     private Context context;
@@ -140,6 +144,7 @@ public class RecordingPopUpDialog extends AbstractSugiliteDialog {
         readableDescriptionGenerator = new ReadableDescriptionGenerator(context);
         checkBoxChildEntryMap = new HashMap<>();
         checkBoxParentEntryMap = new HashMap<>();
+        checkBoxSiblingEntryMap = new HashMap<>();
         identifierCheckboxMap = new HashMap<>();
         dialogRootView = inflater.inflate(R.layout.dialog_recording_pop_up, null);
         ContextThemeWrapper ctw = new ContextThemeWrapper(context, R.style.AlertDialogCustom);
@@ -191,6 +196,7 @@ public class RecordingPopUpDialog extends AbstractSugiliteDialog {
         readableDescriptionGenerator = new ReadableDescriptionGenerator(context);
         checkBoxChildEntryMap = new HashMap<>();
         checkBoxParentEntryMap = new HashMap<>();
+        checkBoxSiblingEntryMap = new HashMap<>();
         identifierCheckboxMap = new HashMap<>();
         dialogRootView = inflater.inflate(R.layout.dialog_recording_pop_up, null);
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
@@ -295,6 +301,14 @@ public class RecordingPopUpDialog extends AbstractSugiliteDialog {
             if(node.contentDescription != null)
                 availableLabel.add(node.contentDescription);
         }
+
+        for(SerializableNodeInfo node : featurePack.siblingNodes){
+            if(node.text != null)
+                availableLabel.add(node.text);
+            if(node.contentDescription != null)
+                availableLabel.add(node.contentDescription);
+        }
+
         if(availableLabel.size() > 1 && hideLocation){
             //have 1+ text labels, hide other features
             if(boundsInParentCheckbox != null){
@@ -645,7 +659,19 @@ public class RecordingPopUpDialog extends AbstractSugiliteDialog {
             }
         }
 
-        recommender = new UIElementFeatureRecommender(featurePack.packageName, featurePack.className, featurePack.text, featurePack.contentDescription, featurePack.viewId, featurePack.boundsInParent, featurePack.boundsInScreen, scriptName, featurePack.isEditable, featurePack.time, featurePack.eventType, allParentFeatures, allChildFeatures);
+        // populate sibling features
+        for(SerializableNodeInfo sibNode: featurePack.siblingNodes) {
+            if(sibNode != null){
+                if(sibNode.text != null)
+                    allSiblingFeatures.add(new AbstractMap.SimpleEntry<>("Sibling Text", sibNode.text.toString()));
+                if(sibNode.contentDescription != null)
+                    allSiblingFeatures.add(new AbstractMap.SimpleEntry<>("Sibling ContentDescription", sibNode.contentDescription.toString()));
+                if(sibNode.viewId != null)
+                    allSiblingFeatures.add(new AbstractMap.SimpleEntry<>("Sibling ViewID", sibNode.viewId));
+            }
+        }
+
+        recommender = new UIElementFeatureRecommender(featurePack.packageName, featurePack.className, featurePack.text, featurePack.contentDescription, featurePack.viewId, featurePack.boundsInParent, featurePack.boundsInScreen, scriptName, featurePack.isEditable, featurePack.time, featurePack.eventType, allParentFeatures, allChildFeatures, allSiblingFeatures);
 
         Calendar c = Calendar.getInstance();
         c.setTimeInMillis(featurePack.time);
@@ -758,10 +784,12 @@ public class RecordingPopUpDialog extends AbstractSugiliteDialog {
         if(autoFillEnabled && triggerMode == TRIGGERED_BY_NEW_EVENT){
             selectedChildFeatures.addAll(recommender.chooseChildFeatures());
             selectedParentFeatures.addAll(recommender.chooseParentFeatures());
+            selectedSiblingFeatures.addAll(recommender.chooseSiblingFeatures());
         }
         else if (triggerMode == TRIGGERED_BY_EDIT){
             UIElementMatchingFilter parentFilter = existingFilter.getParentFilter();
-            UIElementMatchingFilter childFilter = existingFilter.getChildFilter();
+            Set<UIElementMatchingFilter> childFilter = existingFilter.getChildFilter();
+            Set<UIElementMatchingFilter> siblingFilter = existingFilter.getSiblingFilter();
             if(parentFilter != null) {
                 if (parentFilter.getText() != null)
                     selectedParentFeatures.add(new AbstractMap.SimpleEntry<String, String>("Text", parentFilter.getText()));
@@ -771,13 +799,26 @@ public class RecordingPopUpDialog extends AbstractSugiliteDialog {
                     selectedParentFeatures.add(new AbstractMap.SimpleEntry<String, String>("ViewID", parentFilter.getViewId()));
             }
 
-            if(childFilter != null) {
-                if (childFilter.getText() != null)
-                    selectedChildFeatures.add(new AbstractMap.SimpleEntry<String, String>("Text", childFilter.getText()));
-                if (childFilter.getContentDescription() != null)
-                    selectedChildFeatures.add(new AbstractMap.SimpleEntry<String, String>("ContentDescription", childFilter.getContentDescription()));
-                if (childFilter.getViewId() != null)
-                    selectedChildFeatures.add(new AbstractMap.SimpleEntry<String, String>("ViewID", childFilter.getViewId()));
+            if(childFilter != null && childFilter.size() != 0) {
+                for(UIElementMatchingFilter cf : childFilter) {
+                    if (cf.getText() != null)
+                        selectedChildFeatures.add(new AbstractMap.SimpleEntry<String, String>("Text", cf.getText()));
+                    if (cf.getContentDescription() != null)
+                        selectedChildFeatures.add(new AbstractMap.SimpleEntry<String, String>("ContentDescription", cf.getContentDescription()));
+                    if (cf.getViewId() != null)
+                        selectedChildFeatures.add(new AbstractMap.SimpleEntry<String, String>("ViewID", cf.getViewId()));
+                }
+            }
+
+            if(siblingFilter != null && siblingFilter.size() != 0) {
+                for (UIElementMatchingFilter sf : siblingFilter) {
+                    if (sf.getText() != null)
+                        selectedSiblingFeatures.add(new AbstractMap.SimpleEntry<String, String>("Text", sf.getText()));
+                    if (sf.getContentDescription() != null)
+                        selectedSiblingFeatures.add(new AbstractMap.SimpleEntry<String, String>("ContentDescription", sf.getContentDescription()));
+                    if (sf.getViewId() != null)
+                        selectedSiblingFeatures.add(new AbstractMap.SimpleEntry<String, String>("ViewID", sf.getViewId()));
+                }
             }
         }
 
@@ -841,6 +882,45 @@ public class RecordingPopUpDialog extends AbstractSugiliteDialog {
             }
         }
 
+        boolean hasSiblingText = false;
+        for(Map.Entry<String, String> feature : allSiblingFeatures){
+            if(feature.getKey() != null && feature.getValue() != null && feature.getValue().length() > 0){
+                CheckBox siblingCheckBox = new CheckBox(dialogRootView.getContext());
+                siblingCheckBox.setText(Html.fromHtml(boldify("" + feature.getKey() + ": ") + feature.getValue()));
+                if(feature.getKey().contains("Text")) {
+                    hasSiblingText = true;
+                    siblingText += feature.getValue();
+                    siblingText += " ";
+                }
+                if(!existingFeatureValues.contains(feature.getValue())) {
+                    if (selectedSiblingFeatures.contains(feature))
+                        siblingCheckBox.setChecked(true);
+
+                    if(triggerMode == TRIGGERED_BY_EDIT){
+                        //handle editing sibling feature with parameters
+                        for(Map.Entry<String, String> selectedFeature: selectedSiblingFeatures){
+                            if(selectedFeature.getValue().contains("@")){
+                                Variable defaultValue = originalScript.variableNameDefaultValueMap.get(selectedFeature.getValue().substring(1));
+                                if(defaultValue != null && defaultValue instanceof StringVariable){
+                                    AbstractMap.SimpleEntry<String, String> parsedFeature = new AbstractMap.SimpleEntry<String, String>(selectedFeature.getKey(), ((StringVariable)defaultValue).getValue());
+                                    if (parsedFeature.equals(feature)){
+                                        siblingCheckBox.setChecked(true);
+                                        siblingCheckBox.setText(Html.fromHtml(boldify("" + feature.getKey() + ": ") + selectedFeature.getValue() + ": (" + ((StringVariable)defaultValue).getValue() + ")"));
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    existingFeatureValues.add(feature.getValue());
+                    identifierLayout.addView(generateRow(siblingCheckBox, "" + feature.getKey(), feature.getValue()), layoutParams);
+                    checkBoxSiblingEntryMap.put(feature, siblingCheckBox);
+                }
+                else
+                    continue;
+            }
+        }
+
         boundsInParentCheckbox = new CheckBox(dialogRootView.getContext());
         boundsInParentCheckbox.setText(Html.fromHtml(boldify("Location in Parent: ") + featurePack.boundsInParent));
         if(autoFillEnabled && triggerMode == TRIGGERED_BY_NEW_EVENT)
@@ -884,7 +964,7 @@ public class RecordingPopUpDialog extends AbstractSugiliteDialog {
             actionSpinnerItems.add("Long Click");
             actionOrderMap.put(SugiliteOperation.LONG_CLICK, actionSpinnerItemCount++);
         }
-        if((featurePack.text != null && (! featurePack.text.contentEquals("NULL"))) || hasChildText || (featurePack.contentDescription != null && (! featurePack.contentDescription.contentEquals("NULL")))) {
+        if((featurePack.text != null && (! featurePack.text.contentEquals("NULL"))) || hasChildText || hasSiblingText || (featurePack.contentDescription != null && (! featurePack.contentDescription.contentEquals("NULL")))) {
             actionSpinnerItems.add("Read Out");
             actionOrderMap.put(SugiliteOperation.READ_OUT, actionSpinnerItemCount++);
             actionSpinnerItems.add("Load as Variable");
@@ -929,6 +1009,10 @@ public class RecordingPopUpDialog extends AbstractSugiliteDialog {
             readoutParameterItems.add("Child Text: (" + childText + ")");
             readOutSpinnerOrderMap.put("Child Text", readOutSpinnerActionCount++);
         }
+        if(hasSiblingText) {
+            readoutParameterItems.add("Sibling Text: (" + siblingText + ")");
+            readOutSpinnerOrderMap.put("Sibling Text", readOutSpinnerActionCount++);
+        }
         ArrayAdapter<String> readoutAdapter = new ArrayAdapter<String>(dialogRootView.getContext(), android.R.layout.simple_spinner_item, readoutParameterItems);
         readoutParameterSpinner.setAdapter(readoutAdapter);
         if(triggerMode == TRIGGERED_BY_NEW_EVENT)
@@ -962,6 +1046,10 @@ public class RecordingPopUpDialog extends AbstractSugiliteDialog {
         if(hasChildText) {
             loadVariableParameterItems.add("Child Text: (" + childText + ")");
             loadVariableParameterSpinnerOrderMap.put("Child Text", loadVariableParameterSpinnerActionCount++);
+        }
+        if(hasSiblingText) {
+            loadVariableParameterItems.add("Sibling Text: (" + siblingText + ")");
+            loadVariableParameterSpinnerOrderMap.put("Sibling Text", loadVariableParameterSpinnerActionCount++);
         }
         ArrayAdapter<String> loadVariableAdapter = new ArrayAdapter<String>(dialogRootView.getContext(), android.R.layout.simple_spinner_item, loadVariableParameterItems);
         loadVariableParameterSpinner.setAdapter(loadVariableAdapter);
@@ -1092,6 +1180,9 @@ public class RecordingPopUpDialog extends AbstractSugiliteDialog {
         for(CheckBox checkBox : checkBoxChildEntryMap.values()){
             checkBox.setOnCheckedChangeListener(identiferCheckboxChangeListener);
         }
+        for(CheckBox checkBox : checkBoxSiblingEntryMap.values()) {
+            checkBox.setOnCheckedChangeListener(identiferCheckboxChangeListener);
+        }
 
         TextWatcher textWatcher = new TextWatcher() {
             @Override
@@ -1116,6 +1207,9 @@ public class RecordingPopUpDialog extends AbstractSugiliteDialog {
         if(viewIdCheckbox != null)
             viewIdCheckbox.addTextChangedListener(textWatcher);
         for(CheckBox checkBox : checkBoxChildEntryMap.values()){
+            checkBox.addTextChangedListener(textWatcher);
+        }
+        for(CheckBox checkBox : checkBoxSiblingEntryMap.values()){
             checkBox.addTextChangedListener(textWatcher);
         }
 
@@ -1178,15 +1272,18 @@ public class RecordingPopUpDialog extends AbstractSugiliteDialog {
                     loadVariableVariableDefaultValue.setText(featurePack.contentDescription);
                 } else if (selectedTarget.contains("Child Text")) {
                     loadVariableVariableDefaultValue.setText(childText);
+                } else if (selectedTarget.contains("Sibling Text")) {
+                    loadVariableVariableDefaultValue.setText(siblingText);
                 }
             }
         }
         if ((!actionSpinnerSelectedItem.contentEquals("Load as Variable")) && (loadVariableParameterSection.getParent() != null))
             actionSection.removeView(loadVariableParameterSection);
 
-        //refresh "selectedchildren" and "selectedparent"
+        //refresh "selectedchildren" and "selectedparent" and "selectedSibling"
         selectedParentFeatures.clear();
         selectedChildFeatures.clear();
+        selectedSiblingFeatures.clear();
 
         for(Map.Entry<String, String> feature : allChildFeatures){
             CheckBox checkBox = checkBoxChildEntryMap.get(feature);
@@ -1197,6 +1294,17 @@ public class RecordingPopUpDialog extends AbstractSugiliteDialog {
                     featureToAdd.setValue(childCheckboxLabel.substring(childCheckboxLabel.indexOf("@")));
                 }
                 selectedChildFeatures.add(featureToAdd);
+            }
+        }
+        for(Map.Entry<String, String> feature : allSiblingFeatures){
+            CheckBox checkBox = checkBoxSiblingEntryMap.get(feature);
+            Map.Entry<String, String> featureToAdd = new AbstractMap.SimpleEntry<String, String>(feature);
+            if(checkBox != null && checkBox.isChecked()) {
+                String siblingCheckboxLabel = extractParameter(checkBox.getText().toString());
+                if(siblingCheckboxLabel.contains("@") && variableDefaultValueMap != null && variableDefaultValueMap.keySet().contains(siblingCheckboxLabel.substring(siblingCheckboxLabel.indexOf("@") + 1))){
+                    featureToAdd.setValue(siblingCheckboxLabel.substring(siblingCheckboxLabel.indexOf("@")));
+                }
+                selectedSiblingFeatures.add(featureToAdd);
             }
         }
 
@@ -1245,7 +1353,8 @@ public class RecordingPopUpDialog extends AbstractSugiliteDialog {
         }
 
         //refresh the operation preview
-        ((TextView) dialogRootView.findViewById(R.id.previewContent)).setText(Html.fromHtml(readableDescriptionGenerator.generateReadableDescription(generateBlock())));
+        SugiliteOperationBlock block = generateBlock();
+        ((TextView) dialogRootView.findViewById(R.id.previewContent)).setText(Html.fromHtml(readableDescriptionGenerator.generateReadableDescription(block)));
 
     }
 
@@ -1275,6 +1384,8 @@ public class RecordingPopUpDialog extends AbstractSugiliteDialog {
                     stringVariable.setValue(featurePack.contentDescription);
                 } else if (selectedTarget.contains("Child Text")) {
                     stringVariable.setValue(childText);
+                } else if(selectedTarget.contains("Sibling Text")) {
+                    stringVariable.setValue(siblingText);
                 }
             }
 
@@ -1521,18 +1632,35 @@ public class RecordingPopUpDialog extends AbstractSugiliteDialog {
         }
 
         if (selectedChildFeatures.size() > 0){
-            UIElementMatchingFilter childFilter = new UIElementMatchingFilter();
             for(Map.Entry<String, String> entry : selectedChildFeatures){
-                if(entry.getKey().contentEquals("Text")){
+                UIElementMatchingFilter childFilter = new UIElementMatchingFilter();
+                if(entry.getKey().contains("Text")){
                     childFilter.setText(extractParameter(entry.getValue()));
                 }
-                if(entry.getKey().contentEquals("ContentDescription")){
+                if(entry.getKey().contains("ContentDescription")){
                     childFilter.setContentDescription(extractParameter(entry.getValue()));
                 }
-                if(entry.getKey().contentEquals("ViewID")){
-                    childFilter.setViewId(extractParameter(entry.getValue()));                }
+                if(entry.getKey().contains("ViewID")){
+                    childFilter.setViewId(extractParameter(entry.getValue()));
+                }
+                // if there are multiple children properties, set all of them in the filter
+                filter.setChildFilter(childFilter);
             }
-            filter.setChildFilter(childFilter);
+        }
+        if (selectedSiblingFeatures.size() > 0){
+            for(Map.Entry<String, String> entry : selectedSiblingFeatures){
+                UIElementMatchingFilter siblingFilter = new UIElementMatchingFilter();
+                if(entry.getKey().contains("Text")){
+                    siblingFilter.setText(extractParameter(entry.getValue()));
+                }
+                if(entry.getKey().contains("ContentDescription")){
+                    siblingFilter.setContentDescription(extractParameter(entry.getValue()));
+                }
+                if(entry.getKey().contains("ViewID")){
+                    siblingFilter.setViewId(extractParameter(entry.getValue()));
+                }
+                filter.setSiblingFilter(siblingFilter);
+            }
         }
         if (selectedParentFeatures.size() > 0){
             UIElementMatchingFilter parentFilter = new UIElementMatchingFilter();

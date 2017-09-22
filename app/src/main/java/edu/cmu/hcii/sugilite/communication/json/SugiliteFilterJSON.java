@@ -27,8 +27,25 @@ public class SugiliteFilterJSON {
             this.textOrChildTextOrContentDescription = filter.getTextOrChildTextOrContentDescription();
             if(filter.getParentFilter() != null)
                 this.parentFilter = new SugiliteFilterJSON(filter.getParentFilter());
-            if(filter.getChildFilter() != null)
-                this.childFilter = new SugiliteFilterJSON(filter.getChildFilter());
+
+            Set<UIElementMatchingFilter> childrenFilters = filter.getChildFilter();
+            if(childrenFilters != null) {
+                childFilter = new HashSet<SugiliteFilterJSON>();
+                for(UIElementMatchingFilter cf : childrenFilters) {
+                    SugiliteFilterJSON s = new SugiliteFilterJSON(cf);
+                    this.childFilter.add(s);
+                }
+            }
+
+            Set<UIElementMatchingFilter> siblingFilters = filter.getSiblingFilter();
+            if(siblingFilters != null) {
+                siblingFilter = new HashSet<SugiliteFilterJSON>();
+                for(UIElementMatchingFilter sf : siblingFilters) {
+                    SugiliteFilterJSON s = new SugiliteFilterJSON(sf);
+                    this.siblingFilter.add(s);
+                }
+            }
+
             if(filter.alternativeLabels != null && filter.alternativeLabels.size() > 0 && Const.KEEP_ALL_ALTERNATIVES_IN_THE_FILTER) {
                 this.alternativeLabels = new HashSet<>();
                 for(Map.Entry<String, String> entry : filter.alternativeLabels){
@@ -53,8 +70,16 @@ public class SugiliteFilterJSON {
             filter.setBoundsInParent(Rect.unflattenFromString(boundsInParent));
         if(parentFilter != null)
             filter.setParentFilter(parentFilter.toUIElementMatchingFilter());
-        if(childFilter != null)
-            filter.setChildFilter(childFilter.toUIElementMatchingFilter());
+        if(childFilter != null && childFilter.size() != 0) {
+            for(SugiliteFilterJSON cf : childFilter) {
+                filter.setChildFilter(cf.toUIElementMatchingFilter());
+            }
+        }
+        if(siblingFilter != null && siblingFilter.size() != 0) {
+            for(SugiliteFilterJSON sf : siblingFilter) {
+                filter.setSiblingFilter(sf.toUIElementMatchingFilter());
+            }
+        }
         if(alternativeLabels != null) {
             filter.alternativeLabels = new HashSet<>();
             for(SugiliteAlternativePairJSON pair : alternativeLabels){
@@ -64,7 +89,8 @@ public class SugiliteFilterJSON {
         return filter;
     }
     public String text, contentDescription, viewId, packageName, className, boundsInScreen, boundsInParent, textOrChildTextOrContentDescription;
-    public SugiliteFilterJSON parentFilter, childFilter;
+    public SugiliteFilterJSON parentFilter;
+    public Set<SugiliteFilterJSON> childFilter, siblingFilter;
     public Set<SugiliteAlternativePairJSON> alternativeLabels;
     public boolean isClickable = false;
 }

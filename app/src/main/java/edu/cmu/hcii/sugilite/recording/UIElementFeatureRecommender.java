@@ -25,9 +25,10 @@ public class UIElementFeatureRecommender {
     private int eventType;
     private Set<Map.Entry<String, String>> allParentFeatures = new HashSet<>();
     private Set<Map.Entry<String, String>> allChildFeatures = new HashSet<>();
+    private Set<Map.Entry<String, String>> allSiblingFeatures = new HashSet<>();
 
     public UIElementFeatureRecommender(String packageName, String className, String text, String contentDescription, String viewId, String boundsInParent, String boundsInScreen, String scriptName,
-                                        boolean isEditable, long time, int eventType, Set<Map.Entry<String, String>> allParentFeatures, Set<Map.Entry<String, String>> allChildFeatures){
+                                        boolean isEditable, long time, int eventType, Set<Map.Entry<String, String>> allParentFeatures, Set<Map.Entry<String, String>> allChildFeatures,Set<Map.Entry<String, String>> allSiblingFeatures){
         this.packageName = packageName;
         this.className = className;
         this.text = text;
@@ -41,6 +42,7 @@ public class UIElementFeatureRecommender {
         this.eventType = eventType;
         this.allParentFeatures = allParentFeatures;
         this.allChildFeatures = allChildFeatures;
+        this.allSiblingFeatures = allSiblingFeatures;
     }
 
     public boolean choosePackageName(){
@@ -109,6 +111,26 @@ public class UIElementFeatureRecommender {
             if(entry.getKey().contentEquals("Text")) {
                 retSet.add(entry);
                 break;
+            }
+        }
+        return retSet;
+    }
+
+    public Set<Map.Entry<String, String>> chooseSiblingFeatures(){
+        Set<Map.Entry<String, String>> retSet = new HashSet<>();
+        if(!(contentDescription.contentEquals("NULL") && text.contentEquals("NULL")))
+            return retSet;
+        for(Map.Entry<String, String> entry : allSiblingFeatures){
+            // TODO: magic number
+            if(entry.getValue().length() > 3 && scriptName.toLowerCase().contains(entry.getValue().toLowerCase())){
+                retSet.add(entry);
+                return retSet;
+            }
+        }
+        for(Map.Entry<String, String> entry : allSiblingFeatures){
+            if(entry.getKey().contentEquals("Text")) {
+                retSet.add(entry);
+                return retSet;
             }
         }
         return retSet;

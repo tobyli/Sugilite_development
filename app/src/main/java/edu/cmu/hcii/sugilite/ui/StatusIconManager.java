@@ -338,7 +338,20 @@ public class StatusIconManager {
                         }
                     }
                     else if (sugiliteData.getScriptHead() != null){
-                        textDialogBuilder.setTitle("NOT RECORDING\nLAST RECORDED: " + scriptDefinedName);
+                        boolean hasLast = false;
+                        try{
+                            List<String> allNames = sugiliteScriptDao.getAllNames();
+                            hasLast = allNames.contains(scriptName);
+                        }
+                        catch(Exception e){
+                            e.printStackTrace();
+                        }
+                        if(hasLast) {
+                            textDialogBuilder.setTitle("NOT RECORDING\nLAST RECORDED: " + scriptDefinedName);
+                        }
+                        else{
+                            textDialogBuilder.setTitle("NOT RECORDING\n");
+                        }
                     }
 
                     else {
@@ -368,7 +381,7 @@ public class StatusIconManager {
                         }
                     }
 
-                    //TODO: show different menu intems for different state
+                    //TODO: show different menu items for different state
 
                     List<String> operationList = new ArrayList<>();
                     if(sugiliteData.getCurrentSystemState() == SugiliteData.PAUSED_FOR_BREAKPOINT_STATE){

@@ -1591,6 +1591,7 @@ public class RecordingPopUpDialog extends AbstractSugiliteDialog {
                 ((SugiliteSetTextOperation) sugiliteOperation).setText(extractParameter(rawText));
             }
             /*
+
             switch (triggerMode) {
                 case TRIGGERED_BY_NEW_EVENT:
                     ((SugiliteSetTextOperation)sugiliteOperation).setText(textVariableParse(rawText, sugiliteData.getScriptHead().variableNameSet, sugiliteData.stringVariableMap));

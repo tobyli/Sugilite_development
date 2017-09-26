@@ -7,10 +7,10 @@ android {
 
     defaultConfig {
         applicationId "edu.cmu.hcii.sugilite"
-        minSdkVersion 23
+        minSdkVersion 21
         targetSdkVersion 24
-        versionCode 1
-        versionName "1.0"
+        versionCode 2
+        versionName "1.1"
         multiDexEnabled true
     }
     buildTypes {

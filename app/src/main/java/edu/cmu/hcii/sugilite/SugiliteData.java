@@ -30,6 +30,7 @@ import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.model.variable.Variable;
 import edu.cmu.hcii.sugilite.recording.RecordingPopUpDialog;
 import edu.cmu.hcii.sugilite.study.ScriptUsageLogManager;
+import edu.cmu.hcii.sugilite.ui.StatusIconManager;
 import edu.cmu.hcii.sugilite.ui.dialog.AbstractSugiliteDialog;
 
 /**
@@ -74,7 +75,7 @@ public class SugiliteData extends Application {
     public List<AccessibilityNodeInfo> elementsWithTextLabels = new ArrayList<>();
 
     private int currentSystemState = DEFAULT_STATE;
-
+    public StatusIconManager statusIconManager = null;
 
 
     //used to indicate the state of the sugilite system

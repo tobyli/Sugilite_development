@@ -101,6 +101,14 @@ public class FragmentScriptListTab extends Fragment {
         catch (Exception e){
             e.printStackTrace();
         }
+
+        //add back the duck icon
+        if(sugiliteData != null && sugiliteData.statusIconManager != null && serviceStatusManager != null){
+            if(! sugiliteData.statusIconManager.isShowingIcon() && serviceStatusManager.isRunning()){
+                sugiliteData.statusIconManager.addStatusIcon();
+            }
+        }
+
         return rootView;
     }
 

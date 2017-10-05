@@ -128,6 +128,13 @@ public class ScriptDetailActivity extends AppCompatActivity {
             }
         }).start();
 
+        //add back the duck icon
+        if(sugiliteData != null && sugiliteData.statusIconManager != null && serviceStatusManager != null){
+            if(! sugiliteData.statusIconManager.isShowingIcon() && serviceStatusManager.isRunning()){
+                sugiliteData.statusIconManager.addStatusIcon();
+            }
+        }
+
     }
 
     //TODO: set up operation on resume

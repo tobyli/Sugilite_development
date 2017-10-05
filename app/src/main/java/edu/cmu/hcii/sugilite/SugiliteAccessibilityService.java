@@ -87,6 +87,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
         }
         AccessibilityManager accessibilityManager = (AccessibilityManager) this.getSystemService(Context.ACCESSIBILITY_SERVICE);
         statusIconManager = new StatusIconManager(this, sugiliteData, sharedPreferences, accessibilityManager);
+        sugiliteData.statusIconManager = statusIconManager;
         screenshotManager = new SugiliteScreenshotManager(sharedPreferences, getApplicationContext());
         automator = new Automator(sugiliteData, this, statusIconManager, sharedPreferences);
         sugilteTrackingHandler = new SugiliteTrackingHandler(sugiliteData, getApplicationContext());
@@ -595,7 +596,6 @@ public class SugiliteAccessibilityService extends AccessibilityService {
                 //failed to remove status icon
                 e.printStackTrace();
             }
-        //windowManager.removeView(statusIcon);
 
     }
 

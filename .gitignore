@@ -37,6 +37,8 @@ captures/
 .idea/tasks.xml
 .idea/datasources.xml
 .idea/dataSources.ids
+.idea/libraries
+.idea/misc.xml
 
 # Keystore files
 *.jks

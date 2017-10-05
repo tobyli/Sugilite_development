@@ -88,6 +88,7 @@ public class StatusIconManager {
     private CurrentStateView statusView;
     private Queue<SugiliteBlock> storedQueue;
     private AlertDialog progressDialog;
+    private boolean showingIcon = false;
 
     public StatusIconManager(Context context, SugiliteData sugiliteData, SharedPreferences sharedPreferences, AccessibilityManager accessibilityManager){
         this.context = context;
@@ -153,6 +154,7 @@ public class StatusIconManager {
             windowManager.addView(statusIcon, iconParams);
             windowManager.addView(statusView, textViewParams);
         }
+        showingIcon = true;
 
 
     }
@@ -162,12 +164,21 @@ public class StatusIconManager {
      */
     public void removeStatusIcon(){
         try{
-            if(statusIcon != null)
+            if(statusIcon != null) {
                 windowManager.removeView(statusIcon);
+            }
+            if(statusView != null) {
+                windowManager.removeView(statusView);
+            }
+            showingIcon = false;
         }
         catch (Exception e){
             e.printStackTrace();
         }
+    }
+
+    public boolean isShowingIcon() {
+        return showingIcon;
     }
 
     /**
@@ -417,6 +428,7 @@ public class StatusIconManager {
                     String[] operations = new String[operationList.size()];
                     operations = operationList.toArray(operations);
                     final String[] operationClone = operations.clone();
+                    final SharedPreferences.Editor prefEditor = sharedPreferences.edit();
                     textDialogBuilder.setItems(operationClone, new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
@@ -444,7 +456,6 @@ public class StatusIconManager {
                                     break;
                                 case "End Recording":
                                     //end recording
-                                    SharedPreferences.Editor prefEditor = sharedPreferences.edit();
                                     prefEditor.putBoolean("recording_in_process", false);
                                     prefEditor.apply();
 
@@ -501,11 +512,51 @@ public class StatusIconManager {
                                     break;
                                 case "Quit Sugilite":
                                     Toast.makeText(context, "quit sugilite", Toast.LENGTH_SHORT).show();
-                                    try {
-                                        screenshotManager.take(false, SugiliteScreenshotManager.DIRECTORY_PATH, SugiliteScreenshotManager.getScreenshotFileNameWithDate());
-                                    } catch (Exception e) {
-                                        e.printStackTrace();
+                                    //TODO: it should actually quit SUGILITE
+
+                                    //step 1: end recording if one is in progress
+                                    if(runningInProgress){
+                                        //end recording
+                                        prefEditor.putBoolean("recording_in_process", false);
+                                        prefEditor.apply();
+                                        progressDialog = new AlertDialog.Builder(context).setMessage(Const.SAVING_MESSAGE).create();
+                                        progressDialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
+                                        progressDialog.setCanceledOnTouchOutside(false);
+                                        progressDialog.show();
+                                        new Thread(new Runnable() {
+                                            @Override
+                                            public void run()
+                                            {
+                                                try {
+                                                    sugiliteScriptDao.commitSave();
+                                                }
+                                                catch (Exception e){
+                                                    e.printStackTrace();
+                                                }
+                                                Runnable dismissDialog = new Runnable() {
+                                                    @Override
+                                                    public void run() {
+                                                        progressDialog.dismiss();
+                                                    }
+                                                };
+                                                if(context instanceof SugiliteAccessibilityService) {
+                                                    ((SugiliteAccessibilityService) context).runOnUiThread(dismissDialog);
+                                                }
+                                                else if(context instanceof Activity){
+                                                    ((Activity)context).runOnUiThread(dismissDialog);
+                                                }
+                                            }
+                                        }).start();
                                     }
+
+                                    //step 2: clear instruction queue if there is one
+                                    sugiliteData.clearInstructionQueue();
+                                    sugiliteData.setCurrentSystemState(SugiliteData.DEFAULT_STATE);
+                                    if(storedQueue != null)
+                                        storedQueue.clear();
+
+                                    //step 3: remove the duck and the status view
+                                    removeStatusIcon();
                                     break;
                                 case "Clear Instruction Queue":
                                     sugiliteData.clearInstructionQueue();

@@ -4,14 +4,20 @@ apply plugin: 'com.android.application'
 android {
     compileSdkVersion 24
     buildToolsVersion "25.0.2"
-
     defaultConfig {
         applicationId "edu.cmu.hcii.sugilite"
-        minSdkVersion 21
+        minSdkVersion 24
         targetSdkVersion 24
         versionCode 2
         versionName "1.1"
         multiDexEnabled true
+        jackOptions {
+            enabled true
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
     }
     buildTypes {
         release {
@@ -19,13 +25,13 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
-
     repositories {
         mavenCentral()
     }
-
     lintOptions {
         abortOnError false
+    }
+    productFlavors {
     }
 }
 

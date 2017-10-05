@@ -1749,6 +1749,10 @@ public class RecordingPopUpDialog extends AbstractSugiliteDialog {
     private LinearLayout generateRow(final CheckBox checkBox, final String label, final String defaultDefaultValue){
         LinearLayout linearLayout = new LinearLayout(dialogRootView.getContext());
         linearLayout.setOrientation(LinearLayout.VERTICAL);
+
+        //REMOVED the "set as a parameter" link under each checkbox
+
+        /*
         TextView setVariableLink = new TextView(dialogRootView.getContext());
         setVariableLink.setText(Html.fromHtml("<u><i>Set as a parameter</i></u>"));
         setVariableLink.setTextColor(Color.parseColor(Const.SCRIPT_LINK_COLOR));
@@ -1758,12 +1762,15 @@ public class RecordingPopUpDialog extends AbstractSugiliteDialog {
                 setAsAParameterOnClick(v, checkBox, label, defaultDefaultValue);
             }
         });
+        */
         LinearLayout.LayoutParams checkBoxParams = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
         linearLayout.addView(checkBox, checkBoxParams);
         LinearLayout.LayoutParams linkParams = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
         linkParams.setMargins(50, 0, 0, 0);
+        /*
         setVariableLink.setPadding(0, 0 ,0 ,0);
         linearLayout.addView(setVariableLink, linkParams);
+        */
         return linearLayout;
     }
 

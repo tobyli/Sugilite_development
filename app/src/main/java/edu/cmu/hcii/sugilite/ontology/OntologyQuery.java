@@ -18,7 +18,7 @@ public class OntologyQuery {
     }
     private relationType SubRelation;
     private Set<OntologyQuery> SubQueries;
-    private BiFunction<SugiliteEntity, SugiliteEntity, Boolean> QueryFunction = null;
+    private BiFunction<SubjectEntityObjectEntityPair, UISnapshot, Boolean> QueryFunction = null;
     private SugiliteEntity object;
     private SugiliteEntity subject;
 
@@ -43,11 +43,15 @@ public class OntologyQuery {
         SubQueries.add(sub);
     }
 
-    public void setQueryFunction(BiFunction<SugiliteEntity, SugiliteEntity, Boolean> f){
+    public void setQueryFunction(BiFunction<SubjectEntityObjectEntityPair, UISnapshot, Boolean> f){
         if(BuildConfig.DEBUG && !(SubRelation == relationType.nullR)){
             throw new AssertionError();
         }
         QueryFunction = f;
+    }
+
+    public void setQueryFunction(SugiliteRelation relation){
+        //TODO: create a new BiFunction<SubjectEntityObjectEntityPair, UISnapshot, Boolean> f so f is true when there exists (s, r, o) in the graph
     }
 
     public void setObject(SugiliteEntity o){
@@ -68,7 +72,7 @@ public class OntologyQuery {
 
     public Set<OntologyQuery> getSubQueries(){return this.SubQueries;}
 
-    public BiFunction<SugiliteEntity, SugiliteEntity, Boolean> getQueryFunction(){return this.QueryFunction;}
+    public BiFunction<SubjectEntityObjectEntityPair, UISnapshot, Boolean> getQueryFunction(){return this.QueryFunction;}
 
     public SugiliteEntity getObject(){return this.object;}
 
@@ -91,35 +95,37 @@ public class OntologyQuery {
                 // currNode can act as either subject or object
                 for(SugiliteTriple t : graph.getSubjectTriplesMap().get(currNode)){
                     // every triple with currNode as subject
-                    if(query.QueryFunction.apply(currNode, t.getObject())){
+                    if(query.QueryFunction.apply(new SubjectEntityObjectEntityPair(currNode, t.getObject()), graph)){
                         return true;
                     }
                 }
                 for(SugiliteTriple t : graph.getObjectTriplesMap().get(currNode)){
                     // every triple with currNode as object
-                    if(query.QueryFunction.apply(t.getSubject(), currNode)){
+                    if(query.QueryFunction.apply(new SubjectEntityObjectEntityPair(t.getSubject(), currNode), graph)){
                         return true;
                     }
                 }
                 return false;
             }
+
             else if(query.object != null && query.subject == null){
                 // currNode can act as a subject to the given object
-                if(query.QueryFunction.apply(currNode, query.object)){
+                if(query.QueryFunction.apply(new SubjectEntityObjectEntityPair(currNode, query.object), graph)){
                     return true;
                 }
                 return false;
             }
+
             else if(query.subject != null && query.object == null){
                 // currNode can act as an object to the given subject
-                if(query.QueryFunction.apply(query.subject, currNode)){
+                if(query.QueryFunction.apply(new SubjectEntityObjectEntityPair(query.subject, currNode), graph)){
                     return true;
                 }
                 return false;
             }
             else{
                 // both subject and object are not null
-                if(query.QueryFunction.apply(currNode, query.object) || query.QueryFunction.apply(query.subject, currNode)){
+                if(query.QueryFunction.apply(new SubjectEntityObjectEntityPair(currNode, query.object), graph) || query.QueryFunction.apply(new SubjectEntityObjectEntityPair(query.subject, currNode), graph)){
                     return true;
                 }
                 return false;
@@ -156,5 +162,31 @@ public class OntologyQuery {
             }
         }
         return results;
+    }
+
+    class SubjectEntityObjectEntityPair{
+        private SugiliteEntity subject;
+        private SugiliteEntity object;
+
+        public SubjectEntityObjectEntityPair(SugiliteEntity subject, SugiliteEntity object){
+            this.subject = subject;
+            this.object = object;
+        }
+
+        public SugiliteEntity getSubject() {
+            return subject;
+        }
+
+        public SugiliteEntity getObject() {
+            return object;
+        }
+
+        public void setObject(SugiliteEntity object) {
+            this.object = object;
+        }
+
+        public void setSubject(SugiliteEntity subject) {
+            this.subject = subject;
+        }
     }
 }

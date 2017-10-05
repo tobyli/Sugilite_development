@@ -102,4 +102,12 @@ public class UISnapshot {
     public Map<Integer, SugiliteRelation> getSugiliteRelationIdSugiliteRelationMap() {
         return sugiliteRelationIdSugiliteRelationMap;
     }
+
+    public Map<SugiliteEntity, Set<SugiliteTriple>> getSubjectTriplesMap() {
+        return subjectTriplesMap;
+    }
+
+    public Map<SugiliteEntity, Set<SugiliteTriple>> getObjectTriplesMap() {
+        return objectTriplesMap;
+    }
 }

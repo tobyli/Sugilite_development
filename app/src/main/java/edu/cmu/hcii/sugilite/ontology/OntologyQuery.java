@@ -51,7 +51,15 @@ public class OntologyQuery {
     }
 
     public void setQueryFunction(SugiliteRelation relation){
-        //TODO: create a new BiFunction<SubjectEntityObjectEntityPair, UISnapshot, Boolean> f so f is true when there exists (s, r, o) in the graph
+        QueryFunction = new BiFunction<SubjectEntityObjectEntityPair, UISnapshot, Boolean>() {
+            @Override
+            public Boolean apply(SubjectEntityObjectEntityPair pair, UISnapshot graph) {
+                SugiliteEntity s = pair.getSubject();
+                SugiliteEntity o = pair.getObject();
+                SugiliteTriple newTriple = new SugiliteTriple(s, relation, o);
+                return graph.getSubjectTriplesMap().get(s).contains(newTriple);
+            }
+        };
     }
 
     public void setObject(SugiliteEntity o){
@@ -68,15 +76,15 @@ public class OntologyQuery {
         subject = s;
     }
 
-    public relationType getSubRelation(){return this.SubRelation;}
+    public relationType getSubRelation() {return this.SubRelation;}
 
-    public Set<OntologyQuery> getSubQueries(){return this.SubQueries;}
+    public Set<OntologyQuery> getSubQueries() {return this.SubQueries;}
 
-    public BiFunction<SubjectEntityObjectEntityPair, UISnapshot, Boolean> getQueryFunction(){return this.QueryFunction;}
+    public BiFunction<SubjectEntityObjectEntityPair, UISnapshot, Boolean> getQueryFunction() {return this.QueryFunction;}
 
-    public SugiliteEntity getObject(){return this.object;}
+    public SugiliteEntity getObject() {return this.object;}
 
-    public SugiliteEntity getSubject(){return this.subject;}
+    public SugiliteEntity getSubject() {return this.subject;}
 
     public boolean checkValidQuery() {
         if(!(SubRelation != relationType.nullR && SubQueries != null && object == null && subject == null && QueryFunction == null)){
@@ -110,25 +118,17 @@ public class OntologyQuery {
 
             else if(query.object != null && query.subject == null){
                 // currNode can act as a subject to the given object
-                if(query.QueryFunction.apply(new SubjectEntityObjectEntityPair(currNode, query.object), graph)){
-                    return true;
-                }
-                return false;
+                return query.QueryFunction.apply(new SubjectEntityObjectEntityPair(currNode, query.object), graph);
             }
 
             else if(query.subject != null && query.object == null){
                 // currNode can act as an object to the given subject
-                if(query.QueryFunction.apply(new SubjectEntityObjectEntityPair(query.subject, currNode), graph)){
-                    return true;
-                }
-                return false;
+                return query.QueryFunction.apply(new SubjectEntityObjectEntityPair(query.subject, currNode), graph);
             }
             else{
                 // both subject and object are not null
-                if(query.QueryFunction.apply(new SubjectEntityObjectEntityPair(currNode, query.object), graph) || query.QueryFunction.apply(new SubjectEntityObjectEntityPair(query.subject, currNode), graph)){
-                    return true;
-                }
-                return false;
+                return query.QueryFunction.apply(new SubjectEntityObjectEntityPair(currNode, query.object), graph)
+                        || query.QueryFunction.apply(new SubjectEntityObjectEntityPair(query.subject, currNode), graph);
             }
         }
         else{
@@ -165,8 +165,8 @@ public class OntologyQuery {
     }
 
     class SubjectEntityObjectEntityPair{
-        private SugiliteEntity subject;
-        private SugiliteEntity object;
+        private SugiliteEntity subject = null;
+        private SugiliteEntity object = null;
 
         public SubjectEntityObjectEntityPair(SugiliteEntity subject, SugiliteEntity object){
             this.subject = subject;

@@ -3,17 +3,17 @@
     xmlns:tools="http://schemas.android.com/tools" tools:context=".ui.main.SugiliteMainActivity">
     <item android:id="@+id/action_settings" android:title="@string/action_settings"
         android:orderInCategory="1" app:showAsAction="never" />
-    <item android:id="@+id/clear_automation_queue" android:title="Clear Automation Queue"
+    <item android:id="@+id/clear_automation_queue" android:title="Stop All Executions"
     android:orderInCategory="2" app:showAsAction="never" />
-    <item android:id="@+id/clear_script_list" android:title="Clear Script List"
+    <item android:id="@+id/clear_script_list" android:title="Delete All Scripts"
         android:orderInCategory="3" app:showAsAction="never" />
-    <item android:id="@+id/clear_trigger_list" android:title="Clear Trigger List"
+    <item android:id="@+id/clear_trigger_list" android:title="Delete All Triggers"
         android:orderInCategory="4" app:showAsAction="never" />
     <item android:id="@+id/add_trigger" android:title="Add a Script Trigger"
     android:orderInCategory="5" app:showAsAction="never" />
     <item android:id="@+id/upload_scripts" android:title="Upload Scripts"
         android:orderInCategory="6" app:showAsAction="never" />
-    <item android:id="@+id/clear_usage_log" android:title="Claer Usage Log"
+    <item android:id="@+id/clear_usage_log" android:title="Delete All Usage Logs"
         android:orderInCategory="7" app:showAsAction="never" />
 
 </menu>

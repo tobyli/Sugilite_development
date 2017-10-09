@@ -89,6 +89,8 @@ public class StatusIconManager {
     private Queue<SugiliteBlock> storedQueue;
     private AlertDialog progressDialog;
     private boolean showingIcon = false;
+    int rotation = 0;
+
 
     public StatusIconManager(Context context, SugiliteData sugiliteData, SharedPreferences sharedPreferences, AccessibilityManager accessibilityManager){
         this.context = context;
@@ -152,7 +154,10 @@ public class StatusIconManager {
         }
         else {
             windowManager.addView(statusIcon, iconParams);
-            windowManager.addView(statusView, textViewParams);
+
+
+            //=== temporarily disable the status view ===
+            //windowManager.addView(statusView, textViewParams);
         }
         showingIcon = true;
 
@@ -183,8 +188,9 @@ public class StatusIconManager {
 
     /**
      * refresh the status icon to reflect the status of Sugilite
+     * this is called during the execution
      */
-    public void refreshStatusIcon(AccessibilityNodeInfo rootNode, UIElementMatchingFilter filter){
+    public void refreshStatusIcon(AccessibilityNodeInfo rootNode, UIElementMatchingFilter filter, boolean inProcess){
         Rect rect = new Rect();
         boolean matched = false;
         if(rootNode != null) {
@@ -200,7 +206,7 @@ public class StatusIconManager {
                 matched = true;
             }
         }
-        int offset = random.nextInt(5);
+
 
         try{
             SugiliteBlock nextBlock = null;
@@ -217,17 +223,11 @@ public class StatusIconManager {
                         iconParams.x = (rect.centerX() > 150 ? rect.centerX()  - 150 : 0);
                         iconParams.y = (rect.centerY() > 150 ? rect.centerY()  - 150 : 0);
                     }
-                    if(offset % 2 == 0) {
-                        iconParams.x = iconParams.x + offset;
-                        iconParams.y = iconParams.y - offset;
-                    }
-                    else {
-                        iconParams.x = iconParams.x - offset;
-                        iconParams.y = iconParams.y + offset;
-                    }
-
                     windowManager.updateViewLayout(statusIcon, iconParams);
+                    rotation = (rotation + 20) % 360;
 
+                    //rotate the duck
+                    statusIcon.setRotation(rotation);
 
                     /**
                      *
@@ -255,12 +255,20 @@ public class StatusIconManager {
                 }
                 else if(trackingInProcess || (broadcastingInProcess && sugiliteData.registeredBroadcastingListener.size() > 0)){
                     statusIcon.setImageResource(R.mipmap.duck_icon_spying);
+                    rotation = 0;
+                    statusIcon.setRotation(rotation);
+
                 }
                 else if(sugiliteData.getCurrentSystemState() == SugiliteData.PAUSED_FOR_BREAKPOINT_STATE){
                     statusIcon.setImageResource(R.mipmap.debug_transparent_icon);
+                    rotation = 0;
+                    statusIcon.setRotation(rotation);
                 }
-                else
+                else {
                     statusIcon.setImageResource(R.mipmap.ic_launcher);
+                    rotation = 0;
+                    statusIcon.setRotation(rotation);
+                }
 
             }
             //refresh the status view based on the current state
@@ -515,7 +523,7 @@ public class StatusIconManager {
                                     //TODO: it should actually quit SUGILITE
 
                                     //step 1: end recording if one is in progress
-                                    if(runningInProgress){
+                                    if(recordingInProgress){
                                         //end recording
                                         prefEditor.putBoolean("recording_in_process", false);
                                         prefEditor.apply();
@@ -557,6 +565,13 @@ public class StatusIconManager {
 
                                     //step 3: remove the duck and the status view
                                     removeStatusIcon();
+
+                                    //step 4: kill Sugilite app
+                                    Intent first_activity_intent = new Intent(context, SugiliteMainActivity.class);
+                                    first_activity_intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                                    first_activity_intent.putExtra("EXIT", true);
+                                    context.startActivity(first_activity_intent);
+
                                     break;
                                 case "Clear Instruction Queue":
                                     sugiliteData.clearInstructionQueue();

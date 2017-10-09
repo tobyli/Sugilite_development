@@ -257,7 +257,6 @@ public class ScriptDetailActivity extends AppCompatActivity {
 
 
     public void scriptDetailRunButtonOnClick (final View view){
-        //kill the relevant apps before executing the script
         final Context activityContext = this;
         new AlertDialog.Builder(this)
                 .setTitle("Run Script")
@@ -333,6 +332,7 @@ public class ScriptDetailActivity extends AppCompatActivity {
                     public void onClick(DialogInterface dialog, int which) {
                         // continue with delete
                         try {
+                            //delete the script
                             sugiliteScriptDao.delete(scriptName);
                             sugiliteData.logUsageData(ScriptUsageLogManager.REMOVE_SCRIPT, scriptName);
 
@@ -630,8 +630,8 @@ public class ScriptDetailActivity extends AppCompatActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         menu.add(Menu.NONE, Menu.FIRST, 1, "Resume Recording");
-        menu.add(Menu.NONE, Menu.FIRST + 1, 2, "Rename");
-        menu.add(Menu.NONE, Menu.FIRST + 2, 3, "Delete");
+        menu.add(Menu.NONE, Menu.FIRST + 1, 2, "Rename Script");
+        menu.add(Menu.NONE, Menu.FIRST + 2, 3, "Delete Script");
         return true;
     }
 
@@ -639,9 +639,11 @@ public class ScriptDetailActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item){
         switch (item.getItemId()){
             case Menu.FIRST:
+                //resume recording
                 resumeRecording();
                 break;
             case Menu.FIRST + 1:
+                //rename the script
                 AlertDialog.Builder builder = new AlertDialog.Builder(this);
                 final EditText newName = new EditText(this);
                 builder.setView(newName)
@@ -678,6 +680,7 @@ public class ScriptDetailActivity extends AppCompatActivity {
                         }).show();
                     break;
             case Menu.FIRST + 2:
+                //delete the script
                 AlertDialog.Builder builder1 = new AlertDialog.Builder(this);
                 builder1.setTitle("Confirm Deleting")
                         .setMessage("Are you sure you want to delete this script?")

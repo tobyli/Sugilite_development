@@ -56,6 +56,12 @@ public class SugiliteMainActivity extends AppCompatActivity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        if (getIntent().getExtras() != null && getIntent().getExtras().getBoolean("EXIT", false)) {
+            finish();
+            return;
+        }
+
         requestWindowFeature(Window.FEATURE_ACTION_BAR);
         setContentView(R.layout.activity_main);
         uploadManager = new StudyDataUploadManager(this, sugiliteData);
@@ -68,7 +74,6 @@ public class SugiliteMainActivity extends AppCompatActivity {
         }
         sugiliteTriggerDao = new SugiliteTriggerDao(this);
         this.context = this;
-
 
         ActionBar actionBar = getSupportActionBar();
         actionBar.setTitle(Const.appNameUpperCase);
@@ -93,6 +98,8 @@ public class SugiliteMainActivity extends AppCompatActivity {
         // Add tabs to actionbar
         actionBar.addTab(scriptListTab);
         actionBar.addTab(triggerListTab);
+
+
 
     }
 

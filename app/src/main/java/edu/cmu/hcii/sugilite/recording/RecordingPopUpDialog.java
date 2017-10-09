@@ -150,7 +150,7 @@ public class RecordingPopUpDialog extends AbstractSugiliteDialog {
         ContextThemeWrapper ctw = new ContextThemeWrapper(context, R.style.AlertDialogCustom);
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
         builder.setView(dialogRootView)
-                .setTitle("Sugilite Recording Panel");
+                .setTitle("Edit SUGILITE Operation");
         dialog = builder.create();
         dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
         dialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_box);
@@ -201,7 +201,7 @@ public class RecordingPopUpDialog extends AbstractSugiliteDialog {
         dialogRootView = inflater.inflate(R.layout.dialog_recording_pop_up, null);
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
         builder.setView(dialogRootView)
-                .setTitle("Sugilite Recording Panel");
+                .setTitle("Edit Sugilite Operation");
         dialog = builder.create();
         dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
         dialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_box);
@@ -485,7 +485,7 @@ public class RecordingPopUpDialog extends AbstractSugiliteDialog {
             //the main panel is skipped
             builder.setTitle("Save Operation Confirmation").setMessage(Html.fromHtml("Are you sure you want to record the operation: " + readableDescriptionGenerator.generateReadableDescription(operationBlock)));
             builder.setPositiveButton("Yes", onClickListener)
-                    .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                    .setNegativeButton("Skip", new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
                             dialog.cancel();
@@ -642,7 +642,7 @@ public class RecordingPopUpDialog extends AbstractSugiliteDialog {
             if(featurePack.parentNode.contentDescription != null)
                 allParentFeatures.add(new AbstractMap.SimpleEntry<>("Parent ContentDescription", featurePack.parentNode.contentDescription.toString()));
             if(featurePack.parentNode.viewId != null)
-                allParentFeatures.add(new AbstractMap.SimpleEntry<>("Parent ViewID", featurePack.parentNode.viewId));
+                allParentFeatures.add(new AbstractMap.SimpleEntry<>("Parent Object ID", featurePack.parentNode.viewId));
         }
 
 
@@ -655,7 +655,7 @@ public class RecordingPopUpDialog extends AbstractSugiliteDialog {
                 if(childNode.contentDescription != null)
                     allChildFeatures.add(new AbstractMap.SimpleEntry<>("Child ContentDescription", childNode.contentDescription.toString()));
                 if(childNode.viewId != null)
-                    allChildFeatures.add(new AbstractMap.SimpleEntry<>("Child ViewID", childNode.viewId));
+                    allChildFeatures.add(new AbstractMap.SimpleEntry<>("Child Object ID", childNode.viewId));
             }
         }
 
@@ -667,7 +667,7 @@ public class RecordingPopUpDialog extends AbstractSugiliteDialog {
                 if(sibNode.contentDescription != null)
                     allSiblingFeatures.add(new AbstractMap.SimpleEntry<>("Sibling ContentDescription", sibNode.contentDescription.toString()));
                 if(sibNode.viewId != null)
-                    allSiblingFeatures.add(new AbstractMap.SimpleEntry<>("Sibling ViewID", sibNode.viewId));
+                    allSiblingFeatures.add(new AbstractMap.SimpleEntry<>("Sibling Object ID", sibNode.viewId));
             }
         }
 
@@ -922,7 +922,7 @@ public class RecordingPopUpDialog extends AbstractSugiliteDialog {
         }
 
         boundsInParentCheckbox = new CheckBox(dialogRootView.getContext());
-        boundsInParentCheckbox.setText(Html.fromHtml(boldify("Location in Parent: ") + featurePack.boundsInParent));
+        boundsInParentCheckbox.setText(Html.fromHtml(boldify("Parent Location: ") + featurePack.boundsInParent));
         if(autoFillEnabled && triggerMode == TRIGGERED_BY_NEW_EVENT)
             boundsInParentCheckbox.setChecked(recommender.chooseBoundsInParent());
         if(triggerMode == TRIGGERED_BY_EDIT) {
@@ -934,7 +934,7 @@ public class RecordingPopUpDialog extends AbstractSugiliteDialog {
 
 
         boundsInScreenCheckbox = new CheckBox(dialogRootView.getContext());
-        boundsInScreenCheckbox.setText(Html.fromHtml(boldify("Location in Screen: ") + featurePack.boundsInScreen));
+        boundsInScreenCheckbox.setText(Html.fromHtml(boldify("Screen Location: ") + featurePack.boundsInScreen));
         if(autoFillEnabled && triggerMode == TRIGGERED_BY_NEW_EVENT)
             boundsInScreenCheckbox.setChecked(recommender.chooseBoundsInScreen());
         if(triggerMode == TRIGGERED_BY_EDIT){
@@ -964,12 +964,17 @@ public class RecordingPopUpDialog extends AbstractSugiliteDialog {
             actionSpinnerItems.add("Long Click");
             actionOrderMap.put(SugiliteOperation.LONG_CLICK, actionSpinnerItemCount++);
         }
+
+        //=== temporarily disable "read out" and "load as variable" options ===
+
+        /*
         if((featurePack.text != null && (! featurePack.text.contentEquals("NULL"))) || hasChildText || hasSiblingText || (featurePack.contentDescription != null && (! featurePack.contentDescription.contentEquals("NULL")))) {
             actionSpinnerItems.add("Read Out");
             actionOrderMap.put(SugiliteOperation.READ_OUT, actionSpinnerItemCount++);
             actionSpinnerItems.add("Load as Variable");
             actionOrderMap.put(SugiliteOperation.LOAD_AS_VARIABLE, actionSpinnerItemCount++);
         }
+        */
 
         ArrayAdapter<String> actionAdapter = new ArrayAdapter<String>(dialogRootView.getContext(), android.R.layout.simple_spinner_item, actionSpinnerItems);
         actionAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
@@ -1348,8 +1353,8 @@ public class RecordingPopUpDialog extends AbstractSugiliteDialog {
 
         //refresh the alternative counts
         if(featurePack.alternativeNodes != null) {
-            ((TextView) dialogRootView.findViewById(R.id.see_alternative_link)).setText(featurePack.alternativeNodes.size() + " total alternative nodes, "
-                    + filterTester.getFilteredAlternativeNodesCount(featurePack.alternativeNodes, generateFilter()) + " matched");
+            ((TextView) dialogRootView.findViewById(R.id.see_alternative_link)).setText(filterTester.getFilteredAlternativeNodesCount(featurePack.alternativeNodes, generateFilter()) + "element(s) matched" +
+                    "out of " + featurePack.alternativeNodes.size() + " total alternative nodes, ");
         }
 
         //refresh the operation preview

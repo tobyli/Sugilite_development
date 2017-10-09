@@ -18,7 +18,7 @@ public class Const {
     public static final int SCRIPT_DELAY = 5000;
 
     //delay before executing each operation block in Automator
-    public static final int DELAY = 4000;
+    public static final int DELAY = 3000;
     public static final int DEBUG_DELAY = 8000;
 
     public static final long THRESHOLD_FOR_START_SENDING_ACCESSIBILITY_EVENT = 7000;
@@ -44,7 +44,7 @@ public class Const {
 
     //App name to display
     public static final String appName = "Sugilite";
-    public static final String appNameUpperCase = "EPIDOSITE";
+    public static final String appNameUpperCase = "SUGILITE";
 
     public static final int ID_APP_TRACKER = 1001;
     public static final String APP_TRACKER = "APP_TRACKER";

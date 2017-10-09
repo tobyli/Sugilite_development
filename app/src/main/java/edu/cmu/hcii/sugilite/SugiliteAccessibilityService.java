@@ -31,6 +31,7 @@ import java.util.Iterator;
 import edu.cmu.hcii.sugilite.communication.SugiliteCommunicationController;
 import edu.cmu.hcii.sugilite.communication.SugiliteEventBroadcastingActivity;
 import edu.cmu.hcii.sugilite.dao.SugiliteAppVocabularyDao;
+import edu.cmu.hcii.sugilite.ontology.UISnapshot;
 import edu.cmu.hcii.sugilite.recording.SugiliteScreenshotManager;
 import edu.cmu.hcii.sugilite.model.AccessibilityNodeInfoList;
 import edu.cmu.hcii.sugilite.automation.*;
@@ -176,7 +177,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
             @Override
             public void run() {
                 if(sugiliteData.getInstructionQueueSize() > 0)
-                    statusIconManager.refreshStatusIcon(null, null);
+                    statusIconManager.refreshStatusIcon(null, null, true);
                 handler1.postDelayed(this, 500);
             }
         }, 500);
@@ -322,6 +323,12 @@ public class SugiliteAccessibilityService extends AccessibilityService {
             final List<AccessibilityNodeInfo> preOrderTraverseSourceNodeForRecording = preOrderTraverseSourceNode;
             final List<AccessibilityNodeInfo> preOrderTracerseRootNodeForRecording = preOrderTraverseRootNode;
             final List<AccessibilityNodeInfo> preOrderTraverseSibNodeForRecording = preOrderTraverseSibNode;
+
+            //==== testing the UI snapshot
+            if(event.getEventType() == AccessibilityEvent.TYPE_VIEW_CLICKED) {
+                UISnapshot uiSnapshot = new UISnapshot(rootNode);
+                System.out.println("test");
+            }
 
 
             //==== the thread of handling recording
@@ -550,10 +557,10 @@ public class SugiliteAccessibilityService extends AccessibilityService {
         if(currentBlock instanceof SugiliteOperationBlock) {
             if(rootNode == null)
                 rootNode = getRootInActiveWindow();
-            statusIconManager.refreshStatusIcon(rootNode, ((SugiliteOperationBlock) currentBlock).getElementMatchingFilter());
+            statusIconManager.refreshStatusIcon(rootNode, ((SugiliteOperationBlock) currentBlock).getElementMatchingFilter(), true);
         }
         else{
-            statusIconManager.refreshStatusIcon(null, null);
+            statusIconManager.refreshStatusIcon(null, null, false);
         }
 
 

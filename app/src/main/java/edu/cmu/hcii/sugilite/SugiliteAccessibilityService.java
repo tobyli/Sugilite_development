@@ -31,6 +31,9 @@ import java.util.Iterator;
 import edu.cmu.hcii.sugilite.communication.SugiliteCommunicationController;
 import edu.cmu.hcii.sugilite.communication.SugiliteEventBroadcastingActivity;
 import edu.cmu.hcii.sugilite.dao.SugiliteAppVocabularyDao;
+import edu.cmu.hcii.sugilite.ontology.OntologyQuery;
+import edu.cmu.hcii.sugilite.ontology.SugiliteEntity;
+import edu.cmu.hcii.sugilite.ontology.SugiliteRelation;
 import edu.cmu.hcii.sugilite.ontology.UISnapshot;
 import edu.cmu.hcii.sugilite.recording.SugiliteScreenshotManager;
 import edu.cmu.hcii.sugilite.model.AccessibilityNodeInfoList;
@@ -326,7 +329,28 @@ public class SugiliteAccessibilityService extends AccessibilityService {
 
             //==== testing the UI snapshot
             if(event.getEventType() == AccessibilityEvent.TYPE_VIEW_CLICKED) {
-                UISnapshot uiSnapshot = new UISnapshot(rootNode);
+                AccessibilityNodeInfo new_root = sourceNode;
+                while(new_root.getParent() != null) new_root = new_root.getParent();
+                UISnapshot uiSnapshot = new UISnapshot(new_root);
+
+                OntologyQuery query = new OntologyQuery(OntologyQuery.relationType.nullR);
+                SugiliteRelation r = new SugiliteRelation(0, "HAS_CLASS_NAME");
+                SugiliteEntity<String> object = new SugiliteEntity<String>(80, String.class, "android.widget.LinearLayout");
+                Set<SugiliteEntity> oSet = new HashSet<SugiliteEntity>();
+                oSet.add(object);
+                query.setQueryFunction(r);
+                query.setObject(oSet);
+                query.setSubject(null);
+
+                Set<SugiliteEntity> s1 = query.executeOn(uiSnapshot);
+
+                // testing nested query, finding parents of node that has linearlayout as class name
+                query.setObject(null);
+                query.setSubject(s1);
+                SugiliteRelation r2 = new SugiliteRelation(2, "HAS_PARENT");
+                query.setQueryFunction(r2);
+                Set<SugiliteEntity> s2 = query.executeOn(uiSnapshot);
+
                 System.out.println("test");
             }
 

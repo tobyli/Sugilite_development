@@ -1,5 +1,8 @@
 package edu.cmu.hcii.sugilite.ontology;
 
+import android.view.accessibility.AccessibilityNodeInfo;
+import android.graphics.Rect;
+
 import java.util.Objects;
 
 /**
@@ -52,12 +55,30 @@ public class SugiliteEntity<T> {
 
     @Override
     public boolean equals(Object obj) {
+        Class type = ((T) new Object()).getClass();
+
         if(obj == this){
             return true;
         }
         if(obj instanceof SugiliteEntity){
-            return ((SugiliteEntity) obj).entityId.equals(this.entityId);
+            if(type.isInstance(((SugiliteEntity) obj).entityValue)){
+                if(((SugiliteEntity) obj).entityValue instanceof AccessibilityNodeInfo){
+                    AccessibilityNodeInfo curr = (AccessibilityNodeInfo) (((SugiliteEntity) this).entityValue);
+                    AccessibilityNodeInfo toComp = (AccessibilityNodeInfo) (((SugiliteEntity) obj).entityValue);
+                    Rect thisBox = new Rect();
+                    Rect compBox = new Rect();
+                    curr.getBoundsInScreen(thisBox);
+                    toComp.getBoundsInScreen(compBox);
+                    return thisBox.contains(compBox) && compBox.contains(thisBox) &&
+                            curr.getClassName().toString().equals(toComp.getClassName().toString()) &&
+                            curr.getContentDescription().toString().equals(toComp.getContentDescription().toString());
+
+                }
+                return entityValue.equals(((SugiliteEntity) obj).entityValue);
+            }
+            return false;
         }
+
         else {
             return false;
         }
@@ -65,6 +86,6 @@ public class SugiliteEntity<T> {
 
     @Override
     public int hashCode() {
-        return Objects.hash(this.entityId);
+        return Objects.hash(this.entityValue);
     }
 }

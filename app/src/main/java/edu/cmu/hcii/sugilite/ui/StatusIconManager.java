@@ -150,18 +150,21 @@ public class StatusIconManager {
             checkDrawOverlayPermission();
             if(Settings.canDrawOverlays(context))
                 windowManager.addView(statusIcon, iconParams);
+
+                //=== temporarily set the status view to invisible  ===
                 windowManager.addView(statusView, textViewParams);
+                statusView.setVisibility(View.INVISIBLE);
         }
         else {
             windowManager.addView(statusIcon, iconParams);
 
 
-            //=== temporarily disable the status view ===
-            //windowManager.addView(statusView, textViewParams);
+            //=== temporarily set the status view to invisible ===
+            windowManager.addView(statusView, textViewParams);
+            statusView.setVisibility(View.INVISIBLE);
         }
+
         showingIcon = true;
-
-
     }
 
     /**

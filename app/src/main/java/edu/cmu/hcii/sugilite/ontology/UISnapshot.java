@@ -86,6 +86,12 @@ public class UISnapshot {
                     addEntityStringTriple(currentEntity, text, SugiliteRelation.HAS_TEXT);
                 }
 
+                if (node.getViewIdResourceName() != null) {
+                    //view id
+                    String viewId = node.getViewIdResourceName();
+                    addEntityStringTriple(currentEntity, viewId, SugiliteRelation.HAS_VIEW_ID);
+                }
+
                 if (node.getPackageName() != null) {
                     //package name
                     String packageName = node.getPackageName().toString();
@@ -108,7 +114,7 @@ public class UISnapshot {
                 node.getBoundsInParent(parentLocationRect);
                 addEntityStringTriple(currentEntity, parentLocationRect.flattenToString(), SugiliteRelation.HAS_PARENT_LOCATION);
 
-                //test the has_parent relation
+                //has_parent relation
                 if (node.getParent() != null) {
                     //parent
                     AccessibilityNodeInfo parentNode = node.getParent();
@@ -123,8 +129,10 @@ public class UISnapshot {
                         objectEntity = entity;
                     }
 
-                    SugiliteTriple triple = new SugiliteTriple(currentEntity, SugiliteRelation.HAS_PARENT, objectEntity);
-                    addTriple(triple);
+                    SugiliteTriple triple1 = new SugiliteTriple(currentEntity, SugiliteRelation.HAS_PARENT, objectEntity);
+                    SugiliteTriple triple2 = new SugiliteTriple(objectEntity, SugiliteRelation.HAS_CHILD, currentEntity);
+                    addTriple(triple1);
+                    addTriple(triple2);
                 }
             }
         }

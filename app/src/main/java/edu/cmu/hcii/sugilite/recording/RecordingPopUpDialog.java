@@ -1354,7 +1354,7 @@ public class RecordingPopUpDialog extends AbstractSugiliteDialog {
         //refresh the alternative counts
         if(featurePack.alternativeNodes != null) {
             ((TextView) dialogRootView.findViewById(R.id.see_alternative_link)).setText(filterTester.getFilteredAlternativeNodesCount(featurePack.alternativeNodes, generateFilter()) + "element(s) matched" +
-                    "out of " + featurePack.alternativeNodes.size() + " total alternative nodes, ");
+                    " out of " + featurePack.alternativeNodes.size() + " total alternative nodes, ");
         }
 
         //refresh the operation preview

@@ -52,7 +52,6 @@ public class SugiliteRelation {
     public static final SugiliteRelation HAS_SCREEN_LOCATION = new SugiliteRelation(5, "HAS_SCREEN_LOCATION");
     public static final SugiliteRelation HAS_PARENT_LOCATION = new SugiliteRelation(6, "HAS_PARENT_LOCATION");
     public static final SugiliteRelation HAS_PACKAGE_NAME = new SugiliteRelation(7, "HAS_PACKAGE_NAME");
-
-
+    public static final SugiliteRelation HAS_CHILD = new SugiliteRelation(8, "HAS_CHILD");
 
 }

@@ -8,6 +8,7 @@ import android.widget.Toast;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Handler;
 
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.model.block.SugiliteAvailableFeaturePack;
@@ -42,7 +43,7 @@ public class TextChangedEventHandler {
         this.sharedPreferences = sharedPreferences;
     }
 
-    public void handle(SugiliteAvailableFeaturePack featurePack, Set<Map.Entry<String, String>> availableAlternatives, LayoutInflater layoutInflater){
+    public void handle(SugiliteAvailableFeaturePack featurePack, Set<Map.Entry<String, String>> availableAlternatives, LayoutInflater layoutInflater, android.os.Handler uiThreadHandler){
         //handle the VIEW_TEXT_CHANGED event
         if(belongsToTheSameSession(aggregatedFeaturePack, featurePack)){
             //same session
@@ -58,10 +59,16 @@ public class TextChangedEventHandler {
             lastLayoutInflator = layoutInflater;
             lastAvailableAlternatives = availableAlternatives;
         }
-        else{
+        else if(featurePack != null){
             //handle (and consume) the aggregatedFeaturePack and start the new one
             System.out.println("flush from an unmatched text changed event");
-            flush();
+            Runnable flush = new Runnable() {
+                @Override
+                public void run() {
+                    flush();
+                }
+            };
+            uiThreadHandler.post(flush);
             featurePack.afterText = featurePack.text;
             if(featurePack.beforeText != null) {
                 featurePack.text = featurePack.beforeText;
@@ -75,9 +82,10 @@ public class TextChangedEventHandler {
 
     public void flush(){
         //TODO: show a recording popup for the text entry
+        System.out.println("text changed event flushed");
         if(aggregatedFeaturePack != null) {
             Toast.makeText(context, "Text changed event flushed", Toast.LENGTH_SHORT).show();
-
+            System.out.println("text changed event flushed successfully");
             //show the recording popup only after an text entry session has concluded
             RecordingPopUpDialog recordingPopUpDialog = new RecordingPopUpDialog(sugiliteData, context, aggregatedFeaturePack, sharedPreferences, lastLayoutInflator, RecordingPopUpDialog.TRIGGERED_BY_NEW_EVENT, lastAvailableAlternatives);
             sugiliteData.recordingPopupDialogQueue.add(recordingPopUpDialog);

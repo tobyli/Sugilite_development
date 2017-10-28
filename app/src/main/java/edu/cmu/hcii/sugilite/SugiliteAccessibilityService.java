@@ -17,9 +17,11 @@ import android.view.accessibility.AccessibilityManager;
 import android.view.accessibility.AccessibilityNodeInfo;
 import android.widget.Toast;
 
-import com.google.gson.Gson;
+import com.google.gson.*;
 
-import java.io.File;
+import java.io.*;
+import java.lang.reflect.Modifier;
+import java.lang.reflect.Type;
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -36,6 +38,7 @@ import edu.cmu.hcii.sugilite.communication.SugiliteCommunicationController;
 import edu.cmu.hcii.sugilite.communication.SugiliteEventBroadcastingActivity;
 import edu.cmu.hcii.sugilite.dao.SugiliteAppVocabularyDao;
 import edu.cmu.hcii.sugilite.ontology.OntologyQuery;
+import edu.cmu.hcii.sugilite.ontology.SerializableUISnapshot;
 import edu.cmu.hcii.sugilite.ontology.SugiliteEntity;
 import edu.cmu.hcii.sugilite.ontology.SugiliteRelation;
 import edu.cmu.hcii.sugilite.ontology.UISnapshot;
@@ -51,6 +54,7 @@ import edu.cmu.hcii.sugilite.recording.RecordingPopUpDialog;
 import edu.cmu.hcii.sugilite.recording.TextChangedEventHandler;
 import edu.cmu.hcii.sugilite.tracking.SugiliteTrackingHandler;
 import edu.cmu.hcii.sugilite.ui.StatusIconManager;
+import edu.cmu.hcii.sugilite.Node;
 
 import static edu.cmu.hcii.sugilite.Const.BROADCASTING_ACCESSIBILITY_EVENT;
 import static edu.cmu.hcii.sugilite.Const.BUILDING_VOCAB;
@@ -82,6 +86,8 @@ public class SugiliteAccessibilityService extends AccessibilityService {
     public SugiliteAccessibilityService() {
         Log.d( TAG, "inside constructor");
     }
+
+    private int counter = 0;
 
     @Override
     public void onCreate(){
@@ -351,11 +357,46 @@ public class SugiliteAccessibilityService extends AccessibilityService {
 
             /*
             //==== testing the UI snapshot
+
             if(event.getEventType() == AccessibilityEvent.TYPE_VIEW_CLICKED) {
+                File rootDataDir = context.getFilesDir();
                 AccessibilityNodeInfo new_root = sourceNode;
                 while(new_root.getParent() != null) new_root = new_root.getParent();
                 UISnapshot uiSnapshot = new UISnapshot(new_root);
 
+                //GsonBuilder gsonBuilder = new GsonBuilder();
+                //gsonBuilder.registerTypeAdapter(UISnapshot.class, new UISnapShotSerializer());
+                Gson gson = new GsonBuilder().excludeFieldsWithModifiers(Modifier.FINAL, Modifier.TRANSIENT, Modifier.STATIC)
+                        .serializeNulls()
+                        .create();
+                String uiSnapshot_gson = gson.toJson(new SerializableUISnapshot(uiSnapshot));
+
+                PrintWriter out = null;
+                try {
+                    File f = new File("/sdcard/Download/ui_snapshots");
+                    if (!f.exists() || !f.isDirectory()) {
+                        f.mkdirs();
+                        System.out.println("dir created");
+                    }
+                    System.out.println(f.getAbsolutePath());
+
+                    File snapshot = new File(f.getPath() + "/snapshot" + counter + ".txt");
+                    if(!snapshot.exists()) {
+                        snapshot.getParentFile().mkdirs();
+                        snapshot.createNewFile();
+                        System.out.println("file created");
+                    }
+                    out = new PrintWriter(new FileOutputStream(snapshot), true);
+                    out.println(uiSnapshot_gson);
+                } catch (FileNotFoundException e) {
+                    e.printStackTrace();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } finally {
+                    if(out != null) out.close();
+                }
+
+                counter++;
                 OntologyQuery query = new OntologyQuery(OntologyQuery.relationType.nullR);
                 SugiliteRelation r = new SugiliteRelation(0, "HAS_CLASS_NAME");
                 SugiliteEntity<String> object = new SugiliteEntity<String>(80, String.class, "android.widget.LinearLayout");
@@ -830,5 +871,14 @@ public class SugiliteAccessibilityService extends AccessibilityService {
         }
         return retSet;
     }
+
+    static class UISnapShotSerializer implements JsonSerializer<UISnapshot> {
+        @Override
+        public JsonElement serialize(UISnapshot src, Type typeOfSrc, JsonSerializationContext context) {
+            return context.serialize(new SerializableUISnapshot(src));
+        }
+    }
 }
+
+
 

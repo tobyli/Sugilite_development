@@ -15,8 +15,11 @@ public class SugiliteEntity<T> {
     private T entityValue;
 
     //TODO: we'll see if we want to explicity store this - might be useful for things like AccessibilityNodeInfo
-    private final Class<T> type;
+    private transient Class<T> type;
 
+    public SugiliteEntity() {
+        type = null;
+    }
 
     public SugiliteEntity(Integer entityId, Class<T> type, T value){
         this.entityId = entityId;
@@ -35,6 +38,18 @@ public class SugiliteEntity<T> {
 
     public Class<T> getType() {
         return type;
+    }
+
+    public void setEntityId(Integer entityId) {
+        this.entityId = entityId;
+    }
+
+    public void setEntityValue(T entityValue) {
+        this.entityValue = entityValue;
+    }
+
+    public void setType(Class<T> type) {
+        this.type = type;
     }
 
     //test

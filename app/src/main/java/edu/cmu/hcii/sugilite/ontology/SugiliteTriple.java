@@ -12,6 +12,10 @@ public class SugiliteTriple {
     private SugiliteRelation predicate;
     private SugiliteEntity object;
 
+    public SugiliteTriple() {
+
+    }
+
     public SugiliteTriple(SugiliteEntity subject, SugiliteRelation predicate, SugiliteEntity object){
         this.subject = subject;
         this.predicate = predicate;

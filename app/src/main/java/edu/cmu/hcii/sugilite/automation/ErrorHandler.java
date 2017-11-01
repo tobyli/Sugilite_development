@@ -44,6 +44,7 @@ public class ErrorHandler {
     private ReadableDescriptionGenerator descriptionGenerator;
     private SharedPreferences sharedPreferences;
     private Set<String> excludedPackageFromWrongPackage;
+    ReadableDescriptionGenerator readableDescriptionGenerator;
     private SugiliteScriptDao sugiliteScriptDao;
     private String[] excludedPackageSet = {"com.google.android.inputmethod.pinyin", "com.inMind.inMindAgent", "com.google.android.inputmethod.latin"};
 
@@ -55,6 +56,7 @@ public class ErrorHandler {
         this.sugiliteData = sugiliteData;
         this.descriptionGenerator = new ReadableDescriptionGenerator(context);
         this.sharedPreferences = sharedPreferences;
+        this.readableDescriptionGenerator = new ReadableDescriptionGenerator(context);
         if(Const.DAO_TO_USE == SQL_SCRIPT_DAO)
             this.sugiliteScriptDao = new SugiliteScriptSQLDao(context);
         else
@@ -143,13 +145,13 @@ public class ErrorHandler {
         if(sinceLastSuccesss > LAST_SUCCESSFUL_OPERATION){
             //stucked
             //handleError("The current window is not responding in executing the next operation: " + nextInstruction.getDescription() + "<br><br>" + "sinceLastSuccess: " + sinceLastSuccesss + "<br>" + "Stucked! Too long since the last success.");
-            handleError("Can't find the target UI element in the current screen for executing the next operation: " + nextInstruction.getDescription());
+            handleError("This page seems different than what was expected. Sugilite cannot find the user interface item it is looking for, which is: " + readableDescriptionGenerator.generateObjectDescription((SugiliteOperationBlock)nextInstruction));
             return true;
         }
         if(sinceLastWindowChange > LAST_WINDOW_CHANGE_TIMEOUT){
             //stucked
             //handleError("The current window is not responding in executing the next operation: " + nextInstruction.getDescription() + "<br><br>" + "sinceLastWindowChange: " + sinceLastWindowChange + "<br>" + "Stucked! Too long since the last window content change.");
-            handleError("Can't find the target UI element in the current screen for executing the next operation: " + nextInstruction.getDescription());
+            handleError("This page seems different than what was expected. Sugilite cannot find the user interface item it is looking for, which is: " + readableDescriptionGenerator.generateObjectDescription((SugiliteOperationBlock) nextInstruction));
             return true;
         }
         return false;
@@ -166,7 +168,7 @@ public class ErrorHandler {
         sugiliteData.setCurrentSystemState(SugiliteData.PAUSED_FOR_ERROR_HANDLING_STATE);
 
         AlertDialog.Builder builder = new AlertDialog.Builder(applicationContext);
-        builder.setTitle("Script Execution Exception")
+        builder.setTitle("Script Execution Error")
                 .setMessage(Html.fromHtml(errorMsg))
                 .setPositiveButton("Keep Waiting", new DialogInterface.OnClickListener() {
                     @Override

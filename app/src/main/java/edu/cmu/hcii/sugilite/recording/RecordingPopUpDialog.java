@@ -10,6 +10,7 @@ import android.graphics.Rect;
 import android.text.Editable;
 import android.text.Html;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.ContextThemeWrapper;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -103,6 +104,7 @@ public class RecordingPopUpDialog extends AbstractSugiliteDialog {
     private String scriptName;
     private AlertDialog progressDialog;
     private Context context;
+    protected static final String TAG = RecordingPopUpDialog.class.getSimpleName();
 
 
     private Spinner actionSpinner, targetTypeSpinner, withInAppSpinner, readoutParameterSpinner, loadVariableParameterSpinner;
@@ -229,27 +231,35 @@ public class RecordingPopUpDialog extends AbstractSugiliteDialog {
         Runnable runnable = new Runnable() {
             @Override
             public void run() {
+                Log.i(TAG, "FLAG-SHOW_START-1");
                 dialog.show();
                 dialog.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM);
+                Log.i(TAG, "FLAG-SHOW_DONE-2");
             }
         };
 
+        Log.i(TAG, "FLAG-SHOW1");
         //to skip
-        if(skipManager.checkSkip(featurePack, triggerMode, generateFilter(), featurePack.alternativeNodes).contentEquals("skip") && (!doNotSkip))
+        if(skipManager.checkSkip(featurePack, triggerMode, generateFilter(), featurePack.alternativeNodes).contentEquals("skip") && (!doNotSkip)) {
+            Log.i(TAG, "FLAG-SHOW2");
             OKButtonOnClick(null);
+        }
         //to show the disambiguation panel
 
         else if (skipManager.checkSkip(featurePack, triggerMode, generateFilter(), featurePack.alternativeNodes).contentEquals("disambiguation")){
             hideUnrelevantInfo(true, "Sugilite finds multiple possible features for the object you've just opearted on and can't determine the best feature to use.\n\nCan you choose the best feature to use for identifying this object in future executions of this script?");
             if(context instanceof SugiliteAccessibilityService) {
-                ((SugiliteAccessibilityService)context).runOnUiThread(runnable);
+                Log.i(TAG, "FLAG-SHOW2.1");
+                ((SugiliteAccessibilityService) context).runOnUiThread(runnable);
             }
             else if(context instanceof Activity){
+                Log.i(TAG, "FLAG-SHOW2.2");
                 ((Activity) context).runOnUiThread(runnable);
             }
         }
         else if (skipManager.checkSkip(featurePack, triggerMode, generateFilter(), featurePack.alternativeNodes).contentEquals("multipleMatch")){
             hideUnrelevantInfo(false, "Sugilte's automatically generated feature set can match more than one objects on the current screen.\n\nCan you choose the best set of features to use for identifying this object in future executions of this script?");
+            Log.i(TAG, "FLAG-SHOW2");
             if(context instanceof SugiliteAccessibilityService) {
                 ((SugiliteAccessibilityService)context).runOnUiThread(runnable);
             }
@@ -260,6 +270,7 @@ public class RecordingPopUpDialog extends AbstractSugiliteDialog {
         //to show the full popup
         else {
             //context can be either from an activity (editing) or the accessibility service
+            Log.i(TAG, "FLAG-SHOW2");
             if(context instanceof SugiliteAccessibilityService) {
                 ((SugiliteAccessibilityService)context).runOnUiThread(runnable);
             }
@@ -512,7 +523,9 @@ public class RecordingPopUpDialog extends AbstractSugiliteDialog {
             Runnable showDialogRunnable = new Runnable() {
                 @Override
                 public void run() {
+                    Log.i(TAG, "FLAG-SHOW_START");
                     dialog.show();
+                    Log.i(TAG, "FLAG-SHOW_DONE");
                 }
             };
 

@@ -170,6 +170,107 @@ public class ReadableDescriptionGenerator {
         return "NULL";
     }
 
+    public String generateObjectDescription(SugiliteOperationBlock sugiliteOperationBlock){
+        UIElementMatchingFilter filter = sugiliteOperationBlock.getElementMatchingFilter();
+        if(filter != null){
+            String message = "";
+            message += "The ";
+
+            if(filter.getClassName() != null){
+                message += getReadableClassName(filter.getClassName()) + " ";
+            }
+            else {
+                message += "item ";
+            }
+
+            Map<String, String> labels = new HashMap<>();
+
+            if(sugiliteOperationBlock.getElementMatchingFilter().getText() != null){
+                labels.put("text", (sugiliteOperationBlock.getElementMatchingFilter().getText()));
+            }
+            if (sugiliteOperationBlock.getElementMatchingFilter().getContentDescription() != null){
+                labels.put("content description", (sugiliteOperationBlock.getElementMatchingFilter().getContentDescription()));
+            }
+            boolean thatPrinted = false;
+
+            Set<UIElementMatchingFilter> childFilters = (sugiliteOperationBlock.getElementMatchingFilter().getChildFilter());
+            if(childFilters != null && childFilters.size() != 0){
+                for (UIElementMatchingFilter cf : childFilters) {
+                    String sText = cf.getText();
+                    String sContent = cf.getContentDescription();
+                    String sViewId = cf.getViewId();
+
+                    if(sText != null) {
+                        labels.put("child text", sText);
+                    }
+                    if(sContent != null) {
+                        labels.put("child content description", sContent);
+                    }
+                    if(sViewId != null){
+                        message += (thatPrinted ? "" : "that ") + "has child Object ID \"" + setColor(sViewId, Const.SCRIPT_VIEW_ID_COLOR) + "\" ";
+                        thatPrinted = true;
+                    }
+                }
+            }
+
+            Set<UIElementMatchingFilter> siblingFilters = sugiliteOperationBlock.getElementMatchingFilter().getSiblingFilter();
+            if(siblingFilters != null && siblingFilters.size() != 0){
+                for (UIElementMatchingFilter sf : siblingFilters) {
+                    String sText = sf.getText();
+                    String sContent = sf.getContentDescription();
+                    String sViewId = sf.getViewId();
+
+                    if(sText != null) {
+                        labels.put("sibling text", sText);
+                    }
+                    if(sContent != null) {
+                        labels.put("sibling content description", sContent);
+                    }
+                    if(sViewId != null){
+                        message += (thatPrinted ? "" : "that ") + "has sibling Object ID \"" + setColor(sViewId, Const.SCRIPT_VIEW_ID_COLOR) + "\" ";
+                        thatPrinted = true;
+                    }
+                }
+            }
+
+            if(labels.size() == 1){
+                for(Map.Entry<String, String> entry : labels.entrySet()){
+                    message += "labeled \"" + setColor(entry.getValue(), Const.SCRIPT_IDENTIFYING_FEATURE_COLOR) + "\" ";
+                }
+            }
+            else if(labels.size() > 1){
+                int count = 0;
+                for(Map.Entry<String, String> entry : labels.entrySet()){
+                    message += (thatPrinted ? "" : "that ") + "has " + entry.getKey() + " \"" + setColor(entry.getValue(), Const.SCRIPT_IDENTIFYING_FEATURE_COLOR) + "\" " + (count == labels.size() - 2 ? "and " :(count == labels.size() - 1 ? ", " : " "));
+                    thatPrinted = true;
+                    count ++;
+                }
+            }
+
+            if(sugiliteOperationBlock.getElementMatchingFilter().getViewId() != null){
+                message += (thatPrinted ? "" : "that ") + "has the Object ID \"" + setColor((sugiliteOperationBlock.getElementMatchingFilter().getViewId()), Const.SCRIPT_VIEW_ID_COLOR) + "\" ";
+                thatPrinted = true;
+            }
+
+            if(sugiliteOperationBlock.getElementMatchingFilter().getBoundsInScreen() != null){
+                message += "at the screen location (" + setColor((sugiliteOperationBlock.getElementMatchingFilter().getBoundsInScreen()), Const.SCRIPT_IDENTIFYING_FEATURE_COLOR) + ") ";
+            }
+
+            if(sugiliteOperationBlock.getElementMatchingFilter().getBoundsInParent() != null){
+                message += "at the parent location (" + setColor((sugiliteOperationBlock.getElementMatchingFilter().getBoundsInParent()), Const.SCRIPT_IDENTIFYING_FEATURE_COLOR) + ") ";
+            }
+
+            if(sugiliteOperationBlock.getElementMatchingFilter().getPackageName() != null)
+                message += "in the " + setColor(getReadableName(sugiliteOperationBlock.getElementMatchingFilter().getPackageName()), Const.SCRIPT_WITHIN_APP_COLOR) + " app ";
+            return message;
+
+
+
+        }
+        return "NULL";
+
+    }
+
     private void setupPackageNameReadableNameMap(){
         packageNameReadableNameMap.put("com.google.android.googlequicksearchbox", "Home Screen");
     }
@@ -193,6 +294,28 @@ public class ReadableDescriptionGenerator {
             return (String)packageManager.getApplicationLabel(applicationInfo);
         else
             return packageName;
+    }
+
+    public String getReadableClassName(String className){
+        if(className.toLowerCase().contains("button")){
+            return setColor("Button", Const.SCRIPT_TARGET_TYPE_COLOR);
+        }
+        if(className.toLowerCase().contains("edittext")){
+            return setColor("Textbox", Const.SCRIPT_TARGET_TYPE_COLOR);
+        }
+        if(className.toLowerCase().contains("image")){
+            return setColor("Image", Const.SCRIPT_TARGET_TYPE_COLOR);
+        }
+        if(className.toLowerCase().contains("framelayout"))
+            return setColor("Item", Const.SCRIPT_TARGET_TYPE_COLOR);
+
+        int lastIndex = className.lastIndexOf('.');
+        if(lastIndex > -1) {
+            return setColor(className.substring(lastIndex + 1), Const.SCRIPT_TARGET_TYPE_COLOR);
+        }
+        else{
+            return setColor(className, Const.SCRIPT_TARGET_TYPE_COLOR);
+        }
     }
 
     static public String setColor(String message, String color){

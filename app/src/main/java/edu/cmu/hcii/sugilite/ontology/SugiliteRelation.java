@@ -54,4 +54,13 @@ public class SugiliteRelation {
     public static final SugiliteRelation HAS_PACKAGE_NAME = new SugiliteRelation(7, "HAS_PACKAGE_NAME");
     public static final SugiliteRelation HAS_CHILD = new SugiliteRelation(8, "HAS_CHILD");
 
+
+    //new relations to add for flattening the ontology
+    public static final SugiliteRelation HAS_CHILD_TEXT = new SugiliteRelation(9, "HAS_CHILD");
+    public static final SugiliteRelation HAS_SIBLING = new SugiliteRelation(10, "HAS_CHILD");
+    public static final SugiliteRelation IS_EDITABLE = new SugiliteRelation(10, "HAS_CHILD");
+    public static final SugiliteRelation IS_CLICKABLE = new SugiliteRelation(10, "HAS_CHILD");
+    public static final SugiliteRelation IS_SCROLLABLE = new SugiliteRelation(10, "HAS_CHILD");
+
+
 }

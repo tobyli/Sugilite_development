@@ -330,6 +330,12 @@ public class FragmentScriptListTab extends Fragment {
                                 @Override
                                 public void run() {
                                     progressDialog.dismiss();
+                                    try {
+                                        setUpScriptList();
+                                    }
+                                    catch (Exception e){
+                                        e.printStackTrace();
+                                    }
                                 }
                             };
                             if(activity instanceof Activity){

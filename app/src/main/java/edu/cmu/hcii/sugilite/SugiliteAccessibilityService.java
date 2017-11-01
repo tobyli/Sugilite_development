@@ -6,6 +6,8 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Rect;
 import android.os.Handler;
+import android.os.Looper;
+import android.os.Message;
 import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -70,7 +72,8 @@ public class SugiliteAccessibilityService extends AccessibilityService {
     protected TextChangedEventHandler textChangedEventHandler;
     protected String lastPackageName = "";
     private static Set<String> homeScreenPackageNameSet;
-    ExecutorService executor = Executors.newSingleThreadExecutor();
+    ExecutorService executor = Executors.newFixedThreadPool(3);
+
 
 
     public SugiliteAccessibilityService() {
@@ -100,7 +103,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
         vocabularyDao = new SugiliteAppVocabularyDao(getApplicationContext());
         context = this;
         triggerHandler = new SugiliteTriggerHandler(context, sugiliteData, sharedPreferences);
-        textChangedEventHandler = new TextChangedEventHandler(sugiliteData, context, sharedPreferences);
+        textChangedEventHandler = new TextChangedEventHandler(sugiliteData, context, sharedPreferences, handler);
         handler = new Handler();
         homeScreenPackageNameSet = new HashSet<>();
         homeScreenPackageNameSet.addAll(Arrays.asList(HOME_SCREEN_PACKAGE_NAMES));
@@ -197,8 +200,12 @@ public class SugiliteAccessibilityService extends AccessibilityService {
      * @param runnable
      */
     public void runOnUiThread(Runnable runnable) {
-        handler.post(runnable);
+        Log.i(TAG, "SERVICE_UI_THREAD_POSTING");
+        statusIconManager.getStatusIcon().post(runnable);
+        Log.i(TAG, "SERVICE_UI_THREAD_POSTED");
     }
+
+
 
     protected HashSet<Map.Entry<String, String>> availableAlternatives;
     protected HashSet<SerializableNodeInfo> availableAlternativeNodes;
@@ -245,6 +252,11 @@ public class SugiliteAccessibilityService extends AccessibilityService {
         }
         */
 
+        if(event.getEventType() == AccessibilityEvent.TYPE_VIEW_CLICKED) {
+            Log.i(TAG, "FLAG1");
+        }
+
+
         //add previous click information for building UI hierachy from vocabs
         if(BUILDING_VOCAB && (!trackingExcludedPackages.contains(event.getPackageName())) && event.getEventType() == AccessibilityEvent.TYPE_VIEW_CLICKED && sourceNode != null){
             if(sourceNode.getText() != null)
@@ -280,6 +292,11 @@ public class SugiliteAccessibilityService extends AccessibilityService {
             else
                 previousClickContentDescription = "NULL";
         }
+
+        if(event.getEventType() == AccessibilityEvent.TYPE_VIEW_CLICKED) {
+            Log.i(TAG, "FLAG2");
+        }
+
 
         //packages within the excepted package will be totally excepted from the accessibility service tracking
         exceptedPackages.addAll(Arrays.asList(Const.ACCESSIBILITY_SERVICE_EXCEPTED_PACKAGE_NAMES));
@@ -325,11 +342,17 @@ public class SugiliteAccessibilityService extends AccessibilityService {
             final List<AccessibilityNodeInfo> preOrderTracerseRootNodeForRecording = preOrderTraverseRootNode;
             final List<AccessibilityNodeInfo> preOrderTraverseSibNodeForRecording = preOrderTraverseSibNode;
 
+            if(event.getEventType() == AccessibilityEvent.TYPE_VIEW_CLICKED) {
+                Log.i(TAG, "FLAG3");
+            }
+
+            /*
             //==== testing the UI snapshot
             if(event.getEventType() == AccessibilityEvent.TYPE_VIEW_CLICKED) {
                 UISnapshot uiSnapshot = new UISnapshot(rootNode);
                 System.out.println("test");
             }
+            */
 
             //add package name to the relevant package set
             if(sugiliteData.getScriptHead() != null && event.getPackageName() != null && (!exceptedPackages.contains(event.getPackageName()))) {
@@ -363,6 +386,10 @@ public class SugiliteAccessibilityService extends AccessibilityService {
                 //System.out.println(event.getPackageName() + " " + sugiliteData.elementsWithTextLabels.size());
             }
 
+            if(event.getEventType() == AccessibilityEvent.TYPE_VIEW_CLICKED) {
+                Log.i(TAG, "FLAG4");
+            }
+
 
             //if the event is to be recorded, process it //TODO: send text change event to TextChangedEventHandler instead
             if (accessibilityEventSetToSend.contains(event.getEventType()) && (!exceptedPackages.contains(event.getPackageName()))) {
@@ -370,6 +397,8 @@ public class SugiliteAccessibilityService extends AccessibilityService {
                 Runnable handleRecording = new Runnable() {
                     @Override
                     public void run() {
+                        Log.i(TAG, "Entering handle recording thread");
+
                         //temp hack for ViewGroup in Google Now Launcher
                         if (sourceNode != null && sourceNode.getClassName() != null && sourceNode.getPackageName() != null && sourceNode.getClassName().toString().contentEquals("android.view.ViewGroup") && homeScreenPackageNameSet.contains(sourceNode.getPackageName().toString())) {/*do nothing (don't show popup for ViewGroup in home screen)*/} else {
                             File screenshot = null;
@@ -395,22 +424,19 @@ public class SugiliteAccessibilityService extends AccessibilityService {
                                     textChangedEventHandler.handle(featurePack, availableAlternatives, layoutInflater, handler);
                                 }
                             } else {
-                                System.out.println("flush from service");
-                                Runnable handle = new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        textChangedEventHandler.flush();
-                                        RecordingPopUpDialog recordingPopUpDialog = new RecordingPopUpDialog(sugiliteData, context, featurePack, sharedPreferences, layoutInflater, RecordingPopUpDialog.TRIGGERED_BY_NEW_EVENT, availableAlternatives);
-                                        sugiliteData.recordingPopupDialogQueue.add(recordingPopUpDialog);
-                                        if (!sugiliteData.recordingPopupDialogQueue.isEmpty() && sugiliteData.hasRecordingPopupActive == false) {
-                                            sugiliteData.hasRecordingPopupActive = true;
-                                            sugiliteData.recordingPopupDialogQueue.poll().show();
-                                        }
+                                    System.out.println("flush from service");
+                                    textChangedEventHandler.flush();
+                                    Log.i(TAG, "FLAG5");
+                                    RecordingPopUpDialog recordingPopUpDialog = new RecordingPopUpDialog(sugiliteData, context, featurePack, sharedPreferences, layoutInflater, RecordingPopUpDialog.TRIGGERED_BY_NEW_EVENT, availableAlternatives);
+                                    sugiliteData.recordingPopupDialogQueue.add(recordingPopUpDialog);
+                                    Log.i(TAG, "FLAG6");
+                                    if (!sugiliteData.recordingPopupDialogQueue.isEmpty() && sugiliteData.hasRecordingPopupActive == false) {
+                                        sugiliteData.hasRecordingPopupActive = true;
+                                        Log.i(TAG, "FLAG7");
+                                        sugiliteData.recordingPopupDialogQueue.poll().show();
+                                        Log.i(TAG, "FLAG8");
                                     }
-                                };
-                                runOnUiThread(handle);
                             }
-
                         }
 
 
@@ -446,8 +472,8 @@ public class SugiliteAccessibilityService extends AccessibilityService {
 
                     }
                 };
-
-                executor.execute(handleRecording);
+                new Thread(handleRecording).run();
+                //executor.execute(handleRecording);
                 //====
             }
 

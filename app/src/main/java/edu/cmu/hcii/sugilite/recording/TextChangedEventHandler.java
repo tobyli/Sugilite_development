@@ -2,6 +2,7 @@ package edu.cmu.hcii.sugilite.recording;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.widget.Toast;
 
@@ -10,6 +11,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Handler;
 
+import edu.cmu.hcii.sugilite.SugiliteAccessibilityService;
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.model.block.SugiliteAvailableFeaturePack;
 
@@ -36,15 +38,21 @@ public class TextChangedEventHandler {
     private SugiliteAvailableFeaturePack aggregatedFeaturePack;
     private LayoutInflater lastLayoutInflator;
     private Set<Map.Entry<String, String>> lastAvailableAlternatives;
+    private android.os.Handler uiThreadHandler;
+    protected static final String TAG = TextChangedEventHandler.class.getSimpleName();
 
-    public TextChangedEventHandler(SugiliteData sugiliteData, Context context, SharedPreferences sharedPreferences){
+
+    public TextChangedEventHandler(SugiliteData sugiliteData, Context context, SharedPreferences sharedPreferences, android.os.Handler uiThreadHandler){
         this.sugiliteData = sugiliteData;
         this.context = context;
         this.sharedPreferences = sharedPreferences;
+        this.uiThreadHandler = uiThreadHandler;
     }
 
     public void handle(SugiliteAvailableFeaturePack featurePack, Set<Map.Entry<String, String>> availableAlternatives, LayoutInflater layoutInflater, android.os.Handler uiThreadHandler){
         //handle the VIEW_TEXT_CHANGED event
+        if(featurePack == null)
+            return;
         if(belongsToTheSameSession(aggregatedFeaturePack, featurePack)){
             //same session
             featurePack.afterText = featurePack.text;
@@ -69,6 +77,7 @@ public class TextChangedEventHandler {
                 }
             };
             uiThreadHandler.post(flush);
+
             featurePack.afterText = featurePack.text;
             if(featurePack.beforeText != null) {
                 featurePack.text = featurePack.beforeText;
@@ -84,31 +93,37 @@ public class TextChangedEventHandler {
         //TODO: show a recording popup for the text entry
         System.out.println("text changed event flushed");
         if(aggregatedFeaturePack != null) {
-            Toast.makeText(context, "Text changed event flushed", Toast.LENGTH_SHORT).show();
             System.out.println("text changed event flushed successfully");
             //show the recording popup only after an text entry session has concluded
             RecordingPopUpDialog recordingPopUpDialog = new RecordingPopUpDialog(sugiliteData, context, aggregatedFeaturePack, sharedPreferences, lastLayoutInflator, RecordingPopUpDialog.TRIGGERED_BY_NEW_EVENT, lastAvailableAlternatives);
             sugiliteData.recordingPopupDialogQueue.add(recordingPopUpDialog);
             if (!sugiliteData.recordingPopupDialogQueue.isEmpty() && sugiliteData.hasRecordingPopupActive == false) {
                 sugiliteData.hasRecordingPopupActive = true;
+                Log.i(TAG, "FLUSH-TAG1");
                 sugiliteData.recordingPopupDialogQueue.poll().show();
+                Log.i(TAG, "FLUSH-TAG2");
+
             }
             aggregatedFeaturePack = null;
         }
     }
 
     private boolean belongsToTheSameSession(SugiliteAvailableFeaturePack earlierSession, SugiliteAvailableFeaturePack laterSession){
-        if(earlierSession == null || laterSession == null)
-            return false;
-
+        if(earlierSession == null) {
+            return true;
+        }
         if(earlierSession.packageName != null && laterSession.packageName != null &&
-                (!earlierSession.packageName.equals(laterSession.packageName)))
+                (!earlierSession.packageName.equals(laterSession.packageName))) {
             return false;
+        }
         if(earlierSession.viewId != null &&
-                (!earlierSession.viewId.equals(laterSession.viewId)))
+                (!earlierSession.viewId.equals(laterSession.viewId))) {
             return false;
-        if(!earlierSession.className.equals(laterSession.className))
+        }
+        if(earlierSession.className != null &&
+                !earlierSession.className.equals(laterSession.className)) {
             return false;
+        }
 
         return true;
     }

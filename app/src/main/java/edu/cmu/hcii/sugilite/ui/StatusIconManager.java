@@ -794,6 +794,10 @@ public class StatusIconManager {
         });
     }
 
+    public ImageView getStatusIcon() {
+        return statusIcon;
+    }
+
     @Deprecated
     public void moveIcon (int x ,int y){
         if(statusIcon == null)

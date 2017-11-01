@@ -36,8 +36,8 @@ public class SugiliteTriple {
             return true;
         }
         if(obj instanceof SugiliteTriple){
-            return ((SugiliteTriple) obj).subject.equals(this.subject) ||
-                    ((SugiliteTriple) obj).predicate.equals(this.predicate) ||
+            return ((SugiliteTriple) obj).subject.equals(this.subject) &&
+                    ((SugiliteTriple) obj).predicate.equals(this.predicate) &&
                     ((SugiliteTriple) obj).object.equals(this.object);
         }
         else {
@@ -47,9 +47,9 @@ public class SugiliteTriple {
 
     @Override
     public int hashCode() {
-        return Objects.hash(this.subject.getEntityId(),
+        return Objects.hash(this.subject.getEntityValue(),
                 this.predicate.getRelationId(),
-                this.object.getEntityId());
+                this.object.getEntityValue());
     }
 
 

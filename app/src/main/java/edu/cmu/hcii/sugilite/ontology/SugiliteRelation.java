@@ -1,6 +1,8 @@
 package edu.cmu.hcii.sugilite.ontology;
 
+import java.util.HashMap;
 import java.util.Objects;
+import java.util.Map;
 
 /**
  * @author toby
@@ -69,5 +71,23 @@ public class SugiliteRelation {
     public static final SugiliteRelation IS_SELECTED = new SugiliteRelation(17, "IS_SELECTED");
 
 
+    public static final Map<String, SugiliteRelation> stringRelationMap;
+    static {
+        stringRelationMap = new HashMap<String, SugiliteRelation>();
+        stringRelationMap.put("HAS_CLASS_NAME", HAS_CLASS_NAME);
+        stringRelationMap.put("HAS_TEXT", HAS_TEXT);
+        stringRelationMap.put("HAS_PARENT", HAS_PARENT);
+        stringRelationMap.put("HAS_VIEW_ID", HAS_VIEW_ID);
+        stringRelationMap.put("HAS_CONTENT_DESCRIPTION", HAS_CONTENT_DESCRIPTION);
+        stringRelationMap.put("HAS_SCREEN_LOCATION", HAS_SCREEN_LOCATION);
+        stringRelationMap.put("HAS_PARENT_LOCATION", HAS_PARENT_LOCATION);
+        stringRelationMap.put("HAS_PACKAGE_NAME", HAS_PACKAGE_NAME);
+        stringRelationMap.put("HAS_CHILD", HAS_CHILD);
+        stringRelationMap.put("HAS_CHILD_TEXT", HAS_CHILD_TEXT);
+        stringRelationMap.put("HAS_SIBLING", HAS_SIBLING);
+        stringRelationMap.put("IS_EDITABLE", IS_EDITABLE);
+        stringRelationMap.put("IS_CLICKABLE", IS_CLICKABLE);
+        stringRelationMap.put("IS_SCROLLABLE", IS_SCROLLABLE);
+    }
 
 }

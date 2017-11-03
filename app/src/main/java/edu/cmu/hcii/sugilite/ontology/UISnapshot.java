@@ -296,4 +296,26 @@ public class UISnapshot {
     public Map<Integer, Set<SugiliteTriple>> getObjectTriplesMap() {
         return objectTriplesMap;
     }
+
+    public Set<SugiliteTriple> getTriples() {
+        return triples;
+    }
+
+    public Map<SugiliteRelation, Set<SugiliteTriple>> getPredicateTriplesMap() {
+        return predicateTriplesMap;
+    }
+
+    public Integer getEntityIdCounter() {
+        return entityIdCounter;
+    }
+
+    public Map<AccessibilityNodeInfo, SugiliteEntity<AccessibilityNodeInfo>> getAccessibilityNodeInfoSugiliteEntityMap() {
+        return accessibilityNodeInfoSugiliteEntityMap;
+    }
+
+    public Map<String, SugiliteEntity<String>> getStringSugiliteEntityMap() {
+        return stringSugiliteEntityMap;
+    }
+
+
 }

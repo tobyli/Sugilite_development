@@ -18,6 +18,10 @@ public class SugiliteTriple {
     private String predicateStringValue;
 
 
+    public SugiliteTriple() {
+
+    }
+
     public SugiliteTriple(SugiliteEntity subject, SugiliteRelation predicate, SugiliteEntity object){
         this.subject = subject;
         this.predicate = predicate;

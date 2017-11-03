@@ -1,7 +1,5 @@
 package edu.cmu.hcii.sugilite.ontology;
 
-import android.app.DownloadManager;
-
 import java.util.HashSet;
 import java.util.Set;
 import java.util.function.*;
@@ -17,22 +15,20 @@ public class OntologyQuery {
         nullR, AND, OR;
     }
     private relationType SubRelation;
-    private Set<OntologyQuery> SubQueries;
+    private Set<OntologyQuery> SubQueries = null;
     private BiFunction<SubjectEntityObjectEntityPair, UISnapshot, Boolean> QueryFunction = null;
-    private Set<SugiliteEntity> object;
-    private Set<SugiliteEntity> subject;
+    private Set<SugiliteEntity> object = null;
+    private Set<SugiliteEntity> subject = null;
+
+    public OntologyQuery(){
+
+    }
 
     public OntologyQuery(relationType r){
         this.SubRelation = r;
-        if(r == relationType.nullR){
-            // base case query
-            this.SubQueries = null;
-        }
-        else{
+        if(r != relationType.nullR){
             // there are sub-queries
             this.SubQueries = new HashSet<OntologyQuery>();
-            this.object = null;
-            this.subject = null;
         }
     }
 
@@ -90,6 +86,17 @@ public class OntologyQuery {
             throw new AssertionError();
         }
         subject.add(s);
+    }
+
+    public void setSubRelation(relationType subRelation) {
+        SubRelation = subRelation;
+    }
+
+    public void setSubQueries(Set<OntologyQuery> subQueries) {
+        if(BuildConfig.DEBUG && !(SubRelation == relationType.AND || SubRelation == relationType.OR)){
+            throw new AssertionError();
+        }
+        SubQueries = subQueries;
     }
 
     public relationType getSubRelation() {return this.SubRelation;}
@@ -230,5 +237,63 @@ public class OntologyQuery {
         public void setSubject(SugiliteEntity subject) {
             this.subject = subject;
         }
+    }
+
+    private static OntologyQuery parseString(String s, OntologyQuery q) {
+        int len = s.length();
+        if(BuildConfig.DEBUG && !(s.charAt(0) == '(' && s.charAt(len-1) == ')')){
+            throw new AssertionError();
+        }
+        s = s.substring(1, len-1);
+        len = s.length();
+
+        int spaceIndex = s.indexOf(' ');
+        String firstWord = s.substring(0, spaceIndex);
+
+        if(firstWord.equals("and") || firstWord.equals("or")) {
+            // nested relation
+            if(firstWord.equals("and")) {
+                q.setSubRelation(relationType.AND);
+            }
+            else{
+                q.setSubRelation(relationType.OR);
+            }
+
+            Set<OntologyQuery> subQ = new HashSet<OntologyQuery>();
+            // walk through the string and parse in the next level query strings recursively
+            int lastMatchIndex = spaceIndex + 1;
+            int counter = 0;
+            for(int i = spaceIndex + 1; i < len; i++) {
+                if(s.charAt(i) == '(') counter++;
+                else if(s.charAt(i) == ')') counter--;
+
+                if(counter == 0) {
+                    OntologyQuery sub_query = new OntologyQuery();
+                    sub_query = parseString(s.substring(lastMatchIndex, i+1), sub_query);
+                    subQ.add(sub_query);
+                    lastMatchIndex = i+2;
+                    i++;
+                }
+            }
+            q.setSubQueries(subQ);
+        }
+        else {
+            // base case: simple relation
+            String predicateString = firstWord;
+            String objectString = s.substring(spaceIndex+1, len);
+            q.setSubRelation(relationType.nullR);
+
+            q.setQueryFunction(SugiliteRelation.stringRelationMap.get(predicateString));
+            Set<SugiliteEntity> oSet = new HashSet<SugiliteEntity>();
+            SugiliteEntity<String> o = new SugiliteEntity<String>(-1, String.class, objectString);
+            oSet.add(o);
+            q.setObject(oSet);
+        }
+        return q;
+    }
+
+    public static OntologyQuery deserialize(String queryString) {
+        // example: (and (hasColor red) (hasProperty isChecked))
+        return parseString(queryString, new OntologyQuery());
     }
 }

@@ -21,17 +21,20 @@ public class UISnapshot {
     private Set<SugiliteTriple> triples;
 
     //indexes for triples
-    private Map<SugiliteEntity, Set<SugiliteTriple>> subjectTriplesMap;
-    private Map<SugiliteEntity, Set<SugiliteTriple>> objectTriplesMap;
-    private Map<SugiliteRelation, Set<SugiliteTriple>> predicateTriplesMap;
+    private Map<Integer, Set<SugiliteTriple>> subjectTriplesMap;
+    private Map<Integer, Set<SugiliteTriple>> objectTriplesMap;
+    private Map<Integer, Set<SugiliteTriple>> predicateTriplesMap;
 
     //indexes for entities and relations
     private Map<Integer, SugiliteEntity> sugiliteEntityIdSugiliteEntityMap;
     private Map<Integer, SugiliteRelation> sugiliteRelationIdSugiliteRelationMap;
 
-    int entityIdCounter;
-    private Map<AccessibilityNodeInfo, SugiliteEntity<AccessibilityNodeInfo>> accessibilityNodeInfoSugiliteEntityMap;
-    private Map<String, SugiliteEntity<String>> stringSugiliteEntityMap;
+
+    private transient int entityIdCounter;
+    private transient Map<AccessibilityNodeInfo, SugiliteEntity<AccessibilityNodeInfo>> accessibilityNodeInfoSugiliteEntityMap;
+    private transient Map<String, SugiliteEntity<String>> stringSugiliteEntityMap;
+    private transient Map<Boolean, SugiliteEntity<Boolean>> booleanSugiliteEntityMap;
+
 
     public UISnapshot(){
         //empty
@@ -43,6 +46,7 @@ public class UISnapshot {
         sugiliteRelationIdSugiliteRelationMap = new HashMap<>();
         accessibilityNodeInfoSugiliteEntityMap = new HashMap<>();
         stringSugiliteEntityMap = new HashMap<>();
+        booleanSugiliteEntityMap = new HashMap<>();
         entityIdCounter = 0;
     }
 
@@ -104,6 +108,25 @@ public class UISnapshot {
                     addEntityStringTriple(currentEntity, contentDescription, SugiliteRelation.HAS_CONTENT_DESCRIPTION);
                 }
 
+                //isClickable
+                addEntityBooleanTriple(currentEntity, node.isClickable(), SugiliteRelation.IS_CLICKABLE);
+
+                //isEditable
+                addEntityBooleanTriple(currentEntity, node.isEditable(), SugiliteRelation.IS_EDITABLE);
+
+                //isScrollable
+                addEntityBooleanTriple(currentEntity, node.isScrollable(), SugiliteRelation.IS_SCROLLABLE);
+
+                //isCheckable
+                addEntityBooleanTriple(currentEntity, node.isCheckable(), SugiliteRelation.IS_CHECKABLE);
+
+                //isChecked
+                addEntityBooleanTriple(currentEntity, node.isChecked(), SugiliteRelation.IS_CHECKED);
+
+                //isSelected
+                addEntityBooleanTriple(currentEntity, node.isSelected(), SugiliteRelation.IS_SELECTED);
+
+
                 //screen location
                 Rect screenLocationRect = new Rect();
                 node.getBoundsInScreen(screenLocationRect);
@@ -118,21 +141,11 @@ public class UISnapshot {
                 if (node.getParent() != null) {
                     //parent
                     AccessibilityNodeInfo parentNode = node.getParent();
-                    SugiliteEntity<AccessibilityNodeInfo> objectEntity = null;
-
-                    if (accessibilityNodeInfoSugiliteEntityMap.containsKey(parentNode)) {
-                        objectEntity = accessibilityNodeInfoSugiliteEntityMap.get(parentNode);
-                    } else {
-                        //create a new entity for the class name
-                        SugiliteEntity<AccessibilityNodeInfo> entity = new SugiliteEntity<>(entityIdCounter++, AccessibilityNodeInfo.class, parentNode);
-                        accessibilityNodeInfoSugiliteEntityMap.put(parentNode, entity);
-                        objectEntity = entity;
+                    addEntityAccessibilityNodeInfoTriple(currentEntity, parentNode, SugiliteRelation.HAS_PARENT);
+                    if(accessibilityNodeInfoSugiliteEntityMap.containsKey(parentNode)) {
+                        SugiliteTriple triple2 = new SugiliteTriple(accessibilityNodeInfoSugiliteEntityMap.get(parentNode), SugiliteRelation.HAS_CHILD, currentEntity);
+                        addTriple(triple2);
                     }
-
-                    SugiliteTriple triple1 = new SugiliteTriple(currentEntity, SugiliteRelation.HAS_PARENT, objectEntity);
-                    SugiliteTriple triple2 = new SugiliteTriple(objectEntity, SugiliteRelation.HAS_CHILD, currentEntity);
-                    addTriple(triple1);
-                    addTriple(triple2);
                 }
             }
         }
@@ -159,6 +172,54 @@ public class UISnapshot {
         }
 
         SugiliteTriple triple = new SugiliteTriple(currentEntity, relation, objectEntity);
+        triple.setObjectStringValue(string);
+        addTriple(triple);
+    }
+
+    /**
+     * helper function used for adding a <SugiliteEntity, SugiliteEntity<Boolean>, SugiliteRelation) triple
+     * @param currentEntity
+     * @param bool
+     * @param relation
+     */
+    void addEntityBooleanTriple(SugiliteEntity currentEntity, Boolean bool, SugiliteRelation relation){
+        //class
+        SugiliteEntity<Boolean> objectEntity = null;
+
+        if (booleanSugiliteEntityMap.containsKey(bool)) {
+            objectEntity = booleanSugiliteEntityMap.get(bool);
+        } else {
+            //create a new entity for the class name
+            SugiliteEntity<Boolean> entity = new SugiliteEntity<>(entityIdCounter++, Boolean.class, bool);
+            booleanSugiliteEntityMap.put(bool, entity);
+            objectEntity = entity;
+        }
+
+        SugiliteTriple triple = new SugiliteTriple(currentEntity, relation, objectEntity);
+        triple.setObjectStringValue(bool.toString());
+        addTriple(triple);
+    }
+
+    /**
+     * helper function used for adding a <SugiliteEntity, SugiliteEntity<AccessibilityNodeInfo>, SugiliteRelation) triple
+     * @param currentEntity
+     * @param node
+     * @param relation
+     */
+    void addEntityAccessibilityNodeInfoTriple(SugiliteEntity currentEntity, AccessibilityNodeInfo node, SugiliteRelation relation){
+        //class
+        SugiliteEntity<AccessibilityNodeInfo> objectEntity = null;
+
+        if (accessibilityNodeInfoSugiliteEntityMap.containsKey(node)) {
+            objectEntity = accessibilityNodeInfoSugiliteEntityMap.get(node);
+        } else {
+            //create a new entity for the class name
+            SugiliteEntity<AccessibilityNodeInfo> entity = new SugiliteEntity<>(entityIdCounter++, AccessibilityNodeInfo.class, node);
+            accessibilityNodeInfoSugiliteEntityMap.put(node, entity);
+            objectEntity = entity;
+        }
+
+        SugiliteTriple triple = new SugiliteTriple(currentEntity, relation, objectEntity);
         addTriple(triple);
     }
 
@@ -176,13 +237,13 @@ public class UISnapshot {
 
         //fill in the indexes for triples
         if(!subjectTriplesMap.containsKey(triple.getSubject())){
-            subjectTriplesMap.put(triple.getSubject(), new HashSet<SugiliteTriple>());
+            subjectTriplesMap.put(triple.getSubject().getEntityId(), new HashSet<>());
         }
         if(!predicateTriplesMap.containsKey(triple.getPredicate())){
-            predicateTriplesMap.put(triple.getPredicate(), new HashSet<SugiliteTriple>());
+            predicateTriplesMap.put(triple.getPredicate().getRelationId(), new HashSet<>());
         }
         if(!objectTriplesMap.containsKey(triple.getObject())){
-            objectTriplesMap.put(triple.getObject(), new HashSet<SugiliteTriple>());
+            objectTriplesMap.put(triple.getObject().getEntityId(), new HashSet<>());
         }
 
         subjectTriplesMap.get(triple.getSubject()).add(triple);
@@ -228,11 +289,11 @@ public class UISnapshot {
         return sugiliteRelationIdSugiliteRelationMap;
     }
 
-    public Map<SugiliteEntity, Set<SugiliteTriple>> getSubjectTriplesMap() {
+    public Map<Integer, Set<SugiliteTriple>> getSubjectTriplesMap() {
         return subjectTriplesMap;
     }
 
-    public Map<SugiliteEntity, Set<SugiliteTriple>> getObjectTriplesMap() {
+    public Map<Integer, Set<SugiliteTriple>> getObjectTriplesMap() {
         return objectTriplesMap;
     }
 }

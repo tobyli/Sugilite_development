@@ -301,7 +301,7 @@ public class UISnapshot {
         return triples;
     }
 
-    public Map<SugiliteRelation, Set<SugiliteTriple>> getPredicateTriplesMap() {
+    public Map<Integer, Set<SugiliteTriple>> getPredicateTriplesMap() {
         return predicateTriplesMap;
     }
 

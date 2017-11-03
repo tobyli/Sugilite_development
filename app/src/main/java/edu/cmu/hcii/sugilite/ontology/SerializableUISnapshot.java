@@ -19,17 +19,17 @@ public class SerializableUISnapshot implements Serializable {
     private Set<SugiliteSerializableTriple> triples;
 
     //indexes for triples
-    private Map<SugiliteSerializableEntity, Set<SugiliteSerializableTriple>> subjectTriplesMap;
-    private Map<SugiliteSerializableEntity, Set<SugiliteSerializableTriple>> objectTriplesMap;
-    private Map<SugiliteRelation, Set<SugiliteSerializableTriple>> predicateTriplesMap;
+    private Map<Integer, Set<SugiliteSerializableTriple>> subjectTriplesMap;
+    private Map<Integer, Set<SugiliteSerializableTriple>> objectTriplesMap;
+    private Map<Integer, Set<SugiliteSerializableTriple>> predicateTriplesMap;
 
     //indexes for entities and relations
     private Map<Integer, SugiliteSerializableEntity> sugiliteEntityIdSugiliteEntityMap;
     private Map<Integer, SugiliteRelation> sugiliteRelationIdSugiliteRelationMap;
 
-    int entityIdCounter;
-    private Map<Node, SugiliteSerializableEntity<Node>> accessibilityNodeInfoSugiliteEntityMap;
-    private Map<String, SugiliteSerializableEntity<String>> stringSugiliteEntityMap;
+    private transient int entityIdCounter;
+    private transient Map<Node, SugiliteSerializableEntity<Node>> accessibilityNodeInfoSugiliteEntityMap;
+    private transient Map<String, SugiliteSerializableEntity<String>> stringSugiliteEntityMap;
 
     public SerializableUISnapshot(UISnapshot uiSnapshot) {
         if(uiSnapshot.getTriples() != null) {
@@ -40,35 +40,36 @@ public class SerializableUISnapshot implements Serializable {
         }
 
         subjectTriplesMap = new HashMap<>();
-        Map<SugiliteEntity, Set<SugiliteTriple>> oldMap = uiSnapshot.getSubjectTriplesMap();
-        for(SugiliteEntity e : oldMap.keySet()) {
+        Map<Integer, Set<SugiliteTriple>> oldMap = uiSnapshot.getSubjectTriplesMap();
+        for(Integer entityId : oldMap.keySet()) {
             Set<SugiliteSerializableTriple> newSet = new HashSet<>();
-            for(SugiliteTriple t : oldMap.get(e)) {
+            for(SugiliteTriple t : oldMap.get(entityId)) {
                 newSet.add(new SugiliteSerializableTriple(t));
             }
-            subjectTriplesMap.put(new SugiliteSerializableEntity(e), newSet);
+            subjectTriplesMap.put(entityId, newSet);
         }
 
         objectTriplesMap = new HashMap<>();
-        Map<SugiliteEntity, Set<SugiliteTriple>> oldMapO = uiSnapshot.getObjectTriplesMap();
-        for(SugiliteEntity e : oldMapO.keySet()) {
+        Map<Integer, Set<SugiliteTriple>> oldMapO = uiSnapshot.getObjectTriplesMap();
+        for(Integer entityId : oldMapO.keySet()) {
             Set<SugiliteSerializableTriple> newSet = new HashSet<>();
-            for(SugiliteTriple t : oldMapO.get(e)) {
+            for(SugiliteTriple t : oldMapO.get(entityId)) {
                 newSet.add(new SugiliteSerializableTriple(t));
             }
-            objectTriplesMap.put(new SugiliteSerializableEntity(e), newSet);
+            objectTriplesMap.put(entityId, newSet);
         }
 
         predicateTriplesMap = new HashMap<>();
-        Map<SugiliteRelation, Set<SugiliteTriple>> oldMapR = uiSnapshot.getPredicateTriplesMap();
-        for(SugiliteRelation r : oldMapR.keySet()) {
+        Map<Integer, Set<SugiliteTriple>> oldMapR = uiSnapshot.getPredicateTriplesMap();
+        for(Integer relationId : oldMapR.keySet()) {
             Set<SugiliteSerializableTriple> newSet = new HashSet<>();
-            for(SugiliteTriple t : oldMapR.get(r)) {
+            for(SugiliteTriple t : oldMapR.get(relationId)) {
                 newSet.add(new SugiliteSerializableTriple(t));
             }
-            predicateTriplesMap.put(r, newSet);
+            predicateTriplesMap.put(relationId, newSet);
         }
 
+        //fill in the sugiliteEntityIdSugiliteEntityMap
         sugiliteEntityIdSugiliteEntityMap = new HashMap<>();
         Map<Integer, SugiliteEntity> oldMapID = uiSnapshot.getSugiliteEntityIdSugiliteEntityMap();
         for(Integer i : oldMapID.keySet()) {

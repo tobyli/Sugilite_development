@@ -56,12 +56,20 @@ public class SugiliteRelation {
     public static final SugiliteRelation HAS_PACKAGE_NAME = new SugiliteRelation(7, "HAS_PACKAGE_NAME");
     public static final SugiliteRelation HAS_CHILD = new SugiliteRelation(8, "HAS_CHILD");
 
-    //new relations to add for flattening the ontology
+
+    //TODO: new relations to add for flattening the ontology
     public static final SugiliteRelation HAS_CHILD_TEXT = new SugiliteRelation(9, "HAS_CHILD_TEXT");
+    public static final SugiliteRelation HAS_SIBLING_TEXT = new SugiliteRelation(11, "HAS_SIBLING_TEXT");
     public static final SugiliteRelation HAS_SIBLING = new SugiliteRelation(10, "HAS_SIBLING");
-    public static final SugiliteRelation IS_EDITABLE = new SugiliteRelation(10, "IS_EDITABLE");
-    public static final SugiliteRelation IS_CLICKABLE = new SugiliteRelation(10, "IS_CLICKABLE");
-    public static final SugiliteRelation IS_SCROLLABLE = new SugiliteRelation(10, "IS_SCROLLABLE");
+
+    //added
+    public static final SugiliteRelation IS_EDITABLE = new SugiliteRelation(12, "IS_EDITABLE");
+    public static final SugiliteRelation IS_CLICKABLE = new SugiliteRelation(13, "IS_CLICKABLE");
+    public static final SugiliteRelation IS_SCROLLABLE = new SugiliteRelation(14, "IS_SCROLLABLE");
+    public static final SugiliteRelation IS_CHECKABLE = new SugiliteRelation(15, "IS_CHECKABLE");
+    public static final SugiliteRelation IS_CHECKED = new SugiliteRelation(16, "IS_CHECKED");
+    public static final SugiliteRelation IS_SELECTED = new SugiliteRelation(17, "IS_SELECTED");
+
 
     public static final Map<String, SugiliteRelation> stringRelationMap;
     static {

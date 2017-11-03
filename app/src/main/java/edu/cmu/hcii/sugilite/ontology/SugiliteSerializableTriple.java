@@ -9,14 +9,24 @@ import java.util.Objects;
  * @time 10:42 PM
  */
 public class SugiliteSerializableTriple implements Serializable{
-    private SugiliteSerializableEntity subject;
+    private transient SugiliteSerializableEntity subject;
     private SugiliteRelation predicate;
-    private SugiliteSerializableEntity object;
+    private transient SugiliteSerializableEntity object;
+
+    private Integer subjectId;
+    private Integer objectId;
+    private String objectStringValue;
+    private String predicateStringValue;
+
 
     public SugiliteSerializableTriple(SugiliteTriple t){
         this.subject = new SugiliteSerializableEntity(t.getSubject());
         this.predicate = t.getPredicate();
         this.object = new SugiliteSerializableEntity(t.getObject());
+        this.subjectId = t.getSubjectId();
+        this.objectId = t.getObjectId();
+        this.objectStringValue = t.getObjectStringValue();
+        this.predicateStringValue = t.getPredicateStringValue();
     }
 
     @Override

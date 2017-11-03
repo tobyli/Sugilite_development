@@ -415,6 +415,8 @@ public class SugiliteAccessibilityService extends AccessibilityService {
                 query.setQueryFunction(r2);
                 Set<SugiliteEntity> s2 = query.executeOn(uiSnapshot);
 
+                OntologyQuery parseTest = OntologyQuery.deserialize("(and (HAS_TEXT red) (HAS_CLASS_NAME android.test))");
+
                 System.out.println("test");
             }
             */

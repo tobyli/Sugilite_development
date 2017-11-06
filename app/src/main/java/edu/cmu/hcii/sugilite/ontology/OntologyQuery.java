@@ -53,9 +53,18 @@ public class OntologyQuery {
                 SugiliteEntity s = pair.getSubject();
                 SugiliteEntity o = pair.getObject();
                 SugiliteTriple newTriple = new SugiliteTriple(s, relation, o);
-                Set<SugiliteTriple> subjectTriples = graph.getSubjectTriplesMap().get(s);
-                if(subjectTriples == null) return false;
-                return subjectTriples.contains(newTriple);
+                Integer sID = s.getEntityId();
+                Integer oID = o.getEntityId();
+                if(sID != -1) {
+                    Set<SugiliteTriple> subjectTriples = graph.getSubjectTriplesMap().get(sID);
+                    if (subjectTriples == null) return false;
+                    return subjectTriples.contains(newTriple);
+                }
+                else{
+                    Set<SugiliteTriple> objectTriples = graph.getObjectTriplesMap().get(oID);
+                    if (objectTriples == null) return false;
+                    return objectTriples.contains(newTriple);
+                }
             }
         };
     }
@@ -124,7 +133,7 @@ public class OntologyQuery {
             // base case
             if(query.subject == null && query.object == null){
                 // currNode can act as either subject or object
-                Set<SugiliteTriple> subjectMap = graph.getSubjectTriplesMap().get(currNode);
+                Set<SugiliteTriple> subjectMap = graph.getSubjectTriplesMap().get(currNode.getEntityId());
                 if(subjectMap != null) {
                     for (SugiliteTriple t : subjectMap) {
                         // every triple with currNode as subject
@@ -134,7 +143,7 @@ public class OntologyQuery {
                     }
                 }
 
-                Set<SugiliteTriple> objectMap = graph.getObjectTriplesMap().get(currNode);
+                Set<SugiliteTriple> objectMap = graph.getObjectTriplesMap().get(currNode.getEntityId());
                 if(objectMap != null) {
                     for (SugiliteTriple t : objectMap) {
                         // every triple with currNode as object
@@ -279,21 +288,32 @@ public class OntologyQuery {
         }
         else {
             // base case: simple relation
+            // note: the object will never be an accessbility node info (since this is directly from user)
             String predicateString = firstWord;
             String objectString = s.substring(spaceIndex+1, len);
             q.setSubRelation(relationType.nullR);
 
             q.setQueryFunction(SugiliteRelation.stringRelationMap.get(predicateString));
             Set<SugiliteEntity> oSet = new HashSet<SugiliteEntity>();
-            SugiliteEntity<String> o = new SugiliteEntity<String>(-1, String.class, objectString);
-            oSet.add(o);
+            if(objectString.equalsIgnoreCase("true")){
+                SugiliteEntity<Boolean> o = new SugiliteEntity<Boolean>(-1, Boolean.class, true);
+                oSet.add(o);
+            }
+            else if(objectString.equalsIgnoreCase("false")){
+                SugiliteEntity<Boolean> o = new SugiliteEntity<Boolean>(-1, Boolean.class, false);
+                oSet.add(o);
+            }
+            else {
+                SugiliteEntity<String> o = new SugiliteEntity<String>(-1, String.class, objectString);
+                oSet.add(o);
+            }
             q.setObject(oSet);
         }
         return q;
     }
 
     public static OntologyQuery deserialize(String queryString) {
-        // example: (and (hasColor red) (hasProperty isChecked))
+        // example: (and (hasColor red) (isChecked true))
         return parseString(queryString, new OntologyQuery());
     }
 }

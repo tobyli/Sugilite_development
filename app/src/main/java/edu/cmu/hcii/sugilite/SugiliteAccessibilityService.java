@@ -355,7 +355,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
                 Log.i(TAG, "FLAG3");
             }
 
-            /*
+
             //==== testing the UI snapshot
 
             if(event.getEventType() == AccessibilityEvent.TYPE_VIEW_CLICKED) {
@@ -419,7 +419,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
 
                 System.out.println("test");
             }
-            */
+
 
             //add package name to the relevant package set
             if(sugiliteData.getScriptHead() != null && event.getPackageName() != null && (!exceptedPackages.contains(event.getPackageName()))) {

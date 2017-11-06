@@ -236,19 +236,19 @@ public class UISnapshot {
         triples.add(triple);
 
         //fill in the indexes for triples
-        if(!subjectTriplesMap.containsKey(triple.getSubject())){
+        if(!subjectTriplesMap.containsKey(triple.getSubject().getEntityId())){
             subjectTriplesMap.put(triple.getSubject().getEntityId(), new HashSet<>());
         }
-        if(!predicateTriplesMap.containsKey(triple.getPredicate())){
+        if(!predicateTriplesMap.containsKey(triple.getPredicate().getRelationId())){
             predicateTriplesMap.put(triple.getPredicate().getRelationId(), new HashSet<>());
         }
-        if(!objectTriplesMap.containsKey(triple.getObject())){
+        if(!objectTriplesMap.containsKey(triple.getObject().getEntityId())){
             objectTriplesMap.put(triple.getObject().getEntityId(), new HashSet<>());
         }
 
-        subjectTriplesMap.get(triple.getSubject()).add(triple);
-        predicateTriplesMap.get(triple.getPredicate()).add(triple);
-        objectTriplesMap.get(triple.getObject()).add(triple);
+        subjectTriplesMap.get(triple.getSubject().getEntityId()).add(triple);
+        predicateTriplesMap.get(triple.getPredicate().getRelationId()).add(triple);
+        objectTriplesMap.get(triple.getObject().getEntityId()).add(triple);
 
 
         //fill in the two indexes for entities and relations
@@ -267,16 +267,16 @@ public class UISnapshot {
     public void removeTriple(SugiliteTriple triple){
         triples.remove(triple);
 
-        if(subjectTriplesMap.get(triple.getSubject()) != null){
-            subjectTriplesMap.get(triple.getSubject()).remove(triple);
+        if(subjectTriplesMap.get(triple.getSubject().getEntityId()) != null){
+            subjectTriplesMap.get(triple.getSubject().getEntityId()).remove(triple);
         }
 
-        if(predicateTriplesMap.get(triple.getPredicate()) != null){
-            predicateTriplesMap.get(triple.getPredicate()).remove(triple);
+        if(predicateTriplesMap.get(triple.getPredicate().getRelationId()) != null){
+            predicateTriplesMap.get(triple.getPredicate().getRelationId()).remove(triple);
         }
 
-        if(objectTriplesMap.get(triple.getObject()) != null){
-            objectTriplesMap.get(triple.getObject()).remove(triple);
+        if(objectTriplesMap.get(triple.getObject().getEntityId()) != null){
+            objectTriplesMap.get(triple.getObject().getEntityId()).remove(triple);
         }
 
     }
@@ -317,5 +317,7 @@ public class UISnapshot {
         return stringSugiliteEntityMap;
     }
 
-
+    public Map<Boolean, SugiliteEntity<Boolean>> getBooleanSugiliteEntityMap() {
+        return booleanSugiliteEntityMap;
+    }
 }

@@ -158,7 +158,7 @@ public class OntologyQuery {
             boolean objectBool = false;
             boolean subjectBool = false;
             if(query.object != null){
-                for(SugiliteEntity o : object){
+                for(SugiliteEntity o : query.object){
                     if(query.QueryFunction.apply(new SubjectEntityObjectEntityPair(currNode, o), graph)){
                         objectBool = true;
                         break;
@@ -167,7 +167,7 @@ public class OntologyQuery {
             }
 
             if(query.subject != null){
-                for(SugiliteEntity s : subject){
+                for(SugiliteEntity s : query.subject){
                     if(query.QueryFunction.apply(new SubjectEntityObjectEntityPair(s, currNode), graph)){
                         subjectBool = true;
                         break;

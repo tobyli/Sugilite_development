@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import edu.cmu.hcii.sugilite.Node;
 import edu.cmu.hcii.sugilite.automation.Automator;
 
 /**
@@ -31,9 +32,10 @@ public class UISnapshot {
 
 
     private transient int entityIdCounter;
-    private transient Map<AccessibilityNodeInfo, SugiliteEntity<AccessibilityNodeInfo>> accessibilityNodeInfoSugiliteEntityMap;
+    private transient Map<Node, SugiliteEntity<Node>> nodeSugiliteEntityMap;
     private transient Map<String, SugiliteEntity<String>> stringSugiliteEntityMap;
     private transient Map<Boolean, SugiliteEntity<Boolean>> booleanSugiliteEntityMap;
+    private transient Map<Node, AccessibilityNodeInfo> nodeAccessibilityNodeInfoMap;
 
 
     public UISnapshot(){
@@ -44,9 +46,10 @@ public class UISnapshot {
         predicateTriplesMap = new HashMap<>();
         sugiliteEntityIdSugiliteEntityMap = new HashMap<>();
         sugiliteRelationIdSugiliteRelationMap = new HashMap<>();
-        accessibilityNodeInfoSugiliteEntityMap = new HashMap<>();
+        nodeSugiliteEntityMap = new HashMap<>();
         stringSugiliteEntityMap = new HashMap<>();
         booleanSugiliteEntityMap = new HashMap<>();
+        nodeAccessibilityNodeInfoMap = new HashMap<>();
         entityIdCounter = 0;
     }
 
@@ -57,26 +60,28 @@ public class UISnapshot {
 
     }
 
-    public UISnapshot(AccessibilityNodeInfo rootNode){
+    public UISnapshot(AccessibilityNodeInfo rootNode, boolean toConstructNodeAccessibilityNodeInfoMap){
         //TODO: contruct a UI snapshot from a rootNode
         this();
         List<AccessibilityNodeInfo> allNodes = Automator.preOrderTraverse(rootNode);
-        Map<String, SugiliteEntity<String>> stringSugiliteEntityMap = new HashMap<>();
         if(allNodes != null){
-            for(AccessibilityNodeInfo node : allNodes) {
-
+            for(AccessibilityNodeInfo oldNode : allNodes) {
+                Node node = new Node(oldNode);
                 //get the corresponding entity for the node
-                SugiliteEntity<AccessibilityNodeInfo> currentEntity = null;
-                if (accessibilityNodeInfoSugiliteEntityMap.containsKey(node)) {
-                    currentEntity = accessibilityNodeInfoSugiliteEntityMap.get(node);
+                SugiliteEntity<Node> currentEntity = null;
+                if (nodeSugiliteEntityMap.containsKey(node)) {
+                    currentEntity = nodeSugiliteEntityMap.get(node);
                 } else {
                     //create a new entity for the node
-                    SugiliteEntity<AccessibilityNodeInfo> entity = new SugiliteEntity<>(entityIdCounter++, AccessibilityNodeInfo.class, node);
-                    accessibilityNodeInfoSugiliteEntityMap.put(node, entity);
+                    SugiliteEntity<Node> entity = new SugiliteEntity<Node>(entityIdCounter++, Node.class, node);
+                    nodeSugiliteEntityMap.put(node, entity);
                     currentEntity = entity;
                 }
 
                 //start to construct the relationship
+                if(toConstructNodeAccessibilityNodeInfoMap) {
+                    nodeAccessibilityNodeInfoMap.put(node, oldNode);
+                }
 
                 if (node.getClassName() != null) {
                     //class
@@ -109,44 +114,42 @@ public class UISnapshot {
                 }
 
                 //isClickable
-                addEntityBooleanTriple(currentEntity, node.isClickable(), SugiliteRelation.IS_CLICKABLE);
+                addEntityBooleanTriple(currentEntity, node.getClickable(), SugiliteRelation.IS_CLICKABLE);
 
                 //isEditable
-                addEntityBooleanTriple(currentEntity, node.isEditable(), SugiliteRelation.IS_EDITABLE);
+                addEntityBooleanTriple(currentEntity, node.getEditable(), SugiliteRelation.IS_EDITABLE);
 
                 //isScrollable
-                addEntityBooleanTriple(currentEntity, node.isScrollable(), SugiliteRelation.IS_SCROLLABLE);
+                addEntityBooleanTriple(currentEntity, node.getScrollable(), SugiliteRelation.IS_SCROLLABLE);
 
                 //isCheckable
-                addEntityBooleanTriple(currentEntity, node.isCheckable(), SugiliteRelation.IS_CHECKABLE);
+                addEntityBooleanTriple(currentEntity, node.getCheckable(), SugiliteRelation.IS_CHECKABLE);
 
                 //isChecked
-                addEntityBooleanTriple(currentEntity, node.isChecked(), SugiliteRelation.IS_CHECKED);
+                addEntityBooleanTriple(currentEntity, node.getChecked(), SugiliteRelation.IS_CHECKED);
 
                 //isSelected
-                addEntityBooleanTriple(currentEntity, node.isSelected(), SugiliteRelation.IS_SELECTED);
+                addEntityBooleanTriple(currentEntity, node.getSelected(), SugiliteRelation.IS_SELECTED);
 
 
                 //screen location
-                Rect screenLocationRect = new Rect();
-                node.getBoundsInScreen(screenLocationRect);
-                addEntityStringTriple(currentEntity, screenLocationRect.flattenToString(), SugiliteRelation.HAS_SCREEN_LOCATION);
+                addEntityStringTriple(currentEntity, node.getBoundsInScreen(), SugiliteRelation.HAS_SCREEN_LOCATION);
 
                 //parent location
-                Rect parentLocationRect = new Rect();
-                node.getBoundsInParent(parentLocationRect);
-                addEntityStringTriple(currentEntity, parentLocationRect.flattenToString(), SugiliteRelation.HAS_PARENT_LOCATION);
+                addEntityStringTriple(currentEntity, node.getBoundsInParent(), SugiliteRelation.HAS_PARENT_LOCATION);
 
                 //has_parent relation
                 if (node.getParent() != null) {
                     //parent
-                    AccessibilityNodeInfo parentNode = node.getParent();
-                    addEntityAccessibilityNodeInfoTriple(currentEntity, parentNode, SugiliteRelation.HAS_PARENT);
-                    if(accessibilityNodeInfoSugiliteEntityMap.containsKey(parentNode)) {
-                        SugiliteTriple triple2 = new SugiliteTriple(accessibilityNodeInfoSugiliteEntityMap.get(parentNode), SugiliteRelation.HAS_CHILD, currentEntity);
+                    Node parentNode = node.getParent();
+                    addEntityNodeTriple(currentEntity, parentNode, SugiliteRelation.HAS_PARENT);
+                    if(nodeSugiliteEntityMap.containsKey(parentNode)) {
+                        SugiliteTriple triple2 = new SugiliteTriple(nodeSugiliteEntityMap.get(parentNode), SugiliteRelation.HAS_CHILD, currentEntity);
                         addTriple(triple2);
                     }
                 }
+
+                // TODO: add sibling and child text info
             }
         }
 
@@ -201,21 +204,21 @@ public class UISnapshot {
     }
 
     /**
-     * helper function used for adding a <SugiliteEntity, SugiliteEntity<AccessibilityNodeInfo>, SugiliteRelation) triple
+     * helper function used for adding a <SugiliteEntity, SugiliteEntity<Node>, SugiliteRelation) triple
      * @param currentEntity
      * @param node
      * @param relation
      */
-    void addEntityAccessibilityNodeInfoTriple(SugiliteEntity currentEntity, AccessibilityNodeInfo node, SugiliteRelation relation){
+    void addEntityNodeTriple(SugiliteEntity currentEntity, Node node, SugiliteRelation relation){
         //class
-        SugiliteEntity<AccessibilityNodeInfo> objectEntity = null;
+        SugiliteEntity<Node> objectEntity = null;
 
-        if (accessibilityNodeInfoSugiliteEntityMap.containsKey(node)) {
-            objectEntity = accessibilityNodeInfoSugiliteEntityMap.get(node);
+        if (nodeSugiliteEntityMap.containsKey(node)) {
+            objectEntity = nodeSugiliteEntityMap.get(node);
         } else {
             //create a new entity for the class name
-            SugiliteEntity<AccessibilityNodeInfo> entity = new SugiliteEntity<>(entityIdCounter++, AccessibilityNodeInfo.class, node);
-            accessibilityNodeInfoSugiliteEntityMap.put(node, entity);
+            SugiliteEntity<Node> entity = new SugiliteEntity<Node>(entityIdCounter++, Node.class, node);
+            nodeSugiliteEntityMap.put(node, entity);
             objectEntity = entity;
         }
 
@@ -309,8 +312,8 @@ public class UISnapshot {
         return entityIdCounter;
     }
 
-    public Map<AccessibilityNodeInfo, SugiliteEntity<AccessibilityNodeInfo>> getAccessibilityNodeInfoSugiliteEntityMap() {
-        return accessibilityNodeInfoSugiliteEntityMap;
+    public Map<Node, SugiliteEntity<Node>> getNodeSugiliteEntityMap() {
+        return nodeSugiliteEntityMap;
     }
 
     public Map<String, SugiliteEntity<String>> getStringSugiliteEntityMap() {
@@ -319,5 +322,9 @@ public class UISnapshot {
 
     public Map<Boolean, SugiliteEntity<Boolean>> getBooleanSugiliteEntityMap() {
         return booleanSugiliteEntityMap;
+    }
+
+    public Map<Node, AccessibilityNodeInfo> getNodeAccessibilityNodeInfoMap() {
+        return nodeAccessibilityNodeInfoMap;
     }
 }

@@ -22,6 +22,7 @@ import java.util.Map;
 import java.util.Set;
 
 import edu.cmu.hcii.sugilite.Const;
+import edu.cmu.hcii.sugilite.Node;
 import edu.cmu.hcii.sugilite.SugiliteAccessibilityService;
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
@@ -39,6 +40,7 @@ import edu.cmu.hcii.sugilite.model.operation.SugiliteSetTextOperation;
 import edu.cmu.hcii.sugilite.model.variable.StringVariable;
 import edu.cmu.hcii.sugilite.model.variable.Variable;
 import edu.cmu.hcii.sugilite.model.variable.VariableHelper;
+import edu.cmu.hcii.sugilite.ontology.OntologyQuery;
 import edu.cmu.hcii.sugilite.ontology.SugiliteEntity;
 import edu.cmu.hcii.sugilite.ontology.UISnapshot;
 import edu.cmu.hcii.sugilite.recording.SugiliteScreenshotManager;
@@ -325,13 +327,14 @@ public class Automator {
                 variableHelper = new VariableHelper(sugiliteData.stringVariableMap);
                 //if we can match this event, perform the action and remove the head object
 
-                UISnapshot uiSnapshot = new UISnapshot(rootNode);
-                Set<SugiliteEntity> querySet = operationBlock.getQuery().executeOn(uiSnapshot);
+                UISnapshot uiSnapshot = new UISnapshot(rootNode, true);
+                OntologyQuery q = new OntologyQuery(operationBlock.getQuery());
+                Set<SugiliteEntity> querySet = q.executeOn(uiSnapshot);
 
                 List<AccessibilityNodeInfo> filteredNodes = new ArrayList<AccessibilityNodeInfo>();
                 for(SugiliteEntity e : querySet) {
-                    if(e.getEntityValue() instanceof AccessibilityNodeInfo){
-                        filteredNodes.add((AccessibilityNodeInfo) (e.getEntityValue()));
+                    if(e.getEntityValue() instanceof Node){
+                        filteredNodes.add(uiSnapshot.getNodeAccessibilityNodeInfoMap().get(e.getEntityValue()));
                     }
                 }
 

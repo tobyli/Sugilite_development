@@ -1,5 +1,6 @@
 package edu.cmu.hcii.sugilite.ontology;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Objects;
 import java.util.Map;
@@ -9,7 +10,7 @@ import java.util.Map;
  * @date 9/25/17
  * @time 5:57 PM
  */
-public class SugiliteRelation {
+public class SugiliteRelation implements Serializable {
     private Integer relationId;
     private String relationName;
 

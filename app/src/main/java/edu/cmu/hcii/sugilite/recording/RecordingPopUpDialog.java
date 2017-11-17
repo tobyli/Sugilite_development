@@ -65,6 +65,7 @@ import edu.cmu.hcii.sugilite.model.operation.SugiliteSetTextOperation;
 import edu.cmu.hcii.sugilite.model.variable.StringVariable;
 import edu.cmu.hcii.sugilite.model.variable.Variable;
 import edu.cmu.hcii.sugilite.ontology.OntologyQuery;
+import edu.cmu.hcii.sugilite.ontology.SerializableOntologyQuery;
 import edu.cmu.hcii.sugilite.ontology.SugiliteEntity;
 import edu.cmu.hcii.sugilite.ontology.SugiliteRelation;
 import edu.cmu.hcii.sugilite.ui.dialog.AbstractSugiliteDialog;
@@ -1705,7 +1706,7 @@ public class RecordingPopUpDialog extends AbstractSugiliteDialog {
         return filter;
     }
 
-    public OntologyQuery generateQuery(){
+    public SerializableOntologyQuery generateQuery(){
         OntologyQuery q = new OntologyQuery(OntologyQuery.relationType.AND);
 
         if(withInAppSpinner.getSelectedItem().toString().contentEquals(readableDescriptionGenerator.getReadableName(featurePack.packageName))){
@@ -1790,7 +1791,8 @@ public class RecordingPopUpDialog extends AbstractSugiliteDialog {
             }
         }
 
-        return q;
+        SerializableOntologyQuery sq = new SerializableOntologyQuery(q);
+        return sq;
     }
 
     private SugiliteOperationBlock generateBlock(){

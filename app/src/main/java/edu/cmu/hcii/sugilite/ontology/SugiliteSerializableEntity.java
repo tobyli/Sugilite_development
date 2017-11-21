@@ -12,18 +12,22 @@ import java.io.Serializable;
  * @date 10/25/17
  * @time 2:13 PM
  */
-public class SugiliteSerializableEntity<T extends Serializable> extends SugiliteEntity implements Serializable {
+public class SugiliteSerializableEntity<T extends Serializable> implements Serializable {
+    private Integer entityId;
+    private T entityValue;
+    private transient Class<T> type;
+
 
     public SugiliteSerializableEntity(SugiliteEntity e) {
-        this.setEntityId(e.getEntityId());
+        entityId = e.getEntityId();
         if (e.getEntityValue() instanceof Serializable) {
-            this.setType(e.getType());
-            this.setEntityValue(e.getEntityValue());
+            type = e.getType();
+            entityValue = (T)e.getEntityValue();
 
         } else {
             if(e.getEntityValue() instanceof AccessibilityNodeInfo) {
-                this.setType(Node.class);
-                this.setEntityValue(new Node((AccessibilityNodeInfo) e.getEntityValue()));
+                type = (Class<T>) Node.class;
+                entityValue = (T)new Node((AccessibilityNodeInfo) e.getEntityValue());
             }
             else {
                 if (BuildConfig.DEBUG) {
@@ -31,5 +35,17 @@ public class SugiliteSerializableEntity<T extends Serializable> extends Sugilite
                 }
             }
         }
+    }
+
+    public Class<T> getType() {
+        return type;
+    }
+
+    public Integer getEntityId() {
+        return entityId;
+    }
+
+    public T getEntityValue() {
+        return entityValue;
     }
 }

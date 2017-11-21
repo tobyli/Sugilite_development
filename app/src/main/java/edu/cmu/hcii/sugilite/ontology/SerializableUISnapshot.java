@@ -30,7 +30,7 @@ public class SerializableUISnapshot implements Serializable {
     private transient int entityIdCounter;
     private transient Map<Node, SugiliteSerializableEntity<Node>> accessibilityNodeInfoSugiliteEntityMap;
     private transient Map<String, SugiliteSerializableEntity<String>> stringSugiliteEntityMap;
-    private transient Map<Boolean, SugiliteEntity<Boolean>> booleanSugiliteEntityMap;
+    private transient Map<Boolean, SugiliteSerializableEntity<Boolean>> booleanSugiliteEntityMap;
 
     public SerializableUISnapshot(UISnapshot uiSnapshot) {
         if(uiSnapshot.getTriples() != null) {
@@ -82,10 +82,10 @@ public class SerializableUISnapshot implements Serializable {
         entityIdCounter = uiSnapshot.getEntityIdCounter();
 
         accessibilityNodeInfoSugiliteEntityMap = new HashMap<>();
-        Map<AccessibilityNodeInfo, SugiliteEntity<AccessibilityNodeInfo>> oldMapANI = uiSnapshot.getAccessibilityNodeInfoSugiliteEntityMap();
-        for(AccessibilityNodeInfo ani : oldMapANI.keySet()) {
-            SugiliteEntity<AccessibilityNodeInfo> oldEntity = oldMapANI.get(ani);
-            accessibilityNodeInfoSugiliteEntityMap.put(new Node(ani),
+        Map<Node, SugiliteEntity<Node>> oldMapANI = uiSnapshot.getNodeSugiliteEntityMap();
+        for(Node ani : oldMapANI.keySet()) {
+            SugiliteEntity<Node> oldEntity = oldMapANI.get(ani);
+            accessibilityNodeInfoSugiliteEntityMap.put(ani,
                     new SugiliteSerializableEntity<>(oldEntity));
         }
 
@@ -98,7 +98,7 @@ public class SerializableUISnapshot implements Serializable {
         booleanSugiliteEntityMap = new HashMap<>();
         Map<Boolean, SugiliteEntity<Boolean>> oldMapBool = uiSnapshot.getBooleanSugiliteEntityMap();
         for(Boolean b : oldMapBool.keySet()) {
-            booleanSugiliteEntityMap.put(b, new SugiliteSerializableEntity<>(oldMapBool.get(b)));
+            booleanSugiliteEntityMap.put(b, new SugiliteSerializableEntity(oldMapBool.get(b)));
         }
     }
 }

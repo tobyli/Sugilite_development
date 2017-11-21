@@ -19,9 +19,33 @@ public class OntologyQuery {
     private BiFunction<SubjectEntityObjectEntityPair, UISnapshot, Boolean> QueryFunction = null;
     private Set<SugiliteEntity> object = null;
     private Set<SugiliteEntity> subject = null;
+    private SugiliteRelation r = null;
 
     public OntologyQuery(){
 
+    }
+
+    public OntologyQuery(SerializableOntologyQuery sq) {
+        SubRelation = sq.getSubRelation();
+        r = sq.getR();
+        if(SubRelation != relationType.nullR) {
+            SubQueries = new HashSet<OntologyQuery>();
+            Set<SerializableOntologyQuery> pSubq = sq.getSubQueries();
+            for(SerializableOntologyQuery s : pSubq) {
+                SubQueries.add(new OntologyQuery(s));
+            }
+        }
+        else{
+            setQueryFunction(sq.getR());
+            Set<SugiliteSerializableEntity> so = sq.getObject();
+            Set<SugiliteSerializableEntity> ss = sq.getSubject();
+            if(so != null){
+                object = new HashSet<SugiliteEntity>();
+                for(SugiliteSerializableEntity se : so){
+                    object.add(new SugiliteEntity(se));
+                }
+            }
+        }
     }
 
     public OntologyQuery(relationType r){
@@ -39,14 +63,16 @@ public class OntologyQuery {
         SubQueries.add(sub);
     }
 
-    public void setQueryFunction(BiFunction<SubjectEntityObjectEntityPair, UISnapshot, Boolean> f){
+    public void setQueryFunction(BiFunction<SubjectEntityObjectEntityPair, UISnapshot, Boolean> f, SugiliteRelation r){
         if(BuildConfig.DEBUG && !(SubRelation == relationType.nullR)){
             throw new AssertionError();
         }
         QueryFunction = f;
+        this.r = r;
     }
 
     public void setQueryFunction(SugiliteRelation relation){
+        r = relation;
         QueryFunction = new BiFunction<SubjectEntityObjectEntityPair, UISnapshot, Boolean>() {
             @Override
             public Boolean apply(SubjectEntityObjectEntityPair pair, UISnapshot graph) {
@@ -119,10 +145,10 @@ public class OntologyQuery {
     public Set<SugiliteEntity> getSubject() {return this.subject;}
 
     public boolean checkValidQuery() {
-        if(!(SubRelation != relationType.nullR && SubQueries != null && object == null && subject == null && QueryFunction == null)){
+        if(!(SubRelation != relationType.nullR && SubQueries != null && object == null && subject == null && QueryFunction == null && r == null)){
             return false;
         }
-        if(!(SubRelation == relationType.nullR && SubQueries == null && QueryFunction != null)){
+        if(!(SubRelation == relationType.nullR && SubQueries == null && QueryFunction != null && r != null)){
             return false;
         }
         return true;
@@ -158,7 +184,7 @@ public class OntologyQuery {
             boolean objectBool = false;
             boolean subjectBool = false;
             if(query.object != null){
-                for(SugiliteEntity o : object){
+                for(SugiliteEntity o : query.object){
                     if(query.QueryFunction.apply(new SubjectEntityObjectEntityPair(currNode, o), graph)){
                         objectBool = true;
                         break;
@@ -167,7 +193,7 @@ public class OntologyQuery {
             }
 
             if(query.subject != null){
-                for(SugiliteEntity s : subject){
+                for(SugiliteEntity s : query.subject){
                     if(query.QueryFunction.apply(new SubjectEntityObjectEntityPair(s, currNode), graph)){
                         subjectBool = true;
                         break;
@@ -315,5 +341,9 @@ public class OntologyQuery {
     public static OntologyQuery deserialize(String queryString) {
         // example: (and (hasColor red) (isChecked true))
         return parseString(queryString, new OntologyQuery());
+    }
+
+    public SugiliteRelation getR() {
+        return r;
     }
 }

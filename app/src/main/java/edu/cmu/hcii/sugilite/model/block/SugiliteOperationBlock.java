@@ -3,6 +3,8 @@ package edu.cmu.hcii.sugilite.model.block;
 import java.io.Serializable;
 
 import edu.cmu.hcii.sugilite.model.operation.SugiliteOperation;
+import edu.cmu.hcii.sugilite.ontology.OntologyQuery;
+import edu.cmu.hcii.sugilite.ontology.SerializableOntologyQuery;
 
 /**
  * @author toby
@@ -14,6 +16,7 @@ public class SugiliteOperationBlock extends SugiliteBlock implements Serializabl
     private UIElementMatchingFilter elementMatchingFilter;
     private SugiliteOperation operation;
     private SugiliteAvailableFeaturePack featurePack;
+    private SerializableOntologyQuery query;
 
     public boolean isSetAsABreakPoint = false;
 
@@ -28,6 +31,9 @@ public class SugiliteOperationBlock extends SugiliteBlock implements Serializabl
     public void setElementMatchingFilter(UIElementMatchingFilter filter){
         this.elementMatchingFilter = filter;
     }
+    public void setQuery(SerializableOntologyQuery query) {
+        this.query = query;
+    }
     public void setOperation(SugiliteOperation operation){
         this.operation = operation;
     }
@@ -40,6 +46,9 @@ public class SugiliteOperationBlock extends SugiliteBlock implements Serializabl
     }
     public UIElementMatchingFilter getElementMatchingFilter(){
         return elementMatchingFilter;
+    }
+    public SerializableOntologyQuery getQuery() {
+        return query;
     }
     public SugiliteOperation getOperation(){
         return operation;

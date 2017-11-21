@@ -58,11 +58,12 @@ public class SugiliteScriptFileDao implements SugiliteScriptDao {
      * @throws Exception
      */
     public void commitSave() throws Exception{
+        int number = savingCache.size();
         for(Map.Entry<String, SugiliteStartingBlock> entry : savingCache.entrySet()){
             commitSaveForASingleScript(entry.getValue());
         }
         savingCache.clear();
-        System.out.println("COMMIT SAVE: SAVED " + savingCache.size() + " SCRIPTS");
+        System.out.println("COMMIT SAVE: SAVED " + number + " SCRIPTS");
     }
 
     public void commitSaveForASingleScript(SugiliteStartingBlock sugiliteBlock) throws Exception{

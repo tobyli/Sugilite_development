@@ -5,6 +5,8 @@ import android.graphics.Rect;
 
 import java.util.Objects;
 
+import edu.cmu.hcii.sugilite.Node;
+
 /**
  * @author toby
  * @date 9/25/17
@@ -26,6 +28,13 @@ public class SugiliteEntity<T> {
         this.entityValue = value;
         this.type = type;
         //TODO: initiate a unique entityId
+    }
+
+    public SugiliteEntity(SugiliteSerializableEntity se) {
+        // every sugiliteEntity is serializable right now, might change later
+        entityId = se.getEntityId();
+        type = se.getType();
+        entityValue = (T)se.getEntityValue();
     }
 
     public Integer getEntityId() {

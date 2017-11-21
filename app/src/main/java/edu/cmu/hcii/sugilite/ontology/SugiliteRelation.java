@@ -62,6 +62,9 @@ public class SugiliteRelation {
     public static final SugiliteRelation HAS_SIBLING_TEXT = new SugiliteRelation(11, "HAS_SIBLING_TEXT");
     public static final SugiliteRelation HAS_SIBLING = new SugiliteRelation(10, "HAS_SIBLING");
 
+    //TODO: "has text label" relation that combines "has_text", "has_child_text" and "has_sibling_text"
+
+
     //added
     public static final SugiliteRelation IS_EDITABLE = new SugiliteRelation(12, "IS_EDITABLE");
     public static final SugiliteRelation IS_CLICKABLE = new SugiliteRelation(13, "IS_CLICKABLE");

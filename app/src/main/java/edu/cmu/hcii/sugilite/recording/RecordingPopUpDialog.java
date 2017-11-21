@@ -1753,6 +1753,7 @@ public class RecordingPopUpDialog extends AbstractSugiliteDialog {
         operationBlock.setOperation(sugiliteOperation);
         operationBlock.setFeaturePack(featurePack);
         operationBlock.setElementMatchingFilter(generateFilter());
+        //TODO: add query here
         operationBlock.setScreenshot(featurePack.screenshot);
         operationBlock.setDescription(readableDescriptionGenerator.generateReadableDescription(operationBlock));
         return operationBlock;

@@ -12,6 +12,7 @@ import edu.cmu.hcii.sugilite.model.operation.SugiliteOperation;
 public class SugiliteOperationBlock extends SugiliteBlock implements Serializable{
     private SugiliteBlock nextBlock;
     private UIElementMatchingFilter elementMatchingFilter;
+    //TODO: add a structure for storing a query
     private SugiliteOperation operation;
     private SugiliteAvailableFeaturePack featurePack;
 

@@ -22,6 +22,7 @@ public class SerializableOntologyQuery implements Serializable {
         r = q.getR();
         SubRelation = q.getSubRelation();
         if(SubRelation != OntologyQuery.relationType.nullR) {
+            // for nested query, recursively construct SerializableOntologyQuery
             SubQueries = new HashSet<SerializableOntologyQuery>();
             Set<OntologyQuery> pSubQueries = q.getSubQueries();
             for (OntologyQuery pq : pSubQueries) {
@@ -29,6 +30,7 @@ public class SerializableOntologyQuery implements Serializable {
             }
         }
         else{
+            // otherwise, transform SugiliteEntity to SugiliteSerializableEntity
             Set<SugiliteEntity> po = q.getObject();
             Set<SugiliteEntity> ps = q.getSubject();
             if(po != null){

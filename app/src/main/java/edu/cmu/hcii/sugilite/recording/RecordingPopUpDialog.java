@@ -1629,6 +1629,7 @@ public class RecordingPopUpDialog extends AbstractSugiliteDialog {
      * generate a UIElementMatchingFilter based on the selection
      * @return
      */
+    @Deprecated
     public UIElementMatchingFilter generateFilter(){
         UIElementMatchingFilter filter = new UIElementMatchingFilter();
         if(withInAppSpinner.getSelectedItem().toString().contentEquals(readableDescriptionGenerator.getReadableName(featurePack.packageName))){
@@ -1706,12 +1707,17 @@ public class RecordingPopUpDialog extends AbstractSugiliteDialog {
         return filter;
     }
 
+    /**
+     * Generate a SerializableOntologyQuery based on the selection of the popup
+     *
+     * @return the result SearializableOntologyQuery
+     */
     public SerializableOntologyQuery generateQuery(){
         OntologyQuery q = new OntologyQuery(OntologyQuery.relationType.AND);
 
         if(withInAppSpinner.getSelectedItem().toString().contentEquals(readableDescriptionGenerator.getReadableName(featurePack.packageName))){
             OntologyQuery subQuery = new OntologyQuery(OntologyQuery.relationType.nullR);
-            Set<SugiliteEntity> object = new HashSet<SugiliteEntity>();
+            Set<SugiliteEntity> object = new HashSet<>();
             object.add(new SugiliteEntity(-1, String.class, featurePack.packageName));
             subQuery.setObject(object);
             subQuery.setQueryFunction(SugiliteRelation.HAS_PACKAGE_NAME);
@@ -1719,7 +1725,7 @@ public class RecordingPopUpDialog extends AbstractSugiliteDialog {
         }
         if(targetTypeSpinner.getSelectedItem().toString().contentEquals(featurePack.className)){
             OntologyQuery subQuery = new OntologyQuery(OntologyQuery.relationType.nullR);
-            Set<SugiliteEntity> object = new HashSet<SugiliteEntity>();
+            Set<SugiliteEntity> object = new HashSet<>();
             object.add(new SugiliteEntity(-1, String.class, featurePack.className));
             subQuery.setObject(object);
             subQuery.setQueryFunction(SugiliteRelation.HAS_CLASS_NAME);
@@ -1727,7 +1733,7 @@ public class RecordingPopUpDialog extends AbstractSugiliteDialog {
         }
         if(textCheckbox != null && textCheckbox.isChecked()){
             OntologyQuery subQuery = new OntologyQuery(OntologyQuery.relationType.nullR);
-            Set<SugiliteEntity> object = new HashSet<SugiliteEntity>();
+            Set<SugiliteEntity> object = new HashSet<>();
             object.add(new SugiliteEntity(-1, String.class, textContent));
             subQuery.setObject(object);
             subQuery.setQueryFunction(SugiliteRelation.HAS_TEXT);
@@ -1735,7 +1741,7 @@ public class RecordingPopUpDialog extends AbstractSugiliteDialog {
         }
         if(contentDescriptionCheckbox != null && contentDescriptionCheckbox.isChecked()){
             OntologyQuery subQuery = new OntologyQuery(OntologyQuery.relationType.nullR);
-            Set<SugiliteEntity> object = new HashSet<SugiliteEntity>();
+            Set<SugiliteEntity> object = new HashSet<>();
             object.add(new SugiliteEntity(-1, String.class, contentDescriptionContent));
             subQuery.setObject(object);
             subQuery.setQueryFunction(SugiliteRelation.HAS_CONTENT_DESCRIPTION);
@@ -1743,7 +1749,7 @@ public class RecordingPopUpDialog extends AbstractSugiliteDialog {
         }
         if(viewIdCheckbox != null && viewIdCheckbox.isChecked()){
             OntologyQuery subQuery = new OntologyQuery(OntologyQuery.relationType.nullR);
-            Set<SugiliteEntity> object = new HashSet<SugiliteEntity>();
+            Set<SugiliteEntity> object = new HashSet<>();
             object.add(new SugiliteEntity(-1, String.class, viewIdContent));
             subQuery.setObject(object);
             subQuery.setQueryFunction(SugiliteRelation.HAS_VIEW_ID);
@@ -1751,7 +1757,7 @@ public class RecordingPopUpDialog extends AbstractSugiliteDialog {
         }
         if(boundsInParentCheckbox != null && boundsInParentCheckbox.isChecked()){
             OntologyQuery subQuery = new OntologyQuery(OntologyQuery.relationType.nullR);
-            Set<SugiliteEntity> object = new HashSet<SugiliteEntity>();
+            Set<SugiliteEntity> object = new HashSet<>();
             object.add(new SugiliteEntity(-1, String.class, featurePack.boundsInParent));
             subQuery.setObject(object);
             subQuery.setQueryFunction(SugiliteRelation.HAS_PARENT_LOCATION);
@@ -1759,7 +1765,7 @@ public class RecordingPopUpDialog extends AbstractSugiliteDialog {
         }
         if(boundsInScreenCheckbox != null && boundsInScreenCheckbox.isChecked()){
             OntologyQuery subQuery = new OntologyQuery(OntologyQuery.relationType.nullR);
-            Set<SugiliteEntity> object = new HashSet<SugiliteEntity>();
+            Set<SugiliteEntity> object = new HashSet<>();
             object.add(new SugiliteEntity(-1, String.class, featurePack.boundsInScreen));
             subQuery.setObject(object);
             subQuery.setQueryFunction(SugiliteRelation.HAS_SCREEN_LOCATION);
@@ -1770,7 +1776,7 @@ public class RecordingPopUpDialog extends AbstractSugiliteDialog {
             for(Map.Entry<String, String> entry : selectedChildFeatures){
                 if(entry.getKey().contains("Text")){
                     OntologyQuery subQuery = new OntologyQuery(OntologyQuery.relationType.nullR);
-                    Set<SugiliteEntity> object = new HashSet<SugiliteEntity>();
+                    Set<SugiliteEntity> object = new HashSet<>();
                     object.add(new SugiliteEntity(-1, String.class, entry.getValue()));
                     subQuery.setObject(object);
                     subQuery.setQueryFunction(SugiliteRelation.HAS_CHILD_TEXT);
@@ -1782,7 +1788,7 @@ public class RecordingPopUpDialog extends AbstractSugiliteDialog {
             for(Map.Entry<String, String> entry : selectedSiblingFeatures){
                 if(entry.getKey().contains("Text")){
                     OntologyQuery subQuery = new OntologyQuery(OntologyQuery.relationType.nullR);
-                    Set<SugiliteEntity> object = new HashSet<SugiliteEntity>();
+                    Set<SugiliteEntity> object = new HashSet<>();
                     object.add(new SugiliteEntity(-1, String.class, entry.getValue()));
                     subQuery.setObject(object);
                     subQuery.setQueryFunction(SugiliteRelation.HAS_SIBLING_TEXT);
@@ -1791,6 +1797,7 @@ public class RecordingPopUpDialog extends AbstractSugiliteDialog {
             }
         }
 
+        // serialize the query
         SerializableOntologyQuery sq = new SerializableOntologyQuery(q);
         return sq;
     }

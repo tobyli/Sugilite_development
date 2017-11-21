@@ -66,7 +66,7 @@ public class OntologyQuery {
     public void setQueryFunction(BiFunction<SubjectEntityObjectEntityPair, UISnapshot, Boolean> f, SugiliteRelation r){
         if(BuildConfig.DEBUG && !(SubRelation == relationType.nullR)){
             throw new AssertionError();
-        }Access
+        }
         QueryFunction = f;
         this.r = r;
     }

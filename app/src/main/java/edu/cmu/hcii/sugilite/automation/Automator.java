@@ -154,6 +154,8 @@ public class Automator {
                 return false;
             }
 
+            //not use the element matching filter anymore
+
 //            if (operationBlock.getElementMatchingFilter() == null) {
 //                //there is no element matching filter in the operation block
 //                if (operationBlock.getOperation().getOperationType() == SugiliteOperation.SPECIAL_GO_HOME) {
@@ -289,6 +291,8 @@ public class Automator {
 //                }
 //                return succeeded;
 //            }
+
+
             if (operationBlock.getQuery() == null) {
                 //there is no query in the operation block
                 if (operationBlock.getOperation().getOperationType() == SugiliteOperation.SPECIAL_GO_HOME) {
@@ -323,11 +327,14 @@ public class Automator {
                     return false;
             }
             else {
-                //the operation has a query
+                //the operation has a query, try to use the query to match a node
+
                 variableHelper = new VariableHelper(sugiliteData.stringVariableMap);
                 //if we can match this event, perform the action and remove the head object
 
                 UISnapshot uiSnapshot = new UISnapshot(rootNode, true);
+
+                //de-serialize the OntologyQuery
                 OntologyQuery q = new OntologyQuery(operationBlock.getQuery());
                 Set<SugiliteEntity> querySet = q.executeOn(uiSnapshot);
 
@@ -338,8 +345,10 @@ public class Automator {
                     }
                 }
 
-                if (filteredNodes.size() == 0)
+                if (filteredNodes.size() == 0) {
+                    //couldn't find a matched node in the current UISnapshot
                     return false;
+                }
 
                 boolean succeeded = false;
                 for (AccessibilityNodeInfo node : filteredNodes) {
@@ -350,18 +359,20 @@ public class Automator {
                     } catch (Exception e) {
                         // do nothing
                     }
-                    //TODO: add handle breakpoint for debugging
                     boolean retVal = performAction(node, operationBlock);
                     if (retVal) {
-                /*
-                Rect tempRect = new Rect();
-                node.getBoundsInScreen(tempRect);
-                statusIconManager.moveIcon(tempRect.centerX(), tempRect.centerY());
-                */
+                        //the action is performed successfully
+
+                        /*
+                        Rect tempRect = new Rect();
+                        node.getBoundsInScreen(tempRect);
+                        statusIconManager.moveIcon(tempRect.centerX(), tempRect.centerY());
+                        */
                         if (!succeeded) {
                             sugiliteData.errorHandler.reportSuccess(Calendar.getInstance().getTimeInMillis());
-                            if (sugiliteData.getInstructionQueueSize() > 0)
+                            if (sugiliteData.getInstructionQueueSize() > 0) {
                                 sugiliteData.removeInstructionQueueItem();
+                            }
                             addNextBlockToQueue(operationBlock);
                         }
                         succeeded = true;

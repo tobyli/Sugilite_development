@@ -358,6 +358,8 @@ public class SugiliteAccessibilityService extends AccessibilityService {
 
             //==== testing the UI snapshot
 
+            /*
+
             if(event.getEventType() == AccessibilityEvent.TYPE_VIEW_CLICKED) {
                 File rootDataDir = context.getFilesDir();
                 AccessibilityNodeInfo new_root = sourceNode;
@@ -419,6 +421,8 @@ public class SugiliteAccessibilityService extends AccessibilityService {
 
                 System.out.println("test");
             }
+
+            */
 
 
             //add package name to the relevant package set

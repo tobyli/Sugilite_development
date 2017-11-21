@@ -64,6 +64,10 @@ import edu.cmu.hcii.sugilite.model.operation.SugiliteOperation;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteSetTextOperation;
 import edu.cmu.hcii.sugilite.model.variable.StringVariable;
 import edu.cmu.hcii.sugilite.model.variable.Variable;
+import edu.cmu.hcii.sugilite.ontology.OntologyQuery;
+import edu.cmu.hcii.sugilite.ontology.SerializableOntologyQuery;
+import edu.cmu.hcii.sugilite.ontology.SugiliteEntity;
+import edu.cmu.hcii.sugilite.ontology.SugiliteRelation;
 import edu.cmu.hcii.sugilite.ui.dialog.AbstractSugiliteDialog;
 import edu.cmu.hcii.sugilite.ui.dialog.ChooseVariableDialog;
 
@@ -1702,6 +1706,95 @@ public class RecordingPopUpDialog extends AbstractSugiliteDialog {
         return filter;
     }
 
+    public SerializableOntologyQuery generateQuery(){
+        OntologyQuery q = new OntologyQuery(OntologyQuery.relationType.AND);
+
+        if(withInAppSpinner.getSelectedItem().toString().contentEquals(readableDescriptionGenerator.getReadableName(featurePack.packageName))){
+            OntologyQuery subQuery = new OntologyQuery(OntologyQuery.relationType.nullR);
+            Set<SugiliteEntity> object = new HashSet<SugiliteEntity>();
+            object.add(new SugiliteEntity(-1, String.class, featurePack.packageName));
+            subQuery.setObject(object);
+            subQuery.setQueryFunction(SugiliteRelation.HAS_PACKAGE_NAME);
+            q.addSubQuery(subQuery);
+        }
+        if(targetTypeSpinner.getSelectedItem().toString().contentEquals(featurePack.className)){
+            OntologyQuery subQuery = new OntologyQuery(OntologyQuery.relationType.nullR);
+            Set<SugiliteEntity> object = new HashSet<SugiliteEntity>();
+            object.add(new SugiliteEntity(-1, String.class, featurePack.className));
+            subQuery.setObject(object);
+            subQuery.setQueryFunction(SugiliteRelation.HAS_CLASS_NAME);
+            q.addSubQuery(subQuery);
+        }
+        if(textCheckbox != null && textCheckbox.isChecked()){
+            OntologyQuery subQuery = new OntologyQuery(OntologyQuery.relationType.nullR);
+            Set<SugiliteEntity> object = new HashSet<SugiliteEntity>();
+            object.add(new SugiliteEntity(-1, String.class, textContent));
+            subQuery.setObject(object);
+            subQuery.setQueryFunction(SugiliteRelation.HAS_TEXT);
+            q.addSubQuery(subQuery);
+        }
+        if(contentDescriptionCheckbox != null && contentDescriptionCheckbox.isChecked()){
+            OntologyQuery subQuery = new OntologyQuery(OntologyQuery.relationType.nullR);
+            Set<SugiliteEntity> object = new HashSet<SugiliteEntity>();
+            object.add(new SugiliteEntity(-1, String.class, contentDescriptionContent));
+            subQuery.setObject(object);
+            subQuery.setQueryFunction(SugiliteRelation.HAS_CONTENT_DESCRIPTION);
+            q.addSubQuery(subQuery);
+        }
+        if(viewIdCheckbox != null && viewIdCheckbox.isChecked()){
+            OntologyQuery subQuery = new OntologyQuery(OntologyQuery.relationType.nullR);
+            Set<SugiliteEntity> object = new HashSet<SugiliteEntity>();
+            object.add(new SugiliteEntity(-1, String.class, viewIdContent));
+            subQuery.setObject(object);
+            subQuery.setQueryFunction(SugiliteRelation.HAS_VIEW_ID);
+            q.addSubQuery(subQuery);
+        }
+        if(boundsInParentCheckbox != null && boundsInParentCheckbox.isChecked()){
+            OntologyQuery subQuery = new OntologyQuery(OntologyQuery.relationType.nullR);
+            Set<SugiliteEntity> object = new HashSet<SugiliteEntity>();
+            object.add(new SugiliteEntity(-1, String.class, featurePack.boundsInParent));
+            subQuery.setObject(object);
+            subQuery.setQueryFunction(SugiliteRelation.HAS_PARENT_LOCATION);
+            q.addSubQuery(subQuery);
+        }
+        if(boundsInScreenCheckbox != null && boundsInScreenCheckbox.isChecked()){
+            OntologyQuery subQuery = new OntologyQuery(OntologyQuery.relationType.nullR);
+            Set<SugiliteEntity> object = new HashSet<SugiliteEntity>();
+            object.add(new SugiliteEntity(-1, String.class, featurePack.boundsInScreen));
+            subQuery.setObject(object);
+            subQuery.setQueryFunction(SugiliteRelation.HAS_SCREEN_LOCATION);
+            q.addSubQuery(subQuery);
+        }
+
+        if (selectedChildFeatures.size() > 0){
+            for(Map.Entry<String, String> entry : selectedChildFeatures){
+                if(entry.getKey().contains("Text")){
+                    OntologyQuery subQuery = new OntologyQuery(OntologyQuery.relationType.nullR);
+                    Set<SugiliteEntity> object = new HashSet<SugiliteEntity>();
+                    object.add(new SugiliteEntity(-1, String.class, entry.getValue()));
+                    subQuery.setObject(object);
+                    subQuery.setQueryFunction(SugiliteRelation.HAS_CHILD_TEXT);
+                    q.addSubQuery(subQuery);
+                }
+            }
+        }
+        if (selectedSiblingFeatures.size() > 0){
+            for(Map.Entry<String, String> entry : selectedSiblingFeatures){
+                if(entry.getKey().contains("Text")){
+                    OntologyQuery subQuery = new OntologyQuery(OntologyQuery.relationType.nullR);
+                    Set<SugiliteEntity> object = new HashSet<SugiliteEntity>();
+                    object.add(new SugiliteEntity(-1, String.class, entry.getValue()));
+                    subQuery.setObject(object);
+                    subQuery.setQueryFunction(SugiliteRelation.HAS_SIBLING_TEXT);
+                    q.addSubQuery(subQuery);
+                }
+            }
+        }
+
+        SerializableOntologyQuery sq = new SerializableOntologyQuery(q);
+        return sq;
+    }
+
     private SugiliteOperationBlock generateBlock(){
         //determine the action first
         SugiliteOperation sugiliteOperation = new SugiliteOperation();
@@ -1753,7 +1846,7 @@ public class RecordingPopUpDialog extends AbstractSugiliteDialog {
         operationBlock.setOperation(sugiliteOperation);
         operationBlock.setFeaturePack(featurePack);
         operationBlock.setElementMatchingFilter(generateFilter());
-        //TODO: add query here
+        operationBlock.setQuery(generateQuery());
         operationBlock.setScreenshot(featurePack.screenshot);
         operationBlock.setDescription(readableDescriptionGenerator.generateReadableDescription(operationBlock));
         return operationBlock;

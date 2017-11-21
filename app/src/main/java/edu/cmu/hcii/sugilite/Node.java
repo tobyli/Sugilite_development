@@ -29,15 +29,17 @@ public class Node implements Serializable {
     private String className;
     private String boundsInScreen;
     private String boundsInParent;
-    private List<Node> childNodes;
+//    private List<Node> childNodes;
     private Integer rootNodeDescendantsCount = 0;
     private Boolean isClickable = false;
     private Boolean isEditable = false;
     private Boolean isChecked = false;
+    private Boolean isCheckable = false;
     private Boolean isSelected = false;
     private Boolean isFocused = false;
     private Boolean isEnabled = false;
     private Boolean isScrollable = false;
+    private Node parent = null;
     private String eventManagerId; //unique view identifier added to AccessibilityNodeInfo
     private String TAG = Node.class.getCanonicalName();
 
@@ -73,12 +75,18 @@ public class Node implements Serializable {
         this.isSelected = nodeInfo.isSelected();
         this.isFocused = nodeInfo.isFocused();
         this.isChecked = nodeInfo.isChecked();
+        this.isCheckable = nodeInfo.isCheckable();
         this.isScrollable = nodeInfo.isScrollable();
-        childNodes = new ArrayList<>();
-        int childCount = nodeInfo.getChildCount();
-        for(int i = 0; i < childCount; i ++){
-            if(nodeInfo.getChild(i) != null)
-            childNodes.add(new Node(nodeInfo.getChild(i)));
+        // currently this causes a infinite loop constructor
+
+//        childNodes = new ArrayList<>();
+//        int childCount = nodeInfo.getChildCount();
+//        for(int i = 0; i < childCount; i ++){
+//            if(nodeInfo.getChild(i) != null)
+//            childNodes.add(new Node(nodeInfo.getChild(i)));
+//        }
+        if(nodeInfo.getParent() != null) {
+            parent = new Node(nodeInfo.getParent());
         }
 //        TextLabelManager textLabelManager = new TextLabelManager();
 //        this.childrenTextLabels = textLabelManager.getChildrenTextLabels(this);
@@ -117,9 +125,9 @@ public class Node implements Serializable {
         return boundsInParent;
     }
 
-    public List<Node> getChildNodes() {
-        return childNodes;
-    }
+//    public List<Node> getChildNodes() {
+//        return childNodes;
+//    }
 
     public Boolean getClickable() {
         return isClickable;
@@ -131,6 +139,10 @@ public class Node implements Serializable {
 
     public Boolean getChecked() {
         return isChecked;
+    }
+
+    public Boolean getCheckable() {
+        return isCheckable;
     }
 
     public Boolean getEnabled() {
@@ -157,6 +169,9 @@ public class Node implements Serializable {
         return eventManagerId;
     }
 
+    public Node getParent() {
+        return parent;
+    }
 //    public List<TextDistancePair> getChildrenTextLabels() {
 //        return childrenTextLabels;
 //    }
@@ -174,6 +189,5 @@ public class Node implements Serializable {
         }
         return false;
     }
-
 
 }

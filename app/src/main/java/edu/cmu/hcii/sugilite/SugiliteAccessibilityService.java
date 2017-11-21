@@ -362,7 +362,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
                 File rootDataDir = context.getFilesDir();
                 AccessibilityNodeInfo new_root = sourceNode;
                 while(new_root.getParent() != null) new_root = new_root.getParent();
-                UISnapshot uiSnapshot = new UISnapshot(new_root);
+                UISnapshot uiSnapshot = new UISnapshot(new_root, true);
 
                 //GsonBuilder gsonBuilder = new GsonBuilder();
                 //gsonBuilder.registerTypeAdapter(UISnapshot.class, new UISnapShotSerializer());

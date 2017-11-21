@@ -14,7 +14,7 @@ public class SugiliteTriple {
 
     private Integer subjectId;
     private Integer objectId;
-    private String objectStringValue;
+    private String objectStringValue = null;
     private String predicateStringValue;
 
 

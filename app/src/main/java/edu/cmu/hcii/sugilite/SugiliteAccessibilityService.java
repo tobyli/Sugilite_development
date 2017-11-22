@@ -55,6 +55,7 @@ import edu.cmu.hcii.sugilite.recording.TextChangedEventHandler;
 import edu.cmu.hcii.sugilite.tracking.SugiliteTrackingHandler;
 import edu.cmu.hcii.sugilite.ui.StatusIconManager;
 import edu.cmu.hcii.sugilite.Node;
+import edu.cmu.hcii.sugilite.verbal_instruction_demo.VerbalInstructionIconManager;
 
 import static edu.cmu.hcii.sugilite.Const.BROADCASTING_ACCESSIBILITY_EVENT;
 import static edu.cmu.hcii.sugilite.Const.BUILDING_VOCAB;
@@ -67,6 +68,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
     protected Automator automator;
     protected SugiliteData sugiliteData;
     protected StatusIconManager statusIconManager;
+    protected VerbalInstructionIconManager verbalInstructionIconManager;
     protected SugiliteScreenshotManager screenshotManager;
     protected Set<Integer> accessibilityEventSetToHandle, accessibilityEventSetToSend, accessibilityEventSetToTrack;
     protected Thread automatorThread;
@@ -100,8 +102,13 @@ public class SugiliteAccessibilityService extends AccessibilityService {
             sugiliteData = (SugiliteData) getApplication();
         }
         AccessibilityManager accessibilityManager = (AccessibilityManager) this.getSystemService(Context.ACCESSIBILITY_SERVICE);
+
+        verbalInstructionIconManager = new VerbalInstructionIconManager(this, sugiliteData, sharedPreferences);
         statusIconManager = new StatusIconManager(this, sugiliteData, sharedPreferences, accessibilityManager);
         sugiliteData.statusIconManager = statusIconManager;
+        sugiliteData.verbalInstructionIconManager = verbalInstructionIconManager;
+        statusIconManager.setVerbalInstructionIconManager(verbalInstructionIconManager);
+
         screenshotManager = new SugiliteScreenshotManager(sharedPreferences, getApplicationContext());
         automator = new Automator(sugiliteData, this, statusIconManager, sharedPreferences);
         sugilteTrackingHandler = new SugiliteTrackingHandler(sugiliteData, getApplicationContext());

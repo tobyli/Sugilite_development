@@ -61,6 +61,7 @@ import edu.cmu.hcii.sugilite.recording.ReadableDescriptionGenerator;
 import edu.cmu.hcii.sugilite.ui.dialog.NewScriptDialog;
 import edu.cmu.hcii.sugilite.ui.dialog.SelectElementWithTextDialog;
 import edu.cmu.hcii.sugilite.ui.main.SugiliteMainActivity;
+import edu.cmu.hcii.sugilite.verbal_instruction_demo.VerbalInstructionIconManager;
 
 import static edu.cmu.hcii.sugilite.Const.SQL_SCRIPT_DAO;
 
@@ -89,6 +90,8 @@ public class StatusIconManager {
     private Queue<SugiliteBlock> storedQueue;
     private AlertDialog progressDialog;
     private boolean showingIcon = false;
+    private VerbalInstructionIconManager verbalInstructionIconManager = null;
+
     int rotation = 0;
 
 
@@ -416,6 +419,17 @@ public class StatusIconManager {
                         operationList.add("Clear Instruction Queue");
                     }
                     operationList.add("View Script List");
+
+                    if(verbalInstructionIconManager != null) {
+                        if(verbalInstructionIconManager.isShowingIcon()) {
+                            operationList.add("Turn off verbal instruction");
+                        }
+                        else{
+                            operationList.add("Turn on verbal instruction");
+                        }
+                    }
+
+
                     if(startingBlock == null){
                         operationList.add("New Recording");
                     }
@@ -740,6 +754,19 @@ public class StatusIconManager {
                                     dialog.dismiss();
                                     break;
 
+                                case "Turn on verbal instruction":
+                                    if(verbalInstructionIconManager != null){
+                                        verbalInstructionIconManager.addStatusIcon();
+                                    }
+                                    break;
+
+                                case "Turn off verbal instruction":
+                                    if(verbalInstructionIconManager != null){
+                                        verbalInstructionIconManager.removeStatusIcon();
+                                    }
+                                    break;
+
+
                                 default:
                                     //do nothing
                             }
@@ -878,10 +905,7 @@ public class StatusIconManager {
         return new CurrentStateView(context, state, nextOperationHTMLDescription);
     }
 
-
-
-
-
-
-
+    public void setVerbalInstructionIconManager(VerbalInstructionIconManager verbalInstructionIconManager) {
+        this.verbalInstructionIconManager = verbalInstructionIconManager;
+    }
 }

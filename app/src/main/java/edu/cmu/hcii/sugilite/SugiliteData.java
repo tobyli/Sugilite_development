@@ -32,6 +32,7 @@ import edu.cmu.hcii.sugilite.recording.RecordingPopUpDialog;
 import edu.cmu.hcii.sugilite.study.ScriptUsageLogManager;
 import edu.cmu.hcii.sugilite.ui.StatusIconManager;
 import edu.cmu.hcii.sugilite.ui.dialog.AbstractSugiliteDialog;
+import edu.cmu.hcii.sugilite.verbal_instruction_demo.VerbalInstructionIconManager;
 
 /**
  * @author toby
@@ -76,6 +77,8 @@ public class SugiliteData extends Application {
 
     private int currentSystemState = DEFAULT_STATE;
     public StatusIconManager statusIconManager = null;
+    public VerbalInstructionIconManager verbalInstructionIconManager = null;
+
 
 
     //used to indicate the state of the sugilite system

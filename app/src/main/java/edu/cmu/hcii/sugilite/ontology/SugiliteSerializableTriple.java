@@ -10,11 +10,12 @@ import java.util.Objects;
  */
 public class SugiliteSerializableTriple implements Serializable{
     private transient SugiliteSerializableEntity subject;
-    private SugiliteRelation predicate;
+    private transient SugiliteRelation predicate;
     private transient SugiliteSerializableEntity object;
 
-    private Integer subjectId;
-    private Integer objectId;
+    private String subjectId;
+//    private String objectId;
+    // the id if it's a node, else: the actual string value
     private String objectStringValue;
     private String predicateStringValue;
 
@@ -23,9 +24,16 @@ public class SugiliteSerializableTriple implements Serializable{
         this.subject = new SugiliteSerializableEntity(t.getSubject());
         this.predicate = t.getPredicate();
         this.object = new SugiliteSerializableEntity(t.getObject());
-        this.subjectId = t.getSubjectId();
-        this.objectId = t.getObjectId();
-        this.objectStringValue = t.getObjectStringValue();
+        this.subjectId = "@" + t.getSubjectId();
+
+        if(t.getObjectStringValue() != null) {
+            // object is NOT a node
+            this.objectStringValue = t.getObjectStringValue();
+        }
+        else{
+            this.objectStringValue = "@" + t.getObjectId();
+        }
+
         this.predicateStringValue = t.getPredicateStringValue();
     }
 

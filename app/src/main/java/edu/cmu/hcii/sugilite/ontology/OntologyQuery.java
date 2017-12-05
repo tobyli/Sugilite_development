@@ -275,19 +275,22 @@ public class OntologyQuery {
     }
 
     private static OntologyQuery parseString(String s, OntologyQuery q) {
+        // example: (conj (IS_CLICKABLE true) (HAS_TEXT coffee))
         int len = s.length();
         if(BuildConfig.DEBUG && !(s.charAt(0) == '(' && s.charAt(len-1) == ')')){
             throw new AssertionError();
         }
         s = s.substring(1, len-1);
+        // s: conj (IS_CLICKABLE true) (HAS_TEXT coffee)
         len = s.length();
 
         int spaceIndex = s.indexOf(' ');
         String firstWord = s.substring(0, spaceIndex);
+        // firstWord: conj
 
-        if(firstWord.equals("and") || firstWord.equals("or")) {
+        if(firstWord.equals("conj") || firstWord.equals("or")) {
             // nested relation
-            if(firstWord.equals("and")) {
+            if(firstWord.equals("conj")) {
                 q.setSubRelation(relationType.AND);
             }
             else{

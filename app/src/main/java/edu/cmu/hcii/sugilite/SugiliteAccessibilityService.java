@@ -424,7 +424,8 @@ public class SugiliteAccessibilityService extends AccessibilityService {
                 query.setQueryFunction(r2);
                 Set<SugiliteEntity> s2 = query.executeOn(uiSnapshot);
 
-                OntologyQuery parseTest = OntologyQuery.deserialize("(conj (IS_CLICKABLE true) (HAS_TEXT coffee))");
+                OntologyQuery parseTest = OntologyQuery.deserialize("(HAS_CHILD (HAS_TEXT Chrome))");
+                Set<SugiliteEntity> s3 = parseTest.executeOn(uiSnapshot);
 
                 System.out.println("test");
             }

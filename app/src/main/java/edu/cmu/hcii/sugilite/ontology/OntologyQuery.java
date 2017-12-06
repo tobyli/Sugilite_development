@@ -238,12 +238,12 @@ public class OntologyQuery {
             else{
                 // query.SubRelation == relationType.PREV
                 // only one subquery
-                OntologyQuery prevQ = SubQueries.toArray(new OntologyQuery[SubQueries.size()])[0];
+                OntologyQuery prevQ = query.SubQueries.toArray(new OntologyQuery[query.SubQueries.size()])[0];
                 Set<SugiliteEntity> prevResult = prevQ.executeOn(graph);
-                this.setSubQueries(null);
-                this.setSubRelation(relationType.nullR);
-                this.setObject(prevResult);
-                return OverallQueryFunction(this, currNode, graph);
+                query.setSubQueries(null);
+                query.setSubRelation(relationType.nullR);
+                query.setObject(prevResult);
+                return OverallQueryFunction(query, currNode, graph);
             }
         }
     }

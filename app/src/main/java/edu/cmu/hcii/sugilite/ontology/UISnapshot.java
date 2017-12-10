@@ -4,6 +4,9 @@ import android.graphics.Rect;
 import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityNodeInfo;
 
+import com.google.gson.Gson;
+
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -67,6 +70,8 @@ public class UISnapshot {
         if(allNodes != null){
             for(AccessibilityNodeInfo oldNode : allNodes) {
                 Node node = new Node(oldNode);
+
+
                 //get the corresponding entity for the node
                 SugiliteEntity<Node> currentEntity = null;
                 if (nodeSugiliteEntityMap.containsKey(node)) {
@@ -113,6 +118,7 @@ public class UISnapshot {
                     addEntityStringTriple(currentEntity, contentDescription, SugiliteRelation.HAS_CONTENT_DESCRIPTION);
                 }
 
+
                 //isClickable
                 addEntityBooleanTriple(currentEntity, node.getClickable(), SugiliteRelation.IS_CLICKABLE);
 
@@ -142,14 +148,44 @@ public class UISnapshot {
                 if (node.getParent() != null) {
                     //parent
                     Node parentNode = node.getParent();
-                    addEntityNodeTriple(currentEntity, parentNode, SugiliteRelation.HAS_PARENT);
                     if(nodeSugiliteEntityMap.containsKey(parentNode)) {
-                        SugiliteTriple triple2 = new SugiliteTriple(nodeSugiliteEntityMap.get(parentNode), SugiliteRelation.HAS_CHILD, currentEntity);
+                        SugiliteTriple triple1 = new SugiliteTriple(nodeSugiliteEntityMap.get(parentNode), SugiliteRelation.HAS_CHILD, currentEntity);
+                        addTriple(triple1);
+                        SugiliteTriple triple2 = new SugiliteTriple(currentEntity, SugiliteRelation.HAS_PARENT, nodeSugiliteEntityMap.get(parentNode));
+                        addTriple(triple2);
+                    }
+                    else {
+                        SugiliteEntity<Node> newEntity = new SugiliteEntity<Node>(entityIdCounter++, Node.class, parentNode);
+                        nodeSugiliteEntityMap.put(parentNode, newEntity);
+                        SugiliteTriple triple1 = new SugiliteTriple(newEntity, SugiliteRelation.HAS_CHILD, currentEntity);
+                        addTriple(triple1);
+                        SugiliteTriple triple2 = new SugiliteTriple(currentEntity, SugiliteRelation.HAS_PARENT, newEntity);
                         addTriple(triple2);
                     }
                 }
 
-                // TODO: add sibling and child text info
+                //has_child_text relation
+                if (node.getParent() != null && node.getText() != null){
+                    String text = node.getText();
+                    Set<Node> parentNodes = new HashSet<>();
+                    Node currentParent = node;
+                    while(currentParent.getParent() != null){
+                        currentParent = currentParent.getParent();
+                        parentNodes.add(currentParent);
+                    }
+                    for(Node parentNode : parentNodes){
+                        if(nodeSugiliteEntityMap.containsKey(parentNode)) {
+                            addEntityStringTriple(nodeSugiliteEntityMap.get(parentNode), text, SugiliteRelation.HAS_CHILD_TEXT);
+                        }
+                        else {
+                            SugiliteEntity<Node> newEntity = new SugiliteEntity<Node>(entityIdCounter++, Node.class, parentNode);
+                            nodeSugiliteEntityMap.put(parentNode, newEntity);
+                            addEntityStringTriple(newEntity, text, SugiliteRelation.HAS_CHILD_TEXT);
+                        }
+                    }
+                }
+
+                // TODO: add sibling text info
             }
         }
 
@@ -327,4 +363,6 @@ public class UISnapshot {
     public Map<Node, AccessibilityNodeInfo> getNodeAccessibilityNodeInfoMap() {
         return nodeAccessibilityNodeInfoMap;
     }
+
+
 }

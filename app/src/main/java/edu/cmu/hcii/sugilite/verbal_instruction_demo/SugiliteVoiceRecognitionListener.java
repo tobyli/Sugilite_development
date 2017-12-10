@@ -10,6 +10,7 @@ import android.util.Log;
 import android.widget.Toast;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 
 /**
  * @author toby
@@ -23,15 +24,15 @@ public class SugiliteVoiceRecognitionListener implements RecognitionListener {
     private Intent recognizerIntent;
     private String LOG_TAG = "VoiceRecognition";
     private Context context;
+    private long lastStartListening = -1;
 
-    //the parent verbal instruction icon manager
-    private VerbalInstructionIconManager verbalInstructionIconManager;
+    //the parent interface
+    private SugiliteVoiceInterface sugiliteVoiceInterface;
 
-    public SugiliteVoiceRecognitionListener(Context context, VerbalInstructionIconManager verbalInstructionIconManager) {
+    public SugiliteVoiceRecognitionListener(Context context, SugiliteVoiceInterface voiceInterface) {
         this.context = context;
-        this.verbalInstructionIconManager = verbalInstructionIconManager;
-        speech = SpeechRecognizer.createSpeechRecognizer(context);
-        speech.setRecognitionListener(this);
+        this.sugiliteVoiceInterface = voiceInterface;
+
         recognizerIntent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
         recognizerIntent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_PREFERENCE,
                 "en");
@@ -39,23 +40,29 @@ public class SugiliteVoiceRecognitionListener implements RecognitionListener {
                 context.getPackageName());
         recognizerIntent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,
                 RecognizerIntent.LANGUAGE_MODEL_WEB_SEARCH);
-        recognizerIntent.putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 3);
+        recognizerIntent.putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 5);
 
     }
 
     public void startListening(){
+        speech = SpeechRecognizer.createSpeechRecognizer(context);
+        speech.setRecognitionListener(this);
         speech.startListening(recognizerIntent);
+        lastStartListening = Calendar.getInstance().getTimeInMillis();
     }
 
     public void stopListening(){
-        speech.stopListening();
+        if(speech != null) {
+            speech.stopListening();
+            speech.destroy();
+        }
 
     }
 
     @Override
     public void onBeginningOfSpeech() {
         Log.i(LOG_TAG, "onBeginningOfSpeech");
-        verbalInstructionIconManager.listeningStarted();
+        sugiliteVoiceInterface.listeningStarted();
     }
 
     @Override
@@ -66,13 +73,14 @@ public class SugiliteVoiceRecognitionListener implements RecognitionListener {
     @Override
     public void onEndOfSpeech() {
         Log.i(LOG_TAG, "onEndOfSpeech");
-        verbalInstructionIconManager.listeningEnded();
+        sugiliteVoiceInterface.listeningEnded();
     }
 
     @Override
     public void onError(int errorCode) {
         String errorMessage = getErrorText(errorCode);
         Log.d(LOG_TAG, "FAILED " + errorMessage);
+        stopListening();
 
     }
 
@@ -96,12 +104,18 @@ public class SugiliteVoiceRecognitionListener implements RecognitionListener {
         Log.i(LOG_TAG, "onResults");
         ArrayList<String> matches = results
                 .getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
-        verbalInstructionIconManager.resultAvailable(matches);
+        sugiliteVoiceInterface.resultAvailable(matches);
+        stopListening();
     }
 
     @Override
     public void onRmsChanged(float rmsdB) {
         Log.i(LOG_TAG, "onRmsChanged: " + rmsdB);
+        long currentTime = Calendar.getInstance().getTimeInMillis();
+        if(lastStartListening > -1 && (currentTime - lastStartListening > 10000)){
+            Log.i(LOG_TAG, "Speech recognition timeout!");
+            stopListening();
+        }
     }
 
     public static String getErrorText(int errorCode) {

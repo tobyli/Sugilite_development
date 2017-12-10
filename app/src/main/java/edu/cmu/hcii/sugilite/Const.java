@@ -2,6 +2,8 @@ package edu.cmu.hcii.sugilite;
 
 import android.graphics.Color;
 
+import java.text.SimpleDateFormat;
+
 /**
  * @author toby
  * @date 10/25/16
@@ -101,4 +103,9 @@ public class Const {
 
     //switch between using SQL Dao and File Dao (SQL Dao has a max script size issue)
     public static final int DAO_TO_USE = FILE_SCRIPT_DAO;
+
+
+    //date format
+    public static final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd=HH_mm_ss-SSS");
+
 }

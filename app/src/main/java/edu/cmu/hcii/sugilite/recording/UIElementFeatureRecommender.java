@@ -118,6 +118,8 @@ public class UIElementFeatureRecommender {
 
     public Set<Map.Entry<String, String>> chooseSiblingFeatures(){
         Set<Map.Entry<String, String>> retSet = new HashSet<>();
+        return retSet;
+        /*
         if(!(contentDescription.contentEquals("NULL") && text.contentEquals("NULL")))
             return retSet;
         for(Map.Entry<String, String> entry : allSiblingFeatures){
@@ -134,6 +136,7 @@ public class UIElementFeatureRecommender {
             }
         }
         return retSet;
+        */
     }
 
 

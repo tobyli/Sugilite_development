@@ -2,11 +2,15 @@ package edu.cmu.hcii.sugilite.ontology;
 
 import android.view.accessibility.AccessibilityNodeInfo;
 
+import com.google.gson.Gson;
+
 import edu.cmu.hcii.sugilite.Node;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -100,5 +104,31 @@ public class SerializableUISnapshot implements Serializable {
         for(Boolean b : oldMapBool.keySet()) {
             booleanSugiliteEntityMap.put(b, new SugiliteSerializableEntity(oldMapBool.get(b)));
         }
+    }
+
+    public Map<String, SugiliteSerializableEntity> getSugiliteEntityIdSugiliteEntityMap() {
+        return sugiliteEntityIdSugiliteEntityMap;
+    }
+
+    public List<List<String>> triplesToString(){
+        List<List<String>> result = new ArrayList<>();
+
+        for(SugiliteSerializableTriple triple : triples){
+            List<String> tripleList = new ArrayList<>();
+            if(triple.getSubjectId() != null) {
+                tripleList.add(triple.getSubjectId());
+            }
+            if(triple.getPredicateStringValue() != null) {
+                tripleList.add(triple.getPredicateStringValue());
+            }
+            if(triple.getObjectStringValue() != null) {
+                tripleList.add(triple.getObjectStringValue());
+            }
+            if(tripleList.size() == 3){
+                result.add(tripleList);
+            }
+        }
+        return result;
+
     }
 }

@@ -37,6 +37,18 @@ public class SugiliteSerializableTriple implements Serializable{
         this.predicateStringValue = t.getPredicateStringValue();
     }
 
+    public String getPredicateStringValue() {
+        return predicateStringValue;
+    }
+
+    public String getSubjectId() {
+        return subjectId;
+    }
+
+    public String getObjectStringValue() {
+        return objectStringValue;
+    }
+
     @Override
     public boolean equals(Object obj) {
         if(obj == this){
@@ -58,4 +70,6 @@ public class SugiliteSerializableTriple implements Serializable{
                 this.predicate.getRelationId(),
                 this.object.getEntityValue());
     }
+
+
 }

@@ -41,6 +41,10 @@ import static edu.cmu.hcii.sugilite.Const.SCRIPT_DELAY;
  * @date 7/15/16
  * @time 8:47 PM
  */
+
+/**
+ * for running scripts with parameters
+ */
 public class VariableSetValueDialog extends AbstractSugiliteDialog{
     private Context context;
     private AlertDialog dialog;

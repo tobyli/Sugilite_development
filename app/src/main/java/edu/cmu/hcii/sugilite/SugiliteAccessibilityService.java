@@ -81,7 +81,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
     protected TextChangedEventHandler textChangedEventHandler;
     protected String lastPackageName = "";
     private static Set<String> homeScreenPackageNameSet;
-    ExecutorService executor = Executors.newFixedThreadPool(3);
+    ExecutorService executor = Executors.newFixedThreadPool(1);
 
 
 
@@ -103,7 +103,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
         }
         AccessibilityManager accessibilityManager = (AccessibilityManager) this.getSystemService(Context.ACCESSIBILITY_SERVICE);
 
-        verbalInstructionIconManager = new VerbalInstructionIconManager(this, sugiliteData, sharedPreferences);
+        verbalInstructionIconManager = new VerbalInstructionIconManager(this);
         statusIconManager = new StatusIconManager(this, sugiliteData, sharedPreferences, accessibilityManager);
         sugiliteData.statusIconManager = statusIconManager;
         sugiliteData.verbalInstructionIconManager = verbalInstructionIconManager;
@@ -309,6 +309,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
                 previousClickContentDescription = "NULL";
         }
 
+
         if(event.getEventType() == AccessibilityEvent.TYPE_VIEW_CLICKED) {
             Log.i(TAG, "FLAG2");
         }
@@ -317,13 +318,25 @@ public class SugiliteAccessibilityService extends AccessibilityService {
         //packages within the excepted package will be totally excepted from the accessibility service tracking
         exceptedPackages.addAll(Arrays.asList(Const.ACCESSIBILITY_SERVICE_EXCEPTED_PACKAGE_NAMES));
         exceptedPackages.addAll(Arrays.asList(Const.INPUT_METHOD_PACKAGE_NAMES));
-
         trackingExcludedPackages.addAll(Arrays.asList(Const.ACCESSIBILITY_SERVICE_TRACKING_EXCLUDED_PACKAGE_NAMES));
 
+
         if (sugiliteData.getInstructionQueueSize() > 0 && !sharedPreferences.getBoolean("recording_in_process", true) && !exceptedPackages.contains(event.getPackageName()) && sugiliteData.errorHandler != null){
-            //if the script running is in progress
-            //invoke the error handler
+            //if the script running is in progress, invoke the error handler
             sugiliteData.errorHandler.checkError(event, sugiliteData.peekInstructionQueue(), Calendar.getInstance().getTimeInMillis());
+        }
+
+        if(verbalInstructionIconManager.isShowingIcon() && event.getPackageName() != null && (! exceptedPackages.contains(event.getPackageName()))) {
+            //generate the ui snapshot and send to verbal instruction manager
+            if (event.getEventType() == AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED) {
+                AccessibilityNodeInfo new_root = sourceNode;
+                while (new_root.getParent() != null) new_root = new_root.getParent();
+                UISnapshot uiSnapshot = new UISnapshot(new_root, true);
+                if(uiSnapshot.getNodeAccessibilityNodeInfoMap().size() >= 5) {
+                    //filter out (mostly) empty ui snapshots
+                    verbalInstructionIconManager.setLatestUISnapshot(uiSnapshot);
+                }
+            }
         }
 
         if (sharedPreferences.getBoolean("recording_in_process", false)) {
@@ -360,74 +373,6 @@ public class SugiliteAccessibilityService extends AccessibilityService {
 
             if(event.getEventType() == AccessibilityEvent.TYPE_VIEW_CLICKED) {
                 Log.i(TAG, "FLAG3");
-            }
-
-
-            //==== testing the UI snapshot
-
-
-
-            if(event.getEventType() == AccessibilityEvent.TYPE_VIEW_CLICKED) {
-                File rootDataDir = context.getFilesDir();
-                AccessibilityNodeInfo new_root = sourceNode;
-                while(new_root.getParent() != null) new_root = new_root.getParent();
-                UISnapshot uiSnapshot = new UISnapshot(new_root, true);
-
-                //GsonBuilder gsonBuilder = new GsonBuilder();
-                //gsonBuilder.registerTypeAdapter(UISnapshot.class, new UISnapShotSerializer());
-                Gson gson = new GsonBuilder().excludeFieldsWithModifiers(Modifier.FINAL, Modifier.TRANSIENT, Modifier.STATIC)
-                        .serializeNulls()
-                        .create();
-                String uiSnapshot_gson = gson.toJson(new SerializableUISnapshot(uiSnapshot));
-
-                PrintWriter out = null;
-                try {
-                    File f = new File("/sdcard/Download/ui_snapshots");
-                    if (!f.exists() || !f.isDirectory()) {
-                        f.mkdirs();
-                        System.out.println("dir created");
-                    }
-                    System.out.println(f.getAbsolutePath());
-
-                    File snapshot = new File(f.getPath() + "/snapshot" + counter + ".txt");
-                    if(!snapshot.exists()) {
-                        snapshot.getParentFile().mkdirs();
-                        snapshot.createNewFile();
-                        System.out.println("file created");
-                    }
-                    out = new PrintWriter(new FileOutputStream(snapshot), true);
-                    out.println(uiSnapshot_gson);
-                } catch (FileNotFoundException e) {
-                    e.printStackTrace();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                } finally {
-                    if(out != null) out.close();
-                }
-
-                counter++;
-                OntologyQuery query = new OntologyQuery(OntologyQuery.relationType.nullR);
-                SugiliteRelation r = new SugiliteRelation(0, "HAS_CLASS_NAME");
-                SugiliteEntity<String> object = new SugiliteEntity<String>(80, String.class, "android.widget.LinearLayout");
-                Set<SugiliteEntity> oSet = new HashSet<SugiliteEntity>();
-                oSet.add(object);
-                query.setQueryFunction(r);
-                query.setObject(oSet);
-                query.setSubject(null);
-
-                Set<SugiliteEntity> s1 = query.executeOn(uiSnapshot);
-
-                // testing nested query, finding parents of node that has linearlayout as class name
-                query.setObject(null);
-                query.setSubject(s1);
-                SugiliteRelation r2 = new SugiliteRelation(2, "HAS_PARENT");
-                query.setQueryFunction(r2);
-                Set<SugiliteEntity> s2 = query.executeOn(uiSnapshot);
-
-                OntologyQuery parseTest = OntologyQuery.deserialize("(or (HAS_CHILD (HAS_TEXT Chrome)) (HAS_CHILD (HAS_TEXT Messenger)))");
-                Set<SugiliteEntity> s3 = parseTest.executeOn(uiSnapshot);
-
-                System.out.println("test");
             }
 
 
@@ -470,7 +415,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
             }
 
 
-            //if the event is to be recorded, process it //TODO: send text change event to TextChangedEventHandler instead
+            //if the event is to be recorded, process it
             if (accessibilityEventSetToSend.contains(event.getEventType()) && (!exceptedPackages.contains(event.getPackageName()))) {
                 //==== the thread of handling recording
                 Runnable handleRecording = new Runnable() {

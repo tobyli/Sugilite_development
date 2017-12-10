@@ -17,13 +17,31 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.ImageView;
+import android.widget.Toast;
 
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.lang.reflect.Modifier;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 
+import edu.cmu.hcii.sugilite.Const;
 import edu.cmu.hcii.sugilite.R;
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.automation.ServiceStatusManager;
+import edu.cmu.hcii.sugilite.ontology.OntologyQuery;
+import edu.cmu.hcii.sugilite.ontology.SerializableUISnapshot;
+import edu.cmu.hcii.sugilite.ontology.SugiliteRelation;
+import edu.cmu.hcii.sugilite.ontology.UISnapshot;
 
 
 /**
@@ -31,12 +49,9 @@ import edu.cmu.hcii.sugilite.automation.ServiceStatusManager;
  * @date 11/22/17
  * @time 3:23 PM
  */
-public class VerbalInstructionIconManager {
+public class VerbalInstructionIconManager implements SugiliteVoiceInterface {
     private Context context;
     private WindowManager windowManager;
-    private SugiliteData sugiliteData;
-    private SharedPreferences sharedPreferences;
-    private ServiceStatusManager serviceStatusManager;
     private LayoutInflater layoutInflater;
     private SugiliteVoiceRecognitionListener sugiliteVoiceRecognitionListener;
     public boolean isListening = false;
@@ -50,20 +65,20 @@ public class VerbalInstructionIconManager {
     private final int REQ_CODE_SPEECH_INPUT = 100;
 
 
+    //for saving the latest ui snapshot
+    private UISnapshot latestUISnapshot = null;
 
-    public VerbalInstructionIconManager(Context context, SugiliteData sugiliteData, SharedPreferences sharedPreferences){
+    public VerbalInstructionIconManager(Context context){
         this.context = context;
         windowManager = (WindowManager) context.getSystemService(context.WINDOW_SERVICE);
-        this.sugiliteData = sugiliteData;
-        this.sharedPreferences = sharedPreferences;
-        this.serviceStatusManager = ServiceStatusManager.getInstance(context);
         this.layoutInflater = (LayoutInflater) context.getSystemService( Context.LAYOUT_INFLATER_SERVICE);
         this.sugiliteVoiceRecognitionListener = new SugiliteVoiceRecognitionListener(context, this);
     }
 
     /**
-     * callback for SugiliteVoiceRecogitionListener when listening has started 
+     * Callback for SugiliteVoiceRecogitionListener when listening has started
      */
+    @Override
     public void listeningStarted(){
         isListening = true;
         statusIcon.setImageResource(R.mipmap.cat_talking);
@@ -71,17 +86,19 @@ public class VerbalInstructionIconManager {
     }
 
     /**
-     * callback for SugiliteVoiceRecogitionListener when listening has ended
+     * Callback for SugiliteVoiceRecogitionListener when listening has ended
      */
+    @Override
     public void listeningEnded(){
         isListening = false;
         statusIcon.setImageResource(R.mipmap.cat_sleep);
     }
 
     /**
-     * callback for SugiliteVoiceRecogitionListener to send the result back
+     * Callback for SugiliteVoiceRecogitionListener to send the result back
      * @param matches
      */
+    @Override
     public void resultAvailable(List<String> matches){
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
         builder.setTitle("Voice Recognized!");
@@ -159,6 +176,14 @@ public class VerbalInstructionIconManager {
         return showingIcon;
     }
 
+    public UISnapshot getLatestUISnapshot(){
+        return latestUISnapshot;
+    }
+
+    public void setLatestUISnapshot(UISnapshot snapshot){
+        this.latestUISnapshot = snapshot;
+    }
+
     public void checkDrawOverlayPermission() {
         /** check if we already  have permission to draw over other apps */
         int currentApiVersion = android.os.Build.VERSION.SDK_INT;
@@ -199,19 +224,65 @@ public class VerbalInstructionIconManager {
                 if (gestureDetector.onTouchEvent(event)) {
                     // gesture is clicking
 
-                    // TODO: construct the UI snapshot
-                    // pop up the on-click menu
-                    if(isListening) {
-                        sugiliteVoiceRecognitionListener.stopListening();
-                    }
+                    //initialize the popup dialog
+                    AlertDialog.Builder textDialogBuilder = new AlertDialog.Builder(context);
+                    textDialogBuilder.setTitle("Verbal Instruction");
+                    List<String> operationList = new ArrayList<>();
 
-                    else {
-                        sugiliteVoiceRecognitionListener.startListening();
-                        statusIcon.setImageResource(R.mipmap.cat_regular);
-                    }
+                    //fill in the options
+                    operationList.add("Send a verbal instruction");
+                    operationList.add("Test ASR");
+                    operationList.add("Dump the latest UI snapshot");
+
+                    String[] operations = new String[operationList.size()];
+                    operations = operationList.toArray(operations);
+                    final String[] operationClone = operations.clone();
+                    textDialogBuilder.setItems(operationClone, new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    switch (operationClone[which]) {
+                                        case "Send a verbal instruction":
+                                            //send a verbal instruction
+                                            if(latestUISnapshot != null) {
+                                                SerializableUISnapshot serializedUISnapshot = new SerializableUISnapshot(latestUISnapshot);
+                                                VerbalInstructionTestDialog verbalInstructionDialog = new VerbalInstructionTestDialog(serializedUISnapshot, context, layoutInflater);
+                                                verbalInstructionDialog.show();
+                                            }
+                                            else{
+                                                Toast.makeText(context, "UI snapshot is NULL!", Toast.LENGTH_SHORT).show();
+
+                                            }
+                                            break;
+
+                                        case "Test ASR":
+                                            testASR();
+                                            break;
+
+                                        case "Dump the latest UI snapshot":
+                                            //dump the latest UI snapshot
+                                            if(latestUISnapshot != null) {
+                                                Gson gson = new GsonBuilder().excludeFieldsWithModifiers(Modifier.FINAL, Modifier.TRANSIENT, Modifier.STATIC)
+                                                        .serializeNulls()
+                                                        .create();
+                                                int snapshot_size = latestUISnapshot.getNodeSugiliteEntityMap().size();
+                                                SerializableUISnapshot serializedUISnapshot2 = new SerializableUISnapshot(latestUISnapshot);
+                                                dumpUISnapshot(serializedUISnapshot2);
+                                                Toast.makeText(context, "dumped a UI snapshot with " + snapshot_size + " nodes", Toast.LENGTH_SHORT).show();
+                                            }
+                                            break;
+                                    }
+                                }
+                            });
+
+
+                    Dialog dialog = textDialogBuilder.create();
+                    dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
+                    dialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_box);
+                    dialog.show();
                     return true;
 
                 }
+
                 //gesture is not clicking - handle the drag & move
                 switch (event.getAction()) {
                     case MotionEvent.ACTION_DOWN:
@@ -241,6 +312,67 @@ public class VerbalInstructionIconManager {
             }
 
         });
+    }
+
+    private void testASR(){
+        if(isListening) {
+            sugiliteVoiceRecognitionListener.stopListening();
+        }
+
+        else {
+            sugiliteVoiceRecognitionListener.startListening();
+            statusIcon.setImageResource(R.mipmap.cat_regular);
+        }
+        return;
+    }
+
+    public static void dumpUISnapshot(SerializableUISnapshot serializedUISnapshot){
+        Gson gson = new Gson();
+        String uiSnapshot_gson = gson.toJson(serializedUISnapshot);
+        String serverQueryTripes = new Gson().toJson(serializedUISnapshot.triplesToString());
+
+        PrintWriter out1 = null;
+        PrintWriter out2 = null;
+        try {
+            File f = new File("/sdcard/Download/ui_snapshots");
+            if (!f.exists() || !f.isDirectory()) {
+                f.mkdirs();
+                System.out.println("dir created");
+            }
+            System.out.println(f.getAbsolutePath());
+
+
+            Date time = Calendar.getInstance().getTime();
+            String timeString = Const.dateFormat.format(time);
+
+            File snapshot = new File(f.getPath() + "/snapshot_" + timeString + ".json");
+            File serverQuery = new File(f.getPath() + "/triple_" + timeString + ".json");
+
+            if (!snapshot.exists()) {
+                snapshot.getParentFile().mkdirs();
+                snapshot.createNewFile();
+                System.out.println("file created");
+            }
+
+            if (!serverQuery.exists()) {
+                serverQuery.getParentFile().mkdirs();
+                serverQuery.createNewFile();
+                System.out.println("file created");
+            }
+
+            out1 = new PrintWriter(new FileOutputStream(snapshot), true);
+            out1.println(uiSnapshot_gson);
+            out2 = new PrintWriter(new FileOutputStream(serverQuery), true);
+            out2.println(serverQueryTripes);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            if (out1 != null) out1.close();
+            if (out2 != null) out2.close();
+        }
+
     }
 
 

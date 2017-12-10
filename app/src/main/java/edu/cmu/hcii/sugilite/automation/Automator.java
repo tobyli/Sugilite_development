@@ -93,6 +93,7 @@ public class Automator {
         homeScreenPackageNameSet.addAll(Arrays.asList(HOME_SCREEN_PACKAGE_NAMES));
     }
 
+    List<Node> lastTimeFailed = new ArrayList<>();
     //the return value is not used?
     public boolean handleLiveEvent (AccessibilityNodeInfo rootNode, Context context){
         //TODO: fix the highlighting for matched element
@@ -332,6 +333,52 @@ public class Automator {
                 variableHelper = new VariableHelper(sugiliteData.stringVariableMap);
                 //if we can match this event, perform the action and remove the head object
 
+                if(true/*has last time failed*/ && lastTimeFailed != null && lastTimeFailed.size() > 0){
+                    List<AccessibilityNodeInfo> allNodes = Automator.preOrderTraverse(rootNode);
+                    List<AccessibilityNodeInfo> filteredNode = new ArrayList<>();
+                    boolean succeeded = false;
+                    for(AccessibilityNodeInfo node : allNodes){
+                        for(Node lasttimeFailedNode : lastTimeFailed){
+                            Rect rect = new Rect();
+                            node.getBoundsInScreen(rect);
+                            if(((lasttimeFailedNode.getPackageName() == null && node.getPackageName() == null) || lasttimeFailedNode.getPackageName().equals(node.getPackageName().toString())) &&
+                                    ((lasttimeFailedNode.getClassName() == null && node.getClassName() == null) || lasttimeFailedNode.getClassName().equals(node.getClassName().toString())) &&
+                                    ((lasttimeFailedNode.getBoundsInScreen() == null && rect.flattenToString() == null) || lasttimeFailedNode.getBoundsInScreen().equals(rect.flattenToString())) &&
+                                    ((lasttimeFailedNode.getViewId() == null && node.getViewIdResourceName() == null) || lasttimeFailedNode.getViewId().equals(node.getViewIdResourceName()))){
+                                //TODO: execute on node
+                                boolean retVal = performAction(node, operationBlock);
+                                if (retVal) {
+                                    //the action is performed successfully
+                                    if (!succeeded) {
+                                        sugiliteData.errorHandler.reportSuccess(Calendar.getInstance().getTimeInMillis());
+                                        if (sugiliteData.getInstructionQueueSize() > 0) {
+                                            sugiliteData.removeInstructionQueueItem();
+                                        }
+                                        addNextBlockToQueue(operationBlock);
+                                    }
+                                    succeeded = true;
+
+                                    try {
+                                        //delay delay/2 length after successfuly performing the action
+                                        if(sugiliteData.getCurrentSystemState() == SugiliteData.DEFAULT_STATE)
+                                            Thread.sleep(DEBUG_DELAY / 2);
+                                        else
+                                            Thread.sleep(DELAY / 2);
+                                    } catch (Exception e) {
+                                        // do nothing
+                                    }
+                                }
+
+                            }
+                        }
+                    }
+                    lastTimeFailed.clear();
+                    if(succeeded){
+                        return succeeded;
+                    }
+                }
+
+
                 UISnapshot uiSnapshot = new UISnapshot(rootNode, true);
 
                 //de-serialize the OntologyQuery
@@ -354,7 +401,7 @@ public class Automator {
                 for (AccessibilityNodeInfo node : filteredNodes) {
                     //TODO: scrolling to find more nodes -- not only the ones displayed on the current screen
                     if (operationBlock.getOperation().getOperationType() == SugiliteOperation.CLICK && (!node.isClickable()))
-                        continue;
+                        //continue;
                     try {
                     } catch (Exception e) {
                         // do nothing
@@ -387,6 +434,15 @@ public class Automator {
                             // do nothing
                         }
                     }
+                }
+                if(! succeeded){
+                    lastTimeFailed.clear();
+                    for(AccessibilityNodeInfo node : filteredNodes){
+                        lastTimeFailed.add(new Node(node));
+                    }
+                }
+                else{
+                    lastTimeFailed.clear();
                 }
                 return succeeded;
             }

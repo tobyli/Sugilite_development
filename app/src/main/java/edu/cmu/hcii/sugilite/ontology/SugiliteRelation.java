@@ -88,10 +88,13 @@ public class SugiliteRelation implements Serializable {
         stringRelationMap.put("HAS_PACKAGE_NAME", HAS_PACKAGE_NAME);
         stringRelationMap.put("HAS_CHILD", HAS_CHILD);
         stringRelationMap.put("HAS_CHILD_TEXT", HAS_CHILD_TEXT);
+        stringRelationMap.put("HAS_SIBLING_TEXT", HAS_SIBLING_TEXT);
         stringRelationMap.put("HAS_SIBLING", HAS_SIBLING);
         stringRelationMap.put("IS_EDITABLE", IS_EDITABLE);
         stringRelationMap.put("IS_CLICKABLE", IS_CLICKABLE);
         stringRelationMap.put("IS_SCROLLABLE", IS_SCROLLABLE);
+        stringRelationMap.put("IS_CHECKABLE", IS_CHECKABLE);
+        stringRelationMap.put("IS_CHECKED", IS_CHECKED);
+        stringRelationMap.put("IS_SELECTED", IS_SELECTED);
     }
-
 }

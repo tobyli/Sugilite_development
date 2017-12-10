@@ -12,7 +12,7 @@ import edu.cmu.hcii.sugilite.BuildConfig;
 
 public class OntologyQuery {
     public enum relationType {
-        nullR, AND, OR;
+        nullR, AND, OR, PREV;
     }
     private relationType SubRelation;
     private Set<OntologyQuery> SubQueries = null;
@@ -128,7 +128,7 @@ public class OntologyQuery {
     }
 
     public void setSubQueries(Set<OntologyQuery> subQueries) {
-        if(BuildConfig.DEBUG && !(SubRelation == relationType.AND || SubRelation == relationType.OR)){
+        if(BuildConfig.DEBUG && !(SubRelation != relationType.nullR)){
             throw new AssertionError();
         }
         SubQueries = subQueries;
@@ -145,7 +145,10 @@ public class OntologyQuery {
     public Set<SugiliteEntity> getSubject() {return this.subject;}
 
     public boolean checkValidQuery() {
-        if(!(SubRelation != relationType.nullR && SubQueries != null && object == null && subject == null && QueryFunction == null && r == null)){
+        if(!(SubRelation == relationType.PREV && SubQueries != null && object == null && subject == null && QueryFunction != null && r != null && SubQueries.size() == 1)){
+            return false;
+        }
+        if(!((SubRelation == relationType.AND || SubRelation == relationType.OR) && SubQueries != null && object == null && subject == null && QueryFunction == null && r == null)){
             return false;
         }
         if(!(SubRelation == relationType.nullR && SubQueries == null && QueryFunction != null && r != null)){
@@ -156,7 +159,7 @@ public class OntologyQuery {
 
     private boolean OverallQueryFunction(OntologyQuery query, SugiliteEntity currNode, UISnapshot graph) {
         if(query.SubRelation == relationType.nullR){
-            // base case
+            // base case, leaf node
             if(query.subject == null && query.object == null){
                 // currNode can act as either subject or object
                 Set<SugiliteTriple> subjectMap = graph.getSubjectTriplesMap().get(currNode.getEntityId());
@@ -224,14 +227,23 @@ public class OntologyQuery {
                 }
                 return true;
             }
-            else{
-                // query.SubRelation == relationType.OR
+            else if(query.SubRelation == relationType.OR){
                 for(OntologyQuery q : query.SubQueries){
                     if(OverallQueryFunction(q, currNode, graph)){
                         return true;
                     }
                 }
                 return false;
+            }
+            else{
+                // query.SubRelation == relationType.PREV
+                // only one subquery
+                OntologyQuery prevQ = query.SubQueries.toArray(new OntologyQuery[query.SubQueries.size()])[0];
+                Set<SugiliteEntity> prevResult = prevQ.executeOn(graph);
+                query.setSubQueries(null);
+                query.setSubRelation(relationType.nullR);
+                query.setObject(prevResult);
+                return OverallQueryFunction(query, currNode, graph);
             }
         }
     }
@@ -275,23 +287,30 @@ public class OntologyQuery {
     }
 
     private static OntologyQuery parseString(String s, OntologyQuery q) {
+        // example: (conj (IS_CLICKABLE true) (HAS_TEXT coffee))
         int len = s.length();
         if(BuildConfig.DEBUG && !(s.charAt(0) == '(' && s.charAt(len-1) == ')')){
             throw new AssertionError();
         }
         s = s.substring(1, len-1);
+        // s: conj (IS_CLICKABLE true) (HAS_TEXT coffee)
         len = s.length();
 
         int spaceIndex = s.indexOf(' ');
         String firstWord = s.substring(0, spaceIndex);
+        // firstWord: conj
 
-        if(firstWord.equals("and") || firstWord.equals("or")) {
+        if(s.contains("(")) {
             // nested relation
-            if(firstWord.equals("and")) {
+            if(firstWord.equals("conj")) {
                 q.setSubRelation(relationType.AND);
             }
-            else{
+            else if(firstWord.equals("or")){
                 q.setSubRelation(relationType.OR);
+            }
+            else{
+                q.setSubRelation(relationType.PREV);
+                q.setQueryFunction(SugiliteRelation.stringRelationMap.get(firstWord));
             }
 
             Set<OntologyQuery> subQ = new HashSet<OntologyQuery>();

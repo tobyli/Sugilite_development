@@ -365,7 +365,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
 
             //==== testing the UI snapshot
 
-            /*
+
 
             if(event.getEventType() == AccessibilityEvent.TYPE_VIEW_CLICKED) {
                 File rootDataDir = context.getFilesDir();
@@ -424,12 +424,13 @@ public class SugiliteAccessibilityService extends AccessibilityService {
                 query.setQueryFunction(r2);
                 Set<SugiliteEntity> s2 = query.executeOn(uiSnapshot);
 
-                OntologyQuery parseTest = OntologyQuery.deserialize("(and (HAS_TEXT red) (HAS_CLASS_NAME android.test))");
+                OntologyQuery parseTest = OntologyQuery.deserialize("(or (HAS_CHILD (HAS_TEXT Chrome)) (HAS_CHILD (HAS_TEXT Messenger)))");
+                Set<SugiliteEntity> s3 = parseTest.executeOn(uiSnapshot);
 
                 System.out.println("test");
             }
 
-            */
+
 
 
             //add package name to the relevant package set

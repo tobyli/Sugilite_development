@@ -28,6 +28,9 @@ public class OntologyQuery {
     public OntologyQuery(SerializableOntologyQuery sq) {
         SubRelation = sq.getSubRelation();
         r = sq.getR();
+        if(r != null){
+            setQueryFunction(sq.getR());
+        }
         if(SubRelation != relationType.nullR) {
             SubQueries = new HashSet<OntologyQuery>();
             Set<SerializableOntologyQuery> pSubq = sq.getSubQueries();
@@ -36,7 +39,6 @@ public class OntologyQuery {
             }
         }
         else{
-            setQueryFunction(sq.getR());
             Set<SugiliteSerializableEntity> so = sq.getObject();
             Set<SugiliteSerializableEntity> ss = sq.getSubject();
             if(so != null){
@@ -103,8 +105,11 @@ public class OntologyQuery {
     }
 
     public void addObject(SugiliteEntity o){
-        if(BuildConfig.DEBUG && !(SubRelation == relationType.nullR && object != null)){
+        if(BuildConfig.DEBUG && !(SubRelation == relationType.nullR)){
             throw new AssertionError();
+        }
+        if(object == null){
+            object = new HashSet<>();
         }
         object.add(o);
     }
@@ -117,8 +122,11 @@ public class OntologyQuery {
     }
 
     public void addSubject(SugiliteEntity s){
-        if(BuildConfig.DEBUG && !(SubRelation == relationType.nullR && subject != null)){
+        if(BuildConfig.DEBUG && !(SubRelation == relationType.nullR)){
             throw new AssertionError();
+        }
+        if(subject == null){
+            subject = new HashSet<>();
         }
         subject.add(s);
     }
@@ -188,9 +196,23 @@ public class OntologyQuery {
             boolean subjectBool = false;
             if(query.object != null){
                 for(SugiliteEntity o : query.object){
-                    if(query.QueryFunction.apply(new SubjectEntityObjectEntityPair(currNode, o), graph)){
-                        objectBool = true;
-                        break;
+                    try {
+                        if (query.QueryFunction.apply(new SubjectEntityObjectEntityPair(currNode, o), graph)) {
+                            objectBool = true;
+                            break;
+                        }
+                    }
+                    catch (Exception e){
+                        if(query == null){
+                            System.out.println("null query");
+                        }
+                        if(query.QueryFunction == null){
+                            System.out.println("null QueryFunction");
+                        }
+                        if(graph == null){
+                            System.out.println("null graph");
+                        }
+                        e.printStackTrace();
                     }
                 }
             }

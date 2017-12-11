@@ -18,6 +18,7 @@ import edu.cmu.hcii.sugilite.model.block.UIElementMatchingFilter;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteOperation;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteSetTextOperation;
 
+
 /**
  * @author toby
  * @date 6/21/16
@@ -30,6 +31,35 @@ public class ReadableDescriptionGenerator {
         packageNameReadableNameMap = new HashMap<>();
         setupPackageNameReadableNameMap();
         packageManager = applicationContext.getPackageManager();
+    }
+
+    public String generateDescriptionForVerbalBlock(SugiliteOperationBlock block, String formula){
+        String message = "";
+        SugiliteOperation operation = block.getOperation();
+        switch (operation.getOperationType()){
+            case SugiliteOperation.CLICK:
+                message += setColor("Click ", Const.SCRIPT_ACTION_COLOR) + "on ";
+                break;
+            case SugiliteOperation.SELECT:
+                message += setColor("Select ", Const.SCRIPT_ACTION_COLOR);
+                break;
+            case SugiliteOperation.SET_TEXT:
+                message += setColor("Set Text ", Const.SCRIPT_ACTION_COLOR) + "to \"" + setColor(((SugiliteSetTextOperation)((SugiliteOperationBlock) block).getOperation()).getText(), Const.SCRIPT_ACTION_PARAMETER_COLOR) + "\" for ";
+                break;
+            case SugiliteOperation.LONG_CLICK:
+                message += setColor("Long click ", Const.SCRIPT_ACTION_COLOR) + "on ";
+                break;
+            case SugiliteOperation.READ_OUT:
+                message += setColor("Read out ", Const.SCRIPT_ACTION_COLOR) + "the " + setColor(((SugiliteOperationBlock)block).getOperation().getParameter(), Const.SCRIPT_ACTION_PARAMETER_COLOR) + " for ";
+                break;
+            case SugiliteOperation.LOAD_AS_VARIABLE:
+                message += setColor("Load the value ", Const.SCRIPT_ACTION_COLOR) + "of the" + setColor(((SugiliteOperationBlock)block).getOperation().getParameter(), Const.SCRIPT_ACTION_PARAMETER_COLOR) + " as a variable for ";
+            case SugiliteOperation.SPECIAL_GO_HOME:
+                return "<b>GO TO HOME SCREEN</b>";
+        }
+
+        message += setColor(formula, Const.SCRIPT_IDENTIFYING_FEATURE_COLOR);
+        return message;
     }
 
     /**

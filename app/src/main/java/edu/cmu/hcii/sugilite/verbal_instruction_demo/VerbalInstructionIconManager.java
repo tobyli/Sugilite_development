@@ -53,8 +53,11 @@ public class VerbalInstructionIconManager implements SugiliteVoiceInterface {
     private Context context;
     private WindowManager windowManager;
     private LayoutInflater layoutInflater;
+    private SugiliteData sugiliteData;
+    private SharedPreferences sharedPreferences;
     private SugiliteVoiceRecognitionListener sugiliteVoiceRecognitionListener;
     public boolean isListening = false;
+    private Dialog dialog;
 
 
     private ImageView statusIcon;
@@ -68,8 +71,10 @@ public class VerbalInstructionIconManager implements SugiliteVoiceInterface {
     //for saving the latest ui snapshot
     private UISnapshot latestUISnapshot = null;
 
-    public VerbalInstructionIconManager(Context context){
+    public VerbalInstructionIconManager(Context context, SugiliteData sugiliteData, SharedPreferences sharedPreferences){
         this.context = context;
+        this.sugiliteData = sugiliteData;
+        this.sharedPreferences = sharedPreferences;
         windowManager = (WindowManager) context.getSystemService(context.WINDOW_SERVICE);
         this.layoutInflater = (LayoutInflater) context.getSystemService( Context.LAYOUT_INFLATER_SERVICE);
         this.sugiliteVoiceRecognitionListener = new SugiliteVoiceRecognitionListener(context, this);
@@ -245,21 +250,29 @@ public class VerbalInstructionIconManager implements SugiliteVoiceInterface {
                                             //send a verbal instruction
                                             if(latestUISnapshot != null) {
                                                 SerializableUISnapshot serializedUISnapshot = new SerializableUISnapshot(latestUISnapshot);
-                                                VerbalInstructionTestDialog verbalInstructionDialog = new VerbalInstructionTestDialog(serializedUISnapshot, context, layoutInflater);
+                                                VerbalInstructionTestDialog verbalInstructionDialog = new VerbalInstructionTestDialog(serializedUISnapshot, context, layoutInflater, sugiliteData, sharedPreferences);
+                                                if(dialog != null){
+                                                    dialog.dismiss();
+                                                }
                                                 verbalInstructionDialog.show();
                                             }
                                             else{
                                                 Toast.makeText(context, "UI snapshot is NULL!", Toast.LENGTH_SHORT).show();
-
                                             }
                                             break;
 
                                         case "Test ASR":
+                                            if(dialog != null){
+                                                dialog.dismiss();
+                                            }
                                             testASR();
                                             break;
 
                                         case "Dump the latest UI snapshot":
                                             //dump the latest UI snapshot
+                                            if(dialog != null){
+                                                dialog.dismiss();
+                                            }
                                             if(latestUISnapshot != null) {
                                                 Gson gson = new GsonBuilder().excludeFieldsWithModifiers(Modifier.FINAL, Modifier.TRANSIENT, Modifier.STATIC)
                                                         .serializeNulls()
@@ -275,7 +288,7 @@ public class VerbalInstructionIconManager implements SugiliteVoiceInterface {
                             });
 
 
-                    Dialog dialog = textDialogBuilder.create();
+                    dialog = textDialogBuilder.create();
                     dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
                     dialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_box);
                     dialog.show();

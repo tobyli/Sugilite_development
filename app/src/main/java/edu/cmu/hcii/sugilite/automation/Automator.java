@@ -344,7 +344,7 @@ public class Automator {
                             if(((lasttimeFailedNode.getPackageName() == null && node.getPackageName() == null) || lasttimeFailedNode.getPackageName().equals(node.getPackageName().toString())) &&
                                     ((lasttimeFailedNode.getClassName() == null && node.getClassName() == null) || lasttimeFailedNode.getClassName().equals(node.getClassName().toString())) &&
                                     ((lasttimeFailedNode.getBoundsInScreen() == null && rect.flattenToString() == null) || lasttimeFailedNode.getBoundsInScreen().equals(rect.flattenToString())) &&
-                                    ((lasttimeFailedNode.getViewId() == null && node.getViewIdResourceName() == null) || lasttimeFailedNode.getViewId().equals(node.getViewIdResourceName()))){
+                                    ((lasttimeFailedNode.getViewId() == null && node.getViewIdResourceName() == null) || (lasttimeFailedNode.getViewId() != null && lasttimeFailedNode.getViewId().equals(node.getViewIdResourceName())))){
                                 //TODO: execute on node
                                 boolean retVal = performAction(node, operationBlock);
                                 if (retVal) {

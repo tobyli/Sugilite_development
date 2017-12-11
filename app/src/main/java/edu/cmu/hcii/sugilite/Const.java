@@ -23,7 +23,7 @@ public class Const {
     public static final int DELAY = 3000;
     public static final int DEBUG_DELAY = 8000;
 
-    public static final long THRESHOLD_FOR_START_SENDING_ACCESSIBILITY_EVENT = 7000;
+    public static final long THRESHOLD_FOR_START_SENDING_ACCESSIBILITY_EVENT = 500;
 
     //TRUE to save a list of all elements with text labels
     public static final boolean KEEP_ALL_TEXT_LABEL_LIST = false;

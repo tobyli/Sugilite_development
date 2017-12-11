@@ -103,7 +103,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
         }
         AccessibilityManager accessibilityManager = (AccessibilityManager) this.getSystemService(Context.ACCESSIBILITY_SERVICE);
 
-        verbalInstructionIconManager = new VerbalInstructionIconManager(this);
+        verbalInstructionIconManager = new VerbalInstructionIconManager(this, sugiliteData, sharedPreferences);
         statusIconManager = new StatusIconManager(this, sugiliteData, sharedPreferences, accessibilityManager);
         sugiliteData.statusIconManager = statusIconManager;
         sugiliteData.verbalInstructionIconManager = verbalInstructionIconManager;

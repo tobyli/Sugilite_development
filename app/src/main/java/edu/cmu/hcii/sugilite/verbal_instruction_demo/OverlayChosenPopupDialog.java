@@ -3,6 +3,7 @@ package edu.cmu.hcii.sugilite.verbal_instruction_demo;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.SharedPreferences;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.WindowManager;
@@ -17,7 +18,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import edu.cmu.hcii.sugilite.Const;
+import edu.cmu.hcii.sugilite.Node;
 import edu.cmu.hcii.sugilite.R;
+import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.ontology.SerializableUISnapshot;
 
 /**
@@ -30,10 +33,16 @@ public class OverlayChosenPopupDialog {
     private Context context;
     private AlertDialog dialog;
     private VerbalInstructionOverlayManager overlayManager;
+    private VerbalInstructionRecordingManager verbalInstructionRecordingManager;
+    private SugiliteData sugiliteData;
+    private SharedPreferences sharedPreferences;
 
-    public OverlayChosenPopupDialog(Context context, LayoutInflater inflater, VerbalInstructionOverlayManager overlayManager, VerbalInstructionResults.VerbalInstructionResult chosenResult, List<VerbalInstructionResults.VerbalInstructionResult> allResults, SerializableUISnapshot serializableUISnapshot){
+    public OverlayChosenPopupDialog(Context context, LayoutInflater inflater, VerbalInstructionOverlayManager overlayManager, Node node, VerbalInstructionResults.VerbalInstructionResult chosenResult, List<VerbalInstructionResults.VerbalInstructionResult> allResults, SerializableUISnapshot serializableUISnapshot, SugiliteData sugiliteData, SharedPreferences sharedPreferences){
         this.context = context;
         this.overlayManager = overlayManager;
+        this.sugiliteData = sugiliteData;
+        this.sharedPreferences = sharedPreferences;
+        this.verbalInstructionRecordingManager = new VerbalInstructionRecordingManager(context, sugiliteData, sharedPreferences);
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
         builder.setTitle(Const.appNameUpperCase + " Verbal Instruction");
 
@@ -56,6 +65,12 @@ public class OverlayChosenPopupDialog {
                         //TODO: confirm parse, send the result back to the server
                         Toast.makeText(context, "Confirmed parse: " + chosenResult.getFormula(), Toast.LENGTH_SHORT).show();
                         overlayManager.removeOverlays();
+
+                        //TODO: if in recording, add the step to recording
+                        if (sharedPreferences.getBoolean("recording_in_process", false)) {
+                            //if recording is in process
+                            verbalInstructionRecordingManager.addToRecording(chosenResult, node, serializableUISnapshot);
+                        }
                         break;
                     case 1:
                         //choose a different parse

@@ -134,19 +134,23 @@ public class RecordingPopUpDialog extends AbstractSugiliteDialog {
         this.triggerMode = triggerMode;
         this.layoutInflater = inflater;
         this.context = context;
-        if(Const.KEEP_ALL_ALTERNATIVES_IN_THE_FILTER)
+        if(Const.KEEP_ALL_ALTERNATIVES_IN_THE_FILTER) {
             this.alternativeLabels = new HashSet<>(alternativeLabels);
-        else
+        }
+        else {
             this.alternativeLabels = new HashSet<>();
+        }
         this.screenshotManager = new SugiliteScreenshotManager(sharedPreferences, context);
         this.skipManager = new RecordingSkipManager();
         this.filterTester = new AlternativeNodesFilterTester();
         this.scriptName = sugiliteData.getScriptHead().getScriptName();
         jsonProcessor = new SugiliteBlockJSONProcessor(context);
-        if(Const.DAO_TO_USE == SQL_SCRIPT_DAO)
+        if(Const.DAO_TO_USE == SQL_SCRIPT_DAO) {
             this.sugiliteScriptDao = new SugiliteScriptSQLDao(context);
-        else
+        }
+        else {
             this.sugiliteScriptDao = new SugiliteScriptFileDao(context, sugiliteData);
+        }
         readableDescriptionGenerator = new ReadableDescriptionGenerator(context);
         checkBoxChildEntryMap = new HashMap<>();
         checkBoxParentEntryMap = new HashMap<>();

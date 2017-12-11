@@ -45,17 +45,21 @@ public class VerbalInstructionOverlayManager {
     private LayoutInflater layoutInflater;
     private NavigationBarUtil navigationBarUtil;
     private VerbalInstructionOverlayManager verbalInstructionOverlayManager;
+    private SugiliteData sugiliteData;
+    private SharedPreferences sharedPreferences;
     private List<View> overlays;
 
     //whether overlays are currently shown
     private boolean showingOverlay = false;
 
-    public VerbalInstructionOverlayManager(Context context){
+    public VerbalInstructionOverlayManager(Context context, SugiliteData sugiliteData, SharedPreferences sharedPreferences){
         this.context = context;
         this.windowManager = (WindowManager) context.getSystemService(context.WINDOW_SERVICE);
         this.overlays = new ArrayList<>();
         this.layoutInflater = (LayoutInflater) context.getSystemService( Context.LAYOUT_INFLATER_SERVICE);
         this.navigationBarUtil = new NavigationBarUtil();
+        this.sugiliteData = sugiliteData;
+        this.sharedPreferences = sharedPreferences;
         this.verbalInstructionOverlayManager = this;
     }
 
@@ -92,7 +96,7 @@ public class VerbalInstructionOverlayManager {
         iconParams.width = boundsInScreen.width();
         iconParams.height = boundsInScreen.height();
 
-        addCrumpledPaperOnTouchListener(overlay, iconParams, displaymetrics, node, entityId, correspondingResult, allResults, serializableUISnapshot, windowManager);
+        addCrumpledPaperOnTouchListener(overlay, iconParams, displaymetrics, node, entityId, correspondingResult, allResults, serializableUISnapshot, windowManager, sugiliteData, sharedPreferences);
 
         //NEEDED TO BE CONFIGURED AT APPS->SETTINGS-DRAW OVER OTHER APPS on API>=23
         int currentApiVersion = android.os.Build.VERSION.SDK_INT;
@@ -152,7 +156,7 @@ public class VerbalInstructionOverlayManager {
      * @param displayMetrics
      * @param windowManager
      */
-    private void addCrumpledPaperOnTouchListener(final View view, final WindowManager.LayoutParams mPaperParams, DisplayMetrics displayMetrics, Node node, String entityId, VerbalInstructionResults.VerbalInstructionResult correspondingResult, List<VerbalInstructionResults.VerbalInstructionResult> allResults, SerializableUISnapshot serializableUISnapshot, final WindowManager windowManager) {
+    private void addCrumpledPaperOnTouchListener(final View view, final WindowManager.LayoutParams mPaperParams, DisplayMetrics displayMetrics, Node node, String entityId, VerbalInstructionResults.VerbalInstructionResult correspondingResult, List<VerbalInstructionResults.VerbalInstructionResult> allResults, SerializableUISnapshot serializableUISnapshot, final WindowManager windowManager, SugiliteData sugiliteData, SharedPreferences sharedPreferences) {
         view.setOnTouchListener(new View.OnTouchListener() {
 
             GestureDetector gestureDetector = new GestureDetector(context, new SingleTapUp());
@@ -162,7 +166,7 @@ public class VerbalInstructionOverlayManager {
                 if (gestureDetector.onTouchEvent(event)) {
                     // gesture is clicking
                     Toast.makeText(context, "Clicked on " + entityId, Toast.LENGTH_SHORT).show();
-                    OverlayChosenPopupDialog overlayChosenPopupDialog = new OverlayChosenPopupDialog(context, layoutInflater, verbalInstructionOverlayManager, correspondingResult, allResults, serializableUISnapshot);
+                    OverlayChosenPopupDialog overlayChosenPopupDialog = new OverlayChosenPopupDialog(context, layoutInflater, verbalInstructionOverlayManager, node,  correspondingResult, allResults, serializableUISnapshot, sugiliteData, sharedPreferences);
                     overlayChosenPopupDialog.show();
                     return true;
                 }

@@ -48,7 +48,7 @@ public class SugiliteRelation implements Serializable {
 
     //examples of relations
     public static final SugiliteRelation HAS_CLASS_NAME = new SugiliteRelation(0, "HAS_CLASS_NAME");
-    public static final SugiliteRelation HAS_TEXT = new SugiliteRelation(1, "HAS_TEXT");
+    public static final SugiliteRelation HAS_TEXT = new SugiliteRelation(1, "hasText");
     public static final SugiliteRelation HAS_PARENT = new SugiliteRelation(2, "HAS_PARENT");
     public static final SugiliteRelation HAS_VIEW_ID = new SugiliteRelation(3, "HAS_VIEW_ID");
     public static final SugiliteRelation HAS_CONTENT_DESCRIPTION = new SugiliteRelation(4, "HAS_CONTENT_DESCRIPTION");
@@ -79,7 +79,7 @@ public class SugiliteRelation implements Serializable {
     static {
         stringRelationMap = new HashMap<String, SugiliteRelation>();
         stringRelationMap.put("HAS_CLASS_NAME", HAS_CLASS_NAME);
-        stringRelationMap.put("HAS_TEXT", HAS_TEXT);
+        stringRelationMap.put("hasText", HAS_TEXT);
         stringRelationMap.put("HAS_PARENT", HAS_PARENT);
         stringRelationMap.put("HAS_VIEW_ID", HAS_VIEW_ID);
         stringRelationMap.put("HAS_CONTENT_DESCRIPTION", HAS_CONTENT_DESCRIPTION);
@@ -87,9 +87,11 @@ public class SugiliteRelation implements Serializable {
         stringRelationMap.put("HAS_PARENT_LOCATION", HAS_PARENT_LOCATION);
         stringRelationMap.put("HAS_PACKAGE_NAME", HAS_PACKAGE_NAME);
         stringRelationMap.put("HAS_CHILD", HAS_CHILD);
+
         stringRelationMap.put("HAS_CHILD_TEXT", HAS_CHILD_TEXT);
         stringRelationMap.put("HAS_SIBLING_TEXT", HAS_SIBLING_TEXT);
         stringRelationMap.put("HAS_SIBLING", HAS_SIBLING);
+
         stringRelationMap.put("IS_EDITABLE", IS_EDITABLE);
         stringRelationMap.put("IS_CLICKABLE", IS_CLICKABLE);
         stringRelationMap.put("IS_SCROLLABLE", IS_SCROLLABLE);

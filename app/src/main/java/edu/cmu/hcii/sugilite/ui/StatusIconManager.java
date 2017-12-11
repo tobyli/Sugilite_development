@@ -420,14 +420,7 @@ public class StatusIconManager {
                     }
                     operationList.add("View Script List");
 
-                    if(verbalInstructionIconManager != null) {
-                        if(verbalInstructionIconManager.isShowingIcon()) {
-                            operationList.add("Turn off verbal instruction");
-                        }
-                        else{
-                            operationList.add("Turn on verbal instruction");
-                        }
-                    }
+
 
 
                     if(startingBlock == null){
@@ -449,6 +442,16 @@ public class StatusIconManager {
                             operationList.add("New Recording");
                         }
                     }
+
+                    if(verbalInstructionIconManager != null) {
+                        if(verbalInstructionIconManager.isShowingIcon()) {
+                            operationList.add("Turn off verbal instruction");
+                        }
+                        else{
+                            operationList.add("Turn on verbal instruction");
+                        }
+                    }
+
                     operationList.add("Quit Sugilite");
                     String[] operations = new String[operationList.size()];
                     operations = operationList.toArray(operations);

@@ -85,10 +85,10 @@ public class VerbalInstructionRecordingManager {
             }
 
 
-            //NOT using the parent query for now
+            //using the parent query for now
 
             //generate the blcok
-            SugiliteOperationBlock operationBlock = generateBlock(query, queryFormula);
+            SugiliteOperationBlock operationBlock = generateBlock(parentQuery, parentQuery.toString());
 
             //
             AlertDialog.Builder confirmationDialogBuilder = new AlertDialog.Builder(context);

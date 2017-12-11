@@ -112,4 +112,16 @@ public class SugiliteEntity<T> {
     public int hashCode() {
         return Objects.hash(this.entityValue);
     }
+
+    @Override
+    public String toString() {
+        if(type == String.class){
+            return (String)entityValue;
+        }
+        if(type == Boolean.class) {
+            return ((Boolean)entityValue).toString();
+        }
+        //type == Node.class
+        return "@" + entityId.toString();
+    }
 }

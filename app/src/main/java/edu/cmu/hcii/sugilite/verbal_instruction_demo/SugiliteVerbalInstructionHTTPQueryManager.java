@@ -23,12 +23,26 @@ public class SugiliteVerbalInstructionHTTPQueryManager {
     private final String SERVER_URL =  "http://codermoder.com:4567/semparse";
     private final String USER_AGENT = "Mozilla/5.0";
     private SugiliteVerbalInstructionHTTPQueryInterface parentInterface;
+    private Gson gson;
 
     public SugiliteVerbalInstructionHTTPQueryManager(SugiliteVerbalInstructionHTTPQueryInterface parentInterface){
         this.parentInterface = parentInterface;
+        this.gson = new Gson();
     }
 
-    public void sendQuery(VerbalInstructionTestDialog.Query query) throws Exception {
+    public void sendQueryRequest(VerbalInstructionServerQuery query) throws Exception {
+        String content = gson.toJson(query);
+        sendRequest(content);
+    }
+
+    public void sendResponseRequest(VerbalInstructionServerResponse response) throws Exception {
+        String content = gson.toJson(response);
+        sendRequest(content);
+    }
+
+
+
+    private void sendRequest(String content) throws Exception {
         URL obj = new URL(SERVER_URL);
         HttpURLConnection con = (HttpURLConnection) obj.openConnection();
 
@@ -46,7 +60,7 @@ public class SugiliteVerbalInstructionHTTPQueryManager {
         OutputStream out = null;
         out = new BufferedOutputStream(con.getOutputStream());
         BufferedWriter writer = new BufferedWriter (new OutputStreamWriter(out, "UTF-8"));
-        writer.write(new Gson().toJson(query));
+        writer.write(content);
         writer.flush();
         writer.close();
         out.close();

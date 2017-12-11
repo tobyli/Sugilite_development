@@ -16,6 +16,7 @@ import com.google.gson.Gson;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.ResourceBundle;
 
 import edu.cmu.hcii.sugilite.Const;
 import edu.cmu.hcii.sugilite.Node;
@@ -36,13 +37,15 @@ public class OverlayChosenPopupDialog {
     private VerbalInstructionRecordingManager verbalInstructionRecordingManager;
     private SugiliteData sugiliteData;
     private SharedPreferences sharedPreferences;
+    private SugiliteVerbalInstructionHTTPQueryManager httpQueryManager;
 
-    public OverlayChosenPopupDialog(Context context, LayoutInflater inflater, VerbalInstructionOverlayManager overlayManager, Node node, VerbalInstructionResults.VerbalInstructionResult chosenResult, List<VerbalInstructionResults.VerbalInstructionResult> allResults, SerializableUISnapshot serializableUISnapshot, SugiliteData sugiliteData, SharedPreferences sharedPreferences){
+    public OverlayChosenPopupDialog(Context context, LayoutInflater inflater, VerbalInstructionOverlayManager overlayManager, Node node, VerbalInstructionResults.VerbalInstructionResult chosenResult, List<VerbalInstructionResults.VerbalInstructionResult> allResults, SerializableUISnapshot serializableUISnapshot, SugiliteVerbalInstructionHTTPQueryManager httpQueryManager, SugiliteData sugiliteData, SharedPreferences sharedPreferences){
         this.context = context;
         this.overlayManager = overlayManager;
         this.sugiliteData = sugiliteData;
         this.sharedPreferences = sharedPreferences;
         this.verbalInstructionRecordingManager = new VerbalInstructionRecordingManager(context, sugiliteData, sharedPreferences);
+        this.httpQueryManager = httpQueryManager;
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
         builder.setTitle(Const.appNameUpperCase + " Verbal Instruction");
 
@@ -62,8 +65,20 @@ public class OverlayChosenPopupDialog {
                 switch (which){
                     case 0:
                         //confirm parse
-                        //TODO: confirm parse, send the result back to the server
+                        //confirm parse, send the result back to the server
                         Toast.makeText(context, "Confirmed parse: " + chosenResult.getFormula(), Toast.LENGTH_SHORT).show();
+                        VerbalInstructionServerResponse response = new VerbalInstructionServerResponse(chosenResult.getFormula(), chosenResult.getId());
+                        Thread thread = new Thread() {
+                            @Override
+                            public void run() {
+                                try {
+                                    httpQueryManager.sendResponseRequest(response);
+                                } catch (Exception e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                        };
+                        thread.start();
                         overlayManager.removeOverlays();
 
                         //TODO: if in recording, add the step to recording

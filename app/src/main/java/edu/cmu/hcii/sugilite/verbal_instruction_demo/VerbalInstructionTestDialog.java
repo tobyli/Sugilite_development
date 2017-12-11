@@ -64,7 +64,7 @@ public class VerbalInstructionTestDialog implements SugiliteVoiceInterface, Sugi
         this.context = context;
         this.sugiliteVoiceRecognitionListener = new SugiliteVoiceRecognitionListener(context, this);
         this.sugiliteVerbalInstructionHTTPQueryManager = new SugiliteVerbalInstructionHTTPQueryManager(this);
-        this.overlayManager = new VerbalInstructionOverlayManager(context, sugiliteData, sharedPreferences);
+        this.overlayManager = new VerbalInstructionOverlayManager(context, sugiliteData, sharedPreferences, sugiliteVerbalInstructionHTTPQueryManager);
         this.gson = new Gson();
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
         View dialogView = inflater.inflate(R.layout.dialog_send_server_query, null);
@@ -112,7 +112,7 @@ public class VerbalInstructionTestDialog implements SugiliteVoiceInterface, Sugi
             public void onClick(View v)
             {
                 String userInput = instructionTextbox.getText().toString();
-                Query query = new Query(userInput, serializableUISnapshot.triplesToString());
+                VerbalInstructionServerQuery query = new VerbalInstructionServerQuery(userInput, serializableUISnapshot.triplesToString());
 
                 //save the query locally
                 dumpQuery(query);
@@ -123,7 +123,7 @@ public class VerbalInstructionTestDialog implements SugiliteVoiceInterface, Sugi
                     @Override
                     public void run() {
                         try {
-                            sugiliteVerbalInstructionHTTPQueryManager.sendQuery(query);
+                            sugiliteVerbalInstructionHTTPQueryManager.sendQueryRequest(query);
                         } catch (Exception e) {
                             e.printStackTrace();
                         }
@@ -139,7 +139,7 @@ public class VerbalInstructionTestDialog implements SugiliteVoiceInterface, Sugi
     }
 
 
-    private void dumpQuery(Query query){
+    private void dumpQuery(VerbalInstructionServerQuery query){
         PrintWriter out1 = null;
         String query_gson = gson.toJson(query);
         try {
@@ -264,20 +264,7 @@ public class VerbalInstructionTestDialog implements SugiliteVoiceInterface, Sugi
         mainLayout.post(r);
     }
 
-    public class Query{
-        private String mode;
-        private String userInput;
-        private List<List<String>> triples;
 
-        public Query(String mode, String userInput, List<List<String>> triples){
-            this.mode = mode;
-            this.userInput = userInput;
-            this.triples = triples;
-        }
 
-        public Query(String userInput, List<List<String>> triples){
-            this("USER_COMMAND", userInput, triples);
-        }
 
-    }
 }

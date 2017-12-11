@@ -47,12 +47,13 @@ public class VerbalInstructionOverlayManager {
     private VerbalInstructionOverlayManager verbalInstructionOverlayManager;
     private SugiliteData sugiliteData;
     private SharedPreferences sharedPreferences;
+    private SugiliteVerbalInstructionHTTPQueryManager httpQueryManager;
     private List<View> overlays;
 
     //whether overlays are currently shown
     private boolean showingOverlay = false;
 
-    public VerbalInstructionOverlayManager(Context context, SugiliteData sugiliteData, SharedPreferences sharedPreferences){
+    public VerbalInstructionOverlayManager(Context context, SugiliteData sugiliteData, SharedPreferences sharedPreferences, SugiliteVerbalInstructionHTTPQueryManager httpQueryManager){
         this.context = context;
         this.windowManager = (WindowManager) context.getSystemService(context.WINDOW_SERVICE);
         this.overlays = new ArrayList<>();
@@ -60,6 +61,7 @@ public class VerbalInstructionOverlayManager {
         this.navigationBarUtil = new NavigationBarUtil();
         this.sugiliteData = sugiliteData;
         this.sharedPreferences = sharedPreferences;
+        this.httpQueryManager = httpQueryManager;
         this.verbalInstructionOverlayManager = this;
     }
 
@@ -166,7 +168,7 @@ public class VerbalInstructionOverlayManager {
                 if (gestureDetector.onTouchEvent(event)) {
                     // gesture is clicking
                     Toast.makeText(context, "Clicked on " + entityId, Toast.LENGTH_SHORT).show();
-                    OverlayChosenPopupDialog overlayChosenPopupDialog = new OverlayChosenPopupDialog(context, layoutInflater, verbalInstructionOverlayManager, node,  correspondingResult, allResults, serializableUISnapshot, sugiliteData, sharedPreferences);
+                    OverlayChosenPopupDialog overlayChosenPopupDialog = new OverlayChosenPopupDialog(context, layoutInflater, verbalInstructionOverlayManager, node,  correspondingResult, allResults, serializableUISnapshot, httpQueryManager, sugiliteData, sharedPreferences);
                     overlayChosenPopupDialog.show();
                     return true;
                 }

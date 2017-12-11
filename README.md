@@ -15,5 +15,6 @@ SUGILITE is a new programming-by-demonstration (PBD) system that enables users t
 
 5. Make sure that you can see a duck icon on the screen
 
+
 ## Reference:
 Toby Jia-Jun Li, Amos Azaria and Brad A. Myers. 2017. [SUGILITE: Creating Multimodal Smartphone Automation by Demonstration.](http://www.toby.li/sugilite_paper) Proceedings of the 2017 CHI Conference on Human Factors in Computing Systems  (CHI 2017)

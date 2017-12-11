@@ -1,5 +1,7 @@
 package edu.cmu.hcii.sugilite.ontology;
 
+import android.text.TextUtils;
+
 import java.util.HashSet;
 import java.util.Set;
 import java.util.function.*;
@@ -364,5 +366,29 @@ public class OntologyQuery {
 
     public SugiliteRelation getR() {
         return r;
+    }
+
+    @Override
+    public String toString() {
+        if(SubRelation == relationType.nullR){
+            // base case
+            // this should have size 1 always, the array is only used in execution for when there's a query whose results are used as the objects of the next one
+            SugiliteEntity[] objectArr = object.toArray(new SugiliteEntity[object.size()]);
+            return "(" + r.getRelationName() + " " + objectArr[0].toString() + ")";
+        }
+        OntologyQuery[] subQueryArray = SubQueries.toArray(new OntologyQuery[SubQueries.size()]);
+        if(SubRelation == relationType.AND || SubRelation == relationType.OR){
+            int size = subQueryArray.length;
+            String[] arr = new String[size];
+            for(int i = 0; i < size; i++){
+                arr[i] = subQueryArray[i].toString();
+            }
+            if(SubRelation == relationType.AND) return "(conj " + TextUtils.join(" ", arr) + ")";
+            else return "(or " + TextUtils.join(" ", arr) + ")";
+        }
+
+        // SubRelation == relationType.PREV
+
+        return "(" + r.getRelationName() + " " + subQueryArray[0].toString() + ")";
     }
 }

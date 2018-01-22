@@ -1,18 +1,19 @@
 package edu.cmu.hcii.sugilite.verbal_instruction_demo;
 
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.text.Html;
-import android.util.Log;
 import android.view.WindowManager;
 import android.widget.Toast;
 
+import java.util.AbstractMap;
+import java.util.Calendar;
+import java.util.Map;
+
 import edu.cmu.hcii.sugilite.Const;
 import edu.cmu.hcii.sugilite.Node;
-import edu.cmu.hcii.sugilite.SugiliteAccessibilityService;
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptFileDao;
@@ -28,6 +29,7 @@ import edu.cmu.hcii.sugilite.ontology.SerializableUISnapshot;
 import edu.cmu.hcii.sugilite.ontology.SugiliteEntity;
 import edu.cmu.hcii.sugilite.ontology.SugiliteRelation;
 import edu.cmu.hcii.sugilite.recording.ReadableDescriptionGenerator;
+import edu.cmu.hcii.sugilite.verbal_instruction_demo.server_comm.VerbalInstructionServerResults;
 
 import static edu.cmu.hcii.sugilite.Const.SQL_SCRIPT_DAO;
 
@@ -58,7 +60,7 @@ public class VerbalInstructionRecordingManager {
         }
     }
 
-    public void addToRecording(VerbalInstructionResults.VerbalInstructionResult result, Node node, SerializableUISnapshot uiSnapshot){
+    public void addToRecording(VerbalInstructionServerResults.VerbalInstructionResult result, Node node, SerializableUISnapshot uiSnapshot, String utterance){
         //TODO: add the step specified in result to the current recording
         if (sharedPreferences.getBoolean("recording_in_process", false)) {
             //if recording is in process
@@ -87,8 +89,8 @@ public class VerbalInstructionRecordingManager {
 
             //using the parent query for now
 
-            //generate the blcok
-            SugiliteOperationBlock operationBlock = generateBlock(parentQuery, parentQuery.toString());
+            //generate the block
+            SugiliteOperationBlock operationBlock = generateBlock(parentQuery, parentQuery.toString(), utterance);
 
             //
             AlertDialog.Builder confirmationDialogBuilder = new AlertDialog.Builder(context);
@@ -100,7 +102,8 @@ public class VerbalInstructionRecordingManager {
                     //save the block
                     saveBlock(operationBlock, node.getPackageName());
                     Toast.makeText(context, "Added " + queryFormula + " to the current recording", Toast.LENGTH_SHORT).show();
-
+                    Map.Entry<String, Long> boundsInScreenTimeStampPair = new AbstractMap.SimpleEntry<>(node.getBoundsInScreen(), Calendar.getInstance().getTimeInMillis());
+                    sugiliteData.NodeToIgnoreRecordingBoundsInScreenTimeStampQueue.add(boundsInScreenTimeStampPair);
                     //TODO: add the block to running
                     sugiliteData.addInstruction(operationBlock);
                 }
@@ -123,7 +126,7 @@ public class VerbalInstructionRecordingManager {
      * @param formula
      * @return
      */
-    private SugiliteOperationBlock generateBlock(OntologyQuery query, String formula){
+    private SugiliteOperationBlock generateBlock(OntologyQuery query, String formula, String utterance){
         //generate the sugilite operation
         SugiliteOperation sugiliteOperation = new SugiliteOperation();
         //assume it's click for now -- need to expand to more types of operations
@@ -137,7 +140,7 @@ public class VerbalInstructionRecordingManager {
         operationBlock.setScreenshot(null);
         operationBlock.setQuery(serializedQuery);
 
-        operationBlock.setDescription(readableDescriptionGenerator.generateDescriptionForVerbalBlock(operationBlock, formula));
+        operationBlock.setDescription(readableDescriptionGenerator.generateDescriptionForVerbalBlock(operationBlock, formula, utterance));
         return operationBlock;
     }
 

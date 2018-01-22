@@ -1,4 +1,4 @@
-package edu.cmu.hcii.sugilite.verbal_instruction_demo;
+package edu.cmu.hcii.sugilite.verbal_instruction_demo.server_comm;
 
 import java.util.List;
 
@@ -7,7 +7,7 @@ import java.util.List;
  * @date 12/10/17
  * @time 2:09 AM
  */
-public class VerbalInstructionResults {
+public class VerbalInstructionServerResults {
 
     private List<VerbalInstructionResult> queries;
 

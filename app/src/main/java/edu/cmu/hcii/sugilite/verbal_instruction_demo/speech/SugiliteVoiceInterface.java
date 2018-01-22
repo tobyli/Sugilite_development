@@ -1,4 +1,4 @@
-package edu.cmu.hcii.sugilite.verbal_instruction_demo;
+package edu.cmu.hcii.sugilite.verbal_instruction_demo.speech;
 
 import java.util.List;
 

@@ -6,15 +6,21 @@ import android.view.accessibility.AccessibilityNodeInfo;
 
 import com.google.gson.Gson;
 
+import java.util.AbstractMap;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import edu.cmu.hcii.sugilite.Node;
 import edu.cmu.hcii.sugilite.automation.Automator;
+import edu.cmu.hcii.sugilite.ontology.helper.ListOrderResolver;
+import edu.cmu.hcii.sugilite.ontology.helper.TextStringParseHelper;
+import edu.cmu.hcii.sugilite.ontology.helper.annotator.SugiliteTextAnnotator;
 
 /**
  * @author toby
@@ -29,6 +35,8 @@ public class UISnapshot {
     private Map<Integer, Set<SugiliteTriple>> objectTriplesMap;
     private Map<Integer, Set<SugiliteTriple>> predicateTriplesMap;
 
+    private transient Map<Map.Entry<Integer, Integer>, Set<SugiliteTriple>> subjectPredicateTriplesMap;
+
     //indexes for entities and relations
     private Map<Integer, SugiliteEntity> sugiliteEntityIdSugiliteEntityMap;
     private Map<Integer, SugiliteRelation> sugiliteRelationIdSugiliteRelationMap;
@@ -41,12 +49,14 @@ public class UISnapshot {
     private transient Map<Node, AccessibilityNodeInfo> nodeAccessibilityNodeInfoMap;
 
 
+
     public UISnapshot(){
         //empty
         triples = new HashSet<>();
         subjectTriplesMap = new HashMap<>();
         objectTriplesMap = new HashMap<>();
         predicateTriplesMap = new HashMap<>();
+        subjectPredicateTriplesMap = new HashMap<>();
         sugiliteEntityIdSugiliteEntityMap = new HashMap<>();
         sugiliteRelationIdSugiliteRelationMap = new HashMap<>();
         nodeSugiliteEntityMap = new HashMap<>();
@@ -56,6 +66,7 @@ public class UISnapshot {
         entityIdCounter = 0;
     }
 
+    @Deprecated
     public UISnapshot(AccessibilityEvent event){
         //TODO: contruct a UI snapshot from an event
         //get the rootNode from event and pass into to the below function
@@ -63,8 +74,12 @@ public class UISnapshot {
 
     }
 
-    public UISnapshot(AccessibilityNodeInfo rootNode, boolean toConstructNodeAccessibilityNodeInfoMap){
-        //TODO: contruct a UI snapshot from a rootNode
+    /**
+     * contruct a UI snapshot from a rootNode
+     * @param rootNode
+     * @param toConstructNodeAccessibilityNodeInfoMap
+     */
+    public UISnapshot(AccessibilityNodeInfo rootNode, boolean toConstructNodeAccessibilityNodeInfoMap, SugiliteTextAnnotator sugiliteTextAnnotator){
         this();
         List<AccessibilityNodeInfo> allNodes = Automator.preOrderTraverse(rootNode);
         if(allNodes != null){
@@ -148,14 +163,17 @@ public class UISnapshot {
                 if (node.getParent() != null) {
                     //parent
                     Node parentNode = node.getParent();
+                    SugiliteEntity<Node> parentEntity = null;
                     if(nodeSugiliteEntityMap.containsKey(parentNode)) {
-                        SugiliteTriple triple1 = new SugiliteTriple(nodeSugiliteEntityMap.get(parentNode), SugiliteRelation.HAS_CHILD, currentEntity);
+                        parentEntity = nodeSugiliteEntityMap.get(parentNode);
+                        SugiliteTriple triple1 = new SugiliteTriple(parentEntity, SugiliteRelation.HAS_CHILD, currentEntity);
                         addTriple(triple1);
-                        SugiliteTriple triple2 = new SugiliteTriple(currentEntity, SugiliteRelation.HAS_PARENT, nodeSugiliteEntityMap.get(parentNode));
+                        SugiliteTriple triple2 = new SugiliteTriple(currentEntity, SugiliteRelation.HAS_PARENT, parentEntity);
                         addTriple(triple2);
                     }
                     else {
                         SugiliteEntity<Node> newEntity = new SugiliteEntity<Node>(entityIdCounter++, Node.class, parentNode);
+                        parentEntity = newEntity;
                         nodeSugiliteEntityMap.put(parentNode, newEntity);
                         SugiliteTriple triple1 = new SugiliteTriple(newEntity, SugiliteRelation.HAS_CHILD, currentEntity);
                         addTriple(triple1);
@@ -185,11 +203,95 @@ public class UISnapshot {
                     }
                 }
 
+
+
+
                 // TODO: add sibling text info
+
+
+
+            }
+
+            for(Map.Entry<Node, SugiliteEntity<Node>> entry : nodeSugiliteEntityMap.entrySet()){
+                SugiliteEntity currentEntity = entry.getValue();
+                // TODO: add order in list info
+                ListOrderResolver listOrderResolver = new ListOrderResolver();
+                Set<SugiliteTriple> triples = subjectPredicateTriplesMap.get(new AbstractMap.SimpleEntry<>(currentEntity.getEntityId(), SugiliteRelation.HAS_CHILD.getRelationId()));
+                Set<Node> childNodes = new HashSet<>();
+                if(triples != null) {
+                    for (SugiliteTriple triple : triples) {
+                        Node child = (Node)triple.getObject().getEntityValue();
+                        Rect rect = Rect.unflattenFromString(child.getBoundsInScreen());
+                        int size = rect.width() * rect.height();
+                        if (size > 0) {
+                            childNodes.add(child);
+                        }
+
+                    }
+
+                    if (listOrderResolver.isAList(entry.getKey(), childNodes)) {
+                        addEntityBooleanTriple(currentEntity, true, SugiliteRelation.IS_A_LIST);
+                        addOrderForChildren(childNodes);
+                    }
+                }
+            }
+
+            //parse the string entities
+            TextStringParseHelper textStringParseHelper = new TextStringParseHelper(sugiliteTextAnnotator);
+            Set<SugiliteEntity<String>> tempEntities = new HashSet<>();
+
+            for(Map.Entry<String, SugiliteEntity<String>> entry : stringSugiliteEntityMap.entrySet()){
+                tempEntities.add(entry.getValue());
+            }
+
+            for(SugiliteEntity<String> entity : tempEntities){
+                textStringParseHelper.parse(entity, this);
             }
         }
 
     }
+
+    public void addOrderForChildren(Iterable<Node> children){
+        //add list order for list items
+        List<Map.Entry<Node, Integer>> childNodeYValueList = new ArrayList<>();
+        for(Node childNode : children){
+            childNodeYValueList.add(new AbstractMap.SimpleEntry<>(childNode, Integer.valueOf(childNode.getBoundsInScreen().split(" ")[1])));
+        }
+        childNodeYValueList.sort(new Comparator<Map.Entry<Node, Integer>>() {
+            @Override
+            public int compare(Map.Entry<Node, Integer> o1, Map.Entry<Node, Integer> o2) {
+                return o1.getValue() - o2.getValue();
+            }
+        });
+        int counter = 0;
+        for(Map.Entry<Node, Integer> entry : childNodeYValueList){
+            counter ++;
+            Node childNode = entry.getKey();
+            addEntityStringTriple(nodeSugiliteEntityMap.get(childNode), String.valueOf(counter), SugiliteRelation.HAS_LIST_ORDER);
+
+            SugiliteEntity<Node> childEntity = nodeSugiliteEntityMap.get(childNode);
+            if(childEntity != null){
+                for(SugiliteEntity<Node> entity : getAllChildEntities(childEntity)){
+                    addEntityStringTriple(entity, String.valueOf(counter), SugiliteRelation.HAS_PARENT_WITH_LIST_ORDER);
+                }
+            }
+        }
+    }
+
+    private Set<SugiliteEntity<Node>> getAllChildEntities(SugiliteEntity<Node> node){
+        Set<SugiliteEntity<Node>> results = new HashSet<>();
+        Set<SugiliteTriple> triples = subjectPredicateTriplesMap.get(new AbstractMap.SimpleEntry<>(node.getEntityId(), SugiliteRelation.HAS_CHILD.getRelationId()));
+        if(triples != null) {
+            for (SugiliteTriple triple : triples) {
+                if (triple.getObject().getEntityValue() instanceof Node) {
+                    results.add(triple.getObject());
+                    results.addAll(getAllChildEntities(triple.getObject()));
+                }
+            }
+        }
+        return results;
+    }
+
 
     /**
      * helper function used for adding a <SugiliteEntity, SugiliteEntity<String>, SugiliteRelation) triple
@@ -197,7 +299,7 @@ public class UISnapshot {
      * @param string
      * @param relation
      */
-    void addEntityStringTriple(SugiliteEntity currentEntity, String string, SugiliteRelation relation){
+    public void addEntityStringTriple(SugiliteEntity currentEntity, String string, SugiliteRelation relation){
         //class
         SugiliteEntity<String> objectEntity = null;
 
@@ -285,10 +387,14 @@ public class UISnapshot {
             objectTriplesMap.put(triple.getObject().getEntityId(), new HashSet<>());
         }
 
+        if(!subjectPredicateTriplesMap.containsKey(new AbstractMap.SimpleEntry<>(triple.getSubject().getEntityId(), triple.getPredicate().getRelationId()))){
+            subjectPredicateTriplesMap.put(new AbstractMap.SimpleEntry<>(triple.getSubject().getEntityId(), triple.getPredicate().getRelationId()), new HashSet<>());
+        }
+
         subjectTriplesMap.get(triple.getSubject().getEntityId()).add(triple);
         predicateTriplesMap.get(triple.getPredicate().getRelationId()).add(triple);
         objectTriplesMap.get(triple.getObject().getEntityId()).add(triple);
-
+        subjectPredicateTriplesMap.get(new AbstractMap.SimpleEntry<>(triple.getSubject().getEntityId(), triple.getPredicate().getRelationId())).add(triple);
 
         //fill in the two indexes for entities and relations
         if(!sugiliteEntityIdSugiliteEntityMap.containsKey(triple.getSubject().getEntityId())){
@@ -364,5 +470,7 @@ public class UISnapshot {
         return nodeAccessibilityNodeInfoMap;
     }
 
-
+    public Map<Map.Entry<Integer, Integer>, Set<SugiliteTriple>> getSubjectPredicateTriplesMap() {
+        return subjectPredicateTriplesMap;
+    }
 }

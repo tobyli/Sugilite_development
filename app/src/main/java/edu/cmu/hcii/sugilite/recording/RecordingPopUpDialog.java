@@ -478,8 +478,9 @@ public class RecordingPopUpDialog extends AbstractSugiliteDialog {
                 if (sharedPreferences.getBoolean("root_enabled", false)) {
                     try {
                         System.out.println("taking screen shot");
-                        screenshot = screenshotManager.take(false, SugiliteScreenshotManager.DIRECTORY_PATH, SugiliteScreenshotManager.getScreenshotFileNameWithDate());
-                        operationBlock.setScreenshot(screenshot);
+                        //--not taking screenshot
+                        //screenshot = screenshotManager.take(false, SugiliteScreenshotManager.DIRECTORY_PATH, SugiliteScreenshotManager.getScreenshotFileNameWithDate());
+                        //operationBlock.setScreenshot(screenshot);
 
                     } catch (Exception e) {
                         e.printStackTrace();

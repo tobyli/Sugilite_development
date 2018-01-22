@@ -58,6 +58,7 @@ dependencies {
     compile 'com.google.code.gson:gson:2.2.4'
     compile 'com.opencsv:opencsv:3.9'
     compile 'org.apache.commons:commons-lang3:3.4'
+    //compile 'edu.stanford.nlp:stanford-corenlp:3.8.0'
     compile files('libs/RootTools.jar')
     deployerJars "org.apache.maven.wagon:wagon-ssh:2.9"
 }

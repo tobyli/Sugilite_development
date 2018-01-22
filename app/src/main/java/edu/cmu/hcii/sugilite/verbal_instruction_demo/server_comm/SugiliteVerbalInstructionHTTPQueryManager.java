@@ -1,18 +1,15 @@
-package edu.cmu.hcii.sugilite.verbal_instruction_demo;
+package edu.cmu.hcii.sugilite.verbal_instruction_demo.server_comm;
 
 import com.google.gson.Gson;
 
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
-import java.io.DataOutputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
-
-import javax.net.ssl.HttpsURLConnection;
 
 /**
  * @author toby

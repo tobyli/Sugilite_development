@@ -5,31 +5,31 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.view.LayoutInflater;
-import android.view.View;
 import android.view.WindowManager;
-import android.widget.EditText;
-import android.widget.ImageButton;
-import android.widget.LinearLayout;
 import android.widget.Toast;
 
-import com.google.gson.Gson;
-
+import java.util.AbstractMap;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
-import java.util.ResourceBundle;
+import java.util.Map;
 
 import edu.cmu.hcii.sugilite.Const;
 import edu.cmu.hcii.sugilite.Node;
 import edu.cmu.hcii.sugilite.R;
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.ontology.SerializableUISnapshot;
+import edu.cmu.hcii.sugilite.verbal_instruction_demo.server_comm.SugiliteVerbalInstructionHTTPQueryInterface;
+import edu.cmu.hcii.sugilite.verbal_instruction_demo.server_comm.SugiliteVerbalInstructionHTTPQueryManager;
+import edu.cmu.hcii.sugilite.verbal_instruction_demo.server_comm.VerbalInstructionServerResults;
+import edu.cmu.hcii.sugilite.verbal_instruction_demo.server_comm.VerbalInstructionServerResponse;
 
 /**
  * @author toby
  * @date 12/10/17
  * @time 4:17 AM
  */
-public class OverlayChosenPopupDialog {
+public class OverlayChosenPopupDialog implements SugiliteVerbalInstructionHTTPQueryInterface {
     //this dialog should allow the user to confirm the currently selected query, or switch to a different query
     private Context context;
     private AlertDialog dialog;
@@ -39,16 +39,15 @@ public class OverlayChosenPopupDialog {
     private SharedPreferences sharedPreferences;
     private SugiliteVerbalInstructionHTTPQueryManager httpQueryManager;
 
-    public OverlayChosenPopupDialog(Context context, LayoutInflater inflater, VerbalInstructionOverlayManager overlayManager, Node node, VerbalInstructionResults.VerbalInstructionResult chosenResult, List<VerbalInstructionResults.VerbalInstructionResult> allResults, SerializableUISnapshot serializableUISnapshot, SugiliteVerbalInstructionHTTPQueryManager httpQueryManager, SugiliteData sugiliteData, SharedPreferences sharedPreferences){
+    public OverlayChosenPopupDialog(Context context, LayoutInflater inflater, VerbalInstructionOverlayManager overlayManager, Node node, VerbalInstructionServerResults.VerbalInstructionResult chosenResult, List<VerbalInstructionServerResults.VerbalInstructionResult> allResults, SerializableUISnapshot serializableUISnapshot, String utterance,  SugiliteData sugiliteData, SharedPreferences sharedPreferences){
         this.context = context;
         this.overlayManager = overlayManager;
         this.sugiliteData = sugiliteData;
         this.sharedPreferences = sharedPreferences;
         this.verbalInstructionRecordingManager = new VerbalInstructionRecordingManager(context, sugiliteData, sharedPreferences);
-        this.httpQueryManager = httpQueryManager;
+        this.httpQueryManager = new SugiliteVerbalInstructionHTTPQueryManager(this);
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
         builder.setTitle(Const.appNameUpperCase + " Verbal Instruction");
-
 
         List<String> operationList = new ArrayList<>();
 
@@ -59,6 +58,8 @@ public class OverlayChosenPopupDialog {
         String[] operations = new String[operationList.size()];
         operations = operationList.toArray(operations);
         final String[] operationClone = operations.clone();
+
+
         builder.setItems(operationClone, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
@@ -81,15 +82,16 @@ public class OverlayChosenPopupDialog {
                         thread.start();
                         overlayManager.removeOverlays();
 
-                        //TODO: if in recording, add the step to recording
+                        //TODO: if in the recording mode, add the step to recording
                         if (sharedPreferences.getBoolean("recording_in_process", false)) {
                             //if recording is in process
-                            verbalInstructionRecordingManager.addToRecording(chosenResult, node, serializableUISnapshot);
+                            verbalInstructionRecordingManager.addToRecording(chosenResult, node, serializableUISnapshot, utterance);
+
                         }
                         break;
                     case 1:
                         //choose a different parse
-                        DifferentParseChooseDialog differentParseChooseDialog = new DifferentParseChooseDialog(context, inflater, overlayManager, allResults, serializableUISnapshot);
+                        DifferentParseChooseDialog differentParseChooseDialog = new DifferentParseChooseDialog(context, inflater, overlayManager, allResults, serializableUISnapshot, utterance);
                         differentParseChooseDialog.show();
                         break;
                     case 2:
@@ -107,4 +109,22 @@ public class OverlayChosenPopupDialog {
         dialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_box);
         dialog.show();
     }
+
+
+    @Override
+    public void runOnMainThread(Runnable r) {
+        try{
+            dialog.getListView().post(r);
+        }
+        catch (Exception e){
+            //do nothing
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void resultReceived(int responseCode, String result) {
+        //do nothing
+    }
+
 }

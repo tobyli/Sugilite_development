@@ -33,9 +33,12 @@ public class ReadableDescriptionGenerator {
         packageManager = applicationContext.getPackageManager();
     }
 
-    public String generateDescriptionForVerbalBlock(SugiliteOperationBlock block, String formula){
+    public String generateDescriptionForVerbalBlock(SugiliteOperationBlock block, String formula, String utterance){
         String message = "";
         SugiliteOperation operation = block.getOperation();
+        if(utterance != null && utterance.length() > 0) {
+            message += setColor(utterance + " : ", Const.SCRIPT_ACTION_PARAMETER_COLOR);
+        }
         switch (operation.getOperationType()){
             case SugiliteOperation.CLICK:
                 message += setColor("Click ", Const.SCRIPT_ACTION_COLOR) + "on ";
@@ -54,6 +57,7 @@ public class ReadableDescriptionGenerator {
                 break;
             case SugiliteOperation.LOAD_AS_VARIABLE:
                 message += setColor("Load the value ", Const.SCRIPT_ACTION_COLOR) + "of the" + setColor(((SugiliteOperationBlock)block).getOperation().getParameter(), Const.SCRIPT_ACTION_PARAMETER_COLOR) + " as a variable for ";
+                break;
             case SugiliteOperation.SPECIAL_GO_HOME:
                 return "<b>GO TO HOME SCREEN</b>";
         }
@@ -96,6 +100,7 @@ public class ReadableDescriptionGenerator {
                     break;
                 case SugiliteOperation.LOAD_AS_VARIABLE:
                     message += setColor("Load the value ", Const.SCRIPT_ACTION_COLOR) + "of the" + setColor(((SugiliteOperationBlock)block).getOperation().getParameter(), Const.SCRIPT_ACTION_PARAMETER_COLOR) + " as a variable for ";
+                    break;
                 case SugiliteOperation.SPECIAL_GO_HOME:
                     return "<b>GO TO HOME SCREEN</b>";
             }

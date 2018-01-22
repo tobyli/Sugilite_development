@@ -1,4 +1,4 @@
-package edu.cmu.hcii.sugilite.verbal_instruction_demo;
+package edu.cmu.hcii.sugilite.verbal_instruction_demo.util;
 
 import android.app.Activity;
 import android.content.Context;

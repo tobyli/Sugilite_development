@@ -5,7 +5,6 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.view.LayoutInflater;
 import android.view.WindowManager;
-import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import com.google.gson.Gson;
@@ -20,6 +19,7 @@ import edu.cmu.hcii.sugilite.Node;
 import edu.cmu.hcii.sugilite.R;
 import edu.cmu.hcii.sugilite.ontology.SerializableUISnapshot;
 import edu.cmu.hcii.sugilite.ontology.SugiliteSerializableEntity;
+import edu.cmu.hcii.sugilite.verbal_instruction_demo.server_comm.VerbalInstructionServerResults;
 
 /**
  * @author toby
@@ -32,15 +32,15 @@ public class DifferentParseChooseDialog {
     private AlertDialog dialog;
     private VerbalInstructionOverlayManager overlayManager;
 
-    public DifferentParseChooseDialog(Context context, LayoutInflater inflater, VerbalInstructionOverlayManager overlayManager, List<VerbalInstructionResults.VerbalInstructionResult> allResults, SerializableUISnapshot serializableUISnapshot){
+    public DifferentParseChooseDialog(Context context, LayoutInflater inflater, VerbalInstructionOverlayManager overlayManager, List<VerbalInstructionServerResults.VerbalInstructionResult> allResults, SerializableUISnapshot serializableUISnapshot, String utterance){
         this.context = context;
         this.overlayManager = overlayManager;
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
         builder.setTitle(Const.appNameUpperCase + " Verbal Instruction");
 
         List<String> parseList = new ArrayList<>();
-        Map<String, VerbalInstructionResults.VerbalInstructionResult> formulaParseMap = new HashMap<>();
-        for(VerbalInstructionResults.VerbalInstructionResult result : allResults){
+        Map<String, VerbalInstructionServerResults.VerbalInstructionResult> formulaParseMap = new HashMap<>();
+        for(VerbalInstructionServerResults.VerbalInstructionResult result : allResults){
             parseList.add(result.getFormula());
             formulaParseMap.put(result.getFormula(), result);
         }
@@ -52,7 +52,7 @@ public class DifferentParseChooseDialog {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 if(which < allResults.size()) {
-                    VerbalInstructionResults.VerbalInstructionResult chosenResult = allResults.get(which);
+                    VerbalInstructionServerResults.VerbalInstructionResult chosenResult = allResults.get(which);
 
                     //refresh the overlay manager
                     Map<String, SugiliteSerializableEntity> idEntityMap = serializableUISnapshot.getSugiliteEntityIdSugiliteEntityMap();
@@ -90,7 +90,7 @@ public class DifferentParseChooseDialog {
                             //TODO: show overlay
 
                             //node, nodeId, corresponding VerbalInstructionResult, VerbalInstructionResults
-                            overlayManager.addOverlay(node, filteredNodeNodeIdMap.get(node), chosenResult, allResults, serializableUISnapshot);
+                            overlayManager.addOverlay(node, filteredNodeNodeIdMap.get(node), chosenResult, allResults, serializableUISnapshot, utterance);
                         }
                     }
                     else {

@@ -65,7 +65,6 @@ public class SugiliteRelation implements Serializable {
 
     //TODO: "has text label" relation that combines "has_text", "has_child_text" and "has_sibling_text"
 
-
     //added
     public static final SugiliteRelation IS_EDITABLE = new SugiliteRelation(12, "IS_EDITABLE");
     public static final SugiliteRelation IS_CLICKABLE = new SugiliteRelation(13, "IS_CLICKABLE");
@@ -73,6 +72,22 @@ public class SugiliteRelation implements Serializable {
     public static final SugiliteRelation IS_CHECKABLE = new SugiliteRelation(15, "IS_CHECKABLE");
     public static final SugiliteRelation IS_CHECKED = new SugiliteRelation(16, "IS_CHECKED");
     public static final SugiliteRelation IS_SELECTED = new SugiliteRelation(17, "IS_SELECTED");
+
+    //adv
+    public static final SugiliteRelation HAS_LIST_ORDER = new SugiliteRelation(18, "HAS_LIST_ORDER");
+    public static final SugiliteRelation HAS_PARENT_WITH_LIST_ORDER = new SugiliteRelation(19, "HAS_PARENT_WITH_LIST_ORDER");
+    public static final SugiliteRelation IS_A_LIST = new SugiliteRelation(20, "IS_A_LIST");
+
+    //text parsing
+    public static final SugiliteRelation CONTAINS_EMAIL_ADDRESS = new SugiliteRelation(21, "CONTAINS_EMAIL_ADDRESS");
+    public static final SugiliteRelation CONTAINS_PHONE_NUMBER = new SugiliteRelation(22, "CONTAINS_PHONE_NUMBER");
+    public static final SugiliteRelation CONTAINS_MONEY = new SugiliteRelation(23, "CONTAINS_MONEY");
+    public static final SugiliteRelation CONTAINS_TIME = new SugiliteRelation(24, "CONTAINS_TIME");
+    public static final SugiliteRelation CONTAINS_DATE = new SugiliteRelation(25, "CONTAINS_DATE");
+    public static final SugiliteRelation CONTAINS_DURATION = new SugiliteRelation(26, "CONTAINS_DURATION");
+
+
+
 
 
     public static final Map<String, SugiliteRelation> stringRelationMap;
@@ -98,5 +113,18 @@ public class SugiliteRelation implements Serializable {
         stringRelationMap.put("IS_CHECKABLE", IS_CHECKABLE);
         stringRelationMap.put("IS_CHECKED", IS_CHECKED);
         stringRelationMap.put("IS_SELECTED", IS_SELECTED);
+
+        stringRelationMap.put("HAS_LIST_ORDER", HAS_LIST_ORDER);
+        stringRelationMap.put("HAS_PARENT_WITH_LIST_ORDER", HAS_PARENT_WITH_LIST_ORDER);
+        stringRelationMap.put("IS_A_LIST", IS_A_LIST);
+
+        stringRelationMap.put("CONTAINS_EMAIL_ADDRESS", CONTAINS_EMAIL_ADDRESS);
+        stringRelationMap.put("CONTAINS_PHONE_NUMBER", CONTAINS_PHONE_NUMBER);
+        stringRelationMap.put("CONTAINS_MONEY", CONTAINS_MONEY);
+        stringRelationMap.put("CONTAINS_TIME", CONTAINS_TIME);
+        stringRelationMap.put("CONTAINS_DATE", CONTAINS_DATE);
+        stringRelationMap.put("CONTAINS_DURATION", CONTAINS_DURATION);
+
+
     }
 }

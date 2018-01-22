@@ -37,11 +37,11 @@ import java.util.List;
 import edu.cmu.hcii.sugilite.Const;
 import edu.cmu.hcii.sugilite.R;
 import edu.cmu.hcii.sugilite.SugiliteData;
-import edu.cmu.hcii.sugilite.automation.ServiceStatusManager;
-import edu.cmu.hcii.sugilite.ontology.OntologyQuery;
 import edu.cmu.hcii.sugilite.ontology.SerializableUISnapshot;
-import edu.cmu.hcii.sugilite.ontology.SugiliteRelation;
 import edu.cmu.hcii.sugilite.ontology.UISnapshot;
+import edu.cmu.hcii.sugilite.verbal_instruction_demo.speech.SugiliteVoiceInterface;
+import edu.cmu.hcii.sugilite.verbal_instruction_demo.speech.SugiliteVoiceRecognitionListener;
+import edu.cmu.hcii.sugilite.verbal_instruction_demo.study.SugiliteStudyHandler;
 
 
 /**
@@ -56,6 +56,7 @@ public class VerbalInstructionIconManager implements SugiliteVoiceInterface {
     private SugiliteData sugiliteData;
     private SharedPreferences sharedPreferences;
     private SugiliteVoiceRecognitionListener sugiliteVoiceRecognitionListener;
+    private SugiliteStudyHandler sugiliteStudyHandler;
     public boolean isListening = false;
     private Dialog dialog;
 
@@ -71,10 +72,11 @@ public class VerbalInstructionIconManager implements SugiliteVoiceInterface {
     //for saving the latest ui snapshot
     private UISnapshot latestUISnapshot = null;
 
-    public VerbalInstructionIconManager(Context context, SugiliteData sugiliteData, SharedPreferences sharedPreferences){
+    public VerbalInstructionIconManager(Context context, SugiliteStudyHandler sugiliteStudyHandler, SugiliteData sugiliteData, SharedPreferences sharedPreferences){
         this.context = context;
         this.sugiliteData = sugiliteData;
         this.sharedPreferences = sharedPreferences;
+        this.sugiliteStudyHandler = sugiliteStudyHandler;
         windowManager = (WindowManager) context.getSystemService(context.WINDOW_SERVICE);
         this.layoutInflater = (LayoutInflater) context.getSystemService( Context.LAYOUT_INFLATER_SERVICE);
         this.sugiliteVoiceRecognitionListener = new SugiliteVoiceRecognitionListener(context, this);
@@ -238,6 +240,7 @@ public class VerbalInstructionIconManager implements SugiliteVoiceInterface {
                     operationList.add("Send a verbal instruction");
                     operationList.add("Test ASR");
                     operationList.add("Dump the latest UI snapshot");
+                    operationList.add("Record a Sugilite study packet");
 
                     String[] operations = new String[operationList.size()];
                     operations = operationList.toArray(operations);
@@ -282,6 +285,9 @@ public class VerbalInstructionIconManager implements SugiliteVoiceInterface {
                                                 dumpUISnapshot(serializedUISnapshot2);
                                                 Toast.makeText(context, "dumped a UI snapshot with " + snapshot_size + " nodes", Toast.LENGTH_SHORT).show();
                                             }
+                                            break;
+                                        case "Record a Sugilite study packet":
+                                            sugiliteStudyHandler.setToRecordNextOperation(true);
                                             break;
                                     }
                                 }

@@ -4,15 +4,12 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
-import android.media.Image;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
-import android.widget.Spinner;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.gson.Gson;
@@ -28,16 +25,19 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutionException;
 
 import edu.cmu.hcii.sugilite.Const;
 import edu.cmu.hcii.sugilite.Node;
 import edu.cmu.hcii.sugilite.R;
 import edu.cmu.hcii.sugilite.SugiliteData;
-import edu.cmu.hcii.sugilite.model.variable.StringVariable;
 import edu.cmu.hcii.sugilite.ontology.SerializableUISnapshot;
-import edu.cmu.hcii.sugilite.ontology.SugiliteEntity;
 import edu.cmu.hcii.sugilite.ontology.SugiliteSerializableEntity;
+import edu.cmu.hcii.sugilite.verbal_instruction_demo.server_comm.SugiliteVerbalInstructionHTTPQueryInterface;
+import edu.cmu.hcii.sugilite.verbal_instruction_demo.server_comm.SugiliteVerbalInstructionHTTPQueryManager;
+import edu.cmu.hcii.sugilite.verbal_instruction_demo.server_comm.VerbalInstructionServerResults;
+import edu.cmu.hcii.sugilite.verbal_instruction_demo.server_comm.VerbalInstructionServerQuery;
+import edu.cmu.hcii.sugilite.verbal_instruction_demo.speech.SugiliteVoiceInterface;
+import edu.cmu.hcii.sugilite.verbal_instruction_demo.speech.SugiliteVoiceRecognitionListener;
 
 /**
  * @author toby
@@ -64,7 +64,7 @@ public class VerbalInstructionTestDialog implements SugiliteVoiceInterface, Sugi
         this.context = context;
         this.sugiliteVoiceRecognitionListener = new SugiliteVoiceRecognitionListener(context, this);
         this.sugiliteVerbalInstructionHTTPQueryManager = new SugiliteVerbalInstructionHTTPQueryManager(this);
-        this.overlayManager = new VerbalInstructionOverlayManager(context, sugiliteData, sharedPreferences, sugiliteVerbalInstructionHTTPQueryManager);
+        this.overlayManager = new VerbalInstructionOverlayManager(context, sugiliteData, sharedPreferences);
         this.gson = new Gson();
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
         View dialogView = inflater.inflate(R.layout.dialog_send_server_query, null);
@@ -193,14 +193,14 @@ public class VerbalInstructionTestDialog implements SugiliteVoiceInterface, Sugi
         System.out.print(responseCode + ": " + result);
 
         //de-serialize to VerbalInstructionResults
-        VerbalInstructionResults results = gson.fromJson(result, VerbalInstructionResults.class);
-        for (VerbalInstructionResults.VerbalInstructionResult verbalInstructionResult : results.getQueries()) {
+        VerbalInstructionServerResults results = gson.fromJson(result, VerbalInstructionServerResults.class);
+        for (VerbalInstructionServerResults.VerbalInstructionResult verbalInstructionResult : results.getQueries()) {
             System.out.println(gson.toJson(verbalInstructionResult));
         }
 
         //find matches
         Map<String, SugiliteSerializableEntity> idEntityMap = serializableUISnapshot.getSugiliteEntityIdSugiliteEntityMap();
-        for (VerbalInstructionResults.VerbalInstructionResult verbalInstructionResult : results.getQueries()) {
+        for (VerbalInstructionServerResults.VerbalInstructionResult verbalInstructionResult : results.getQueries()) {
             List<Node> filteredNodes = new ArrayList<>();
             Map<Node, String> filteredNodeNodeIdMap = new HashMap<>();
             for (String nodeId : verbalInstructionResult.getGrounding()){
@@ -232,9 +232,12 @@ public class VerbalInstructionTestDialog implements SugiliteVoiceInterface, Sugi
                 Toast.makeText(context, verbalInstructionResult.getFormula(), Toast.LENGTH_SHORT).show();
                 for(Node node : filteredNodes){
                     //TODO: show overlay
-
+                    String utternace = "";
+                    if(instructionTextbox != null && instructionTextbox.getText() != null){
+                        utternace = instructionTextbox.getText().toString();
+                    }
                     //node, nodeId, corresponding VerbalInstructionResult, VerbalInstructionResults
-                    overlayManager.addOverlay(node, filteredNodeNodeIdMap.get(node), verbalInstructionResult, results.getQueries(), serializableUISnapshot);
+                    overlayManager.addOverlay(node, filteredNodeNodeIdMap.get(node), verbalInstructionResult, results.getQueries(), serializableUISnapshot, utternace);
                 }
                 break;
             }
@@ -261,7 +264,13 @@ public class VerbalInstructionTestDialog implements SugiliteVoiceInterface, Sugi
 
     @Override
     public void runOnMainThread(Runnable r) {
-        mainLayout.post(r);
+        try {
+            mainLayout.post(r);
+        }
+        catch (Exception e){
+            //do nothing
+            e.printStackTrace();
+        }
     }
 
 

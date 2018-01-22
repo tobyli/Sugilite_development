@@ -1,0 +1,87 @@
+package edu.cmu.hcii.sugilite.ontology.helper.annotator;
+
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.List;
+import java.util.Properties;
+
+import edu.cmu.hcii.sugilite.ontology.SugiliteRelation;
+import edu.stanford.nlp.ling.CoreAnnotations;
+import edu.stanford.nlp.ling.CoreLabel;
+import edu.stanford.nlp.pipeline.*;
+import edu.stanford.nlp.time.TimeAnnotations;
+import edu.stanford.nlp.time.TimeExpression;
+import edu.stanford.nlp.util.CoreMap;
+
+
+/**
+ * @author toby
+ * @date 1/18/18
+ * @time 2:22 PM
+ */
+public class TimeAnnotator extends SugiliteTextAnnotator {
+    AnnotationPipeline pipeline;
+    SimpleDateFormat simpleDateFormat;
+    public TimeAnnotator(){
+        super();
+        //start initiating SUTime
+        Properties props = new Properties();
+        pipeline = new AnnotationPipeline();
+        pipeline.addAnnotator(new TokenizerAnnotator(false));
+        pipeline.addAnnotator(new WordsToSentencesAnnotator(false));
+        pipeline.addAnnotator(new POSTaggerAnnotator(false));
+        pipeline.addAnnotator(new edu.stanford.nlp.time.TimeAnnotator("sutime", props));
+        //finish initiating SUTime
+
+        simpleDateFormat = new SimpleDateFormat("YYYY-MM-dd");
+    }
+
+    @Override
+    public List<AnnotatingResult> annotate(String text) {
+        List<AnnotatingResult> results = new ArrayList<>();
+        Date currentDate = Calendar.getInstance().getTime();
+        Annotation annotation = new Annotation(text);
+        annotation.set(CoreAnnotations.DocDateAnnotation.class, simpleDateFormat.format(currentDate));
+        try {
+            pipeline.annotate(annotation);
+        }
+        catch(Exception e){
+            e.printStackTrace();
+            return results;
+        }
+        List<CoreMap> timexAnnsAll = annotation.get(TimeAnnotations.TimexAnnotations.class);
+        for (CoreMap cm : timexAnnsAll) {
+            List<CoreLabel> tokens = cm.get(CoreAnnotations.TokensAnnotation.class);
+            AnnotatingResult result = new AnnotatingResult(RELATION, cm.toString(), tokens.get(0).get(CoreAnnotations.CharacterOffsetBeginAnnotation.class), tokens.get(tokens.size() - 1).get(CoreAnnotations.CharacterOffsetEndAnnotation.class));
+            String type = cm.get(TimeExpression.Annotation.class).getTemporal().getTimexType().name();
+            String value = cm.get(TimeExpression.Annotation.class).getTemporal().toString();
+            if(value.equals("PRESENT_REF")){
+                continue;
+            }
+            switch (type) {
+                case "DATE":
+                    result.setRelation(SugiliteRelation.CONTAINS_DATE);
+                    break;
+                case "TIME":
+                    result.setRelation(SugiliteRelation.CONTAINS_TIME);
+                    break;
+                case "DURATION":
+                    result.setRelation(SugiliteRelation.CONTAINS_DURATION);
+                    break;
+            }
+            results.add(result);
+        }
+        return results;
+    }
+
+    private static final SugiliteRelation RELATION = SugiliteRelation.CONTAINS_TIME;
+
+    public static void main(String[] args ){
+        TimeAnnotator timeAnnotator = new TimeAnnotator();
+        List<AnnotatingResult> results = timeAnnotator.annotate("Hi toby, it's 7pm now, we will leave tomorrow after 2 hours. The train leaves at Friday 5pm, so we will have two weeks for that. Do you want to stop by this morning?");
+        System.out.println(results.size());
+    }
+
+}

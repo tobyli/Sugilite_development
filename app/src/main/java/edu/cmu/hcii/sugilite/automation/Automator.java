@@ -43,6 +43,7 @@ import edu.cmu.hcii.sugilite.model.variable.VariableHelper;
 import edu.cmu.hcii.sugilite.ontology.OntologyQuery;
 import edu.cmu.hcii.sugilite.ontology.SugiliteEntity;
 import edu.cmu.hcii.sugilite.ontology.UISnapshot;
+import edu.cmu.hcii.sugilite.ontology.helper.annotator.SugiliteTextAnnotator;
 import edu.cmu.hcii.sugilite.recording.SugiliteScreenshotManager;
 import edu.cmu.hcii.sugilite.ui.BoundingBoxManager;
 import edu.cmu.hcii.sugilite.ui.StatusIconManager;
@@ -64,17 +65,20 @@ public class Automator {
     private Context context;
     private BoundingBoxManager boundingBoxManager;
     private VariableHelper variableHelper;
-    private TextToSpeech tts;
+    //private TextToSpeech tts;
     private SugiliteScriptDao sugiliteScriptDao;
     private LayoutInflater layoutInflater;
     private SharedPreferences sharedPreferences;
+    private TextToSpeech tts = null;
     private boolean ttsReady = false;
     private SugiliteScreenshotManager screenshotManager;
+    private SugiliteTextAnnotator sugiliteTextAnnotator;
     static private Set<String> homeScreenPackageNameSet;
 
-    public Automator(SugiliteData sugiliteData, SugiliteAccessibilityService context, StatusIconManager statusIconManager, SharedPreferences sharedPreferences){
+    public Automator(SugiliteData sugiliteData, SugiliteAccessibilityService context, StatusIconManager statusIconManager, SharedPreferences sharedPreferences, SugiliteTextAnnotator sugiliteTextAnnotator){
         this.sugiliteData = sugiliteData;
         this.serviceContext = context;
+        this.sugiliteTextAnnotator = sugiliteTextAnnotator;
         this.boundingBoxManager = new BoundingBoxManager(context);
         if(Const.DAO_TO_USE == SQL_SCRIPT_DAO)
             this.sugiliteScriptDao = new SugiliteScriptSQLDao(context);
@@ -82,12 +86,19 @@ public class Automator {
             this.sugiliteScriptDao = new SugiliteScriptFileDao(context, sugiliteData);
         this.layoutInflater = (LayoutInflater) context.getSystemService( Context.LAYOUT_INFLATER_SERVICE );
         this.sharedPreferences = sharedPreferences;
-        tts = new TextToSpeech(context, new TextToSpeech.OnInitListener() {
-            @Override
-            public void onInit(int status) {
-                ttsReady = true;
-            }
-        });
+        /*
+        try {
+            tts = new TextToSpeech(context, new TextToSpeech.OnInitListener() {
+                @Override
+                public void onInit(int status) {
+                    ttsReady = true;
+                }
+            });
+        }
+        catch (Exception e){
+            e.printStackTrace();
+        }
+        */
         screenshotManager = new SugiliteScreenshotManager(sharedPreferences, context);
         homeScreenPackageNameSet = new HashSet<>();
         homeScreenPackageNameSet.addAll(Arrays.asList(HOME_SCREEN_PACKAGE_NAMES));
@@ -305,7 +316,8 @@ public class Automator {
                         addNextBlockToQueue(operationBlock);
                         if(sugiliteData.getCurrentSystemState() == SugiliteData.REGULAR_DEBUG_STATE) {
                             try {
-                                screenshotManager.take(false, SugiliteScreenshotManager.DIRECTORY_PATH, SugiliteScreenshotManager.getDebugScreenshotFileNameWithDate());
+                                //----not taking screenshot----
+                                //screenshotManager.take(false, SugiliteScreenshotManager.DIRECTORY_PATH, SugiliteScreenshotManager.getDebugScreenshotFileNameWithDate());
                             }
                             catch (Exception e){
                                 e.printStackTrace();
@@ -379,7 +391,7 @@ public class Automator {
                 }
 
 
-                UISnapshot uiSnapshot = new UISnapshot(rootNode, true);
+                UISnapshot uiSnapshot = new UISnapshot(rootNode, true, sugiliteTextAnnotator);
 
                 //de-serialize the OntologyQuery
                 OntologyQuery q = new OntologyQuery(operationBlock.getQuery());
@@ -480,30 +492,30 @@ public class Automator {
         }
 
         if(block.getOperation().getOperationType() == SugiliteOperation.READ_OUT){
-            if(block.getOperation().getParameter().toLowerCase().contentEquals("text")) {
-                if (ttsReady && node != null && node.getText() != null) {
-                    tts.speak("Result", TextToSpeech.QUEUE_ADD, null);
-                    tts.speak(node.getText().toString(), TextToSpeech.QUEUE_ADD, null);
-                }
-            }
-            else if (block.getOperation().getParameter().toLowerCase().contentEquals("child text")) {
-                List<AccessibilityNodeInfo> children = preOrderTraverse(node);
-                if (ttsReady && node != null && children != null && children.size() > 0) {
-                    String childText = "";
-                    for(AccessibilityNodeInfo childNode : children){
-                        if(childNode.getText() != null)
-                            childText += childNode.getText();
-                    }
-                    if(childText.length() > 0) {
+            if(tts != null) {
+                if (block.getOperation().getParameter().toLowerCase().contentEquals("text")) {
+                    if (ttsReady && node != null && node.getText() != null) {
                         tts.speak("Result", TextToSpeech.QUEUE_ADD, null);
-                        tts.speak(childText, TextToSpeech.QUEUE_ADD, null);
+                        tts.speak(node.getText().toString(), TextToSpeech.QUEUE_ADD, null);
                     }
-                }
-            }
-            else if (block.getOperation().getParameter().toLowerCase().contentEquals("content description")){
-                if (ttsReady && node != null && node.getContentDescription() != null) {
-                    tts.speak("Result", TextToSpeech.QUEUE_ADD, null);
-                    tts.speak(node.getContentDescription().toString(), TextToSpeech.QUEUE_ADD, null);
+                } else if (block.getOperation().getParameter().toLowerCase().contentEquals("child text")) {
+                    List<AccessibilityNodeInfo> children = preOrderTraverse(node);
+                    if (ttsReady && node != null && children != null && children.size() > 0) {
+                        String childText = "";
+                        for (AccessibilityNodeInfo childNode : children) {
+                            if (childNode.getText() != null)
+                                childText += childNode.getText();
+                        }
+                        if (childText.length() > 0) {
+                            tts.speak("Result", TextToSpeech.QUEUE_ADD, null);
+                            tts.speak(childText, TextToSpeech.QUEUE_ADD, null);
+                        }
+                    }
+                } else if (block.getOperation().getParameter().toLowerCase().contentEquals("content description")) {
+                    if (ttsReady && node != null && node.getContentDescription() != null) {
+                        tts.speak("Result", TextToSpeech.QUEUE_ADD, null);
+                        tts.speak(node.getContentDescription().toString(), TextToSpeech.QUEUE_ADD, null);
+                    }
                 }
             }
             return true;

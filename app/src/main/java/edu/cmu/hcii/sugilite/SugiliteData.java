@@ -50,6 +50,8 @@ public class SugiliteData extends Application {
     //this queue is used for storing the content of instruction queue for pausing
     public Queue<SugiliteBlock> storedInstructionQueueForPause = new ArrayDeque<>();
 
+    public Queue<Map.Entry<String, Long>> NodeToIgnoreRecordingBoundsInScreenTimeStampQueue = new ArrayDeque<>();
+
     public Map<String, Variable> stringVariableMap = new HashMap<>();
     public Set<String> registeredBroadcastingListener = new HashSet<>();
     public SugiliteBlock afterExecutionOperation = null;

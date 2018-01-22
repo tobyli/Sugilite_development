@@ -42,6 +42,7 @@ import edu.cmu.hcii.sugilite.ontology.SerializableUISnapshot;
 import edu.cmu.hcii.sugilite.ontology.SugiliteEntity;
 import edu.cmu.hcii.sugilite.ontology.SugiliteRelation;
 import edu.cmu.hcii.sugilite.ontology.UISnapshot;
+import edu.cmu.hcii.sugilite.ontology.helper.annotator.SugiliteTextAnnotator;
 import edu.cmu.hcii.sugilite.recording.SugiliteScreenshotManager;
 import edu.cmu.hcii.sugilite.model.AccessibilityNodeInfoList;
 import edu.cmu.hcii.sugilite.automation.*;
@@ -52,10 +53,12 @@ import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
 import edu.cmu.hcii.sugilite.model.trigger.SugiliteTriggerHandler;
 import edu.cmu.hcii.sugilite.recording.RecordingPopUpDialog;
 import edu.cmu.hcii.sugilite.recording.TextChangedEventHandler;
+import edu.cmu.hcii.sugilite.recording.newrecording.NewDemonstrationHandler;
 import edu.cmu.hcii.sugilite.tracking.SugiliteTrackingHandler;
 import edu.cmu.hcii.sugilite.ui.StatusIconManager;
 import edu.cmu.hcii.sugilite.Node;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.VerbalInstructionIconManager;
+import edu.cmu.hcii.sugilite.verbal_instruction_demo.study.SugiliteStudyHandler;
 
 import static edu.cmu.hcii.sugilite.Const.BROADCASTING_ACCESSIBILITY_EVENT;
 import static edu.cmu.hcii.sugilite.Const.BUILDING_VOCAB;
@@ -70,6 +73,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
     protected StatusIconManager statusIconManager;
     protected VerbalInstructionIconManager verbalInstructionIconManager;
     protected SugiliteScreenshotManager screenshotManager;
+    protected SugiliteStudyHandler sugiliteStudyHandler;
     protected Set<Integer> accessibilityEventSetToHandle, accessibilityEventSetToSend, accessibilityEventSetToTrack;
     protected Thread automatorThread;
     protected SugiliteAccessibilityService context;
@@ -80,7 +84,9 @@ public class SugiliteAccessibilityService extends AccessibilityService {
     protected SugiliteTriggerHandler triggerHandler;
     protected TextChangedEventHandler textChangedEventHandler;
     protected String lastPackageName = "";
+    private NewDemonstrationHandler newDemonstrationHandler;
     private static Set<String> homeScreenPackageNameSet;
+    private SugiliteTextAnnotator sugiliteTextAnnotator;
     ExecutorService executor = Executors.newFixedThreadPool(1);
 
 
@@ -102,24 +108,28 @@ public class SugiliteAccessibilityService extends AccessibilityService {
             sugiliteData = (SugiliteData) getApplication();
         }
         AccessibilityManager accessibilityManager = (AccessibilityManager) this.getSystemService(Context.ACCESSIBILITY_SERVICE);
-
-        verbalInstructionIconManager = new VerbalInstructionIconManager(this, sugiliteData, sharedPreferences);
+        context = this;
+        sugiliteStudyHandler = new SugiliteStudyHandler(context, LayoutInflater.from(getApplicationContext()));
         statusIconManager = new StatusIconManager(this, sugiliteData, sharedPreferences, accessibilityManager);
         sugiliteData.statusIconManager = statusIconManager;
+        verbalInstructionIconManager = new VerbalInstructionIconManager(this, sugiliteStudyHandler, sugiliteData, sharedPreferences);
         sugiliteData.verbalInstructionIconManager = verbalInstructionIconManager;
         statusIconManager.setVerbalInstructionIconManager(verbalInstructionIconManager);
+        newDemonstrationHandler = new NewDemonstrationHandler(sugiliteData, this, LayoutInflater.from(getApplicationContext()), sharedPreferences);
 
         screenshotManager = new SugiliteScreenshotManager(sharedPreferences, getApplicationContext());
-        automator = new Automator(sugiliteData, this, statusIconManager, sharedPreferences);
+        sugiliteTextAnnotator = new SugiliteTextAnnotator(true);
+        automator = new Automator(sugiliteData, this, statusIconManager, sharedPreferences, sugiliteTextAnnotator);
         sugilteTrackingHandler = new SugiliteTrackingHandler(sugiliteData, getApplicationContext());
         availableAlternatives = new HashSet<>();
         availableAlternativeNodes = new HashSet<>();
         trackingPackageVocabs = new HashSet<>();
         packageVocabs = new HashSet<>();
         vocabularyDao = new SugiliteAppVocabularyDao(getApplicationContext());
-        context = this;
+
         triggerHandler = new SugiliteTriggerHandler(context, sugiliteData, sharedPreferences);
         textChangedEventHandler = new TextChangedEventHandler(sugiliteData, context, sharedPreferences, handler);
+
         handler = new Handler();
         homeScreenPackageNameSet = new HashSet<>();
         homeScreenPackageNameSet.addAll(Arrays.asList(HOME_SCREEN_PACKAGE_NAMES));
@@ -268,11 +278,6 @@ public class SugiliteAccessibilityService extends AccessibilityService {
         }
         */
 
-        if(event.getEventType() == AccessibilityEvent.TYPE_VIEW_CLICKED) {
-            Log.i(TAG, "FLAG1");
-        }
-
-
         //add previous click information for building UI hierachy from vocabs
         if(BUILDING_VOCAB && (!trackingExcludedPackages.contains(event.getPackageName())) && event.getEventType() == AccessibilityEvent.TYPE_VIEW_CLICKED && sourceNode != null){
             if(sourceNode.getText() != null)
@@ -310,10 +315,6 @@ public class SugiliteAccessibilityService extends AccessibilityService {
         }
 
 
-        if(event.getEventType() == AccessibilityEvent.TYPE_VIEW_CLICKED) {
-            Log.i(TAG, "FLAG2");
-        }
-
 
         //packages within the excepted package will be totally excepted from the accessibility service tracking
         exceptedPackages.addAll(Arrays.asList(Const.ACCESSIBILITY_SERVICE_EXCEPTED_PACKAGE_NAMES));
@@ -330,8 +331,10 @@ public class SugiliteAccessibilityService extends AccessibilityService {
             //generate the ui snapshot and send to verbal instruction manager
             if (event.getEventType() == AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED) {
                 AccessibilityNodeInfo new_root = sourceNode;
-                while (new_root.getParent() != null) new_root = new_root.getParent();
-                UISnapshot uiSnapshot = new UISnapshot(new_root, true);
+                while (new_root.getParent() != null){
+                    new_root = new_root.getParent();
+                }
+                UISnapshot uiSnapshot = new UISnapshot(new_root, true, sugiliteTextAnnotator);
                 if(uiSnapshot.getNodeAccessibilityNodeInfoMap().size() >= 5) {
                     //filter out (mostly) empty ui snapshots
                     verbalInstructionIconManager.setLatestUISnapshot(uiSnapshot);
@@ -339,7 +342,9 @@ public class SugiliteAccessibilityService extends AccessibilityService {
             }
         }
 
-        if (sharedPreferences.getBoolean("recording_in_process", false)) {
+
+
+        if (sharedPreferences.getBoolean("recording_in_process", false) || sugiliteStudyHandler.isToRecordNextOperation()) {
             //if recording is in progress
             if(rootNode == null)
                 rootNode = getRootInActiveWindow();
@@ -366,16 +371,12 @@ public class SugiliteAccessibilityService extends AccessibilityService {
             }
 
 
+
+
             final AccessibilityNodeInfo rootNodeForRecording = rootNode;
             final List<AccessibilityNodeInfo> preOrderTraverseSourceNodeForRecording = preOrderTraverseSourceNode;
             final List<AccessibilityNodeInfo> preOrderTracerseRootNodeForRecording = preOrderTraverseRootNode;
             final List<AccessibilityNodeInfo> preOrderTraverseSibNodeForRecording = preOrderTraverseSibNode;
-
-            if(event.getEventType() == AccessibilityEvent.TYPE_VIEW_CLICKED) {
-                Log.i(TAG, "FLAG3");
-            }
-
-
 
 
             //add package name to the relevant package set
@@ -410,93 +411,134 @@ public class SugiliteAccessibilityService extends AccessibilityService {
                 //System.out.println(event.getPackageName() + " " + sugiliteData.elementsWithTextLabels.size());
             }
 
-            if(event.getEventType() == AccessibilityEvent.TYPE_VIEW_CLICKED) {
-                Log.i(TAG, "FLAG4");
-            }
 
 
             //if the event is to be recorded, process it
             if (accessibilityEventSetToSend.contains(event.getEventType()) && (!exceptedPackages.contains(event.getPackageName()))) {
-                //==== the thread of handling recording
-                Runnable handleRecording = new Runnable() {
-                    @Override
-                    public void run() {
-                        Log.i(TAG, "Entering handle recording thread");
+                //ignore automatically generated events
+                long currentTime = Calendar.getInstance().getTimeInMillis();
+                boolean toSkip = false;
+                while(sugiliteData.NodeToIgnoreRecordingBoundsInScreenTimeStampQueue.size() > 0){
+                    long timeStamp = sugiliteData.NodeToIgnoreRecordingBoundsInScreenTimeStampQueue.peek().getValue();
+                    if(currentTime - timeStamp > 3000){
+                        sugiliteData.NodeToIgnoreRecordingBoundsInScreenTimeStampQueue.remove();
+                    }
+                    else{
+                        String boundsInScreen = sugiliteData.NodeToIgnoreRecordingBoundsInScreenTimeStampQueue.poll().getKey();
+                        Rect rectForEvent = new Rect();
+                        if(sourceNode != null){
+                            sourceNode.getBoundsInScreen(rectForEvent);
+                        }
+                        if(boundsInScreen != null && boundsInScreen.equals(rectForEvent.flattenToString())){
+                            toSkip = true;
+                        }
+                        break;
+                    }
+                }
 
-                        //temp hack for ViewGroup in Google Now Launcher
-                        if (sourceNode != null && sourceNode.getClassName() != null && sourceNode.getPackageName() != null && sourceNode.getClassName().toString().contentEquals("android.view.ViewGroup") && homeScreenPackageNameSet.contains(sourceNode.getPackageName().toString())) {/*do nothing (don't show popup for ViewGroup in home screen)*/} else {
-                            File screenshot = null;
-                            if (sharedPreferences.getBoolean("root_enabled", false)) {
-                                //take screenshot
-                                try {
+
+                //generate the uiSnapshot
+                AccessibilityNodeInfo new_root = sourceNode;
+                while (new_root.getParent() != null){
+                    new_root = new_root.getParent();
+                }
+                UISnapshot uiSnapshot = new UISnapshot(new_root, true, sugiliteTextAnnotator);
+
+
+                if(sharedPreferences.getBoolean("recording_in_process", false)) {
+                    //==== the thread of handling recording
+                    Runnable handleRecording = new Runnable() {
+                        @Override
+                        public void run() {
+                            Log.i(TAG, "Entering handle recording thread");
+
+                            //temp hack for ViewGroup in Google Now Launcher
+                            if (sourceNode != null && sourceNode.getClassName() != null && sourceNode.getPackageName() != null && sourceNode.getClassName().toString().contentEquals("android.view.ViewGroup") && homeScreenPackageNameSet.contains(sourceNode.getPackageName().toString())) {/*do nothing (don't show popup for ViewGroup in home screen)*/} else {
+                                File screenshot = null;
+                                if (sharedPreferences.getBoolean("root_enabled", false)) {
+                                    //1. take screenshot
+                                    try {
                                     /*
                                     System.out.println("taking screen shot");
                                     screenshot = screenshotManager.take(false);
                                     */
-                                } catch (Exception e) {
-                                    e.printStackTrace();
-                                }
-                            }
-
-                            //send the event to recording pop up dialog
-                            SugiliteAvailableFeaturePack featurePack = generateFeaturePack(event, rootNodeForRecording, screenshot, availableAlternativeNodes, preOrderTraverseSourceNodeForRecording, preOrderTracerseRootNodeForRecording, preOrderTraverseSibNodeForRecording);
-                            LayoutInflater layoutInflater = LayoutInflater.from(getApplicationContext());
-
-                            if (featurePack.isEditable) {
-                                if (event.getEventType() == AccessibilityEvent.TYPE_VIEW_TEXT_CHANGED) {
-                                    //TODO: add TextChangedEventHandlerHere
-                                    textChangedEventHandler.handle(featurePack, availableAlternatives, layoutInflater, handler);
-                                }
-                            } else {
-                                    System.out.println("flush from service");
-                                    textChangedEventHandler.flush();
-                                    Log.i(TAG, "FLAG5");
-                                    RecordingPopUpDialog recordingPopUpDialog = new RecordingPopUpDialog(sugiliteData, context, featurePack, sharedPreferences, layoutInflater, RecordingPopUpDialog.TRIGGERED_BY_NEW_EVENT, availableAlternatives);
-                                    sugiliteData.recordingPopupDialogQueue.add(recordingPopUpDialog);
-                                    Log.i(TAG, "FLAG6");
-                                    if (!sugiliteData.recordingPopupDialogQueue.isEmpty() && sugiliteData.hasRecordingPopupActive == false) {
-                                        sugiliteData.hasRecordingPopupActive = true;
-                                        Log.i(TAG, "FLAG7");
-                                        sugiliteData.recordingPopupDialogQueue.poll().show();
-                                        Log.i(TAG, "FLAG8");
-                                    }
-                            }
-                        }
-
-
-                        if (BUILDING_VOCAB) {
-                            //add alternative nodes to the app vocab set
-                            for (SerializableNodeInfo node : availableAlternativeNodes) {
-                                if (node.packageName != null && node.text != null)
-                                    packageVocabs.add(new AbstractMap.SimpleEntry<String, String>(node.packageName, node.text));
-                                if (node.packageName != null && node.childText != null && node.childText.size() > 0) {
-                                    for (String childText : node.childText)
-                                        packageVocabs.add(new AbstractMap.SimpleEntry<String, String>(node.packageName, childText));
-                                }
-                            }
-                        }
-
-                        if (accessibilityEventSetToSend.contains(event.getEventType()) && (!exceptedPackages.contains(event.getPackageName()))) {
-
-                            if (BUILDING_VOCAB) {
-                                for (Map.Entry<String, String> entry : packageVocabs) {
-                                    try {
-                                        vocabularyDao.save(entry.getKey(), entry.getValue(), "meh", previousClickText, previousClickContentDescription, previousClickChildText, previousClickChildContentDescription, previousClickPackageName);
                                     } catch (Exception e) {
                                         e.printStackTrace();
                                     }
                                 }
+
+
+                                //2. send the event to recording pop up dialog
+                                SugiliteAvailableFeaturePack featurePack = generateFeaturePack(event, rootNodeForRecording, screenshot, availableAlternativeNodes, preOrderTraverseSourceNodeForRecording, preOrderTracerseRootNodeForRecording, preOrderTraverseSibNodeForRecording);
+                                LayoutInflater layoutInflater = LayoutInflater.from(getApplicationContext());
+
+                                if (featurePack.isEditable) {
+                                    //3. handle text entry
+                                    if (event.getEventType() == AccessibilityEvent.TYPE_VIEW_TEXT_CHANGED) {
+                                        //TODO: add TextChangedEventHandlerHere
+                                        textChangedEventHandler.handle(featurePack, availableAlternatives, layoutInflater, handler);
+                                    }
+                                } else {
+                                    System.out.println("flush from service");
+                                    //flush the text changed event handler
+                                    textChangedEventHandler.flush();
+
+                                    newDemonstrationHandler.handleEvent(featurePack, availableAlternatives, uiSnapshot);
+                                    /*
+                                    RecordingPopUpDialog recordingPopUpDialog = new RecordingPopUpDialog(sugiliteData, context, featurePack, sharedPreferences, layoutInflater, RecordingPopUpDialog.TRIGGERED_BY_NEW_EVENT, availableAlternatives);
+                                    sugiliteData.recordingPopupDialogQueue.add(recordingPopUpDialog);
+
+                                    if (!sugiliteData.recordingPopupDialogQueue.isEmpty() && sugiliteData.hasRecordingPopupActive == false) {
+                                        sugiliteData.hasRecordingPopupActive = true;
+                                        sugiliteData.recordingPopupDialogQueue.poll().show();
+                                    }
+                                    */
+                                }
                             }
 
-                            availableAlternatives.clear();
-                            availableAlternativeNodes.clear();
-                            if (BUILDING_VOCAB)
-                                packageVocabs.clear();
-                        }
 
+                            if (BUILDING_VOCAB) {
+                                //add alternative nodes to the app vocab set
+                                for (SerializableNodeInfo node : availableAlternativeNodes) {
+                                    if (node.packageName != null && node.text != null)
+                                        packageVocabs.add(new AbstractMap.SimpleEntry<String, String>(node.packageName, node.text));
+                                    if (node.packageName != null && node.childText != null && node.childText.size() > 0) {
+                                        for (String childText : node.childText)
+                                            packageVocabs.add(new AbstractMap.SimpleEntry<String, String>(node.packageName, childText));
+                                    }
+                                }
+                            }
+
+                            if (accessibilityEventSetToSend.contains(event.getEventType()) && (!exceptedPackages.contains(event.getPackageName()))) {
+
+                                if (BUILDING_VOCAB) {
+                                    for (Map.Entry<String, String> entry : packageVocabs) {
+                                        try {
+                                            vocabularyDao.save(entry.getKey(), entry.getValue(), "meh", previousClickText, previousClickContentDescription, previousClickChildText, previousClickChildContentDescription, previousClickPackageName);
+                                        } catch (Exception e) {
+                                            e.printStackTrace();
+                                        }
+                                    }
+                                }
+
+                                availableAlternatives.clear();
+                                availableAlternativeNodes.clear();
+                                if (BUILDING_VOCAB)
+                                    packageVocabs.clear();
+                            }
+
+                        }
+                    };
+                    if (!toSkip) {
+                        new Thread(handleRecording).run();
                     }
-                };
-                new Thread(handleRecording).run();
+                }
+
+                else if(sugiliteStudyHandler.isToRecordNextOperation()){
+                    SugiliteAvailableFeaturePack featurePack = generateFeaturePack(event, rootNodeForRecording, null, availableAlternativeNodes, preOrderTraverseSourceNodeForRecording, preOrderTracerseRootNodeForRecording, preOrderTraverseSibNodeForRecording);
+                    sugiliteStudyHandler.handleEvent(featurePack, uiSnapshot);
+                }
+
                 //executor.execute(handleRecording);
                 //====
             }

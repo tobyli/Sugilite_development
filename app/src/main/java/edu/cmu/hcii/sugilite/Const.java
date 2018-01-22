@@ -34,6 +34,9 @@ public class Const {
     //TRUE to save all alternative clickables in the filter
     public static final boolean KEEP_ALL_ALTERNATIVES_IN_THE_FILTER = false;
 
+    //TRUE to allow simultaneous verbal instruction + demonstration
+    public static final boolean ENABLE_SIMULTANEOUS_INSTRUCTION_AND_DEMONSTRATION = false;
+
 
     //contain package names for launchers so they won't be killed
     public static final String[] HOME_SCREEN_PACKAGE_NAMES = {"com.google.android.googlequicksearchbox", "com.google.android.apps.nexuslauncher"};

@@ -63,6 +63,10 @@ public class SerializableOntologyQuery implements Serializable {
         return SubRelation;
     }
 
+    public void setSubRelation(OntologyQuery.relationType subRelation) {
+        SubRelation = subRelation;
+    }
+
     public Set<SerializableOntologyQuery> getSubQueries() {
         return SubQueries;
     }
@@ -77,5 +81,10 @@ public class SerializableOntologyQuery implements Serializable {
 
     public SugiliteRelation getR() {
         return r;
+    }
+
+    @Override
+    public String toString() {
+        return new OntologyQuery(this).toString();
     }
 }

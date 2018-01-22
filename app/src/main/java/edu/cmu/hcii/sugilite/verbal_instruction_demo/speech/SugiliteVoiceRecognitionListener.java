@@ -1,4 +1,4 @@
-package edu.cmu.hcii.sugilite.verbal_instruction_demo;
+package edu.cmu.hcii.sugilite.verbal_instruction_demo.speech;
 
 import android.content.Context;
 import android.content.Intent;
@@ -7,7 +7,6 @@ import android.speech.RecognitionListener;
 import android.speech.RecognizerIntent;
 import android.speech.SpeechRecognizer;
 import android.util.Log;
-import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.Calendar;

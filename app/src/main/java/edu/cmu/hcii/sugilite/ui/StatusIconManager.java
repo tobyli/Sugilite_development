@@ -91,6 +91,7 @@ public class StatusIconManager {
     private AlertDialog progressDialog;
     private boolean showingIcon = false;
     private VerbalInstructionIconManager verbalInstructionIconManager = null;
+    private Dialog duckDialog = null;
 
     int rotation = 0;
 
@@ -775,8 +776,11 @@ public class StatusIconManager {
                             }
                         }
                     });
-                    Dialog dialog = textDialogBuilder.create();
-                    dialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
+                    if (duckDialog != null && duckDialog.isShowing()){
+                        duckDialog.dismiss();
+                    }
+                    duckDialog = textDialogBuilder.create();
+                    duckDialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
                         @Override
                         public void onDismiss(DialogInterface dialog) {
                             if (sugiliteData.getCurrentSystemState() == SugiliteData.PAUSED_FOR_DUCK_MENU_IN_REGULAR_EXECUTION_STATE
@@ -787,9 +791,9 @@ public class StatusIconManager {
                             }
                         }
                     });
-                    dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
-                    dialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_box);
-                    dialog.show();
+                    duckDialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
+                    duckDialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_box);
+                    duckDialog.show();
                     return true;
 
                 }

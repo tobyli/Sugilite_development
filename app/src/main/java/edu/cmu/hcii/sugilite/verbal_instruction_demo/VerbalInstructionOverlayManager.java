@@ -1,9 +1,6 @@
 package edu.cmu.hcii.sugilite.verbal_instruction_demo;
 
-import android.app.AlertDialog;
-import android.app.Dialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.PixelFormat;
@@ -17,22 +14,17 @@ import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
-import android.widget.ImageView;
 import android.widget.Toast;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-
-import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.List;
 
 import edu.cmu.hcii.sugilite.Node;
-import edu.cmu.hcii.sugilite.R;
 import edu.cmu.hcii.sugilite.SugiliteData;
-import edu.cmu.hcii.sugilite.automation.ServiceStatusManager;
 import edu.cmu.hcii.sugilite.ontology.SerializableUISnapshot;
-import edu.cmu.hcii.sugilite.ontology.UISnapshot;
+import edu.cmu.hcii.sugilite.verbal_instruction_demo.server_comm.SugiliteVerbalInstructionHTTPQueryManager;
+import edu.cmu.hcii.sugilite.verbal_instruction_demo.server_comm.VerbalInstructionServerResults;
+import edu.cmu.hcii.sugilite.verbal_instruction_demo.util.NavigationBarUtil;
 
 /**
  * @author toby
@@ -53,7 +45,7 @@ public class VerbalInstructionOverlayManager {
     //whether overlays are currently shown
     private boolean showingOverlay = false;
 
-    public VerbalInstructionOverlayManager(Context context, SugiliteData sugiliteData, SharedPreferences sharedPreferences, SugiliteVerbalInstructionHTTPQueryManager httpQueryManager){
+    public VerbalInstructionOverlayManager(Context context, SugiliteData sugiliteData, SharedPreferences sharedPreferences){
         this.context = context;
         this.windowManager = (WindowManager) context.getSystemService(context.WINDOW_SERVICE);
         this.overlays = new ArrayList<>();
@@ -61,11 +53,10 @@ public class VerbalInstructionOverlayManager {
         this.navigationBarUtil = new NavigationBarUtil();
         this.sugiliteData = sugiliteData;
         this.sharedPreferences = sharedPreferences;
-        this.httpQueryManager = httpQueryManager;
         this.verbalInstructionOverlayManager = this;
     }
 
-    public void addOverlay(Node node, String entityId, VerbalInstructionResults.VerbalInstructionResult correspondingResult, List<VerbalInstructionResults.VerbalInstructionResult> allResults, SerializableUISnapshot serializableUISnapshot){
+    public void addOverlay(Node node, String entityId, VerbalInstructionServerResults.VerbalInstructionResult correspondingResult, List<VerbalInstructionServerResults.VerbalInstructionResult> allResults, SerializableUISnapshot serializableUISnapshot, String utterance){
         Rect boundsInScreen = Rect.unflattenFromString(node.getBoundsInScreen());
         View overlay = getRectangleOverlay(context, boundsInScreen.width(), boundsInScreen.height());
         System.out.println("Creating an overlay with width " + boundsInScreen.width() + " and height " + boundsInScreen.height() +
@@ -98,7 +89,7 @@ public class VerbalInstructionOverlayManager {
         iconParams.width = boundsInScreen.width();
         iconParams.height = boundsInScreen.height();
 
-        addCrumpledPaperOnTouchListener(overlay, iconParams, displaymetrics, node, entityId, correspondingResult, allResults, serializableUISnapshot, windowManager, sugiliteData, sharedPreferences);
+        addCrumpledPaperOnTouchListener(overlay, iconParams, displaymetrics, node, entityId, correspondingResult, allResults, serializableUISnapshot, utterance, windowManager, sugiliteData, sharedPreferences);
 
         //NEEDED TO BE CONFIGURED AT APPS->SETTINGS-DRAW OVER OTHER APPS on API>=23
         int currentApiVersion = android.os.Build.VERSION.SDK_INT;
@@ -158,7 +149,7 @@ public class VerbalInstructionOverlayManager {
      * @param displayMetrics
      * @param windowManager
      */
-    private void addCrumpledPaperOnTouchListener(final View view, final WindowManager.LayoutParams mPaperParams, DisplayMetrics displayMetrics, Node node, String entityId, VerbalInstructionResults.VerbalInstructionResult correspondingResult, List<VerbalInstructionResults.VerbalInstructionResult> allResults, SerializableUISnapshot serializableUISnapshot, final WindowManager windowManager, SugiliteData sugiliteData, SharedPreferences sharedPreferences) {
+    private void addCrumpledPaperOnTouchListener(final View view, final WindowManager.LayoutParams mPaperParams, DisplayMetrics displayMetrics, Node node, String entityId, VerbalInstructionServerResults.VerbalInstructionResult correspondingResult, List<VerbalInstructionServerResults.VerbalInstructionResult> allResults, SerializableUISnapshot serializableUISnapshot, String utterance, final WindowManager windowManager, SugiliteData sugiliteData, SharedPreferences sharedPreferences) {
         view.setOnTouchListener(new View.OnTouchListener() {
 
             GestureDetector gestureDetector = new GestureDetector(context, new SingleTapUp());
@@ -168,7 +159,7 @@ public class VerbalInstructionOverlayManager {
                 if (gestureDetector.onTouchEvent(event)) {
                     // gesture is clicking
                     Toast.makeText(context, "Clicked on " + entityId, Toast.LENGTH_SHORT).show();
-                    OverlayChosenPopupDialog overlayChosenPopupDialog = new OverlayChosenPopupDialog(context, layoutInflater, verbalInstructionOverlayManager, node,  correspondingResult, allResults, serializableUISnapshot, httpQueryManager, sugiliteData, sharedPreferences);
+                    OverlayChosenPopupDialog overlayChosenPopupDialog = new OverlayChosenPopupDialog(context, layoutInflater, verbalInstructionOverlayManager, node,  correspondingResult, allResults, serializableUISnapshot, utterance, sugiliteData, sharedPreferences);
                     overlayChosenPopupDialog.show();
                     return true;
                 }

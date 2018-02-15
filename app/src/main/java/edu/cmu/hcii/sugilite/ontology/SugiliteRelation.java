@@ -89,7 +89,6 @@ public class SugiliteRelation implements Serializable {
 
 
 
-
     public static final Map<String, SugiliteRelation> stringRelationMap;
     static {
         stringRelationMap = new HashMap<String, SugiliteRelation>();

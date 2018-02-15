@@ -22,8 +22,9 @@ public class SugiliteTextAnnotator {
             //add all available annotator implementations
             addAnnotator(new EmailAddressAnnotator(),
                     new PhoneNumberAnnotator(),
-                    new MoneyAnnotator());
-
+                    new MoneyAnnotator(),
+                    new TimeAnnotator(),
+                    new DateAnnotator());
         }
     }
 

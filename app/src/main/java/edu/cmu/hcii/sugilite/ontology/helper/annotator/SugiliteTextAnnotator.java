@@ -24,7 +24,8 @@ public class SugiliteTextAnnotator {
                     new PhoneNumberAnnotator(),
                     new MoneyAnnotator(),
                     new TimeAnnotator(),
-                    new DateAnnotator());
+                    new DateAnnotator(),
+                    new LengthAnnotator());
         }
     }
 
@@ -87,5 +88,7 @@ public class SugiliteTextAnnotator {
         public void setRelation(SugiliteRelation relation) {
             this.relation = relation;
         }
+
+        public void setNumericValue(Double val) {this.numericValue = val; }
     }
 }

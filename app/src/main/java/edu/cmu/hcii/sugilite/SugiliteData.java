@@ -171,6 +171,7 @@ public class SugiliteData extends Application {
             setCurrentSystemState(DEFAULT_STATE);
             return;
         }
+        errorHandler.reportSuccess();
         instructionQueue.add(block);
     }
     public void addInstructions(Queue<SugiliteBlock> blocks){

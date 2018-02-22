@@ -18,7 +18,7 @@ public class SugiliteStudyPacket {
 
     //TODO: support additional event types (e.g. text entry)
 
-    public SugiliteStudyPacket(SerializableUISnapshot uiSnapshot, SugiliteSerializableEntity sourceNodeEntity, String verbalInstruction, String actionType){
+    public SugiliteStudyPacket(SerializableUISnapshot uiSnapshot, SugiliteSerializableEntity sourceNodeEntity, String verbalInstruction, String actionType, String query){
         this.uiSnapshot = uiSnapshot;
         this.sourceNodeEntity = sourceNodeEntity;
         this.verbalInstruction = verbalInstruction;

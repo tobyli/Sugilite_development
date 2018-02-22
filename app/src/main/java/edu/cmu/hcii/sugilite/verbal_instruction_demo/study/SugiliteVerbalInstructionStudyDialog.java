@@ -56,15 +56,19 @@ public class SugiliteVerbalInstructionStudyDialog implements SugiliteVoiceInterf
     private ImageButton speakButton;
     private SugiliteVoiceRecognitionListener sugiliteVoiceRecognitionListener;
     private LinearLayout mainLayout;
+    private String path, fileName;
     public boolean isListening = false;
 
 
-    public SugiliteVerbalInstructionStudyDialog(SerializableUISnapshot serializableUISnapshot, SugiliteSerializableEntity serializableEntity, SugiliteStudyHandler sugiliteStudyHandler, Context context, LayoutInflater inflater){
+    public SugiliteVerbalInstructionStudyDialog(SerializableUISnapshot serializableUISnapshot, SugiliteSerializableEntity serializableEntity, SugiliteStudyHandler sugiliteStudyHandler, Context context, LayoutInflater inflater, SugiliteVoiceRecognitionListener voiceRecognitionListener, String path, String fileName){
         this.serializableUISnapshot = serializableUISnapshot;
         this.serializableEntity = serializableEntity;
         this.sugiliteStudyHandler = sugiliteStudyHandler;
         this.context = context;
-        this.sugiliteVoiceRecognitionListener = new SugiliteVoiceRecognitionListener(context, this);
+        this.sugiliteVoiceRecognitionListener = voiceRecognitionListener;
+        this.path = path;
+        this.fileName = fileName;
+        voiceRecognitionListener.setSugiliteVoiceInterface(this);
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
         View dialogView = inflater.inflate(R.layout.dialog_send_server_query, null);
         mainLayout = (LinearLayout)dialogView.findViewById(R.id.layout_send_server_query);
@@ -99,6 +103,15 @@ public class SugiliteVerbalInstructionStudyDialog implements SugiliteVoiceInterf
                 });
 
         dialog = builder.create();
+        dialog = builder.create();
+        dialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
+            @Override
+            public void onDismiss(DialogInterface dialog) {
+                if(isListening) {
+                    sugiliteVoiceRecognitionListener.stopListening();
+                }
+            }
+        });
     }
 
     public void show(){
@@ -112,8 +125,8 @@ public class SugiliteVerbalInstructionStudyDialog implements SugiliteVoiceInterf
             public void onClick(View v)
             {
                 String userInput = instructionTextbox.getText().toString();
-                SugiliteStudyPacket packet = new SugiliteStudyPacket(serializableUISnapshot, serializableEntity, userInput, SugiliteStudyPacket.TYPE_CLICK);
-                sugiliteStudyHandler.savePacket(packet);
+                SugiliteStudyPacket packet = new SugiliteStudyPacket(serializableUISnapshot, serializableEntity, userInput, SugiliteStudyPacket.TYPE_CLICK, "");
+                sugiliteStudyHandler.savePacket(packet, path, fileName);
                 dialog.dismiss();
 
             }

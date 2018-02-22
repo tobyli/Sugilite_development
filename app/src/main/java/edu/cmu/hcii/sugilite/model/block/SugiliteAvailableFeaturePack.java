@@ -1,15 +1,22 @@
 package edu.cmu.hcii.sugilite.model.block;
 
+import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityNodeInfo;
 
 import java.io.File;
 import java.io.Serializable;
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import edu.cmu.hcii.sugilite.Const;
+import edu.cmu.hcii.sugilite.Node;
 import edu.cmu.hcii.sugilite.model.AccessibilityNodeInfoList;
+import edu.cmu.hcii.sugilite.ontology.SugiliteRelation;
+import edu.cmu.hcii.sugilite.ontology.SugiliteTriple;
+import edu.cmu.hcii.sugilite.ontology.UISnapshot;
 
 /**
  * Created by toby on 6/28/16.
@@ -23,6 +30,56 @@ public class SugiliteAvailableFeaturePack implements Serializable{
     public SugiliteAvailableFeaturePack(){
         //do nothing
     }
+
+    public SugiliteAvailableFeaturePack(Node node, UISnapshot uiSnapshot){
+        if(node.getPackageName() != null) {
+            this.packageName = new String(node.getPackageName());
+        }
+        if(node.getClassName() != null) {
+            this.className = new String(node.getClassName());
+        }
+        if(node.getText() != null) {
+            this.text = new String(node.getText());
+        }
+        if(node.getContentDescription() != null) {
+            this.contentDescription = new String(node.getContentDescription());
+        }
+        if(node.getViewId() != null) {
+            this.viewId = new String(node.getViewId());
+        }
+        if(node.getBoundsInParent() != null) {
+            this.boundsInParent = new String(node.getBoundsInParent());
+        }
+        if(node.getBoundsInScreen() != null) {
+            this.boundsInScreen = new String(node.getBoundsInScreen());
+        }
+        this.isEditable = node.getEditable();
+        //TODO: fix timestamp
+        this.time = -1;
+        this.eventType = AccessibilityEvent.TYPE_VIEW_CLICKED;
+        this.screenshot = null;
+
+        this.parentNode = null;
+        this.childNodes = new ArrayList<>();
+        this.allNodes = new ArrayList<>();
+        this.alternativeChildTextList = new HashSet<>();
+        this.alternativeTextList = new HashSet<>();
+
+        this.childTexts = new ArrayList<>();
+        if(uiSnapshot.getNodeSugiliteEntityMap().containsKey(node)) {
+            Integer subjectId = uiSnapshot.getNodeSugiliteEntityMap().get(node).getEntityId();
+            Set<SugiliteTriple> triples = uiSnapshot.getSubjectPredicateTriplesMap().get(new AbstractMap.SimpleEntry<>(subjectId, SugiliteRelation.HAS_CHILD_TEXT.getRelationId()));
+            if(triples != null){
+                for(SugiliteTriple triple : triples){
+                    if(triple.getObject() != null && triple.getObject().getEntityValue() instanceof String){
+                        childTexts.add((String)triple.getObject().getEntityValue());
+                    }
+                }
+            }
+        }
+
+    }
+
     public SugiliteAvailableFeaturePack(SugiliteAvailableFeaturePack featurePack){
         this.packageName = new String(featurePack.packageName);
         this.className = new String(featurePack.className);
@@ -40,6 +97,7 @@ public class SugiliteAvailableFeaturePack implements Serializable{
             this.parentNode = featurePack.parentNode;
             this.childNodes = new ArrayList<>(featurePack.childNodes);
             this.allNodes = new ArrayList<>(featurePack.allNodes);
+            this.childTexts = new ArrayList<>(featurePack.childTexts);
         }
         else{
             this.parentNode = null;
@@ -74,6 +132,7 @@ public class SugiliteAvailableFeaturePack implements Serializable{
      * siblingNodes: all sibling nodes of the source node and their children
      */
     public ArrayList<SerializableNodeInfo> childNodes, allNodes, siblingNodes;
+    public List<String> childTexts;
 
 
     /**

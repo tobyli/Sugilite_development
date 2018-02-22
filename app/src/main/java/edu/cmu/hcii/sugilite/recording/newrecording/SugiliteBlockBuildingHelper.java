@@ -38,6 +38,10 @@ import static edu.cmu.hcii.sugilite.Const.SQL_SCRIPT_DAO;
  * @date 1/10/18
  * @time 12:36 PM
  */
+
+/**
+ * the helper class for building a SugiliteBlock
+ */
 public class SugiliteBlockBuildingHelper {
     private ReadableDescriptionGenerator readableDescriptionGenerator;
     private Context context;
@@ -170,7 +174,7 @@ public class SugiliteBlockBuildingHelper {
                     clonedQuery.addSubQuery(subQuery);
                     hasNonBoundingBoxFeature = true;
                     hasNonChildFeature = true;
-                    queries.add(new AbstractMap.SimpleEntry<>(new SerializableOntologyQuery(clonedQuery), 2.0));
+                    queries.add(new AbstractMap.SimpleEntry<>(new SerializableOntologyQuery(clonedQuery), 3.0));
                 }
             }
 
@@ -188,26 +192,19 @@ public class SugiliteBlockBuildingHelper {
                     clonedQuery.addSubQuery(subQuery);
                     hasNonBoundingBoxFeature = true;
                     hasNonChildFeature = true;
-                    queries.add(new AbstractMap.SimpleEntry<>(new SerializableOntologyQuery(clonedQuery), 2.1));
+                    queries.add(new AbstractMap.SimpleEntry<>(new SerializableOntologyQuery(clonedQuery), 3.1));
                 }
             }
         }
 
 
         //add child text
-        List<String> childTexts = new ArrayList<>();
-        if(featurePack.childNodes != null){
-            for(SerializableNodeInfo node : featurePack.childNodes){
-                if(node.text != null){
-                    childTexts.add(node.text);
-                }
-            }
-        }
-        if(childTexts.size() > 0){
+        List<String> childTexts = featurePack.childTexts;
+        if(childTexts != null && childTexts.size() > 0){
             int count = 0;
             for(String childText : childTexts){
                 double score = 2 + (((double)(count++)) / (double) childTexts.size());
-                if(!childText.equals(featurePack.text)) {
+                if(childText != null && !childText.equals(featurePack.text)) {
                     OntologyQuery clonedQuery = new OntologyQuery(new SerializableOntologyQuery(q));
                     OntologyQuery subQuery = new OntologyQuery(OntologyQuery.relationType.nullR);
                     Set<SugiliteEntity> object = new HashSet<>();
@@ -229,8 +226,20 @@ public class SugiliteBlockBuildingHelper {
             subQuery.setObject(object);
             subQuery.setQueryFunction(SugiliteRelation.HAS_SCREEN_LOCATION);
             clonedQuery.addSubQuery(subQuery);
-            queries.add(new AbstractMap.SimpleEntry<>(new SerializableOntologyQuery(clonedQuery), 3.1));
+            queries.add(new AbstractMap.SimpleEntry<>(new SerializableOntologyQuery(clonedQuery), 5.1));
         }
+
+        if(featurePack.boundsInParent != null && (!featurePack.boundsInParent.equals("NULL"))){
+            OntologyQuery clonedQuery = new OntologyQuery(new SerializableOntologyQuery(q));
+            OntologyQuery subQuery = new OntologyQuery(OntologyQuery.relationType.nullR);
+            Set<SugiliteEntity> object = new HashSet<>();
+            object.add(new SugiliteEntity(-1, String.class, featurePack.boundsInParent));
+            subQuery.setObject(object);
+            subQuery.setQueryFunction(SugiliteRelation.HAS_PARENT_LOCATION);
+            clonedQuery.addSubQuery(subQuery);
+            queries.add(new AbstractMap.SimpleEntry<>(new SerializableOntologyQuery(clonedQuery), 8.2));
+        }
+
 
         // serialize the query
         return queries;

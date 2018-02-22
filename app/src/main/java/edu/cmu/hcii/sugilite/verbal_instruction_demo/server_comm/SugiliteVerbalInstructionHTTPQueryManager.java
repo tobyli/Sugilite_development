@@ -1,5 +1,7 @@
 package edu.cmu.hcii.sugilite.verbal_instruction_demo.server_comm;
 
+import android.content.SharedPreferences;
+
 import com.google.gson.Gson;
 
 import java.io.BufferedOutputStream;
@@ -17,13 +19,15 @@ import java.net.URL;
  * @time 1:12 AM
  */
 public class SugiliteVerbalInstructionHTTPQueryManager {
-    private final String SERVER_URL =  "http://codermoder.com:4567/semparse";
+    private final String DEFAULT_SERVER_URL =  "http://codermoder.com:4567/semparse";
     private final String USER_AGENT = "Mozilla/5.0";
     private SugiliteVerbalInstructionHTTPQueryInterface parentInterface;
     private Gson gson;
+    private SharedPreferences sharedPreferences;
 
-    public SugiliteVerbalInstructionHTTPQueryManager(SugiliteVerbalInstructionHTTPQueryInterface parentInterface){
+    public SugiliteVerbalInstructionHTTPQueryManager(SugiliteVerbalInstructionHTTPQueryInterface parentInterface, SharedPreferences sharedPreferences){
         this.parentInterface = parentInterface;
+        this.sharedPreferences = sharedPreferences;
         this.gson = new Gson();
     }
 
@@ -40,7 +44,11 @@ public class SugiliteVerbalInstructionHTTPQueryManager {
 
 
     private void sendRequest(String content) throws Exception {
-        URL obj = new URL(SERVER_URL);
+        String url = sharedPreferences.getString("edit_text_server_address", "null");
+        if(url.equals("null")){
+            url = DEFAULT_SERVER_URL;
+        }
+        URL obj = new URL(url);
         HttpURLConnection con = (HttpURLConnection) obj.openConnection();
 
         //add request header
@@ -77,7 +85,7 @@ public class SugiliteVerbalInstructionHTTPQueryManager {
         }
         in.close();
 
-        System.out.println(response);
+        System.out.println("Response Content:" + response);
 
         //return result
         Runnable r = new Runnable() {

@@ -22,7 +22,7 @@ public class ListOrderResolver {
     public boolean isAList(Node node, Iterable<Node> children){
         String className = node.getClassName();
         Set<String> listClassNames = new HashSet<>();
-        if(isOfListClass(className)){
+        if(className != null && isOfListClass(className)){
             //the node is of a class name of lists
             int count = 0;
             for(Node childNode : children){

@@ -13,6 +13,7 @@ import android.speech.tts.TextToSpeech;
 import android.speech.tts.UtteranceProgressListener;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Window;
 import android.view.WindowManager;
 import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityManager;
@@ -756,19 +757,35 @@ public class SugiliteAccessibilityService extends AccessibilityService {
     }
 
     public void updateUISnapshotInVerbalInstructionManager(){
-        List<AccessibilityWindowInfo> windows = getWindows();
-        verbalInstructionIconManager.rotateStatusIcon();
-        uiSnapshotGenerationExecutor.execute(new Runnable() {
-            @Override
-            public void run() {
-                UISnapshot uiSnapshot = new UISnapshot(windows, true, sugiliteTextAnnotator);
-                if(uiSnapshot.getNodeAccessibilityNodeInfoMap().size() >= 5) {
-                    //filter out (mostly) empty ui snapshots
-                    verbalInstructionIconManager.setLatestUISnapshot(uiSnapshot);
-                    System.out.println("updated ui snapshot in verbal instruction manager");
+        try {
+            List<AccessibilityWindowInfo> windows = getWindows();
+            verbalInstructionIconManager.rotateStatusIcon();
+            if (windows.size() > 0) {
+                Set<String> rootNodePackageNames = new HashSet<>();
+                for (AccessibilityWindowInfo window : windows) {
+                    if (window.getRoot() != null && window.getRoot().getPackageName() != null) {
+                        rootNodePackageNames.add(window.getRoot().getPackageName().toString());
+                    }
+                }
+                //if(!rootNodePackageNames.contains("edu.cmu.hcii.sugilite")) {
+                if (true) {
+                    uiSnapshotGenerationExecutor.execute(new Runnable() {
+                        @Override
+                        public void run() {
+                            UISnapshot uiSnapshot = new UISnapshot(windows, true, sugiliteTextAnnotator);
+                            if (uiSnapshot.getNodeAccessibilityNodeInfoMap().size() >= 5) {
+                                //filter out (mostly) empty ui snapshots
+                                verbalInstructionIconManager.setLatestUISnapshot(uiSnapshot);
+                                System.out.println("updated ui snapshot in verbal instruction manager");
+                            }
+                        }
+                    });
                 }
             }
-        });
+        }
+        catch (Exception e){
+            e.printStackTrace();
+        }
     }
 
     public void checkIfAutomationCanBePerformed(){

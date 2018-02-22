@@ -21,6 +21,7 @@ import android.view.WindowManager;
 import android.widget.Toast;
 
 import com.google.gson.Gson;
+import com.google.gson.internal.Excluder;
 
 import java.io.DataOutputStream;
 import java.util.ArrayList;
@@ -171,12 +172,10 @@ public class RecordingOverlayManager2 {
     }
 
     public void setOverlayOnTouchListener(final View view, final boolean toConsumeEvent) {
-        if (Const.ROOT_ENABLED) {
-            try {
-                windowManager.updateViewLayout(view, updateLayoutParams(WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE));
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+        try {
+            windowManager.updateViewLayout(view, updateLayoutParams(WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE));
+        } catch (Exception e) {
+            e.printStackTrace();
         }
 
         view.setOnTouchListener(new View.OnTouchListener() {
@@ -214,13 +213,18 @@ public class RecordingOverlayManager2 {
                 public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
                     if (Const.ROOT_ENABLED) {
                         recordingOverlayManager.setPassThroughOnTouchListener(overlay);
-                        recordingOverlayManager.performFlingWithRootPermission(e1, e2, new Runnable() {
-                            @Override
-                            public void run() {
-                                //allow the overlay to get touch event after finishing the simulated gesture
-                                recordingOverlayManager.setOverlayOnTouchListener(overlay, true);
-                            }
-                        });
+                        try {
+                            recordingOverlayManager.performFlingWithRootPermission(e1, e2, new Runnable() {
+                                @Override
+                                public void run() {
+                                    //allow the overlay to get touch event after finishing the simulated gesture
+                                    recordingOverlayManager.setOverlayOnTouchListener(overlay, true);
+                                }
+                            });
+                        }
+                        catch (Exception e){
+                            e.printStackTrace();
+                        }
                     }
                     return true;
                 }
@@ -231,13 +235,18 @@ public class RecordingOverlayManager2 {
                 public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
                     if (Const.ROOT_ENABLED) {
                         recordingOverlayManager.setPassThroughOnTouchListener(overlay);
-                        recordingOverlayManager.performFlingWithRootPermission(e1, e2, new Runnable() {
-                            @Override
-                            public void run() {
-                                //allow the overlay to get touch event after finishing the simulated gesture
-                                recordingOverlayManager.setOverlayOnTouchListener(overlay, true);
-                            }
-                        });
+                        try {
+                            recordingOverlayManager.performFlingWithRootPermission(e1, e2, new Runnable() {
+                                @Override
+                                public void run() {
+                                    //allow the overlay to get touch event after finishing the simulated gesture
+                                    recordingOverlayManager.setOverlayOnTouchListener(overlay, true);
+                                }
+                            });
+                        }
+                        catch (Exception e){
+                            e.printStackTrace();
+                        }
                     }
                     return true;
                 }
@@ -386,9 +395,9 @@ public class RecordingOverlayManager2 {
             public void onLayoutChange(View v, int left, int top, int right, int bottom, int oldLeft, int oldTop, int oldRight, int oldBottom) {
                 overlay.removeOnLayoutChangeListener(this);
                 System.out.println("layout changed");
-                new Thread(new Runnable() {
+                Thread clickThread = new Thread(new Runnable() {
                     @Override
-                    public void run() {
+                    public synchronized void run() {
                         m_Instrumentation.sendPointerSync(MotionEvent.obtain(
                                 SystemClock.uptimeMillis(),
                                 SystemClock.uptimeMillis(),
@@ -397,9 +406,19 @@ public class RecordingOverlayManager2 {
                                 SystemClock.uptimeMillis(),
                                 SystemClock.uptimeMillis(),
                                 MotionEvent.ACTION_UP, x, y, 0));
-                        sugiliteAccessibilityService.runOnUiThread(uiThreadRunnable);
+                        //sugiliteAccessibilityService.runOnUiThread(uiThreadRunnable);
                     }
-                }).start();
+                });
+                clickThread.start();
+                try {
+                    clickThread.join();
+                }
+                catch (Exception e){
+                    e.printStackTrace();
+                }
+
+                //run the callback - this eliminates the latency between changing passthroughbility
+                uiThreadRunnable.run();
             }
         });
     }
@@ -411,42 +430,53 @@ public class RecordingOverlayManager2 {
             public void onLayoutChange(View v, int left, int top, int right, int bottom, int oldLeft, int oldTop, int oldRight, int oldBottom) {
                 overlay.removeOnLayoutChangeListener(this);
                 System.out.println("layout changed");
-                new Thread(new Runnable() {
+                Thread flingThread = new Thread(new Runnable() {
                     @Override
-                    public void run() {
+                    public synchronized void run() {
                         //obtain event1
-                        MotionEvent.PointerProperties[] pointerProperties1 = new MotionEvent.PointerProperties[event1.getPointerCount()];
-                        MotionEvent.PointerCoords[] pointerCoordses1 = new MotionEvent.PointerCoords[event1.getPointerCount()];
-                        for (int i = 0; i < event1.getPointerCount(); i++) {
-                            pointerProperties1[i] = new MotionEvent.PointerProperties();
-                            pointerCoordses1[i] = new MotionEvent.PointerCoords();
-                            event1.getPointerProperties(i, pointerProperties1[i]);
-                            event1.getPointerCoords(i, pointerCoordses1[i]);
-                        }
-                        MotionEvent motionEvent1 = MotionEvent.obtain(SystemClock.uptimeMillis(), SystemClock.uptimeMillis(),
-                                event1.getAction(), event1.getPointerCount(), pointerProperties1, pointerCoordses1, event1.getMetaState(),
-                                event1.getButtonState(), event1.getXPrecision(), event1.getYPrecision(), event1.getDeviceId(), event1.getEdgeFlags(), event1.getSource(), event1.getFlags());
-                        System.out.println("EVENT1: " + motionEvent1.toString());
+                        if(event1 != null && event2 != null) {
+                            MotionEvent.PointerProperties[] pointerProperties1 = new MotionEvent.PointerProperties[event1.getPointerCount()];
+                            MotionEvent.PointerCoords[] pointerCoordses1 = new MotionEvent.PointerCoords[event1.getPointerCount()];
+                            for (int i = 0; i < event1.getPointerCount(); i++) {
+                                pointerProperties1[i] = new MotionEvent.PointerProperties();
+                                pointerCoordses1[i] = new MotionEvent.PointerCoords();
+                                event1.getPointerProperties(i, pointerProperties1[i]);
+                                event1.getPointerCoords(i, pointerCoordses1[i]);
+                            }
+                            MotionEvent motionEvent1 = MotionEvent.obtain(SystemClock.uptimeMillis(), SystemClock.uptimeMillis(),
+                                    event1.getAction(), event1.getPointerCount(), pointerProperties1, pointerCoordses1, event1.getMetaState(),
+                                    event1.getButtonState(), event1.getXPrecision(), event1.getYPrecision(), event1.getDeviceId(), event1.getEdgeFlags(), event1.getSource(), event1.getFlags());
+                            System.out.println("EVENT1: " + motionEvent1.toString());
 
-                        //obtain event2
-                        MotionEvent.PointerProperties[] pointerProperties2 = new MotionEvent.PointerProperties[event2.getPointerCount()];
-                        MotionEvent.PointerCoords[] pointerCoordses2 = new MotionEvent.PointerCoords[event2.getPointerCount()];
-                        for (int i = 0; i < event2.getPointerCount(); i++) {
-                            pointerProperties2[i] = new MotionEvent.PointerProperties();
-                            pointerCoordses2[i] = new MotionEvent.PointerCoords();
-                            event2.getPointerProperties(i, pointerProperties2[i]);
-                            event2.getPointerCoords(i, pointerCoordses2[i]);
-                        }
-                        MotionEvent motionEvent2 = MotionEvent.obtain(SystemClock.uptimeMillis(), SystemClock.uptimeMillis(),
-                                event2.getAction(), event2.getPointerCount(), pointerProperties2, pointerCoordses2, event2.getMetaState(),
-                                event2.getButtonState(), event2.getXPrecision(), event2.getYPrecision(), event2.getDeviceId(), event2.getEdgeFlags(), event2.getSource(), event2.getFlags());
-                        System.out.println("EVENT2: " + motionEvent2.toString());
+                            //obtain event2
+                            MotionEvent.PointerProperties[] pointerProperties2 = new MotionEvent.PointerProperties[event2.getPointerCount()];
+                            MotionEvent.PointerCoords[] pointerCoordses2 = new MotionEvent.PointerCoords[event2.getPointerCount()];
+                            for (int i = 0; i < event2.getPointerCount(); i++) {
+                                pointerProperties2[i] = new MotionEvent.PointerProperties();
+                                pointerCoordses2[i] = new MotionEvent.PointerCoords();
+                                event2.getPointerProperties(i, pointerProperties2[i]);
+                                event2.getPointerCoords(i, pointerCoordses2[i]);
+                            }
+                            MotionEvent motionEvent2 = MotionEvent.obtain(SystemClock.uptimeMillis(), SystemClock.uptimeMillis(),
+                                    event2.getAction(), event2.getPointerCount(), pointerProperties2, pointerCoordses2, event2.getMetaState(),
+                                    event2.getButtonState(), event2.getXPrecision(), event2.getYPrecision(), event2.getDeviceId(), event2.getEdgeFlags(), event2.getSource(), event2.getFlags());
+                            System.out.println("EVENT2: " + motionEvent2.toString());
 
-                        m_Instrumentation.sendPointerSync(motionEvent1);
-                        m_Instrumentation.sendPointerSync(motionEvent2);
-                        sugiliteAccessibilityService.runOnUiThread(uiThreadRunnable);
+                            m_Instrumentation.sendPointerSync(motionEvent1);
+                            m_Instrumentation.sendPointerSync(motionEvent2);
+                            //sugiliteAccessibilityService.runOnUiThread(uiThreadRunnable);
+                        }
                     }
-                }).start();
+                });
+                flingThread.start();
+                try {
+                    flingThread.join();
+                }
+                catch (Exception e){
+                    e.printStackTrace();
+                }
+                //run the callback
+                uiThreadRunnable.run();
             }
         });
     }

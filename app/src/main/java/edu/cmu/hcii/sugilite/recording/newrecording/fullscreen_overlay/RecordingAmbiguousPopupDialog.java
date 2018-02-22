@@ -96,6 +96,9 @@ public class RecordingAmbiguousPopupDialog extends SugiliteDialogManager impleme
         this.queryScoreList = queryScoreList;
         this.featurePack = featurePack;
         this.sugiliteVerbalInstructionHTTPQueryManager = new SugiliteVerbalInstructionHTTPQueryManager(this, sharedPreferences);
+
+
+        //TODO: need to operate on a copy of ui snapshot
         this.uiSnapshot = uiSnapshot;
         this.serializableUISnapshot = new SerializableUISnapshot(uiSnapshot);
         this.actualClickedNode = actualClickedNode;
@@ -317,7 +320,11 @@ public class RecordingAmbiguousPopupDialog extends SugiliteDialogManager impleme
 
             String queryFormula = verbalInstructionResult.getFormula();
             OntologyQuery query = OntologyQueryUtils.getQueryWithClassAndPackageConstraints(OntologyQuery.deserialize(queryFormula), actualClickedNode);
-            Set<SugiliteEntity> queryResults =  query.executeOn(uiSnapshot);
+
+            OntologyQuery queryClone = OntologyQuery.deserialize(query.toString());
+
+            //TODO: fix the bug in query.executeOn -- it should not change the query
+            Set<SugiliteEntity> queryResults =  queryClone.executeOn(uiSnapshot);
 
             for(SugiliteEntity entity : queryResults){
                 if(entity.getType().equals(Node.class)){
@@ -353,23 +360,22 @@ public class RecordingAmbiguousPopupDialog extends SugiliteDialogManager impleme
         //TODO: sort the list by the size of matched node and length, and see if the top result has filteredNodes.size() = 1
         if (matchingQueriesMatchedNodesList != null && (!matchingQueriesMatchedNodesList.isEmpty())) {
             OntologyQuery query = matchingQueriesMatchedNodesList.get(0).getKey();
-
             //TODO: check if this has filteredNodes.size() = 1
-            if(matchingQueriesMatchedNodesList.get(0).getValue().size() == 1) {
-                //save the block and show a confirmation dialog for the block
-                Toast.makeText(context, query.toString(), Toast.LENGTH_SHORT).show();
-
-                //construct the block from the query formula
-                OntologyQuery parentQuery = OntologyQueryUtils.getQueryWithClassAndPackageConstraints(query, actualClickedNode);
-                SerializableOntologyQuery serializableOntologyQuery = new SerializableOntologyQuery(parentQuery);
-
-                SugiliteOperationBlock block = blockBuildingHelper.getOperationFromQuery(serializableOntologyQuery, SugiliteOperation.CLICK, featurePack);
-                showConfirmationDialog(block, featurePack, queryScoreList, clickRunnable);
-                dialog.dismiss();
-            } else {
-                //TODO: will get into further disambiguate mode
+            if(matchingQueriesMatchedNodesList.get(0).getValue().size() > 1) {
                 Toast.makeText(context, "Matched " + matchingQueriesMatchedNodesList.get(0).getValue().size() + " Nodes, Need further disambiguation", Toast.LENGTH_SHORT).show();
+                //TODO:prompt for further generalization
             }
+
+            //save the block and show a confirmation dialog for the block
+            Toast.makeText(context, query.toString(), Toast.LENGTH_SHORT).show();
+            System.out.println("Result Query: " + query.toString());
+            //construct the block from the query formula
+
+            SerializableOntologyQuery serializableOntologyQuery = new SerializableOntologyQuery(query);
+
+            SugiliteOperationBlock block = blockBuildingHelper.getOperationFromQuery(serializableOntologyQuery, SugiliteOperation.CLICK, featurePack);
+            showConfirmationDialog(block, featurePack, queryScoreList, clickRunnable);
+            dialog.dismiss();
 
         } else {
             //empty result, show the dialog and switch to empty result state
@@ -389,7 +395,6 @@ public class RecordingAmbiguousPopupDialog extends SugiliteDialogManager impleme
      */
     @Override
     public void initDialogManager() {
-
         //set the prompt
         emptyResultState.setPrompt(context.getString(R.string.disambiguation_error));
         askingForVerbalInstructionState.setPrompt(context.getString(R.string.disambiguation_prompt));

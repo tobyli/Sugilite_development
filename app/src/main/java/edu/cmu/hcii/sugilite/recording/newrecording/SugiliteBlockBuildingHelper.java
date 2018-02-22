@@ -290,11 +290,13 @@ public class SugiliteBlockBuildingHelper {
         SerializableOntologyQuery queryCloned = new SerializableOntologyQuery(new OntologyQuery(query));
         List<SerializableOntologyQuery> queriesToRemove = new ArrayList<>();
         for(SerializableOntologyQuery subQuery : queryCloned.getSubQueries()){
-            if(subQuery.getR().equals(SugiliteRelation.HAS_CLASS_NAME)){
-                queriesToRemove.add(subQuery);
-            }
-            if(subQuery.getR().equals(SugiliteRelation.HAS_PACKAGE_NAME)){
-                queriesToRemove.add(subQuery);
+            if(subQuery != null && subQuery.getR() != null) {
+                if (subQuery.getR().equals(SugiliteRelation.HAS_CLASS_NAME)) {
+                    queriesToRemove.add(subQuery);
+                }
+                if (subQuery.getR().equals(SugiliteRelation.HAS_PACKAGE_NAME)) {
+                    queriesToRemove.add(subQuery);
+                }
             }
         }
         for(SerializableOntologyQuery queryToRemove : queriesToRemove){

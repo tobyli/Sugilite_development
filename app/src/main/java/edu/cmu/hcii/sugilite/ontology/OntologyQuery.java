@@ -373,12 +373,20 @@ public class OntologyQuery {
                 oSet.add(o);
             }
             else {
-                SugiliteEntity<String> o = new SugiliteEntity<String>(-1, String.class, objectString);
+                SugiliteEntity<String> o = new SugiliteEntity<String>(-1, String.class, cleanString(objectString));
                 oSet.add(o);
             }
             q.setObject(oSet);
         }
         return q;
+    }
+
+    private static String cleanString(String string){
+        if(string.startsWith("\"") && string.endsWith("\"")){
+            return string.substring(1, string.length() - 1);
+        } else{
+            return string;
+        }
     }
 
     public static OntologyQuery deserialize(String queryString) {

@@ -526,4 +526,5 @@ public class UISnapshot {
         }
         return list;
     }
+
 }

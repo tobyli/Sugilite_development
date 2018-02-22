@@ -9,6 +9,9 @@ import java.util.regex.Pattern;
 import edu.cmu.hcii.sugilite.ontology.SugiliteRelation;
 
 /**
+ * Given input as a string containing length (with units such as ft, km, mile, etc.), parse the length
+ * data and store it with the unit millimeter (e.g, 1.5km is stored as 1500000.0)
+ * 
  * Created by shi on 2/15/18.
  */
 

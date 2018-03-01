@@ -26,8 +26,8 @@ public class PercentageAnnotatorTest {
         List<SugiliteTextAnnotator.AnnotatingResult> res = annotator.annotate("35 percent of the class" +
                 "get an A while 25.95% get a B");
         assertEquals(res.size(), 2);
-        assertEquals(res.get(0).getRelation(), SugiliteRelation.CONTAINS_LENGTH);
-        assertEquals(res.get(1).getRelation(), SugiliteRelation.CONTAINS_LENGTH);
+        assertEquals(res.get(0).getRelation(), SugiliteRelation.CONTAINS_PERCENTAGE);
+        assertEquals(res.get(1).getRelation(), SugiliteRelation.CONTAINS_PERCENTAGE);
         res.sort(Comparator.comparingDouble(SugiliteTextAnnotator.AnnotatingResult::getNumericValue));
         assertEquals(res.get(0).getNumericValue().intValue(), 25);
         assertEquals(res.get(1).getNumericValue().intValue(), 35);
@@ -38,8 +38,6 @@ public class PercentageAnnotatorTest {
         List<SugiliteTextAnnotator.AnnotatingResult> res = annotator.annotate("stock market growth rate:" +
                 "-550.1 %, 4, 3.% and 0.0006 percent");
         assertEquals(res.size(), 2);
-        assertEquals(res.get(0).getRelation(), SugiliteRelation.CONTAINS_LENGTH);
-        assertEquals(res.get(1).getRelation(), SugiliteRelation.CONTAINS_LENGTH);
         res.sort(Comparator.comparingDouble(SugiliteTextAnnotator.AnnotatingResult::getNumericValue));
         assertEquals(res.get(0).getNumericValue().intValue(), -550);
         assertEquals(res.get(1).getNumericValue().intValue(), 0);

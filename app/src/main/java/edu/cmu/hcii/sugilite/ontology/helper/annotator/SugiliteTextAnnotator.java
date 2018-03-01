@@ -26,7 +26,8 @@ public class SugiliteTextAnnotator {
                     new TimeAnnotator(),
                     new DateAnnotator(),
                     new LengthAnnotator(),
-                    new PercentageAnnotator());
+                    new PercentageAnnotator(),
+                    new DurationAnnotator());
         }
     }
 

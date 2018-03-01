@@ -36,5 +36,5 @@ public class PercentageAnnotator extends SugiliteTextAnnotator {
         return results;
     }
 
-    private static final SugiliteRelation RELATION = SugiliteRelation.CONTAINS_LENGTH;
+    private static final SugiliteRelation RELATION = SugiliteRelation.CONTAINS_PERCENTAGE;
 }

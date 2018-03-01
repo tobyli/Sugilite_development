@@ -76,17 +76,17 @@ public class OntologyDescriptionGenerator {
                 //System.out.println(objectArr[i].toString());
                 for (String s: ObjectTranslation.objectMap.keySet())
                 {
-                    System.out.println("11111"+objectArr[i].toString());
+                    //System.out.println("11111"+objectArr[i].toString());
                     if (objectArr[i].toString().equals(s))
                     {
-                        System.out.println("22222"+true);
+                        //System.out.println("22222"+true);
                         objectString[i] = ObjectTranslation.objectMap.get(s);
                         flag = true;
                     }
                 }
                 if (!flag) {
-                    if (r.equals(SugiliteRelation.HAS_TEXT))
-                        objectString[i] = setColor(objectArr[i].toString(),Const.SCRIPT_WITHIN_APP_COLOR);
+                    if (r.equals(SugiliteRelation.HAS_TEXT)|| r.equals(SugiliteRelation.HAS_CONTENT_DESCRIPTION) || r.equals(SugiliteRelation.HAS_CHILD_TEXT) || r.equals(SugiliteRelation.HAS_SIBLING_TEXT))
+                        objectString[i] = setColor(objectArr[i].toString(),"#ff00ff");
                     else if (r.equals(SugiliteRelation.HAS_PACKAGE_NAME))
                         objectString[i] = getAppName(objectArr[i].toString());
                     else if (r.equals(SugiliteRelation.HAS_CLASS_NAME))
@@ -110,12 +110,12 @@ public class OntologyDescriptionGenerator {
             for(int i = 0; i < size; i++){
                 SerializableOntologyQuery soq = new SerializableOntologyQuery(subQueryArray[i]);
                 arr[i] = getDescriptionForOntologyQuery(soq);
-                System.out.println("??????"+arr[i]);
+                //System.out.println("??????"+arr[i]);
             }
 
 
             if(ontologyQuery.getSubRelation() == OntologyQuery.relationType.AND){
-                System.out.println("!!!!!!!" + TextUtils.join(" ", arr));
+                //System.out.println("!!!!!!!" + TextUtils.join(" ", arr));
                 return TextUtils.join(" ", arr);
             }
 

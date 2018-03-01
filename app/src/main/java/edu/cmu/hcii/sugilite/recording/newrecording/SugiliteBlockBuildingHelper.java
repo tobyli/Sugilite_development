@@ -23,6 +23,7 @@ import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteSpecialOperationBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteOperation;
+import edu.cmu.hcii.sugilite.ontology.OntologyDescriptionGenerator;
 import edu.cmu.hcii.sugilite.ontology.OntologyQuery;
 import edu.cmu.hcii.sugilite.ontology.SerializableOntologyQuery;
 import edu.cmu.hcii.sugilite.ontology.SugiliteEntity;
@@ -43,9 +44,11 @@ public class SugiliteBlockBuildingHelper {
     private Context context;
     private SugiliteData sugiliteData;
     private SugiliteScriptDao sugiliteScriptDao;
+    private OntologyDescriptionGenerator ontologyDescriptionGenerator;
     public SugiliteBlockBuildingHelper(Context context, SugiliteData sugiliteData){
         this.context = context;
         this.sugiliteData = sugiliteData;
+        this.ontologyDescriptionGenerator = new OntologyDescriptionGenerator(context);
         if(Const.DAO_TO_USE == SQL_SCRIPT_DAO) {
             this.sugiliteScriptDao = new SugiliteScriptSQLDao(context);
         }
@@ -63,7 +66,10 @@ public class SugiliteBlockBuildingHelper {
         operationBlock.setFeaturePack(featurePack);
         operationBlock.setQuery(query);
         operationBlock.setScreenshot(featurePack.screenshot);
-        operationBlock.setDescription(readableDescriptionGenerator.generateDescriptionForVerbalBlock(operationBlock, query.toString(), "UTTERANCE"));
+
+        //description is set
+        //operationBlock.setDescription(readableDescriptionGenerator.generateDescriptionForVerbalBlock(operationBlock, query.toString(), "UTTERANCE"));
+        operationBlock.setDescription(readableDescriptionGenerator.generateDescriptionForVerbalBlock(operationBlock, ontologyDescriptionGenerator.getDescriptionForOntologyQuery(query), "UTTERANCE"));
         return operationBlock;
     }
 

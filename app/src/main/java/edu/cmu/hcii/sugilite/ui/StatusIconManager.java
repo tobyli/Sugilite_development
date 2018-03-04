@@ -93,8 +93,12 @@ public class StatusIconManager {
     private VerbalInstructionIconManager verbalInstructionIconManager = null;
     private Dialog duckDialog = null;
 
+    //rotation degree for the cat
     int rotation = 0;
 
+    //previous x, y coordinates before the icon is removed
+    Integer prev_x = null;
+    Integer prev_y = null;
 
     public StatusIconManager(Context context, SugiliteData sugiliteData, SharedPreferences sharedPreferences, AccessibilityManager accessibilityManager){
         this.context = context;
@@ -135,8 +139,8 @@ public class StatusIconManager {
 
 
         iconParams.gravity = Gravity.TOP | Gravity.LEFT;
-        iconParams.x = displaymetrics.widthPixels;
-        iconParams.y = 200;
+        iconParams.x = prev_x == null ? displaymetrics.widthPixels : prev_x;
+        iconParams.y = prev_y == null ? 200 : prev_y;
         addCrumpledPaperOnTouchListener(statusIcon, iconParams, displaymetrics, windowManager);
 
 
@@ -811,6 +815,8 @@ public class StatusIconManager {
                         // move paper ImageView
                         mPaperParams.x = initialX - (int) (initialTouchX - event.getRawX());
                         mPaperParams.y = initialY + (int) (event.getRawY() - initialTouchY);
+                        prev_x = mPaperParams.x;
+                        prev_y = mPaperParams.y;
                         windowManager.updateViewLayout(view, mPaperParams);
                         return true;
                 }

@@ -405,7 +405,6 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
             // guidelines.
             bindPreferenceSummaryToValue(findPreference("participantId"));
             bindPreferenceSummaryToValue(findPreference("scriptName"));
-            bindPreferenceSummaryToValue(findPreference("example_list"));
             findPreference("recording_in_process").setOnPreferenceChangeListener(recordingInProgressPreferenceChangeListener);
             findPreference("root_enabled").setOnPreferenceChangeListener(recordingInProgressPreferenceChangeListener);
             findPreference("tracking_in_process").setOnPreferenceChangeListener(recordingInProgressPreferenceChangeListener);

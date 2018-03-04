@@ -85,7 +85,8 @@ public class SugiliteRelation implements Serializable {
     public static final SugiliteRelation CONTAINS_TIME = new SugiliteRelation(24, "CONTAINS_TIME");
     public static final SugiliteRelation CONTAINS_DATE = new SugiliteRelation(25, "CONTAINS_DATE");
     public static final SugiliteRelation CONTAINS_DURATION = new SugiliteRelation(26, "CONTAINS_DURATION");
-
+    public static final SugiliteRelation CONTAINS_LENGTH = new SugiliteRelation(27, "CONTAINS_LENGTH");
+    public static final SugiliteRelation CONTAINS_PERCENTAGE = new SugiliteRelation(28, "CONTAINS_PERCENTAGE");
 
 
 
@@ -124,7 +125,8 @@ public class SugiliteRelation implements Serializable {
         stringRelationMap.put("CONTAINS_TIME", CONTAINS_TIME);
         stringRelationMap.put("CONTAINS_DATE", CONTAINS_DATE);
         stringRelationMap.put("CONTAINS_DURATION", CONTAINS_DURATION);
-
+        stringRelationMap.put("CONTAINS_LENGTH", CONTAINS_LENGTH);
+        stringRelationMap.put("CONTAINS_PERCENTAGE", CONTAINS_PERCENTAGE);
 
     }
 }

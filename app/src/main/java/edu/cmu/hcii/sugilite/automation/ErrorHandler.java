@@ -240,6 +240,10 @@ public class ErrorHandler {
         showingErrorDialog = true;
     }
 
+    public void reportSuccess(){
+        reportSuccess(Calendar.getInstance().getTimeInMillis());
+    }
+
     /**
      * execute at every successful operation (*.perform() returns true)
      * @param time

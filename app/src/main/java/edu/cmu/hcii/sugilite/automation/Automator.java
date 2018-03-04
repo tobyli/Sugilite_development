@@ -49,6 +49,7 @@ import edu.cmu.hcii.sugilite.ui.BoundingBoxManager;
 import edu.cmu.hcii.sugilite.ui.StatusIconManager;
 
 import android.speech.tts.TextToSpeech;
+import android.view.accessibility.AccessibilityWindowInfo;
 
 import static edu.cmu.hcii.sugilite.Const.DEBUG_DELAY;
 import static edu.cmu.hcii.sugilite.Const.DELAY;
@@ -166,145 +167,6 @@ public class Automator {
                 return false;
             }
 
-            //not use the element matching filter anymore
-
-//            if (operationBlock.getElementMatchingFilter() == null) {
-//                //there is no element matching filter in the operation block
-//                if (operationBlock.getOperation().getOperationType() == SugiliteOperation.SPECIAL_GO_HOME) {
-//                    //perform the go home operation - because the go home operation will have a null filter
-//                    boolean retVal = performAction(null, operationBlock);
-//                    if (retVal) {
-//                        sugiliteData.errorHandler.reportSuccess(Calendar.getInstance().getTimeInMillis());
-//                        sugiliteData.removeInstructionQueueItem();
-//                        addNextBlockToQueue(operationBlock);
-//                        if(sugiliteData.getCurrentSystemState() == SugiliteData.REGULAR_DEBUG_STATE) {
-//                            try {
-//                                screenshotManager.take(false, SugiliteScreenshotManager.DIRECTORY_PATH, SugiliteScreenshotManager.getDebugScreenshotFileNameWithDate());
-//                            }
-//                            catch (Exception e){
-//                                e.printStackTrace();
-//                            }
-//                        }
-//
-//                        try {
-//                            //wait for DELAY/2 after adding the next block to queue
-//                            if(sugiliteData.getCurrentSystemState() == SugiliteData.REGULAR_DEBUG_STATE)
-//                                Thread.sleep(DEBUG_DELAY / 2);
-//                            else
-//                                Thread.sleep(DELAY / 2);
-//                        } catch (Exception e) {
-//                            // do nothing
-//                        }
-//                    }
-//                    return retVal;
-//
-//                } else
-//                    return false;
-//            }
-//            else {
-//                //the operation has an element matching filter
-//                variableHelper = new VariableHelper(sugiliteData.stringVariableMap);
-//                //if we can match this event, perform the action and remove the head object
-//                List<AccessibilityNodeInfo> allNodes = preOrderTraverse(rootNode);
-//                List<AccessibilityNodeInfo> filteredNodes = new ArrayList<>();
-//                for (AccessibilityNodeInfo node : allNodes) {
-//                    if(node.getClassName().toString().contains("EditText")){
-//                        if (operationBlock.getElementMatchingFilter().filter(node, variableHelper))
-//                            filteredNodes.add(node);
-//                    }
-//                    else {
-//                        if (operationBlock.getElementMatchingFilter().filter(node, variableHelper))
-//                            filteredNodes.add(node);
-//                    }
-//                }
-//
-//                if (operationBlock.getElementMatchingFilter().getTextOrChildTextOrContentDescription() != null) {
-//                    //process the order of TextOrChildOrContentDescription
-//                    UIElementMatchingFilter filter = operationBlock.getElementMatchingFilter();
-//                    List<AccessibilityNodeInfo> textMatchedNodes = new ArrayList<>();
-//                    List<AccessibilityNodeInfo> contentDescriptionMatchedNodes = new ArrayList<>();
-//                    List<AccessibilityNodeInfo> childTextMatchedNodes = new ArrayList<>();
-//                    List<AccessibilityNodeInfo> childContentDescriptionMatchedNodes = new ArrayList<>();
-//
-//                    for (AccessibilityNodeInfo node : filteredNodes) {
-//
-//                        if (node.getText() != null && UIElementMatchingFilter.equalsToIgnoreCaseTrimSymbols(filter.getTextOrChildTextOrContentDescription(), node.getText()))
-//                            textMatchedNodes.add(node);
-//                        if (node.getContentDescription() != null && UIElementMatchingFilter.equalsToIgnoreCaseTrimSymbols(filter.getTextOrChildTextOrContentDescription(), node.getContentDescription()))
-//                            contentDescriptionMatchedNodes.add(node);
-//                        boolean childTextMatched = false;
-//                        boolean childContentDescriptionMatched = false;
-//                        for (AccessibilityNodeInfo childNode : preOrderTraverse(node)) {
-//                            if (childTextMatched == false &&
-//                                    childNode.getText() != null &&
-//                                    UIElementMatchingFilter.equalsToIgnoreCaseTrimSymbols(filter.getTextOrChildTextOrContentDescription(), childNode.getText())) {
-//                                childTextMatchedNodes.add(node);
-//                                childTextMatched = true;
-//                            }
-//                            if (childContentDescriptionMatched == false &&
-//                                    childNode.getContentDescription() != null &&
-//                                    UIElementMatchingFilter.equalsToIgnoreCaseTrimSymbols(filter.getTextOrChildTextOrContentDescription(), childNode.getContentDescription())) {
-//                                childContentDescriptionMatchedNodes.add(node);
-//                                childContentDescriptionMatched = true;
-//                            }
-//                        }
-//                    }
-//
-//                    filteredNodes = new ArrayList<>();
-//                    if (textMatchedNodes.size() > 0)
-//                        filteredNodes.addAll(textMatchedNodes);
-//                    else if (contentDescriptionMatchedNodes.size() > 0)
-//                        filteredNodes.addAll(contentDescriptionMatchedNodes);
-//                    else if (childTextMatchedNodes.size() > 0)
-//                        filteredNodes.addAll(childTextMatchedNodes);
-//                    else if (childContentDescriptionMatchedNodes.size() > 0)
-//                        filteredNodes.addAll(childContentDescriptionMatchedNodes);
-//                }
-//
-//
-//                if (filteredNodes.size() == 0)
-//                    return false;
-//
-//                boolean succeeded = false;
-//                for (AccessibilityNodeInfo node : filteredNodes) {
-//                    //TODO: scrolling to find more nodes -- not only the ones displayed on the current screen
-//                    if (operationBlock.getOperation().getOperationType() == SugiliteOperation.CLICK && (!node.isClickable()))
-//                        continue;
-//                    try {
-//                    } catch (Exception e) {
-//                        // do nothing
-//                    }
-//                    //TODO: add handle breakpoint for debugging
-//                    boolean retVal = performAction(node, operationBlock);
-//                    if (retVal) {
-//                /*
-//                Rect tempRect = new Rect();
-//                node.getBoundsInScreen(tempRect);
-//                statusIconManager.moveIcon(tempRect.centerX(), tempRect.centerY());
-//                */
-//                        if (!succeeded) {
-//                            sugiliteData.errorHandler.reportSuccess(Calendar.getInstance().getTimeInMillis());
-//                            if (sugiliteData.getInstructionQueueSize() > 0)
-//                                sugiliteData.removeInstructionQueueItem();
-//                            addNextBlockToQueue(operationBlock);
-//                        }
-//                        succeeded = true;
-//
-//                        try {
-//                            //delay delay/2 length after successfuly performing the action
-//                            if(sugiliteData.getCurrentSystemState() == SugiliteData.DEFAULT_STATE)
-//                                Thread.sleep(DEBUG_DELAY / 2);
-//                            else
-//                                Thread.sleep(DELAY / 2);
-//                        } catch (Exception e) {
-//                            // do nothing
-//                        }
-//                    }
-//                }
-//                return succeeded;
-//            }
-
-
             if (operationBlock.getQuery() == null) {
                 //there is no query in the operation block
                 if (operationBlock.getOperation().getOperationType() == SugiliteOperation.SPECIAL_GO_HOME) {
@@ -418,6 +280,220 @@ public class Automator {
                     } catch (Exception e) {
                         // do nothing
                     }
+                    boolean retVal = performAction(node, operationBlock);
+                    if (retVal) {
+                        //the action is performed successfully
+
+                        /*
+                        Rect tempRect = new Rect();
+                        node.getBoundsInScreen(tempRect);
+                        statusIconManager.moveIcon(tempRect.centerX(), tempRect.centerY());
+                        */
+                        if (!succeeded) {
+                            sugiliteData.errorHandler.reportSuccess(Calendar.getInstance().getTimeInMillis());
+                            if (sugiliteData.getInstructionQueueSize() > 0) {
+                                sugiliteData.removeInstructionQueueItem();
+                            }
+                            addNextBlockToQueue(operationBlock);
+                        }
+                        succeeded = true;
+
+                        try {
+                            //delay delay/2 length after successfuly performing the action
+                            if(sugiliteData.getCurrentSystemState() == SugiliteData.DEFAULT_STATE)
+                                Thread.sleep(DEBUG_DELAY / 2);
+                            else
+                                Thread.sleep(DELAY / 2);
+                        } catch (Exception e) {
+                            // do nothing
+                        }
+                    }
+                }
+                if(! succeeded){
+                    lastTimeFailed.clear();
+                    for(AccessibilityNodeInfo node : filteredNodes){
+                        lastTimeFailed.add(new Node(node));
+                    }
+                }
+                else{
+                    lastTimeFailed.clear();
+                }
+                return succeeded;
+            }
+        }
+    }
+
+    public boolean handleLiveEvent (UISnapshot uiSnapshot, Context context, List<AccessibilityNodeInfo> allNodes){
+        //TODO: fix the highlighting for matched element
+        if(sugiliteData.getInstructionQueueSize() == 0 || uiSnapshot == null)
+            return false;
+        this.context = context;
+        final SugiliteBlock blockToMatch = sugiliteData.peekInstructionQueue();
+        if(blockToMatch == null)
+            return false;
+
+        if (!(blockToMatch instanceof SugiliteOperationBlock)) {
+            //handle non Sugilite operation blocks
+            /**
+             * nothing really special needed for starting blocks, just add the next block to the queue
+             */
+            if (blockToMatch instanceof SugiliteStartingBlock) {
+                //Toast.makeText(context, "Start running script " + ((SugiliteStartingBlock)blockToMatch).getScriptName(), Toast.LENGTH_SHORT).show();
+                sugiliteData.removeInstructionQueueItem();
+                addNextBlockToQueue(blockToMatch);
+                return true;
+            }
+            /**
+             * handle error handling block - "addNextBlockToQueue" will determine which block to add
+             */
+            else if (blockToMatch instanceof SugiliteErrorHandlingForkBlock){
+                sugiliteData.removeInstructionQueueItem();
+                addNextBlockToQueue(blockToMatch);
+                return true;
+            }
+            /**
+             * for subscript operation blocks, the subscript should be executed
+             */
+            else if (blockToMatch instanceof SugiliteSpecialOperationBlock){
+                sugiliteData.removeInstructionQueueItem();
+                SugiliteSpecialOperationBlock specialOperationBlock = (SugiliteSpecialOperationBlock) blockToMatch;
+                try{
+                    specialOperationBlock.run(context, sugiliteData, sugiliteScriptDao, sharedPreferences);
+                    return true;
+                }
+                catch (Exception e) {
+                    e.printStackTrace();
+                    return false;
+                }
+            }
+            else {
+                throw new RuntimeException("Unsupported Block Type!");
+            }
+        }
+
+        else {
+            //the blockToMatch is an operation block
+            SugiliteOperationBlock operationBlock = (SugiliteOperationBlock) blockToMatch;
+
+            if(operationBlock.isSetAsABreakPoint) {
+                sugiliteData.storedInstructionQueueForPause.clear();
+                sugiliteData.storedInstructionQueueForPause.addAll(sugiliteData.getCopyOfInstructionQueue());
+                sugiliteData.clearInstructionQueue();
+                sugiliteData.setCurrentSystemState(SugiliteData.PAUSED_FOR_BREAKPOINT_STATE);
+                return false;
+            }
+
+            if (operationBlock.getQuery() == null) {
+                //there is no query in the operation block
+                if (operationBlock.getOperation().getOperationType() == SugiliteOperation.SPECIAL_GO_HOME) {
+                    //perform the go home operation - because the go home operation will have a null filter
+                    boolean retVal = performAction(null, operationBlock);
+                    if (retVal) {
+                        sugiliteData.errorHandler.reportSuccess(Calendar.getInstance().getTimeInMillis());
+                        sugiliteData.removeInstructionQueueItem();
+                        addNextBlockToQueue(operationBlock);
+                        if(sugiliteData.getCurrentSystemState() == SugiliteData.REGULAR_DEBUG_STATE) {
+                            try {
+                                //----not taking screenshot----
+                                //screenshotManager.take(false, SugiliteScreenshotManager.DIRECTORY_PATH, SugiliteScreenshotManager.getDebugScreenshotFileNameWithDate());
+                            }
+                            catch (Exception e){
+                                e.printStackTrace();
+                            }
+                        }
+
+                        try {
+                            //wait for DELAY/2 after adding the next block to queue
+                            if(sugiliteData.getCurrentSystemState() == SugiliteData.REGULAR_DEBUG_STATE)
+                                Thread.sleep(DEBUG_DELAY / 2);
+                            else
+                                Thread.sleep(DELAY / 2);
+                        } catch (Exception e) {
+                            // do nothing
+                        }
+                    }
+                    return retVal;
+
+                } else
+                    return false;
+            }
+            else {
+                //the operation has a query, try to use the query to match a node
+
+                variableHelper = new VariableHelper(sugiliteData.stringVariableMap);
+                //if we can match this event, perform the action and remove the head object
+
+                if(true/*has last time failed*/ && lastTimeFailed != null && lastTimeFailed.size() > 0){
+                    List<AccessibilityNodeInfo> filteredNode = new ArrayList<>();
+                    boolean succeeded = false;
+                    for(AccessibilityNodeInfo node : allNodes){
+                        for(Node lasttimeFailedNode : lastTimeFailed){
+                            Rect rect = new Rect();
+                            node.getBoundsInScreen(rect);
+                            if(((lasttimeFailedNode.getPackageName() == null && node.getPackageName() == null) || lasttimeFailedNode.getPackageName().equals(node.getPackageName().toString())) &&
+                                    ((lasttimeFailedNode.getClassName() == null && node.getClassName() == null) || lasttimeFailedNode.getClassName().equals(node.getClassName().toString())) &&
+                                    ((lasttimeFailedNode.getBoundsInScreen() == null && rect.flattenToString() == null) || lasttimeFailedNode.getBoundsInScreen().equals(rect.flattenToString())) &&
+                                    ((lasttimeFailedNode.getViewId() == null && node.getViewIdResourceName() == null) || (lasttimeFailedNode.getViewId() != null && lasttimeFailedNode.getViewId().equals(node.getViewIdResourceName())))){
+                                //TODO: execute on node
+                                boolean retVal = performAction(node, operationBlock);
+                                if (retVal) {
+                                    //the action is performed successfully
+                                    if (!succeeded) {
+                                        sugiliteData.errorHandler.reportSuccess(Calendar.getInstance().getTimeInMillis());
+                                        if (sugiliteData.getInstructionQueueSize() > 0) {
+                                            sugiliteData.removeInstructionQueueItem();
+                                        }
+                                        addNextBlockToQueue(operationBlock);
+                                    }
+                                    succeeded = true;
+
+                                    try {
+                                        //delay delay/2 length after successfuly performing the action
+                                        if(sugiliteData.getCurrentSystemState() == SugiliteData.DEFAULT_STATE)
+                                            Thread.sleep(DEBUG_DELAY / 2);
+                                        else
+                                            Thread.sleep(DELAY / 2);
+                                    } catch (Exception e) {
+                                        // do nothing
+                                    }
+                                }
+
+                            }
+                        }
+                    }
+                    lastTimeFailed.clear();
+                    if(succeeded){
+                        return succeeded;
+                    }
+                }
+
+
+
+                //de-serialize the OntologyQuery
+                OntologyQuery q = new OntologyQuery(operationBlock.getQuery());
+                Set<SugiliteEntity> querySet = q.executeOn(uiSnapshot);
+
+                List<AccessibilityNodeInfo> filteredNodes = new ArrayList<AccessibilityNodeInfo>();
+                for(SugiliteEntity e : querySet) {
+                    if(e.getEntityValue() instanceof Node){
+                        filteredNodes.add(uiSnapshot.getNodeAccessibilityNodeInfoMap().get(e.getEntityValue()));
+                    }
+                }
+
+                if (filteredNodes.size() == 0) {
+                    //couldn't find a matched node in the current UISnapshot
+                    return false;
+                }
+
+                boolean succeeded = false;
+                for (AccessibilityNodeInfo node : filteredNodes) {
+                    //TODO: scrolling to find more nodes -- not only the ones displayed on the current screen
+                    if (operationBlock.getOperation().getOperationType() == SugiliteOperation.CLICK && (!node.isClickable()))
+                        //continue;
+                        try {
+                        } catch (Exception e) {
+                            // do nothing
+                        }
                     boolean retVal = performAction(node, operationBlock);
                     if (retVal) {
                         //the action is performed successfully
@@ -611,6 +687,22 @@ public class Automator {
                 list.addAll(preOrderTraverse(node));
         }
         return list;
+    }
+
+    /**
+     * return all nodes from a list of windows
+     * @param windows
+     * @return
+     */
+    public static List<AccessibilityNodeInfo> getAllNodesFromWindows(List<AccessibilityWindowInfo> windows){
+        List<AccessibilityNodeInfo> allNodes = new ArrayList<>();
+        for(AccessibilityWindowInfo window : windows){
+            AccessibilityNodeInfo rootNode = window.getRoot();
+            if(rootNode != null) {
+                allNodes.addAll(preOrderTraverse(rootNode));
+            }
+        }
+        return allNodes;
     }
 
     public static List<AccessibilityNodeInfo> preOrderTraverseSiblings(AccessibilityNodeInfo node){

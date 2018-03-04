@@ -22,8 +22,12 @@ public class SugiliteTextAnnotator {
             //add all available annotator implementations
             addAnnotator(new EmailAddressAnnotator(),
                     new PhoneNumberAnnotator(),
-                    new MoneyAnnotator());
-
+                    new MoneyAnnotator(),
+                    new TimeAnnotator(),
+                    new DateAnnotator(),
+                    new LengthAnnotator(),
+                    new PercentageAnnotator(),
+                    new DurationAnnotator());
         }
     }
 
@@ -86,5 +90,7 @@ public class SugiliteTextAnnotator {
         public void setRelation(SugiliteRelation relation) {
             this.relation = relation;
         }
+
+        public void setNumericValue(Double val) {this.numericValue = val; }
     }
 }

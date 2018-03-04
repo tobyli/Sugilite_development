@@ -27,6 +27,7 @@ import java.util.Set;
 
 import edu.cmu.hcii.sugilite.Const;
 import edu.cmu.hcii.sugilite.R;
+import edu.cmu.hcii.sugilite.SugiliteAccessibilityService;
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptFileDao;
@@ -56,10 +57,12 @@ public class NewDemonstrationHandler {
     private LayoutInflater layoutInflater;
     private SugiliteBlockBuildingHelper blockBuildingHelper;
     private ReadableDescriptionGenerator readableDescriptionGenerator;
+    private SugiliteAccessibilityService accessibilityService;
 
-    public NewDemonstrationHandler(SugiliteData sugiliteData, Context context, LayoutInflater layoutInflater, SharedPreferences sharedPreferences){
+    public NewDemonstrationHandler(SugiliteData sugiliteData, Context context, LayoutInflater layoutInflater, SharedPreferences sharedPreferences, SugiliteAccessibilityService accessibilityService){
         this.sugiliteData = sugiliteData;
         this.context = context;
+        this.accessibilityService = accessibilityService;;
         this.sharedPreferences = sharedPreferences;
         this.layoutInflater = layoutInflater;
         this.blockBuildingHelper = new SugiliteBlockBuildingHelper(context, sugiliteData);
@@ -67,26 +70,53 @@ public class NewDemonstrationHandler {
     }
 
     //handles the demonstration
+
+    /**
+     * this method is for handling demonstration from an accessibility event
+     * @param featurePack
+     * @param availableAlternatives
+     * @param uiSnapshot
+     */
     public void handleEvent(SugiliteAvailableFeaturePack featurePack, Set<Map.Entry<String, String>> availableAlternatives, UISnapshot uiSnapshot){
         //determine if disambiguation is needed
 
         //show the confirmation popup if not ambiguous
         List<Map.Entry<SerializableOntologyQuery, Double>> queryScoreList = blockBuildingHelper.generateDefaultQueries(featurePack, uiSnapshot);
         if(queryScoreList.size() > 0) {
-            if (queryScoreList.size() <= 1 || (queryScoreList.get(1).getValue().intValue() - queryScoreList.get(0).getValue().intValue() >= 1)) {
+            //threshold for determine whether the results are ambiguous
+            if (queryScoreList.size() <= 1 || (queryScoreList.get(1).getValue().intValue() - queryScoreList.get(0).getValue().intValue() > 2)) {
                 //not ambiguous, show the confirmation popup
                 SugiliteOperationBlock block = blockBuildingHelper.getOperationFromQuery(queryScoreList.get(0).getKey(), SugiliteOperation.CLICK, featurePack);
-                showConfirmation(block, featurePack, queryScoreList);
+
+                //need to run on ui thread
+                accessibilityService.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        showConfirmation(block, featurePack, queryScoreList);
+                    }
+                });
+
             }
             else{
                 //ask for clarification if ambiguous
-                Toast.makeText(context, "Ambiguous!", Toast.LENGTH_SHORT).show();
-                showAmbiguousPopup(queryScoreList, featurePack);
+                //need to run on ui thread
+                accessibilityService.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        Toast.makeText(context, "Ambiguous!", Toast.LENGTH_SHORT).show();
+                        showAmbiguousPopup(queryScoreList, featurePack);
+                    }
+                });
             }
         }
         else{
             //empty result
-            Toast.makeText(context, "Empty Result!", Toast.LENGTH_SHORT).show();
+            accessibilityService.runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    Toast.makeText(context, "Empty Results!", Toast.LENGTH_SHORT).show();
+                }
+            });
         }
 
     }
@@ -112,6 +142,7 @@ public class NewDemonstrationHandler {
         }
 
         Map<SugiliteOperationBlock, String> descriptions = blockBuildingHelper.getDescriptionsInDifferences(sugiliteOperationBlockArray);
+
         i = 0;
         for(SugiliteOperationBlock block : sugiliteOperationBlockArray){
             stringArray[i++] = descriptions.get(block);

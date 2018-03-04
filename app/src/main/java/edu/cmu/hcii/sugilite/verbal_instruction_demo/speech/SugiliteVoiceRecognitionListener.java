@@ -6,10 +6,17 @@ import android.os.Bundle;
 import android.speech.RecognitionListener;
 import android.speech.RecognizerIntent;
 import android.speech.SpeechRecognizer;
+import android.speech.tts.TextToSpeech;
+import android.speech.tts.UtteranceProgressListener;
 import android.util.Log;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.HashMap;
+import java.util.Locale;
+
+import edu.cmu.hcii.sugilite.SugiliteAccessibilityService;
 
 /**
  * @author toby
@@ -24,13 +31,20 @@ public class SugiliteVoiceRecognitionListener implements RecognitionListener {
     private String LOG_TAG = "VoiceRecognition";
     private Context context;
     private long lastStartListening = -1;
+    private TextToSpeech tts;
+    private SugiliteAccessibilityService accessibilityService;
+
 
     //the parent interface
     private SugiliteVoiceInterface sugiliteVoiceInterface;
 
-    public SugiliteVoiceRecognitionListener(Context context, SugiliteVoiceInterface voiceInterface) {
+    public SugiliteVoiceRecognitionListener(Context context, SugiliteVoiceInterface voiceInterface, TextToSpeech tts) {
         this.context = context;
         this.sugiliteVoiceInterface = voiceInterface;
+        this.tts = tts;
+        if(context instanceof SugiliteAccessibilityService){
+            accessibilityService = (SugiliteAccessibilityService) context;
+        }
 
         recognizerIntent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
         recognizerIntent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_PREFERENCE,
@@ -41,6 +55,10 @@ public class SugiliteVoiceRecognitionListener implements RecognitionListener {
                 RecognizerIntent.LANGUAGE_MODEL_WEB_SEARCH);
         recognizerIntent.putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 5);
 
+    }
+
+    public void setSugiliteVoiceInterface(SugiliteVoiceInterface sugiliteVoiceInterface) {
+        this.sugiliteVoiceInterface = sugiliteVoiceInterface;
     }
 
     public void startListening(){
@@ -56,6 +74,34 @@ public class SugiliteVoiceRecognitionListener implements RecognitionListener {
             speech.destroy();
         }
 
+    }
+
+    public void speak(String content, String utteranceId, Runnable onDone){
+        HashMap<String, String> params = new HashMap<String, String>();
+        params.put(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID,utteranceId);
+        tts.setOnUtteranceProgressListener(new UtteranceProgressListener() {
+            @Override
+            public void onStart(String utteranceId) {
+            }
+
+            @Override
+            public void onDone(String utteranceId) {
+                accessibilityService.runOnUiThread(onDone);
+                System.out.println("TTS IS DONE: " + utteranceId);
+            }
+
+            @Override
+            public void onError(String utteranceId) {
+
+            }
+        });
+        tts.speak(content, TextToSpeech.QUEUE_FLUSH, params);
+    }
+
+    public void stopTTS(){
+        if(tts.isSpeaking()){
+            tts.stop();
+        }
     }
 
     @Override
@@ -79,6 +125,7 @@ public class SugiliteVoiceRecognitionListener implements RecognitionListener {
     public void onError(int errorCode) {
         String errorMessage = getErrorText(errorCode);
         Log.d(LOG_TAG, "FAILED " + errorMessage);
+        sugiliteVoiceInterface.listeningEnded();
         stopListening();
 
     }
@@ -152,6 +199,15 @@ public class SugiliteVoiceRecognitionListener implements RecognitionListener {
                 break;
         }
         return message;
+    }
+
+    public static boolean checkStringContains(String originalString, String... stringsToCheck){
+        for(String string : stringsToCheck){
+            if(originalString.contains(string)){
+                return true;
+            }
+        }
+        return false;
     }
 
 

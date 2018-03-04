@@ -24,6 +24,7 @@ import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
 import edu.cmu.hcii.sugilite.ontology.SerializableOntologyQuery;
 import edu.cmu.hcii.sugilite.ontology.SerializableUISnapshot;
 import edu.cmu.hcii.sugilite.ontology.UISnapshot;
+import edu.cmu.hcii.sugilite.ontology.description.OntologyDescriptionGenerator;
 import edu.cmu.hcii.sugilite.recording.ReadableDescriptionGenerator;
 import edu.cmu.hcii.sugilite.recording.newrecording.SugiliteBlockBuildingHelper;
 import edu.cmu.hcii.sugilite.recording.newrecording.dialog_management.SugiliteDialogManager;
@@ -41,13 +42,13 @@ public class SugiliteRecordingConfirmationDialog extends SugiliteDialogManager {
     private SugiliteAvailableFeaturePack featurePack;
     private List<Map.Entry<SerializableOntologyQuery, Double>> queryScoreList;
     private Runnable clickRunnable;
-    private ReadableDescriptionGenerator readableDescriptionGenerator;
     private SugiliteBlockBuildingHelper blockBuildingHelper;
     private LayoutInflater layoutInflater;
     private UISnapshot uiSnapshot;
     private Node actualClickedNode;
     private SugiliteData sugiliteData;
     private SharedPreferences sharedPreferences;
+    private OntologyDescriptionGenerator ontologyDescriptionGenerator;
     private Dialog dialog;
 
     //construct the 2 states
@@ -64,14 +65,15 @@ public class SugiliteRecordingConfirmationDialog extends SugiliteDialogManager {
         this.clickRunnable = clickRunnable;
         this.blockBuildingHelper = blockBuildingHelper;
         this.layoutInflater = layoutInflater;
-        this.readableDescriptionGenerator = new ReadableDescriptionGenerator(context);
         this.uiSnapshot = uiSnapshot;
         this.actualClickedNode = actualClickedNode;
         this.sugiliteData = sugiliteData;
         this.sharedPreferences = sharedPreferences;
+        this.ontologyDescriptionGenerator = new OntologyDescriptionGenerator(context);
+
 
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
-        String newDescription = readableDescriptionGenerator.generateDescriptionForVerbalBlock(block, blockBuildingHelper.stripSerializableOntologyQuery(block.getQuery()).toString(), "UTTERANCE");
+        String newDescription = ontologyDescriptionGenerator.getDescriptionForOperation(block.getOperation(), blockBuildingHelper.stripSerializableOntologyQuery(block.getQuery()));
         builder.setTitle("Save Operation Confirmation").setMessage(Html.fromHtml("Are you sure you want to record the operation: " + newDescription));
         builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
             @Override
@@ -141,7 +143,7 @@ public class SugiliteRecordingConfirmationDialog extends SugiliteDialogManager {
     @Override
     public void initDialogManager() {
         //set the prompt
-        String newDescription = readableDescriptionGenerator.generateDescriptionForVerbalBlock(block, blockBuildingHelper.stripSerializableOntologyQuery(block.getQuery()).toString(), "");
+        String newDescription = ontologyDescriptionGenerator.getDescriptionForOperation(block.getOperation(), blockBuildingHelper.stripSerializableOntologyQuery(block.getQuery()));
         newDescription = Html.fromHtml(context.getString(R.string.ask_if_record, newDescription)).toString();
         askingForConfirmationState.setPrompt(newDescription);
         detailPromptState.setPrompt(context.getString(R.string.expand_ask_if_record));

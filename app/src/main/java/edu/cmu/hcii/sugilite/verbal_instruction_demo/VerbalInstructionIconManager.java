@@ -34,7 +34,6 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
-import java.util.Locale;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -44,8 +43,7 @@ import edu.cmu.hcii.sugilite.SugiliteAccessibilityService;
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.ontology.SerializableUISnapshot;
 import edu.cmu.hcii.sugilite.ontology.UISnapshot;
-import edu.cmu.hcii.sugilite.recording.newrecording.RecordingOverlayManager;
-import edu.cmu.hcii.sugilite.recording.newrecording.fullscreen_overlay.RecordingOverlayManager2;
+import edu.cmu.hcii.sugilite.recording.newrecording.fullscreen_overlay.FullScreenRecordingOverlayManager;
 import edu.cmu.hcii.sugilite.ui.StatusIconManager;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.speech.SugiliteVoiceInterface;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.speech.SugiliteVoiceRecognitionListener;
@@ -65,7 +63,7 @@ public class VerbalInstructionIconManager implements SugiliteVoiceInterface {
     private SharedPreferences sharedPreferences;
     private SugiliteVoiceRecognitionListener sugiliteVoiceRecognitionListener;
     private SugiliteStudyHandler sugiliteStudyHandler;
-    private RecordingOverlayManager2 recordingOverlayManager;
+    private FullScreenRecordingOverlayManager recordingOverlayManager;
     private SugiliteAccessibilityService sugiliteAccessibilityService;
     private StatusIconManager duckIconManager;
     private TextToSpeech tts;
@@ -91,7 +89,7 @@ public class VerbalInstructionIconManager implements SugiliteVoiceInterface {
     //for saving the latest ui snapshot
     private UISnapshot latestUISnapshot = null;
 
-    public VerbalInstructionIconManager(Context context, SugiliteStudyHandler sugiliteStudyHandler, SugiliteData sugiliteData, SharedPreferences sharedPreferences, RecordingOverlayManager2 recordingOverlayManager, SugiliteAccessibilityService sugiliteAccessibilityService, TextToSpeech tts){
+    public VerbalInstructionIconManager(Context context, SugiliteStudyHandler sugiliteStudyHandler, SugiliteData sugiliteData, SharedPreferences sharedPreferences, FullScreenRecordingOverlayManager recordingOverlayManager, SugiliteAccessibilityService sugiliteAccessibilityService, TextToSpeech tts){
         this.context = context;
         this.sugiliteData = sugiliteData;
         this.sharedPreferences = sharedPreferences;

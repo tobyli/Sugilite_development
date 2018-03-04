@@ -26,4 +26,8 @@ public class SugiliteDelaySpecialOperationBlock extends SugiliteSpecialOperation
             Thread.sleep(delayInMilliseconds);
     }
 
+    @Override
+    public String toString() {
+        return "(" + "DELAY" + " " + delayInMilliseconds + ")";
+    }
 }

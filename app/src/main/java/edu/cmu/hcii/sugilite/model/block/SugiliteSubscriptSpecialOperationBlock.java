@@ -18,6 +18,8 @@ import edu.cmu.hcii.sugilite.ui.dialog.VariableSetValueDialog;
  * @date 10/31/16
  * @time 2:07 PM
  */
+
+
 public class SugiliteSubscriptSpecialOperationBlock extends SugiliteSpecialOperationBlock {
 
     private String subscriptName;
@@ -47,7 +49,7 @@ public class SugiliteSubscriptSpecialOperationBlock extends SugiliteSpecialOpera
         final SugiliteStartingBlock script = sugiliteScriptDao.read(subscriptName);
         if(script != null) {
             Handler mainHandler = new Handler(context.getMainLooper());
-            final LayoutInflater inflater = (LayoutInflater) context. getSystemService( Context. LAYOUT_INFLATER_SERVICE );
+            final LayoutInflater inflater = (LayoutInflater) context. getSystemService( Context. LAYOUT_INFLATER_SERVICE);
             final Context finalContext = context;
             Runnable myRunnable = new Runnable() {
                 @Override
@@ -81,5 +83,10 @@ public class SugiliteSubscriptSpecialOperationBlock extends SugiliteSpecialOpera
             System.out.println("Can't find the script " + subscriptName);
             throw new Exception("Can't find the script " + subscriptName);
         }
+    }
+
+    @Override
+    public String toString() {
+        return "(" + "RUN_SCRIPT" + " " + subscriptName + ")";
     }
 }

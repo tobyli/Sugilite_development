@@ -48,6 +48,7 @@ public class LengthAnnotator extends SugiliteTextAnnotator {
                 else if (parsed[1].startsWith("i")) value = (num * INCH);
                 else if (parsed[1].startsWith("c")) value = (num * CENTIMETER);
                 if (value >= 0) {
+                    //all these values are saved in meter
                     if (matcher.start() - curEnd == 1 && text.charAt(curEnd) == ' ') {
                         AnnotatingResult last = results.get(results.size() - 1);
                         last.setNumericValue(last.getNumericValue() + value);

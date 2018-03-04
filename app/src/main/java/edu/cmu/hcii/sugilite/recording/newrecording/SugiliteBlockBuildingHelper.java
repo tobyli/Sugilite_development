@@ -16,14 +16,13 @@ import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptFileDao;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptSQLDao;
-import edu.cmu.hcii.sugilite.model.block.SerializableNodeInfo;
 import edu.cmu.hcii.sugilite.model.block.SugiliteAvailableFeaturePack;
 import edu.cmu.hcii.sugilite.model.block.SugiliteErrorHandlingForkBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteSpecialOperationBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteOperation;
-import edu.cmu.hcii.sugilite.ontology.OntologyDescriptionGenerator;
+import edu.cmu.hcii.sugilite.ontology.description.OntologyDescriptionGenerator;
 import edu.cmu.hcii.sugilite.ontology.OntologyQuery;
 import edu.cmu.hcii.sugilite.ontology.SerializableOntologyQuery;
 import edu.cmu.hcii.sugilite.ontology.SugiliteEntity;
@@ -62,7 +61,7 @@ public class SugiliteBlockBuildingHelper {
         readableDescriptionGenerator = new ReadableDescriptionGenerator(context);
     }
 
-    public SugiliteOperationBlock getOperationFromQuery(SerializableOntologyQuery query, int opeartionType, SugiliteAvailableFeaturePack featurePack){
+    public SugiliteOperationBlock getOperationBlockFromQuery(SerializableOntologyQuery query, int opeartionType, SugiliteAvailableFeaturePack featurePack){
         SugiliteOperation sugiliteOperation = new SugiliteOperation();
         sugiliteOperation.setOperationType(opeartionType);
         final SugiliteOperationBlock operationBlock = new SugiliteOperationBlock();
@@ -72,8 +71,7 @@ public class SugiliteBlockBuildingHelper {
         operationBlock.setScreenshot(featurePack.screenshot);
 
         //description is set
-        //operationBlock.setDescription(readableDescriptionGenerator.generateDescriptionForVerbalBlock(operationBlock, query.toString(), "UTTERANCE"));
-        operationBlock.setDescription(readableDescriptionGenerator.generateDescriptionForVerbalBlock(operationBlock, ontologyDescriptionGenerator.getDescriptionForOntologyQuery(query), "UTTERANCE"));
+        operationBlock.setDescription(ontologyDescriptionGenerator.getDescriptionForOperation(sugiliteOperation, query));
         return operationBlock;
     }
 
@@ -282,7 +280,7 @@ public class SugiliteBlockBuildingHelper {
         Map<SugiliteOperationBlock, String> results = new HashMap<>();
         for(SugiliteOperationBlock operationBlock : blocks){
             SerializableOntologyQuery query = operationBlock.getQuery();
-            results.put(operationBlock, readableDescriptionGenerator.generateDescriptionForVerbalBlock(operationBlock, stripSerializableOntologyQuery(query).toString(), "UTTERANCE"));
+            results.put(operationBlock, ontologyDescriptionGenerator.getDescriptionForOperation(operationBlock.getOperation(), stripSerializableOntologyQuery(query)));
         }
         return results;
     }
@@ -292,14 +290,16 @@ public class SugiliteBlockBuildingHelper {
      * @param query
      * @return
      */
-    public SerializableOntologyQuery stripSerializableOntologyQuery(SerializableOntologyQuery query){
+    public static SerializableOntologyQuery stripSerializableOntologyQuery(SerializableOntologyQuery query){
         SerializableOntologyQuery queryCloned = new SerializableOntologyQuery(new OntologyQuery(query));
         List<SerializableOntologyQuery> queriesToRemove = new ArrayList<>();
         for(SerializableOntologyQuery subQuery : queryCloned.getSubQueries()){
             if(subQuery != null && subQuery.getR() != null) {
+                /*
                 if (subQuery.getR().equals(SugiliteRelation.HAS_CLASS_NAME)) {
                     queriesToRemove.add(subQuery);
                 }
+                */
                 if (subQuery.getR().equals(SugiliteRelation.HAS_PACKAGE_NAME)) {
                     queriesToRemove.add(subQuery);
                 }

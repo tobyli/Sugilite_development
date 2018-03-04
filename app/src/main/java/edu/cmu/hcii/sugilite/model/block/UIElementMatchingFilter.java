@@ -21,7 +21,7 @@ import edu.cmu.hcii.sugilite.model.variable.VariableHelper;
  * @time 4:48 PM
  */
 
-//NOTE: only use this filter when AccessibilityNodeInfo.find...byText or find...byViewId can't be used, as this filter is slower.
+@Deprecated
 public class UIElementMatchingFilter implements Serializable {
 
     private String text;

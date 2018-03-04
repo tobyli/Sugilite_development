@@ -1,7 +1,6 @@
 package edu.cmu.hcii.sugilite.recording.newrecording;
 
 import android.app.AlertDialog;
-import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
@@ -12,36 +11,21 @@ import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import java.util.ArrayList;
-import java.util.DoubleSummaryStatistics;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import edu.cmu.hcii.sugilite.Const;
-import edu.cmu.hcii.sugilite.R;
 import edu.cmu.hcii.sugilite.SugiliteAccessibilityService;
 import edu.cmu.hcii.sugilite.SugiliteData;
-import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
-import edu.cmu.hcii.sugilite.dao.SugiliteScriptFileDao;
-import edu.cmu.hcii.sugilite.dao.SugiliteScriptSQLDao;
 import edu.cmu.hcii.sugilite.model.block.SugiliteAvailableFeaturePack;
-import edu.cmu.hcii.sugilite.model.block.SugiliteErrorHandlingForkBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
-import edu.cmu.hcii.sugilite.model.block.SugiliteSpecialOperationBlock;
-import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteOperation;
-import edu.cmu.hcii.sugilite.ontology.OntologyQuery;
 import edu.cmu.hcii.sugilite.ontology.SerializableOntologyQuery;
-import edu.cmu.hcii.sugilite.ontology.SugiliteEntity;
-import edu.cmu.hcii.sugilite.ontology.SugiliteRelation;
 import edu.cmu.hcii.sugilite.ontology.UISnapshot;
 import edu.cmu.hcii.sugilite.recording.ReadableDescriptionGenerator;
 
@@ -86,7 +70,7 @@ public class NewDemonstrationHandler {
             //threshold for determine whether the results are ambiguous
             if (queryScoreList.size() <= 1 || (queryScoreList.get(1).getValue().intValue() - queryScoreList.get(0).getValue().intValue() > 2)) {
                 //not ambiguous, show the confirmation popup
-                SugiliteOperationBlock block = blockBuildingHelper.getOperationFromQuery(queryScoreList.get(0).getKey(), SugiliteOperation.CLICK, featurePack);
+                SugiliteOperationBlock block = blockBuildingHelper.getOperationBlockFromQuery(queryScoreList.get(0).getKey(), SugiliteOperation.CLICK, featurePack);
 
                 //need to run on ui thread
                 accessibilityService.runOnUiThread(new Runnable() {
@@ -137,7 +121,7 @@ public class NewDemonstrationHandler {
 
         int i = 0;
         for(Map.Entry<SerializableOntologyQuery, Double> entry : queryScoreList){
-            SugiliteOperationBlock block = blockBuildingHelper.getOperationFromQuery(entry.getKey(), SugiliteOperation.CLICK, featurePack);
+            SugiliteOperationBlock block = blockBuildingHelper.getOperationBlockFromQuery(entry.getKey(), SugiliteOperation.CLICK, featurePack);
             sugiliteOperationBlockArray[i++] = block;
         }
 

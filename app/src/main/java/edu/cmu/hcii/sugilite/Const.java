@@ -100,6 +100,8 @@ public class Const {
     public static final String SCRIPT_ACTION_COLOR = "#ffa500", SCRIPT_ACTION_PARAMETER_COLOR = "#bc002f", SCRIPT_TARGET_TYPE_COLOR = "#36a095"
             , SCRIPT_IDENTIFYING_FEATURE_COLOR = "#008400", SCRIPT_VIEW_ID_COLOR = "#800080", SCRIPT_WITHIN_APP_COLOR = "#ff00ff", SCRIPT_LINK_COLOR = "#2e159f";
 
+    public static int RECORDING_OVERLAY_COLOR = 0x20FFFF00;
+
     public static final int SEMI_TRANSPARENT_GRAY_BACKGROUND = Color.parseColor("#80000000");
 
 

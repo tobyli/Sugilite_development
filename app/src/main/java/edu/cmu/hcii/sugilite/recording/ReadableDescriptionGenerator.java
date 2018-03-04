@@ -15,7 +15,9 @@ import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteSpecialOperationBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.model.block.UIElementMatchingFilter;
+import edu.cmu.hcii.sugilite.model.operation.SugiliteLoadVariableOperation;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteOperation;
+import edu.cmu.hcii.sugilite.model.operation.SugiliteReadoutOperation;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteSetTextOperation;
 
 
@@ -31,6 +33,39 @@ public class ReadableDescriptionGenerator {
         packageNameReadableNameMap = new HashMap<>();
         setupPackageNameReadableNameMap();
         packageManager = applicationContext.getPackageManager();
+    }
+
+    public String generateDescriptionForVerbalBlock(String formula, String utterance){
+        String message = "";
+        SugiliteOperation operation = new SugiliteOperation(SugiliteOperation.CLICK);
+        if(utterance != null && utterance.length() > 0) {
+            message += setColor(utterance + " : ", Const.SCRIPT_ACTION_PARAMETER_COLOR);
+        }
+        switch (operation.getOperationType()){
+            case SugiliteOperation.CLICK:
+                message += setColor("Click ", Const.SCRIPT_ACTION_COLOR) + "on ";
+                break;
+            case SugiliteOperation.SELECT:
+                message += setColor("Select ", Const.SCRIPT_ACTION_COLOR);
+                break;
+            case SugiliteOperation.SET_TEXT:
+                //message += setColor("Set Text ", Const.SCRIPT_ACTION_COLOR) + "to \"" + setColor(((SugiliteSetTextOperation)((SugiliteOperationBlock) block).getOperation()).getText(), Const.SCRIPT_ACTION_PARAMETER_COLOR) + "\" for ";
+                break;
+            case SugiliteOperation.LONG_CLICK:
+                message += setColor("Long click ", Const.SCRIPT_ACTION_COLOR) + "on ";
+                break;
+            case SugiliteOperation.READ_OUT:
+                //message += setColor("Read out ", Const.SCRIPT_ACTION_COLOR) + "the " + setColor(((SugiliteOperationBlock)block).getOperation().getParameter(), Const.SCRIPT_ACTION_PARAMETER_COLOR) + " for ";
+                break;
+            case SugiliteOperation.LOAD_AS_VARIABLE:
+                //message += setColor("Load the value ", Const.SCRIPT_ACTION_COLOR) + "of the" + setColor(((SugiliteOperationBlock)block).getOperation().getParameter(), Const.SCRIPT_ACTION_PARAMETER_COLOR) + " as a variable for ";
+                break;
+            case SugiliteOperation.SPECIAL_GO_HOME:
+                return "<b>GO TO HOME SCREEN</b>";
+        }
+
+        message += setColor(formula, Const.SCRIPT_IDENTIFYING_FEATURE_COLOR);
+        return message;
     }
 
     public String generateDescriptionForVerbalBlock(SugiliteOperationBlock block, String formula, String utterance){
@@ -53,10 +88,10 @@ public class ReadableDescriptionGenerator {
                 message += setColor("Long click ", Const.SCRIPT_ACTION_COLOR) + "on ";
                 break;
             case SugiliteOperation.READ_OUT:
-                message += setColor("Read out ", Const.SCRIPT_ACTION_COLOR) + "the " + setColor(((SugiliteOperationBlock)block).getOperation().getParameter(), Const.SCRIPT_ACTION_PARAMETER_COLOR) + " for ";
+                message += setColor("Read out ", Const.SCRIPT_ACTION_COLOR) + "the " + setColor(((SugiliteReadoutOperation)(block.getOperation())).getPropertyToReadout(), Const.SCRIPT_ACTION_PARAMETER_COLOR) + " for ";
                 break;
             case SugiliteOperation.LOAD_AS_VARIABLE:
-                message += setColor("Load the value ", Const.SCRIPT_ACTION_COLOR) + "of the" + setColor(((SugiliteOperationBlock)block).getOperation().getParameter(), Const.SCRIPT_ACTION_PARAMETER_COLOR) + " as a variable for ";
+                message += setColor("Load the value ", Const.SCRIPT_ACTION_COLOR) + "of the" + setColor(((SugiliteLoadVariableOperation)(block.getOperation())).getPropertyToSave(), Const.SCRIPT_ACTION_PARAMETER_COLOR) + " as a variable for ";
                 break;
             case SugiliteOperation.SPECIAL_GO_HOME:
                 return "<b>GO TO HOME SCREEN</b>";
@@ -96,10 +131,10 @@ public class ReadableDescriptionGenerator {
                     message += setColor("Long click ", Const.SCRIPT_ACTION_COLOR) + "on ";
                     break;
                 case SugiliteOperation.READ_OUT:
-                    message += setColor("Read out ", Const.SCRIPT_ACTION_COLOR) + "the " + setColor(((SugiliteOperationBlock)block).getOperation().getParameter(), Const.SCRIPT_ACTION_PARAMETER_COLOR) + " for ";
+                    message += setColor("Read out ", Const.SCRIPT_ACTION_COLOR) + "the " + setColor(((SugiliteReadoutOperation)((SugiliteOperationBlock) block).getOperation()).getPropertyToReadout(), Const.SCRIPT_ACTION_PARAMETER_COLOR) + " for ";
                     break;
                 case SugiliteOperation.LOAD_AS_VARIABLE:
-                    message += setColor("Load the value ", Const.SCRIPT_ACTION_COLOR) + "of the" + setColor(((SugiliteOperationBlock)block).getOperation().getParameter(), Const.SCRIPT_ACTION_PARAMETER_COLOR) + " as a variable for ";
+                    message += setColor("Load the value ", Const.SCRIPT_ACTION_COLOR) + "of the" + setColor(((SugiliteLoadVariableOperation)((SugiliteOperationBlock) block).getOperation()).getPropertyToSave(), Const.SCRIPT_ACTION_PARAMETER_COLOR) + " as a variable for ";
                     break;
                 case SugiliteOperation.SPECIAL_GO_HOME:
                     return "<b>GO TO HOME SCREEN</b>";

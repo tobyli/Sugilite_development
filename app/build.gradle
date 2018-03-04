@@ -3,7 +3,7 @@ apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion 24
-    buildToolsVersion "25.0.2"
+    buildToolsVersion '26.0.2'
     defaultConfig {
         applicationId "edu.cmu.hcii.sugilite"
         minSdkVersion 24
@@ -11,9 +11,6 @@ android {
         versionCode 2
         versionName "1.1"
         multiDexEnabled true
-        jackOptions {
-            enabled true
-        }
     }
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
@@ -64,34 +61,34 @@ dependencies {
 }
 
 //We need this in order to deploy Sugilite as a maven library
-apply plugin: 'maven'
-
-uploadArchives {
-    repositories{
-        mavenDeployer {
-//            repository(url: mavenLocal().url)
-            configuration = configurations.deployerJars
-            repository( url: "scp://linux.gp.cs.cmu.edu:/afs/cs/project/inmind-cmu-yahoo/www/maven2/" ){
-                //http://stackoverflow.com/questions/12749225/where-to-put-gradle-configuration-i-e-credentials-that-should-not-be-committe
-                authentication(userName: "inmind", password: "2015InMindYahoo")
-            }
-
-            pom.project {
-                name 'SUGILITE'
-                packaging 'aar'
-                description 'InMind\'s App Tracker - Sugilite'
-                pom.version = '1.0'
-                pom.artifactId = 'sugilite'
-                pom.groupId = "edu.cmu.hcii.sugilite"
-
-                licenses {
-                    license {
-                        name 'The Apache Software License, Version 2.0'
-                        url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
-                        distribution 'repo'
-                    }
-                }
-            }
-        }
-    }
-}
+//apply plugin: 'maven'
+//
+//uploadArchives {
+//    repositories{
+//        mavenDeployer {
+////            repository(url: mavenLocal().url)
+//            configuration = configurations.deployerJars
+//            repository( url: "scp://linux.gp.cs.cmu.edu:/afs/cs/project/inmind-cmu-yahoo/www/maven2/" ){
+//                //http://stackoverflow.com/questions/12749225/where-to-put-gradle-configuration-i-e-credentials-that-should-not-be-committe
+//                authentication(userName: "inmind", password: "2015InMindYahoo")
+//            }
+//
+//            pom.project {
+//                name 'SUGILITE'
+//                packaging 'aar'
+//                description 'InMind\'s App Tracker - Sugilite'
+//                pom.version = '1.0'
+//                pom.artifactId = 'sugilite'
+//                pom.groupId = "edu.cmu.hcii.sugilite"
+//
+//                licenses {
+//                    license {
+//                        name 'The Apache Software License, Version 2.0'
+//                        url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+//                        distribution 'repo'
+//                    }
+//                }
+//            }
+//        }
+//    }
+//}

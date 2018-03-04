@@ -10,7 +10,6 @@ import android.net.Uri;
 import android.os.SystemClock;
 import android.provider.Settings;
 import android.speech.tts.TextToSpeech;
-import android.test.TouchUtils;
 import android.util.DisplayMetrics;
 import android.view.GestureDetector;
 import android.view.Gravity;
@@ -21,9 +20,7 @@ import android.view.WindowManager;
 import android.widget.Toast;
 
 import com.google.gson.Gson;
-import com.google.gson.internal.Excluder;
 
-import java.io.DataOutputStream;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Comparator;
@@ -34,7 +31,6 @@ import java.util.Map;
 
 import edu.cmu.hcii.sugilite.Const;
 import edu.cmu.hcii.sugilite.Node;
-import edu.cmu.hcii.sugilite.R;
 import edu.cmu.hcii.sugilite.SugiliteAccessibilityService;
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.model.block.SugiliteAvailableFeaturePack;
@@ -57,14 +53,14 @@ import edu.cmu.hcii.sugilite.verbal_instruction_demo.util.NavigationBarUtil;
  */
 
 //this class creates a full screen overlay over the screen
-public class RecordingOverlayManager2 {
+public class FullScreenRecordingOverlayManager {
     //map between overlays and node
     Map<View, SugiliteEntity<Node>> overlayNodeMap;
     private Context context;
     private WindowManager windowManager;
     private LayoutInflater layoutInflater;
     private NavigationBarUtil navigationBarUtil;
-    private RecordingOverlayManager2 recordingOverlayManager;
+    private FullScreenRecordingOverlayManager recordingOverlayManager;
     private SugiliteData sugiliteData;
     private SharedPreferences sharedPreferences;
     private SugiliteFullScreenOverlayFactory overlayFactory;
@@ -80,7 +76,7 @@ public class RecordingOverlayManager2 {
     //latest UI snapshot
     private UISnapshot uiSnapshot = null;
 
-    public RecordingOverlayManager2(Context context, SugiliteData sugiliteData, SharedPreferences sharedPreferences, SugiliteAccessibilityService sugiliteAccessibilityService, TextToSpeech tts) {
+    public FullScreenRecordingOverlayManager(Context context, SugiliteData sugiliteData, SharedPreferences sharedPreferences, SugiliteAccessibilityService sugiliteAccessibilityService, TextToSpeech tts) {
         this.context = context;
         this.sugiliteAccessibilityService = sugiliteAccessibilityService;
         this.windowManager = (WindowManager) context.getSystemService(context.WINDOW_SERVICE);
@@ -376,7 +372,7 @@ public class RecordingOverlayManager2 {
         }
     }
 
-    public void clickWithRootPermission(float x, float y, Runnable uiThreadRunnable) {
+    public void clickWithRootPermission(float x, float y, Runnable uiThreadRunnable, Node alternativeNode) {
         Instrumentation m_Instrumentation = new Instrumentation();
         overlay.addOnLayoutChangeListener(new View.OnLayoutChangeListener() {
             /**
@@ -398,15 +394,21 @@ public class RecordingOverlayManager2 {
                 Thread clickThread = new Thread(new Runnable() {
                     @Override
                     public synchronized void run() {
-                        m_Instrumentation.sendPointerSync(MotionEvent.obtain(
-                                SystemClock.uptimeMillis(),
-                                SystemClock.uptimeMillis(),
-                                MotionEvent.ACTION_DOWN, x, y, 0));
-                        m_Instrumentation.sendPointerSync(MotionEvent.obtain(
-                                SystemClock.uptimeMillis(),
-                                SystemClock.uptimeMillis(),
-                                MotionEvent.ACTION_UP, x, y, 0));
-                        //sugiliteAccessibilityService.runOnUiThread(uiThreadRunnable);
+                        try {
+                            m_Instrumentation.sendPointerSync(MotionEvent.obtain(
+                                    SystemClock.uptimeMillis(),
+                                    SystemClock.uptimeMillis(),
+                                    MotionEvent.ACTION_DOWN, x, y, 0));
+                            m_Instrumentation.sendPointerSync(MotionEvent.obtain(
+                                    SystemClock.uptimeMillis(),
+                                    SystemClock.uptimeMillis(),
+                                    MotionEvent.ACTION_UP, x, y, 0));
+                            //sugiliteAccessibilityService.runOnUiThread(uiThreadRunnable);
+                        }
+                        catch (Exception e){
+                            e.printStackTrace();
+                            recordingOverlayManager.addSugiliteOperationBlockBasedOnNode(alternativeNode);
+                        }
                     }
                 });
                 clickThread.start();
@@ -462,8 +464,13 @@ public class RecordingOverlayManager2 {
                                     event2.getButtonState(), event2.getXPrecision(), event2.getYPrecision(), event2.getDeviceId(), event2.getEdgeFlags(), event2.getSource(), event2.getFlags());
                             System.out.println("EVENT2: " + motionEvent2.toString());
 
-                            m_Instrumentation.sendPointerSync(motionEvent1);
-                            m_Instrumentation.sendPointerSync(motionEvent2);
+                            try {
+                                m_Instrumentation.sendPointerSync(motionEvent1);
+                                m_Instrumentation.sendPointerSync(motionEvent2);
+                            }
+                            catch (Exception e){
+                                e.printStackTrace();
+                            }
                             //sugiliteAccessibilityService.runOnUiThread(uiThreadRunnable);
                         }
                     }

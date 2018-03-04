@@ -320,7 +320,7 @@ public class OntologyQuery {
         // example: (conj (IS_CLICKABLE true) (HAS_TEXT coffee))
         int len = s.length();
         if(BuildConfig.DEBUG && !(s.charAt(0) == '(' && s.charAt(len-1) == ')')){
-            throw new AssertionError();
+            //throw new AssertionError();
         }
         s = s.substring(1, len-1);
         // s: conj (IS_CLICKABLE true) (HAS_TEXT coffee)

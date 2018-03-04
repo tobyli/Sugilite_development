@@ -9,6 +9,7 @@ import java.io.Serializable;
  */
 public class SugiliteLoadVariableOperation extends SugiliteOperation implements Serializable{
     private String variableName;
+    private String propertyToSave;
     public SugiliteLoadVariableOperation(){
         super();
         this.setOperationType(LOAD_AS_VARIABLE);
@@ -18,5 +19,13 @@ public class SugiliteLoadVariableOperation extends SugiliteOperation implements 
     }
     public void setVariableName(String variableName){
         this.variableName = variableName;
+    }
+
+    public String getPropertyToSave() {
+        return propertyToSave;
+    }
+
+    public void setPropertyToSave(String propertyToSave) {
+        this.propertyToSave = propertyToSave;
     }
 }

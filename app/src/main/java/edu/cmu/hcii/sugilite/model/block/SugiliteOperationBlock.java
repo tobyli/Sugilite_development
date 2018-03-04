@@ -2,7 +2,10 @@ package edu.cmu.hcii.sugilite.model.block;
 
 import java.io.Serializable;
 
+import edu.cmu.hcii.sugilite.model.operation.SugiliteLoadVariableOperation;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteOperation;
+import edu.cmu.hcii.sugilite.model.operation.SugiliteReadoutOperation;
+import edu.cmu.hcii.sugilite.model.operation.SugiliteSetTextOperation;
 import edu.cmu.hcii.sugilite.ontology.OntologyQuery;
 import edu.cmu.hcii.sugilite.ontology.SerializableOntologyQuery;
 
@@ -13,11 +16,12 @@ import edu.cmu.hcii.sugilite.ontology.SerializableOntologyQuery;
  */
 public class SugiliteOperationBlock extends SugiliteBlock implements Serializable{
     private SugiliteBlock nextBlock;
-    private UIElementMatchingFilter elementMatchingFilter;
-    //TODO: add a structure for storing a query
     private SugiliteOperation operation;
     private SugiliteAvailableFeaturePack featurePack;
     private SerializableOntologyQuery query;
+
+    @Deprecated
+    private UIElementMatchingFilter elementMatchingFilter;
 
     public boolean isSetAsABreakPoint = false;
 
@@ -28,9 +32,6 @@ public class SugiliteOperationBlock extends SugiliteBlock implements Serializabl
     }
     public void setNextBlock(SugiliteBlock block){
         this.nextBlock = block;
-    }
-    public void setElementMatchingFilter(UIElementMatchingFilter filter){
-        this.elementMatchingFilter = filter;
     }
     public void setQuery(SerializableOntologyQuery query) {
         this.query = query;
@@ -44,9 +45,6 @@ public class SugiliteOperationBlock extends SugiliteBlock implements Serializabl
 
     public SugiliteBlock getNextBlock(){
         return nextBlock;
-    }
-    public UIElementMatchingFilter getElementMatchingFilter(){
-        return elementMatchingFilter;
     }
     public SerializableOntologyQuery getQuery() {
         return query;
@@ -68,4 +66,69 @@ public class SugiliteOperationBlock extends SugiliteBlock implements Serializabl
             ((SugiliteSpecialOperationBlock) previousBlock).setNextBlock(null);
     }
 
+    @Override
+    public String toString() {
+        //TODO: get the string for the block
+        String results = "";
+        String verb = "";
+        switch (operation.getOperationType()){
+            case SugiliteOperation.CLICK:
+                verb = "CLICK";
+                results = "(" + verb + " " + query.toString() + ")";
+                break;
+            case SugiliteOperation.LONG_CLICK:
+                verb = "LONG_CLICK";
+                results = "(" + verb + " " + query.toString() + ")";
+                break;
+            case SugiliteOperation.CLEAR_TEXT:
+                verb = "CLEAR_TEXT";
+                results = "(" + verb + " " + query.toString() + ")";
+                break;
+            case SugiliteOperation.CHECK:
+                verb = "CHECK";
+                results = "(" + verb + " " + query.toString() + ")";
+                break;
+            case SugiliteOperation.UNCHECK:
+                verb = "UNCHECK";
+                results = "(" + verb + " " + query.toString() + ")";
+                break;
+            case SugiliteOperation.SELECT:
+                verb = "SELECT";
+                results = "(" + verb + " " + query.toString() + ")";
+                break;
+            case SugiliteOperation.RETURN:
+                verb = "RETURN";
+                results = "(" + verb + " " + query.toString() + ")";
+                break;
+            case SugiliteOperation.LOAD_AS_VARIABLE:
+                verb = "LOAD_AS_VARIABLE";
+                SugiliteLoadVariableOperation loadVariableOperation = (SugiliteLoadVariableOperation)operation;
+                results = "(" + verb + " " + query.toString() + " " + loadVariableOperation.getPropertyToSave() + " " + loadVariableOperation.getVariableName() + ")";
+                break;
+            case SugiliteOperation.READ_OUT:
+                verb = "READ_OUT";
+                SugiliteReadoutOperation readoutOperation = (SugiliteReadoutOperation)operation;
+                results = "(" + verb + " " + query.toString() + " " + readoutOperation.getPropertyToReadout() + ")";
+                break;
+            case SugiliteOperation.SET_TEXT:
+                verb = "SET_TEXT";
+                SugiliteSetTextOperation setTextOperation = (SugiliteSetTextOperation)operation;
+                results = "(" + verb + " " + query.toString() + " " + setTextOperation.getText() + ")";
+                break;
+            case SugiliteOperation.SPECIAL_GO_HOME:
+                verb = "SPECIAL_GO_HOME";
+                results = "(" + verb + ")";
+                break;
+        }
+        return results;
+    }
+
+    @Deprecated
+    public void setElementMatchingFilter(UIElementMatchingFilter filter){
+        this.elementMatchingFilter = filter;
+    }
+    @Deprecated
+    public UIElementMatchingFilter getElementMatchingFilter(){
+        return elementMatchingFilter;
+    }
 }

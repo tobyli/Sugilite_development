@@ -9,13 +9,9 @@ import android.speech.tts.TextToSpeech;
 import android.text.Html;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.WindowManager;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ImageButton;
-import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -49,7 +45,6 @@ import edu.cmu.hcii.sugilite.recording.newrecording.SugiliteBlockBuildingHelper;
 import edu.cmu.hcii.sugilite.recording.newrecording.dialog_management.SugiliteDialogManager;
 import edu.cmu.hcii.sugilite.recording.newrecording.dialog_management.SugiliteDialogSimpleState;
 import edu.cmu.hcii.sugilite.recording.newrecording.dialog_management.SugiliteDialogUtteranceFilter;
-import edu.cmu.hcii.sugilite.verbal_instruction_demo.VerbalInstructionRecordingManager;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.server_comm.SugiliteVerbalInstructionHTTPQueryInterface;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.server_comm.SugiliteVerbalInstructionHTTPQueryManager;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.server_comm.VerbalInstructionServerQuery;
@@ -57,101 +52,70 @@ import edu.cmu.hcii.sugilite.verbal_instruction_demo.server_comm.VerbalInstructi
 
 /**
  * @author toby
- * @date 2/11/18
- * @time 11:55 PM
+ * @date 2/23/18
+ * @time 2:55 PM
  */
-public class RecordingAmbiguousPopupDialog extends SugiliteDialogManager implements SugiliteVerbalInstructionHTTPQueryInterface {
-    private List<Map.Entry<SerializableOntologyQuery, Double>> queryScoreList;
-    private SugiliteAvailableFeaturePack featurePack;
-    private EditText verbalInstructionEditText;
-    private SugiliteVerbalInstructionHTTPQueryManager sugiliteVerbalInstructionHTTPQueryManager;
-    private Dialog dialog;
-    private View dialogView;
-    private AlertDialog progressDialog;
-    private Gson gson;
+
+/**
+ * dialog class used for maintaining follow-up quersions with users in case of ambiguities after the user has given a verbal instruction
+ */
+public class FollowUpQuestionDialog extends SugiliteDialogManager implements SugiliteVerbalInstructionHTTPQueryInterface {
+    private OntologyQuery previousQuery;
+    private OntologyQuery currentQuery;
+
     private ImageButton speakButton;
-    private SerializableUISnapshot serializableUISnapshot;
-    private UISnapshot uiSnapshot;
-    private Node actualClickedNode;
-    private SugiliteBlockBuildingHelper blockBuildingHelper;
+    private View dialogView;
+    private TextView currentQueryTextView;
     private Runnable clickRunnable;
     private LayoutInflater layoutInflater;
-    private VerbalInstructionRecordingManager verbalInstructionRecordingManager;
-    private SugiliteData sugiliteData;
+    private EditText verbalInstructionEditText;
+    private UISnapshot uiSnapshot;
+    private SerializableUISnapshot serializableUISnapshot;
+    private SugiliteVerbalInstructionHTTPQueryManager sugiliteVerbalInstructionHTTPQueryManager;
     private SharedPreferences sharedPreferences;
+    private Gson gson;
+    private Node actualClickedNode;
+    private SugiliteAvailableFeaturePack featurePack;
+    private List<Map.Entry<SerializableOntologyQuery, Double>> queryScoreList;
+    private SugiliteBlockBuildingHelper blockBuildingHelper;
+    private SugiliteData sugiliteData;
+    private OntologyDescriptionGenerator ontologyDescriptionGenerator;
 
-    //states
-    private SugiliteDialogSimpleState askingForVerbalInstructionState = new SugiliteDialogSimpleState("ASKING_FOR_VERBAL_INSTRUCTION", this);
+    private SugiliteDialogSimpleState askingForVerbalInstructionFollowUpState = new SugiliteDialogSimpleState("ASKING_FOR_VERBAL_INSTRUCTION", this);
     private SugiliteDialogSimpleState askingForInstructionConfirmationState = new SugiliteDialogSimpleState("ASKING_FOR_INSTRUCTION_CONFIRMATION", this);
     private SugiliteDialogSimpleState emptyResultState = new SugiliteDialogSimpleState("EMPTY_RESULT_STATE", this);
 
+    private int numberOfMatchedNodes = -1;
 
-    public RecordingAmbiguousPopupDialog(Context context, List<Map.Entry<SerializableOntologyQuery, Double>> queryScoreList, SugiliteAvailableFeaturePack featurePack, SugiliteBlockBuildingHelper blockBuildingHelper, LayoutInflater layoutInflater, Runnable clickRunnable, UISnapshot uiSnapshot, Node actualClickedNode, SugiliteData sugiliteData, SharedPreferences sharedPreferences, TextToSpeech tts) {
+
+    private Dialog dialog;
+    private Dialog progressDialog;
+
+    public FollowUpQuestionDialog(Context context, TextToSpeech tts, OntologyQuery initialQuery, UISnapshot uiSnapshot, Node actualClickedNode, SugiliteAvailableFeaturePack featurePack, List<Map.Entry<SerializableOntologyQuery, Double>> queryScoreList, SugiliteBlockBuildingHelper blockBuildingHelper, LayoutInflater layoutInflater, Runnable clickRunnable, SugiliteData sugiliteData, SharedPreferences sharedPreferences){
         super(context, tts);
-        this.queryScoreList = queryScoreList;
-        this.featurePack = featurePack;
-        this.sugiliteVerbalInstructionHTTPQueryManager = new SugiliteVerbalInstructionHTTPQueryManager(this, sharedPreferences);
-
-
-        //TODO: need to operate on a copy of ui snapshot
-        this.uiSnapshot = uiSnapshot;
-        this.serializableUISnapshot = new SerializableUISnapshot(uiSnapshot);
-        this.actualClickedNode = actualClickedNode;
-        this.blockBuildingHelper = blockBuildingHelper;
+        this.previousQuery = null;
+        this.currentQuery = initialQuery;
         this.clickRunnable = clickRunnable;
         this.layoutInflater = layoutInflater;
-        this.sugiliteData = sugiliteData;
+        this.uiSnapshot = uiSnapshot;
+        this.serializableUISnapshot = new SerializableUISnapshot(uiSnapshot);
+        this.sugiliteVerbalInstructionHTTPQueryManager = new SugiliteVerbalInstructionHTTPQueryManager(this, sharedPreferences);
         this.sharedPreferences = sharedPreferences;
+        this.actualClickedNode = actualClickedNode;
+        this.featurePack = featurePack;
+        this.queryScoreList = queryScoreList;
+        this.blockBuildingHelper = blockBuildingHelper;
+        this.sugiliteData = sugiliteData;
+        this.ontologyDescriptionGenerator = new OntologyDescriptionGenerator(context);
         this.gson = new Gson();
-        this.verbalInstructionRecordingManager = new VerbalInstructionRecordingManager(context, sugiliteData, sharedPreferences);
-
 
         //build the dialog
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
-        //builder.setTitle("Select from disambiguation results");
-        dialogView = layoutInflater.inflate(R.layout.dialog_ambiguous_popup_spoken, null);
-
-        //set the list view for query parse candidates
-        ListView mainListView = (ListView) dialogView.findViewById(R.id.listview_query_candidates);
+        dialogView = layoutInflater.inflate(R.layout.dialog_followup_popup_spoken, null);
+        currentQueryTextView = (TextView) dialogView.findViewById(R.id.text_current_query_content);
         verbalInstructionEditText = (EditText) dialogView.findViewById(R.id.edittext_instruction_content);
-        Map<TextView, SugiliteOperationBlock> textViews = new HashMap<>();
-        String[] stringArray = new String[queryScoreList.size()];
-        SugiliteOperationBlock[] sugiliteOperationBlockArray = new SugiliteOperationBlock[queryScoreList.size()];
 
-        int i = 0;
-        for (Map.Entry<SerializableOntologyQuery, Double> entry : queryScoreList) {
-            SugiliteOperationBlock block = blockBuildingHelper.getOperationBlockFromQuery(entry.getKey(), SugiliteOperation.CLICK, featurePack);
-            sugiliteOperationBlockArray[i++] = block;
-        }
-
-        Map<SugiliteOperationBlock, String> descriptions = blockBuildingHelper.getDescriptionsInDifferences(sugiliteOperationBlockArray);
-
-        i = 0;
-        for (SugiliteOperationBlock block : sugiliteOperationBlockArray) {
-            stringArray[i++] = descriptions.get(block);
-        }
-
-
-        ArrayAdapter<String> adapter = new ArrayAdapter<String>(context, android.R.layout.simple_list_item_1, stringArray) {
-            //override the arrayadapter to show HTML-styled textviews in the listview
-            @Override
-            public View getView(int position, View convertView, ViewGroup parent) {
-                View row;
-                if (null == convertView) {
-                    row = layoutInflater.inflate(android.R.layout.simple_list_item_1, null);
-                } else {
-                    row = convertView;
-                }
-                TextView tv = (TextView) row.findViewById(android.R.id.text1);
-                tv.setText(Html.fromHtml(getItem(position)));
-                textViews.put(tv, sugiliteOperationBlockArray[position]);
-                return row;
-            }
-
-        };
-        mainListView.setAdapter(adapter);
-        //finished setting up the parse result candidate list
-
+        refreshPreviewTextView();
 
         //initiate the speak button
         speakButton = (ImageButton) dialogView.findViewById(R.id.button_verbal_instruction_talk);
@@ -167,7 +131,6 @@ public class RecordingAmbiguousPopupDialog extends SugiliteDialogManager impleme
             }
         });
 
-
         builder.setView(dialogView);
 
         //set the buttons
@@ -175,35 +138,17 @@ public class RecordingAmbiguousPopupDialog extends SugiliteDialogManager impleme
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 sendInstructionButtonOnClick();
+
             }
         }).setNegativeButton("Skip", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 skipButtonOnClick();
             }
-        }).setNeutralButton("Cancel", new DialogInterface.OnClickListener() {
+        }).setNeutralButton("Back", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                dialog.cancel();
-            }
-        });
-
-        //on item click for query candidates
-        mainListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                //showConfirmation(sugiliteOperationBlockArray[position], featurePack, queryScoreList);
-                if (sharedPreferences.getBoolean("recording_in_process", false)) {
-                    try {
-                        blockBuildingHelper.saveBlock(sugiliteOperationBlockArray[position], featurePack);
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                }
-                clickRunnable.run();
-                if (dialog != null) {
-                    dialog.dismiss();
-                }
+                backButtonOnClick();
             }
         });
 
@@ -216,24 +161,12 @@ public class RecordingAmbiguousPopupDialog extends SugiliteDialogManager impleme
         });
     }
 
-    private void skipButtonOnClick(){
-        clickRunnable.run();
-        dialog.cancel();
-    }
-
-    public void show() {
+    public void show(){
         dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
         dialog.show();
 
         //initiate the dialog manager when the dialog is shown
         initDialogManager();
-    }
-
-    private void showProgressDialog() {
-        progressDialog = new AlertDialog.Builder(context).setMessage("Processing the query ...").create();
-        progressDialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
-        progressDialog.setCanceledOnTouchOutside(false);
-        progressDialog.show();
     }
 
     private void sendInstructionButtonOnClick() {
@@ -261,18 +194,136 @@ public class RecordingAmbiguousPopupDialog extends SugiliteDialogManager impleme
         }
     }
 
+    private void skipButtonOnClick(){
+        clickRunnable.run();
+        dialog.cancel();
+    }
+
+    private void backButtonOnClick(){
+        if(previousQuery != null) {
+            //go back to the followup question dialog with the previous query
+            FollowUpQuestionDialog followUpQuestionDialog = new FollowUpQuestionDialog(context, tts, previousQuery, uiSnapshot, actualClickedNode, featurePack, queryScoreList, blockBuildingHelper, layoutInflater, clickRunnable, sugiliteData, sharedPreferences);
+            dialog.dismiss();
+            followUpQuestionDialog.setNumberOfMatchedNodes(-1);
+            followUpQuestionDialog.show();
+        }
+        else{
+            //go back to the original ambiguous popup dialog
+            RecordingAmbiguousPopupDialog ambiguousPopupDialog = new RecordingAmbiguousPopupDialog(context, queryScoreList, featurePack, blockBuildingHelper, layoutInflater, clickRunnable, uiSnapshot, actualClickedNode, sugiliteData, sharedPreferences, tts);
+            dialog.dismiss();
+            ambiguousPopupDialog.show();
+        }
+    }
+
+    private void showProgressDialog() {
+        progressDialog = new AlertDialog.Builder(context).setMessage("Processing the query ...").create();
+        progressDialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
+        progressDialog.setCanceledOnTouchOutside(false);
+        progressDialog.show();
+    }
+
+    private void refreshPreviewTextView(){
+        String html = ontologyDescriptionGenerator.getDescriptionForOntologyQuery(SugiliteBlockBuildingHelper.stripSerializableOntologyQuery(new SerializableOntologyQuery(currentQuery)));
+        currentQueryTextView.setText(Html.fromHtml(html));
+    }
+
+    public void setNumberOfMatchedNodes(int numberOfMatchedNodes) {
+        this.numberOfMatchedNodes = numberOfMatchedNodes;
+        if(numberOfMatchedNodes > 0) {
+            askingForVerbalInstructionFollowUpState.setPrompt(context.getString(R.string.disambiguation_followup_prompt, numberOfMatchedNodes));
+        }
+        else{
+            //when the numberOfMatchedNodes < 0 (i.e. the dialog was generated through the back button)
+            askingForVerbalInstructionFollowUpState.setPrompt(context.getString(R.string.disambiguation_followup_no_count_prompt));
+        }
+    }
+
     @Override
-    /**
-     * callback for the HTTP query
-     */
+    public void initDialogManager() {
+        //initiate the dialog states
+        //set the prompt
+        emptyResultState.setPrompt(context.getString(R.string.disambiguation_error));
+
+        if(numberOfMatchedNodes > 0) {
+            askingForVerbalInstructionFollowUpState.setPrompt(context.getString(R.string.disambiguation_followup_prompt, numberOfMatchedNodes));
+        }
+        else{
+            //when the numberOfMatchedNodes < 0 (i.e. the dialog was generated through the back button)
+            askingForVerbalInstructionFollowUpState.setPrompt(context.getString(R.string.disambiguation_followup_no_count_prompt));
+        }
+
+        //set on switched away runnable - the verbal instruction state should set the value for the text box
+        askingForVerbalInstructionFollowUpState.setOnSwitchedAwayRunnable(new Runnable() {
+            @Override
+            public void run() {
+                if (askingForVerbalInstructionFollowUpState.getASRResult() != null && (!askingForVerbalInstructionFollowUpState.getASRResult().isEmpty())) {
+                    verbalInstructionEditText.setText(askingForVerbalInstructionFollowUpState.getASRResult().get(0));
+                }
+            }
+        });
+        emptyResultState.setOnSwitchedAwayRunnable(new Runnable() {
+            @Override
+            public void run() {
+                if (emptyResultState.getASRResult() != null && (!emptyResultState.getASRResult().isEmpty())) {
+                    verbalInstructionEditText.setText(emptyResultState.getASRResult().get(0));
+                }
+            }
+        });
+
+        //set on initiate runnable - the instruction confirmation state should use the content in the text box as the prompt
+        askingForInstructionConfirmationState.setOnInitiatedRunnable(new Runnable() {
+            @Override
+            public void run() {
+                askingForInstructionConfirmationState.setPrompt(context.getString(R.string.disambiguation_confirm, verbalInstructionEditText.getText()));
+            }
+        });
+
+        //link the states
+        askingForVerbalInstructionFollowUpState.setNoASRResultState(askingForVerbalInstructionFollowUpState);
+        askingForVerbalInstructionFollowUpState.setUnmatchedState(askingForVerbalInstructionFollowUpState);
+        askingForVerbalInstructionFollowUpState.addNextStateUtteranceFilter(askingForInstructionConfirmationState, SugiliteDialogUtteranceFilter.getConstantFilter(true));
+
+        emptyResultState.setNoASRResultState(askingForVerbalInstructionFollowUpState);
+        emptyResultState.setUnmatchedState(askingForVerbalInstructionFollowUpState);
+        emptyResultState.addNextStateUtteranceFilter(askingForInstructionConfirmationState, SugiliteDialogUtteranceFilter.getConstantFilter(true));
+
+        askingForInstructionConfirmationState.setNoASRResultState(askingForInstructionConfirmationState);
+        askingForInstructionConfirmationState.setUnmatchedState(askingForInstructionConfirmationState);
+        askingForInstructionConfirmationState.addNextStateUtteranceFilter(askingForVerbalInstructionFollowUpState, SugiliteDialogUtteranceFilter.getSimpleContainingFilter("no", "nah"));
+
+        //set exit runnables
+        askingForVerbalInstructionFollowUpState.addExitRunnableUtteranceFilter(SugiliteDialogUtteranceFilter.getSimpleContainingFilter("skip"), new Runnable() {
+            @Override
+            public void run() {
+                skipButtonOnClick();
+            }
+        });
+        askingForVerbalInstructionFollowUpState.addExitRunnableUtteranceFilter(SugiliteDialogUtteranceFilter.getSimpleContainingFilter("cancel"), new Runnable() {
+            @Override
+            public void run() {
+                dialog.cancel();
+            }
+        });
+        askingForInstructionConfirmationState.addExitRunnableUtteranceFilter(SugiliteDialogUtteranceFilter.getSimpleContainingFilter("yes", "yeah"), new Runnable() {
+            @Override
+            public void run() {
+                sendInstructionButtonOnClick();
+            }
+        });
+
+
+        //set current sate
+        setCurrentState(askingForVerbalInstructionFollowUpState);
+        initPrompt();
+    }
+
+    @Override
     public void resultReceived(int responseCode, String result) {
+        //dismiss the progress dialog
         if (progressDialog != null && progressDialog.isShowing()) {
             progressDialog.dismiss();
         }
-        //raw response
-        System.out.print(responseCode + ": " + result);
-
-        //de-serialize to VerbalInstructionResults
+        //update currentQuery based on the result received
         VerbalInstructionServerResults results = gson.fromJson(result, VerbalInstructionServerResults.class);
 
         if (results.getQueries() == null) {
@@ -300,9 +351,10 @@ public class RecordingAmbiguousPopupDialog extends SugiliteDialogManager impleme
             //construct the query, run the query, and compare the result against the actually clicked on node
 
             String queryFormula = verbalInstructionResult.getFormula();
-            OntologyQuery query = OntologyQueryUtils.getQueryWithClassAndPackageConstraints(OntologyQuery.deserialize(queryFormula), actualClickedNode);
+            OntologyQuery resolvedQuery = OntologyQueryUtils.getQueryWithClassAndPackageConstraints(OntologyQuery.deserialize(queryFormula), actualClickedNode);
+            OntologyQuery combinedQuery = OntologyQueryUtils.combineTwoQueries(currentQuery, resolvedQuery);
 
-            OntologyQuery queryClone = OntologyQuery.deserialize(query.toString());
+            OntologyQuery queryClone = OntologyQuery.deserialize(combinedQuery.toString());
 
             //TODO: fix the bug in query.executeOn -- it should not change the query
             Set<SugiliteEntity> queryResults =  queryClone.executeOn(uiSnapshot);
@@ -322,7 +374,7 @@ public class RecordingAmbiguousPopupDialog extends SugiliteDialogManager impleme
 
             if (filteredNodes.size() > 0 && matched) {
                 //matched, add the result to the list
-                matchingQueriesMatchedNodesList.add(new AbstractMap.SimpleEntry<>(query, filteredNodes));
+                matchingQueriesMatchedNodesList.add(new AbstractMap.SimpleEntry<>(combinedQuery, filteredNodes));
             }
         }
 
@@ -338,26 +390,36 @@ public class RecordingAmbiguousPopupDialog extends SugiliteDialogManager impleme
             }
         });
 
-        //TODO: sort the list by the size of matched node and length, and see if the top result has filteredNodes.size() = 1
+        //sort the list by the size of matched node and length, and see if the top result has filteredNodes.size() = 1
         if (matchingQueriesMatchedNodesList != null && (!matchingQueriesMatchedNodesList.isEmpty())) {
             OntologyQuery query = matchingQueriesMatchedNodesList.get(0).getKey();
-            //TODO: check if this has filteredNodes.size() = 1
-            Toast.makeText(context, query.toString(), Toast.LENGTH_SHORT).show();
 
             if(matchingQueriesMatchedNodesList.get(0).getValue().size() > 1) {
-                //TODO:prompt for further generalization
-                FollowUpQuestionDialog followUpQuestionDialog = new FollowUpQuestionDialog(context, tts, query, uiSnapshot, actualClickedNode, featurePack, queryScoreList, blockBuildingHelper, layoutInflater, clickRunnable, sugiliteData, sharedPreferences);
-                followUpQuestionDialog.setNumberOfMatchedNodes(matchingQueriesMatchedNodesList.get(0).getValue().size());
-                followUpQuestionDialog.show();
-            } else {
+                //need to prompt for further generalization
+                Toast.makeText(context, "Matched " + matchingQueriesMatchedNodesList.get(0).getValue().size() + " Nodes, Need further disambiguation", Toast.LENGTH_SHORT).show();
+
+                //update the query
+                previousQuery = currentQuery;
+                currentQuery = query;
+
+                dialog.show();
+                refreshPreviewTextView();
+                setNumberOfMatchedNodes(matchingQueriesMatchedNodesList.get(0).getValue().size());
+                setCurrentState(askingForVerbalInstructionFollowUpState);
+                initPrompt();
+            }
+            else {
                 //save the block and show a confirmation dialog for the block
+                Toast.makeText(context, query.toString(), Toast.LENGTH_SHORT).show();
                 System.out.println("Result Query: " + query.toString());
                 //construct the block from the query formula
+
                 SerializableOntologyQuery serializableOntologyQuery = new SerializableOntologyQuery(query);
+
                 SugiliteOperationBlock block = blockBuildingHelper.getOperationBlockFromQuery(serializableOntologyQuery, SugiliteOperation.CLICK, featurePack);
                 showConfirmationDialog(block, featurePack, queryScoreList, clickRunnable);
+                dialog.dismiss();
             }
-            dialog.dismiss();
 
         } else {
             //empty result, show the dialog and switch to empty result state
@@ -370,80 +432,6 @@ public class RecordingAmbiguousPopupDialog extends SugiliteDialogManager impleme
     private void showConfirmationDialog(SugiliteOperationBlock block, SugiliteAvailableFeaturePack featurePack, List<Map.Entry<SerializableOntologyQuery, Double>> queryScoreList, Runnable clickRunnable) {
         SugiliteRecordingConfirmationDialog sugiliteRecordingConfirmationDialog = new SugiliteRecordingConfirmationDialog(context, block, featurePack, queryScoreList, clickRunnable, blockBuildingHelper, layoutInflater, uiSnapshot, actualClickedNode, sugiliteData, sharedPreferences, tts);
         sugiliteRecordingConfirmationDialog.show();
-    }
-
-    /**
-     * initiate the dialog manager
-     */
-    @Override
-    public void initDialogManager() {
-        //set the prompt
-        emptyResultState.setPrompt(context.getString(R.string.disambiguation_error));
-        askingForVerbalInstructionState.setPrompt(context.getString(R.string.disambiguation_prompt));
-
-        //set on switched away runnable - the verbal instruction state should set the value for the text box
-        askingForVerbalInstructionState.setOnSwitchedAwayRunnable(new Runnable() {
-            @Override
-            public void run() {
-                if (askingForVerbalInstructionState.getASRResult() != null && (!askingForVerbalInstructionState.getASRResult().isEmpty())) {
-                    verbalInstructionEditText.setText(askingForVerbalInstructionState.getASRResult().get(0));
-                }
-            }
-        });
-        emptyResultState.setOnSwitchedAwayRunnable(new Runnable() {
-            @Override
-            public void run() {
-                if (emptyResultState.getASRResult() != null && (!emptyResultState.getASRResult().isEmpty())) {
-                    verbalInstructionEditText.setText(emptyResultState.getASRResult().get(0));
-                }
-            }
-        });
-
-        //set on initiate runnable - the instruction confirmation state should use the content in the text box as the prompt
-        askingForInstructionConfirmationState.setOnInitiatedRunnable(new Runnable() {
-            @Override
-            public void run() {
-                askingForInstructionConfirmationState.setPrompt(context.getString(R.string.disambiguation_confirm, verbalInstructionEditText.getText()));
-            }
-        });
-
-        //link the states
-        askingForVerbalInstructionState.setNoASRResultState(askingForVerbalInstructionState);
-        askingForVerbalInstructionState.setUnmatchedState(askingForVerbalInstructionState);
-        askingForVerbalInstructionState.addNextStateUtteranceFilter(askingForInstructionConfirmationState, SugiliteDialogUtteranceFilter.getConstantFilter(true));
-
-        emptyResultState.setNoASRResultState(askingForVerbalInstructionState);
-        emptyResultState.setUnmatchedState(askingForVerbalInstructionState);
-        emptyResultState.addNextStateUtteranceFilter(askingForInstructionConfirmationState, SugiliteDialogUtteranceFilter.getConstantFilter(true));
-
-        askingForInstructionConfirmationState.setNoASRResultState(askingForInstructionConfirmationState);
-        askingForInstructionConfirmationState.setUnmatchedState(askingForInstructionConfirmationState);
-        askingForInstructionConfirmationState.addNextStateUtteranceFilter(askingForVerbalInstructionState, SugiliteDialogUtteranceFilter.getSimpleContainingFilter("no", "nah"));
-
-        //set exit runnables
-        askingForVerbalInstructionState.addExitRunnableUtteranceFilter(SugiliteDialogUtteranceFilter.getSimpleContainingFilter("skip"), new Runnable() {
-            @Override
-            public void run() {
-                skipButtonOnClick();
-            }
-        });
-        askingForVerbalInstructionState.addExitRunnableUtteranceFilter(SugiliteDialogUtteranceFilter.getSimpleContainingFilter("cancel"), new Runnable() {
-            @Override
-            public void run() {
-                dialog.cancel();
-            }
-        });
-        askingForInstructionConfirmationState.addExitRunnableUtteranceFilter(SugiliteDialogUtteranceFilter.getSimpleContainingFilter("yes", "yeah"), new Runnable() {
-            @Override
-            public void run() {
-                sendInstructionButtonOnClick();
-            }
-        });
-
-
-        //set current sate
-        setCurrentState(askingForVerbalInstructionState);
-        initPrompt();
     }
 
     @Override

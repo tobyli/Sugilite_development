@@ -43,4 +43,9 @@ public class SugiliteErrorHandlingForkBlock extends SugiliteBlock implements Ser
     public SugiliteBlock getAlternativeNextBlock(){
         return alternativeNextBlock;
     }
+
+    @Override
+    public String toString() {
+        return "(ERROR_HANDLING_FORK)";
+    }
 }

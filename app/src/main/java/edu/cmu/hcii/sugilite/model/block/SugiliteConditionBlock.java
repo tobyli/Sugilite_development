@@ -100,4 +100,9 @@ public class SugiliteConditionBlock extends SugiliteBlock implements Serializabl
         }
         return null;
     }
+
+    @Override
+    public String toString() {
+        return "(CONDITION_BLOCK)";
+    }
 }

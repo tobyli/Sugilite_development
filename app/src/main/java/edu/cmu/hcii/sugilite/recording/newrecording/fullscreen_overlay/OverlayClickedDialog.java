@@ -6,19 +6,11 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.speech.tts.TextToSpeech;
-import android.text.Html;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
-import android.view.WindowManager;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
-import android.widget.ListView;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -29,10 +21,7 @@ import edu.cmu.hcii.sugilite.model.block.SugiliteAvailableFeaturePack;
 import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteOperation;
 import edu.cmu.hcii.sugilite.ontology.SerializableOntologyQuery;
-import edu.cmu.hcii.sugilite.ontology.SerializableUISnapshot;
-import edu.cmu.hcii.sugilite.ontology.SugiliteEntity;
 import edu.cmu.hcii.sugilite.ontology.UISnapshot;
-import edu.cmu.hcii.sugilite.recording.ReadableDescriptionGenerator;
 import edu.cmu.hcii.sugilite.recording.newrecording.SugiliteBlockBuildingHelper;
 
 
@@ -51,14 +40,13 @@ public class OverlayClickedDialog {
     private SugiliteAvailableFeaturePack featurePack;
     private Dialog dialog;
     private TextToSpeech tts;
-    private RecordingOverlayManager2 recordingOverlayManager;
+    private FullScreenRecordingOverlayManager recordingOverlayManager;
     private SugiliteBlockBuildingHelper blockBuildingHelper;
-    private ReadableDescriptionGenerator readableDescriptionGenerator;
     private SharedPreferences sharedPreferences;
     private SugiliteData sugiliteData;
 
 
-    public OverlayClickedDialog(Context context, Node node, UISnapshot uiSnapshot, float x, float y, RecordingOverlayManager2 recordingOverlayManager, View overlay, SugiliteData sugiliteData, LayoutInflater layoutInflater, SharedPreferences sharedPreferences, TextToSpeech tts) {
+    public OverlayClickedDialog(Context context, Node node, UISnapshot uiSnapshot, float x, float y, FullScreenRecordingOverlayManager recordingOverlayManager, View overlay, SugiliteData sugiliteData, LayoutInflater layoutInflater, SharedPreferences sharedPreferences, TextToSpeech tts) {
         this.context = context;
         this.node = node;
         this.uiSnapshot = uiSnapshot;
@@ -69,7 +57,6 @@ public class OverlayClickedDialog {
         this.tts = tts;
         this.recordingOverlayManager = recordingOverlayManager;
         this.blockBuildingHelper = new SugiliteBlockBuildingHelper(context, sugiliteData);
-        this.readableDescriptionGenerator = new ReadableDescriptionGenerator(context);
         this.sugiliteData = sugiliteData;
         this.sharedPreferences = sharedPreferences;
         featurePack = new SugiliteAvailableFeaturePack(node, uiSnapshot);
@@ -119,7 +106,7 @@ public class OverlayClickedDialog {
             //threshold for determine whether the results are ambiguous
             if (queryScoreList.size() <= 1 || (queryScoreList.get(1).getValue().intValue() - queryScoreList.get(0).getValue().intValue() > 2)) {
                 //not ambiguous, show the confirmation popup
-                SugiliteOperationBlock block = blockBuildingHelper.getOperationFromQuery(queryScoreList.get(0).getKey(), SugiliteOperation.CLICK, featurePack);
+                SugiliteOperationBlock block = blockBuildingHelper.getOperationBlockFromQuery(queryScoreList.get(0).getKey(), SugiliteOperation.CLICK, featurePack);
                 showConfirmation(block, featurePack, queryScoreList);
 
             } else {
@@ -145,13 +132,18 @@ public class OverlayClickedDialog {
         if (Const.ROOT_ENABLED) {
             //on a rooted phone, should directly simulate the click itself
             recordingOverlayManager.setPassThroughOnTouchListener(overlay);
-            recordingOverlayManager.clickWithRootPermission(x, y, new Runnable() {
-                @Override
-                public void run() {
-                    //allow the overlay to get touch event after finishing the simulated click
-                    recordingOverlayManager.setOverlayOnTouchListener(overlay, true);
-                }
-            });
+            try {
+                recordingOverlayManager.clickWithRootPermission(x, y, new Runnable() {
+                    @Override
+                    public void run() {
+                        //allow the overlay to get touch event after finishing the simulated click
+                        recordingOverlayManager.setOverlayOnTouchListener(overlay, true);
+                    }
+                }, node);
+            }
+            catch (Exception e){
+                //do nothing
+            }
         } else {
             recordingOverlayManager.addSugiliteOperationBlockBasedOnNode(node);
         }

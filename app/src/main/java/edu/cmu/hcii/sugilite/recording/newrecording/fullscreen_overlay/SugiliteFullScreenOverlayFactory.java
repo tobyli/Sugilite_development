@@ -6,6 +6,11 @@ import android.util.DisplayMetrics;
 import android.view.View;
 import android.view.WindowManager;
 
+import java.util.Collection;
+
+import edu.cmu.hcii.sugilite.Const;
+import edu.cmu.hcii.sugilite.Node;
+
 /**
  * @author toby
  * @date 2/5/18
@@ -19,12 +24,17 @@ public class SugiliteFullScreenOverlayFactory {
     }
 
     public View getFullScreenOverlay(DisplayMetrics metrics) {
-        View overlay = getRectangleOverlay(context, metrics.widthPixels, metrics.heightPixels);
-        //TODO: process the overlay
+        View overlay = getRectangleOverlay(context, metrics.widthPixels, metrics.heightPixels, Const.RECORDING_OVERLAY_COLOR);
         return overlay;
     }
 
-    private View getRectangleOverlay(Context context, int width, int height) {
+    public View getOverlayWithHighlightedBoundingBoxes(DisplayMetrics metrics, Node clickedNode, Collection<Node> confusedNodes){
+        View overlay = getRectangleOverlay(context, metrics.widthPixels, metrics.heightPixels, Const.RECORDING_OVERLAY_COLOR);
+        //TODO: add the highlights
+        return overlay;
+    }
+
+    private View getRectangleOverlay(Context context, int width, int height, int color) {
         View overlay = new View(context);
         WindowManager.LayoutParams layoutParams = new WindowManager.LayoutParams(
                 WindowManager.LayoutParams.WRAP_CONTENT,
@@ -35,7 +45,7 @@ public class SugiliteFullScreenOverlayFactory {
         layoutParams.width = width;
         layoutParams.height = height;
         overlay.setLayoutParams(layoutParams);
-        overlay.setBackgroundColor(0x20FFFF00);
+        overlay.setBackgroundColor(color);
         return overlay;
     }
 

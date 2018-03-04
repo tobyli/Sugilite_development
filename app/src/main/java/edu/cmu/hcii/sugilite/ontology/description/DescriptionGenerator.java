@@ -1,7 +1,13 @@
-package edu.cmu.hcii.sugilite.ontology;
+package edu.cmu.hcii.sugilite.ontology.description;
 
 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 import java.util.*;
+
+import edu.cmu.hcii.sugilite.ontology.OntologyQuery;
+import edu.cmu.hcii.sugilite.ontology.SerializableOntologyQuery;
+import edu.cmu.hcii.sugilite.ontology.SugiliteRelation;
 
 /**
  * Created by Wanling Ding on 01/02/2018.
@@ -13,16 +19,16 @@ public class DescriptionGenerator {
     static {
         descriptionMap = new HashMap<SugiliteRelation,String>();
         descriptionMap.put(SugiliteRelation.HAS_CLASS_NAME,"");
-        descriptionMap.put(SugiliteRelation.HAS_TEXT,"");
-        descriptionMap.put(SugiliteRelation.HAS_CHILD_TEXT,"");
+        descriptionMap.put(SugiliteRelation.HAS_TEXT,"has text ");
+        descriptionMap.put(SugiliteRelation.HAS_CHILD_TEXT,"has child text ");
         descriptionMap.put(SugiliteRelation.HAS_SIBLING_TEXT,"");
         descriptionMap.put(SugiliteRelation.HAS_CONTENT_DESCRIPTION,"");
-        descriptionMap.put(SugiliteRelation.HAS_SCREEN_LOCATION,"the exact location");
-        descriptionMap.put(SugiliteRelation.HAS_PARENT_LOCATION,"the exact location ");
+        descriptionMap.put(SugiliteRelation.HAS_SCREEN_LOCATION,"has the exact location ");
+        descriptionMap.put(SugiliteRelation.HAS_PARENT_LOCATION,"has the parent location ");
         descriptionMap.put(SugiliteRelation.HAS_PACKAGE_NAME,"in ");
 
         descriptionMap.put(SugiliteRelation.HAS_LIST_ORDER,"the %s item");
-        descriptionMap.put(SugiliteRelation.HAS_PARENT_WITH_LIST_ORDER,"the item inside the %s item");
+        descriptionMap.put(SugiliteRelation.HAS_PARENT_WITH_LIST_ORDER,"the %s item");
 
         descriptionMap.put(SugiliteRelation.HAS_PARENT,"has parent ");
         descriptionMap.put(SugiliteRelation.HAS_CHILD,"has child ");
@@ -62,14 +68,7 @@ public class DescriptionGenerator {
         return result;
     }
 
-    public static void main(String[] args)
-    {
-//        DescriptionGenerator test = new DescriptionGenerator();
-//        //System.out.println(test.getDescription(SugiliteRelation.CONTAINS_DATE));
-//        System.out.println(test);
-        String s = "the %s item";
-        String d = String.format(s,"1");
-        System.out.println(s+d);
-    }
+
+
 
 }

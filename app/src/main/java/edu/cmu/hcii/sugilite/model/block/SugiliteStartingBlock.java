@@ -83,6 +83,8 @@ public class SugiliteStartingBlock extends SugiliteBlock implements Serializable
         }
     }
 
-
-
+    @Override
+    public String toString() {
+        return "(SUGILITE_START)";
+    }
 }

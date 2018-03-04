@@ -36,6 +36,7 @@ import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.model.block.UIElementMatchingFilter;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteLoadVariableOperation;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteOperation;
+import edu.cmu.hcii.sugilite.model.operation.SugiliteReadoutOperation;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteSetTextOperation;
 import edu.cmu.hcii.sugilite.model.variable.StringVariable;
 import edu.cmu.hcii.sugilite.model.variable.Variable;
@@ -569,12 +570,12 @@ public class Automator {
 
         if(block.getOperation().getOperationType() == SugiliteOperation.READ_OUT){
             if(tts != null) {
-                if (block.getOperation().getParameter().toLowerCase().contentEquals("text")) {
+                if (((SugiliteReadoutOperation)(block.getOperation())).getPropertyToReadout().toLowerCase().contentEquals("text")) {
                     if (ttsReady && node != null && node.getText() != null) {
                         tts.speak("Result", TextToSpeech.QUEUE_ADD, null);
                         tts.speak(node.getText().toString(), TextToSpeech.QUEUE_ADD, null);
                     }
-                } else if (block.getOperation().getParameter().toLowerCase().contentEquals("child text")) {
+                } else if (((SugiliteReadoutOperation)(block.getOperation())).getPropertyToReadout().toLowerCase().contentEquals("child text")) {
                     List<AccessibilityNodeInfo> children = preOrderTraverse(node);
                     if (ttsReady && node != null && children != null && children.size() > 0) {
                         String childText = "";
@@ -587,7 +588,7 @@ public class Automator {
                             tts.speak(childText, TextToSpeech.QUEUE_ADD, null);
                         }
                     }
-                } else if (block.getOperation().getParameter().toLowerCase().contentEquals("content description")) {
+                } else if (((SugiliteReadoutOperation)(block.getOperation())).getPropertyToReadout().toLowerCase().contentEquals("content description")) {
                     if (ttsReady && node != null && node.getContentDescription() != null) {
                         tts.speak("Result", TextToSpeech.QUEUE_ADD, null);
                         tts.speak(node.getContentDescription().toString(), TextToSpeech.QUEUE_ADD, null);
@@ -603,11 +604,11 @@ public class Automator {
                 StringVariable stringVariable = new StringVariable(variableName);
                 stringVariable.type = Variable.LOAD_RUNTIME;
 
-                if (block.getOperation().getParameter().contentEquals("Text")) {
+                if (((SugiliteLoadVariableOperation)(block.getOperation())).getPropertyToSave().contentEquals("Text")) {
                     if (node.getText() != null) {
                         stringVariable.setValue(node.getText().toString());
                     }
-                } else if (block.getOperation().getParameter().contentEquals("Child Text")) {
+                } else if (((SugiliteLoadVariableOperation)(block.getOperation())).getPropertyToSave().contentEquals("Child Text")) {
                     List<AccessibilityNodeInfo> children = preOrderTraverse(node);
                     if (ttsReady && node != null && children != null && children.size() > 0) {
                         String childText = "";
@@ -619,7 +620,7 @@ public class Automator {
                             stringVariable.setValue(childText);
                         }
                     }
-                } else if (block.getOperation().getParameter().contentEquals("Content Description")) {
+                } else if (((SugiliteLoadVariableOperation)(block.getOperation())).getPropertyToSave().contentEquals("Content Description")) {
                     if (node.getContentDescription() != null) {
                         stringVariable.setValue(node.getContentDescription().toString());
                     }

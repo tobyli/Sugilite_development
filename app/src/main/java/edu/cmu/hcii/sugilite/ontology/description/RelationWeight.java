@@ -1,6 +1,9 @@
-package edu.cmu.hcii.sugilite.ontology;
+package edu.cmu.hcii.sugilite.ontology.description;
 
 import java.util.*;
+
+import edu.cmu.hcii.sugilite.ontology.OntologyQuery;
+import edu.cmu.hcii.sugilite.ontology.SugiliteRelation;
 
 /**
  * Created by Wanling Ding on 15/02/2018.
@@ -75,31 +78,4 @@ public class RelationWeight {
         }
     };
 
-
-    public String toString()
-    {
-        String result = "";
-        for (SugiliteRelation r: weightMap.keySet())
-        {
-            result += r.getRelationName() + " " + weightMap.get(r) + "\n";
-        }
-        return result;
-    }
-
-    public static void main(String[] args)
-    {
-        RelationWeight test = new RelationWeight();
-        System.out.println(test);
-        //System.out.println(compare(SugiliteRelation.HAS_CLASS_NAME,SugiliteRelation.HAS_PACKAGE_NAME));
-        SugiliteRelation[] testlist = new SugiliteRelation[3];
-        testlist[0] = SugiliteRelation.HAS_TEXT;
-        testlist[1] = SugiliteRelation.HAS_PACKAGE_NAME;
-        testlist[2] = SugiliteRelation.HAS_CLASS_NAME;
-        for (SugiliteRelation sr:testlist)
-            System.out.print(sr.getRelationName()+" ");
-        System.out.println();
-        Arrays.sort(testlist, sugiliteRelationComparator);
-        for (SugiliteRelation sr:testlist)
-            System.out.print(sr.getRelationName()+" ");
-    }
 }

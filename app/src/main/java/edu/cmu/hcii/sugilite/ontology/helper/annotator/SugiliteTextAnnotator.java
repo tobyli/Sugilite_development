@@ -25,7 +25,9 @@ public class SugiliteTextAnnotator {
                     new MoneyAnnotator(),
                     new TimeAnnotator(),
                     new DateAnnotator(),
-                    new LengthAnnotator());
+                    new LengthAnnotator(),
+                    new PercentageAnnotator(),
+                    new DurationAnnotator());
         }
     }
 

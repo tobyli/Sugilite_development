@@ -4,6 +4,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.util.Calendar;
+import java.util.Comparator;
 import java.util.GregorianCalendar;
 import java.util.List;
 
@@ -89,8 +90,8 @@ public class DateAnnotatorTest {
     @Test
     public void testGroupWithBadInput() {
         List<SugiliteTextAnnotator.AnnotatingResult> res = annotator.annotate
-                ("Today is February 15 2018  Tomorrow is 2/16/2018. I'll blow up the world on Feb 31, 2018" +
-                        "and fly back to mars on 2/32/2018");
+                ("Today is February 15 2018  Tomorrow is 2/16/2018. I'll blow up the world on Feb 32, 2018 " +
+                        "and fly back to mars on 13/31/2018");
         assertEquals(res.size(), 2);
         res.sort((a, b) -> Double.compare(a.getNumericValue(), b.getNumericValue()));
         Calendar cal = new GregorianCalendar();
@@ -98,6 +99,25 @@ public class DateAnnotatorTest {
         assertEquals(res.get(0).getNumericValue().longValue()/1000, cal.getTime().getTime()/1000);
         cal.set(2018, 1, 16, 0, 0, 0);
         assertEquals(res.get(1).getNumericValue().longValue()/1000, cal.getTime().getTime()/1000);
+    }
+
+    @Test
+    public void testLatestUpdate() {
+        List<SugiliteTextAnnotator.AnnotatingResult> res = annotator.annotate("Mon March 3, 3/4/2018, 03/05," +
+                " Wed 3/7, Thursday Mar 8, 2017, Friday 03/09/2018");
+        assertEquals(res.size(), 5);
+        res.sort(Comparator.comparingDouble(SugiliteTextAnnotator.AnnotatingResult::getNumericValue));
+        Calendar cal = new GregorianCalendar();
+        cal.set(2017, 2, 8, 0, 0, 0);
+        assertEquals(res.get(0).getNumericValue().longValue()/1000, cal.getTime().getTime()/1000);
+        cal.set(2018, 2, 3, 0, 0, 0);
+        assertEquals(res.get(1).getNumericValue().longValue()/1000, cal.getTime().getTime()/1000);
+        cal.set(2018, 2, 4, 0, 0, 0);
+        assertEquals(res.get(2).getNumericValue().longValue()/1000, cal.getTime().getTime()/1000);
+        cal.set(2018, 2, 7, 0, 0, 0);
+        assertEquals(res.get(3).getNumericValue().longValue()/1000, cal.getTime().getTime()/1000);
+        cal.set(2018, 2, 9, 0, 0, 0);
+        assertEquals(res.get(4).getNumericValue().longValue()/1000, cal.getTime().getTime()/1000);
     }
 
 }

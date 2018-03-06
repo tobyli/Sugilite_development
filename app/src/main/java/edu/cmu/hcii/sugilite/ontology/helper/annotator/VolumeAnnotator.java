@@ -14,18 +14,22 @@ import edu.cmu.hcii.sugilite.ontology.SugiliteRelation;
  * Created by shi on 3/1/18.
  */
 
-public class DurationAnnotator extends SugiliteTextAnnotator {
-    public DurationAnnotator() {super();}
+public class VolumeAnnotator extends SugiliteTextAnnotator {
+    public VolumeAnnotator() {super();}
 
-    static final int DAY = 86400000;
-    static final int HOUR = 3600000;
-    static final int MINUTE = 60000;
-    static final int SECOND = 1000;
+    static final double MILLILITER = 1.0;
+    static final double LITER = 1000.0;
+    static final double OUNCE = 29.547;
+    static final double TABLESPOON = 4.929;
+    static final double CUP = 236.588;
+    static final double PINT = 473.176;
+    static final double QUART = 946.353;
+    static final double GALLON = 3785.412;
 
     @Override
     public List<AnnotatingResult> annotate(String text) {
         List<AnnotatingResult> results = new ArrayList<>();
-        String regex = "\\b\\d+?(.\\d+?)? (d|h|hr(s)?|hour(s)?|m|min(s)?|minute(s)?|s|sec)\\b";
+        String regex = "\\b\\d+?(.\\d+?)? (m[Ll]?|L|(fl )?oz|ounce(s)?|tsp|cp|pt|qt|gal)\\b";
         Pattern pattern = Pattern.compile(regex);
 
         int curEnd = -3;
@@ -34,10 +38,15 @@ public class DurationAnnotator extends SugiliteTextAnnotator {
             String matchedString = text.substring(matcher.start(), matcher.end());
             String[] parsed = matchedString.split(" ");
             double num = Double.valueOf(parsed[0]);
-            if (parsed[1].startsWith("h")) num *= HOUR;
-            else if (parsed[1].startsWith("d")) num *= DAY;
-            else if (parsed[1].startsWith("m")) num *= MINUTE;
-            else if (parsed[1].startsWith("s")) num *= SECOND;
+            if (parsed[1].startsWith("m")) num *= MILLILITER;
+            else if (parsed[1].startsWith("L")) num *= LITER;
+            else if (parsed[1].startsWith("f")) num *= OUNCE;
+            else if (parsed[1].startsWith("o")) num *= OUNCE;
+            else if (parsed[1].startsWith("t")) num *= TABLESPOON;
+            else if (parsed[1].startsWith("c")) num *= CUP;
+            else if (parsed[1].startsWith("p")) num *= PINT;
+            else if (parsed[1].startsWith("q")) num *= QUART;
+            else if (parsed[1].startsWith("g")) num *= GALLON;
             if (matcher.start() - curEnd == 1 && text.charAt(curEnd) == ' ') {
                 AnnotatingResult last = results.get(results.size() - 1);
                 last.setNumericValue(last.getNumericValue() + num);
@@ -52,5 +61,5 @@ public class DurationAnnotator extends SugiliteTextAnnotator {
         return results;
     }
 
-    private static final SugiliteRelation RELATION = SugiliteRelation.CONTAINS_DURATION;
+    private static final SugiliteRelation RELATION = SugiliteRelation.CONTAINS_VOLUME;
 }

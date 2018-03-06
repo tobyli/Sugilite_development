@@ -58,6 +58,7 @@ public class SugiliteVerbalInstructionStudyDialog implements SugiliteVoiceInterf
     private LinearLayout mainLayout;
     private String path, fileName;
     public boolean isListening = false;
+    public boolean isSpeaking = false;
 
 
     public SugiliteVerbalInstructionStudyDialog(SerializableUISnapshot serializableUISnapshot, SugiliteSerializableEntity serializableEntity, SugiliteStudyHandler sugiliteStudyHandler, Context context, LayoutInflater inflater, SugiliteVoiceRecognitionListener voiceRecognitionListener, String path, String fileName){
@@ -143,6 +144,16 @@ public class SugiliteVerbalInstructionStudyDialog implements SugiliteVoiceInterf
     @Override
     public void listeningEnded() {
         isListening = false;
+    }
+
+    @Override
+    public void speakingStarted() {
+        isSpeaking = true;
+    }
+
+    @Override
+    public void speakingEnded() {
+        isSpeaking = false;
     }
 
     @Override

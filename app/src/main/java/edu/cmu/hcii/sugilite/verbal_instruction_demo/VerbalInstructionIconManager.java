@@ -43,6 +43,7 @@ import edu.cmu.hcii.sugilite.SugiliteAccessibilityService;
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.ontology.SerializableUISnapshot;
 import edu.cmu.hcii.sugilite.ontology.UISnapshot;
+import edu.cmu.hcii.sugilite.recording.newrecording.fullscreen_overlay.FollowUpQuestionDialog;
 import edu.cmu.hcii.sugilite.recording.newrecording.fullscreen_overlay.FullScreenRecordingOverlayManager;
 import edu.cmu.hcii.sugilite.ui.StatusIconManager;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.speech.SugiliteVoiceInterface;
@@ -68,6 +69,7 @@ public class VerbalInstructionIconManager implements SugiliteVoiceInterface {
     private StatusIconManager duckIconManager;
     private TextToSpeech tts;
     public boolean isListening = false;
+    public boolean isSpeaking = false;
     private Dialog dialog;
 
     //rotation degree for the cat
@@ -77,6 +79,9 @@ public class VerbalInstructionIconManager implements SugiliteVoiceInterface {
     Integer prev_x = null;
     Integer prev_y = null;
 
+    Integer current_x = 0;
+    Integer current_y = 0;
+
     private ImageView statusIcon;
     private WindowManager.LayoutParams iconParams;
     private Timer timer;
@@ -85,6 +90,9 @@ public class VerbalInstructionIconManager implements SugiliteVoiceInterface {
     private boolean showingIcon = false;
     private final int REQ_CODE_SPEECH_INPUT = 100;
 
+
+    //for callbacks
+    private FollowUpQuestionDialog followUpQuestionDialog;
 
     //for saving the latest ui snapshot
     private UISnapshot latestUISnapshot = null;
@@ -122,6 +130,16 @@ public class VerbalInstructionIconManager implements SugiliteVoiceInterface {
     public void listeningEnded(){
         isListening = false;
         statusIcon.setImageResource(R.mipmap.cat_sleep);
+    }
+
+    @Override
+    public void speakingStarted() {
+        isSpeaking = true;
+    }
+
+    @Override
+    public void speakingEnded() {
+        isSpeaking = false;
     }
 
     /**
@@ -170,6 +188,8 @@ public class VerbalInstructionIconManager implements SugiliteVoiceInterface {
         iconParams.gravity = Gravity.TOP | Gravity.LEFT;
         iconParams.x = prev_x == null ? displaymetrics.widthPixels : prev_x;
         iconParams.y = prev_y == null ? 400 : prev_y;
+        current_x = iconParams.x;
+        current_y = iconParams.y;
         addCrumpledPaperOnTouchListener(statusIcon, iconParams, displaymetrics, windowManager);
 
         //NEEDED TO BE CONFIGURED AT APPS->SETTINGS-DRAW OVER OTHER APPS on API>=23
@@ -236,6 +256,9 @@ public class VerbalInstructionIconManager implements SugiliteVoiceInterface {
         return latestUISnapshot;
     }
 
+    public void registerFollowUpQuestionDialog(FollowUpQuestionDialog followUpQuestionDialog) {
+        this.followUpQuestionDialog = followUpQuestionDialog;
+    }
 
     public synchronized void setLatestUISnapshot(UISnapshot snapshot){
         this.latestUISnapshot = snapshot;
@@ -282,6 +305,11 @@ public class VerbalInstructionIconManager implements SugiliteVoiceInterface {
             public boolean onTouch(final View v, MotionEvent event) {
                 if (gestureDetector.onTouchEvent(event)) {
                     // gesture is clicking
+
+                    if (followUpQuestionDialog != null && followUpQuestionDialog.isShowing() == false){
+                        followUpQuestionDialog.uncollapse();
+                        return true;
+                    }
 
                     //initialize the popup dialog
                     AlertDialog.Builder textDialogBuilder = new AlertDialog.Builder(context);
@@ -387,6 +415,8 @@ public class VerbalInstructionIconManager implements SugiliteVoiceInterface {
                         mPaperParams.y = initialY + (int) (event.getRawY() - initialTouchY);
                         prev_x = mPaperParams.x;
                         prev_y = mPaperParams.y;
+                        current_x = iconParams.x;
+                        current_y = iconParams.y;
                         windowManager.updateViewLayout(view, mPaperParams);
                         return true;
                 }
@@ -463,6 +493,14 @@ public class VerbalInstructionIconManager implements SugiliteVoiceInterface {
             if (out2 != null) out2.close();
         }
 
+    }
+
+    public Integer getCurrent_x() {
+        return current_x;
+    }
+
+    public Integer getCurrent_y() {
+        return current_y;
     }
 
     public void startStudyRecording(){

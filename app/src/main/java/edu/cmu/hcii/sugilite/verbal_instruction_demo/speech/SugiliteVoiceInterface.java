@@ -8,8 +8,14 @@ import java.util.List;
  * @time 12:35 AM
  */
 public interface SugiliteVoiceInterface {
+    /**
+     * callback when the ASR result is available
+     * @param matches
+     */
     void resultAvailable(List<String> matches);
     void listeningStarted();
     void listeningEnded();
+    void speakingStarted();
+    void speakingEnded();
 
 }

@@ -30,6 +30,10 @@ import edu.cmu.hcii.sugilite.recording.newrecording.SugiliteBlockBuildingHelper;
  * @date 2/7/18
  * @time 7:39 PM
  */
+
+/**
+ * dummy dialog -> will lead to either RecordingAmbiguousPopupDialog or SugiliteRecordingConfirmationDialog
+ */
 public class OverlayClickedDialog {
     private Context context;
     private Node node;

@@ -66,12 +66,14 @@ public class SugiliteVoiceRecognitionListener implements RecognitionListener {
         speech.setRecognitionListener(this);
         speech.startListening(recognizerIntent);
         lastStartListening = Calendar.getInstance().getTimeInMillis();
+        sugiliteVoiceInterface.listeningStarted();
     }
 
     public void stopListening(){
         if(speech != null) {
             speech.stopListening();
             speech.destroy();
+            sugiliteVoiceInterface.listeningEnded();
         }
 
     }
@@ -82,17 +84,40 @@ public class SugiliteVoiceRecognitionListener implements RecognitionListener {
         tts.setOnUtteranceProgressListener(new UtteranceProgressListener() {
             @Override
             public void onStart(String utteranceId) {
+                if(sugiliteVoiceInterface != null) {
+                    accessibilityService.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            sugiliteVoiceInterface.speakingStarted();
+                        }
+                    });
+                }
             }
 
             @Override
             public void onDone(String utteranceId) {
                 accessibilityService.runOnUiThread(onDone);
+                if(sugiliteVoiceInterface != null) {
+                    accessibilityService.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            sugiliteVoiceInterface.speakingEnded();
+                        }
+                    });
+                }
                 System.out.println("TTS IS DONE: " + utteranceId);
             }
 
             @Override
             public void onError(String utteranceId) {
-
+                if(sugiliteVoiceInterface != null) {
+                    accessibilityService.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            sugiliteVoiceInterface.speakingEnded();
+                        }
+                    });
+                }
             }
         });
         tts.speak(content, TextToSpeech.QUEUE_FLUSH, params);
@@ -101,13 +126,21 @@ public class SugiliteVoiceRecognitionListener implements RecognitionListener {
     public void stopTTS(){
         if(tts.isSpeaking()){
             tts.stop();
+            if(sugiliteVoiceInterface != null) {
+                accessibilityService.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        sugiliteVoiceInterface.speakingEnded();
+                    }
+                });
+            }
         }
     }
 
     @Override
     public void onBeginningOfSpeech() {
         Log.i(LOG_TAG, "onBeginningOfSpeech");
-        sugiliteVoiceInterface.listeningStarted();
+
     }
 
     @Override

@@ -6,6 +6,12 @@ package edu.cmu.hcii.sugilite.recording.newrecording.dialog_management;
  * @time 4:56 PM
  */
 public abstract class SugiliteDialogUtteranceFilter {
+
+    /**
+     * get a SugiliteDialogUtteranceFilter that returns true if the utterance contains any of the arg among args (case insensitive)
+     * @param args
+     * @return
+     */
     public static SugiliteDialogUtteranceFilter getSimpleContainingFilter(String... args) {
         return new SugiliteDialogUtteranceFilter() {
             @Override
@@ -20,6 +26,11 @@ public abstract class SugiliteDialogUtteranceFilter {
         };
     }
 
+    /**
+     * get a SugiliteDialogUtteranceFilter that returns a constant boolean value
+     * @param value
+     * @return
+     */
     public static SugiliteDialogUtteranceFilter getConstantFilter(boolean value) {
         return new SugiliteDialogUtteranceFilter() {
             @Override

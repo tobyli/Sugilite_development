@@ -946,6 +946,10 @@ public class SugiliteAccessibilityService extends AccessibilityService {
         return statusIconManager;
     }
 
+    public VerbalInstructionIconManager getVerbalInstructionIconManager() {
+        return verbalInstructionIconManager;
+    }
+
     public SugiliteStudyHandler getSugiliteStudyHandler() {
         return sugiliteStudyHandler;
     }

@@ -5,11 +5,13 @@
     <string name="expand_ask_if_record">Do you want to confirm recording, skip this recording but perform the action, modify the recording, or cancel this action?</string>
 
     <string name="disambiguation_error">Can\'t resolve your description, please try to describe your action in a different way.</string>
+    <string name="disambiguation_result_wont_math">Your description doesn\'t match what you clicked on, please try again.</string>
     <string name="disambiguation_prompt">Please verbally describe this action.</string>
-    <string name="disambiguation_confirm">Is this verbal instruction correct? %1$s</string>
+    <string name="disambiguation_confirm">Is this instruction correct?</string>
+    <!-- <string name="disambiguation_confirm">Is this verbal instruction correct? %1$s</string> -->
 
-    <string name="disambiguation_followup_prompt">This instruction matches %1$d nodes on the screen, Please provide an additional instruction for finding the correct node.</string>
-    <string name="disambiguation_followup_no_count_prompt">Please provide an additional instruction for finding the correct node.</string>
+    <string name="disambiguation_followup_prompt">This instruction matches %1$d items on the screen, Please provide an additional instruction for finding the correct item.</string>
+    <string name="disambiguation_followup_no_count_prompt">Please provide an additional instruction for finding the correct item.</string>
 
 
 </resources>

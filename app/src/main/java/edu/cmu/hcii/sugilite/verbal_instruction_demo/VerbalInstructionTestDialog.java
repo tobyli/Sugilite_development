@@ -265,6 +265,16 @@ public class VerbalInstructionTestDialog implements SugiliteVoiceInterface, Sugi
     }
 
     @Override
+    public void speakingStarted() {
+
+    }
+
+    @Override
+    public void speakingEnded() {
+
+    }
+
+    @Override
     public void resultAvailable(List<String> matches) {
         if(matches.size() > 0) {
             instructionTextbox.setText(matches.get(0));

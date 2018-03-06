@@ -5,6 +5,7 @@ import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
+import android.graphics.LightingColorFilter;
 import android.speech.tts.TextToSpeech;
 import android.text.Html;
 import android.view.LayoutInflater;
@@ -43,8 +44,6 @@ import edu.cmu.hcii.sugilite.ontology.SerializableOntologyQuery;
 import edu.cmu.hcii.sugilite.ontology.SerializableUISnapshot;
 import edu.cmu.hcii.sugilite.ontology.SugiliteEntity;
 import edu.cmu.hcii.sugilite.ontology.UISnapshot;
-import edu.cmu.hcii.sugilite.ontology.description.OntologyDescriptionGenerator;
-import edu.cmu.hcii.sugilite.recording.ReadableDescriptionGenerator;
 import edu.cmu.hcii.sugilite.recording.newrecording.SugiliteBlockBuildingHelper;
 import edu.cmu.hcii.sugilite.recording.newrecording.dialog_management.SugiliteDialogManager;
 import edu.cmu.hcii.sugilite.recording.newrecording.dialog_management.SugiliteDialogSimpleState;
@@ -54,6 +53,10 @@ import edu.cmu.hcii.sugilite.verbal_instruction_demo.server_comm.SugiliteVerbalI
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.server_comm.SugiliteVerbalInstructionHTTPQueryManager;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.server_comm.VerbalInstructionServerQuery;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.server_comm.VerbalInstructionServerResults;
+
+import static edu.cmu.hcii.sugilite.Const.MUL_ZEROS;
+import static edu.cmu.hcii.sugilite.Const.RECORDING_DARK_GRAY_COLOR;
+import static edu.cmu.hcii.sugilite.Const.RECORDING_OFF_BUTTON_COLOR;
 
 /**
  * @author toby
@@ -84,6 +87,7 @@ public class RecordingAmbiguousPopupDialog extends SugiliteDialogManager impleme
     private SugiliteDialogSimpleState askingForVerbalInstructionState = new SugiliteDialogSimpleState("ASKING_FOR_VERBAL_INSTRUCTION", this);
     private SugiliteDialogSimpleState askingForInstructionConfirmationState = new SugiliteDialogSimpleState("ASKING_FOR_INSTRUCTION_CONFIRMATION", this);
     private SugiliteDialogSimpleState emptyResultState = new SugiliteDialogSimpleState("EMPTY_RESULT_STATE", this);
+    private SugiliteDialogSimpleState resultWontMatchState = new SugiliteDialogSimpleState("RESULT_WONT_MATCH_STATE", this);
 
 
     public RecordingAmbiguousPopupDialog(Context context, List<Map.Entry<SerializableOntologyQuery, Double>> queryScoreList, SugiliteAvailableFeaturePack featurePack, SugiliteBlockBuildingHelper blockBuildingHelper, LayoutInflater layoutInflater, Runnable clickRunnable, UISnapshot uiSnapshot, Node actualClickedNode, SugiliteData sugiliteData, SharedPreferences sharedPreferences, TextToSpeech tts) {
@@ -155,6 +159,7 @@ public class RecordingAmbiguousPopupDialog extends SugiliteDialogManager impleme
 
         //initiate the speak button
         speakButton = (ImageButton) dialogView.findViewById(R.id.button_verbal_instruction_talk);
+        speakButton.getBackground().setColorFilter(new LightingColorFilter(MUL_ZEROS, RECORDING_OFF_BUTTON_COLOR));
         speakButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -166,12 +171,14 @@ public class RecordingAmbiguousPopupDialog extends SugiliteDialogManager impleme
                 }
             }
         });
+        speakButton.setImageDrawable(speakingDrawable);
+        speakButton.getDrawable().setColorFilter(new LightingColorFilter(MUL_ZEROS, RECORDING_DARK_GRAY_COLOR));
 
 
         builder.setView(dialogView);
 
         //set the buttons
-        builder.setPositiveButton("Send Instruction", new DialogInterface.OnClickListener() {
+        builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 sendInstructionButtonOnClick();
@@ -187,6 +194,7 @@ public class RecordingAmbiguousPopupDialog extends SugiliteDialogManager impleme
                 dialog.cancel();
             }
         });
+
 
         //on item click for query candidates
         mainListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -216,10 +224,7 @@ public class RecordingAmbiguousPopupDialog extends SugiliteDialogManager impleme
         });
     }
 
-    private void skipButtonOnClick(){
-        clickRunnable.run();
-        dialog.cancel();
-    }
+
 
     public void show() {
         dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
@@ -234,6 +239,11 @@ public class RecordingAmbiguousPopupDialog extends SugiliteDialogManager impleme
         progressDialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
         progressDialog.setCanceledOnTouchOutside(false);
         progressDialog.show();
+    }
+
+    private void skipButtonOnClick(){
+        clickRunnable.run();
+        dialog.cancel();
     }
 
     private void sendInstructionButtonOnClick() {
@@ -262,8 +272,32 @@ public class RecordingAmbiguousPopupDialog extends SugiliteDialogManager impleme
     }
 
     @Override
+    public void listeningStarted() {
+        super.listeningStarted();
+        refreshSpeakButtonStyle(speakButton);
+    }
+
+    @Override
+    public void listeningEnded() {
+        super.listeningEnded();
+        refreshSpeakButtonStyle(speakButton);
+    }
+
+    @Override
+    public void speakingStarted() {
+        super.speakingStarted();
+        refreshSpeakButtonStyle(speakButton);
+    }
+
+    @Override
+    public void speakingEnded() {
+        super.speakingEnded();
+        refreshSpeakButtonStyle(speakButton);
+    }
+
+    @Override
     /**
-     * callback for the HTTP query
+     * callback for the HTTP query when the result is available
      */
     public void resultReceived(int responseCode, String result) {
         if (progressDialog != null && progressDialog.isShowing()) {
@@ -346,7 +380,7 @@ public class RecordingAmbiguousPopupDialog extends SugiliteDialogManager impleme
 
             if(matchingQueriesMatchedNodesList.get(0).getValue().size() > 1) {
                 //TODO:prompt for further generalization
-                FollowUpQuestionDialog followUpQuestionDialog = new FollowUpQuestionDialog(context, tts, query, uiSnapshot, actualClickedNode, featurePack, queryScoreList, blockBuildingHelper, layoutInflater, clickRunnable, sugiliteData, sharedPreferences);
+                FollowUpQuestionDialog followUpQuestionDialog = new FollowUpQuestionDialog(context, tts, query, uiSnapshot, actualClickedNode, matchingQueriesMatchedNodesList.get(0).getValue(), featurePack, queryScoreList, blockBuildingHelper, layoutInflater, clickRunnable, sugiliteData, sharedPreferences);
                 followUpQuestionDialog.setNumberOfMatchedNodes(matchingQueriesMatchedNodesList.get(0).getValue().size());
                 followUpQuestionDialog.show();
             } else {
@@ -362,7 +396,7 @@ public class RecordingAmbiguousPopupDialog extends SugiliteDialogManager impleme
         } else {
             //empty result, show the dialog and switch to empty result state
             dialog.show();
-            setCurrentState(emptyResultState);
+            setCurrentState(resultWontMatchState);
             initPrompt();
         }
     }
@@ -379,6 +413,7 @@ public class RecordingAmbiguousPopupDialog extends SugiliteDialogManager impleme
     public void initDialogManager() {
         //set the prompt
         emptyResultState.setPrompt(context.getString(R.string.disambiguation_error));
+        resultWontMatchState.setPrompt(context.getString(R.string.disambiguation_result_wont_math));
         askingForVerbalInstructionState.setPrompt(context.getString(R.string.disambiguation_prompt));
 
         //set on switched away runnable - the verbal instruction state should set the value for the text box
@@ -399,11 +434,21 @@ public class RecordingAmbiguousPopupDialog extends SugiliteDialogManager impleme
             }
         });
 
+        resultWontMatchState.setOnSwitchedAwayRunnable(new Runnable() {
+            @Override
+            public void run() {
+                if (resultWontMatchState.getASRResult() != null && (!resultWontMatchState.getASRResult().isEmpty())) {
+                    verbalInstructionEditText.setText(resultWontMatchState.getASRResult().get(0));
+                }
+            }
+        });
+
         //set on initiate runnable - the instruction confirmation state should use the content in the text box as the prompt
         askingForInstructionConfirmationState.setOnInitiatedRunnable(new Runnable() {
             @Override
             public void run() {
-                askingForInstructionConfirmationState.setPrompt(context.getString(R.string.disambiguation_confirm, verbalInstructionEditText.getText()));
+                //askingForInstructionConfirmationState.setPrompt(context.getString(R.string.disambiguation_confirm, verbalInstructionEditText.getText()));
+                askingForInstructionConfirmationState.setPrompt(context.getString(R.string.disambiguation_confirm));
             }
         });
 
@@ -415,6 +460,10 @@ public class RecordingAmbiguousPopupDialog extends SugiliteDialogManager impleme
         emptyResultState.setNoASRResultState(askingForVerbalInstructionState);
         emptyResultState.setUnmatchedState(askingForVerbalInstructionState);
         emptyResultState.addNextStateUtteranceFilter(askingForInstructionConfirmationState, SugiliteDialogUtteranceFilter.getConstantFilter(true));
+
+        resultWontMatchState.setNoASRResultState(askingForVerbalInstructionState);
+        resultWontMatchState.setUnmatchedState(askingForVerbalInstructionState);
+        resultWontMatchState.addNextStateUtteranceFilter(askingForInstructionConfirmationState, SugiliteDialogUtteranceFilter.getConstantFilter(true));
 
         askingForInstructionConfirmationState.setNoASRResultState(askingForInstructionConfirmationState);
         askingForInstructionConfirmationState.setUnmatchedState(askingForInstructionConfirmationState);

@@ -101,6 +101,16 @@ public class Const {
             , SCRIPT_IDENTIFYING_FEATURE_COLOR = "#008400", SCRIPT_VIEW_ID_COLOR = "#800080", SCRIPT_WITHIN_APP_COLOR = "#ff00ff", SCRIPT_LINK_COLOR = "#2e159f";
 
     public static int RECORDING_OVERLAY_COLOR = 0x20FFFF00;
+    public static int PREVIEW_OVERLAY_COLOR = 0xB0000000;
+    public static int MUL_ZEROS = 0xFF000000;
+    public static int RECORDING_ON_BUTTON_COLOR = 0xFFFF3838;
+    public static int RECORDING_OFF_BUTTON_COLOR = 0xFFDDDDDD;
+    public static int RECORDING_SPEAKING_BUTTON_COLOR = 0xFF3784FF;
+    public static int RECORDING_SPEAKING_ON_BACKGROUND_COLOR = 0xFFFFD3D3;
+    public static int RECORDING_SPEAKING_OFF_BACKGROUND_COLOR = 0xFFFFFFFF;
+    public static int RECORDING_WHITE_COLOR = 0xFFFFFFFF;
+    public static int RECORDING_DARK_GRAY_COLOR = 0xFF424242;
+
 
     public static final int SEMI_TRANSPARENT_GRAY_BACKGROUND = Color.parseColor("#80000000");
 

@@ -8,7 +8,7 @@ import java.util.Map;
 import java.util.Set;
 
 import edu.cmu.hcii.sugilite.Const;
-import edu.cmu.hcii.sugilite.model.block.UIElementMatchingFilter;
+import edu.cmu.hcii.sugilite.model.block.util.UIElementMatchingFilter;
 
 /**
  * Created by toby on 7/14/16.

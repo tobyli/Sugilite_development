@@ -7,7 +7,7 @@ import java.io.Serializable;
  * @date 8/6/16
  * @time 11:42 PM
  */
-public class SugiliteLoadVariableOperation extends SugiliteOperation implements Serializable{
+public class SugiliteLoadVariableOperation extends SugiliteTrinaryOperation implements Serializable{
     private String variableName;
     private String propertyToSave;
     public SugiliteLoadVariableOperation(){
@@ -27,5 +27,25 @@ public class SugiliteLoadVariableOperation extends SugiliteOperation implements 
 
     public void setPropertyToSave(String propertyToSave) {
         this.propertyToSave = propertyToSave;
+    }
+
+    @Override
+    public String getParameter1() {
+        return variableName;
+    }
+
+    @Override
+    public String getParameter2() {
+        return propertyToSave;
+    }
+
+    @Override
+    public void setParameter1(String value) {
+        this.variableName = value;
+    }
+
+    @Override
+    public void setParameter2(String value) {
+        this.propertyToSave = value;
     }
 }

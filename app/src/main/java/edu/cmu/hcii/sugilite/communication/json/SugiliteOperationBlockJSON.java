@@ -6,12 +6,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 import edu.cmu.hcii.sugilite.Const;
-import edu.cmu.hcii.sugilite.model.block.SerializableNodeInfo;
-import edu.cmu.hcii.sugilite.model.block.SugiliteAvailableFeaturePack;
-import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
+import edu.cmu.hcii.sugilite.model.block.util.SerializableNodeInfo;
+import edu.cmu.hcii.sugilite.model.block.util.SugiliteAvailableFeaturePack;
+import edu.cmu.hcii.sugilite.model.block.operation.SugiliteOperationBlock;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteOperation;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteReadoutOperation;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteSetTextOperation;
+import edu.cmu.hcii.sugilite.model.operation.SugiliteUnaryOperation;
 import edu.cmu.hcii.sugilite.recording.ReadableDescriptionGenerator;
 
 /**
@@ -76,7 +77,7 @@ public class SugiliteOperationBlockJSON {
             ((SugiliteReadoutOperation)operation).setPropertyToReadout(actionParameter);
         }
         else {
-            operation = new SugiliteOperation();
+            operation = new SugiliteUnaryOperation();
             if(actionType.equals("CLICK"))
                 operation.setOperationType(SugiliteOperation.CLICK);
             else if (actionType.equals("LONG_CLICK"))

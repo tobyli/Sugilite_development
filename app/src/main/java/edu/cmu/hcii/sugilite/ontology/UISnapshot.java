@@ -5,21 +5,17 @@ import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityNodeInfo;
 import android.view.accessibility.AccessibilityWindowInfo;
 
-import com.google.gson.Gson;
-
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ExecutorService;
 
 import edu.cmu.hcii.sugilite.Node;
-import edu.cmu.hcii.sugilite.automation.Automator;
+import edu.cmu.hcii.sugilite.automation.AutomatorUtil;
 import edu.cmu.hcii.sugilite.ontology.helper.ListOrderResolver;
 import edu.cmu.hcii.sugilite.ontology.helper.TextStringParseHelper;
 import edu.cmu.hcii.sugilite.ontology.helper.annotator.SugiliteTextAnnotator;
@@ -89,7 +85,7 @@ public class UISnapshot {
 
     public UISnapshot(AccessibilityNodeInfo rootNode, boolean toConstructNodeAccessibilityNodeInfoMap, SugiliteTextAnnotator sugiliteTextAnnotator) {
         this();
-        List<AccessibilityNodeInfo> allOldNodes = Automator.preOrderTraverse(rootNode);
+        List<AccessibilityNodeInfo> allOldNodes = AutomatorUtil.preOrderTraverse(rootNode);
         List<Node> allNodes = new ArrayList<>();
         for(AccessibilityNodeInfo oldNode : allOldNodes){
             Node node = new Node(oldNode);

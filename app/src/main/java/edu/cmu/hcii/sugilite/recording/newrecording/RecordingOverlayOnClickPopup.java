@@ -6,7 +6,6 @@ import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.view.LayoutInflater;
 import android.view.WindowManager;
-import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,20 +14,16 @@ import edu.cmu.hcii.sugilite.Const;
 import edu.cmu.hcii.sugilite.Node;
 import edu.cmu.hcii.sugilite.R;
 import edu.cmu.hcii.sugilite.SugiliteData;
-import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
+import edu.cmu.hcii.sugilite.model.block.operation.SugiliteOperationBlock;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteOperation;
+import edu.cmu.hcii.sugilite.model.operation.SugiliteUnaryOperation;
 import edu.cmu.hcii.sugilite.ontology.OntologyQuery;
 import edu.cmu.hcii.sugilite.ontology.SerializableOntologyQuery;
-import edu.cmu.hcii.sugilite.ontology.SerializableUISnapshot;
 import edu.cmu.hcii.sugilite.ontology.SugiliteEntity;
 import edu.cmu.hcii.sugilite.ontology.SugiliteRelation;
 import edu.cmu.hcii.sugilite.recording.ReadableDescriptionGenerator;
-import edu.cmu.hcii.sugilite.verbal_instruction_demo.DifferentParseChooseDialog;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.VerbalInstructionOverlayManager;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.VerbalInstructionRecordingManager;
-import edu.cmu.hcii.sugilite.verbal_instruction_demo.server_comm.SugiliteVerbalInstructionHTTPQueryManager;
-import edu.cmu.hcii.sugilite.verbal_instruction_demo.server_comm.VerbalInstructionServerResponse;
-import edu.cmu.hcii.sugilite.verbal_instruction_demo.server_comm.VerbalInstructionServerResults;
 
 /**
  * @author toby
@@ -123,7 +118,7 @@ public class RecordingOverlayOnClickPopup {
 
     private SugiliteOperationBlock generateBlock(OntologyQuery query, String formula){
         //generate the sugilite operation
-        SugiliteOperation sugiliteOperation = new SugiliteOperation();
+        SugiliteUnaryOperation sugiliteOperation = new SugiliteUnaryOperation();
         //assume it's click for now -- need to expand to more types of operations
         sugiliteOperation.setOperationType(SugiliteOperation.CLICK);
         SerializableOntologyQuery serializedQuery = new SerializableOntologyQuery(query);

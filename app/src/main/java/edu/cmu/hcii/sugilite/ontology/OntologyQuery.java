@@ -1,18 +1,14 @@
 package edu.cmu.hcii.sugilite.ontology;
 
-import android.content.Context;
-import android.content.pm.ApplicationInfo;
-import android.content.pm.PackageManager;
 import android.text.TextUtils;
 
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.function.*;
+import java.util.stream.Collectors;
 
 import edu.cmu.hcii.sugilite.BuildConfig;
-import edu.cmu.hcii.sugilite.Const;
-import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
 
 /**
  * Created by nancyli on 9/27/17.
@@ -20,7 +16,7 @@ import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
 
 public class OntologyQuery {
     public enum relationType {
-        nullR, AND, OR, PREV;
+        nullR, AND, OR, PREV
     }
     private relationType SubRelation;
     private Set<OntologyQuery> SubQueries = null;
@@ -318,11 +314,13 @@ public class OntologyQuery {
 
     private static OntologyQuery parseString(String s, OntologyQuery q) {
         // example: (conj (IS_CLICKABLE true) (HAS_TEXT coffee))
+        s = s.trim();
         int len = s.length();
         if(BuildConfig.DEBUG && !(s.charAt(0) == '(' && s.charAt(len-1) == ')')){
             //throw new AssertionError();
         }
         s = s.substring(1, len-1);
+        s = s.trim();
         // s: conj (IS_CLICKABLE true) (HAS_TEXT coffee)
         len = s.length();
 
@@ -419,8 +417,9 @@ public class OntologyQuery {
             for(int i = 0; i < size; i++){
                 arr[i] = subQueryArray[i].toString();
             }
-            if(SubRelation == relationType.AND) return "(conj " + TextUtils.join(" ", arr) + ")";
-            else return "(or " + TextUtils.join(" ", arr) + ")";
+            String joined = Arrays.asList(arr).stream().collect(Collectors.joining(" "));
+            if(SubRelation == relationType.AND) return "(conj " + joined + ")";
+            else return "(or " + joined + ")";
         }
 
         // SubRelation == relationType.PREV

@@ -22,8 +22,8 @@ import java.util.Set;
 
 import edu.cmu.hcii.sugilite.SugiliteAccessibilityService;
 import edu.cmu.hcii.sugilite.SugiliteData;
-import edu.cmu.hcii.sugilite.model.block.SugiliteAvailableFeaturePack;
-import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
+import edu.cmu.hcii.sugilite.model.block.util.SugiliteAvailableFeaturePack;
+import edu.cmu.hcii.sugilite.model.block.operation.SugiliteOperationBlock;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteOperation;
 import edu.cmu.hcii.sugilite.ontology.SerializableOntologyQuery;
 import edu.cmu.hcii.sugilite.ontology.UISnapshot;

@@ -1,12 +1,11 @@
 package edu.cmu.hcii.sugilite.recording;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
-import edu.cmu.hcii.sugilite.model.block.SerializableNodeInfo;
-import edu.cmu.hcii.sugilite.model.block.UIElementMatchingFilter;
+import edu.cmu.hcii.sugilite.model.block.util.SerializableNodeInfo;
+import edu.cmu.hcii.sugilite.model.block.util.UIElementMatchingFilter;
 
 /**
  * Created by toby on 8/8/16.

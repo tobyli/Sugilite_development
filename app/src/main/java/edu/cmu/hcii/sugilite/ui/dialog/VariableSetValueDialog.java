@@ -28,6 +28,7 @@ import edu.cmu.hcii.sugilite.R;
 import edu.cmu.hcii.sugilite.SugiliteAccessibilityService;
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.automation.Automator;
+import edu.cmu.hcii.sugilite.automation.AutomatorUtil;
 import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.model.variable.StringVariable;
@@ -72,8 +73,10 @@ public class VariableSetValueDialog extends AbstractSugiliteDialog{
 
 
         for(Map.Entry<String, Variable> entry : variableDefaultValueMap.entrySet()){
-            if(entry.getValue().type == Variable.LOAD_RUNTIME)
+            if(entry.getValue().type == Variable.LOAD_RUNTIME) {
+                //only ask the values for those that need to be loaded as a user input
                 continue;
+            }
             LinearLayout linearLayout = new LinearLayout(context);
             linearLayout.setOrientation(LinearLayout.HORIZONTAL);
             linearLayout.setWeightSum(3);
@@ -188,7 +191,7 @@ public class VariableSetValueDialog extends AbstractSugiliteDialog{
         prefEditor.apply();
         //kill all the relevant packages
         for (String packageName : startingBlock.relevantPackages) {
-            Automator.killPackage(packageName);
+            AutomatorUtil.killPackage(packageName);
         }
 
         progressDialog = new AlertDialog.Builder(context).setMessage(Const.LOADING_MESSAGE).create();

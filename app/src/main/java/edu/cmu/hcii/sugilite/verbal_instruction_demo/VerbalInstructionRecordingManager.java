@@ -19,10 +19,11 @@ import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptFileDao;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptSQLDao;
 import edu.cmu.hcii.sugilite.model.block.SugiliteErrorHandlingForkBlock;
-import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
-import edu.cmu.hcii.sugilite.model.block.SugiliteSpecialOperationBlock;
+import edu.cmu.hcii.sugilite.model.block.operation.SugiliteOperationBlock;
+import edu.cmu.hcii.sugilite.model.block.operation.special_operation.SugiliteSpecialOperationBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteOperation;
+import edu.cmu.hcii.sugilite.model.operation.SugiliteUnaryOperation;
 import edu.cmu.hcii.sugilite.ontology.OntologyQuery;
 import edu.cmu.hcii.sugilite.ontology.SerializableOntologyQuery;
 import edu.cmu.hcii.sugilite.ontology.SerializableUISnapshot;
@@ -128,7 +129,7 @@ public class VerbalInstructionRecordingManager {
      */
     private SugiliteOperationBlock generateBlock(OntologyQuery query, String formula, String utterance){
         //generate the sugilite operation
-        SugiliteOperation sugiliteOperation = new SugiliteOperation();
+        SugiliteUnaryOperation sugiliteOperation = new SugiliteUnaryOperation();
         //assume it's click for now -- need to expand to more types of operations
         sugiliteOperation.setOperationType(SugiliteOperation.CLICK);
         SerializableOntologyQuery serializedQuery = new SerializableOntologyQuery(query);

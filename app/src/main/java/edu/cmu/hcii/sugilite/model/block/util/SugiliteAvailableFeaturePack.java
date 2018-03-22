@@ -1,7 +1,6 @@
-package edu.cmu.hcii.sugilite.model.block;
+package edu.cmu.hcii.sugilite.model.block.util;
 
 import android.view.accessibility.AccessibilityEvent;
-import android.view.accessibility.AccessibilityNodeInfo;
 
 import java.io.File;
 import java.io.Serializable;
@@ -13,7 +12,6 @@ import java.util.Set;
 
 import edu.cmu.hcii.sugilite.Const;
 import edu.cmu.hcii.sugilite.Node;
-import edu.cmu.hcii.sugilite.model.AccessibilityNodeInfoList;
 import edu.cmu.hcii.sugilite.ontology.SugiliteRelation;
 import edu.cmu.hcii.sugilite.ontology.SugiliteTriple;
 import edu.cmu.hcii.sugilite.ontology.UISnapshot;

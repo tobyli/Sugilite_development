@@ -9,7 +9,7 @@ import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
  * @date 6/10/16
  * @time 2:23 PM
  */
-public class SugiliteSetTextOperation extends SugiliteOperation implements Serializable {
+public class SugiliteSetTextOperation extends SugiliteBinaryOperation implements Serializable {
     private String text;
     public SugiliteSetTextOperation(){
         super();
@@ -21,4 +21,14 @@ public class SugiliteSetTextOperation extends SugiliteOperation implements Seria
     public void setText(String text){
         this.text = text;
     }
+
+    @Override
+    public String getParameter1() {
+        return text;
+    }
+    @Override
+    public void setParameter1(String value) {
+        this.text = value;
+    }
 }
+

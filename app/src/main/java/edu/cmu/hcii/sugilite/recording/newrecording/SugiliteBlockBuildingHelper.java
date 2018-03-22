@@ -16,12 +16,12 @@ import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptFileDao;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptSQLDao;
-import edu.cmu.hcii.sugilite.model.block.SugiliteAvailableFeaturePack;
+import edu.cmu.hcii.sugilite.model.block.util.SugiliteAvailableFeaturePack;
 import edu.cmu.hcii.sugilite.model.block.SugiliteErrorHandlingForkBlock;
-import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
-import edu.cmu.hcii.sugilite.model.block.SugiliteSpecialOperationBlock;
+import edu.cmu.hcii.sugilite.model.block.operation.SugiliteOperationBlock;
+import edu.cmu.hcii.sugilite.model.block.operation.special_operation.SugiliteSpecialOperationBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
-import edu.cmu.hcii.sugilite.model.operation.SugiliteOperation;
+import edu.cmu.hcii.sugilite.model.operation.SugiliteUnaryOperation;
 import edu.cmu.hcii.sugilite.ontology.description.OntologyDescriptionGenerator;
 import edu.cmu.hcii.sugilite.ontology.OntologyQuery;
 import edu.cmu.hcii.sugilite.ontology.SerializableOntologyQuery;
@@ -62,7 +62,7 @@ public class SugiliteBlockBuildingHelper {
     }
 
     public SugiliteOperationBlock getOperationBlockFromQuery(SerializableOntologyQuery query, int opeartionType, SugiliteAvailableFeaturePack featurePack){
-        SugiliteOperation sugiliteOperation = new SugiliteOperation();
+        SugiliteUnaryOperation sugiliteOperation = new SugiliteUnaryOperation();
         sugiliteOperation.setOperationType(opeartionType);
         final SugiliteOperationBlock operationBlock = new SugiliteOperationBlock();
         operationBlock.setOperation(sugiliteOperation);

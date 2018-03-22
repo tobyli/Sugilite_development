@@ -38,14 +38,15 @@ import edu.cmu.hcii.sugilite.R;
 import edu.cmu.hcii.sugilite.SugiliteAccessibilityService;
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.automation.Automator;
+import edu.cmu.hcii.sugilite.automation.AutomatorUtil;
 import edu.cmu.hcii.sugilite.automation.ServiceStatusManager;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptFileDao;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptSQLDao;
 import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteErrorHandlingForkBlock;
-import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
-import edu.cmu.hcii.sugilite.model.block.SugiliteSpecialOperationBlock;
+import edu.cmu.hcii.sugilite.model.block.operation.SugiliteOperationBlock;
+import edu.cmu.hcii.sugilite.model.block.operation.special_operation.SugiliteSpecialOperationBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.model.variable.Variable;
 import edu.cmu.hcii.sugilite.recording.RecordingPopUpDialog;
@@ -807,7 +808,7 @@ public class ScriptDebuggingActivity extends AppCompatActivity {
             sugiliteData.setCurrentScriptBlock(script.getTail());
             //force stop all the relevant packages
             for (String packageName : script.relevantPackages) {
-                Automator.killPackage(packageName);
+                AutomatorUtil.killPackage(packageName);
             }
             sugiliteData.runScript(script, true, SugiliteData.EXECUTION_STATE);
             //need to have this delay to ensure that the killing has finished before we start executing

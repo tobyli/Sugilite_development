@@ -12,7 +12,6 @@ import android.view.LayoutInflater;
 import android.view.WindowManager;
 import android.view.accessibility.AccessibilityNodeInfo;
 
-import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
@@ -30,12 +29,12 @@ import edu.cmu.hcii.sugilite.dao.SugiliteScriptFileDao;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptSQLDao;
 import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteErrorHandlingForkBlock;
-import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
-import edu.cmu.hcii.sugilite.model.block.SugiliteSpecialOperationBlock;
+import edu.cmu.hcii.sugilite.model.block.operation.SugiliteOperationBlock;
+import edu.cmu.hcii.sugilite.model.block.operation.special_operation.SugiliteSpecialOperationBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
-import edu.cmu.hcii.sugilite.model.block.UIElementMatchingFilter;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteLoadVariableOperation;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteOperation;
+import edu.cmu.hcii.sugilite.model.operation.SugiliteReadoutConstOperation;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteReadoutOperation;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteSetTextOperation;
 import edu.cmu.hcii.sugilite.model.variable.StringVariable;
@@ -50,7 +49,6 @@ import edu.cmu.hcii.sugilite.ui.BoundingBoxManager;
 import edu.cmu.hcii.sugilite.ui.StatusIconManager;
 
 import android.speech.tts.TextToSpeech;
-import android.view.accessibility.AccessibilityWindowInfo;
 
 import static edu.cmu.hcii.sugilite.Const.DEBUG_DELAY;
 import static edu.cmu.hcii.sugilite.Const.DELAY;
@@ -75,7 +73,6 @@ public class Automator {
     private boolean ttsReady = false;
     private SugiliteScreenshotManager screenshotManager;
     private SugiliteTextAnnotator sugiliteTextAnnotator;
-    static private Set<String> homeScreenPackageNameSet;
 
     public Automator(SugiliteData sugiliteData, SugiliteAccessibilityService context, StatusIconManager statusIconManager, SharedPreferences sharedPreferences, SugiliteTextAnnotator sugiliteTextAnnotator){
         this.sugiliteData = sugiliteData;
@@ -88,7 +85,8 @@ public class Automator {
             this.sugiliteScriptDao = new SugiliteScriptFileDao(context, sugiliteData);
         this.layoutInflater = (LayoutInflater) context.getSystemService( Context.LAYOUT_INFLATER_SERVICE );
         this.sharedPreferences = sharedPreferences;
-        /*
+
+        //load tts
         try {
             tts = new TextToSpeech(context, new TextToSpeech.OnInitListener() {
                 @Override
@@ -100,14 +98,14 @@ public class Automator {
         catch (Exception e){
             e.printStackTrace();
         }
-        */
+
         screenshotManager = new SugiliteScreenshotManager(sharedPreferences, context);
-        homeScreenPackageNameSet = new HashSet<>();
-        homeScreenPackageNameSet.addAll(Arrays.asList(HOME_SCREEN_PACKAGE_NAMES));
     }
 
     List<Node> lastTimeFailed = new ArrayList<>();
     //the return value is not used?
+
+    @Deprecated
     public boolean handleLiveEvent (AccessibilityNodeInfo rootNode, Context context){
         //TODO: fix the highlighting for matched element
         if(sugiliteData.getInstructionQueueSize() == 0 || rootNode == null)
@@ -209,7 +207,7 @@ public class Automator {
                 //if we can match this event, perform the action and remove the head object
 
                 if(true/*has last time failed*/ && lastTimeFailed != null && lastTimeFailed.size() > 0){
-                    List<AccessibilityNodeInfo> allNodes = Automator.preOrderTraverse(rootNode);
+                    List<AccessibilityNodeInfo> allNodes = AutomatorUtil.preOrderTraverse(rootNode);
                     List<AccessibilityNodeInfo> filteredNode = new ArrayList<>();
                     boolean succeeded = false;
                     for(AccessibilityNodeInfo node : allNodes){
@@ -324,6 +322,13 @@ public class Automator {
         }
     }
 
+    /**
+     * for running the script -- called when a new UI snapshot is available
+     * @param uiSnapshot
+     * @param context
+     * @param allNodes
+     * @return
+     */
     public boolean handleLiveEvent (UISnapshot uiSnapshot, Context context, List<AccessibilityNodeInfo> allNodes){
         //TODO: fix the highlighting for matched element
         if(sugiliteData.getInstructionQueueSize() == 0 || uiSnapshot == null)
@@ -339,7 +344,6 @@ public class Automator {
              * nothing really special needed for starting blocks, just add the next block to the queue
              */
             if (blockToMatch instanceof SugiliteStartingBlock) {
-                //Toast.makeText(context, "Start running script " + ((SugiliteStartingBlock)blockToMatch).getScriptName(), Toast.LENGTH_SHORT).show();
                 sugiliteData.removeInstructionQueueItem();
                 addNextBlockToQueue(blockToMatch);
                 return true;
@@ -353,7 +357,7 @@ public class Automator {
                 return true;
             }
             /**
-             * for subscript operation blocks, the subscript should be executed
+             * for special operation blocks, the run() method should be executed
              */
             else if (blockToMatch instanceof SugiliteSpecialOperationBlock){
                 sugiliteData.removeInstructionQueueItem();
@@ -376,6 +380,7 @@ public class Automator {
             //the blockToMatch is an operation block
             SugiliteOperationBlock operationBlock = (SugiliteOperationBlock) blockToMatch;
 
+            //for the debugging mode - handle the breakpoint
             if(operationBlock.isSetAsABreakPoint) {
                 sugiliteData.storedInstructionQueueForPause.clear();
                 sugiliteData.storedInstructionQueueForPause.addAll(sugiliteData.getCopyOfInstructionQueue());
@@ -386,8 +391,11 @@ public class Automator {
 
             if (operationBlock.getQuery() == null) {
                 //there is no query in the operation block
-                if (operationBlock.getOperation().getOperationType() == SugiliteOperation.SPECIAL_GO_HOME) {
-                    //perform the go home operation - because the go home operation will have a null filter
+                if (operationBlock.getOperation().getOperationType() == SugiliteOperation.SPECIAL_GO_HOME ||
+                        operationBlock.getOperation().getOperationType() == SugiliteOperation.READOUT_CONST) {
+
+
+                    //** perform the operation with node = null - because the special_go_home operation and readout_const operations will have a null filter
                     boolean retVal = performAction(null, operationBlock);
                     if (retVal) {
                         sugiliteData.errorHandler.reportSuccess(Calendar.getInstance().getTimeInMillis());
@@ -415,17 +423,20 @@ public class Automator {
                     }
                     return retVal;
 
-                } else
+                }
+
+                else {
+                    //error, because the block contains no query
                     return false;
+                }
             }
+
             else {
                 //the operation has a query, try to use the query to match a node
-
                 variableHelper = new VariableHelper(sugiliteData.stringVariableMap);
-                //if we can match this event, perform the action and remove the head object
 
-                if(true/*has last time failed*/ && lastTimeFailed != null && lastTimeFailed.size() > 0){
-                    List<AccessibilityNodeInfo> filteredNode = new ArrayList<>();
+                //try to perform operations that have failed last time
+                if(/*has last time failed*/ lastTimeFailed != null && lastTimeFailed.size() > 0){
                     boolean succeeded = false;
                     for(AccessibilityNodeInfo node : allNodes){
                         for(Node lasttimeFailedNode : lastTimeFailed){
@@ -435,7 +446,8 @@ public class Automator {
                                     ((lasttimeFailedNode.getClassName() == null && node.getClassName() == null) || lasttimeFailedNode.getClassName().equals(node.getClassName().toString())) &&
                                     ((lasttimeFailedNode.getBoundsInScreen() == null && rect.flattenToString() == null) || lasttimeFailedNode.getBoundsInScreen().equals(rect.flattenToString())) &&
                                     ((lasttimeFailedNode.getViewId() == null && node.getViewIdResourceName() == null) || (lasttimeFailedNode.getViewId() != null && lasttimeFailedNode.getViewId().equals(node.getViewIdResourceName())))){
-                                //TODO: execute on node
+
+                                //!!!execute on node
                                 boolean retVal = performAction(node, operationBlock);
                                 if (retVal) {
                                     //the action is performed successfully
@@ -468,10 +480,10 @@ public class Automator {
                     }
                 }
 
-
-
                 //de-serialize the OntologyQuery
                 OntologyQuery q = new OntologyQuery(operationBlock.getQuery());
+
+                //execute the OntologyQuery on the current UI snapshot
                 Set<SugiliteEntity> querySet = q.executeOn(uiSnapshot);
 
                 List<AccessibilityNodeInfo> filteredNodes = new ArrayList<AccessibilityNodeInfo>();
@@ -489,22 +501,11 @@ public class Automator {
                 boolean succeeded = false;
                 for (AccessibilityNodeInfo node : filteredNodes) {
                     //TODO: scrolling to find more nodes -- not only the ones displayed on the current screen
-                    if (operationBlock.getOperation().getOperationType() == SugiliteOperation.CLICK && (!node.isClickable()))
-                        //continue;
-                        try {
-                        } catch (Exception e) {
-                            // do nothing
-                        }
                     boolean retVal = performAction(node, operationBlock);
-                    if (retVal) {
-                        //the action is performed successfully
 
-                        /*
-                        Rect tempRect = new Rect();
-                        node.getBoundsInScreen(tempRect);
-                        statusIconManager.moveIcon(tempRect.centerX(), tempRect.centerY());
-                        */
+                    if (retVal) {
                         if (!succeeded) {
+                            //report success
                             sugiliteData.errorHandler.reportSuccess(Calendar.getInstance().getTimeInMillis());
                             if (sugiliteData.getInstructionQueueSize() > 0) {
                                 sugiliteData.removeInstructionQueueItem();
@@ -524,12 +525,14 @@ public class Automator {
                         }
                     }
                 }
+
                 if(! succeeded){
                     lastTimeFailed.clear();
                     for(AccessibilityNodeInfo node : filteredNodes){
                         lastTimeFailed.add(new Node(node));
                     }
                 }
+
                 else{
                     lastTimeFailed.clear();
                 }
@@ -538,13 +541,17 @@ public class Automator {
         }
     }
 
-    public boolean performAction(AccessibilityNodeInfo node, SugiliteOperationBlock block) {
+    private boolean performAction(AccessibilityNodeInfo node, SugiliteOperationBlock block) {
 
         AccessibilityNodeInfo nodeToAction = node;
+
         if(block.getOperation().getOperationType() == SugiliteOperation.CLICK){
             return nodeToAction.performAction(AccessibilityNodeInfo.ACTION_CLICK);
         }
+
         if(block.getOperation().getOperationType() == SugiliteOperation.SET_TEXT){
+
+            //variable helper helps parse variables in the argument
             variableHelper = new VariableHelper(sugiliteData.stringVariableMap);
             String text = variableHelper.parse(((SugiliteSetTextOperation)block.getOperation()).getText());
             Bundle arguments = new Bundle();
@@ -552,9 +559,11 @@ public class Automator {
                     .ACTION_ARGUMENT_SET_TEXT_CHARSEQUENCE, text);
             return nodeToAction.performAction(AccessibilityNodeInfo.ACTION_SET_TEXT, arguments);
         }
+
         if(block.getOperation().getOperationType() == SugiliteOperation.LONG_CLICK){
             return nodeToAction.performAction(AccessibilityNodeInfo.ACTION_LONG_CLICK);
         }
+
         if(block.getOperation().getOperationType() == SugiliteOperation.SELECT){
             return nodeToAction.performAction(AccessibilityNodeInfo.ACTION_SELECT);
         }
@@ -569,48 +578,64 @@ public class Automator {
         }
 
         if(block.getOperation().getOperationType() == SugiliteOperation.READ_OUT){
-            if(tts != null) {
-                if (((SugiliteReadoutOperation)(block.getOperation())).getPropertyToReadout().toLowerCase().contentEquals("text")) {
-                    if (ttsReady && node != null && node.getText() != null) {
-                        tts.speak("Result", TextToSpeech.QUEUE_ADD, null);
+            if(tts != null && ttsReady) {
+                if (((SugiliteReadoutOperation)(block.getOperation())).getPropertyToReadout().contentEquals("hasText")) {
+                    if (node != null && node.getText() != null) {
                         tts.speak(node.getText().toString(), TextToSpeech.QUEUE_ADD, null);
                     }
-                } else if (((SugiliteReadoutOperation)(block.getOperation())).getPropertyToReadout().toLowerCase().contentEquals("child text")) {
-                    List<AccessibilityNodeInfo> children = preOrderTraverse(node);
-                    if (ttsReady && node != null && children != null && children.size() > 0) {
+                } else if (((SugiliteReadoutOperation)(block.getOperation())).getPropertyToReadout().contentEquals("HAS_CHILD_TEXT")) {
+                    List<AccessibilityNodeInfo> children = AutomatorUtil.preOrderTraverse(node);
+                    if (node != null && children != null && children.size() > 0) {
                         String childText = "";
                         for (AccessibilityNodeInfo childNode : children) {
                             if (childNode.getText() != null)
                                 childText += childNode.getText();
                         }
                         if (childText.length() > 0) {
-                            tts.speak("Result", TextToSpeech.QUEUE_ADD, null);
                             tts.speak(childText, TextToSpeech.QUEUE_ADD, null);
                         }
                     }
-                } else if (((SugiliteReadoutOperation)(block.getOperation())).getPropertyToReadout().toLowerCase().contentEquals("content description")) {
-                    if (ttsReady && node != null && node.getContentDescription() != null) {
-                        tts.speak("Result", TextToSpeech.QUEUE_ADD, null);
+                } else if (((SugiliteReadoutOperation)(block.getOperation())).getPropertyToReadout().contentEquals("HAS_CONTENT_DESCRIPTION")) {
+                    if (node != null && node.getContentDescription() != null) {
                         tts.speak(node.getContentDescription().toString(), TextToSpeech.QUEUE_ADD, null);
                     }
                 }
             }
+
+            else {
+                System.out.println("TTS Failed!");
+            }
             return true;
         }
 
+        if(block.getOperation().getOperationType() == SugiliteOperation.READOUT_CONST){
+            if(tts != null && ttsReady && block.getOperation() instanceof SugiliteReadoutConstOperation) {
+                variableHelper = new VariableHelper(sugiliteData.stringVariableMap);
+                String text = variableHelper.parse(((SugiliteReadoutConstOperation) block.getOperation()).getTextToReadout());
+                tts.speak(text, TextToSpeech.QUEUE_ADD, null);
+            }
+
+            else {
+                System.out.println("TTS Failed!");
+            }
+            return true;
+        }
+
+        //TODO: refactor the LOAD_AS_VARIABLE
         if(block.getOperation().getOperationType() == SugiliteOperation.LOAD_AS_VARIABLE) {
             if (block.getOperation() instanceof SugiliteLoadVariableOperation) {
                 String variableName = ((SugiliteLoadVariableOperation) block.getOperation()).getVariableName();
+                //create a new variable
                 StringVariable stringVariable = new StringVariable(variableName);
                 stringVariable.type = Variable.LOAD_RUNTIME;
 
-                if (((SugiliteLoadVariableOperation)(block.getOperation())).getPropertyToSave().contentEquals("Text")) {
+                if (((SugiliteLoadVariableOperation)(block.getOperation())).getPropertyToSave().contentEquals("hasText")) {
                     if (node.getText() != null) {
                         stringVariable.setValue(node.getText().toString());
                     }
-                } else if (((SugiliteLoadVariableOperation)(block.getOperation())).getPropertyToSave().contentEquals("Child Text")) {
-                    List<AccessibilityNodeInfo> children = preOrderTraverse(node);
-                    if (ttsReady && node != null && children != null && children.size() > 0) {
+                } else if (((SugiliteLoadVariableOperation)(block.getOperation())).getPropertyToSave().contentEquals("HAS_CHILD_TEXT")) {
+                    List<AccessibilityNodeInfo> children = AutomatorUtil.preOrderTraverse(node);
+                    if (node != null && children != null && children.size() > 0) {
                         String childText = "";
                         for (AccessibilityNodeInfo childNode : children) {
                             if (childNode.getText() != null)
@@ -620,7 +645,7 @@ public class Automator {
                             stringVariable.setValue(childText);
                         }
                     }
-                } else if (((SugiliteLoadVariableOperation)(block.getOperation())).getPropertyToSave().contentEquals("Content Description")) {
+                } else if (((SugiliteLoadVariableOperation)(block.getOperation())).getPropertyToSave().contentEquals("HAS_CONTENT_DESCRIPTION")) {
                     if (node.getContentDescription() != null) {
                         stringVariable.setValue(node.getContentDescription().toString());
                     }
@@ -638,154 +663,16 @@ public class Automator {
     }
 
 
-    private static boolean isChild(AccessibilityNodeInfo child, AccessibilityNodeInfo parent) {
-        Rect childBox = new Rect();
-        Rect compBox = new Rect();
-        child.getBoundsInScreen(childBox);
-
-        int numChildren = parent.getChildCount();
-        for(int i = 0; i < numChildren; i++){
-            AccessibilityNodeInfo c = parent.getChild(i);
-            if(c == null) continue;
-            c.getBoundsInScreen(compBox);
-            if(child.getClassName().toString().equals(c.getClassName().toString()) &&
-                    childBox.contains(compBox) && compBox.contains(childBox)){
-                return true;
-            }
-        }
-        return false;
-    }
-
-    public static AccessibilityNodeInfo customGetParent(AccessibilityNodeInfo child) {
-        AccessibilityNodeInfo potentialParent = child.getParent();
-        if(potentialParent == null) return null;
-        if(isChild(child, potentialParent)) return potentialParent;
-
-        // this is the wrong parent :(
-        int numChildren = potentialParent.getChildCount();
-        for(int i = 0 ; i < numChildren; i++){
-            AccessibilityNodeInfo newPotentialParent = potentialParent.getChild(i);
-            if(newPotentialParent == null) continue;
-            if(isChild(child, newPotentialParent)) return newPotentialParent;
-        }
-        return null;
-    }
-
-    /**
-     * traverse a tree from the root, and return all the notes in the tree
-     * @param root
-     * @return
-     */
-    public static List<AccessibilityNodeInfo> preOrderTraverse(AccessibilityNodeInfo root){
-        if(root == null)
-            return null;
-        List<AccessibilityNodeInfo> list = new ArrayList<>();
-        list.add(root);
-        int childCount = root.getChildCount();
-        for(int i = 0; i < childCount; i ++){
-            AccessibilityNodeInfo node = root.getChild(i);
-            if(node != null)
-                list.addAll(preOrderTraverse(node));
-        }
-        return list;
-    }
-
-    /**
-     * return all nodes from a list of windows
-     * @param windows
-     * @return
-     */
-    public static List<AccessibilityNodeInfo> getAllNodesFromWindows(List<AccessibilityWindowInfo> windows){
-        List<AccessibilityNodeInfo> allNodes = new ArrayList<>();
-        for(AccessibilityWindowInfo window : windows){
-            AccessibilityNodeInfo rootNode = window.getRoot();
-            if(rootNode != null) {
-                allNodes.addAll(preOrderTraverse(rootNode));
-            }
-        }
-        return allNodes;
-    }
-
-    public static List<AccessibilityNodeInfo> preOrderTraverseSiblings(AccessibilityNodeInfo node){
-        if(node == null) return null;
-        List<AccessibilityNodeInfo> siblingNodes = new ArrayList<AccessibilityNodeInfo>();
-        AccessibilityNodeInfo parent = node.getParent();
-        if(parent == null) return siblingNodes;
-        // adding parent for now
-        siblingNodes.add(parent);
-        Rect nodeRect = new Rect();
-        Rect compRect = new Rect();
-        node.getBoundsInScreen(nodeRect);
-        int numSibling = parent.getChildCount();
-        for (int i = 0; i < numSibling; i++){
-            AccessibilityNodeInfo currSib = parent.getChild(i);
-            if(currSib == null) continue;
-            currSib.getBoundsInScreen(compRect);
-            // checking bounding screen + name for equality
-            if(currSib.getClassName().toString().equals(node.getClassName().toString()) &&
-                    nodeRect.contains(compRect) && compRect.contains(nodeRect)) continue;
-            siblingNodes.add(currSib);
-        }
-
-        List<AccessibilityNodeInfo> preOrderTraverseSibNode = new ArrayList<AccessibilityNodeInfo>();
-        for (AccessibilityNodeInfo sib : siblingNodes) {
-            // add all children of the sibling node
-            preOrderTraverseSibNode.addAll(Automator.preOrderTraverse(sib));
-        }
-        return preOrderTraverseSibNode;
-    }
-
-    public List<AccessibilityNodeInfo> getClickableList (List<AccessibilityNodeInfo> nodeInfos){
-        List<AccessibilityNodeInfo> retList = new ArrayList<>();
-        for(AccessibilityNodeInfo node : nodeInfos){
-            if(node.isClickable())
-                retList.add(node);
-        }
-        return retList;
-    }
-
-    private String textVariableParse (String text, Set<String> variableSet, Map<String, Variable> variableValueMap){
-        if(variableSet == null || variableValueMap == null)
-            return text;
-        String currentText = new String(text);
-        for(Map.Entry<String, Variable> entry : variableValueMap.entrySet()){
-            if(!variableSet.contains(entry.getKey()))
-                continue;
-            if(entry.getValue() instanceof StringVariable)
-                currentText = currentText.replace("@" + entry.getKey(), ((StringVariable) entry.getValue()).getValue());
-        }
-        return currentText;
-    }
-
-    /**
-     * kill a package named packageName
-     * @param packageName
-     */
-    static public void killPackage(String packageName){
-        //don't kill the home screen
-        if(homeScreenPackageNameSet.contains(packageName))
+    private void addNextBlockToQueue(final SugiliteBlock block){
+        if(block == null) {
             return;
-        try {
-            Process sh = Runtime.getRuntime().exec("su", null, null);
-            OutputStream os = sh.getOutputStream();
-            os.write(("am force-stop " + packageName).getBytes("ASCII"));
-            os.flush();
-            os.close();
-            System.out.println(packageName);
-        } catch (Exception e) {
-            System.out.println("FAILED TO KILL RELEVANT PACKAGES (permission denied)");
-            e.printStackTrace();
-            // do nothing, likely this exception is caused by non-rooted device
         }
-    }
-
-    public void addNextBlockToQueue(final SugiliteBlock block){
-        if(block == null)
-            return;
-        if(block instanceof SugiliteStartingBlock)
-            sugiliteData.addInstruction(((SugiliteStartingBlock) block).getNextBlock());
-        else if (block instanceof  SugiliteOperationBlock)
-            sugiliteData.addInstruction(((SugiliteOperationBlock) block).getNextBlock());
+        if(block instanceof SugiliteStartingBlock) {
+            sugiliteData.addInstruction(block.getNextBlock());
+        }
+        else if (block instanceof  SugiliteOperationBlock) {
+            sugiliteData.addInstruction(block.getNextBlock());
+        }
         //if the current block is a fork, then SUGILITE needs to determine which "next block" to add to the queue
         else if (block instanceof SugiliteErrorHandlingForkBlock){
             //TODO: add automatic feature if can only find solution for one
@@ -814,23 +701,13 @@ public class Automator {
                 }
             });
         }
-        else if (block instanceof SugiliteSpecialOperationBlock)
-            sugiliteData.addInstruction(((SugiliteSpecialOperationBlock) block).getNextBlock());
-        else
+        else if (block instanceof SugiliteSpecialOperationBlock) {
+            sugiliteData.addInstruction(block.getNextBlock());
+        }
+        else {
             throw new RuntimeException("Unsupported Block Type!");
+        }
+        //TODO: add handling for conditionals
     }
-
-    /**
-     *
-     * @param block
-     * @return true for original branch, false for alternative branch
-     */
-    //ONLY THE ALTERNATIVE BLOCK CAN BE ANOTHER FORK BLOCK!!!
-    public boolean chooseBranchForForkBlock(SugiliteErrorHandlingForkBlock block){
-        return false;
-    }
-
-
-
 
 }

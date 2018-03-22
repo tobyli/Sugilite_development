@@ -5,7 +5,6 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
-import android.graphics.Color;
 import android.graphics.Rect;
 import android.text.Editable;
 import android.text.Html;
@@ -51,18 +50,19 @@ import edu.cmu.hcii.sugilite.communication.SugiliteBlockJSONProcessor;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptFileDao;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptSQLDao;
-import edu.cmu.hcii.sugilite.model.block.SerializableNodeInfo;
-import edu.cmu.hcii.sugilite.model.block.SugiliteAvailableFeaturePack;
+import edu.cmu.hcii.sugilite.model.block.util.SerializableNodeInfo;
+import edu.cmu.hcii.sugilite.model.block.util.SugiliteAvailableFeaturePack;
 import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteErrorHandlingForkBlock;
-import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
-import edu.cmu.hcii.sugilite.model.block.SugiliteSpecialOperationBlock;
+import edu.cmu.hcii.sugilite.model.block.operation.SugiliteOperationBlock;
+import edu.cmu.hcii.sugilite.model.block.operation.special_operation.SugiliteSpecialOperationBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
-import edu.cmu.hcii.sugilite.model.block.UIElementMatchingFilter;
+import edu.cmu.hcii.sugilite.model.block.util.UIElementMatchingFilter;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteLoadVariableOperation;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteOperation;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteReadoutOperation;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteSetTextOperation;
+import edu.cmu.hcii.sugilite.model.operation.SugiliteUnaryOperation;
 import edu.cmu.hcii.sugilite.model.variable.StringVariable;
 import edu.cmu.hcii.sugilite.model.variable.Variable;
 import edu.cmu.hcii.sugilite.ontology.OntologyQuery;
@@ -1812,7 +1812,7 @@ public class RecordingPopUpDialog extends AbstractSugiliteDialog {
 
     private SugiliteOperationBlock generateBlock(){
         //determine the action first
-        SugiliteOperation sugiliteOperation = new SugiliteOperation();
+        SugiliteOperation sugiliteOperation = new SugiliteUnaryOperation();
         String actionSpinnerSelectedItem = actionSpinner.getSelectedItem().toString();
         if (actionSpinnerSelectedItem.contentEquals("Click"))
             sugiliteOperation.setOperationType(SugiliteOperation.CLICK);

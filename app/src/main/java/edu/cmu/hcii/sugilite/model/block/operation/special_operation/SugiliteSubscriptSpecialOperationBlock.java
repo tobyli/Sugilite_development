@@ -1,4 +1,4 @@
-package edu.cmu.hcii.sugilite.model.block;
+package edu.cmu.hcii.sugilite.model.block.operation.special_operation;
 
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -9,9 +9,11 @@ import java.util.Map;
 
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
-import edu.cmu.hcii.sugilite.dao.SugiliteScriptSQLDao;
+import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.model.variable.Variable;
 import edu.cmu.hcii.sugilite.ui.dialog.VariableSetValueDialog;
+
+import static edu.cmu.hcii.sugilite.source_parsing.SugiliteScriptExpression.addQuoteToTokenIfNeeded;
 
 /**
  * @author toby
@@ -87,6 +89,6 @@ public class SugiliteSubscriptSpecialOperationBlock extends SugiliteSpecialOpera
 
     @Override
     public String toString() {
-        return "(" + "RUN_SCRIPT" + " " + subscriptName + ")";
+        return "(" + "RUN_SCRIPT" + " " + addQuoteToTokenIfNeeded(subscriptName) + ")";
     }
 }

@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
+    android:layout_height="match_parent" android:paddingLeft="@dimen/activity_horizontal_margin"
+    android:paddingRight="@dimen/activity_horizontal_margin"
+    android:paddingTop="@dimen/activity_vertical_margin"
+    android:paddingBottom="@dimen/activity_vertical_margin"
+    tools:context="edu.cmu.hcii.sugilite.ui.ScriptSourceActivity">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <EditText
+            android:id="@+id/edit_text_source"
+            style="@style/Widget.AppCompat.EditText"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="0.9"
+            android:background="@drawable/rect_text_edit"
+            android:fontFamily="monospace"
+            android:gravity="top|left"
+            android:inputType="textMultiLine|textLongMessage|textNoSuggestions"
+            android:lineSpacingExtra="8sp"
+            android:padding="10dp"
+            android:scrollIndicators="top|start"
+            android:scrollbarStyle="insideOverlay"
+            android:singleLine="false"
+            android:textSize="12sp" />
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="0.1">
+
+            <Button
+                android:id="@+id/script_source_run_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentStart="true"
+                android:layout_alignTop="@+id/script_source_cancel_button"
+                android:onClick="scriptSourceRunSaveButtonOnClick"
+                android:text="Save and Run" />
+
+            <Button
+                android:id="@+id/script_source_save_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentBottom="true"
+                android:layout_centerHorizontal="true"
+                android:nestedScrollingEnabled="false"
+                android:onClick="scriptSourceSaveButtonOnClick"
+                android:text="Save and Exit" />
+
+
+            <Button
+                android:id="@+id/script_source_cancel_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentBottom="true"
+                android:layout_alignParentEnd="true"
+                android:onClick="scriptSourceCancelButtonOnClick"
+                android:text="Cancel" />
+
+        </RelativeLayout>
+
+
+    </LinearLayout>
+
+</RelativeLayout>

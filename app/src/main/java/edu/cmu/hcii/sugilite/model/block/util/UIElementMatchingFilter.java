@@ -1,7 +1,6 @@
-package edu.cmu.hcii.sugilite.model.block;
+package edu.cmu.hcii.sugilite.model.block.util;
 
 import android.graphics.Rect;
-import android.provider.Contacts;
 import android.view.accessibility.AccessibilityNodeInfo;
 
 import java.io.Serializable;
@@ -11,8 +10,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.HashSet;
 
-import edu.cmu.hcii.sugilite.automation.Automator;
-import edu.cmu.hcii.sugilite.model.variable.Variable;
+import edu.cmu.hcii.sugilite.automation.AutomatorUtil;
 import edu.cmu.hcii.sugilite.model.variable.VariableHelper;
 
 /**
@@ -232,7 +230,7 @@ public class UIElementMatchingFilter implements Serializable {
             boolean matchedChild = false;
             boolean matchedSibling = false;
             // try to match children nodes
-            for (AccessibilityNodeInfo childNode : Automator.preOrderTraverse(nodeInfo)){
+            for (AccessibilityNodeInfo childNode : AutomatorUtil.preOrderTraverse(nodeInfo)){
                 if(childNode == null)
                     continue;
                 if(equalsToIgnoreCaseTrimSymbols(textOrChildTextOrContentDescription, childNode.getText())){
@@ -245,7 +243,7 @@ public class UIElementMatchingFilter implements Serializable {
                 }
             }
             // try to match sibling nodes
-            for (AccessibilityNodeInfo siblingNode : Automator.preOrderTraverseSiblings(nodeInfo)){
+            for (AccessibilityNodeInfo siblingNode : AutomatorUtil.preOrderTraverseSiblings(nodeInfo)){
                 if(siblingNode == null)
                     continue;
                 if(equalsToIgnoreCaseTrimSymbols(textOrChildTextOrContentDescription, siblingNode.getText())){
@@ -274,7 +272,7 @@ public class UIElementMatchingFilter implements Serializable {
         if(childFilter == null || childFilter.size() == 0) {
         }
         else {
-            List<AccessibilityNodeInfo> nodes = Automator.preOrderTraverse(nodeInfo);
+            List<AccessibilityNodeInfo> nodes = AutomatorUtil.preOrderTraverse(nodeInfo);
 
             for(UIElementMatchingFilter cf : childFilter){
                 boolean matched = false;
@@ -294,7 +292,7 @@ public class UIElementMatchingFilter implements Serializable {
         if(siblingFilter == null || siblingFilter.size() == 0){
         }
         else {
-            List<AccessibilityNodeInfo> nodes = Automator.preOrderTraverseSiblings(nodeInfo);
+            List<AccessibilityNodeInfo> nodes = AutomatorUtil.preOrderTraverseSiblings(nodeInfo);
 
             for(UIElementMatchingFilter sf : siblingFilter) {
                 boolean matched = false;
@@ -490,7 +488,7 @@ public class UIElementMatchingFilter implements Serializable {
         if (textOrChildTextOrContentDescription != null && (! (equalsToIgnoreCaseTrimSymbols(helper.parse(textOrChildTextOrContentDescription), nodeInfo.getText()) || equalsToIgnoreCaseTrimSymbols(helper.parse(textOrChildTextOrContentDescription), nodeInfo.getContentDescription())))){
             boolean matchedChild = false;
             boolean matchedSibling = false;
-            for (AccessibilityNodeInfo childNode : Automator.preOrderTraverse(nodeInfo)) {
+            for (AccessibilityNodeInfo childNode : AutomatorUtil.preOrderTraverse(nodeInfo)) {
                 if (childNode == null)
                     continue;
                 if (equalsToIgnoreCaseTrimSymbols(helper.parse(textOrChildTextOrContentDescription), childNode.getText())) {
@@ -503,7 +501,7 @@ public class UIElementMatchingFilter implements Serializable {
                 }
             }
 
-            for(AccessibilityNodeInfo node : Automator.preOrderTraverseSiblings(nodeInfo)) {
+            for(AccessibilityNodeInfo node : AutomatorUtil.preOrderTraverseSiblings(nodeInfo)) {
                 if (node == null)
                     continue;
                 if (equalsToIgnoreCaseTrimSymbols(helper.parse(textOrChildTextOrContentDescription), node.getText())) {
@@ -526,7 +524,7 @@ public class UIElementMatchingFilter implements Serializable {
         if(childFilter == null || childFilter.size() == 0){
         }
         else {
-            List<AccessibilityNodeInfo> nodes = Automator.preOrderTraverse(nodeInfo);
+            List<AccessibilityNodeInfo> nodes = AutomatorUtil.preOrderTraverse(nodeInfo);
 
             for(UIElementMatchingFilter cf : childFilter){
                 boolean matched = false;
@@ -546,7 +544,7 @@ public class UIElementMatchingFilter implements Serializable {
         if(siblingFilter == null || siblingFilter.size() == 0){
         }
         else{
-            List<AccessibilityNodeInfo> nodes = Automator.preOrderTraverseSiblings(nodeInfo);
+            List<AccessibilityNodeInfo> nodes = AutomatorUtil.preOrderTraverseSiblings(nodeInfo);
 
             // handle special "EditText" case
             if(nodeInfo.getClassName().toString().contains("EditText")){

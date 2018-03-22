@@ -43,10 +43,10 @@ import edu.cmu.hcii.sugilite.ontology.helper.annotator.SugiliteTextAnnotator;
 import edu.cmu.hcii.sugilite.recording.SugiliteScreenshotManager;
 import edu.cmu.hcii.sugilite.model.AccessibilityNodeInfoList;
 import edu.cmu.hcii.sugilite.automation.*;
-import edu.cmu.hcii.sugilite.model.block.SerializableNodeInfo;
-import edu.cmu.hcii.sugilite.model.block.SugiliteAvailableFeaturePack;
+import edu.cmu.hcii.sugilite.model.block.util.SerializableNodeInfo;
+import edu.cmu.hcii.sugilite.model.block.util.SugiliteAvailableFeaturePack;
 import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
-import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
+import edu.cmu.hcii.sugilite.model.block.operation.SugiliteOperationBlock;
 import edu.cmu.hcii.sugilite.model.trigger.SugiliteTriggerHandler;
 import edu.cmu.hcii.sugilite.recording.TextChangedEventHandler;
 import edu.cmu.hcii.sugilite.recording.newrecording.NewDemonstrationHandler;
@@ -301,7 +301,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
             else
                 previousClickPackageName = "NULL";
             if(preOrderTraverseSourceNode == null)
-                preOrderTraverseSourceNode = Automator.preOrderTraverse(sourceNode);
+                preOrderTraverseSourceNode = AutomatorUtil.preOrderTraverse(sourceNode);
 
             Set<String> childTexts = new HashSet<>();
             Set<String> childContentDescriptions = new HashSet<>();
@@ -355,18 +355,18 @@ public class SugiliteAccessibilityService extends AccessibilityService {
             if(rootNode == null)
                 rootNode = getRootInActiveWindow();
             if(preOrderTraverseSourceNode == null)
-                preOrderTraverseSourceNode = Automator.preOrderTraverse(sourceNode);
+                preOrderTraverseSourceNode = AutomatorUtil.preOrderTraverse(sourceNode);
             if(preOrderTraverseRootNode == null)
-                preOrderTraverseRootNode = Automator.preOrderTraverse(rootNode);
+                preOrderTraverseRootNode = AutomatorUtil.preOrderTraverse(rootNode);
 
             if(sourceNode != null && sourceNode.getClassName().toString().contains("EditText")){
                 if(preOrderTraverseSibNode == null) {
-                    preOrderTraverseSibNode = Automator.preOrderTraverseSiblings(sourceNode);
+                    preOrderTraverseSibNode = AutomatorUtil.preOrderTraverseSiblings(sourceNode);
                 }
             }
 
             if(preOrderTraverseSibNode == null) {
-                preOrderTraverseSibNode = Automator.preOrderTraverseSiblings(sourceNode);
+                preOrderTraverseSibNode = AutomatorUtil.preOrderTraverseSiblings(sourceNode);
             }
             if(preOrderTraverseSibNode != null){
                 Iterator<AccessibilityNodeInfo> litr = preOrderTraverseSibNode.iterator();
@@ -626,13 +626,13 @@ public class SugiliteAccessibilityService extends AccessibilityService {
                 rootNode = getRootInActiveWindow();
 
             if(preOrderTraverseSourceNode == null)
-                preOrderTraverseSourceNode = Automator.preOrderTraverse(sourceNode);
+                preOrderTraverseSourceNode = AutomatorUtil.preOrderTraverse(sourceNode);
 
             if(preOrderTraverseRootNode == null)
-                preOrderTraverseRootNode = Automator.preOrderTraverse(rootNode);
+                preOrderTraverseRootNode = AutomatorUtil.preOrderTraverse(rootNode);
 
             if(preOrderTraverseSibNode == null) {
-                preOrderTraverseSibNode = Automator.preOrderTraverseSiblings(sourceNode);
+                preOrderTraverseSibNode = AutomatorUtil.preOrderTraverseSiblings(sourceNode);
             }
             if(preOrderTraverseSibNode != null){
                 Iterator<AccessibilityNodeInfo> litr = preOrderTraverseSibNode.iterator();
@@ -784,7 +784,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
             //run automation
             List<AccessibilityWindowInfo> windows = getWindows();
             UISnapshot uiSnapshot = new UISnapshot(windows, true, sugiliteTextAnnotator);
-            List<AccessibilityNodeInfo> allNodes = Automator.getAllNodesFromWindows(windows);
+            List<AccessibilityNodeInfo> allNodes = AutomatorUtil.getAllNodesFromWindows(windows);
             if(automatorThread == null) {
                 automatorThread = new Thread(new Runnable() {
                     @Override
@@ -927,7 +927,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
                 retMap.add(new AbstractMap.SimpleEntry<>("Text", node.getText().toString()));
             if(node.getContentDescription() != null)
                 retMap.add(new AbstractMap.SimpleEntry<>("ContentDescription", node.getContentDescription().toString()));
-            List<AccessibilityNodeInfo> childNodes = Automator.preOrderTraverse(node);
+            List<AccessibilityNodeInfo> childNodes = AutomatorUtil.preOrderTraverse(node);
             if(childNodes == null)
                 continue;
             for(AccessibilityNodeInfo childNode : childNodes){

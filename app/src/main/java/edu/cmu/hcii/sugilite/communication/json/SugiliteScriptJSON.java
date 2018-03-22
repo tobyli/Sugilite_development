@@ -7,7 +7,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
+import edu.cmu.hcii.sugilite.model.block.operation.SugiliteOperationBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.model.variable.StringVariable;
 import edu.cmu.hcii.sugilite.model.variable.Variable;

@@ -22,7 +22,7 @@ import java.util.Set;
 
 import edu.cmu.hcii.sugilite.Const;
 import edu.cmu.hcii.sugilite.SugiliteData;
-import edu.cmu.hcii.sugilite.automation.Automator;
+import edu.cmu.hcii.sugilite.automation.AutomatorUtil;
 
 public class SugiliteEventBroadcastingActivity extends AppCompatActivity {
     SharedPreferences sharedPreferences;
@@ -110,7 +110,7 @@ public class SugiliteEventBroadcastingActivity extends AppCompatActivity {
                 boundsInScreen = boundsInScreenRect.flattenToString();
                 Set<String> childTextSet = new HashSet<>();
                 Set<String> childContentDescriptionSet = new HashSet<>();
-                for(AccessibilityNodeInfo child : Automator.preOrderTraverse(node)){
+                for(AccessibilityNodeInfo child : AutomatorUtil.preOrderTraverse(node)){
                     if(child.getText() != null)
                         childTextSet.add(child.getText().toString());
                     if(child.getContentDescription() != null)

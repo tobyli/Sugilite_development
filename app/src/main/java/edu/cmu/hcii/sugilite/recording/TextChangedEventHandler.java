@@ -4,16 +4,12 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.util.Log;
 import android.view.LayoutInflater;
-import android.widget.Toast;
 
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.logging.Handler;
 
-import edu.cmu.hcii.sugilite.SugiliteAccessibilityService;
 import edu.cmu.hcii.sugilite.SugiliteData;
-import edu.cmu.hcii.sugilite.model.block.SugiliteAvailableFeaturePack;
+import edu.cmu.hcii.sugilite.model.block.util.SugiliteAvailableFeaturePack;
 
 /**
  * @author toby

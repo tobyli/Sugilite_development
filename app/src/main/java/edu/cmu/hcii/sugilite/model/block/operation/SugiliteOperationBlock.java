@@ -1,13 +1,19 @@
-package edu.cmu.hcii.sugilite.model.block;
+package edu.cmu.hcii.sugilite.model.block.operation;
 
 import java.io.Serializable;
 
-import edu.cmu.hcii.sugilite.model.operation.SugiliteLoadVariableOperation;
+import edu.cmu.hcii.sugilite.model.block.operation.special_operation.SugiliteSpecialOperationBlock;
+import edu.cmu.hcii.sugilite.model.block.util.SugiliteAvailableFeaturePack;
+import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
+import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
+import edu.cmu.hcii.sugilite.model.block.util.UIElementMatchingFilter;
+import edu.cmu.hcii.sugilite.model.operation.SugiliteBinaryOperation;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteOperation;
-import edu.cmu.hcii.sugilite.model.operation.SugiliteReadoutOperation;
-import edu.cmu.hcii.sugilite.model.operation.SugiliteSetTextOperation;
-import edu.cmu.hcii.sugilite.ontology.OntologyQuery;
+import edu.cmu.hcii.sugilite.model.operation.SugiliteTrinaryOperation;
+import edu.cmu.hcii.sugilite.model.operation.SugiliteUnaryOperation;
 import edu.cmu.hcii.sugilite.ontology.SerializableOntologyQuery;
+
+import static edu.cmu.hcii.sugilite.source_parsing.SugiliteScriptExpression.addQuoteToTokenIfNeeded;
 
 /**
  * @author toby
@@ -15,7 +21,6 @@ import edu.cmu.hcii.sugilite.ontology.SerializableOntologyQuery;
  * @time 2:10 PM
  */
 public class SugiliteOperationBlock extends SugiliteBlock implements Serializable{
-    private SugiliteBlock nextBlock;
     private SugiliteOperation operation;
     private SugiliteAvailableFeaturePack featurePack;
     private SerializableOntologyQuery query;
@@ -30,9 +35,6 @@ public class SugiliteOperationBlock extends SugiliteBlock implements Serializabl
         this.blockType = SugiliteBlock.REGULAR_OPERATION;
         this.setDescription("");
     }
-    public void setNextBlock(SugiliteBlock block){
-        this.nextBlock = block;
-    }
     public void setQuery(SerializableOntologyQuery query) {
         this.query = query;
     }
@@ -43,9 +45,6 @@ public class SugiliteOperationBlock extends SugiliteBlock implements Serializabl
         this.featurePack = featurePack;
     }
 
-    public SugiliteBlock getNextBlock(){
-        return nextBlock;
-    }
     public SerializableOntologyQuery getQuery() {
         return query;
     }
@@ -74,52 +73,50 @@ public class SugiliteOperationBlock extends SugiliteBlock implements Serializabl
         switch (operation.getOperationType()){
             case SugiliteOperation.CLICK:
                 verb = "CLICK";
-                results = "(" + verb + " " + query.toString() + ")";
                 break;
             case SugiliteOperation.LONG_CLICK:
                 verb = "LONG_CLICK";
-                results = "(" + verb + " " + query.toString() + ")";
-                break;
-            case SugiliteOperation.CLEAR_TEXT:
-                verb = "CLEAR_TEXT";
-                results = "(" + verb + " " + query.toString() + ")";
-                break;
-            case SugiliteOperation.CHECK:
-                verb = "CHECK";
-                results = "(" + verb + " " + query.toString() + ")";
-                break;
-            case SugiliteOperation.UNCHECK:
-                verb = "UNCHECK";
-                results = "(" + verb + " " + query.toString() + ")";
                 break;
             case SugiliteOperation.SELECT:
                 verb = "SELECT";
-                results = "(" + verb + " " + query.toString() + ")";
                 break;
             case SugiliteOperation.RETURN:
                 verb = "RETURN";
-                results = "(" + verb + " " + query.toString() + ")";
                 break;
             case SugiliteOperation.LOAD_AS_VARIABLE:
                 verb = "LOAD_AS_VARIABLE";
-                SugiliteLoadVariableOperation loadVariableOperation = (SugiliteLoadVariableOperation)operation;
-                results = "(" + verb + " " + query.toString() + " " + loadVariableOperation.getPropertyToSave() + " " + loadVariableOperation.getVariableName() + ")";
                 break;
             case SugiliteOperation.READ_OUT:
                 verb = "READ_OUT";
-                SugiliteReadoutOperation readoutOperation = (SugiliteReadoutOperation)operation;
-                results = "(" + verb + " " + query.toString() + " " + readoutOperation.getPropertyToReadout() + ")";
                 break;
             case SugiliteOperation.SET_TEXT:
                 verb = "SET_TEXT";
-                SugiliteSetTextOperation setTextOperation = (SugiliteSetTextOperation)operation;
-                results = "(" + verb + " " + query.toString() + " " + setTextOperation.getText() + ")";
                 break;
             case SugiliteOperation.SPECIAL_GO_HOME:
                 verb = "SPECIAL_GO_HOME";
-                results = "(" + verb + ")";
+                break;
+            case SugiliteOperation.READOUT_CONST:
+                verb = "READOUT_CONST";
                 break;
         }
+
+        //for handling when query == null (e.g. READOUT_CONST operations)
+        String queryString = "";
+        if(query != null){
+            queryString += " ";
+            queryString += query.toString();
+        }
+
+        if(operation instanceof SugiliteUnaryOperation){
+            results = "(" + verb + queryString + ")";
+        } else if (operation instanceof SugiliteBinaryOperation){
+            results = "(" + verb + " " + addQuoteToTokenIfNeeded(((SugiliteBinaryOperation) operation).getParameter1()) + queryString + ")";
+        } else if (operation instanceof SugiliteTrinaryOperation){
+            results = "(" + verb + " " + addQuoteToTokenIfNeeded(((SugiliteTrinaryOperation) operation).getParameter1()) + " " + addQuoteToTokenIfNeeded(((SugiliteTrinaryOperation) operation).getParameter2()) + queryString + ")";
+        } else {
+            results = "(" + verb + ")";
+        }
+
         return results;
     }
 

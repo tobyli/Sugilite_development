@@ -5,13 +5,15 @@ import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
+import android.os.Handler;
 import android.speech.tts.TextToSpeech;
 import android.text.Html;
 import android.view.LayoutInflater;
+import android.view.View;
 import android.view.WindowManager;
-import android.widget.Toast;
+import android.widget.ImageButton;
+import android.widget.TextView;
 
-import java.util.Calendar;
 import java.util.List;
 
 import java.util.Map;
@@ -19,8 +21,8 @@ import java.util.Map;
 import edu.cmu.hcii.sugilite.Node;
 import edu.cmu.hcii.sugilite.R;
 import edu.cmu.hcii.sugilite.SugiliteData;
-import edu.cmu.hcii.sugilite.model.block.SugiliteAvailableFeaturePack;
-import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
+import edu.cmu.hcii.sugilite.model.block.util.SugiliteAvailableFeaturePack;
+import edu.cmu.hcii.sugilite.model.block.operation.SugiliteOperationBlock;
 import edu.cmu.hcii.sugilite.ontology.SerializableOntologyQuery;
 import edu.cmu.hcii.sugilite.ontology.UISnapshot;
 import edu.cmu.hcii.sugilite.ontology.description.OntologyDescriptionGenerator;
@@ -47,6 +49,10 @@ public class SugiliteRecordingConfirmationDialog extends SugiliteDialogManager {
     private SharedPreferences sharedPreferences;
     private OntologyDescriptionGenerator ontologyDescriptionGenerator;
     private Dialog dialog;
+    private View dialogView;
+    private TextView confirmationPromptTextView;
+    private ImageButton speakButton;
+
 
     //construct the 2 states
     private SugiliteDialogSimpleState askingForConfirmationState = new SugiliteDialogSimpleState("ASKING_FOR_CONFIRMATION", this);
@@ -71,7 +77,33 @@ public class SugiliteRecordingConfirmationDialog extends SugiliteDialogManager {
 
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
         String newDescription = ontologyDescriptionGenerator.getDescriptionForOperation(block.getOperation(), blockBuildingHelper.stripSerializableOntologyQuery(block.getQuery()));
-        builder.setTitle("Save Operation Confirmation").setMessage(Html.fromHtml("Are you sure you want to record the operation: " + newDescription));
+        builder.setTitle("Save Operation Confirmation");
+
+        dialogView = layoutInflater.inflate(R.layout.dialog_confirmation_popup_spoken, null);
+        confirmationPromptTextView = (TextView) dialogView.findViewById(R.id.text_confirmation_prompt);
+        if(confirmationPromptTextView != null){
+            confirmationPromptTextView.setText(Html.fromHtml("Are you sure you want to record the operation: " + newDescription));
+        }
+        speakButton = (ImageButton) dialogView.findViewById(R.id.button_verbal_instruction_talk);
+
+
+        if(speakButton != null){
+            speakButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    // speak button
+                    if (isListening() || tts.isSpeaking()) {
+                        stopASRandTTS();
+                    } else {
+                        initDialogManager();
+                    }
+                }
+            });
+            refreshSpeakButtonStyle(speakButton);
+        }
+
+        builder.setView(dialogView);
+
         builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
@@ -106,6 +138,7 @@ public class SugiliteRecordingConfirmationDialog extends SugiliteDialogManager {
     public void show() {
         dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
         dialog.show();
+        refreshSpeakButtonStyle(speakButton);
 
         //initiate the dialog manager when the dialog is shown
         initDialogManager();
@@ -130,8 +163,39 @@ public class SugiliteRecordingConfirmationDialog extends SugiliteDialogManager {
 
     private void editButtonOnClick() {
         dialog.dismiss();
-        RecordingAmbiguousPopupDialog recordingAmbiguousPopupDialog = new RecordingAmbiguousPopupDialog(context, queryScoreList, featurePack, blockBuildingHelper, layoutInflater, clickRunnable, uiSnapshot, actualClickedNode, sugiliteData, sharedPreferences, tts);
-        recordingAmbiguousPopupDialog.show();
+        Handler handler = new Handler();
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                RecordingAmbiguousPopupDialog recordingAmbiguousPopupDialog = new RecordingAmbiguousPopupDialog(context, queryScoreList, featurePack, blockBuildingHelper, layoutInflater, clickRunnable, uiSnapshot, actualClickedNode, sugiliteData, sharedPreferences, tts);
+                recordingAmbiguousPopupDialog.show();
+            }
+        }, 500);
+
+    }
+
+    @Override
+    public void speakingStarted() {
+        super.speakingStarted();
+        refreshSpeakButtonStyle(speakButton);
+    }
+
+    @Override
+    public void speakingEnded() {
+        super.speakingEnded();
+        refreshSpeakButtonStyle(speakButton);
+    }
+
+    @Override
+    public void listeningStarted() {
+        super.listeningStarted();
+        refreshSpeakButtonStyle(speakButton);
+    }
+
+    @Override
+    public void listeningEnded() {
+        super.listeningEnded();
+        refreshSpeakButtonStyle(speakButton);
     }
 
     /**

@@ -7,7 +7,7 @@ import java.io.Serializable;
  * @date 2/25/18
  * @time 10:49 PM
  */
-public class SugiliteReadoutOperation extends SugiliteOperation implements Serializable {
+public class SugiliteReadoutOperation extends SugiliteBinaryOperation implements Serializable {
     private String propertyToReadout;
     public SugiliteReadoutOperation(){
         super();
@@ -18,5 +18,15 @@ public class SugiliteReadoutOperation extends SugiliteOperation implements Seria
     }
     public void setPropertyToReadout(String propertyToReadout){
         this.propertyToReadout = propertyToReadout;
+    }
+
+    @Override
+    public String getParameter1() {
+        return propertyToReadout;
+    }
+
+    @Override
+    public void setParameter1(String value) {
+        this.propertyToReadout = value;
     }
 }

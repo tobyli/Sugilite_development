@@ -115,10 +115,10 @@ public class SugiliteEntity<T> {
 
     @Override
     public String toString() {
-        if(type == String.class){
+        if(type == String.class || (entityValue instanceof String)){
             return (String)entityValue;
         }
-        if(type == Boolean.class) {
+        if(type == Boolean.class || (entityValue instanceof Boolean)) {
             return ((Boolean)entityValue).toString();
         }
         //type == Node.class

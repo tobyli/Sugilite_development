@@ -9,6 +9,7 @@ import java.io.Serializable;
  * @date 9/1/16
  * @time 12:06 AM
  */
+@Deprecated
 public class SugiliteErrorHandlingForkBlock extends SugiliteBlock implements Serializable {
     SugiliteBlock originalNextBlock, alternativeNextBlock;
 

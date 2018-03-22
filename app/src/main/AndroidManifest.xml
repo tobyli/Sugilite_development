@@ -13,20 +13,16 @@
     <uses-permission android:name="android.permission.BLUETOOTH" />
     <uses-permission android:name="android.permission.READ_CONTACTS" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
-    <uses-permission android:name="android.permission.INJECT_EVENTS"/>
-
-
-
+    <uses-permission android:name="android.permission.INJECT_EVENTS" />
 
     <application
         android:name=".SugiliteData"
-        tools:replace="android:name"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:supportsRtl="true"
-        android:theme="@style/AppTheme" >
-
+        android:theme="@style/AppTheme"
+        tools:replace="android:name">
         <activity
             android:name=".ui.main.SugiliteMainActivity"
             android:label="Sugilite"
@@ -35,12 +31,13 @@
             tools:node="merge">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
 
         <service
-            android:name="edu.cmu.hcii.sugilite.SugiliteAccessibilityService"
+            android:name=".SugiliteAccessibilityService"
             android:label="@string/accessibility_service_name"
             android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE">
             <meta-data
@@ -62,23 +59,24 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="edu.cmu.hcii.sugilite.ui.main.SugiliteMainActivity" />
         </activity>
-        <activity android:name=".recording.RecordingPopUpActivity" tools:node="merge" >
-        </activity>
+        <activity
+            android:name=".recording.RecordingPopUpActivity"
+            tools:node="merge"></activity>
         <activity
             android:name=".recording.RecordingPopupSubMenuActivity"
             android:noHistory="true"
-            tools:node="merge">
-        </activity>
-        <activity android:name=".ui.ScriptDetailActivity" tools:node="merge" >
-        </activity>
-        <activity android:name=".ui.ScriptDebuggingActivity" tools:node="merge" >
-        </activity>
+            tools:node="merge"></activity>
+        <activity
+            android:name=".ui.ScriptDetailActivity"
+            tools:node="merge"></activity>
+        <activity
+            android:name=".ui.ScriptDebuggingActivity"
+            tools:node="merge"></activity>
         <activity
             android:name=".recording.mRecordingPopUpActivity"
             android:label="Sugilite Script Recording"
             android:noHistory="true"
-            tools:node="merge">
-        </activity>
+            tools:node="merge"></activity>
         <activity
             android:name=".communication.SugiliteCommunicationActivity"
             android:noHistory="true"
@@ -86,6 +84,7 @@
             tools:node="merge">
             <intent-filter>
                 <action android:name="edu.cmu.hcii.sugilite.COMMUNICATION" />
+
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
@@ -96,15 +95,18 @@
             tools:node="merge">
             <intent-filter>
                 <action android:name="edu.cmu.hcii.sugilite.KEYBOARD_ADAPTER" />
+
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
-        <activity android:name=".communication.SugiliteEventBroadcastingActivity"
+        <activity
+            android:name=".communication.SugiliteEventBroadcastingActivity"
             android:noHistory="true"
             android:theme="@android:style/Theme.NoDisplay"
             tools:node="merge">
             <intent-filter>
                 <action android:name="edu.cmu.hcii.sugilite.BROADCASTING" />
+
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
@@ -112,10 +114,11 @@
         <!-- Broadcast reciever that provides the functionalities of SugiliteCommunicationActivity using broadcasts as the communication medium -->
         <receiver android:name=".communication.SugiliteCommunicationBroadcastReciever">
             <intent-filter>
-                <action android:name="edu.cmu.hcii.sugilite.SUGILITE_SERVICES_BR"/>
+                <action android:name="edu.cmu.hcii.sugilite.SUGILITE_SERVICES_BR" />
             </intent-filter>
         </receiver>
 
+        <activity android:name=".ui.ScriptSourceActivity"></activity>
     </application>
 
 </manifest>

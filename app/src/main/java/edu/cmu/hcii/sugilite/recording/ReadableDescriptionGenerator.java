@@ -3,7 +3,6 @@ package edu.cmu.hcii.sugilite.recording;
 import android.content.Context;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
-import android.provider.Contacts;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -11,10 +10,10 @@ import java.util.Set;
 
 import edu.cmu.hcii.sugilite.Const;
 import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
-import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
-import edu.cmu.hcii.sugilite.model.block.SugiliteSpecialOperationBlock;
+import edu.cmu.hcii.sugilite.model.block.operation.SugiliteOperationBlock;
+import edu.cmu.hcii.sugilite.model.block.operation.special_operation.SugiliteSpecialOperationBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
-import edu.cmu.hcii.sugilite.model.block.UIElementMatchingFilter;
+import edu.cmu.hcii.sugilite.model.block.util.UIElementMatchingFilter;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteLoadVariableOperation;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteOperation;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteReadoutOperation;
@@ -33,39 +32,6 @@ public class ReadableDescriptionGenerator {
         packageNameReadableNameMap = new HashMap<>();
         setupPackageNameReadableNameMap();
         packageManager = applicationContext.getPackageManager();
-    }
-
-    public String generateDescriptionForVerbalBlock(String formula, String utterance){
-        String message = "";
-        SugiliteOperation operation = new SugiliteOperation(SugiliteOperation.CLICK);
-        if(utterance != null && utterance.length() > 0) {
-            message += setColor(utterance + " : ", Const.SCRIPT_ACTION_PARAMETER_COLOR);
-        }
-        switch (operation.getOperationType()){
-            case SugiliteOperation.CLICK:
-                message += setColor("Click ", Const.SCRIPT_ACTION_COLOR) + "on ";
-                break;
-            case SugiliteOperation.SELECT:
-                message += setColor("Select ", Const.SCRIPT_ACTION_COLOR);
-                break;
-            case SugiliteOperation.SET_TEXT:
-                //message += setColor("Set Text ", Const.SCRIPT_ACTION_COLOR) + "to \"" + setColor(((SugiliteSetTextOperation)((SugiliteOperationBlock) block).getOperation()).getText(), Const.SCRIPT_ACTION_PARAMETER_COLOR) + "\" for ";
-                break;
-            case SugiliteOperation.LONG_CLICK:
-                message += setColor("Long click ", Const.SCRIPT_ACTION_COLOR) + "on ";
-                break;
-            case SugiliteOperation.READ_OUT:
-                //message += setColor("Read out ", Const.SCRIPT_ACTION_COLOR) + "the " + setColor(((SugiliteOperationBlock)block).getOperation().getParameter(), Const.SCRIPT_ACTION_PARAMETER_COLOR) + " for ";
-                break;
-            case SugiliteOperation.LOAD_AS_VARIABLE:
-                //message += setColor("Load the value ", Const.SCRIPT_ACTION_COLOR) + "of the" + setColor(((SugiliteOperationBlock)block).getOperation().getParameter(), Const.SCRIPT_ACTION_PARAMETER_COLOR) + " as a variable for ";
-                break;
-            case SugiliteOperation.SPECIAL_GO_HOME:
-                return "<b>GO TO HOME SCREEN</b>";
-        }
-
-        message += setColor(formula, Const.SCRIPT_IDENTIFYING_FEATURE_COLOR);
-        return message;
     }
 
     public String generateDescriptionForVerbalBlock(SugiliteOperationBlock block, String formula, String utterance){
@@ -234,8 +200,6 @@ public class ReadableDescriptionGenerator {
         else if (block instanceof SugiliteSpecialOperationBlock){
             return "<b> SPECIAL OPERATION " + setColor(((SugiliteSpecialOperationBlock) block).getDescription(), Const.SCRIPT_ACTION_PARAMETER_COLOR) + "</b>";
         }
-
-
 
         return "NULL";
     }

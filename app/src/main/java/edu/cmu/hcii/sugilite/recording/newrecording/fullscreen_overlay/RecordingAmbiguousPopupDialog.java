@@ -35,8 +35,8 @@ import edu.cmu.hcii.sugilite.Node;
 import edu.cmu.hcii.sugilite.R;
 import edu.cmu.hcii.sugilite.SugiliteAccessibilityService;
 import edu.cmu.hcii.sugilite.SugiliteData;
-import edu.cmu.hcii.sugilite.model.block.SugiliteAvailableFeaturePack;
-import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
+import edu.cmu.hcii.sugilite.model.block.util.SugiliteAvailableFeaturePack;
+import edu.cmu.hcii.sugilite.model.block.operation.SugiliteOperationBlock;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteOperation;
 import edu.cmu.hcii.sugilite.ontology.OntologyQuery;
 import edu.cmu.hcii.sugilite.ontology.OntologyQueryUtils;
@@ -171,7 +171,7 @@ public class RecordingAmbiguousPopupDialog extends SugiliteDialogManager impleme
                 }
             }
         });
-        speakButton.setImageDrawable(speakingDrawable);
+        speakButton.setImageDrawable(notListeningDrawable);
         speakButton.getDrawable().setColorFilter(new LightingColorFilter(MUL_ZEROS, RECORDING_DARK_GRAY_COLOR));
 
 
@@ -232,6 +232,7 @@ public class RecordingAmbiguousPopupDialog extends SugiliteDialogManager impleme
 
         //initiate the dialog manager when the dialog is shown
         initDialogManager();
+        refreshSpeakButtonStyle(speakButton);
     }
 
     private void showProgressDialog() {
@@ -336,9 +337,8 @@ public class RecordingAmbiguousPopupDialog extends SugiliteDialogManager impleme
             String queryFormula = verbalInstructionResult.getFormula();
             OntologyQuery query = OntologyQueryUtils.getQueryWithClassAndPackageConstraints(OntologyQuery.deserialize(queryFormula), actualClickedNode);
 
-            OntologyQuery queryClone = OntologyQuery.deserialize(query.toString());
-
             //TODO: fix the bug in query.executeOn -- it should not change the query
+            OntologyQuery queryClone = OntologyQuery.deserialize(query.toString());
             Set<SugiliteEntity> queryResults =  queryClone.executeOn(uiSnapshot);
 
             for(SugiliteEntity entity : queryResults){
@@ -373,7 +373,7 @@ public class RecordingAmbiguousPopupDialog extends SugiliteDialogManager impleme
         });
 
         //TODO: sort the list by the size of matched node and length, and see if the top result has filteredNodes.size() = 1
-        if (matchingQueriesMatchedNodesList != null && (!matchingQueriesMatchedNodesList.isEmpty())) {
+        if (!matchingQueriesMatchedNodesList.isEmpty()) {
             OntologyQuery query = matchingQueriesMatchedNodesList.get(0).getKey();
             //TODO: check if this has filteredNodes.size() = 1
             Toast.makeText(context, query.toString(), Toast.LENGTH_SHORT).show();

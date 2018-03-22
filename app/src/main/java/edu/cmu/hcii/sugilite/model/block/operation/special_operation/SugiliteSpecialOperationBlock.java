@@ -1,4 +1,4 @@
-package edu.cmu.hcii.sugilite.model.block;
+package edu.cmu.hcii.sugilite.model.block.operation.special_operation;
 
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -7,16 +7,20 @@ import java.io.Serializable;
 
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
-import edu.cmu.hcii.sugilite.dao.SugiliteScriptSQLDao;
+import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
+import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
+import edu.cmu.hcii.sugilite.model.block.operation.SugiliteOperationBlock;
 
 /**
  * @author toby
  * @date 10/28/16
  * @time 6:55 PM
  */
+
+/**
+ * special operation block that has a run() method -- the run() method will be called when the the block is invoked
+ */
 public abstract class SugiliteSpecialOperationBlock extends SugiliteBlock implements Serializable {
-    private SugiliteBlock nextBlock;
-    abstract public void run(Context context, SugiliteData sugiliteData, SugiliteScriptDao sugiliteScriptDao, SharedPreferences sharedPreferences) throws Exception;
 
     public SugiliteSpecialOperationBlock(){
         this.blockType = SPECIAL_OPERATION;
@@ -33,11 +37,5 @@ public abstract class SugiliteSpecialOperationBlock extends SugiliteBlock implem
             ((SugiliteSpecialOperationBlock) previousBlock).setNextBlock(null);
     }
 
-    public SugiliteBlock getNextBlock(){
-        return nextBlock;
-    }
-
-    public void setNextBlock(SugiliteBlock block){
-        this.nextBlock = block;
-    }
+    public abstract void run(Context context, SugiliteData sugiliteData, SugiliteScriptDao sugiliteScriptDao, SharedPreferences sharedPreferences) throws Exception;
 }

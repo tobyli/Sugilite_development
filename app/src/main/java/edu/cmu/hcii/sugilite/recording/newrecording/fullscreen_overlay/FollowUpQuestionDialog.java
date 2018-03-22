@@ -38,8 +38,8 @@ import edu.cmu.hcii.sugilite.Node;
 import edu.cmu.hcii.sugilite.R;
 import edu.cmu.hcii.sugilite.SugiliteAccessibilityService;
 import edu.cmu.hcii.sugilite.SugiliteData;
-import edu.cmu.hcii.sugilite.model.block.SugiliteAvailableFeaturePack;
-import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
+import edu.cmu.hcii.sugilite.model.block.util.SugiliteAvailableFeaturePack;
+import edu.cmu.hcii.sugilite.model.block.operation.SugiliteOperationBlock;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteOperation;
 import edu.cmu.hcii.sugilite.ontology.OntologyQuery;
 import edu.cmu.hcii.sugilite.ontology.OntologyQueryUtils;
@@ -182,7 +182,7 @@ public class FollowUpQuestionDialog extends SugiliteDialogManager implements Sug
                 }
             }
         });
-        speakButton.setImageDrawable(speakingDrawable);
+        speakButton.setImageDrawable(notListeningDrawable);
         speakButton.getDrawable().setColorFilter(new LightingColorFilter(MUL_ZEROS, RECORDING_DARK_GRAY_COLOR));
 
         builder.setView(dialogView);
@@ -244,9 +244,9 @@ public class FollowUpQuestionDialog extends SugiliteDialogManager implements Sug
             }
         });
 
-
         //initiate the dialog manager when the dialog is shown
         initDialogManager();
+        refreshSpeakButtonStyle(speakButton);
     }
 
     private void sendInstructionButtonOnClick() {
@@ -489,6 +489,11 @@ public class FollowUpQuestionDialog extends SugiliteDialogManager implements Sug
 
     public void uncollapse(){
         if(dialog != null && (!dialog.isShowing())) {
+            //clear the handler
+            if(handler != null){
+                handler.removeCallbacksAndMessages(null);
+            }
+
             dialog.show();
             if (previewOverlay != null) {
                 try {

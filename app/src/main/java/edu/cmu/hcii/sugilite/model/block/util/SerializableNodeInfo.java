@@ -1,14 +1,13 @@
-package edu.cmu.hcii.sugilite.model.block;
+package edu.cmu.hcii.sugilite.model.block.util;
 
 import android.graphics.Rect;
 import android.view.accessibility.AccessibilityNodeInfo;
 
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 
-import edu.cmu.hcii.sugilite.automation.Automator;
+import edu.cmu.hcii.sugilite.automation.AutomatorUtil;
 
 /**
  * @author toby
@@ -52,7 +51,7 @@ public class SerializableNodeInfo implements Serializable {
             this.className = (nodeInfo.getClassName() == null ? null : nodeInfo.getClassName().toString());
             this.packageName = (nodeInfo.getPackageName() == null ? null : nodeInfo.getPackageName().toString());
 
-            List<AccessibilityNodeInfo> children = Automator.preOrderTraverse(nodeInfo);
+            List<AccessibilityNodeInfo> children = AutomatorUtil.preOrderTraverse(nodeInfo);
             for(AccessibilityNodeInfo node : children){
                 if(node.getText() != null)
                     childText.add(node.getText().toString());
@@ -62,7 +61,7 @@ public class SerializableNodeInfo implements Serializable {
                     childViewId.add(node.getViewIdResourceName());
             }
 
-            for(AccessibilityNodeInfo node : Automator.preOrderTraverseSiblings(nodeInfo)) {
+            for(AccessibilityNodeInfo node : AutomatorUtil.preOrderTraverseSiblings(nodeInfo)) {
                 if(node.getText() != null)
                     siblingText.add(node.getText().toString());
                 if(node.getContentDescription() != null)

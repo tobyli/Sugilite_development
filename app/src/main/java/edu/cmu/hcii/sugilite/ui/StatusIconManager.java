@@ -3,8 +3,6 @@ package edu.cmu.hcii.sugilite.ui;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
-import android.app.ProgressDialog;
-import android.app.Service;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -40,8 +38,7 @@ import edu.cmu.hcii.sugilite.Const;
 import edu.cmu.hcii.sugilite.R;
 import edu.cmu.hcii.sugilite.SugiliteAccessibilityService;
 import edu.cmu.hcii.sugilite.SugiliteData;
-import edu.cmu.hcii.sugilite.automation.Automator;
-import edu.cmu.hcii.sugilite.automation.ErrorHandler;
+import edu.cmu.hcii.sugilite.automation.AutomatorUtil;
 import edu.cmu.hcii.sugilite.automation.ServiceStatusManager;
 import edu.cmu.hcii.sugilite.communication.SugiliteBlockJSONProcessor;
 import edu.cmu.hcii.sugilite.recording.SugiliteScreenshotManager;
@@ -49,12 +46,12 @@ import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptFileDao;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptSQLDao;
 import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
-import edu.cmu.hcii.sugilite.model.block.SugiliteDelaySpecialOperationBlock;
-import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
-import edu.cmu.hcii.sugilite.model.block.SugiliteSpecialOperationBlock;
+import edu.cmu.hcii.sugilite.model.block.operation.special_operation.SugiliteDelaySpecialOperationBlock;
+import edu.cmu.hcii.sugilite.model.block.operation.SugiliteOperationBlock;
+import edu.cmu.hcii.sugilite.model.block.operation.special_operation.SugiliteSpecialOperationBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
-import edu.cmu.hcii.sugilite.model.block.SugiliteSubscriptSpecialOperationBlock;
-import edu.cmu.hcii.sugilite.model.block.UIElementMatchingFilter;
+import edu.cmu.hcii.sugilite.model.block.operation.special_operation.SugiliteSubscriptSpecialOperationBlock;
+import edu.cmu.hcii.sugilite.model.block.util.UIElementMatchingFilter;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteOperation;
 import edu.cmu.hcii.sugilite.model.variable.VariableHelper;
 import edu.cmu.hcii.sugilite.recording.ReadableDescriptionGenerator;
@@ -172,6 +169,11 @@ public class StatusIconManager {
             statusView.setVisibility(View.INVISIBLE);
         }
 
+        //AUTOMATICALLY ADD CAT ICON WHEN ADDING THE DUCK ICON
+        if(!verbalInstructionIconManager.isShowingIcon()) {
+            verbalInstructionIconManager.addStatusIcon();
+        }
+
         showingIcon = true;
     }
 
@@ -205,7 +207,7 @@ public class StatusIconManager {
         Rect rect = new Rect();
         boolean matched = false;
         if(rootNode != null) {
-            List<AccessibilityNodeInfo> allNode = Automator.preOrderTraverse(rootNode);
+            List<AccessibilityNodeInfo> allNode = AutomatorUtil.preOrderTraverse(rootNode);
             List<AccessibilityNodeInfo> filteredNode = new ArrayList<>();
             for (AccessibilityNodeInfo node : allNode) {
                 if (filter != null && filter.filter(node, variableHelper))

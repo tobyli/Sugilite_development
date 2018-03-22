@@ -129,4 +129,9 @@ public class SugiliteRelation implements Serializable {
         stringRelationMap.put("CONTAINS_PERCENTAGE", CONTAINS_PERCENTAGE);
 
     }
+
+    @Override
+    public String toString() {
+        return relationName;
+    }
 }

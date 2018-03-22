@@ -4,11 +4,9 @@ import android.os.Parcel;
 import android.os.Parcelable;
 import android.view.accessibility.AccessibilityNodeInfo;
 
-import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.List;
 
-import edu.cmu.hcii.sugilite.model.block.SerializableNodeInfo;
+import edu.cmu.hcii.sugilite.model.block.util.SerializableNodeInfo;
 
 /**
  * @author toby

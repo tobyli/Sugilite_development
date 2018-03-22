@@ -83,7 +83,7 @@ public class OntologyDescriptionGenerator {
         return "<font color=\"" + color + "\"><b>" + message + "</b></font>";
     }
 
-    public String formatting(SugiliteRelation sr, String[] os) {
+    private String formatting(SugiliteRelation sr, String[] os) {
         if (sr.equals(SugiliteRelation.HAS_SCREEN_LOCATION) || sr.equals(SugiliteRelation.HAS_PARENT_LOCATION))
             return DescriptionGenerator.descriptionMap.get(sr) + setColor("(" + os[0] + ")", Const.SCRIPT_IDENTIFYING_FEATURE_COLOR);
 
@@ -108,11 +108,12 @@ public class OntologyDescriptionGenerator {
             return getDescriptionForOperation(setColor("Click on ", Const.SCRIPT_ACTION_COLOR), sq);
         }
         else{
-            return "NULL";
+            //TODO: handle more types of operations ***
+            return null;
         }
     }
 
-    public String getDescriptionForOperation(String verb, SerializableOntologyQuery sq){
+    private String getDescriptionForOperation(String verb, SerializableOntologyQuery sq){
         return verb + getDescriptionForOntologyQuery(sq);
     }
 

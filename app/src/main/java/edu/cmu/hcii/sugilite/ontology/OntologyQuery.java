@@ -428,6 +428,4 @@ public class OntologyQuery {
         return "(" + r.getRelationName() + " " + subQueryArray[0].toString() + ")";
     }
 
-
-
 }

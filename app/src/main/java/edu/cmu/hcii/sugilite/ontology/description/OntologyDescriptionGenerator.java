@@ -54,6 +54,30 @@ public class OntologyDescriptionGenerator {
         }
     }
 
+    public String numberToOrder(String num) {
+        if (num.endsWith("1")) {
+            if (num.endsWith("11"))
+                num = num + "th";
+            else
+                num = num + "st";
+        }
+        else if (num.endsWith("2")) {
+            if (num.endsWith("12"))
+                num = num + "th";
+            else
+                num = num + "nd";
+        }
+        else if (num.endsWith("3")) {
+            if (num.endsWith("13"))
+                num = num + "th";
+            else
+                num = num + "rd";
+        }
+        else
+            num = num + "th";
+        return num;
+    }
+
 
     static private String setColor(String message, String color) {
         return "<font color=\"" + color + "\"><b>" + message + "</b></font>";
@@ -68,18 +92,11 @@ public class OntologyDescriptionGenerator {
                 sr.equals(SugiliteRelation.HAS_CHILD_TEXT) ||
                 sr.equals(SugiliteRelation.HAS_SIBLING_TEXT) ||
                 sr.equals(SugiliteRelation.HAS_VIEW_ID)) {
-            return DescriptionGenerator.descriptionMap.get(sr) + setColor("\"" + os[0] + "\"", Const.SCRIPT_IDENTIFYING_FEATURE_COLOR);
+            return DescriptionGenerator.descriptionMap.get(sr) + setColor("\"" +  os[0] + "\"", Const.SCRIPT_IDENTIFYING_FEATURE_COLOR);
         }
 
         else if (sr.equals(SugiliteRelation.HAS_LIST_ORDER) || sr.equals(SugiliteRelation.HAS_PARENT_WITH_LIST_ORDER)) {
-            if (os[0].equals("1"))
-                os[0] = os[0] + "st";
-            else if (os[0].equals("2"))
-                os[0] = os[0] + "nd";
-            else if (os[0].equals("3"))
-                os[0] = os[0] + "rd";
-            else
-                os[0] = os[0] + "th";
+            os[0] = numberToOrder(os[0]);
             return String.format(DescriptionGenerator.descriptionMap.get(sr), setColor(os[0], Const.SCRIPT_IDENTIFYING_FEATURE_COLOR));
         }
         return DescriptionGenerator.descriptionMap.get(sr) + setColor(os[0], Const.SCRIPT_IDENTIFYING_FEATURE_COLOR);
@@ -99,6 +116,53 @@ public class OntologyDescriptionGenerator {
         return verb + getDescriptionForOntologyQuery(sq);
     }
 
+    public String andRelationship(String[] args) {
+        String result = "";
+        int l = args.length;
+        System.out.println(l);
+        if ((args[0]).startsWith("the")) {
+            System.out.println("1");
+            result = args[0];
+            result += " that has " + args[1];
+            if (l>2) {
+                for (int i = 2; i < l - 1; i++)
+                    result += " and " + args[i];
+                result += args[l - 1];
+            }
+        }
+        else {
+            System.out.println(args[0].toString()+args[1].toString());
+            result = String.format("the %s that has ", args[0]);
+            if (l>1) {
+                for (int i = 1; i < l; i++) {
+                    System.out.println("here");
+                    result += " and " + args[i];
+                }
+            }
+        }
+        return result;
+    }
+
+    public String descriptionForSingleQuery(OntologyQuery q) {
+        SugiliteEntity[] objectArr = q.getObject().toArray(new SugiliteEntity[q.getObject().size()]);
+        String[] objectString = new String[1];
+        SugiliteRelation r = q.getR();
+        if(r.equals(SugiliteRelation.HAS_CLASS_NAME)) {
+            objectString[0] = ObjectTranslation.getTranslation(objectArr[0].toString());
+        }
+        else {
+            if (r.equals(SugiliteRelation.HAS_TEXT) || r.equals(SugiliteRelation.HAS_CONTENT_DESCRIPTION) || r.equals(SugiliteRelation.HAS_CHILD_TEXT) || r.equals(SugiliteRelation.HAS_SIBLING_TEXT))
+                objectString[0] = objectArr[0].toString();
+            else if (r.equals(SugiliteRelation.HAS_PACKAGE_NAME))
+                objectString[0] = getAppName(objectArr[0].toString());
+            else if (r.equals(SugiliteRelation.HAS_CLASS_NAME))
+                objectString[0] = "";
+            else
+                objectString[0] = objectArr[0].toString();
+        }
+        return formatting(r, objectString);
+    }
+
     /**
      * Get the natural language description for a SerializableOntologyQuery
      * @param sq
@@ -110,23 +174,8 @@ public class OntologyDescriptionGenerator {
         if (ontologyQuery.getSubRelation() == OntologyQuery.relationType.nullR) {
             // base case
             // this should have size 1 always, the array is only used in execution for when there's a query whose results are used as the objects of the next one
-            SugiliteEntity[] objectArr = ontologyQuery.getObject().toArray(new SugiliteEntity[ontologyQuery.getObject().size()]);
-            String[] objectString = new String[1];
-            boolean flag = false;
-            if(r.equals(SugiliteRelation.HAS_CLASS_NAME)) {
-                objectString[0] = ObjectTranslation.getTranslation(objectArr[0].toString());
-            }
-            else {
-                if (r.equals(SugiliteRelation.HAS_TEXT) || r.equals(SugiliteRelation.HAS_CONTENT_DESCRIPTION) || r.equals(SugiliteRelation.HAS_CHILD_TEXT) || r.equals(SugiliteRelation.HAS_SIBLING_TEXT))
-                    objectString[0] = objectArr[0].toString();
-                else if (r.equals(SugiliteRelation.HAS_PACKAGE_NAME))
-                    objectString[0] = getAppName(objectArr[0].toString());
-                else if (r.equals(SugiliteRelation.HAS_CLASS_NAME))
-                    objectString[0] = "";
-                else
-                    objectString[0] = objectArr[0].toString();
-            }
-            return formatting(r, objectString);
+                return descriptionForSingleQuery(ontologyQuery);
+
         }
         OntologyQuery[] subQueryArray = ontologyQuery.getSubQueries().toArray(new OntologyQuery[ontologyQuery.getSubQueries().size()]);
         Arrays.sort(subQueryArray, RelationWeight.ontologyQueryComparator);
@@ -137,14 +186,17 @@ public class OntologyDescriptionGenerator {
             int size = subQueryArray.length;
             String[] arr = new String[size];
             for (int i = 0; i < size; i++) {
-                SerializableOntologyQuery soq = new SerializableOntologyQuery(subQueryArray[i]);
-                arr[i] = getDescriptionForOntologyQuery(soq);
+                //SerializableOntologyQuery soq = new SerializableOntologyQuery(subQueryArray[i]);
+                //arr[i] = getDescriptionForOntologyQuery(soq);
+                arr[i] = descriptionForSingleQuery(subQueryArray[i]);
             }
 
 
             if (ontologyQuery.getSubRelation() == OntologyQuery.relationType.AND) {
-                return StringUtils.join(arr, " ");
-            } else return StringUtils.join(arr, " or ");
+                //return StringUtils.join(arr, " ");
+                return andRelationship(arr);
+            }
+            else return StringUtils.join(arr, " or ");
         }
 
         // SubRelation == relationType.PREV

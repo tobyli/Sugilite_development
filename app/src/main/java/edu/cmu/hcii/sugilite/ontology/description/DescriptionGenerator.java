@@ -19,16 +19,16 @@ public class DescriptionGenerator {
     static {
         descriptionMap = new HashMap<SugiliteRelation,String>();
         descriptionMap.put(SugiliteRelation.HAS_CLASS_NAME,"");
-        descriptionMap.put(SugiliteRelation.HAS_TEXT,"has text ");
-        descriptionMap.put(SugiliteRelation.HAS_CHILD_TEXT,"has child text ");
+        descriptionMap.put(SugiliteRelation.HAS_TEXT,"text ");
+        descriptionMap.put(SugiliteRelation.HAS_CHILD_TEXT,"child text ");
         descriptionMap.put(SugiliteRelation.HAS_SIBLING_TEXT,"");
         descriptionMap.put(SugiliteRelation.HAS_CONTENT_DESCRIPTION,"");
-        descriptionMap.put(SugiliteRelation.HAS_SCREEN_LOCATION,"has the exact location ");
-        descriptionMap.put(SugiliteRelation.HAS_PARENT_LOCATION,"has the parent location ");
+        descriptionMap.put(SugiliteRelation.HAS_SCREEN_LOCATION,"the exact location ");
+        descriptionMap.put(SugiliteRelation.HAS_PARENT_LOCATION,"the parent location ");
         descriptionMap.put(SugiliteRelation.HAS_PACKAGE_NAME,"in ");
 
         descriptionMap.put(SugiliteRelation.HAS_LIST_ORDER,"the %s item");
-        descriptionMap.put(SugiliteRelation.HAS_PARENT_WITH_LIST_ORDER,"the %s item");
+        descriptionMap.put(SugiliteRelation.HAS_PARENT_WITH_LIST_ORDER,"the item of the %s item");
 
         descriptionMap.put(SugiliteRelation.HAS_PARENT,"has parent ");
         descriptionMap.put(SugiliteRelation.HAS_CHILD,"has child ");

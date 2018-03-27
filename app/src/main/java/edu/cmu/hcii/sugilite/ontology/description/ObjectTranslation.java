@@ -29,6 +29,18 @@ public class ObjectTranslation {
         }
     }
 
+    public static ArrayList<String> getClassName()
+    {
+        ArrayList<String> classList = new ArrayList<String>();
+        classList.add("item");
+//        for (String val : objectMap.values())
+//        {
+//            classList.add(val);
+//        }
+        classList.addAll(objectMap.values());
+        return classList;
+    }
+
     public String toString()
     {
         String result = "";
@@ -37,6 +49,11 @@ public class ObjectTranslation {
             result += s + " " + objectMap.get(s) + "\n";
         }
         return result;
+    }
+
+    public static void main(String[] args){
+        ObjectTranslation test = new ObjectTranslation();
+        System.out.println(test.getClassName());
     }
 
 

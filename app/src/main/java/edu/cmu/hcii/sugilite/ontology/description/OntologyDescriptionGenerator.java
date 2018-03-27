@@ -11,6 +11,7 @@ import org.apache.commons.lang3.StringUtils;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.util.Arrays;
+import java.util.*;
 
 import edu.cmu.hcii.sugilite.Const;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteOperation;
@@ -117,29 +118,93 @@ public class OntologyDescriptionGenerator {
         return verb + getDescriptionForOntologyQuery(sq);
     }
 
-    public String andRelationship(String[] args) {
+
+    public String translationWithRelationship(String[] args, OntologyQuery[] queries, String relation) {
         String result = "";
         int l = args.length;
-        System.out.println(l);
-        if ((args[0]).startsWith("the")) {
-            System.out.println("1");
-            result = args[0];
-            result += " that has " + args[1];
-            if (l>2) {
-                for (int i = 2; i < l - 1; i++)
-                    result += " and " + args[i];
-                result += args[l - 1];
+        int ql = queries.length;
+        SugiliteRelation r = queries[0].getR();
+        if (r.equals(SugiliteRelation.HAS_CLASS_NAME)) {
+            SugiliteRelation r2 = queries[1].getR();
+            if (r2.equals(SugiliteRelation.HAS_LIST_ORDER) || r2.equals(SugiliteRelation.HAS_PARENT_WITH_LIST_ORDER))
+            {
+                result += args[1].replace("item","");
+                result += args[0];
             }
-        }
-        else {
-            System.out.println(args[0].toString()+args[1].toString());
-            result = String.format("the %s that has ", args[0]);
-            if (l>1) {
-                for (int i = 1; i < l; i++) {
-                    System.out.println("here");
-                    result += " and " + args[i];
+            else{
+                result = String.format("the %s that has ", args[0]);
+                result += args[1];
+            }
+            SugiliteRelation r3 = queries[ql-1].getR();
+            if (l == 3) {
+                if (r3.equals(SugiliteRelation.HAS_PACKAGE_NAME))
+                    result += " " + args[2];
+                else
+                    result += " that has " + args[2];
+            }
+            else if (l > 3) {
+                result += " that has " + args[2];
+                if (r3.equals(SugiliteRelation.HAS_PACKAGE_NAME))
+                {
+                    for (int i = 3; i < l-2; i++) {
+                        result += ", " + args[i];
+                    }
+                    if (l!=3)
+                        result += relation + args[l-2];
+                    result += " " + args[l-1];
+                }
+                else
+                {
+                    for (int i = 3; i < l - 1; i++) {
+                        result += ", " + args[i];
+                    }
+                    //if (l!=3)
+                    result += relation + args[l-1];
                 }
             }
+        }
+
+        else if (r.equals(SugiliteRelation.HAS_LIST_ORDER) || r.equals(SugiliteRelation.HAS_PARENT_WITH_LIST_ORDER))
+        {
+            result += args[0] + " that has ";
+            result += args[1];
+            SugiliteRelation r3 = queries[ql-1].getR();
+            if (l == 3) {
+                if (r3.equals(SugiliteRelation.HAS_PACKAGE_NAME))
+                    result += " " + args[2];
+                else
+                    result += args[2];
+            }
+            if (l > 3) {
+                if (r3.equals(SugiliteRelation.HAS_PACKAGE_NAME))
+                {
+                    for (int i = 2; i < l-2; i++) {
+                        result += ", " + args[i];
+                    }
+                    result += relation + args[l-2];
+                    result += " " + args[l-1];
+                }
+                else
+                {
+                    for (int i = 2; i < l - 1; i++) {
+                        result += ", " + args[i];
+                    }
+                    result += relation + args[l - 1];
+                }
+            }
+        }
+
+        else {
+            result = "the item that has ";
+            result += args[0];
+            if (l > 2) {
+                for (int i = 1; i < l-1; i++) {
+                    result += ", " + args[i];
+                }
+                result += " and " + args[l-1];
+            }
+            else
+                result += " and " + args[1];
         }
         return result;
     }
@@ -183,7 +248,7 @@ public class OntologyDescriptionGenerator {
 
 
         //TODO: the use of "and" and "or" should be grammatically correct
-        if (ontologyQuery.getSubRelation() == OntologyQuery.relationType.AND || ontologyQuery.getSubRelation() == OntologyQuery.relationType.OR) {
+        if (ontologyQuery.getSubRelation() == OntologyQuery.relationType.AND || ontologyQuery.getSubRelation() == OntologyQuery.relationType.OR || ontologyQuery.getSubRelation() == OntologyQuery.relationType.PREV) {
             int size = subQueryArray.length;
             String[] arr = new String[size];
             for (int i = 0; i < size; i++) {
@@ -195,9 +260,18 @@ public class OntologyDescriptionGenerator {
 
             if (ontologyQuery.getSubRelation() == OntologyQuery.relationType.AND) {
                 //return StringUtils.join(arr, " ");
-                return andRelationship(arr);
+                return translationWithRelationship(arr,subQueryArray," and ");
             }
-            else return StringUtils.join(arr, " or ");
+            else if (ontologyQuery.getSubRelation() == OntologyQuery.relationType.OR)
+                return translationWithRelationship(arr,subQueryArray," or ");
+            else {
+                String res = "the item that has ";
+                res += DescriptionGenerator.descriptionMap.get(r);
+                for (int i = 0; i<arr.length;i++) {
+                    res += "that has " + arr[i];
+                }
+                return res;
+            }
         }
 
         // SubRelation == relationType.PREV

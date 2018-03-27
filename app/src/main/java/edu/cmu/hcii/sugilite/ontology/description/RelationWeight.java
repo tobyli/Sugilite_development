@@ -26,29 +26,29 @@ public class RelationWeight {
         weightMap.put(SugiliteRelation.HAS_SCREEN_LOCATION,7);
         weightMap.put(SugiliteRelation.HAS_PACKAGE_NAME,101);
 
-        weightMap.put(SugiliteRelation.HAS_PARENT,100);
-        weightMap.put(SugiliteRelation.HAS_VIEW_ID,100);
-        weightMap.put(SugiliteRelation.HAS_PARENT_LOCATION,100);
-        weightMap.put(SugiliteRelation.HAS_CHILD,100);
-        weightMap.put(SugiliteRelation.HAS_SIBLING,100);
+        weightMap.put(SugiliteRelation.HAS_PARENT,8);
+        weightMap.put(SugiliteRelation.HAS_VIEW_ID,9);
+        weightMap.put(SugiliteRelation.HAS_PARENT_LOCATION,10);
+        weightMap.put(SugiliteRelation.HAS_CHILD,11);
+        weightMap.put(SugiliteRelation.HAS_SIBLING,12);
 
 
-        weightMap.put(SugiliteRelation.IS_EDITABLE,100);
-        weightMap.put(SugiliteRelation.IS_CLICKABLE,100);
-        weightMap.put(SugiliteRelation.IS_SCROLLABLE,100);
-        weightMap.put(SugiliteRelation.IS_CHECKABLE,100);
-        weightMap.put(SugiliteRelation.IS_CHECKED,100);
-        weightMap.put(SugiliteRelation.IS_SELECTED,100);
+        weightMap.put(SugiliteRelation.IS_EDITABLE,13);
+        weightMap.put(SugiliteRelation.IS_CLICKABLE,14);
+        weightMap.put(SugiliteRelation.IS_SCROLLABLE,15);
+        weightMap.put(SugiliteRelation.IS_CHECKABLE,16);
+        weightMap.put(SugiliteRelation.IS_CHECKED,17);
+        weightMap.put(SugiliteRelation.IS_SELECTED,18);
 
 
-        weightMap.put(SugiliteRelation.IS_A_LIST,100);
+        weightMap.put(SugiliteRelation.IS_A_LIST,19);
 
-        weightMap.put(SugiliteRelation.CONTAINS_EMAIL_ADDRESS,100);
-        weightMap.put(SugiliteRelation.CONTAINS_PHONE_NUMBER,100);
-        weightMap.put(SugiliteRelation.CONTAINS_MONEY,100);
-        weightMap.put(SugiliteRelation.CONTAINS_TIME,100);
-        weightMap.put(SugiliteRelation.CONTAINS_DATE,100);
-        weightMap.put(SugiliteRelation.CONTAINS_DURATION,100);
+        weightMap.put(SugiliteRelation.CONTAINS_EMAIL_ADDRESS,20);
+        weightMap.put(SugiliteRelation.CONTAINS_PHONE_NUMBER,21);
+        weightMap.put(SugiliteRelation.CONTAINS_MONEY,22);
+        weightMap.put(SugiliteRelation.CONTAINS_TIME,23);
+        weightMap.put(SugiliteRelation.CONTAINS_DATE,24);
+        weightMap.put(SugiliteRelation.CONTAINS_DURATION,25);
     }
 
     public int getWeight(SugiliteRelation r)

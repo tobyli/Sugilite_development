@@ -267,8 +267,9 @@ public class OntologyDescriptionGenerator {
             else {
                 String res = "the item that has ";
                 res += DescriptionGenerator.descriptionMap.get(r);
-                for (int i = 0; i<arr.length;i++) {
-                    res += "that has " + arr[i];
+                res += "that has " + arr[0];
+                for (int i = 1; i<arr.length;i++) {
+                    res += " and " + arr[i];
                 }
                 return res;
             }

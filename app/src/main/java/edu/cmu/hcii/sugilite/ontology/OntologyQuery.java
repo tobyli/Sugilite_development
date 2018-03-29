@@ -466,5 +466,4 @@ public class OntologyQuery {
         }
     }
 
-
 }

@@ -22,9 +22,9 @@ public class TimeAnnotator extends SugiliteTextAnnotator {
     @Override
     public List<AnnotatingResult> annotate(String text) {
         List<AnnotatingResult> results = new ArrayList<>();
-        String regex12h = "\\b(0?[1-9]|1[0-2]):([0-5][0-9])(\\s)?([apAP][mM])\\b";
+        String regex12h = "\\b(0?[1-9]|1[0-2]):([0-5][0-9])(\\s)?([apAP][mM]?)\\b";
         String regex24h = "\\b([0-1]?[0-9]|2[0-3]):([0-5][0-9])\\b";
-        String regexH = "\\b((0?[1-9])|(1[0-2]))(\\s)?([apAP][mM])\\b";
+        String regexH = "\\b((0?[1-9])|(1[0-2]))(\\s)?([apAP][mM]?)\\b";
         Pattern pattern12h = Pattern.compile(regex12h);
         Pattern pattern24h = Pattern.compile(regex24h);
         Pattern patternH = Pattern.compile(regexH);

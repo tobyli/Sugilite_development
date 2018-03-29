@@ -7,7 +7,9 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.ArrayList;
 import java.util.GregorianCalendar;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -29,11 +31,16 @@ public class DateAnnotator extends SugiliteTextAnnotator {
         List<AnnotatingResult> results = new ArrayList<>();
         String mmddyyyy = "\\b(0?[1-9]|1[0-2])[/-](0?[1-9]|[1-2][0-9]|3[0-1])[/-][0-9]{4}\\b";
         String complex = "\\b(Jan(uary)?|Feb(ruary)?|Mar(ch)?|Apr(il)?|May|Jun(e)?|Jul(y)?|Aug(ust)?" +
-                "|Sep(tember)?|Oct(ober)?|Nov(ember)?|Dec(ember)?)[. ](0?[1-9]|[1-2][0-9]|3[0-1])(,)? ([0-9]{4})\\b";
-        String yyyymmdd = "\\b[0-9]{4}[-.](0?[1-9]|1[0-2])[-.](0?[1-9]|[1-2][0-9]|3[0-1])\\b";
+                "|Sep(tember)?|Oct(ober)?|Nov(ember)?|Dec(ember)?)[. ](0?[1-9]|[1-2][0-9]|3[0-1])((,)? [0-9]{4})?\\b";
+        String yyyymmdd = "\\b[0-9]{4}[-./](0?[1-9]|1[0-2])[-./](0?[1-9]|[1-2][0-9]|3[0-1])\\b";
+        String mmdd = "\\b(Mon(day)?|Tue(s(day)?)?|Wed(nesday)?|Thu(r(sday)?)?|Fri(day)?|Sat(urday)?|Sun(day)?) " +
+                "(0?[1-9]|1[0-2])/(0?[1-9]|[1-2][0-9]|3[0-1])\\b";
         Pattern pattern1 = Pattern.compile(mmddyyyy);
         Pattern pattern2 = Pattern.compile(complex);
         Pattern pattern3 = Pattern.compile(yyyymmdd);
+        Pattern pattern4 = Pattern.compile(mmdd);
+
+        Set<Integer> start = new HashSet<>();
 
         Matcher matcher = pattern1.matcher(text);
         while (matcher.find()) {
@@ -50,6 +57,7 @@ public class DateAnnotator extends SugiliteTextAnnotator {
             AnnotatingResult res = new AnnotatingResult(RELATION, text.substring(matcher.start(), matcher.end()),
                     matcher.start(), matcher.end(), value);
             results.add(res);
+            start.add(matcher.start());
         }
 
         matcher = pattern2.matcher(text);
@@ -59,7 +67,11 @@ public class DateAnnotator extends SugiliteTextAnnotator {
             String m = parsed[0].substring(0, 3);
             String d = parsed[1];
             if (d.length() < 2) d = "0" + d;
-            String y = parsed[parsed.length-1];
+            String y;
+            if (parsed.length == 2)
+                y = String.valueOf(Calendar.getInstance().get(Calendar.YEAR));
+            else
+                y = parsed[parsed.length-1];
             String comb = m + " " + d + " " + y;
             try {
                 Date date = new SimpleDateFormat("MMM dd yyyy").parse(comb);
@@ -73,13 +85,32 @@ public class DateAnnotator extends SugiliteTextAnnotator {
         matcher = pattern3.matcher(text);
         while (matcher.find()) {
             String matchedString = text.substring(matcher.start(), matcher.end());
-            String[] parsed = matchedString.split("[-.]");
+            String[] parsed = matchedString.split("[-./]");
             int year = Integer.valueOf(parsed[0]);
             int month = Integer.valueOf(parsed[1]);
             int date = Integer.valueOf(parsed[2]);
             if (year < 1970) continue;
 
             Calendar cal = new GregorianCalendar();
+            cal.set(year, month-1, date, 0, 0, 0);
+            double value = (double)(cal.getTime().getTime());
+            AnnotatingResult res = new AnnotatingResult(RELATION, text.substring(matcher.start(), matcher.end()),
+                    matcher.start(), matcher.end(), value);
+            results.add(res);
+        }
+
+        matcher = pattern4.matcher(text);
+        while (matcher.find()) {
+            String matchedString = text.substring(matcher.start(), matcher.end());
+            String[] parsed = matchedString.split("[ /]");
+            int monthStart = matcher.start() + parsed[0].length() + 1;
+            if (start.contains(monthStart))
+                continue;
+            Calendar cal = new GregorianCalendar();
+            int year = Calendar.getInstance().get(Calendar.YEAR);
+            int month = Integer.valueOf(parsed[1]);
+            int date = Integer.valueOf(parsed[2]);
+
             cal.set(year, month-1, date, 0, 0, 0);
             double value = (double)(cal.getTime().getTime());
             AnnotatingResult res = new AnnotatingResult(RELATION, text.substring(matcher.start(), matcher.end()),

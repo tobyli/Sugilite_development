@@ -1,5 +1,6 @@
 package edu.cmu.hcii.sugilite.ontology;
 
+import java.util.AbstractMap;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -11,7 +12,7 @@ import edu.cmu.hcii.sugilite.Node;
  * @time 3:05 PM
  */
 public class OntologyQueryUtils {
-    static public OntologyQuery getQueryWithClassAndPackageConstraints(OntologyQuery query, Node clickedNode){
+    public static OntologyQuery getQueryWithClassAndPackageConstraints(OntologyQuery query, Node clickedNode){
         //de-serialize the query
         OntologyQuery parentQuery = new OntologyQuery(OntologyQuery.relationType.AND);
         parentQuery.addSubQuery(query);
@@ -32,7 +33,7 @@ public class OntologyQueryUtils {
         return parentQuery;
     }
 
-    static public boolean isSameNode(Node a, Node b) {
+    public static boolean isSameNode(Node a, Node b) {
         if (a.getClassName() != null && (!a.getClassName().equals(b.getClassName()))) {
             return false;
         }
@@ -45,7 +46,7 @@ public class OntologyQueryUtils {
         return true;
     }
 
-    static public OntologyQuery combineTwoQueries(OntologyQuery query1, OntologyQuery query2){
+    public static OntologyQuery combineTwoQueries(OntologyQuery query1, OntologyQuery query2){
         Set<String> addedQueryString = new HashSet<>();
         if(query1.toString().equals(query2.toString())){
             return query1;
@@ -79,5 +80,34 @@ public class OntologyQueryUtils {
 
 
         return result;
+    }
+
+    public static String removeQuoteSigns(String string){
+        if(string.startsWith("\"") && string.endsWith("\"")){
+            return string.substring(1, string.length() - 1);
+        } else{
+            return string;
+        }
+    }
+
+    public static Set<SugiliteEntity<String>> getAllStringEntitiesWithHasTextAndHasChildTextRelations(SugiliteEntity entity, UISnapshot uiSnapshot){
+        Set<SugiliteEntity<String>> allStringEntities = new HashSet<>();
+        Set<SugiliteTriple> hasTextRelationTriples = uiSnapshot.getSubjectPredicateTriplesMap().get(new AbstractMap.SimpleEntry<>(entity.getEntityId(), SugiliteRelation.HAS_TEXT.getRelationId()));
+        Set<SugiliteTriple> hasChildTextRelationTriples = uiSnapshot.getSubjectPredicateTriplesMap().get(new AbstractMap.SimpleEntry<>(entity.getEntityId(), SugiliteRelation.HAS_CHILD_TEXT.getRelationId()));
+        if(hasTextRelationTriples != null) {
+            for (SugiliteTriple triple : hasTextRelationTriples) {
+                if (triple.getObject() != null && triple.getObject().getEntityValue() instanceof String) {
+                    allStringEntities.add(triple.getObject());
+                }
+            }
+        }
+        if(hasChildTextRelationTriples != null) {
+            for (SugiliteTriple triple : hasChildTextRelationTriples) {
+                if (triple.getObject() != null && triple.getObject().getEntityValue() instanceof String) {
+                    allStringEntities.add(triple.getObject());
+                }
+            }
+        }
+        return allStringEntities;
     }
 }

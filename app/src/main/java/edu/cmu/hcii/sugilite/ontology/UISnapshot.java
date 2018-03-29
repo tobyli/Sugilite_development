@@ -252,6 +252,8 @@ public class UISnapshot {
 
             //parse the string entities
             TextStringParseHelper textStringParseHelper = new TextStringParseHelper(sugiliteTextAnnotator);
+
+            //use the tempEntities to avoid concurrentModification in the map
             Set<SugiliteEntity<String>> tempEntities = new HashSet<>();
 
             for(Map.Entry<String, SugiliteEntity<String>> entry : stringSugiliteEntityMap.entrySet()){
@@ -259,7 +261,7 @@ public class UISnapshot {
             }
 
             for(SugiliteEntity<String> entity : tempEntities){
-                textStringParseHelper.parse(entity, this);
+                textStringParseHelper.parseAndAddNewRelations(entity, this);
             }
         }
 

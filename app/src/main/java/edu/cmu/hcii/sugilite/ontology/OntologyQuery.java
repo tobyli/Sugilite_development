@@ -1,7 +1,5 @@
 package edu.cmu.hcii.sugilite.ontology;
 
-import android.text.TextUtils;
-
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
@@ -25,18 +23,21 @@ public class OntologyQuery {
     private Set<SugiliteEntity> subject = null;
     private SugiliteRelation r = null;
 
+    private OntologyQueryFilter ontologyQueryFilter = null;
+
     public OntologyQuery(){
 
     }
 
     public OntologyQuery(SerializableOntologyQuery sq) {
         SubRelation = sq.getSubRelation();
+        ontologyQueryFilter = sq.getOntologyQueryFilter();
         r = sq.getR();
         if(r != null){
             setQueryFunction(sq.getR());
         }
         if(SubRelation != relationType.nullR) {
-            SubQueries = new HashSet<OntologyQuery>();
+            SubQueries = new HashSet<>();
             Set<SerializableOntologyQuery> pSubq = sq.getSubQueries();
             for(SerializableOntologyQuery s : pSubq) {
                 SubQueries.add(new OntologyQuery(s));
@@ -46,7 +47,7 @@ public class OntologyQuery {
             Set<SugiliteSerializableEntity> so = sq.getObject();
             Set<SugiliteSerializableEntity> ss = sq.getSubject();
             if(so != null){
-                object = new HashSet<SugiliteEntity>();
+                object = new HashSet<>();
                 for(SugiliteSerializableEntity se : so){
                     object.add(new SugiliteEntity(se));
                 }
@@ -169,6 +170,21 @@ public class OntologyQuery {
         return true;
     }
 
+    public void setOntologyQueryFilter(OntologyQueryFilter ontologyQueryFilter) {
+        this.ontologyQueryFilter = ontologyQueryFilter;
+    }
+
+    public OntologyQueryFilter getOntologyQueryFilter() {
+        return ontologyQueryFilter;
+    }
+
+    /**
+     * the query function used for determine whether a node matches the query
+     * @param query
+     * @param currNode
+     * @param graph
+     * @return
+     */
     private boolean OverallQueryFunction(OntologyQuery query, SugiliteEntity currNode, UISnapshot graph) {
         if(query.SubRelation == relationType.nullR){
             // base case, leaf node
@@ -283,7 +299,12 @@ public class OntologyQuery {
                 results.add(s);
             }
         }
-        return results;
+
+        if(ontologyQueryFilter != null) {
+            return ontologyQueryFilter.filter(results, graph);
+        } else {
+            return results;
+        }
     }
 
     class SubjectEntityObjectEntityPair{
@@ -312,90 +333,94 @@ public class OntologyQuery {
         }
     }
 
-    private static OntologyQuery parseString(String s, OntologyQuery q) {
+    private static OntologyQuery parseString(String s) {
         // example: (conj (IS_CLICKABLE true) (HAS_TEXT coffee))
+        OntologyQuery q = new OntologyQuery();
         s = s.trim();
-        int len = s.length();
-        if(BuildConfig.DEBUG && !(s.charAt(0) == '(' && s.charAt(len-1) == ')')){
-            //throw new AssertionError();
-        }
-        s = s.substring(1, len-1);
-        s = s.trim();
-        // s: conj (IS_CLICKABLE true) (HAS_TEXT coffee)
-        len = s.length();
+        if(s.startsWith("(") && s.endsWith(")") && s.length() > 1) {
+            //remove the outmost parenthesis
+            s = s.substring(1, s.length() - 1);
+            s = s.trim();
 
-        int spaceIndex = s.indexOf(' ');
-        String firstWord = s.substring(0, spaceIndex);
-        // firstWord: conj
-
-        if(s.contains("(")) {
-            // nested relation
-            if(firstWord.equals("conj")) {
-                q.setSubRelation(relationType.AND);
-            }
-            else if(firstWord.equals("or")){
-                q.setSubRelation(relationType.OR);
-            }
-            else{
-                q.setSubRelation(relationType.PREV);
-                q.setQueryFunction(SugiliteRelation.stringRelationMap.get(firstWord));
+            //process the possible OntologyQueryFilter
+            if(s.startsWith("ARG_MIN") || s.startsWith("ARG_MAX") || s.startsWith("EXISTS")){
+                //contains an OntologyQueryFilter -- need to process
+                int filterEndIndex = s.indexOf(" ", s.indexOf(" ") + 1);
+                String ontologyFilterString = s.substring(0, filterEndIndex);
+                String queryString = s.substring(filterEndIndex + 1);
+                OntologyQueryFilter filter = OntologyQueryFilter.deserialize(ontologyFilterString);
+                OntologyQuery resultQuery = OntologyQuery.parseString(queryString);
+                resultQuery.setOntologyQueryFilter(filter);
+                return resultQuery;
             }
 
-            Set<OntologyQuery> subQ = new HashSet<OntologyQuery>();
-            // walk through the string and parse in the next level query strings recursively
-            int lastMatchIndex = spaceIndex + 1;
-            int counter = 0;
-            for(int i = spaceIndex + 1; i < len; i++) {
-                if(s.charAt(i) == '(') counter++;
-                else if(s.charAt(i) == ')') counter--;
-
-                if(counter == 0) {
-                    OntologyQuery sub_query = new OntologyQuery();
-                    sub_query = parseString(s.substring(lastMatchIndex, i+1), sub_query);
-                    subQ.add(sub_query);
-                    lastMatchIndex = i+2;
-                    i++;
+            // s: conj (IS_CLICKABLE true) (HAS_TEXT coffee)
+            int spaceIndex = s.indexOf(' ');
+            String firstWord = s.substring(0, spaceIndex);
+            // firstWord: conj
+            if (s.contains("(")) {
+                // nested relation
+                if (firstWord.equals("conj")) {
+                    q.setSubRelation(relationType.AND);
+                } else if (firstWord.equals("or")) {
+                    q.setSubRelation(relationType.OR);
+                } else {
+                    q.setSubRelation(relationType.PREV);
+                    q.setQueryFunction(SugiliteRelation.stringRelationMap.get(firstWord));
                 }
-            }
-            q.setSubQueries(subQ);
-        }
-        else {
-            // base case: simple relation
-            // note: the object will never be an accessbility node info (since this is directly from user)
-            String predicateString = firstWord;
-            String objectString = s.substring(spaceIndex+1, len);
-            q.setSubRelation(relationType.nullR);
 
-            q.setQueryFunction(SugiliteRelation.stringRelationMap.get(predicateString));
-            Set<SugiliteEntity> oSet = new HashSet<SugiliteEntity>();
-            if(objectString.equalsIgnoreCase("true")){
-                SugiliteEntity<Boolean> o = new SugiliteEntity<Boolean>(-1, Boolean.class, true);
-                oSet.add(o);
+                Set<OntologyQuery> subQ = new HashSet<OntologyQuery>();
+                // walk through the string and parse in the next level query strings recursively
+                int lastMatchIndex = spaceIndex + 1;
+                int counter = 0;
+                for (int i = spaceIndex + 1; i < s.length(); i++) {
+                    if (s.charAt(i) == '(') counter++;
+                    else if (s.charAt(i) == ')') counter--;
+
+                    if (counter == 0) {
+                        OntologyQuery sub_query = parseString(s.substring(lastMatchIndex, i + 1));
+                        subQ.add(sub_query);
+                        lastMatchIndex = i + 2;
+                        i++;
+                    }
+                }
+                q.setSubQueries(subQ);
             }
-            else if(objectString.equalsIgnoreCase("false")){
-                SugiliteEntity<Boolean> o = new SugiliteEntity<Boolean>(-1, Boolean.class, false);
-                oSet.add(o);
-            }
+
             else {
-                SugiliteEntity<String> o = new SugiliteEntity<String>(-1, String.class, cleanString(objectString));
-                oSet.add(o);
-            }
-            q.setObject(oSet);
-        }
-        return q;
-    }
+                // base case: simple relation
+                // note: the object will never be an accessbility node info (since this is directly from user)
+                String predicateString = firstWord;
+                String objectString = s.substring(spaceIndex + 1, s.length());
+                q.setSubRelation(relationType.nullR);
 
-    private static String cleanString(String string){
-        if(string.startsWith("\"") && string.endsWith("\"")){
-            return string.substring(1, string.length() - 1);
-        } else{
-            return string;
+                q.setQueryFunction(SugiliteRelation.stringRelationMap.get(predicateString));
+                Set<SugiliteEntity> oSet = new HashSet<SugiliteEntity>();
+                if (objectString.equalsIgnoreCase("true")) {
+                    SugiliteEntity<Boolean> o = new SugiliteEntity<Boolean>(-1, Boolean.class, true);
+                    oSet.add(o);
+                } else if (objectString.equalsIgnoreCase("false")) {
+                    SugiliteEntity<Boolean> o = new SugiliteEntity<Boolean>(-1, Boolean.class, false);
+                    oSet.add(o);
+                } else {
+                    SugiliteEntity<String> o = new SugiliteEntity<String>(-1, String.class, OntologyQueryUtils.removeQuoteSigns(objectString));
+                    oSet.add(o);
+                }
+                q.setObject(oSet);
+            }
+            return q;
+        }
+
+        else {
+
+            //malformed query
+            return null;
         }
     }
 
     public static OntologyQuery deserialize(String queryString) {
         // example: (and (hasColor red) (isChecked true))
-        return parseString(queryString, new OntologyQuery());
+        return parseString(queryString);
     }
 
     public SugiliteRelation getR() {
@@ -404,29 +429,42 @@ public class OntologyQuery {
 
     @Override
     public String toString() {
+        String baseQueryString = "";
+
         if(SubRelation == relationType.nullR){
             // base case
             // this should have size 1 always, the array is only used in execution for when there's a query whose results are used as the objects of the next one
             SugiliteEntity[] objectArr = object.toArray(new SugiliteEntity[object.size()]);
-            return "(" + r.getRelationName() + " " + objectArr[0].toString() + ")";
+            baseQueryString = "(" + r.getRelationName() + " " + objectArr[0].toString() + ")";
         }
-        OntologyQuery[] subQueryArray = SubQueries.toArray(new OntologyQuery[SubQueries.size()]);
-        if(SubRelation == relationType.AND || SubRelation == relationType.OR){
-            int size = subQueryArray.length;
-            String[] arr = new String[size];
-            for(int i = 0; i < size; i++){
-                arr[i] = subQueryArray[i].toString();
+
+        else {
+            OntologyQuery[] subQueryArray = SubQueries.toArray(new OntologyQuery[SubQueries.size()]);
+            if (SubRelation == relationType.AND || SubRelation == relationType.OR) {
+                int size = subQueryArray.length;
+                String[] arr = new String[size];
+                for (int i = 0; i < size; i++) {
+                    arr[i] = subQueryArray[i].toString();
+                }
+                String joined = Arrays.asList(arr).stream().collect(Collectors.joining(" "));
+                if (SubRelation == relationType.AND) {
+                    baseQueryString = "(conj " + joined + ")";
+                } else {
+                    baseQueryString = "(or " + joined + ")";
+                }
             }
-            String joined = Arrays.asList(arr).stream().collect(Collectors.joining(" "));
-            if(SubRelation == relationType.AND) return "(conj " + joined + ")";
-            else return "(or " + joined + ")";
+            else if (SubRelation == relationType.PREV){
+                baseQueryString = "(" + r.getRelationName() + " " + subQueryArray[0].toString() + ")";
+            }
         }
 
-        // SubRelation == relationType.PREV
-
-        return "(" + r.getRelationName() + " " + subQueryArray[0].toString() + ")";
+        //include the ontologyQueryFilter in the toString() method
+        if(ontologyQueryFilter == null) {
+            return baseQueryString;
+        } else{
+            return "(" + ontologyQueryFilter.toString() + " " + baseQueryString + ")";
+        }
     }
-
 
 
 }

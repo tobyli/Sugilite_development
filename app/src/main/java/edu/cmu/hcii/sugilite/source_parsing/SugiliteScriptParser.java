@@ -119,12 +119,17 @@ public class SugiliteScriptParser {
     }
 
     public String scriptToString(SugiliteBlock block){
-        String result = block.toString();
-        if(block.getNextBlock() != null) {
-            result += "\n";
-            result += scriptToString(block.getNextBlock());
+        if(block != null) {
+            String result = block.toString();
+            if (block.getNextBlock() != null) {
+                result += "\n";
+                result += scriptToString(block.getNextBlock());
+            }
+            return result;
         }
-        return result;
+        else {
+            return "NULL";
+        }
     }
 
     public static void main(String[] args){

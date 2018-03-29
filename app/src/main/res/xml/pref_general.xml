@@ -30,6 +30,7 @@
         android:singleLine="true"
         android:maxLines="1" />
 
+    <!--android:defaultValue="http://128.237.214.41:4567/semparse"-->
     <EditTextPreference
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"

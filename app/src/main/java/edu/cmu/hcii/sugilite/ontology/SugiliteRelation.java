@@ -90,6 +90,12 @@ public class SugiliteRelation implements Serializable {
     public static final SugiliteRelation CONTAINS_VOLUME = new SugiliteRelation(28, "CONTAINS_VOLUME");
 
 
+    //spatial relations
+    public static final SugiliteRelation CONTAINS = new SugiliteRelation(29, "CONTAINS");
+    public static final SugiliteRelation RIGHT = new SugiliteRelation(30, "RIGHT");
+    public static final SugiliteRelation LEFT = new SugiliteRelation(31, "LEFT");
+    public static final SugiliteRelation ABOVE = new SugiliteRelation(32, "ABOVE");
+    public static final SugiliteRelation BELOW = new SugiliteRelation(33, "BELOW");
 
 
     public static final Map<String, SugiliteRelation> stringRelationMap;

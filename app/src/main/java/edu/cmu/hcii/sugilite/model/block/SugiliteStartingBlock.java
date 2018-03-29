@@ -1,14 +1,16 @@
 package edu.cmu.hcii.sugilite.model.block;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import edu.cmu.hcii.sugilite.model.block.operation.SugiliteOperationBlock;
+import edu.cmu.hcii.sugilite.model.block.operation.special_operation.SugiliteSpecialOperationBlock;
 import edu.cmu.hcii.sugilite.model.variable.Variable;
+
+import static edu.cmu.hcii.sugilite.source_parsing.SugiliteScriptExpression.addQuoteToTokenIfNeeded;
 
 /**
  * @author toby
@@ -16,9 +18,9 @@ import edu.cmu.hcii.sugilite.model.variable.Variable;
  * @time 1:48 PM
  */
 public class SugiliteStartingBlock extends SugiliteBlock implements Serializable {
-    private SugiliteBlock nextBlock;
     private String scriptName;
     public Set<String> relevantPackages;
+
     //persistent across launches, used to store the list of names for variables
     public Map<String, Variable> variableNameDefaultValueMap;
     public Map<String, Set<String>> variableNameAlternativeValueMap;
@@ -41,12 +43,6 @@ public class SugiliteStartingBlock extends SugiliteBlock implements Serializable
         this.setDescription("<b>START SCRIPT</b>");
     }
 
-    public SugiliteBlock getNextBlock(){
-        return nextBlock;
-    }
-    public void setNextBlock(SugiliteBlock sugiliteBlock){
-        this.nextBlock = sugiliteBlock;
-    }
     public String getScriptName(){
         return scriptName;
     }
@@ -68,7 +64,7 @@ public class SugiliteStartingBlock extends SugiliteBlock implements Serializable
                 else
                     currentBlock = ((SugiliteOperationBlock) currentBlock).getNextBlock();
             }
-            else if(currentBlock instanceof  SugiliteSpecialOperationBlock){
+            else if(currentBlock instanceof SugiliteSpecialOperationBlock){
                 if(((SugiliteSpecialOperationBlock) currentBlock).getNextBlock() == null)
                     return currentBlock;
                 else
@@ -83,6 +79,8 @@ public class SugiliteStartingBlock extends SugiliteBlock implements Serializable
         }
     }
 
-
-
+    @Override
+    public String toString() {
+        return "(SUGILITE_START " + addQuoteToTokenIfNeeded(scriptName) + ")";
+    }
 }

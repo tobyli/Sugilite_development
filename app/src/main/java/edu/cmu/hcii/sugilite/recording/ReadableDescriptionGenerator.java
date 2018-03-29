@@ -3,7 +3,6 @@ package edu.cmu.hcii.sugilite.recording;
 import android.content.Context;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
-import android.provider.Contacts;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -11,11 +10,13 @@ import java.util.Set;
 
 import edu.cmu.hcii.sugilite.Const;
 import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
-import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
-import edu.cmu.hcii.sugilite.model.block.SugiliteSpecialOperationBlock;
+import edu.cmu.hcii.sugilite.model.block.operation.SugiliteOperationBlock;
+import edu.cmu.hcii.sugilite.model.block.operation.special_operation.SugiliteSpecialOperationBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
-import edu.cmu.hcii.sugilite.model.block.UIElementMatchingFilter;
+import edu.cmu.hcii.sugilite.model.block.util.UIElementMatchingFilter;
+import edu.cmu.hcii.sugilite.model.operation.SugiliteLoadVariableOperation;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteOperation;
+import edu.cmu.hcii.sugilite.model.operation.SugiliteReadoutOperation;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteSetTextOperation;
 
 
@@ -53,10 +54,10 @@ public class ReadableDescriptionGenerator {
                 message += setColor("Long click ", Const.SCRIPT_ACTION_COLOR) + "on ";
                 break;
             case SugiliteOperation.READ_OUT:
-                message += setColor("Read out ", Const.SCRIPT_ACTION_COLOR) + "the " + setColor(((SugiliteOperationBlock)block).getOperation().getParameter(), Const.SCRIPT_ACTION_PARAMETER_COLOR) + " for ";
+                message += setColor("Read out ", Const.SCRIPT_ACTION_COLOR) + "the " + setColor(((SugiliteReadoutOperation)(block.getOperation())).getPropertyToReadout(), Const.SCRIPT_ACTION_PARAMETER_COLOR) + " for ";
                 break;
             case SugiliteOperation.LOAD_AS_VARIABLE:
-                message += setColor("Load the value ", Const.SCRIPT_ACTION_COLOR) + "of the" + setColor(((SugiliteOperationBlock)block).getOperation().getParameter(), Const.SCRIPT_ACTION_PARAMETER_COLOR) + " as a variable for ";
+                message += setColor("Load the value ", Const.SCRIPT_ACTION_COLOR) + "of the" + setColor(((SugiliteLoadVariableOperation)(block.getOperation())).getPropertyToSave(), Const.SCRIPT_ACTION_PARAMETER_COLOR) + " as a variable for ";
                 break;
             case SugiliteOperation.SPECIAL_GO_HOME:
                 return "<b>GO TO HOME SCREEN</b>";
@@ -96,10 +97,10 @@ public class ReadableDescriptionGenerator {
                     message += setColor("Long click ", Const.SCRIPT_ACTION_COLOR) + "on ";
                     break;
                 case SugiliteOperation.READ_OUT:
-                    message += setColor("Read out ", Const.SCRIPT_ACTION_COLOR) + "the " + setColor(((SugiliteOperationBlock)block).getOperation().getParameter(), Const.SCRIPT_ACTION_PARAMETER_COLOR) + " for ";
+                    message += setColor("Read out ", Const.SCRIPT_ACTION_COLOR) + "the " + setColor(((SugiliteReadoutOperation)((SugiliteOperationBlock) block).getOperation()).getPropertyToReadout(), Const.SCRIPT_ACTION_PARAMETER_COLOR) + " for ";
                     break;
                 case SugiliteOperation.LOAD_AS_VARIABLE:
-                    message += setColor("Load the value ", Const.SCRIPT_ACTION_COLOR) + "of the" + setColor(((SugiliteOperationBlock)block).getOperation().getParameter(), Const.SCRIPT_ACTION_PARAMETER_COLOR) + " as a variable for ";
+                    message += setColor("Load the value ", Const.SCRIPT_ACTION_COLOR) + "of the" + setColor(((SugiliteLoadVariableOperation)((SugiliteOperationBlock) block).getOperation()).getPropertyToSave(), Const.SCRIPT_ACTION_PARAMETER_COLOR) + " as a variable for ";
                     break;
                 case SugiliteOperation.SPECIAL_GO_HOME:
                     return "<b>GO TO HOME SCREEN</b>";
@@ -199,8 +200,6 @@ public class ReadableDescriptionGenerator {
         else if (block instanceof SugiliteSpecialOperationBlock){
             return "<b> SPECIAL OPERATION " + setColor(((SugiliteSpecialOperationBlock) block).getDescription(), Const.SCRIPT_ACTION_PARAMETER_COLOR) + "</b>";
         }
-
-
 
         return "NULL";
     }

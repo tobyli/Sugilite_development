@@ -3,21 +3,19 @@ package edu.cmu.hcii.sugilite.ontology;
 import android.graphics.Rect;
 import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityNodeInfo;
-
-import com.google.gson.Gson;
+import android.view.accessibility.AccessibilityWindowInfo;
 
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import edu.cmu.hcii.sugilite.Node;
-import edu.cmu.hcii.sugilite.automation.Automator;
+import edu.cmu.hcii.sugilite.automation.AutomatorUtil;
 import edu.cmu.hcii.sugilite.ontology.helper.ListOrderResolver;
 import edu.cmu.hcii.sugilite.ontology.helper.TextStringParseHelper;
 import edu.cmu.hcii.sugilite.ontology.helper.annotator.SugiliteNodeAnnotator;
@@ -71,23 +69,43 @@ public class UISnapshot {
     public UISnapshot(AccessibilityEvent event){
         //TODO: contruct a UI snapshot from an event
         //get the rootNode from event and pass into to the below function
+        this();
+    }
 
+    public UISnapshot(List<AccessibilityWindowInfo> windows, boolean toConstructNodeAccessibilityNodeInfoMap, SugiliteTextAnnotator sugiliteTextAnnotator) {
+        this();
+        List<Node> allNodes = new ArrayList<>();
+        for(AccessibilityWindowInfo window : windows){
+            AccessibilityNodeInfo rootNode = window.getRoot();
+            if(rootNode != null) {
+                allNodes.addAll(preOrderNodeTraverseWithZIndex(rootNode, toConstructNodeAccessibilityNodeInfoMap, window.getLayer(), new ArrayList<>()));
+            }
+        }
+        constructFromListOfNodes(allNodes, sugiliteTextAnnotator);
+    }
 
+    public UISnapshot(AccessibilityNodeInfo rootNode, boolean toConstructNodeAccessibilityNodeInfoMap, SugiliteTextAnnotator sugiliteTextAnnotator) {
+        this();
+        List<AccessibilityNodeInfo> allOldNodes = AutomatorUtil.preOrderTraverse(rootNode);
+        List<Node> allNodes = new ArrayList<>();
+        for(AccessibilityNodeInfo oldNode : allOldNodes){
+            Node node = new Node(oldNode);
+            allNodes.add(node);
+            if(toConstructNodeAccessibilityNodeInfoMap){
+                nodeAccessibilityNodeInfoMap.put(node, oldNode);
+            }
+        }
+        constructFromListOfNodes(allNodes, sugiliteTextAnnotator);
     }
 
     /**
-     * contruct a UI snapshot from a rootNode
-     * @param rootNode
-     * @param toConstructNodeAccessibilityNodeInfoMap
+     * contruct a UI snapshot from a list of all nodes
+     * @param allNodes
+     * @param sugiliteTextAnnotator
      */
-    public UISnapshot(AccessibilityNodeInfo rootNode, boolean toConstructNodeAccessibilityNodeInfoMap, SugiliteTextAnnotator sugiliteTextAnnotator){
-        this();
-        List<AccessibilityNodeInfo> allNodes = Automator.preOrderTraverse(rootNode);
+    private void constructFromListOfNodes(List<Node> allNodes, SugiliteTextAnnotator sugiliteTextAnnotator){
         if(allNodes != null){
-            for(AccessibilityNodeInfo oldNode : allNodes) {
-                Node node = new Node(oldNode);
-
-
+            for(Node node : allNodes) {
                 //get the corresponding entity for the node
                 SugiliteEntity<Node> currentEntity = null;
                 if (nodeSugiliteEntityMap.containsKey(node)) {
@@ -99,10 +117,6 @@ public class UISnapshot {
                     currentEntity = entity;
                 }
 
-                //start to construct the relationship
-                if(toConstructNodeAccessibilityNodeInfoMap) {
-                    nodeAccessibilityNodeInfoMap.put(node, oldNode);
-                }
 
                 if (node.getClassName() != null) {
                     //class
@@ -239,6 +253,8 @@ public class UISnapshot {
 
             //parse the string entities
             TextStringParseHelper textStringParseHelper = new TextStringParseHelper(sugiliteTextAnnotator);
+
+            //use the tempEntities to avoid concurrentModification in the map
             Set<SugiliteEntity<String>> tempEntities = new HashSet<>();
 
             for(Map.Entry<String, SugiliteEntity<String>> entry : stringSugiliteEntityMap.entrySet()){
@@ -246,7 +262,7 @@ public class UISnapshot {
             }
 
             for(SugiliteEntity<String> entity : tempEntities){
-                textStringParseHelper.parse(entity, this);
+                textStringParseHelper.parseAndAddNewRelations(entity, this);
             }
 
             //parse node entities
@@ -284,24 +300,30 @@ public class UISnapshot {
 
             SugiliteEntity<Node> childEntity = nodeSugiliteEntityMap.get(childNode);
             if(childEntity != null){
-                for(SugiliteEntity<Node> entity : getAllChildEntities(childEntity)){
+                for(SugiliteEntity<Node> entity : getAllChildEntities(childEntity, new HashSet<>())){
                     addEntityStringTriple(entity, String.valueOf(counter), SugiliteRelation.HAS_PARENT_WITH_LIST_ORDER);
                 }
             }
         }
     }
 
-    private Set<SugiliteEntity<Node>> getAllChildEntities(SugiliteEntity<Node> node){
+
+    private Set<SugiliteEntity<Node>> getAllChildEntities(SugiliteEntity<Node> node, Set<SugiliteEntity<Node>> coveredNodes){
         Set<SugiliteEntity<Node>> results = new HashSet<>();
         Set<SugiliteTriple> triples = subjectPredicateTriplesMap.get(new AbstractMap.SimpleEntry<>(node.getEntityId(), SugiliteRelation.HAS_CHILD.getRelationId()));
         if(triples != null) {
             for (SugiliteTriple triple : triples) {
-                if (triple.getObject().getEntityValue() instanceof Node) {
+                if (triple.getObject().getEntityValue() instanceof Node && (!results.contains(triple.getObject()))) {
+                    if(coveredNodes.contains(triple.getObject())){
+                        continue;
+                    }
                     results.add(triple.getObject());
-                    results.addAll(getAllChildEntities(triple.getObject()));
+                    coveredNodes.add(triple.getObject());
+                    results.addAll(getAllChildEntities(triple.getObject(), coveredNodes));
                 }
             }
         }
+        coveredNodes.addAll(results);
         return results;
     }
 
@@ -486,4 +508,34 @@ public class UISnapshot {
     public Map<Map.Entry<Integer, Integer>, Set<SugiliteTriple>> getSubjectPredicateTriplesMap() {
         return subjectPredicateTriplesMap;
     }
+
+    /**
+     *
+     * @param parent parent node
+     * @param toConstructNodeAccessibilityNodeInfoMap whether to populate nodeAccessibilityNodeInfoMap while traversing
+     * @param windowZIndex the z index of the window
+     * @param parentNodeZIndexSequence the z index sequence of the parent node
+     * @return
+     */
+    private List<Node> preOrderNodeTraverseWithZIndex(AccessibilityNodeInfo parent, boolean toConstructNodeAccessibilityNodeInfoMap, Integer windowZIndex, List<Integer> parentNodeZIndexSequence){
+        //fill in the Z-index for nodes recursively
+        if(parent == null) {
+            return null;
+        }
+        List<Node> list = new ArrayList<>();
+        Node node = new Node(parent, windowZIndex, parentNodeZIndexSequence);
+        if(toConstructNodeAccessibilityNodeInfoMap){
+            nodeAccessibilityNodeInfoMap.put(node, parent);
+        }
+        list.add(node);
+        int childCount = parent.getChildCount();
+        for(int i = 0; i < childCount; i ++){
+            AccessibilityNodeInfo childNode = parent.getChild(i);
+            if(childNode != null) {
+                list.addAll(preOrderNodeTraverseWithZIndex(childNode, toConstructNodeAccessibilityNodeInfoMap, windowZIndex, node.getNodeZIndexSequence()));
+            }
+        }
+        return list;
+    }
+
 }

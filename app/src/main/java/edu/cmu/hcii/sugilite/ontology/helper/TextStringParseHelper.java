@@ -20,7 +20,7 @@ public class TextStringParseHelper {
         this.sugiliteTextAnnotator = sugiliteTextAnnotator;
     }
 
-    public void parse(SugiliteEntity<String> stringEntity, UISnapshot uiSnapshot){
+    public void parseAndAddNewRelations(SugiliteEntity<String> stringEntity, UISnapshot uiSnapshot){
         List<SugiliteTextAnnotator.AnnotatingResult> results = sugiliteTextAnnotator.annotate(stringEntity.getEntityValue());
         for(SugiliteTextAnnotator.AnnotatingResult result : results){
 

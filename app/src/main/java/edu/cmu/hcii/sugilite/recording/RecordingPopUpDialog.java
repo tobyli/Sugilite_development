@@ -5,7 +5,6 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
-import android.graphics.Color;
 import android.graphics.Rect;
 import android.text.Editable;
 import android.text.Html;
@@ -51,17 +50,19 @@ import edu.cmu.hcii.sugilite.communication.SugiliteBlockJSONProcessor;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptFileDao;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptSQLDao;
-import edu.cmu.hcii.sugilite.model.block.SerializableNodeInfo;
-import edu.cmu.hcii.sugilite.model.block.SugiliteAvailableFeaturePack;
+import edu.cmu.hcii.sugilite.model.block.util.SerializableNodeInfo;
+import edu.cmu.hcii.sugilite.model.block.util.SugiliteAvailableFeaturePack;
 import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteErrorHandlingForkBlock;
-import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
-import edu.cmu.hcii.sugilite.model.block.SugiliteSpecialOperationBlock;
+import edu.cmu.hcii.sugilite.model.block.operation.SugiliteOperationBlock;
+import edu.cmu.hcii.sugilite.model.block.operation.special_operation.SugiliteSpecialOperationBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
-import edu.cmu.hcii.sugilite.model.block.UIElementMatchingFilter;
+import edu.cmu.hcii.sugilite.model.block.util.UIElementMatchingFilter;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteLoadVariableOperation;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteOperation;
+import edu.cmu.hcii.sugilite.model.operation.SugiliteReadoutOperation;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteSetTextOperation;
+import edu.cmu.hcii.sugilite.model.operation.SugiliteUnaryOperation;
 import edu.cmu.hcii.sugilite.model.variable.StringVariable;
 import edu.cmu.hcii.sugilite.model.variable.Variable;
 import edu.cmu.hcii.sugilite.ontology.OntologyQuery;
@@ -78,6 +79,8 @@ import static edu.cmu.hcii.sugilite.Const.SQL_SCRIPT_DAO;
  * @date 7/22/16
  * @time 12:18 PM
  */
+
+@Deprecated
 public class RecordingPopUpDialog extends AbstractSugiliteDialog {
 
     private int triggerMode;
@@ -1809,7 +1812,7 @@ public class RecordingPopUpDialog extends AbstractSugiliteDialog {
 
     private SugiliteOperationBlock generateBlock(){
         //determine the action first
-        SugiliteOperation sugiliteOperation = new SugiliteOperation();
+        SugiliteOperation sugiliteOperation = new SugiliteUnaryOperation();
         String actionSpinnerSelectedItem = actionSpinner.getSelectedItem().toString();
         if (actionSpinnerSelectedItem.contentEquals("Click"))
             sugiliteOperation.setOperationType(SugiliteOperation.CLICK);
@@ -1817,19 +1820,19 @@ public class RecordingPopUpDialog extends AbstractSugiliteDialog {
             sugiliteOperation.setOperationType(SugiliteOperation.LONG_CLICK);
         if(actionSpinnerSelectedItem.contentEquals("Select"))
             sugiliteOperation.setOperationType(SugiliteOperation.SELECT);
+
         if (actionSpinnerSelectedItem.contentEquals("Read Out")) {
-            sugiliteOperation.setOperationType(SugiliteOperation.READ_OUT);
+            sugiliteOperation = new SugiliteReadoutOperation();
             if(dialogRootView.findViewById(R.id.text_to_read_out_spinner) != null){
                 String selectionText = ((Spinner)dialogRootView.findViewById(R.id.text_to_read_out_spinner)).getSelectedItem().toString();
-                sugiliteOperation.setParameter(selectionText.substring(0, selectionText.indexOf(":")));
+                ((SugiliteReadoutOperation)sugiliteOperation).setPropertyToReadout(selectionText.substring(0, selectionText.indexOf(":")));
             }
         }
         if (actionSpinnerSelectedItem.contentEquals("Load as Variable")){
             sugiliteOperation = new SugiliteLoadVariableOperation();
-            sugiliteOperation.setOperationType(SugiliteOperation.LOAD_AS_VARIABLE);
             if(dialogRootView.findViewById(R.id.element_to_load_variable_spinner) != null){
                 String selectionText = ((Spinner)dialogRootView.findViewById(R.id.element_to_load_variable_spinner)).getSelectedItem().toString();
-                sugiliteOperation.setParameter(selectionText.substring(0, selectionText.indexOf(":")));
+                ((SugiliteLoadVariableOperation)sugiliteOperation).setPropertyToSave(selectionText.substring(0, selectionText.indexOf(":")));
                 String variableName = loadVariableVariableName.getText().toString();
                 ((SugiliteLoadVariableOperation)sugiliteOperation).setVariableName(variableName);
                             }

@@ -1,7 +1,6 @@
 package edu.cmu.hcii.sugilite.recording.newrecording;
 
 import android.app.AlertDialog;
-import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
@@ -12,35 +11,21 @@ import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import java.util.ArrayList;
-import java.util.DoubleSummaryStatistics;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import edu.cmu.hcii.sugilite.Const;
-import edu.cmu.hcii.sugilite.R;
+import edu.cmu.hcii.sugilite.SugiliteAccessibilityService;
 import edu.cmu.hcii.sugilite.SugiliteData;
-import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
-import edu.cmu.hcii.sugilite.dao.SugiliteScriptFileDao;
-import edu.cmu.hcii.sugilite.dao.SugiliteScriptSQLDao;
-import edu.cmu.hcii.sugilite.model.block.SugiliteAvailableFeaturePack;
-import edu.cmu.hcii.sugilite.model.block.SugiliteErrorHandlingForkBlock;
-import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
-import edu.cmu.hcii.sugilite.model.block.SugiliteSpecialOperationBlock;
-import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
+import edu.cmu.hcii.sugilite.model.block.util.SugiliteAvailableFeaturePack;
+import edu.cmu.hcii.sugilite.model.block.operation.SugiliteOperationBlock;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteOperation;
-import edu.cmu.hcii.sugilite.ontology.OntologyQuery;
 import edu.cmu.hcii.sugilite.ontology.SerializableOntologyQuery;
-import edu.cmu.hcii.sugilite.ontology.SugiliteEntity;
-import edu.cmu.hcii.sugilite.ontology.SugiliteRelation;
 import edu.cmu.hcii.sugilite.ontology.UISnapshot;
 import edu.cmu.hcii.sugilite.recording.ReadableDescriptionGenerator;
 
@@ -49,6 +34,8 @@ import edu.cmu.hcii.sugilite.recording.ReadableDescriptionGenerator;
  * @date 1/5/18
  * @time 4:59 PM
  */
+
+
 public class NewDemonstrationHandler {
     private SugiliteData sugiliteData;
     private Context context;
@@ -56,10 +43,12 @@ public class NewDemonstrationHandler {
     private LayoutInflater layoutInflater;
     private SugiliteBlockBuildingHelper blockBuildingHelper;
     private ReadableDescriptionGenerator readableDescriptionGenerator;
+    private SugiliteAccessibilityService accessibilityService;
 
-    public NewDemonstrationHandler(SugiliteData sugiliteData, Context context, LayoutInflater layoutInflater, SharedPreferences sharedPreferences){
+    public NewDemonstrationHandler(SugiliteData sugiliteData, Context context, LayoutInflater layoutInflater, SharedPreferences sharedPreferences, SugiliteAccessibilityService accessibilityService){
         this.sugiliteData = sugiliteData;
         this.context = context;
+        this.accessibilityService = accessibilityService;;
         this.sharedPreferences = sharedPreferences;
         this.layoutInflater = layoutInflater;
         this.blockBuildingHelper = new SugiliteBlockBuildingHelper(context, sugiliteData);
@@ -67,26 +56,53 @@ public class NewDemonstrationHandler {
     }
 
     //handles the demonstration
+
+    /**
+     * this method is for handling demonstration from an accessibility event
+     * @param featurePack
+     * @param availableAlternatives
+     * @param uiSnapshot
+     */
     public void handleEvent(SugiliteAvailableFeaturePack featurePack, Set<Map.Entry<String, String>> availableAlternatives, UISnapshot uiSnapshot){
         //determine if disambiguation is needed
 
         //show the confirmation popup if not ambiguous
         List<Map.Entry<SerializableOntologyQuery, Double>> queryScoreList = blockBuildingHelper.generateDefaultQueries(featurePack, uiSnapshot);
         if(queryScoreList.size() > 0) {
-            if (queryScoreList.size() <= 1 || (queryScoreList.get(1).getValue().intValue() - queryScoreList.get(0).getValue().intValue() >= 1)) {
+            //threshold for determine whether the results are ambiguous
+            if (queryScoreList.size() <= 1 || (queryScoreList.get(1).getValue().intValue() - queryScoreList.get(0).getValue().intValue() > 2)) {
                 //not ambiguous, show the confirmation popup
-                SugiliteOperationBlock block = blockBuildingHelper.getOperationFromQuery(queryScoreList.get(0).getKey(), SugiliteOperation.CLICK, featurePack);
-                showConfirmation(block, featurePack, queryScoreList);
+                SugiliteOperationBlock block = blockBuildingHelper.getOperationBlockFromQuery(queryScoreList.get(0).getKey(), SugiliteOperation.CLICK, featurePack);
+
+                //need to run on ui thread
+                accessibilityService.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        showConfirmation(block, featurePack, queryScoreList);
+                    }
+                });
+
             }
             else{
                 //ask for clarification if ambiguous
-                Toast.makeText(context, "Ambiguous!", Toast.LENGTH_SHORT).show();
-                showAmbiguousPopup(queryScoreList, featurePack);
+                //need to run on ui thread
+                accessibilityService.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        Toast.makeText(context, "Ambiguous!", Toast.LENGTH_SHORT).show();
+                        showAmbiguousPopup(queryScoreList, featurePack);
+                    }
+                });
             }
         }
         else{
             //empty result
-            Toast.makeText(context, "Empty Result!", Toast.LENGTH_SHORT).show();
+            accessibilityService.runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    Toast.makeText(context, "Empty Results!", Toast.LENGTH_SHORT).show();
+                }
+            });
         }
 
     }
@@ -107,11 +123,12 @@ public class NewDemonstrationHandler {
 
         int i = 0;
         for(Map.Entry<SerializableOntologyQuery, Double> entry : queryScoreList){
-            SugiliteOperationBlock block = blockBuildingHelper.getOperationFromQuery(entry.getKey(), SugiliteOperation.CLICK, featurePack);
+            SugiliteOperationBlock block = blockBuildingHelper.getOperationBlockFromQuery(entry.getKey(), SugiliteOperation.CLICK, featurePack);
             sugiliteOperationBlockArray[i++] = block;
         }
 
         Map<SugiliteOperationBlock, String> descriptions = blockBuildingHelper.getDescriptionsInDifferences(sugiliteOperationBlockArray);
+
         i = 0;
         for(SugiliteOperationBlock block : sugiliteOperationBlockArray){
             stringArray[i++] = descriptions.get(block);

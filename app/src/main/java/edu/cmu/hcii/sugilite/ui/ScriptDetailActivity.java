@@ -37,14 +37,15 @@ import edu.cmu.hcii.sugilite.R;
 import edu.cmu.hcii.sugilite.SugiliteAccessibilityService;
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.automation.Automator;
+import edu.cmu.hcii.sugilite.automation.AutomatorUtil;
 import edu.cmu.hcii.sugilite.automation.ServiceStatusManager;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptFileDao;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptSQLDao;
 import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteErrorHandlingForkBlock;
-import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
-import edu.cmu.hcii.sugilite.model.block.SugiliteSpecialOperationBlock;
+import edu.cmu.hcii.sugilite.model.block.operation.SugiliteOperationBlock;
+import edu.cmu.hcii.sugilite.model.block.operation.special_operation.SugiliteSpecialOperationBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.recording.RecordingPopUpDialog;
 import edu.cmu.hcii.sugilite.model.variable.Variable;
@@ -426,6 +427,7 @@ public class ScriptDetailActivity extends AppCompatActivity {
             if (currentBlock == null)
                 break;
             if (currentBlock instanceof SugiliteOperationBlock) {
+                //view the screenshot taken during the demonstration
                 //TODO: check if content equals is the right method to use here
                 if (Html.fromHtml(currentBlock.getDescription()).toString().contentEquals(textView.getText().toString())) {
                     if (((SugiliteOperationBlock) currentBlock).getFeaturePack() == null) {
@@ -470,7 +472,10 @@ public class ScriptDetailActivity extends AppCompatActivity {
             System.out.println("Can't find view " + item.getItemId());
             return;
         }
-        attemptToEdit(script, textView);
+        Toast.makeText(this, "Edit doesn't work", Toast.LENGTH_SHORT).show();
+
+        //TODO: need to fix script editing for the new query format
+        //attemptToEdit(script, textView);
     }
     private boolean attemptToEdit(SugiliteBlock currentBlock, TextView textView){
         while(true){
@@ -546,7 +551,7 @@ public class ScriptDetailActivity extends AppCompatActivity {
 
     }
 
-        @Override
+    @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         // Check which request we're responding to
         if (requestCode == RecordingPopUpDialog.TRIGGERED_BY_EDIT) {
@@ -567,6 +572,10 @@ public class ScriptDetailActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * delete the selected operation (and everything after it)
+     * @param item
+     */
     private void deleteOperation(MenuItem item){
         TextView textView = contextTextView;
         if(textView == null)
@@ -733,7 +742,7 @@ public class ScriptDetailActivity extends AppCompatActivity {
             sugiliteData.setCurrentScriptBlock(script.getTail());
             //force stop all the relevant packages
             for (String packageName : script.relevantPackages) {
-                Automator.killPackage(packageName);
+                AutomatorUtil.killPackage(packageName);
             }
             sugiliteData.runScript(script, true, SugiliteData.EXECUTION_STATE);
             //need to have this delay to ensure that the killing has finished before we start executing

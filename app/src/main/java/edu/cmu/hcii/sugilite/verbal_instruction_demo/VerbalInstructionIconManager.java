@@ -9,6 +9,7 @@ import android.content.SharedPreferences;
 import android.graphics.PixelFormat;
 import android.net.Uri;
 import android.provider.Settings;
+import android.speech.tts.TextToSpeech;
 import android.util.DisplayMetrics;
 import android.view.GestureDetector;
 import android.view.Gravity;
@@ -33,12 +34,18 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import edu.cmu.hcii.sugilite.Const;
 import edu.cmu.hcii.sugilite.R;
+import edu.cmu.hcii.sugilite.SugiliteAccessibilityService;
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.ontology.SerializableUISnapshot;
 import edu.cmu.hcii.sugilite.ontology.UISnapshot;
+import edu.cmu.hcii.sugilite.recording.newrecording.fullscreen_overlay.FollowUpQuestionDialog;
+import edu.cmu.hcii.sugilite.recording.newrecording.fullscreen_overlay.FullScreenRecordingOverlayManager;
+import edu.cmu.hcii.sugilite.ui.StatusIconManager;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.speech.SugiliteVoiceInterface;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.speech.SugiliteVoiceRecognitionListener;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.study.SugiliteStudyHandler;
@@ -57,29 +64,53 @@ public class VerbalInstructionIconManager implements SugiliteVoiceInterface {
     private SharedPreferences sharedPreferences;
     private SugiliteVoiceRecognitionListener sugiliteVoiceRecognitionListener;
     private SugiliteStudyHandler sugiliteStudyHandler;
+    private FullScreenRecordingOverlayManager recordingOverlayManager;
+    private SugiliteAccessibilityService sugiliteAccessibilityService;
+    private StatusIconManager duckIconManager;
+    private TextToSpeech tts;
     public boolean isListening = false;
+    public boolean isSpeaking = false;
     private Dialog dialog;
 
+    //rotation degree for the cat
+    private int rotation = 0;
+
+    //previous x, y coordinates before the icon is removed
+    Integer prev_x = null;
+    Integer prev_y = null;
+
+    Integer current_x = 0;
+    Integer current_y = 0;
 
     private ImageView statusIcon;
     private WindowManager.LayoutParams iconParams;
+    private Timer timer;
 
     //whether the icon is currently shown
     private boolean showingIcon = false;
     private final int REQ_CODE_SPEECH_INPUT = 100;
 
 
+    //for callbacks
+    private FollowUpQuestionDialog followUpQuestionDialog;
+
     //for saving the latest ui snapshot
     private UISnapshot latestUISnapshot = null;
 
-    public VerbalInstructionIconManager(Context context, SugiliteStudyHandler sugiliteStudyHandler, SugiliteData sugiliteData, SharedPreferences sharedPreferences){
+    public VerbalInstructionIconManager(Context context, SugiliteStudyHandler sugiliteStudyHandler, SugiliteData sugiliteData, SharedPreferences sharedPreferences, FullScreenRecordingOverlayManager recordingOverlayManager, SugiliteAccessibilityService sugiliteAccessibilityService, TextToSpeech tts){
         this.context = context;
         this.sugiliteData = sugiliteData;
         this.sharedPreferences = sharedPreferences;
         this.sugiliteStudyHandler = sugiliteStudyHandler;
+        this.sugiliteAccessibilityService = sugiliteAccessibilityService;
+        this.duckIconManager = sugiliteAccessibilityService.getDuckIconManager();
+        this.tts = tts;
+        sugiliteStudyHandler.setIconManager(this);
         windowManager = (WindowManager) context.getSystemService(context.WINDOW_SERVICE);
         this.layoutInflater = (LayoutInflater) context.getSystemService( Context.LAYOUT_INFLATER_SERVICE);
-        this.sugiliteVoiceRecognitionListener = new SugiliteVoiceRecognitionListener(context, this);
+        this.sugiliteVoiceRecognitionListener = new SugiliteVoiceRecognitionListener(context, this, tts);
+        this.recordingOverlayManager = recordingOverlayManager;
+
     }
 
     /**
@@ -99,6 +130,16 @@ public class VerbalInstructionIconManager implements SugiliteVoiceInterface {
     public void listeningEnded(){
         isListening = false;
         statusIcon.setImageResource(R.mipmap.cat_sleep);
+    }
+
+    @Override
+    public void speakingStarted() {
+        isSpeaking = true;
+    }
+
+    @Override
+    public void speakingEnded() {
+        isSpeaking = false;
     }
 
     /**
@@ -145,8 +186,10 @@ public class VerbalInstructionIconManager implements SugiliteVoiceInterface {
 
 
         iconParams.gravity = Gravity.TOP | Gravity.LEFT;
-        iconParams.x = displaymetrics.widthPixels;
-        iconParams.y = 400;
+        iconParams.x = prev_x == null ? displaymetrics.widthPixels : prev_x;
+        iconParams.y = prev_y == null ? 400 : prev_y;
+        current_x = iconParams.x;
+        current_y = iconParams.y;
         addCrumpledPaperOnTouchListener(statusIcon, iconParams, displaymetrics, windowManager);
 
         //NEEDED TO BE CONFIGURED AT APPS->SETTINGS-DRAW OVER OTHER APPS on API>=23
@@ -161,7 +204,30 @@ public class VerbalInstructionIconManager implements SugiliteVoiceInterface {
 
         }
 
+        //add timer service
+        timer = new Timer();
+        timer.schedule(new TimerTask()
+        {
+            @Override
+            public void run()
+            {
+                sugiliteAccessibilityService.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        sugiliteAccessibilityService.updateUISnapshotInVerbalInstructionManager();
+                        sugiliteAccessibilityService.checkIfAutomationCanBePerformed();
+                    }
+                });
+            }
+        }, 0, 1000);
         showingIcon = true;
+    }
+
+    public void rotateStatusIcon(){
+        rotation = (rotation + 20) % 360;
+
+        //rotate the duck
+        statusIcon.setRotation(rotation);
     }
 
     /**
@@ -171,6 +237,9 @@ public class VerbalInstructionIconManager implements SugiliteVoiceInterface {
         try{
             if(statusIcon != null) {
                 windowManager.removeView(statusIcon);
+            }
+            if(timer != null) {
+                timer.cancel();
             }
             showingIcon = false;
         }
@@ -183,12 +252,18 @@ public class VerbalInstructionIconManager implements SugiliteVoiceInterface {
         return showingIcon;
     }
 
-    public UISnapshot getLatestUISnapshot(){
+    public synchronized UISnapshot getLatestUISnapshot(){
         return latestUISnapshot;
     }
 
-    public void setLatestUISnapshot(UISnapshot snapshot){
+    public void registerFollowUpQuestionDialog(FollowUpQuestionDialog followUpQuestionDialog) {
+        this.followUpQuestionDialog = followUpQuestionDialog;
+    }
+
+    public synchronized void setLatestUISnapshot(UISnapshot snapshot){
         this.latestUISnapshot = snapshot;
+        //also update the uisnapshot for the testing full screen overlay
+        recordingOverlayManager.setUiSnapshot(snapshot);
     }
 
     public void checkDrawOverlayPermission() {
@@ -231,6 +306,11 @@ public class VerbalInstructionIconManager implements SugiliteVoiceInterface {
                 if (gestureDetector.onTouchEvent(event)) {
                     // gesture is clicking
 
+                    if (followUpQuestionDialog != null && followUpQuestionDialog.isShowing() == false){
+                        followUpQuestionDialog.uncollapse();
+                        return true;
+                    }
+
                     //initialize the popup dialog
                     AlertDialog.Builder textDialogBuilder = new AlertDialog.Builder(context);
                     textDialogBuilder.setTitle("Verbal Instruction");
@@ -241,6 +321,8 @@ public class VerbalInstructionIconManager implements SugiliteVoiceInterface {
                     operationList.add("Test ASR");
                     operationList.add("Dump the latest UI snapshot");
                     operationList.add("Record a Sugilite study packet");
+                    operationList.add("Switch recording overlay");
+
 
                     String[] operations = new String[operationList.size()];
                     operations = operationList.toArray(operations);
@@ -251,9 +333,9 @@ public class VerbalInstructionIconManager implements SugiliteVoiceInterface {
                                     switch (operationClone[which]) {
                                         case "Send a verbal instruction":
                                             //send a verbal instruction
-                                            if(latestUISnapshot != null) {
-                                                SerializableUISnapshot serializedUISnapshot = new SerializableUISnapshot(latestUISnapshot);
-                                                VerbalInstructionTestDialog verbalInstructionDialog = new VerbalInstructionTestDialog(serializedUISnapshot, context, layoutInflater, sugiliteData, sharedPreferences);
+                                            if(getLatestUISnapshot() != null) {
+                                                SerializableUISnapshot serializedUISnapshot = new SerializableUISnapshot(getLatestUISnapshot());
+                                                VerbalInstructionTestDialog verbalInstructionDialog = new VerbalInstructionTestDialog(serializedUISnapshot, context, layoutInflater, sugiliteData, sharedPreferences, tts);
                                                 if(dialog != null){
                                                     dialog.dismiss();
                                                 }
@@ -276,12 +358,12 @@ public class VerbalInstructionIconManager implements SugiliteVoiceInterface {
                                             if(dialog != null){
                                                 dialog.dismiss();
                                             }
-                                            if(latestUISnapshot != null) {
+                                            if(getLatestUISnapshot() != null) {
                                                 Gson gson = new GsonBuilder().excludeFieldsWithModifiers(Modifier.FINAL, Modifier.TRANSIENT, Modifier.STATIC)
                                                         .serializeNulls()
                                                         .create();
-                                                int snapshot_size = latestUISnapshot.getNodeSugiliteEntityMap().size();
-                                                SerializableUISnapshot serializedUISnapshot2 = new SerializableUISnapshot(latestUISnapshot);
+                                                int snapshot_size = getLatestUISnapshot().getNodeSugiliteEntityMap().size();
+                                                SerializableUISnapshot serializedUISnapshot2 = new SerializableUISnapshot(getLatestUISnapshot());
                                                 dumpUISnapshot(serializedUISnapshot2);
                                                 Toast.makeText(context, "dumped a UI snapshot with " + snapshot_size + " nodes", Toast.LENGTH_SHORT).show();
                                             }
@@ -289,6 +371,21 @@ public class VerbalInstructionIconManager implements SugiliteVoiceInterface {
                                         case "Record a Sugilite study packet":
                                             sugiliteStudyHandler.setToRecordNextOperation(true);
                                             break;
+                                        case "Switch recording overlay":
+                                            if(recordingOverlayManager.isShowingOverlay()){
+                                                recordingOverlayManager.removeOverlays();
+                                            }
+                                            else{
+                                                recordingOverlayManager.enableOverlay();
+                                                //remove and re-add the status icon so that it can show on top of the overlay
+                                                removeStatusIcon();
+                                                addStatusIcon();
+                                                if(duckIconManager != null){
+                                                    duckIconManager.removeStatusIcon();
+                                                    duckIconManager.addStatusIcon();
+                                                }
+
+                                            }
                                     }
                                 }
                             });
@@ -316,6 +413,10 @@ public class VerbalInstructionIconManager implements SugiliteVoiceInterface {
                         // move paper ImageView
                         mPaperParams.x = initialX - (int) (initialTouchX - event.getRawX());
                         mPaperParams.y = initialY + (int) (event.getRawY() - initialTouchY);
+                        prev_x = mPaperParams.x;
+                        prev_y = mPaperParams.y;
+                        current_x = iconParams.x;
+                        current_y = iconParams.y;
                         windowManager.updateViewLayout(view, mPaperParams);
                         return true;
                 }
@@ -392,6 +493,22 @@ public class VerbalInstructionIconManager implements SugiliteVoiceInterface {
             if (out2 != null) out2.close();
         }
 
+    }
+
+    public Integer getCurrent_x() {
+        return current_x;
+    }
+
+    public Integer getCurrent_y() {
+        return current_y;
+    }
+
+    public void startStudyRecording(){
+        statusIcon.setImageResource(R.mipmap.cat_standing);
+    }
+
+    public void endStudyRecording(){
+        statusIcon.setImageResource(R.mipmap.cat_sleep);
     }
 
 

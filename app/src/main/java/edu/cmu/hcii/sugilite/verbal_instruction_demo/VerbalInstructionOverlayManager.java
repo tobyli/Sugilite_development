@@ -109,7 +109,7 @@ public class VerbalInstructionOverlayManager {
     }
 
     /**
-     * remove the status icon from the window manager
+     * remove all overlays from the window manager
      */
     public void removeOverlays(){
         try{

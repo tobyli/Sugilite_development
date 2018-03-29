@@ -12,11 +12,18 @@ public class StringVariable extends Variable implements Serializable {
     public StringVariable(){
         super();
     }
+    public StringVariable(int type){
+        super(type);
+    }
     public StringVariable(String name){
         super(name);
     }
     public StringVariable(String name, String value){
         super(name);
+        this.value = value;
+    }
+    public StringVariable(int type, String name, String value){
+        super(type, name);
         this.value = value;
     }
     public String getValue(){

@@ -2,28 +2,30 @@ package edu.cmu.hcii.sugilite.model.block;
 
 import java.io.Serializable;
 
-import edu.cmu.hcii.sugilite.model.operation.SugiliteOperation;
+import edu.cmu.hcii.sugilite.model.operator.SugiliteOperator;
+
+import static edu.cmu.hcii.sugilite.source_parsing.SugiliteScriptExpression.addQuoteToTokenIfNeeded;
 
 /**
  * Created by toby on 8/11/16.
  */
+
 public class SugiliteConditionBlock extends SugiliteBlock implements Serializable {
     private SugiliteBlock block1, block2;
-    static final int TEXT_EQUALS = 1, TEXT_CONTAINS = 2, VALUE_GREATER_OR_EQUAL_THAN = 3, VALUE_SMALLER_THAN = 4, IF_CAN_MATCH_BLOCK_1 = 5;
-    private int conditionType;
+    private SugiliteOperator operator;
     private String parameter1, parameter2;
 
-    public SugiliteConditionBlock (SugiliteBlock block1, SugiliteBlock block2, String parameter1, int conditionType, String parameter2, SugiliteBlock previousBlock){
+    public SugiliteConditionBlock (SugiliteBlock block1, SugiliteBlock block2, String parameter1, SugiliteOperator operator, String parameter2, SugiliteBlock previousBlock){
         super();
         this.blockType = SugiliteBlock.CONDITION;
-        this.setDescription("Condition");
+        this.setDescription("Conditional Block");
         this.setScreenshot(null);
 
 
         this.block1 = block1;
         this.block2 = block2;
         this.parameter1 = parameter1;
-        this.conditionType = conditionType;
+        this.operator = operator;
         this.parameter2 = parameter2;
     }
 
@@ -39,8 +41,9 @@ public class SugiliteConditionBlock extends SugiliteBlock implements Serializabl
     public void setParameter2(String parameter){
         this.parameter2 = parameter;
     }
-    public void setConditionType(int conditionType){
-        this.conditionType = conditionType;
+
+    public void setOperator(SugiliteOperator operator) {
+        this.operator = operator;
     }
 
     public SugiliteBlock getBlock1(){
@@ -55,49 +58,40 @@ public class SugiliteConditionBlock extends SugiliteBlock implements Serializabl
     public String getParameter2(){
         return parameter2;
     }
-    public int getConditionType(){
-        return conditionType;
+
+    public SugiliteOperator getOperator() {
+        return operator;
     }
 
     public SugiliteBlock getNextBlock(){
-        switch (conditionType){
-            case TEXT_EQUALS:
-                if(parameter1.contentEquals(parameter2))
-                    return block1;
-                else
-                    return block2;
-            case TEXT_CONTAINS:
-                if(parameter1.contains(parameter2))
-                    return block1;
-                else
-                    return block2;
-            case VALUE_GREATER_OR_EQUAL_THAN:
-                try{
-                    if(Integer.valueOf(parameter1) >= Integer.valueOf(parameter2))
-                        return block1;
-                    else
-                        return block2;
-                }
-                catch (Exception e){
-                    e.printStackTrace();
-                    return block2;
-                }
-            case VALUE_SMALLER_THAN:
-                try{
-                    if(Integer.valueOf(parameter1) < Integer.valueOf(parameter2))
-                        return block1;
-                    else
-                        return block2;
-                }
-                catch (Exception e){
-                    e.printStackTrace();
-                    return block2;
-                }
-            case IF_CAN_MATCH_BLOCK_1:
-                //TODO:
-                break;
-
+        switch (operator.getOperatorType()){
+            case SugiliteOperator.EQUAL:
+                if(parameter1.contentEquals(parameter2)) return block1;
+                else return block2;
+            case SugiliteOperator.NOT_EQUAL:
+                if(!parameter1.contentEquals(parameter2)) return block1;
+                else return block2;
+            case SugiliteOperator.GREATER_THAN:
+                if(Double.valueOf(parameter1) > Double.valueOf(parameter2)) return block1;
+                else return block2;
+            case SugiliteOperator.SMALLER_THAN:
+                if(Double.valueOf(parameter1) < Double.valueOf(parameter2)) return block1;
+                else return block2;
+            case SugiliteOperator.GREATER_THAN_OR_EQUAL_TO:
+                if(Double.valueOf(parameter1) >= Double.valueOf(parameter2)) return block1;
+                else return block2;
+            case SugiliteOperator.SMALLER_THAN_OR_EQUAL_TO:
+                if(Double.valueOf(parameter1) <= Double.valueOf(parameter2)) return block1;
+                else return block2;
+            case SugiliteOperator.TEXT_CONTAINS:
+                if(parameter1.contains(parameter2)) return block1;
+                else return block2;
         }
         return null;
+    }
+
+    @Override
+    public String toString() {
+        return "(IF" + " " + "(" + operator.getOperatorType() + " " + addQuoteToTokenIfNeeded(parameter1) + " " + addQuoteToTokenIfNeeded(parameter2) + ") " + block1.toString() + " " + block2.toString() + ")";
     }
 }

@@ -22,7 +22,7 @@ import edu.cmu.hcii.sugilite.dao.SugiliteScriptFileDao;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptSQLDao;
 import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteErrorHandlingForkBlock;
-import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
+import edu.cmu.hcii.sugilite.model.block.operation.SugiliteOperationBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteOperation;
 import edu.cmu.hcii.sugilite.recording.ReadableDescriptionGenerator;
@@ -238,6 +238,10 @@ public class ErrorHandler {
         if(showingErrorDialog == false)
             dialog.show();
         showingErrorDialog = true;
+    }
+
+    public void reportSuccess(){
+        reportSuccess(Calendar.getInstance().getTimeInMillis());
     }
 
     /**

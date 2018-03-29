@@ -17,10 +17,12 @@ public class SerializableOntologyQuery implements Serializable {
     private SugiliteRelation r = null;
     private Set<SugiliteSerializableEntity> object = null;
     private Set<SugiliteSerializableEntity> subject = null;
+    private OntologyQueryFilter ontologyQueryFilter = null;
 
     public SerializableOntologyQuery(OntologyQuery q){
         r = q.getR();
         SubRelation = q.getSubRelation();
+        ontologyQueryFilter = q.getOntologyQueryFilter();
         if(SubRelation != OntologyQuery.relationType.nullR) {
             // for nested query, recursively construct SerializableOntologyQuery
             SubQueries = new HashSet<SerializableOntologyQuery>();
@@ -81,6 +83,10 @@ public class SerializableOntologyQuery implements Serializable {
 
     public SugiliteRelation getR() {
         return r;
+    }
+
+    public OntologyQueryFilter getOntologyQueryFilter() {
+        return ontologyQueryFilter;
     }
 
     @Override

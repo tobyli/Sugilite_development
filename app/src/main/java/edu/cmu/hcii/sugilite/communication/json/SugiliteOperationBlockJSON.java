@@ -6,11 +6,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 import edu.cmu.hcii.sugilite.Const;
-import edu.cmu.hcii.sugilite.model.block.SerializableNodeInfo;
-import edu.cmu.hcii.sugilite.model.block.SugiliteAvailableFeaturePack;
-import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
+import edu.cmu.hcii.sugilite.model.block.util.SerializableNodeInfo;
+import edu.cmu.hcii.sugilite.model.block.util.SugiliteAvailableFeaturePack;
+import edu.cmu.hcii.sugilite.model.block.operation.SugiliteOperationBlock;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteOperation;
+import edu.cmu.hcii.sugilite.model.operation.SugiliteReadoutOperation;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteSetTextOperation;
+import edu.cmu.hcii.sugilite.model.operation.SugiliteUnaryOperation;
 import edu.cmu.hcii.sugilite.recording.ReadableDescriptionGenerator;
 
 /**
@@ -30,12 +32,10 @@ public class SugiliteOperationBlockJSON {
                 actionType = "SET_TEXT";
                 if(block.getOperation() instanceof SugiliteSetTextOperation)
                     actionParameter = ((SugiliteSetTextOperation)block.getOperation()).getText();
-                else
-                    actionParameter = block.getOperation().getParameter();
                 break;
             case SugiliteOperation.READ_OUT:
                 actionType = "READ_OUT";
-                actionParameter = block.getOperation().getParameter();
+                actionParameter = ((SugiliteReadoutOperation)block.getOperation()).getPropertyToReadout();
                 break;
             case SugiliteOperation.LOAD_AS_VARIABLE:
                 actionType = "LOAD_AS_VARIABLE";
@@ -72,18 +72,18 @@ public class SugiliteOperationBlockJSON {
             operation = new SugiliteSetTextOperation();
             ((SugiliteSetTextOperation)operation).setText(actionParameter);
         }
+        else if(actionType.equals("READ_OUT")){
+            operation = new SugiliteReadoutOperation();
+            ((SugiliteReadoutOperation)operation).setPropertyToReadout(actionParameter);
+        }
         else {
-            operation = new SugiliteOperation();
+            operation = new SugiliteUnaryOperation();
             if(actionType.equals("CLICK"))
                 operation.setOperationType(SugiliteOperation.CLICK);
             else if (actionType.equals("LONG_CLICK"))
                 operation.setOperationType(SugiliteOperation.LONG_CLICK);
             else if (actionType.equals("SPECIAL_GO_HOME"))
                 operation.setOperationType(SugiliteOperation.SPECIAL_GO_HOME);
-            else if (actionType.equals("READ_OUT")){
-                operation.setOperationType(SugiliteOperation.READ_OUT);
-                operation.setParameter(actionParameter);
-            }
         }
         //TODO: disable edit for those without feature pack;
         operationBlock.setFeaturePack(null);

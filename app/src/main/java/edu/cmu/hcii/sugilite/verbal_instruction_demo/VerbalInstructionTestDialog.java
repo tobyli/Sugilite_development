@@ -4,6 +4,7 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
+import android.speech.tts.TextToSpeech;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.WindowManager;
@@ -59,11 +60,11 @@ public class VerbalInstructionTestDialog implements SugiliteVoiceInterface, Sugi
     public boolean isListening = false;
 
 
-    public VerbalInstructionTestDialog(SerializableUISnapshot serializableUISnapshot, Context context, LayoutInflater inflater, SugiliteData sugiliteData, SharedPreferences sharedPreferences){
+    public VerbalInstructionTestDialog(SerializableUISnapshot serializableUISnapshot, Context context, LayoutInflater inflater, SugiliteData sugiliteData, SharedPreferences sharedPreferences, TextToSpeech tts){
         this.serializableUISnapshot = serializableUISnapshot;
         this.context = context;
-        this.sugiliteVoiceRecognitionListener = new SugiliteVoiceRecognitionListener(context, this);
-        this.sugiliteVerbalInstructionHTTPQueryManager = new SugiliteVerbalInstructionHTTPQueryManager(this);
+        this.sugiliteVoiceRecognitionListener = new SugiliteVoiceRecognitionListener(context, this, tts);
+        this.sugiliteVerbalInstructionHTTPQueryManager = new SugiliteVerbalInstructionHTTPQueryManager(this, sharedPreferences);
         this.overlayManager = new VerbalInstructionOverlayManager(context, sugiliteData, sharedPreferences);
         this.gson = new Gson();
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
@@ -100,6 +101,14 @@ public class VerbalInstructionTestDialog implements SugiliteVoiceInterface, Sugi
                 });
 
         dialog = builder.create();
+        dialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
+            @Override
+            public void onDismiss(DialogInterface dialog) {
+                if(isListening) {
+                    sugiliteVoiceRecognitionListener.stopListening();
+                }
+            }
+        });
     }
 
     public void show(){
@@ -253,6 +262,16 @@ public class VerbalInstructionTestDialog implements SugiliteVoiceInterface, Sugi
     @Override
     public void listeningEnded() {
         isListening = false;
+    }
+
+    @Override
+    public void speakingStarted() {
+
+    }
+
+    @Override
+    public void speakingEnded() {
+
     }
 
     @Override

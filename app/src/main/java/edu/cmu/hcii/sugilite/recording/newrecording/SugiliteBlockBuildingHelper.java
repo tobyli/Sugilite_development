@@ -16,13 +16,13 @@ import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptFileDao;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptSQLDao;
-import edu.cmu.hcii.sugilite.model.block.SerializableNodeInfo;
-import edu.cmu.hcii.sugilite.model.block.SugiliteAvailableFeaturePack;
+import edu.cmu.hcii.sugilite.model.block.util.SugiliteAvailableFeaturePack;
 import edu.cmu.hcii.sugilite.model.block.SugiliteErrorHandlingForkBlock;
-import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
-import edu.cmu.hcii.sugilite.model.block.SugiliteSpecialOperationBlock;
+import edu.cmu.hcii.sugilite.model.block.operation.SugiliteOperationBlock;
+import edu.cmu.hcii.sugilite.model.block.operation.special_operation.SugiliteSpecialOperationBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
-import edu.cmu.hcii.sugilite.model.operation.SugiliteOperation;
+import edu.cmu.hcii.sugilite.model.operation.SugiliteUnaryOperation;
+import edu.cmu.hcii.sugilite.ontology.description.OntologyDescriptionGenerator;
 import edu.cmu.hcii.sugilite.ontology.OntologyQuery;
 import edu.cmu.hcii.sugilite.ontology.SerializableOntologyQuery;
 import edu.cmu.hcii.sugilite.ontology.SugiliteEntity;
@@ -38,14 +38,20 @@ import static edu.cmu.hcii.sugilite.Const.SQL_SCRIPT_DAO;
  * @date 1/10/18
  * @time 12:36 PM
  */
+
+/**
+ * the helper class for building a SugiliteBlock
+ */
 public class SugiliteBlockBuildingHelper {
     private ReadableDescriptionGenerator readableDescriptionGenerator;
     private Context context;
     private SugiliteData sugiliteData;
     private SugiliteScriptDao sugiliteScriptDao;
+    private OntologyDescriptionGenerator ontologyDescriptionGenerator;
     public SugiliteBlockBuildingHelper(Context context, SugiliteData sugiliteData){
         this.context = context;
         this.sugiliteData = sugiliteData;
+        this.ontologyDescriptionGenerator = new OntologyDescriptionGenerator(context);
         if(Const.DAO_TO_USE == SQL_SCRIPT_DAO) {
             this.sugiliteScriptDao = new SugiliteScriptSQLDao(context);
         }
@@ -55,15 +61,17 @@ public class SugiliteBlockBuildingHelper {
         readableDescriptionGenerator = new ReadableDescriptionGenerator(context);
     }
 
-    public SugiliteOperationBlock getOperationFromQuery(SerializableOntologyQuery query, int opeartionType, SugiliteAvailableFeaturePack featurePack){
-        SugiliteOperation sugiliteOperation = new SugiliteOperation();
+    public SugiliteOperationBlock getOperationBlockFromQuery(SerializableOntologyQuery query, int opeartionType, SugiliteAvailableFeaturePack featurePack){
+        SugiliteUnaryOperation sugiliteOperation = new SugiliteUnaryOperation();
         sugiliteOperation.setOperationType(opeartionType);
         final SugiliteOperationBlock operationBlock = new SugiliteOperationBlock();
         operationBlock.setOperation(sugiliteOperation);
         operationBlock.setFeaturePack(featurePack);
         operationBlock.setQuery(query);
         operationBlock.setScreenshot(featurePack.screenshot);
-        operationBlock.setDescription(readableDescriptionGenerator.generateDescriptionForVerbalBlock(operationBlock, query.toString(), "UTTERANCE"));
+
+        //description is set
+        operationBlock.setDescription(ontologyDescriptionGenerator.getDescriptionForOperation(sugiliteOperation, query));
         return operationBlock;
     }
 
@@ -170,7 +178,7 @@ public class SugiliteBlockBuildingHelper {
                     clonedQuery.addSubQuery(subQuery);
                     hasNonBoundingBoxFeature = true;
                     hasNonChildFeature = true;
-                    queries.add(new AbstractMap.SimpleEntry<>(new SerializableOntologyQuery(clonedQuery), 2.0));
+                    queries.add(new AbstractMap.SimpleEntry<>(new SerializableOntologyQuery(clonedQuery), 3.0));
                 }
             }
 
@@ -188,26 +196,19 @@ public class SugiliteBlockBuildingHelper {
                     clonedQuery.addSubQuery(subQuery);
                     hasNonBoundingBoxFeature = true;
                     hasNonChildFeature = true;
-                    queries.add(new AbstractMap.SimpleEntry<>(new SerializableOntologyQuery(clonedQuery), 2.1));
+                    queries.add(new AbstractMap.SimpleEntry<>(new SerializableOntologyQuery(clonedQuery), 3.1));
                 }
             }
         }
 
 
         //add child text
-        List<String> childTexts = new ArrayList<>();
-        if(featurePack.childNodes != null){
-            for(SerializableNodeInfo node : featurePack.childNodes){
-                if(node.text != null){
-                    childTexts.add(node.text);
-                }
-            }
-        }
-        if(childTexts.size() > 0){
+        List<String> childTexts = featurePack.childTexts;
+        if(childTexts != null && childTexts.size() > 0){
             int count = 0;
             for(String childText : childTexts){
                 double score = 2 + (((double)(count++)) / (double) childTexts.size());
-                if(!childText.equals(featurePack.text)) {
+                if(childText != null && !childText.equals(featurePack.text)) {
                     OntologyQuery clonedQuery = new OntologyQuery(new SerializableOntologyQuery(q));
                     OntologyQuery subQuery = new OntologyQuery(OntologyQuery.relationType.nullR);
                     Set<SugiliteEntity> object = new HashSet<>();
@@ -229,8 +230,20 @@ public class SugiliteBlockBuildingHelper {
             subQuery.setObject(object);
             subQuery.setQueryFunction(SugiliteRelation.HAS_SCREEN_LOCATION);
             clonedQuery.addSubQuery(subQuery);
-            queries.add(new AbstractMap.SimpleEntry<>(new SerializableOntologyQuery(clonedQuery), 3.1));
+            queries.add(new AbstractMap.SimpleEntry<>(new SerializableOntologyQuery(clonedQuery), 5.1));
         }
+
+        if(featurePack.boundsInParent != null && (!featurePack.boundsInParent.equals("NULL"))){
+            OntologyQuery clonedQuery = new OntologyQuery(new SerializableOntologyQuery(q));
+            OntologyQuery subQuery = new OntologyQuery(OntologyQuery.relationType.nullR);
+            Set<SugiliteEntity> object = new HashSet<>();
+            object.add(new SugiliteEntity(-1, String.class, featurePack.boundsInParent));
+            subQuery.setObject(object);
+            subQuery.setQueryFunction(SugiliteRelation.HAS_PARENT_LOCATION);
+            clonedQuery.addSubQuery(subQuery);
+            queries.add(new AbstractMap.SimpleEntry<>(new SerializableOntologyQuery(clonedQuery), 8.2));
+        }
+
 
         // serialize the query
         return queries;
@@ -267,7 +280,7 @@ public class SugiliteBlockBuildingHelper {
         Map<SugiliteOperationBlock, String> results = new HashMap<>();
         for(SugiliteOperationBlock operationBlock : blocks){
             SerializableOntologyQuery query = operationBlock.getQuery();
-            results.put(operationBlock, readableDescriptionGenerator.generateDescriptionForVerbalBlock(operationBlock, stripSerializableOntologyQuery(query).toString(), "UTTERANCE"));
+            results.put(operationBlock, ontologyDescriptionGenerator.getDescriptionForOperation(operationBlock.getOperation(), stripSerializableOntologyQuery(query)));
         }
         return results;
     }
@@ -277,15 +290,19 @@ public class SugiliteBlockBuildingHelper {
      * @param query
      * @return
      */
-    public SerializableOntologyQuery stripSerializableOntologyQuery(SerializableOntologyQuery query){
+    public static SerializableOntologyQuery stripSerializableOntologyQuery(SerializableOntologyQuery query){
         SerializableOntologyQuery queryCloned = new SerializableOntologyQuery(new OntologyQuery(query));
         List<SerializableOntologyQuery> queriesToRemove = new ArrayList<>();
         for(SerializableOntologyQuery subQuery : queryCloned.getSubQueries()){
-            if(subQuery.getR().equals(SugiliteRelation.HAS_CLASS_NAME)){
-                queriesToRemove.add(subQuery);
-            }
-            if(subQuery.getR().equals(SugiliteRelation.HAS_PACKAGE_NAME)){
-                queriesToRemove.add(subQuery);
+            if(subQuery != null && subQuery.getR() != null) {
+                /*
+                if (subQuery.getR().equals(SugiliteRelation.HAS_CLASS_NAME)) {
+                    queriesToRemove.add(subQuery);
+                }
+                */
+                if (subQuery.getR().equals(SugiliteRelation.HAS_PACKAGE_NAME)) {
+                    queriesToRemove.add(subQuery);
+                }
             }
         }
         for(SerializableOntologyQuery queryToRemove : queriesToRemove){

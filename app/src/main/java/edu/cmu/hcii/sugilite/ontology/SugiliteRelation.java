@@ -137,4 +137,9 @@ public class SugiliteRelation implements Serializable {
         stringRelationMap.put("CONTAINS_VOLUME", CONTAINS_VOLUME);
 
     }
+
+    @Override
+    public String toString() {
+        return relationName;
+    }
 }

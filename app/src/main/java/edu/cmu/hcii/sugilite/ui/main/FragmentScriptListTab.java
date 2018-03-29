@@ -39,10 +39,12 @@ import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptFileDao;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptSQLDao;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
+import edu.cmu.hcii.sugilite.model.block.util.ScriptPrinter;
 import edu.cmu.hcii.sugilite.model.variable.Variable;
 import edu.cmu.hcii.sugilite.study.ScriptUsageLogManager;
 import edu.cmu.hcii.sugilite.ui.ScriptDebuggingActivity;
 import edu.cmu.hcii.sugilite.ui.ScriptDetailActivity;
+import edu.cmu.hcii.sugilite.ui.ScriptSourceActivity;
 import edu.cmu.hcii.sugilite.ui.dialog.NewScriptDialog;
 import edu.cmu.hcii.sugilite.ui.dialog.VariableSetValueDialog;
 
@@ -148,6 +150,9 @@ public class FragmentScriptListTab extends Fragment {
     private static final int ITEM_5 = Menu.FIRST + 4;
     private static final int ITEM_6 = Menu.FIRST + 5;
     private static final int ITEM_7 = Menu.FIRST + 6;
+    private static final int ITEM_8 = Menu.FIRST + 7;
+    private static final int ITEM_9 = Menu.FIRST + 8;
+
 
 
     //context menu are the long-click menus for each script
@@ -166,7 +171,9 @@ public class FragmentScriptListTab extends Fragment {
         menu.add(0, ITEM_4, 0, "Rename");
         menu.add(0, ITEM_5, 0, "Share");
         menu.add(0, ITEM_6, 0, "Generalize");
-        menu.add(0, ITEM_7, 0, "Delete");
+        menu.add(0, ITEM_7, 0, "Print Debug Info");
+        menu.add(0, ITEM_8, 0, "Edit Source");
+        menu.add(0, ITEM_9, 0, "Delete");
     }
 
     @Override
@@ -252,6 +259,7 @@ public class FragmentScriptListTab extends Fragment {
                     }
                     break;
                 case ITEM_4:
+                    //rename
                     if (info.targetView instanceof TextView && ((TextView) info.targetView).getText() != null) {
                         AlertDialog.Builder builder = new AlertDialog.Builder(activity);
                         final EditText newName = new EditText(activity);
@@ -290,6 +298,7 @@ public class FragmentScriptListTab extends Fragment {
                     }
                     break;
                 case ITEM_5:
+                    //share
                     SugiliteStartingBlock startingBlock = sugiliteScriptDao.read(scriptName);
                     SugiliteBlockJSONProcessor processor = new SugiliteBlockJSONProcessor(activity);
                     try {
@@ -308,6 +317,7 @@ public class FragmentScriptListTab extends Fragment {
                     Toast.makeText(activity, "Sharing Script is not supported yet!", Toast.LENGTH_SHORT).show();
                     break;
                 case ITEM_6:
+                    //generalize
                     final String scriptName1 = ((TextView) info.targetView).getText().toString() + ".SugiliteScript";
                     final SugiliteStartingBlock startingBlock1 = sugiliteScriptDao.read(scriptName1);
 
@@ -346,6 +356,21 @@ public class FragmentScriptListTab extends Fragment {
 
                     break;
                 case ITEM_7:
+                    //view debug info
+                    String scriptName2 = ((TextView) info.targetView).getText().toString() + ".SugiliteScript";
+                    SugiliteStartingBlock startingBlock2 = sugiliteScriptDao.read(scriptName2);
+                    System.out.println(ScriptPrinter.getStringScript(startingBlock2));
+                    break;
+                case ITEM_8:
+                    //view and edit script source
+                    String scriptName3 = ((TextView) info.targetView).getText().toString() + ".SugiliteScript";
+                    final Intent scriptSourceIntent = new Intent(getContext(), ScriptSourceActivity.class);
+                    scriptSourceIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                    scriptSourceIntent.putExtra("scriptName", scriptName3);
+                    startActivity(scriptSourceIntent);
+                    break;
+                case ITEM_9:
+                    //delete script
                     if (info.targetView instanceof TextView && ((TextView) info.targetView).getText() != null) {
                         sugiliteScriptDao.delete(((TextView) info.targetView).getText().toString() + ".SugiliteScript");
                         setUpScriptList();

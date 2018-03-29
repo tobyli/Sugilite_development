@@ -3,8 +3,6 @@ package edu.cmu.hcii.sugilite.ui;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
-import android.app.ProgressDialog;
-import android.app.Service;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -40,8 +38,7 @@ import edu.cmu.hcii.sugilite.Const;
 import edu.cmu.hcii.sugilite.R;
 import edu.cmu.hcii.sugilite.SugiliteAccessibilityService;
 import edu.cmu.hcii.sugilite.SugiliteData;
-import edu.cmu.hcii.sugilite.automation.Automator;
-import edu.cmu.hcii.sugilite.automation.ErrorHandler;
+import edu.cmu.hcii.sugilite.automation.AutomatorUtil;
 import edu.cmu.hcii.sugilite.automation.ServiceStatusManager;
 import edu.cmu.hcii.sugilite.communication.SugiliteBlockJSONProcessor;
 import edu.cmu.hcii.sugilite.recording.SugiliteScreenshotManager;
@@ -49,12 +46,12 @@ import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptFileDao;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptSQLDao;
 import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
-import edu.cmu.hcii.sugilite.model.block.SugiliteDelaySpecialOperationBlock;
-import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
-import edu.cmu.hcii.sugilite.model.block.SugiliteSpecialOperationBlock;
+import edu.cmu.hcii.sugilite.model.block.operation.special_operation.SugiliteDelaySpecialOperationBlock;
+import edu.cmu.hcii.sugilite.model.block.operation.SugiliteOperationBlock;
+import edu.cmu.hcii.sugilite.model.block.operation.special_operation.SugiliteSpecialOperationBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
-import edu.cmu.hcii.sugilite.model.block.SugiliteSubscriptSpecialOperationBlock;
-import edu.cmu.hcii.sugilite.model.block.UIElementMatchingFilter;
+import edu.cmu.hcii.sugilite.model.block.operation.special_operation.SugiliteSubscriptSpecialOperationBlock;
+import edu.cmu.hcii.sugilite.model.block.util.UIElementMatchingFilter;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteOperation;
 import edu.cmu.hcii.sugilite.model.variable.VariableHelper;
 import edu.cmu.hcii.sugilite.recording.ReadableDescriptionGenerator;
@@ -93,8 +90,12 @@ public class StatusIconManager {
     private VerbalInstructionIconManager verbalInstructionIconManager = null;
     private Dialog duckDialog = null;
 
+    //rotation degree for the cat
     int rotation = 0;
 
+    //previous x, y coordinates before the icon is removed
+    Integer prev_x = null;
+    Integer prev_y = null;
 
     public StatusIconManager(Context context, SugiliteData sugiliteData, SharedPreferences sharedPreferences, AccessibilityManager accessibilityManager){
         this.context = context;
@@ -135,8 +136,8 @@ public class StatusIconManager {
 
 
         iconParams.gravity = Gravity.TOP | Gravity.LEFT;
-        iconParams.x = displaymetrics.widthPixels;
-        iconParams.y = 200;
+        iconParams.x = prev_x == null ? displaymetrics.widthPixels : prev_x;
+        iconParams.y = prev_y == null ? 200 : prev_y;
         addCrumpledPaperOnTouchListener(statusIcon, iconParams, displaymetrics, windowManager);
 
 
@@ -166,6 +167,11 @@ public class StatusIconManager {
             //=== temporarily set the status view to invisible ===
             windowManager.addView(statusView, textViewParams);
             statusView.setVisibility(View.INVISIBLE);
+        }
+
+        //AUTOMATICALLY ADD CAT ICON WHEN ADDING THE DUCK ICON
+        if(!verbalInstructionIconManager.isShowingIcon()) {
+            verbalInstructionIconManager.addStatusIcon();
         }
 
         showingIcon = true;
@@ -201,7 +207,7 @@ public class StatusIconManager {
         Rect rect = new Rect();
         boolean matched = false;
         if(rootNode != null) {
-            List<AccessibilityNodeInfo> allNode = Automator.preOrderTraverse(rootNode);
+            List<AccessibilityNodeInfo> allNode = AutomatorUtil.preOrderTraverse(rootNode);
             List<AccessibilityNodeInfo> filteredNode = new ArrayList<>();
             for (AccessibilityNodeInfo node : allNode) {
                 if (filter != null && filter.filter(node, variableHelper))
@@ -811,6 +817,8 @@ public class StatusIconManager {
                         // move paper ImageView
                         mPaperParams.x = initialX - (int) (initialTouchX - event.getRawX());
                         mPaperParams.y = initialY + (int) (event.getRawY() - initialTouchY);
+                        prev_x = mPaperParams.x;
+                        prev_y = mPaperParams.y;
                         windowManager.updateViewLayout(view, mPaperParams);
                         return true;
                 }

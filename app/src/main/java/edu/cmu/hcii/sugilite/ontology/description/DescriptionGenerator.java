@@ -20,34 +20,38 @@ public class DescriptionGenerator {
         descriptionMap = new HashMap<SugiliteRelation,String>();
         descriptionMap.put(SugiliteRelation.HAS_CLASS_NAME,"");
         descriptionMap.put(SugiliteRelation.HAS_TEXT,"text ");
-        descriptionMap.put(SugiliteRelation.HAS_CHILD_TEXT,"child text ");
-        descriptionMap.put(SugiliteRelation.HAS_SIBLING_TEXT,"");
+        descriptionMap.put(SugiliteRelation.HAS_PARENT,"parent ");
+        descriptionMap.put(SugiliteRelation.HAS_VIEW_ID,"view id ");
         descriptionMap.put(SugiliteRelation.HAS_CONTENT_DESCRIPTION,"content ");
         descriptionMap.put(SugiliteRelation.HAS_SCREEN_LOCATION,"the exact location ");
         descriptionMap.put(SugiliteRelation.HAS_PARENT_LOCATION,"the parent location ");
         descriptionMap.put(SugiliteRelation.HAS_PACKAGE_NAME,"in ");
-
-        descriptionMap.put(SugiliteRelation.HAS_LIST_ORDER,"the %s item");
-        descriptionMap.put(SugiliteRelation.HAS_PARENT_WITH_LIST_ORDER,"the %s item");
-
-        descriptionMap.put(SugiliteRelation.HAS_PARENT,"parent ");
         descriptionMap.put(SugiliteRelation.HAS_CHILD,"child ");
+
+        descriptionMap.put(SugiliteRelation.HAS_CHILD_TEXT,"child text ");
+        descriptionMap.put(SugiliteRelation.HAS_SIBLING_TEXT,"");
         descriptionMap.put(SugiliteRelation.HAS_SIBLING,"sibling ");
-        descriptionMap.put(SugiliteRelation.HAS_VIEW_ID,"view id ");
 
         descriptionMap.put(SugiliteRelation.IS_EDITABLE,"is editable ");
         descriptionMap.put(SugiliteRelation.IS_CLICKABLE,"is clickable ");
         descriptionMap.put(SugiliteRelation.IS_SCROLLABLE,"is scrollable ");
         descriptionMap.put(SugiliteRelation.IS_CHECKABLE,"is checkable ");
         descriptionMap.put(SugiliteRelation.IS_CHECKED,"is checked ");
+        descriptionMap.put(SugiliteRelation.IS_SELECTED,"is selected ");
 
+        descriptionMap.put(SugiliteRelation.HAS_LIST_ORDER,"the %s item");
+        descriptionMap.put(SugiliteRelation.HAS_PARENT_WITH_LIST_ORDER,"the %s item");
         descriptionMap.put(SugiliteRelation.IS_A_LIST,"is a list ");
+
         descriptionMap.put(SugiliteRelation.CONTAINS_EMAIL_ADDRESS,"email address ");
         descriptionMap.put(SugiliteRelation.CONTAINS_PHONE_NUMBER,"phone number ");
-        descriptionMap.put(SugiliteRelation.CONTAINS_MONEY,"money ");
+        descriptionMap.put(SugiliteRelation.CONTAINS_MONEY,"price ");
         descriptionMap.put(SugiliteRelation.CONTAINS_TIME,"time ");
         descriptionMap.put(SugiliteRelation.CONTAINS_DATE,"date ");
         descriptionMap.put(SugiliteRelation.CONTAINS_DURATION,"duration ");
+        descriptionMap.put(SugiliteRelation.CONTAINS_LENGTH,"length ");
+        descriptionMap.put(SugiliteRelation.CONTAINS_PERCENTAGE,"percentage ");
+        descriptionMap.put(SugiliteRelation.CONTAINS_VOLUME,"volume ");
 
 
     }

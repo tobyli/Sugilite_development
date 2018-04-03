@@ -15,6 +15,11 @@ public class OntologyQueryUtils {
     public static OntologyQuery getQueryWithClassAndPackageConstraints(OntologyQuery query, Node clickedNode){
         //de-serialize the query
         OntologyQuery parentQuery = new OntologyQuery(OntologyQuery.relationType.AND);
+
+        if(query.getOntologyQueryFilter() != null){
+            parentQuery.setOntologyQueryFilter(query.getOntologyQueryFilter());
+            query.setOntologyQueryFilter(null);
+        }
         parentQuery.addSubQuery(query);
 
         if (clickedNode.getClassName() != null) {

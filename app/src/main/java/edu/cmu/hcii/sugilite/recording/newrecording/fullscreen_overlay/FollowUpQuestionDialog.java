@@ -342,7 +342,9 @@ public class FollowUpQuestionDialog extends SugiliteDialogManager implements Sug
      * refresh the current query text view so that it reflects currentQuery
      */
     private void refreshPreviewTextView(){
-        String html = ontologyDescriptionGenerator.getDescriptionForOntologyQuery(SugiliteBlockBuildingHelper.stripSerializableOntologyQuery(new SerializableOntologyQuery(currentQuery)));
+        //TODO: show the source code temporarily
+        //String html = ontologyDescriptionGenerator.getDescriptionForOntologyQuery(SugiliteBlockBuildingHelper.stripSerializableOntologyQuery(new SerializableOntologyQuery(currentQuery)));
+        String html = SugiliteBlockBuildingHelper.stripSerializableOntologyQuery(new SerializableOntologyQuery(currentQuery)).toString();
         currentQueryTextView.setText(Html.fromHtml(html));
     }
 
@@ -654,12 +656,14 @@ public class FollowUpQuestionDialog extends SugiliteDialogManager implements Sug
         Collections.sort(matchingQueriesMatchedNodesList, new Comparator<Map.Entry<OntologyQuery, List<Node>>>() {
             @Override
             public int compare(Map.Entry<OntologyQuery, List<Node>> o1, Map.Entry<OntologyQuery, List<Node>> o2) {
+                return o1.getValue().size() - o2.getValue().size();
+                /*
                 if(o1.getValue().size() != o2.getValue().size()){
                     return o1.getValue().size() - o2.getValue().size();
                 }
                 else{
                     return o1.getKey().toString().length() - o2.getKey().toString().length();
-                }
+                }*/
             }
         });
 

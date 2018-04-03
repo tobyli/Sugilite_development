@@ -76,13 +76,16 @@ public class SugiliteRecordingConfirmationDialog extends SugiliteDialogManager {
 
 
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
-        String newDescription = ontologyDescriptionGenerator.getDescriptionForOperation(block.getOperation(), blockBuildingHelper.stripSerializableOntologyQuery(block.getQuery()));
+        //String newDescription = ontologyDescriptionGenerator.getDescriptionForOperation(block.getOperation(), blockBuildingHelper.stripSerializableOntologyQuery(block.getQuery()));
         builder.setTitle("Save Operation Confirmation");
 
         dialogView = layoutInflater.inflate(R.layout.dialog_confirmation_popup_spoken, null);
         confirmationPromptTextView = (TextView) dialogView.findViewById(R.id.text_confirmation_prompt);
         if(confirmationPromptTextView != null){
-            confirmationPromptTextView.setText(Html.fromHtml("Are you sure you want to record the operation: " + newDescription));
+            //TODO: show the source code temporarily
+            //confirmationPromptTextView.setText(Html.fromHtml("Are you sure you want to record the operation: " + newDescription));
+            confirmationPromptTextView.setText(Html.fromHtml("Are you sure you want to record the operation: " + block.toString()));
+
         }
         speakButton = (ImageButton) dialogView.findViewById(R.id.button_verbal_instruction_talk);
 

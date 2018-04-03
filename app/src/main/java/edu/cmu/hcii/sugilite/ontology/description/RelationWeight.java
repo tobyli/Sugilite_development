@@ -60,12 +60,19 @@ public class RelationWeight {
     static Comparator<SugiliteRelation> sugiliteRelationComparator = new Comparator<SugiliteRelation>() {
         @Override
         public int compare(SugiliteRelation r1, SugiliteRelation r2) {
-            if (weightMap.get(r1) < weightMap.get(r2))
-                return -1;
-            else if (weightMap.get(r1) > weightMap.get(r2))
-                return 1;
-            else
-                return 0;        }
+            try {
+                if (weightMap.get(r1) < weightMap.get(r2))
+                    return -1;
+                else if (weightMap.get(r1) > weightMap.get(r2))
+                    return 1;
+                else
+                    return 0;
+            }
+            catch (Exception e){
+                e.printStackTrace();
+                return 0;
+            }
+        }
     };
 
     static Comparator<OntologyQuery> ontologyQueryComparator = new Comparator<OntologyQuery>() {

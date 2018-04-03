@@ -43,6 +43,7 @@ public class UISnapshot {
     private transient int entityIdCounter;
     private transient Map<Node, SugiliteEntity<Node>> nodeSugiliteEntityMap;
     private transient Map<String, SugiliteEntity<String>> stringSugiliteEntityMap;
+    private transient Map<Double, SugiliteEntity<Double>> doubleSugiliteEntityMap;
     private transient Map<Boolean, SugiliteEntity<Boolean>> booleanSugiliteEntityMap;
     private transient Map<Node, AccessibilityNodeInfo> nodeAccessibilityNodeInfoMap;
 
@@ -59,6 +60,7 @@ public class UISnapshot {
         sugiliteRelationIdSugiliteRelationMap = new HashMap<>();
         nodeSugiliteEntityMap = new HashMap<>();
         stringSugiliteEntityMap = new HashMap<>();
+        doubleSugiliteEntityMap = new HashMap<>();
         booleanSugiliteEntityMap = new HashMap<>();
         nodeAccessibilityNodeInfoMap = new HashMap<>();
         entityIdCounter = 0;
@@ -283,12 +285,15 @@ public class UISnapshot {
         for(Map.Entry<Node, Integer> entry : childNodeYValueList){
             counter ++;
             Node childNode = entry.getKey();
+
             addEntityStringTriple(nodeSugiliteEntityMap.get(childNode), String.valueOf(counter), SugiliteRelation.HAS_LIST_ORDER);
+            //addEntityNumericTriple(nodeSugiliteEntityMap.get(childNode), Double.valueOf(counter), SugiliteRelation.HAS_LIST_ORDER);
 
             SugiliteEntity<Node> childEntity = nodeSugiliteEntityMap.get(childNode);
             if(childEntity != null){
                 for(SugiliteEntity<Node> entity : getAllChildEntities(childEntity, new HashSet<>())){
                     addEntityStringTriple(entity, String.valueOf(counter), SugiliteRelation.HAS_PARENT_WITH_LIST_ORDER);
+                    //addEntityNumericTriple(entity, Double.valueOf(counter), SugiliteRelation.HAS_PARENT_WITH_LIST_ORDER);
                 }
             }
         }
@@ -336,6 +341,30 @@ public class UISnapshot {
 
         SugiliteTriple triple = new SugiliteTriple(currentEntity, relation, objectEntity);
         triple.setObjectStringValue(string);
+        addTriple(triple);
+    }
+
+    /**
+     * helper function used for adding a <SugiliteEntity, SugiliteEntity<Double>, SugiliteRelation) triple
+     * @param currentEntity
+     * @param numeric
+     * @param relation
+     */
+    public void addEntityNumericTriple(SugiliteEntity currentEntity, Double numeric, SugiliteRelation relation){
+        //class
+        SugiliteEntity<Double> objectEntity = null;
+
+        if (doubleSugiliteEntityMap.containsKey(numeric)) {
+            objectEntity = doubleSugiliteEntityMap.get(numeric);
+        } else {
+            //create a new entity for the class name
+            SugiliteEntity<Double> entity = new SugiliteEntity<>(entityIdCounter++, Double.class, numeric);
+            doubleSugiliteEntityMap.put(numeric, entity);
+            objectEntity = entity;
+        }
+
+        SugiliteTriple triple = new SugiliteTriple(currentEntity, relation, objectEntity);
+        triple.setObjectStringValue(numeric.toString());
         addTriple(triple);
     }
 

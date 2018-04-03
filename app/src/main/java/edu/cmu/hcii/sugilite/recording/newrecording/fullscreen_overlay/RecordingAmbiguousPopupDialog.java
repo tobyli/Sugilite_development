@@ -363,12 +363,15 @@ public class RecordingAmbiguousPopupDialog extends SugiliteDialogManager impleme
         Collections.sort(matchingQueriesMatchedNodesList, new Comparator<Map.Entry<OntologyQuery, List<Node>>>() {
             @Override
             public int compare(Map.Entry<OntologyQuery, List<Node>> o1, Map.Entry<OntologyQuery, List<Node>> o2) {
+                return o1.getValue().size() - o2.getValue().size();
+                /*
                 if(o1.getValue().size() != o2.getValue().size()){
                     return o1.getValue().size() - o2.getValue().size();
                 }
                 else{
                     return o1.getKey().toString().length() - o2.getKey().toString().length();
                 }
+                */
             }
         });
 

@@ -105,6 +105,9 @@ public class OntologyDescriptionGenerator {
 
 
     public String getDescriptionForOperation(SugiliteOperation operation, SerializableOntologyQuery sq){
+        //TODO: temporily disable because of crashes due to unable to handle filters
+        return sq.toString();
+        /*
         if(operation.getOperationType() == SugiliteOperation.CLICK){
             return getDescriptionForOperation(setColor("Click on ", Const.SCRIPT_ACTION_COLOR), sq);
         }
@@ -112,6 +115,7 @@ public class OntologyDescriptionGenerator {
             //TODO: handle more types of operations ***
             return null;
         }
+        */
     }
 
     private String getDescriptionForOperation(String verb, SerializableOntologyQuery sq){

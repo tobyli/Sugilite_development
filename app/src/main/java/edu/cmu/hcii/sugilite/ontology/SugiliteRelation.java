@@ -74,20 +74,20 @@ public class SugiliteRelation implements Serializable {
     public static final SugiliteRelation IS_SELECTED = new SugiliteRelation(17, "IS_SELECTED");
 
     //adv
-    public static final SugiliteRelation HAS_LIST_ORDER = new SugiliteRelation(18, "HAS_LIST_ORDER");
-    public static final SugiliteRelation HAS_PARENT_WITH_LIST_ORDER = new SugiliteRelation(19, "HAS_PARENT_WITH_LIST_ORDER");
+    public static final SugiliteRelation HAS_LIST_ORDER = new SugiliteRelation(18, "numeric_index");
+    public static final SugiliteRelation HAS_PARENT_WITH_LIST_ORDER = new SugiliteRelation(19, "numeric_parent_index");
     public static final SugiliteRelation IS_A_LIST = new SugiliteRelation(20, "IS_A_LIST");
 
     //text parsing
     public static final SugiliteRelation CONTAINS_EMAIL_ADDRESS = new SugiliteRelation(21, "CONTAINS_EMAIL_ADDRESS");
     public static final SugiliteRelation CONTAINS_PHONE_NUMBER = new SugiliteRelation(22, "CONTAINS_PHONE_NUMBER");
-    public static final SugiliteRelation CONTAINS_MONEY = new SugiliteRelation(23, "CONTAINS_MONEY");
-    public static final SugiliteRelation CONTAINS_TIME = new SugiliteRelation(24, "CONTAINS_TIME");
-    public static final SugiliteRelation CONTAINS_DATE = new SugiliteRelation(25, "CONTAINS_DATE");
-    public static final SugiliteRelation CONTAINS_DURATION = new SugiliteRelation(26, "CONTAINS_DURATION");
-    public static final SugiliteRelation CONTAINS_LENGTH = new SugiliteRelation(27, "CONTAINS_LENGTH");
-    public static final SugiliteRelation CONTAINS_PERCENTAGE = new SugiliteRelation(28, "CONTAINS_PERCENTAGE");
-    public static final SugiliteRelation CONTAINS_VOLUME = new SugiliteRelation(28, "CONTAINS_VOLUME");
+    public static final SugiliteRelation CONTAINS_MONEY = new SugiliteRelation(23, "numeric_price");
+    public static final SugiliteRelation CONTAINS_TIME = new SugiliteRelation(24, "numeric_time");
+    public static final SugiliteRelation CONTAINS_DATE = new SugiliteRelation(25, "numeric_date");
+    public static final SugiliteRelation CONTAINS_DURATION = new SugiliteRelation(26, "numeric_duration");
+    public static final SugiliteRelation CONTAINS_LENGTH = new SugiliteRelation(27, "numeric_length");
+    public static final SugiliteRelation CONTAINS_PERCENTAGE = new SugiliteRelation(28, "numeric_percentage");
+    public static final SugiliteRelation CONTAINS_VOLUME = new SugiliteRelation(28, "numeric_volume");
 
 
 
@@ -116,19 +116,19 @@ public class SugiliteRelation implements Serializable {
         stringRelationMap.put("IS_CHECKED", IS_CHECKED);
         stringRelationMap.put("IS_SELECTED", IS_SELECTED);
 
-        stringRelationMap.put("HAS_LIST_ORDER", HAS_LIST_ORDER);
-        stringRelationMap.put("HAS_PARENT_WITH_LIST_ORDER", HAS_PARENT_WITH_LIST_ORDER);
+        stringRelationMap.put("numeric_index", HAS_LIST_ORDER);
+        stringRelationMap.put("numeric_parent_index", HAS_PARENT_WITH_LIST_ORDER);
         stringRelationMap.put("IS_A_LIST", IS_A_LIST);
 
         stringRelationMap.put("CONTAINS_EMAIL_ADDRESS", CONTAINS_EMAIL_ADDRESS);
         stringRelationMap.put("CONTAINS_PHONE_NUMBER", CONTAINS_PHONE_NUMBER);
-        stringRelationMap.put("CONTAINS_MONEY", CONTAINS_MONEY);
-        stringRelationMap.put("CONTAINS_TIME", CONTAINS_TIME);
-        stringRelationMap.put("CONTAINS_DATE", CONTAINS_DATE);
-        stringRelationMap.put("CONTAINS_DURATION", CONTAINS_DURATION);
-        stringRelationMap.put("CONTAINS_LENGTH", CONTAINS_LENGTH);
-        stringRelationMap.put("CONTAINS_PERCENTAGE", CONTAINS_PERCENTAGE);
-        stringRelationMap.put("CONTAINS_VOLUME", CONTAINS_VOLUME);
+        stringRelationMap.put("numeric_price", CONTAINS_MONEY);
+        stringRelationMap.put("numeric_time", CONTAINS_TIME);
+        stringRelationMap.put("numeric_date", CONTAINS_DATE);
+        stringRelationMap.put("numeric_duration", CONTAINS_DURATION);
+        stringRelationMap.put("numeric_length", CONTAINS_LENGTH);
+        stringRelationMap.put("numeric_percentage", CONTAINS_PERCENTAGE);
+        stringRelationMap.put("numeric_volume", CONTAINS_VOLUME);
 
     }
 

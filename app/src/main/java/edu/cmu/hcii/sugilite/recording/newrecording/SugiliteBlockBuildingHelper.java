@@ -71,7 +71,9 @@ public class SugiliteBlockBuildingHelper {
         operationBlock.setScreenshot(featurePack.screenshot);
 
         //description is set
-        operationBlock.setDescription(ontologyDescriptionGenerator.getDescriptionForOperation(sugiliteOperation, query));
+        //TODO: fix
+        operationBlock.setDescription(operationBlock.toString());
+        //operationBlock.setDescription(ontologyDescriptionGenerator.getDescriptionForOperation(sugiliteOperation, query));
         return operationBlock;
     }
 
@@ -167,7 +169,7 @@ public class SugiliteBlockBuildingHelper {
             Set<SugiliteTriple> triples = uiSnapshot.getSubjectPredicateTriplesMap().get(new AbstractMap.SimpleEntry<>(foundEntity.getEntityId(), SugiliteRelation.HAS_LIST_ORDER.getRelationId()));
             if(triples != null){
                 for(SugiliteTriple triple : triples){
-                    String order = (String)triple.getObject().getEntityValue();
+                    String order = triple.getObject().getEntityValue().toString();
 
                     OntologyQuery clonedQuery = new OntologyQuery(new SerializableOntologyQuery(q));
                     OntologyQuery subQuery = new OntologyQuery(OntologyQuery.relationType.nullR);

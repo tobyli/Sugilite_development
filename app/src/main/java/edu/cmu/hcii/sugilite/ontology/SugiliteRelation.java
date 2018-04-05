@@ -96,6 +96,8 @@ public class SugiliteRelation implements Serializable {
     public static final SugiliteRelation LEFT = new SugiliteRelation(31, "LEFT");
     public static final SugiliteRelation ABOVE = new SugiliteRelation(32, "ABOVE");
     public static final SugiliteRelation BELOW = new SugiliteRelation(33, "BELOW");
+    public static final SugiliteRelation NEAR = new SugiliteRelation(34, "NEAR");
+    public static final SugiliteRelation NEXT_TO = new SugiliteRelation(35, "NEXT_TO");
 
 
     public static final Map<String, SugiliteRelation> stringRelationMap;

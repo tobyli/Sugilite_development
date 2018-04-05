@@ -9,17 +9,24 @@ import edu.cmu.hcii.sugilite.ontology.UISnapshot;
 
 import java.util.ArrayList;
 import java.util.Set;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
+ * Defined 6 possible spatial relations (ABOVE, BELOW, RIGHT, LEFT, NEXT_TO, NEAR) for all nodes on
+ * the UI Snapshot. In particular, two nodes are NEXT_TO each other if they are either LEFT or RIGHT
+ * to each other. Two nodes are NEAR each other if their bounding boxes are close to each other but
+ * do not overlap.
+ *
  * Created by shi on 3/22/18.
  */
 
 public class SugiliteNodeAnnotator {
 
     private static final float ALIGNMENT_THRESHOLD = 0.1f;
+    private static final float SEPARATE_THRESHOLD = 1000f;
+    private static final float NEAR_THRESHOLD = 100f;
+    private static final int XMAX = 1080;
+    private static final int YMAX = 1920;
 
     public SugiliteNodeAnnotator() {}
 
@@ -44,46 +51,35 @@ public class SugiliteNodeAnnotator {
     public List<AnnotatingResult> annotate(Set<SugiliteEntity<Node>> nodes) {
         List<AnnotatingResult> result = new ArrayList<>();
         for (SugiliteEntity<Node> n1 : nodes) {
-            double left = 10000;
-            double right = 10000;
-            double above = 10000;
-            double below = 10000;
-            AnnotatingResult leftRes = null, rightRes = null, aboveRes = null, belowRes= null;
+            if (!onScreen(n1)) continue;
             for (SugiliteEntity<Node> n2 : nodes) {
                 if (n1 == n2) continue;
+                if (!onScreen(n2)) continue;
                 Rect r1 = Rect.unflattenFromString(n1.getEntityValue().getBoundsInScreen());
                 Rect r2 = Rect.unflattenFromString(n2.getEntityValue().getBoundsInScreen());
+                if (r1.intersect(r2)) continue;
                 if (r1.contains(r2))
                     result.add(new AnnotatingResult(SugiliteRelation.CONTAINS, n1, n2));
                 else if (r2.contains(r1)) continue;
                 else {
                     double dist = distance(r1.centerX(), r1.centerY(), r2.centerX(), r2.centerY());
-                    if (isRight(r1.centerX(), r1.centerY(), r2.centerX(), r2.centerY()))
-                        if (dist < right) {
-                            right = dist;
-                            rightRes = new AnnotatingResult(SugiliteRelation.RIGHT, n1, n2);
-                        }
-                    if (isRight(r2.centerX(), r2.centerY(), r1.centerX(), r1.centerY()))
-                        if (dist < left) {
-                            left = dist;
-                            leftRes = new AnnotatingResult(SugiliteRelation.LEFT, n1, n2);
-                        }
+                    if (dist > SEPARATE_THRESHOLD) continue;
+                    if (separation(r1, r2) <= NEAR_THRESHOLD && separation(r1, r2) >= 0)
+                        result.add(new AnnotatingResult(SugiliteRelation.NEAR, n1, n2));
+                    if (isRight(r1.centerX(), r1.centerY(), r2.centerX(), r2.centerY())) {
+                        result.add(new AnnotatingResult(SugiliteRelation.RIGHT, n1, n2));
+                        result.add(new AnnotatingResult(SugiliteRelation.NEXT_TO, n1, n2));
+                    }
+                    if (isRight(r2.centerX(), r2.centerY(), r1.centerX(), r1.centerY())) {
+                        result.add(new AnnotatingResult(SugiliteRelation.LEFT, n1, n2));
+                        result.add(new AnnotatingResult(SugiliteRelation.NEXT_TO, n1, n2));
+                    }
                     if (isAbove(r1.centerX(), r1.centerY(), r2.centerX(), r2.centerY()))
-                        if (dist < above) {
-                            above = dist;
-                            aboveRes = new AnnotatingResult(SugiliteRelation.ABOVE, n1, n2);
-                        }
+                        result.add(new AnnotatingResult(SugiliteRelation.ABOVE, n1, n2));
                     if (isAbove(r2.centerX(), r2.centerY(), r1.centerX(), r1.centerY()))
-                        if (dist < below) {
-                            below = dist;
-                            belowRes = new AnnotatingResult(SugiliteRelation.BELOW, n1, n2);
-                        }
+                        result.add(new AnnotatingResult(SugiliteRelation.BELOW, n1, n2));
                 }
             }
-            if (leftRes != null) result.add(leftRes);
-            if (rightRes != null) result.add(rightRes);
-            if (aboveRes != null) result.add(aboveRes);
-            if (belowRes != null) result.add(belowRes);
         }
         return result;
     }
@@ -102,6 +98,28 @@ public class SugiliteNodeAnnotator {
 
     private double distance(int x1, int y1, int x2, int y2) {
         return Math.sqrt((x1-x2)*(x1-x2) + (y1-y2)*(y1-y2));
+    }
+
+    private int separation(Rect r1, Rect r2) {
+        int dx, dy;
+        if (r1.left >= r2.right) dx = r1.left - r2.right;
+        else if (r2.left >= r1.right) dx = r2.left - r1.right;
+        else dx = -1;
+        if (r1.top >= r2.bottom) dy = r1.top - r2.bottom;
+        else if (r2.top >= r1.bottom) dy = r2.top - r1.bottom;
+        else dy = -1;
+        return Math.max(dx, dy);
+    }
+
+    private boolean onScreen(SugiliteEntity<Node> node) {
+        String pos = node.getEntityValue().getBoundsInScreen();
+        String[] splitRes = pos.split(" ");
+        int left = Integer.valueOf(splitRes[0]);
+        int top = Integer.valueOf(splitRes[1]);
+        int right = Integer.valueOf(splitRes[2]);
+        int bottom = Integer.valueOf(splitRes[3]);
+        if (right < left || bottom < top) return false;
+        return right <= XMAX && bottom <= YMAX;
     }
 
 }

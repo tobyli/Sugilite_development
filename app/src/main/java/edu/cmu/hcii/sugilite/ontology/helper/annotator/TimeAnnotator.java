@@ -9,7 +9,7 @@ import edu.cmu.hcii.sugilite.ontology.SugiliteRelation;
 
 /**
  * Given the input as a string containing times of the specified formats, parse it and store the
- * times as the number of milliseconds passed from 12 am until the given time.
+ * times as the number of second passed from 12 am until the given time.
  *
  * Created by shi on 1/25/18.
  */
@@ -54,7 +54,7 @@ public class TimeAnnotator extends SugiliteTextAnnotator {
                 if (matchedString.contains("p") || matchedString.contains("P"))
                     hour += 12;
                 int minute = Integer.valueOf(minuteString);
-                value = (double) (hour*60 + minute)*1000;
+                value = (double) (hour*60 + minute)*60;
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -82,7 +82,7 @@ public class TimeAnnotator extends SugiliteTextAnnotator {
             try {
                 int hour = Integer.valueOf(hourString);
                 int minute = Integer.valueOf(minuteString);
-                value = (double) (hour*60 + minute)*1000;
+                value = (double) (hour*60 + minute)*60;
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -110,7 +110,7 @@ public class TimeAnnotator extends SugiliteTextAnnotator {
                 int hour = Integer.valueOf(hourString) % 12;
                 if (matchedString.contains("p") || matchedString.contains("P"))
                     hour += 12;
-                value = (double) (hour*60)*1000;
+                value = (double) (hour*60)*60;
             } catch (Exception e) {
                 e.printStackTrace();
             }

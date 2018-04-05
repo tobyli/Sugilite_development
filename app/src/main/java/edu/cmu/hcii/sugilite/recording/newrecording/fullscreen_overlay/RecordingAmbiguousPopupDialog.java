@@ -339,6 +339,7 @@ public class RecordingAmbiguousPopupDialog extends SugiliteDialogManager impleme
                 //empty grounding
                 continue;
             }
+
             Set<String> groundings = new HashSet<>(verbalInstructionResult.getGrounding());
             if(!groundings.contains("@" + actualClickedNode.getEntityId().toString())){
                 //grouding doesn't contain the clicked item

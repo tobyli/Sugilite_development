@@ -92,6 +92,9 @@ public class UISnapshot {
         List<Node> allNodes = new ArrayList<>();
         for(AccessibilityNodeInfo oldNode : allOldNodes){
             Node node = new Node(oldNode);
+            if(node.getPackageName() != null && (node.getPackageName().contains("com.android.systemui") || node.getPackageName().contains("sugilite"))){
+                continue;
+            }
             allNodes.add(node);
             if(toConstructNodeAccessibilityNodeInfoMap){
                 nodeAccessibilityNodeInfoMap.put(node, oldNode);
@@ -108,6 +111,10 @@ public class UISnapshot {
     private void constructFromListOfNodes(List<Node> allNodes, SugiliteTextAnnotator sugiliteTextAnnotator){
         if(allNodes != null){
             for(Node node : allNodes) {
+                if(node.getPackageName() != null && (node.getPackageName().contains("com.android.systemui") || node.getPackageName().contains("sugilite"))){
+                    continue;
+                }
+
                 //get the corresponding entity for the node
                 SugiliteEntity<Node> currentEntity = null;
                 if (nodeSugiliteEntityMap.containsKey(node)) {
@@ -219,14 +226,7 @@ public class UISnapshot {
                         }
                     }
                 }
-
-
-
-
                 // TODO: add sibling text info
-
-
-
             }
 
             for(Map.Entry<Node, SugiliteEntity<Node>> entry : nodeSugiliteEntityMap.entrySet()){
@@ -281,6 +281,7 @@ public class UISnapshot {
                 this.addEntityNodeTriple(res.getSubject(), res.getObject(), res.getRelation());
             }
             */
+
         }
 
     }

@@ -18,6 +18,7 @@ import edu.cmu.hcii.sugilite.Node;
 import edu.cmu.hcii.sugilite.automation.AutomatorUtil;
 import edu.cmu.hcii.sugilite.ontology.helper.ListOrderResolver;
 import edu.cmu.hcii.sugilite.ontology.helper.TextStringParseHelper;
+import edu.cmu.hcii.sugilite.ontology.helper.annotator.SugiliteNodeAnnotator;
 import edu.cmu.hcii.sugilite.ontology.helper.annotator.SugiliteTextAnnotator;
 
 /**
@@ -264,6 +265,18 @@ public class UISnapshot {
 
             for(SugiliteEntity<String> entity : tempEntities){
                 textStringParseHelper.parseAndAddNewRelations(entity, this);
+            }
+
+            //parse node entities
+            Set<SugiliteEntity<Node>> nodeEntities = new HashSet<>();
+
+            for(Map.Entry<Node, SugiliteEntity<Node>> entry : nodeSugiliteEntityMap.entrySet()){
+                nodeEntities.add(entry.getValue());
+            }
+
+            SugiliteNodeAnnotator annotator = new SugiliteNodeAnnotator();
+            for (SugiliteNodeAnnotator.AnnotatingResult res : annotator.annotate(nodeEntities)) {
+                this.addEntityNodeTriple(res.getSubject(), res.getObject(), res.getRelation());
             }
         }
 

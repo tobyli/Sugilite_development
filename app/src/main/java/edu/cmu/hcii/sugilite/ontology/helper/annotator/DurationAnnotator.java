@@ -25,14 +25,21 @@ public class DurationAnnotator extends SugiliteTextAnnotator {
     @Override
     public List<AnnotatingResult> annotate(String text) {
         List<AnnotatingResult> results = new ArrayList<>();
-        String regex = "\\b\\d+?(.\\d+?)? (d|h|hr(s)?|hour(s)?|m|min(s)?|minute(s)?|s|sec)\\b";
+        String regex = "\\b\\d+?(.\\d+?)?( )?(d|h|hr(s)?|hour(s)?|m|min(s)?|minute(s)?|s|sec)\\b";
         Pattern pattern = Pattern.compile(regex);
 
         int curEnd = -3;
         Matcher matcher = pattern.matcher(text);
         while (matcher.find()) {
             String matchedString = text.substring(matcher.start(), matcher.end());
-            String[] parsed = matchedString.split(" ");
+            String[] parsed;
+            if (matchedString.contains(" "))
+                parsed = matchedString.split(" ");
+            else {
+                parsed = new String[2];
+                parsed[0] = matchedString.split("[a-z]")[0];
+                parsed[1] = matchedString.substring(parsed[0].length());
+            }
             double num = Double.valueOf(parsed[0]);
             if (parsed[1].startsWith("h")) num *= HOUR;
             else if (parsed[1].startsWith("d")) num *= DAY;

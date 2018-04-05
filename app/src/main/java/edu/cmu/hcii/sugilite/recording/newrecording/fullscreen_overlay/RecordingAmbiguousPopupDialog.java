@@ -8,6 +8,7 @@ import android.content.SharedPreferences;
 import android.graphics.LightingColorFilter;
 import android.speech.tts.TextToSpeech;
 import android.text.Html;
+import android.util.Pair;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -27,6 +28,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -64,7 +66,7 @@ import static edu.cmu.hcii.sugilite.Const.RECORDING_OFF_BUTTON_COLOR;
  * @time 11:55 PM
  */
 public class RecordingAmbiguousPopupDialog extends SugiliteDialogManager implements SugiliteVerbalInstructionHTTPQueryInterface {
-    private List<Map.Entry<SerializableOntologyQuery, Double>> queryScoreList;
+    private List<Pair<SerializableOntologyQuery, Double>> queryScoreList;
     private SugiliteAvailableFeaturePack featurePack;
     private EditText verbalInstructionEditText;
     private SugiliteVerbalInstructionHTTPQueryManager sugiliteVerbalInstructionHTTPQueryManager;
@@ -75,7 +77,7 @@ public class RecordingAmbiguousPopupDialog extends SugiliteDialogManager impleme
     private ImageButton speakButton;
     private SerializableUISnapshot serializableUISnapshot;
     private UISnapshot uiSnapshot;
-    private Node actualClickedNode;
+    private SugiliteEntity<Node> actualClickedNode;
     private SugiliteBlockBuildingHelper blockBuildingHelper;
     private Runnable clickRunnable;
     private LayoutInflater layoutInflater;
@@ -90,7 +92,7 @@ public class RecordingAmbiguousPopupDialog extends SugiliteDialogManager impleme
     private SugiliteDialogSimpleState resultWontMatchState = new SugiliteDialogSimpleState("RESULT_WONT_MATCH_STATE", this);
 
 
-    public RecordingAmbiguousPopupDialog(Context context, List<Map.Entry<SerializableOntologyQuery, Double>> queryScoreList, SugiliteAvailableFeaturePack featurePack, SugiliteBlockBuildingHelper blockBuildingHelper, LayoutInflater layoutInflater, Runnable clickRunnable, UISnapshot uiSnapshot, Node actualClickedNode, SugiliteData sugiliteData, SharedPreferences sharedPreferences, TextToSpeech tts) {
+    public RecordingAmbiguousPopupDialog(Context context, List<Pair<SerializableOntologyQuery, Double>> queryScoreList, SugiliteAvailableFeaturePack featurePack, SugiliteBlockBuildingHelper blockBuildingHelper, LayoutInflater layoutInflater, Runnable clickRunnable, UISnapshot uiSnapshot, SugiliteEntity<Node> actualClickedNode, SugiliteData sugiliteData, SharedPreferences sharedPreferences, TextToSpeech tts) {
         super(context, tts);
         this.queryScoreList = queryScoreList;
         this.featurePack = featurePack;
@@ -119,12 +121,14 @@ public class RecordingAmbiguousPopupDialog extends SugiliteDialogManager impleme
         ListView mainListView = (ListView) dialogView.findViewById(R.id.listview_query_candidates);
         verbalInstructionEditText = (EditText) dialogView.findViewById(R.id.edittext_instruction_content);
         Map<TextView, SugiliteOperationBlock> textViews = new HashMap<>();
+
+        queryScoreList = queryScoreList.subList(0, 1);
         String[] stringArray = new String[queryScoreList.size()];
         SugiliteOperationBlock[] sugiliteOperationBlockArray = new SugiliteOperationBlock[queryScoreList.size()];
 
         int i = 0;
-        for (Map.Entry<SerializableOntologyQuery, Double> entry : queryScoreList) {
-            SugiliteOperationBlock block = blockBuildingHelper.getOperationBlockFromQuery(entry.getKey(), SugiliteOperation.CLICK, featurePack);
+        for (Pair<SerializableOntologyQuery, Double> entry : queryScoreList) {
+            SugiliteOperationBlock block = blockBuildingHelper.getOperationBlockFromQuery(entry.first, SugiliteOperation.CLICK, featurePack);
             sugiliteOperationBlockArray[i++] = block;
         }
 
@@ -301,6 +305,9 @@ public class RecordingAmbiguousPopupDialog extends SugiliteDialogManager impleme
      * callback for the HTTP query when the result is available
      */
     public void resultReceived(int responseCode, String result) {
+        final int MAX_QUERY_CANDIDATE_NUMBER = 7;
+
+        //dismiss the dialog
         if (progressDialog != null && progressDialog.isShowing()) {
             progressDialog.dismiss();
         }
@@ -310,9 +317,9 @@ public class RecordingAmbiguousPopupDialog extends SugiliteDialogManager impleme
         //de-serialize to VerbalInstructionResults
         VerbalInstructionServerResults results = gson.fromJson(result, VerbalInstructionServerResults.class);
 
-        if (results.getQueries() == null) {
+        if (results.getQueries() == null || results.getQueries().isEmpty()) {
             //error in parsing the server reply
-            Toast.makeText(context, String.valueOf(responseCode) + ": Error in parsing server reply", Toast.LENGTH_SHORT).show();
+            Toast.makeText(context, String.valueOf(responseCode) + ": Can't parse the verbal instruction", Toast.LENGTH_SHORT).show();
             dialog.show();
             setCurrentState(emptyResultState);
             initPrompt();
@@ -325,9 +332,20 @@ public class RecordingAmbiguousPopupDialog extends SugiliteDialogManager impleme
         }
 
         //find matches
-        List<Map.Entry<OntologyQuery, List<Node>>> matchingQueriesMatchedNodesList = new ArrayList<>();
+        List<Pair<OntologyQuery, List<Node>>> matchingQueriesMatchedNodesList = new ArrayList<>();
 
         for (VerbalInstructionServerResults.VerbalInstructionResult verbalInstructionResult : results.getQueries()) {
+            if(verbalInstructionResult.getGrounding() == null || verbalInstructionResult.getGrounding().isEmpty()){
+                //empty grounding
+                continue;
+            }
+            Set<String> groundings = new HashSet<>(verbalInstructionResult.getGrounding());
+            if(!groundings.contains("@" + actualClickedNode.getEntityId().toString())){
+                //grouding doesn't contain the clicked item
+                continue;
+            }
+
+
             boolean matched = false;
             List<Node> filteredNodes = new ArrayList<>();
             Map<Node, Integer> filteredNodeNodeIdMap = new HashMap<>();
@@ -335,7 +353,7 @@ public class RecordingAmbiguousPopupDialog extends SugiliteDialogManager impleme
             //construct the query, run the query, and compare the result against the actually clicked on node
 
             String queryFormula = verbalInstructionResult.getFormula();
-            OntologyQuery query = OntologyQueryUtils.getQueryWithClassAndPackageConstraints(OntologyQuery.deserialize(queryFormula), actualClickedNode);
+            OntologyQuery query = OntologyQueryUtils.getQueryWithClassAndPackageConstraints(OntologyQuery.deserialize(queryFormula), actualClickedNode.getEntityValue());
 
             //TODO: fix the bug in query.executeOn -- it should not change the query
             OntologyQuery queryClone = OntologyQuery.deserialize(query.toString());
@@ -348,7 +366,7 @@ public class RecordingAmbiguousPopupDialog extends SugiliteDialogManager impleme
                         filteredNodes.add(node);
                         filteredNodeNodeIdMap.put(node, entity.getEntityId());
                     }
-                    if (OntologyQueryUtils.isSameNode(actualClickedNode, node)) {
+                    if (OntologyQueryUtils.isSameNode(actualClickedNode.getEntityValue(), node)) {
                         matched = true;
                     }
                 }
@@ -356,14 +374,20 @@ public class RecordingAmbiguousPopupDialog extends SugiliteDialogManager impleme
 
             if (filteredNodes.size() > 0 && matched) {
                 //matched, add the result to the list
-                matchingQueriesMatchedNodesList.add(new AbstractMap.SimpleEntry<>(query, filteredNodes));
+                matchingQueriesMatchedNodesList.add(Pair.create(query, filteredNodes));
+            }
+
+            if(matchingQueriesMatchedNodesList.size() > MAX_QUERY_CANDIDATE_NUMBER){
+                break;
             }
         }
 
-        Collections.sort(matchingQueriesMatchedNodesList, new Comparator<Map.Entry<OntologyQuery, List<Node>>>() {
-            @Override
-            public int compare(Map.Entry<OntologyQuery, List<Node>> o1, Map.Entry<OntologyQuery, List<Node>> o2) {
-                return o1.getValue().size() - o2.getValue().size();
+        if(false) {
+            //don't sort the results -- keep the original order from the parser
+            Collections.sort(matchingQueriesMatchedNodesList, new Comparator<Pair<OntologyQuery, List<Node>>>() {
+                @Override
+                public int compare(Pair<OntologyQuery, List<Node>> o1, Pair<OntologyQuery, List<Node>> o2) {
+                    return o1.second.size() - o2.second.size();
                 /*
                 if(o1.getValue().size() != o2.getValue().size()){
                     return o1.getValue().size() - o2.getValue().size();
@@ -372,31 +396,42 @@ public class RecordingAmbiguousPopupDialog extends SugiliteDialogManager impleme
                     return o1.getKey().toString().length() - o2.getKey().toString().length();
                 }
                 */
-            }
-        });
+                }
+            });
+        }
 
-        //TODO: sort the list by the size of matched node and length, and see if the top result has filteredNodes.size() = 1
-        if (!matchingQueriesMatchedNodesList.isEmpty()) {
-            OntologyQuery query = matchingQueriesMatchedNodesList.get(0).getKey();
-            //TODO: check if this has filteredNodes.size() = 1
+
+
+        if (matchingQueriesMatchedNodesList.size() == 1) {
+            //sort the list by the size of matched node and length, and see if the top result has filteredNodes.size() = 1
+            OntologyQuery query = matchingQueriesMatchedNodesList.get(0).first;
             Toast.makeText(context, query.toString(), Toast.LENGTH_SHORT).show();
 
-            if(matchingQueriesMatchedNodesList.get(0).getValue().size() > 1) {
-                //TODO:prompt for further generalization
-                FollowUpQuestionDialog followUpQuestionDialog = new FollowUpQuestionDialog(context, tts, query, uiSnapshot, actualClickedNode, matchingQueriesMatchedNodesList.get(0).getValue(), featurePack, queryScoreList, blockBuildingHelper, layoutInflater, clickRunnable, sugiliteData, sharedPreferences);
-                followUpQuestionDialog.setNumberOfMatchedNodes(matchingQueriesMatchedNodesList.get(0).getValue().size());
+            //check if this has filteredNodes.size() = 1 -- whether need to show the followup question dialog
+            if(matchingQueriesMatchedNodesList.get(0).second.size() > 1) {
+                //prompt for further generalization
+                FollowUpQuestionDialog followUpQuestionDialog = new FollowUpQuestionDialog(context, tts, query, uiSnapshot, actualClickedNode, matchingQueriesMatchedNodesList.get(0).second, featurePack, queryScoreList, blockBuildingHelper, layoutInflater, clickRunnable, sugiliteData, sharedPreferences);
+                followUpQuestionDialog.setNumberOfMatchedNodes(matchingQueriesMatchedNodesList.get(0).second.size());
                 followUpQuestionDialog.show();
             } else {
                 //save the block and show a confirmation dialog for the block
                 System.out.println("Result Query: " + query.toString());
-                //construct the block from the query formula
+
+                //construct a block from the query formula
                 SerializableOntologyQuery serializableOntologyQuery = new SerializableOntologyQuery(query);
                 SugiliteOperationBlock block = blockBuildingHelper.getOperationBlockFromQuery(serializableOntologyQuery, SugiliteOperation.CLICK, featurePack);
+
+                //construct a confirmation dialog from the block
                 showConfirmationDialog(block, featurePack, queryScoreList, clickRunnable);
             }
             dialog.dismiss();
-
-        } else {
+        }
+        else if(matchingQueriesMatchedNodesList.size() > 1){
+            ChooseParsingDialog chooseParsingDialog = new ChooseParsingDialog(context, matchingQueriesMatchedNodesList.subList(0, Integer.min(matchingQueriesMatchedNodesList.size(), MAX_QUERY_CANDIDATE_NUMBER)), blockBuildingHelper, layoutInflater, clickRunnable, uiSnapshot, actualClickedNode, sugiliteData, sharedPreferences, tts, featurePack, queryScoreList);
+            chooseParsingDialog.show();
+            dialog.dismiss();
+        }
+        else {
             //empty result, show the dialog and switch to empty result state
             dialog.show();
             setCurrentState(resultWontMatchState);
@@ -404,7 +439,7 @@ public class RecordingAmbiguousPopupDialog extends SugiliteDialogManager impleme
         }
     }
 
-    private void showConfirmationDialog(SugiliteOperationBlock block, SugiliteAvailableFeaturePack featurePack, List<Map.Entry<SerializableOntologyQuery, Double>> queryScoreList, Runnable clickRunnable) {
+    private void showConfirmationDialog(SugiliteOperationBlock block, SugiliteAvailableFeaturePack featurePack, List<Pair<SerializableOntologyQuery, Double>> queryScoreList, Runnable clickRunnable) {
         SugiliteRecordingConfirmationDialog sugiliteRecordingConfirmationDialog = new SugiliteRecordingConfirmationDialog(context, block, featurePack, queryScoreList, clickRunnable, blockBuildingHelper, layoutInflater, uiSnapshot, actualClickedNode, sugiliteData, sharedPreferences, tts);
         sugiliteRecordingConfirmationDialog.show();
     }
@@ -416,7 +451,7 @@ public class RecordingAmbiguousPopupDialog extends SugiliteDialogManager impleme
     public void initDialogManager() {
         //set the prompt
         emptyResultState.setPrompt(context.getString(R.string.disambiguation_error));
-        resultWontMatchState.setPrompt(context.getString(R.string.disambiguation_result_wont_math));
+        resultWontMatchState.setPrompt(context.getString(R.string.disambiguation_result_wont_match));
         askingForVerbalInstructionState.setPrompt(context.getString(R.string.disambiguation_prompt));
 
         //set on switched away runnable - the verbal instruction state should set the value for the text box
@@ -443,6 +478,14 @@ public class RecordingAmbiguousPopupDialog extends SugiliteDialogManager impleme
                 if (resultWontMatchState.getASRResult() != null && (!resultWontMatchState.getASRResult().isEmpty())) {
                     verbalInstructionEditText.setText(resultWontMatchState.getASRResult().get(0));
                 }
+            }
+        });
+
+        askingForVerbalInstructionState.setOnInitiatedRunnable(new Runnable() {
+            @Override
+            public void run() {
+                //clear the edittext
+                verbalInstructionEditText.setText("");
             }
         });
 

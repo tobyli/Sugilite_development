@@ -294,7 +294,7 @@ public class FullScreenRecordingOverlayManager {
     }
 
     private void handleClick(float x, float y) {
-        List<Node> matchedNode = new ArrayList<>();
+        List<SugiliteEntity<Node>> matchedNodeEntities = new ArrayList<>();
         if (getUiSnapshot() != null) {
             for (SugiliteEntity<Node> entity : getUiSnapshot().getNodeSugiliteEntityMap().values()) {
                 Node node = entity.getEntityValue();
@@ -304,15 +304,17 @@ public class FullScreenRecordingOverlayManager {
                 Rect boundingBox = Rect.unflattenFromString(node.getBoundsInScreen());
                 if (boundingBox.contains((int) x, (int) y)) {
                     //contains
-                    matchedNode.add(node);
+                    matchedNodeEntities.add(entity);
                 }
             }
         }
-        if (matchedNode.size() > 0) {
-            matchedNode.sort(new Comparator<Node>() {
+        if (matchedNodeEntities.size() > 0) {
+            matchedNodeEntities.sort(new Comparator<SugiliteEntity<Node>>() {
                 //sort the list<node> based on Z-indexes, so the nodes displayed on top are in front
                 @Override
-                public int compare(Node o1, Node o2) {
+                public int compare(SugiliteEntity<Node> e1, SugiliteEntity<Node> e2) {
+                    Node o1 = e1.getEntityValue();
+                    Node o2 = e2.getEntityValue();
                     if (o1.getWindowZIndex() != null && o2.getWindowZIndex() != null && o1.getWindowZIndex() != o2.getWindowZIndex()) {
                         if (o1.getWindowZIndex() > o2.getWindowZIndex()) {
                             return -1;
@@ -341,13 +343,11 @@ public class FullScreenRecordingOverlayManager {
                 }
             });
             //print matched nodes
-            System.out.println("Matched " + matchedNode.size() + " clickable objects!");
+            System.out.println("Matched " + matchedNodeEntities.size() + " clickable objects!");
             Gson gson = new Gson();
-            for (Node node : matchedNode) {
-                System.out.println(gson.toJson(node));
-            }
+
             //choose the top matched node
-            Node node = matchedNode.get(0);
+            SugiliteEntity<Node> node = matchedNodeEntities.get(0);
 
 
             if (sugiliteAccessibilityService.getSugiliteStudyHandler().isToRecordNextOperation()) {
@@ -362,7 +362,7 @@ public class FullScreenRecordingOverlayManager {
                     e.printStackTrace();
                 }
                 SugiliteStudyHandler studyHandler = sugiliteAccessibilityService.getSugiliteStudyHandler();
-                studyHandler.handleEvent(new SugiliteAvailableFeaturePack(node, getUiSnapshot()), getUiSnapshot(), path, fileName);
+                studyHandler.handleEvent(new SugiliteAvailableFeaturePack(node.getEntityValue(), getUiSnapshot()), getUiSnapshot(), path, fileName);
             } else {
                 OverlayClickedDialog overlayClickedDialog = new OverlayClickedDialog(context, node, getUiSnapshot(), x, y, this, overlay, sugiliteData, layoutInflater, sharedPreferences, tts);
                 overlayClickedDialog.show();

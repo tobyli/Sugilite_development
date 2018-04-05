@@ -11,7 +11,8 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        android:visibility="visible">
 
         <TextView
             android:id="@+id/textView17"
@@ -22,7 +23,7 @@
             android:layout_marginRight="20dp"
             android:layout_marginTop="20dp"
             android:ems="10"
-            android:text="Select from disambiguation results"
+            android:text="You performed the following action"
             android:textColor="#000000"
             android:textSize="18sp"
             android:textStyle="bold" />
@@ -31,6 +32,7 @@
             android:id="@+id/listview_query_candidates"
             android:layout_width="match_parent"
             android:layout_height="match_parent"></ListView>
+
     </LinearLayout>
 
     <LinearLayout
@@ -46,9 +48,10 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:ems="10"
-            android:text="Send a verbal instruction"
+            android:text="Please describe your intention for this action"
             android:textColor="#000000"
             android:textSize="18sp"
+            android:layout_marginBottom="10dp"
             android:textStyle="bold" />
 
         <LinearLayout
@@ -77,6 +80,7 @@
                 android:scaleType="fitCenter"
                 android:src="@mipmap/tap_to_talk" />
         </LinearLayout>
+
     </LinearLayout>
 
 </LinearLayout>

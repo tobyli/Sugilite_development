@@ -226,7 +226,14 @@ public class UISnapshot {
                         }
                     }
                 }
+
+
+
+
                 // TODO: add sibling text info
+
+
+
             }
 
             for(Map.Entry<Node, SugiliteEntity<Node>> entry : nodeSugiliteEntityMap.entrySet()){
@@ -269,7 +276,7 @@ public class UISnapshot {
 
             //parse node entities
 
-            /*
+
             Set<SugiliteEntity<Node>> nodeEntities = new HashSet<>();
 
             for(Map.Entry<Node, SugiliteEntity<Node>> entry : nodeSugiliteEntityMap.entrySet()){
@@ -280,7 +287,6 @@ public class UISnapshot {
             for (SugiliteNodeAnnotator.AnnotatingResult res : annotator.annotate(nodeEntities)) {
                 this.addEntityNodeTriple(res.getSubject(), res.getObject(), res.getRelation());
             }
-            */
 
         }
 

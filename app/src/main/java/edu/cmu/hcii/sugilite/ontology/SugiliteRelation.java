@@ -81,6 +81,7 @@ public class SugiliteRelation implements Serializable {
     //text parsing
     public static final SugiliteRelation CONTAINS_EMAIL_ADDRESS = new SugiliteRelation(21, "CONTAINS_EMAIL_ADDRESS");
     public static final SugiliteRelation CONTAINS_PHONE_NUMBER = new SugiliteRelation(22, "CONTAINS_PHONE_NUMBER");
+
     public static final SugiliteRelation CONTAINS_MONEY = new SugiliteRelation(23, "numeric_price");
     public static final SugiliteRelation CONTAINS_TIME = new SugiliteRelation(24, "numeric_time");
     public static final SugiliteRelation CONTAINS_DATE = new SugiliteRelation(25, "numeric_date");
@@ -88,16 +89,18 @@ public class SugiliteRelation implements Serializable {
     public static final SugiliteRelation CONTAINS_LENGTH = new SugiliteRelation(27, "numeric_length");
     public static final SugiliteRelation CONTAINS_PERCENTAGE = new SugiliteRelation(28, "numeric_percentage");
     public static final SugiliteRelation CONTAINS_VOLUME = new SugiliteRelation(28, "numeric_volume");
+    public static final SugiliteRelation CONTAINS_NUMBER = new SugiliteRelation(29, "numeric_number");
+
 
 
     //spatial relations
-    public static final SugiliteRelation CONTAINS = new SugiliteRelation(29, "CONTAINS");
-    public static final SugiliteRelation RIGHT = new SugiliteRelation(30, "RIGHT");
-    public static final SugiliteRelation LEFT = new SugiliteRelation(31, "LEFT");
-    public static final SugiliteRelation ABOVE = new SugiliteRelation(32, "ABOVE");
-    public static final SugiliteRelation BELOW = new SugiliteRelation(33, "BELOW");
-    public static final SugiliteRelation NEAR = new SugiliteRelation(34, "NEAR");
-    public static final SugiliteRelation NEXT_TO = new SugiliteRelation(35, "NEXT_TO");
+    public static final SugiliteRelation CONTAINS = new SugiliteRelation(30, "CONTAINS");
+    public static final SugiliteRelation RIGHT = new SugiliteRelation(31, "RIGHT");
+    public static final SugiliteRelation LEFT = new SugiliteRelation(32, "LEFT");
+    public static final SugiliteRelation ABOVE = new SugiliteRelation(33, "ABOVE");
+    public static final SugiliteRelation BELOW = new SugiliteRelation(34, "BELOW");
+    public static final SugiliteRelation NEAR = new SugiliteRelation(35, "NEAR");
+    public static final SugiliteRelation NEXT_TO = new SugiliteRelation(36, "NEXT_TO");
 
 
     public static final Map<String, SugiliteRelation> stringRelationMap;
@@ -130,6 +133,7 @@ public class SugiliteRelation implements Serializable {
 
         stringRelationMap.put("CONTAINS_EMAIL_ADDRESS", CONTAINS_EMAIL_ADDRESS);
         stringRelationMap.put("CONTAINS_PHONE_NUMBER", CONTAINS_PHONE_NUMBER);
+
         stringRelationMap.put("numeric_price", CONTAINS_MONEY);
         stringRelationMap.put("numeric_time", CONTAINS_TIME);
         stringRelationMap.put("numeric_date", CONTAINS_DATE);
@@ -137,6 +141,8 @@ public class SugiliteRelation implements Serializable {
         stringRelationMap.put("numeric_length", CONTAINS_LENGTH);
         stringRelationMap.put("numeric_percentage", CONTAINS_PERCENTAGE);
         stringRelationMap.put("numeric_volume", CONTAINS_VOLUME);
+        stringRelationMap.put("numeric_number", CONTAINS_NUMBER);
+
 
         stringRelationMap.put("CONTAINS", CONTAINS);
         stringRelationMap.put("RIGHT", RIGHT);

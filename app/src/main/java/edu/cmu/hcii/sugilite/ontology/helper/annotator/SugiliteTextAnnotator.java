@@ -28,7 +28,8 @@ public class SugiliteTextAnnotator {
                     new LengthAnnotator(),
                     new PercentageAnnotator(),
                     new DurationAnnotator(),
-                    new VolumeAnnotator());
+                    new VolumeAnnotator(),
+                    new NumberAnnotator());
         }
     }
 

@@ -158,8 +158,7 @@ public class OntologyDescriptionGenerator {
         }
         String conjunction = "has ";
         result = "the item that ";
-        if (f != null)
-            result += conjunction + translatedFilter + " or ";
+
         for (int i = 0; i < l-1; i++) {
             if (queries[i].getR().equals(SugiliteRelation.HAS_CLASS_NAME)||queries[i].getR().equals(SugiliteRelation.HAS_LIST_ORDER)||queries[i].getR().equals(SugiliteRelation.HAS_PARENT_WITH_LIST_ORDER)) {
                 conjunction = "is ";
@@ -176,6 +175,8 @@ public class OntologyDescriptionGenerator {
             conjunction = "has ";
         }
         result += conjunction+args[l-1];
+        if (f != null)
+            result += ", with " + translatedFilter;
 
         return result;
     }
@@ -214,23 +215,40 @@ public class OntologyDescriptionGenerator {
                         if (fr.equals(SugiliteRelation.HAS_LIST_ORDER) || fr.equals(SugiliteRelation.HAS_PARENT_WITH_LIST_ORDER))
                         {
                             //System.out.println(FilterTranslation.getFilterTranslation(f));
-                            result += " that is " + translatedFilter;
+                            result = "";
+                            result += translatedFilter.replace("item","");
+                            result += args[0];
                             //System.out.println(result);
                         }
                         else
-                            result += " that has " + translatedFilter;
+                            result += " with " + translatedFilter;
                     }
                 }
 
                 else if (l==3)
                 {
                     // the 1st button that has [filter] and/or something
+                    boolean isListOrder = false;
                     if (f!=null) {
-                        result += " that has " + translatedFilter;
-                        if (r3 != null && r3.equals(SugiliteRelation.HAS_PACKAGE_NAME))
+                        if (fr.equals(SugiliteRelation.HAS_LIST_ORDER) || fr.equals(SugiliteRelation.HAS_PARENT_WITH_LIST_ORDER))
+                        {
+                            result = "";
+                            result += translatedFilter.replace("item","");
+                            result += args[0];
+                            isListOrder = true;
+                        }
+//                        else
+//                            result += " that has " + translatedFilter;
+                        if (r3 != null && r3.equals(SugiliteRelation.HAS_PACKAGE_NAME)) {
+                            if (f!=null&&!isListOrder)
+                                result += " with " + translatedFilter;
                             result += " " + args[2];
-                        else
-                            result += " and " + args[2];
+                        }
+                        else {
+                            result += " that has " + args[2];
+                            if (f!=null&&!isListOrder)
+                                result += " with " + translatedFilter;
+                        }
                     }
                     // the 1st button that has something
                     else {
@@ -242,9 +260,17 @@ public class OntologyDescriptionGenerator {
                 }
 
                 else if (l > 3) {
+                    boolean isListOrder = false;
+                    if (f!=null) {
+                        if (fr.equals(SugiliteRelation.HAS_LIST_ORDER) || fr.equals(SugiliteRelation.HAS_PARENT_WITH_LIST_ORDER))
+                            {
+                                result = "";
+                                result += translatedFilter.replace("item","");
+                                result += args[0];
+                                isListOrder = true;
+                            }
+                    }
                     result += " that has ";
-                    if (f!=null)
-                        result += translatedFilter+", ";
                     result += args[2];
                     if (r3 != null && r3.equals(SugiliteRelation.HAS_PACKAGE_NAME))
                     {
@@ -252,6 +278,8 @@ public class OntologyDescriptionGenerator {
                             result += ", " + args[i];
                         }
                         result += " and " + args[l-2];
+                        if (f!=null && !isListOrder)
+                            result += " with " + translatedFilter;
                         result += " " + args[l-1];
                     }
                     else
@@ -260,51 +288,71 @@ public class OntologyDescriptionGenerator {
                             result += ", " + args[i];
                         }
                         result += " and " + args[l-1];
+                        if (f!=null && !isListOrder)
+                            result += " with " + translatedFilter;
                     }
                 }
             }
+
             else {
-                result = String.format("the %s", args[0]);
-                // the button that has something
-                if (l==2) {
-                    if (f!=null) {
-                        result += " that has " + translatedFilter;
-                        if (r3 != null && r3.equals(SugiliteRelation.HAS_PACKAGE_NAME))
-                            result += " " + args[1];
-                        else
-                            result += " and " + args[1];
+                boolean isListOrder = false;
+                if (f!=null) {
+                    if (fr.equals(SugiliteRelation.HAS_LIST_ORDER) || fr.equals(SugiliteRelation.HAS_PARENT_WITH_LIST_ORDER))
+                    {
+                        result = translatedFilter.replace("item","");
+                        result += args[0];
+                        isListOrder = true;
                     }
                     else
-                    {
-                        if (r3 != null && r3.equals(SugiliteRelation.HAS_PACKAGE_NAME))
-                            result += " " + args[1];
-                        else
-                            result += " that has " + args[1];
+                        result = String.format("the %s", args[0]);
+                }
+                else
+                    result = String.format("the %s", args[0]);
+
+                // the button that has something
+                if (l==2) {
+//                    if (f!=null) {
+                    //result += " that has " + args[1];
+                    if (r3 != null && r3.equals(SugiliteRelation.HAS_PACKAGE_NAME)) {
+                        if (f!=null && !isListOrder)
+                            result += " with "+translatedFilter;
+                        result += " " + args[1];
                     }
+                    else{
+                        result += " that has " + args[1];
+                        if (f!=null && !isListOrder)
+                            result += " with "+translatedFilter;
+                    }
+//                    }
+//                    else
+//                    {
+//                        if (r3 != null && r3.equals(SugiliteRelation.HAS_PACKAGE_NAME))
+//                            result += " " + args[1];
+//                        else
+//                            result += " that has " + args[1];
+//                    }
                 }
                 else if (l == 3) {
                     if (r3 != null && r3.equals(SugiliteRelation.HAS_PACKAGE_NAME))
                     {
-                        if (f!=null) {
-                            result += " that has " + translatedFilter;
-                            result += " and " + args[1];
-                        }
-                        else {
-                            result += " that has " + args[1];
+                        result += " that has " + args[1];
+                        if (f!=null && !isListOrder) {
+                            result += " with " + translatedFilter;
                         }
                         result += " " + args[2];
                     }
                     else {
-                        if (f!=null)
-                            result += " that has " + translatedFilter + ", " + args[1] + " and " + args[2];
-                        else
-                            result += " that has " + args[1] + " and " + args[2];
+                        result += " that has " + args[1];
+                        result += " and " + args[2];
+                        if (f!=null && !isListOrder) {
+                            result += " with " + translatedFilter;
+                        }
                     }
                 }
                 else if (l > 3) {
                     result += " that has ";
-                    if (f!=null)
-                        result += translatedFilter+", ";
+//                    if (f!=null)
+//                        result += translatedFilter+", ";
                     result += args[1];
                     if (r3 != null && r3.equals(SugiliteRelation.HAS_PACKAGE_NAME))
                     {
@@ -312,6 +360,8 @@ public class OntologyDescriptionGenerator {
                             result += ", " + args[i];
                         }
                         result += " and " + args[l-2];
+                        if (f!=null && !isListOrder)
+                            result += " with " + translatedFilter;
                         result += " " + args[l-1];
                     }
                     else
@@ -320,6 +370,8 @@ public class OntologyDescriptionGenerator {
                             result += ", " + args[i];
                         }
                         result += " and " + args[l-1];
+                        if (f!=null && !isListOrder)
+                            result += " with " + translatedFilter;
                     }
                 }
             }
@@ -327,45 +379,65 @@ public class OntologyDescriptionGenerator {
         }
 
         else if (r != null && (r.equals(SugiliteRelation.HAS_LIST_ORDER) || r.equals(SugiliteRelation.HAS_PARENT_WITH_LIST_ORDER))) {
+            boolean isListOrder = false;
+            SugiliteRelation r3 = queries[ql-1].getR();
             result += args[0];
             if (l==2)
             {
                 if (f!=null) {
                     if (fr.equals(SugiliteRelation.HAS_LIST_ORDER) || fr.equals(SugiliteRelation.HAS_PARENT_WITH_LIST_ORDER))
                     {
-                        result += " that is " + translatedFilter;
-                        result += " and " + "has " + args[1];
-                    }
-                    else {
-                        result += " that has " + translatedFilter;
-                        result += " and " + args[1];
+                        result = translatedFilter;
+                        isListOrder = true;
                     }
                 }
-                else
+                if (r3 != null && r3.equals(SugiliteRelation.HAS_PACKAGE_NAME))
+                {
+                    if (f!=null && !isListOrder)
+                        result += " with " + translatedFilter;
+                    result += " "+args[1];
+                }
+                else {
                     result += " that has " + args[1];
+                    if (f!=null && !isListOrder)
+                        result += " with " + translatedFilter;
+                }
 
             }
-            SugiliteRelation r3 = queries[ql-1].getR();
+
             if (l == 3) {
+                if (f!=null) {
+                    if (fr.equals(SugiliteRelation.HAS_LIST_ORDER) || fr.equals(SugiliteRelation.HAS_PARENT_WITH_LIST_ORDER))
+                    {
+                        result = translatedFilter;
+                        isListOrder = true;
+                    }
+                }
+
                 if (r3 != null && r3.equals(SugiliteRelation.HAS_PACKAGE_NAME)) {
                     result += " that has ";
-                    if (f != null)
-                        result += translatedFilter+" and ";
                     result += args[1];
+                    if (f!=null && !isListOrder)
+                        result += " with "+translatedFilter;
                     result += " " + args[2];
                 }
                 else {
                     result += " that has ";
-                    if (f != null)
-                        result += translatedFilter+", ";
                     result += args[1];
                     result += " and " + args[2];
+                    if (f!=null && !isListOrder)
+                        result += " with "+translatedFilter;
                 }
             }
             if (l > 3) {
+                if (f!=null) {
+                    if (fr.equals(SugiliteRelation.HAS_LIST_ORDER) || fr.equals(SugiliteRelation.HAS_PARENT_WITH_LIST_ORDER))
+                    {
+                        result = translatedFilter;
+                        isListOrder = true;
+                    }
+                }
                 result += " that has ";
-                if (f != null)
-                    result += translatedFilter+", ";
                 result += args[1];
                 if (r3 != null && r3.equals(SugiliteRelation.HAS_PACKAGE_NAME))
                 {
@@ -373,6 +445,8 @@ public class OntologyDescriptionGenerator {
                         result += ", " + args[i];
                     }
                     result += " and " + args[l-2];
+                    if (f!=null && !isListOrder)
+                        result += " with "+translatedFilter;
                     result += " " + args[l-1];
                 }
                 else
@@ -381,24 +455,52 @@ public class OntologyDescriptionGenerator {
                         result += ", " + args[i];
                     }
                     result += " and " + args[l - 1];
+                    if (f!=null && !isListOrder)
+                        result += " with "+translatedFilter;
                 }
             }
         }
 
         else {
-            result = "the item that has ";
+            result = "";
+            boolean isListOrder = false;
+            SugiliteRelation r3 = queries[ql-1].getR();
             if (f != null)
-                result += translatedFilter+", ";
+            {
+                if (fr.equals(SugiliteRelation.HAS_LIST_ORDER) || fr.equals(SugiliteRelation.HAS_PARENT_WITH_LIST_ORDER))
+                {
+                    result = translatedFilter + " that has ";
+                    isListOrder = true;
+                }
+                else
+                    result = "the item that has ";
+            }
+            else
+                result = "the item that has ";
             result += args[0];
-            if (l > 2) {
-                for (int i = 1; i < l-1; i++) {
+
+            if (r3 != null && r3.equals(SugiliteRelation.HAS_PACKAGE_NAME))
+            {
+                for (int i = 1; i < l-2; i++) {
+                    result += ", " + args[i];
+                }
+                result += " and " + args[l-2];
+                if (f!=null && !isListOrder)
+                    result += " with "+translatedFilter;
+                result += " " + args[l-1];
+            }
+            else
+            {
+                for (int i = 1; i < l - 1; i++) {
                     result += ", " + args[i];
                 }
                 result += " and " + args[l-1];
+                if (f!=null && !isListOrder)
+                    result += " with "+translatedFilter;
             }
-            else
-                result += " and " + args[1];
+
         }
+
         return result;
     }
 

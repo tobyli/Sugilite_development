@@ -1,9 +1,12 @@
 package edu.cmu.hcii.sugilite.recording.newrecording;
 
 import android.content.Context;
+import android.util.Pair;
 
 import java.util.AbstractMap;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -71,13 +74,15 @@ public class SugiliteBlockBuildingHelper {
         operationBlock.setScreenshot(featurePack.screenshot);
 
         //description is set
-        operationBlock.setDescription(ontologyDescriptionGenerator.getDescriptionForOperation(sugiliteOperation, query));
+        //TODO: fix
+        operationBlock.setDescription(operationBlock.toString());
+        //operationBlock.setDescription(ontologyDescriptionGenerator.getDescriptionForOperation(sugiliteOperation, query));
         return operationBlock;
     }
 
-    public List<Map.Entry<SerializableOntologyQuery, Double>> generateDefaultQueries(SugiliteAvailableFeaturePack featurePack, UISnapshot uiSnapshot){
+    public List<Pair<SerializableOntologyQuery, Double>> generateDefaultQueries(SugiliteAvailableFeaturePack featurePack, UISnapshot uiSnapshot){
         //generate parent query
-        List<Map.Entry<SerializableOntologyQuery, Double>> queries = new ArrayList<>();
+        List<Pair<SerializableOntologyQuery, Double>> queries = new ArrayList<>();
         OntologyQuery q = new OntologyQuery(OntologyQuery.relationType.AND);
         boolean hasNonBoundingBoxFeature = false;
         boolean hasNonChildFeature = false;
@@ -129,7 +134,7 @@ public class SugiliteBlockBuildingHelper {
             clonedQuery.addSubQuery(subQuery);
             hasNonBoundingBoxFeature = true;
             hasNonChildFeature = true;
-            queries.add(new AbstractMap.SimpleEntry<>(new SerializableOntologyQuery(clonedQuery), 1.1));
+            queries.add(Pair.create(new SerializableOntologyQuery(clonedQuery), 1.1));
         }
 
         if(featurePack.contentDescription != null && (!featurePack.contentDescription.equals("NULL")) && (!featurePack.contentDescription.equals(featurePack.text))){
@@ -143,7 +148,7 @@ public class SugiliteBlockBuildingHelper {
             clonedQuery.addSubQuery(subQuery);
             hasNonBoundingBoxFeature = true;
             hasNonChildFeature = true;
-            queries.add(new AbstractMap.SimpleEntry<>(new SerializableOntologyQuery(clonedQuery), 1.2));
+            queries.add(Pair.create(new SerializableOntologyQuery(clonedQuery), 1.2));
         }
 
         if(featurePack.viewId != null && (!featurePack.viewId.equals("NULL"))){
@@ -157,7 +162,7 @@ public class SugiliteBlockBuildingHelper {
             clonedQuery.addSubQuery(subQuery);
             hasNonBoundingBoxFeature = true;
             hasNonChildFeature = true;
-            queries.add(new AbstractMap.SimpleEntry<>(new SerializableOntologyQuery(clonedQuery), 1.3));
+            queries.add(Pair.create(new SerializableOntologyQuery(clonedQuery), 3.2));
         }
 
 
@@ -167,7 +172,7 @@ public class SugiliteBlockBuildingHelper {
             Set<SugiliteTriple> triples = uiSnapshot.getSubjectPredicateTriplesMap().get(new AbstractMap.SimpleEntry<>(foundEntity.getEntityId(), SugiliteRelation.HAS_LIST_ORDER.getRelationId()));
             if(triples != null){
                 for(SugiliteTriple triple : triples){
-                    String order = (String)triple.getObject().getEntityValue();
+                    String order = triple.getObject().getEntityValue().toString();
 
                     OntologyQuery clonedQuery = new OntologyQuery(new SerializableOntologyQuery(q));
                     OntologyQuery subQuery = new OntologyQuery(OntologyQuery.relationType.nullR);
@@ -178,7 +183,7 @@ public class SugiliteBlockBuildingHelper {
                     clonedQuery.addSubQuery(subQuery);
                     hasNonBoundingBoxFeature = true;
                     hasNonChildFeature = true;
-                    queries.add(new AbstractMap.SimpleEntry<>(new SerializableOntologyQuery(clonedQuery), 3.0));
+                    queries.add(Pair.create(new SerializableOntologyQuery(clonedQuery), 3.0));
                 }
             }
 
@@ -196,7 +201,7 @@ public class SugiliteBlockBuildingHelper {
                     clonedQuery.addSubQuery(subQuery);
                     hasNonBoundingBoxFeature = true;
                     hasNonChildFeature = true;
-                    queries.add(new AbstractMap.SimpleEntry<>(new SerializableOntologyQuery(clonedQuery), 3.1));
+                    queries.add(Pair.create(new SerializableOntologyQuery(clonedQuery), 3.1));
                 }
             }
         }
@@ -217,7 +222,7 @@ public class SugiliteBlockBuildingHelper {
                     subQuery.setQueryFunction(SugiliteRelation.HAS_CHILD_TEXT);
                     clonedQuery.addSubQuery(subQuery);
                     hasNonBoundingBoxFeature = true;
-                    queries.add(new AbstractMap.SimpleEntry<>(new SerializableOntologyQuery(clonedQuery), score));
+                    queries.add(Pair.create(new SerializableOntologyQuery(clonedQuery), score));
                 }
             }
         }
@@ -230,7 +235,7 @@ public class SugiliteBlockBuildingHelper {
             subQuery.setObject(object);
             subQuery.setQueryFunction(SugiliteRelation.HAS_SCREEN_LOCATION);
             clonedQuery.addSubQuery(subQuery);
-            queries.add(new AbstractMap.SimpleEntry<>(new SerializableOntologyQuery(clonedQuery), 5.1));
+            queries.add(Pair.create(new SerializableOntologyQuery(clonedQuery), 5.1));
         }
 
         if(featurePack.boundsInParent != null && (!featurePack.boundsInParent.equals("NULL"))){
@@ -241,10 +246,18 @@ public class SugiliteBlockBuildingHelper {
             subQuery.setObject(object);
             subQuery.setQueryFunction(SugiliteRelation.HAS_PARENT_LOCATION);
             clonedQuery.addSubQuery(subQuery);
-            queries.add(new AbstractMap.SimpleEntry<>(new SerializableOntologyQuery(clonedQuery), 8.2));
+            queries.add(Pair.create(new SerializableOntologyQuery(clonedQuery), 8.2));
         }
 
 
+        Collections.sort(queries, new Comparator<Pair<SerializableOntologyQuery, Double>>() {
+            @Override
+            public int compare(Pair<SerializableOntologyQuery, Double> o1, Pair<SerializableOntologyQuery, Double> o2) {
+                if(o1.second > o2.second) return 1;
+                else if (o1.second.equals(o2.second)) return 0;
+                else return -1;
+            }
+        });
         // serialize the query
         return queries;
     }
@@ -281,6 +294,14 @@ public class SugiliteBlockBuildingHelper {
         for(SugiliteOperationBlock operationBlock : blocks){
             SerializableOntologyQuery query = operationBlock.getQuery();
             results.put(operationBlock, ontologyDescriptionGenerator.getDescriptionForOperation(operationBlock.getOperation(), stripSerializableOntologyQuery(query)));
+        }
+        return results;
+    }
+
+    public Map<OntologyQuery, String> getDescriptionsInDifferences(List<OntologyQuery> queries){
+        Map<OntologyQuery, String> results = new HashMap<>();
+        for(OntologyQuery query : queries){
+            results.put(query, query.toString());
         }
         return results;
     }

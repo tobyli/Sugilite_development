@@ -14,23 +14,55 @@ import edu.cmu.hcii.sugilite.Node;
 public class OntologyQueryUtils {
     public static OntologyQuery getQueryWithClassAndPackageConstraints(OntologyQuery query, Node clickedNode){
         //de-serialize the query
-        OntologyQuery parentQuery = new OntologyQuery(OntologyQuery.relationType.AND);
-        parentQuery.addSubQuery(query);
+        OntologyQuery classQuery = null;
+        OntologyQuery packageQuery = null;
 
+        //construct classQuery and packageQuery
         if (clickedNode.getClassName() != null) {
-            OntologyQuery classQuery = new OntologyQuery(OntologyQuery.relationType.nullR);
+            classQuery = new OntologyQuery(OntologyQuery.relationType.nullR);
             classQuery.addObject(new SugiliteEntity<>(-1, String.class, clickedNode.getClassName()));
             classQuery.setQueryFunction(SugiliteRelation.HAS_CLASS_NAME);
-            parentQuery.addSubQuery(classQuery);
         }
 
         if (clickedNode.getPackageName() != null) {
-            OntologyQuery packageQuery = new OntologyQuery(OntologyQuery.relationType.nullR);
+            packageQuery = new OntologyQuery(OntologyQuery.relationType.nullR);
             packageQuery.addObject(new SugiliteEntity<>(-1, String.class, clickedNode.getPackageName()));
             packageQuery.setQueryFunction(SugiliteRelation.HAS_PACKAGE_NAME);
-            parentQuery.addSubQuery(packageQuery);
         }
-        return parentQuery;
+
+
+        if(query != null && query.getSubRelation() == OntologyQuery.relationType.AND){
+            //add classQuery and packageQuery directly to query if query is of AND type
+            if(classQuery != null) {
+                query.addSubQuery(classQuery);
+            }
+            if(packageQuery != null) {
+                query.addSubQuery(packageQuery);
+            }
+            return query;
+
+        }
+
+        else {
+            //create a parent query of AND type
+            OntologyQuery parentQuery = new OntologyQuery(OntologyQuery.relationType.AND);
+
+            if (query.getOntologyQueryFilter() != null) {
+                parentQuery.setOntologyQueryFilter(query.getOntologyQueryFilter());
+                query.setOntologyQueryFilter(null);
+            }
+            if(query != null) {
+                parentQuery.addSubQuery(query);
+            }
+            if(classQuery != null) {
+                parentQuery.addSubQuery(classQuery);
+            }
+            if(packageQuery != null) {
+                parentQuery.addSubQuery(packageQuery);
+            }
+
+            return parentQuery;
+        }
     }
 
     public static boolean isSameNode(Node a, Node b) {

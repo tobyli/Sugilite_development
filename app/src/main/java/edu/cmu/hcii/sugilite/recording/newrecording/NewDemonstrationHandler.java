@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.text.Html;
+import android.util.Pair;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -67,12 +68,12 @@ public class NewDemonstrationHandler {
         //determine if disambiguation is needed
 
         //show the confirmation popup if not ambiguous
-        List<Map.Entry<SerializableOntologyQuery, Double>> queryScoreList = blockBuildingHelper.generateDefaultQueries(featurePack, uiSnapshot);
+        List<Pair<SerializableOntologyQuery, Double>> queryScoreList = blockBuildingHelper.generateDefaultQueries(featurePack, uiSnapshot);
         if(queryScoreList.size() > 0) {
             //threshold for determine whether the results are ambiguous
-            if (queryScoreList.size() <= 1 || (queryScoreList.get(1).getValue().intValue() - queryScoreList.get(0).getValue().intValue() > 2)) {
+            if (queryScoreList.size() <= 1 || (queryScoreList.get(1).second.intValue() - queryScoreList.get(0).second.intValue() > 2)) {
                 //not ambiguous, show the confirmation popup
-                SugiliteOperationBlock block = blockBuildingHelper.getOperationBlockFromQuery(queryScoreList.get(0).getKey(), SugiliteOperation.CLICK, featurePack);
+                SugiliteOperationBlock block = blockBuildingHelper.getOperationBlockFromQuery(queryScoreList.get(0).first, SugiliteOperation.CLICK, featurePack);
 
                 //need to run on ui thread
                 accessibilityService.runOnUiThread(new Runnable() {
@@ -112,7 +113,7 @@ public class NewDemonstrationHandler {
         return false;
     }
 
-    private void showAmbiguousPopup(List<Map.Entry<SerializableOntologyQuery, Double>> queryScoreList, SugiliteAvailableFeaturePack featurePack){
+    private void showAmbiguousPopup(List<Pair<SerializableOntologyQuery, Double>> queryScoreList, SugiliteAvailableFeaturePack featurePack){
         //the temporary popup to show for when the demonstration is ambiguous
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
         builder.setTitle("Select from disambiguation results");
@@ -122,8 +123,8 @@ public class NewDemonstrationHandler {
         SugiliteOperationBlock[] sugiliteOperationBlockArray = new SugiliteOperationBlock[queryScoreList.size()];
 
         int i = 0;
-        for(Map.Entry<SerializableOntologyQuery, Double> entry : queryScoreList){
-            SugiliteOperationBlock block = blockBuildingHelper.getOperationBlockFromQuery(entry.getKey(), SugiliteOperation.CLICK, featurePack);
+        for(Pair<SerializableOntologyQuery, Double> entry : queryScoreList){
+            SugiliteOperationBlock block = blockBuildingHelper.getOperationBlockFromQuery(entry.first, SugiliteOperation.CLICK, featurePack);
             sugiliteOperationBlockArray[i++] = block;
         }
 
@@ -169,7 +170,7 @@ public class NewDemonstrationHandler {
         dialog.show();
     }
 
-    private void showConfirmation(SugiliteOperationBlock block, SugiliteAvailableFeaturePack featurePack, List<Map.Entry<SerializableOntologyQuery, Double>> queryScoreList){
+    private void showConfirmation(SugiliteOperationBlock block, SugiliteAvailableFeaturePack featurePack, List<Pair<SerializableOntologyQuery, Double>> queryScoreList){
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
         String newDescription = readableDescriptionGenerator.generateDescriptionForVerbalBlock(block, blockBuildingHelper.stripSerializableOntologyQuery(block.getQuery()).toString(), "UTTERANCE");
         builder.setTitle("Save Operation Confirmation").setMessage(Html.fromHtml("Are you sure you want to record the operation: " + newDescription));

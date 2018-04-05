@@ -13,6 +13,7 @@ import android.graphics.PixelFormat;
 import android.speech.tts.TextToSpeech;
 import android.text.Html;
 import android.util.DisplayMetrics;
+import android.util.Pair;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -84,11 +85,11 @@ public class FollowUpQuestionDialog extends SugiliteDialogManager implements Sug
     private SugiliteVerbalInstructionHTTPQueryManager sugiliteVerbalInstructionHTTPQueryManager;
     private SharedPreferences sharedPreferences;
     private Gson gson;
-    private Node actualClickedNode;
+    private SugiliteEntity<Node> actualClickedNode;
     private List<Node> matchedNodes;
     private List<Node> previousMatchedNodes;
     private SugiliteAvailableFeaturePack featurePack;
-    private List<Map.Entry<SerializableOntologyQuery, Double>> queryScoreList;
+    private List<Pair<SerializableOntologyQuery, Double>> queryScoreList;
     private SugiliteBlockBuildingHelper blockBuildingHelper;
     private SugiliteData sugiliteData;
     private OntologyDescriptionGenerator ontologyDescriptionGenerator;
@@ -122,7 +123,7 @@ public class FollowUpQuestionDialog extends SugiliteDialogManager implements Sug
     private AlertDialog dialog;
     private Dialog progressDialog;
 
-    public FollowUpQuestionDialog(Context context, TextToSpeech tts, OntologyQuery initialQuery, UISnapshot uiSnapshot, Node actualClickedNode, List<Node> matchedNodes, SugiliteAvailableFeaturePack featurePack, List<Map.Entry<SerializableOntologyQuery, Double>> queryScoreList, SugiliteBlockBuildingHelper blockBuildingHelper, LayoutInflater layoutInflater, Runnable clickRunnable, SugiliteData sugiliteData, SharedPreferences sharedPreferences){
+    public FollowUpQuestionDialog(Context context, TextToSpeech tts, OntologyQuery initialQuery, UISnapshot uiSnapshot, SugiliteEntity<Node> actualClickedNode, List<Node> matchedNodes, SugiliteAvailableFeaturePack featurePack, List<Pair<SerializableOntologyQuery, Double>> queryScoreList, SugiliteBlockBuildingHelper blockBuildingHelper, LayoutInflater layoutInflater, Runnable clickRunnable, SugiliteData sugiliteData, SharedPreferences sharedPreferences){
         super(context, tts);
         this.previousQuery = null;
         this.currentQuery = initialQuery;
@@ -298,7 +299,7 @@ public class FollowUpQuestionDialog extends SugiliteDialogManager implements Sug
         layoutParams.width = displayMetrics.widthPixels;
         layoutParams.height = displayMetrics.heightPixels;
 
-        previewOverlay = sugiliteFullScreenOverlayFactory.getOverlayWithHighlightedBoundingBoxes(displayMetrics, actualClickedNode, matchedNodes);
+        previewOverlay = sugiliteFullScreenOverlayFactory.getOverlayWithHighlightedBoundingBoxes(displayMetrics, actualClickedNode.getEntityValue(), matchedNodes);
 
         collapse();
 
@@ -325,8 +326,8 @@ public class FollowUpQuestionDialog extends SugiliteDialogManager implements Sug
         }
         else{
             //go back to the original ambiguous popup dialog
-            RecordingAmbiguousPopupDialog ambiguousPopupDialog = new RecordingAmbiguousPopupDialog(context, queryScoreList, featurePack, blockBuildingHelper, layoutInflater, clickRunnable, uiSnapshot, actualClickedNode, sugiliteData, sharedPreferences, tts);
             dialog.dismiss();
+            RecordingAmbiguousPopupDialog ambiguousPopupDialog = new RecordingAmbiguousPopupDialog(context, queryScoreList, featurePack, blockBuildingHelper, layoutInflater, clickRunnable, uiSnapshot, actualClickedNode, sugiliteData, sharedPreferences, tts);
             ambiguousPopupDialog.show();
         }
     }
@@ -342,7 +343,9 @@ public class FollowUpQuestionDialog extends SugiliteDialogManager implements Sug
      * refresh the current query text view so that it reflects currentQuery
      */
     private void refreshPreviewTextView(){
-        String html = ontologyDescriptionGenerator.getDescriptionForOntologyQuery(SugiliteBlockBuildingHelper.stripSerializableOntologyQuery(new SerializableOntologyQuery(currentQuery)));
+        //TODO: show the source code temporarily
+        //String html = ontologyDescriptionGenerator.getDescriptionForOntologyQuery(SugiliteBlockBuildingHelper.stripSerializableOntologyQuery(new SerializableOntologyQuery(currentQuery)));
+        String html = SugiliteBlockBuildingHelper.stripSerializableOntologyQuery(new SerializableOntologyQuery(currentQuery)).toString();
         currentQueryTextView.setText(Html.fromHtml(html));
     }
 
@@ -366,7 +369,7 @@ public class FollowUpQuestionDialog extends SugiliteDialogManager implements Sug
         //initiate the dialog states
         //set the prompt
         emptyResultState.setPrompt(context.getString(R.string.disambiguation_error));
-        resultWontMatchState.setPrompt(context.getString(R.string.disambiguation_result_wont_math));
+        resultWontMatchState.setPrompt(context.getString(R.string.disambiguation_result_wont_match));
 
         if(numberOfMatchedNodes > 0) {
             askingForVerbalInstructionFollowUpState.setPrompt(context.getString(R.string.disambiguation_followup_prompt, numberOfMatchedNodes));
@@ -400,6 +403,13 @@ public class FollowUpQuestionDialog extends SugiliteDialogManager implements Sug
                 if (resultWontMatchState.getASRResult() != null && (!resultWontMatchState.getASRResult().isEmpty())) {
                     verbalInstructionEditText.setText(resultWontMatchState.getASRResult().get(0));
                 }
+            }
+        });
+        askingForVerbalInstructionFollowUpState.setOnInitiatedRunnable(new Runnable() {
+            @Override
+            public void run() {
+                //clear the edittext
+                verbalInstructionEditText.setText("");
             }
         });
 
@@ -599,9 +609,9 @@ public class FollowUpQuestionDialog extends SugiliteDialogManager implements Sug
         //update currentQuery based on the result received
         VerbalInstructionServerResults results = gson.fromJson(result, VerbalInstructionServerResults.class);
 
-        if (results.getQueries() == null) {
+        if (results.getQueries() == null || results.getQueries().isEmpty()) {
             //error in parsing the server reply
-            Toast.makeText(context, String.valueOf(responseCode) + ": Error in parsing server reply", Toast.LENGTH_SHORT).show();
+            Toast.makeText(context, String.valueOf(responseCode) + ": Can't parse the verbal instruction", Toast.LENGTH_SHORT).show();
             dialog.show();
             setCurrentState(emptyResultState);
             initPrompt();
@@ -624,7 +634,7 @@ public class FollowUpQuestionDialog extends SugiliteDialogManager implements Sug
             //construct the query, run the query, and compare the result against the actually clicked on node
 
             String queryFormula = verbalInstructionResult.getFormula();
-            OntologyQuery resolvedQuery = OntologyQueryUtils.getQueryWithClassAndPackageConstraints(OntologyQuery.deserialize(queryFormula), actualClickedNode);
+            OntologyQuery resolvedQuery = OntologyQueryUtils.getQueryWithClassAndPackageConstraints(OntologyQuery.deserialize(queryFormula), actualClickedNode.getEntityValue());
             OntologyQuery combinedQuery = OntologyQueryUtils.combineTwoQueries(currentQuery, resolvedQuery);
 
             OntologyQuery queryClone = OntologyQuery.deserialize(combinedQuery.toString());
@@ -639,7 +649,7 @@ public class FollowUpQuestionDialog extends SugiliteDialogManager implements Sug
                         filteredNodes.add(node);
                         filteredNodeNodeIdMap.put(node, entity.getEntityId());
                     }
-                    if (OntologyQueryUtils.isSameNode(actualClickedNode, node)) {
+                    if (OntologyQueryUtils.isSameNode(actualClickedNode.getEntityValue(), node)) {
                         matched = true;
                     }
                 }
@@ -654,12 +664,14 @@ public class FollowUpQuestionDialog extends SugiliteDialogManager implements Sug
         Collections.sort(matchingQueriesMatchedNodesList, new Comparator<Map.Entry<OntologyQuery, List<Node>>>() {
             @Override
             public int compare(Map.Entry<OntologyQuery, List<Node>> o1, Map.Entry<OntologyQuery, List<Node>> o2) {
+                return o1.getValue().size() - o2.getValue().size();
+                /*
                 if(o1.getValue().size() != o2.getValue().size()){
                     return o1.getValue().size() - o2.getValue().size();
                 }
                 else{
                     return o1.getKey().toString().length() - o2.getKey().toString().length();
-                }
+                }*/
             }
         });
 
@@ -706,7 +718,7 @@ public class FollowUpQuestionDialog extends SugiliteDialogManager implements Sug
         }
     }
 
-    private void showConfirmationDialog(SugiliteOperationBlock block, SugiliteAvailableFeaturePack featurePack, List<Map.Entry<SerializableOntologyQuery, Double>> queryScoreList, Runnable clickRunnable) {
+    private void showConfirmationDialog(SugiliteOperationBlock block, SugiliteAvailableFeaturePack featurePack, List<Pair<SerializableOntologyQuery, Double>> queryScoreList, Runnable clickRunnable) {
         SugiliteRecordingConfirmationDialog sugiliteRecordingConfirmationDialog = new SugiliteRecordingConfirmationDialog(context, block, featurePack, queryScoreList, clickRunnable, blockBuildingHelper, layoutInflater, uiSnapshot, actualClickedNode, sugiliteData, sharedPreferences, tts);
         sugiliteRecordingConfirmationDialog.show();
     }

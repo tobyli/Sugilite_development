@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.speech.tts.TextToSpeech;
+import android.util.Pair;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Toast;
@@ -21,6 +22,7 @@ import edu.cmu.hcii.sugilite.model.block.util.SugiliteAvailableFeaturePack;
 import edu.cmu.hcii.sugilite.model.block.operation.SugiliteOperationBlock;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteOperation;
 import edu.cmu.hcii.sugilite.ontology.SerializableOntologyQuery;
+import edu.cmu.hcii.sugilite.ontology.SugiliteEntity;
 import edu.cmu.hcii.sugilite.ontology.UISnapshot;
 import edu.cmu.hcii.sugilite.recording.newrecording.SugiliteBlockBuildingHelper;
 
@@ -36,7 +38,7 @@ import edu.cmu.hcii.sugilite.recording.newrecording.SugiliteBlockBuildingHelper;
  */
 public class OverlayClickedDialog {
     private Context context;
-    private Node node;
+    private SugiliteEntity<Node> node;
     private UISnapshot uiSnapshot;
     private LayoutInflater layoutInflater;
     private float x, y;
@@ -50,7 +52,7 @@ public class OverlayClickedDialog {
     private SugiliteData sugiliteData;
 
 
-    public OverlayClickedDialog(Context context, Node node, UISnapshot uiSnapshot, float x, float y, FullScreenRecordingOverlayManager recordingOverlayManager, View overlay, SugiliteData sugiliteData, LayoutInflater layoutInflater, SharedPreferences sharedPreferences, TextToSpeech tts) {
+    public OverlayClickedDialog(Context context, SugiliteEntity<Node> node, UISnapshot uiSnapshot, float x, float y, FullScreenRecordingOverlayManager recordingOverlayManager, View overlay, SugiliteData sugiliteData, LayoutInflater layoutInflater, SharedPreferences sharedPreferences, TextToSpeech tts) {
         this.context = context;
         this.node = node;
         this.uiSnapshot = uiSnapshot;
@@ -63,7 +65,7 @@ public class OverlayClickedDialog {
         this.blockBuildingHelper = new SugiliteBlockBuildingHelper(context, sugiliteData);
         this.sugiliteData = sugiliteData;
         this.sharedPreferences = sharedPreferences;
-        featurePack = new SugiliteAvailableFeaturePack(node, uiSnapshot);
+        featurePack = new SugiliteAvailableFeaturePack(node.getEntityValue(), uiSnapshot);
 
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
         builder.setTitle(Const.appNameUpperCase + " Demonstration");
@@ -89,7 +91,7 @@ public class OverlayClickedDialog {
                         dialog.dismiss();
                         break;
                     case "Click without Recording":
-                        click(node, x, y, overlay);
+                        click(node.getEntityValue(), x, y, overlay);
                         dialog.dismiss();
                         break;
                     case "Cancel":
@@ -105,12 +107,12 @@ public class OverlayClickedDialog {
      * handle when the operation is to be recorded
      */
     private void handleRecording() {
-        List<Map.Entry<SerializableOntologyQuery, Double>> queryScoreList = blockBuildingHelper.generateDefaultQueries(featurePack, uiSnapshot);
+        List<Pair<SerializableOntologyQuery, Double>> queryScoreList = blockBuildingHelper.generateDefaultQueries(featurePack, uiSnapshot);
         if (queryScoreList.size() > 0) {
             //threshold for determine whether the results are ambiguous
-            if (queryScoreList.size() <= 1 || (queryScoreList.get(1).getValue().intValue() - queryScoreList.get(0).getValue().intValue() > 2)) {
+            if (queryScoreList.size() <= 1 || (queryScoreList.get(1).second.intValue() - queryScoreList.get(0).second.intValue() > 2)) {
                 //not ambiguous, show the confirmation popup
-                SugiliteOperationBlock block = blockBuildingHelper.getOperationBlockFromQuery(queryScoreList.get(0).getKey(), SugiliteOperation.CLICK, featurePack);
+                SugiliteOperationBlock block = blockBuildingHelper.getOperationBlockFromQuery(queryScoreList.get(0).first, SugiliteOperation.CLICK, featurePack);
                 showConfirmation(block, featurePack, queryScoreList);
 
             } else {
@@ -172,11 +174,11 @@ public class OverlayClickedDialog {
      * @param featurePack
      */
     //TODO: add support for verbal instruction here
-    private void showAmbiguousPopup(List<Map.Entry<SerializableOntologyQuery, Double>> queryScoreList, SugiliteAvailableFeaturePack featurePack, Node actualClickedNode) {
+    private void showAmbiguousPopup(List<Pair<SerializableOntologyQuery, Double>> queryScoreList, SugiliteAvailableFeaturePack featurePack, SugiliteEntity<Node> actualClickedNode) {
         RecordingAmbiguousPopupDialog recordingAmbiguousPopupDialog = new RecordingAmbiguousPopupDialog(context, queryScoreList, featurePack, blockBuildingHelper, layoutInflater, new Runnable() {
             @Override
             public void run() {
-                click(node, x, y, overlay);
+                click(node.getEntityValue(), x, y, overlay);
             }
         },
                 uiSnapshot, actualClickedNode, sugiliteData, sharedPreferences, tts);
@@ -190,11 +192,11 @@ public class OverlayClickedDialog {
      * @param featurePack
      * @param queryScoreList
      */
-    private void showConfirmation(SugiliteOperationBlock block, SugiliteAvailableFeaturePack featurePack, List<Map.Entry<SerializableOntologyQuery, Double>> queryScoreList) {
+    private void showConfirmation(SugiliteOperationBlock block, SugiliteAvailableFeaturePack featurePack, List<Pair<SerializableOntologyQuery, Double>> queryScoreList) {
         Runnable clickRunnable = new Runnable() {
             @Override
             public void run() {
-                click(node, x, y, overlay);
+                click(node.getEntityValue(), x, y, overlay);
             }
         };
         SugiliteRecordingConfirmationDialog confirmationDialog = new SugiliteRecordingConfirmationDialog(context, block, featurePack, queryScoreList, clickRunnable, blockBuildingHelper, layoutInflater, uiSnapshot, node, sugiliteData, sharedPreferences, tts);

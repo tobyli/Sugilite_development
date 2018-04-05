@@ -310,6 +310,12 @@ public class VerbalInstructionIconManager implements SugiliteVoiceInterface {
                         followUpQuestionDialog.uncollapse();
                         return true;
                     }
+                    //collect the ui snapshot when the cat icon has been clicked on
+                    SerializableUISnapshot serializedUISnapshot = null;
+                    if(getLatestUISnapshot() != null) {
+                        serializedUISnapshot = new SerializableUISnapshot(getLatestUISnapshot());
+                    }
+                    final SerializableUISnapshot finalSsrializedUISnapshot = serializedUISnapshot;
 
                     //initialize the popup dialog
                     AlertDialog.Builder textDialogBuilder = new AlertDialog.Builder(context);
@@ -334,12 +340,14 @@ public class VerbalInstructionIconManager implements SugiliteVoiceInterface {
                                         case "Send a verbal instruction":
                                             //send a verbal instruction
                                             if(getLatestUISnapshot() != null) {
-                                                SerializableUISnapshot serializedUISnapshot = new SerializableUISnapshot(getLatestUISnapshot());
-                                                VerbalInstructionTestDialog verbalInstructionDialog = new VerbalInstructionTestDialog(serializedUISnapshot, context, layoutInflater, sugiliteData, sharedPreferences, tts);
+                                                if(finalSsrializedUISnapshot != null) {
+                                                    VerbalInstructionTestDialog verbalInstructionDialog = new VerbalInstructionTestDialog(finalSsrializedUISnapshot, context, layoutInflater, sugiliteData, sharedPreferences, tts);
+                                                    verbalInstructionDialog.show();
+                                                }
+
                                                 if(dialog != null){
                                                     dialog.dismiss();
                                                 }
-                                                verbalInstructionDialog.show();
                                             }
                                             else{
                                                 Toast.makeText(context, "UI snapshot is NULL!", Toast.LENGTH_SHORT).show();

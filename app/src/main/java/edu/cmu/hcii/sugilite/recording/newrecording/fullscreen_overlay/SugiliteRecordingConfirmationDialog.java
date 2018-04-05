@@ -8,6 +8,7 @@ import android.content.SharedPreferences;
 import android.os.Handler;
 import android.speech.tts.TextToSpeech;
 import android.text.Html;
+import android.util.Pair;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.WindowManager;
@@ -24,6 +25,7 @@ import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.model.block.util.SugiliteAvailableFeaturePack;
 import edu.cmu.hcii.sugilite.model.block.operation.SugiliteOperationBlock;
 import edu.cmu.hcii.sugilite.ontology.SerializableOntologyQuery;
+import edu.cmu.hcii.sugilite.ontology.SugiliteEntity;
 import edu.cmu.hcii.sugilite.ontology.UISnapshot;
 import edu.cmu.hcii.sugilite.ontology.description.OntologyDescriptionGenerator;
 import edu.cmu.hcii.sugilite.recording.newrecording.SugiliteBlockBuildingHelper;
@@ -39,12 +41,12 @@ import edu.cmu.hcii.sugilite.recording.newrecording.dialog_management.SugiliteDi
 public class SugiliteRecordingConfirmationDialog extends SugiliteDialogManager {
     private SugiliteOperationBlock block;
     private SugiliteAvailableFeaturePack featurePack;
-    private List<Map.Entry<SerializableOntologyQuery, Double>> queryScoreList;
+    private List<Pair<SerializableOntologyQuery, Double>> queryScoreList;
     private Runnable clickRunnable;
     private SugiliteBlockBuildingHelper blockBuildingHelper;
     private LayoutInflater layoutInflater;
     private UISnapshot uiSnapshot;
-    private Node actualClickedNode;
+    private SugiliteEntity<Node> actualClickedNode;
     private SugiliteData sugiliteData;
     private SharedPreferences sharedPreferences;
     private OntologyDescriptionGenerator ontologyDescriptionGenerator;
@@ -59,7 +61,7 @@ public class SugiliteRecordingConfirmationDialog extends SugiliteDialogManager {
     private SugiliteDialogSimpleState detailPromptState = new SugiliteDialogSimpleState("DETAIL_PROMPT", this);
 
 
-    public SugiliteRecordingConfirmationDialog(Context context, SugiliteOperationBlock block, SugiliteAvailableFeaturePack featurePack, List<Map.Entry<SerializableOntologyQuery, Double>> queryScoreList, Runnable clickRunnable, SugiliteBlockBuildingHelper blockBuildingHelper, LayoutInflater layoutInflater, UISnapshot uiSnapshot, Node actualClickedNode, SugiliteData sugiliteData, SharedPreferences sharedPreferences, TextToSpeech tts) {
+    public SugiliteRecordingConfirmationDialog(Context context, SugiliteOperationBlock block, SugiliteAvailableFeaturePack featurePack, List<Pair<SerializableOntologyQuery, Double>> queryScoreList, Runnable clickRunnable, SugiliteBlockBuildingHelper blockBuildingHelper, LayoutInflater layoutInflater, UISnapshot uiSnapshot, SugiliteEntity<Node> actualClickedNode, SugiliteData sugiliteData, SharedPreferences sharedPreferences, TextToSpeech tts) {
         super(context, tts);
         this.context = context;
         this.block = block;
@@ -76,13 +78,16 @@ public class SugiliteRecordingConfirmationDialog extends SugiliteDialogManager {
 
 
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
-        String newDescription = ontologyDescriptionGenerator.getDescriptionForOperation(block.getOperation(), blockBuildingHelper.stripSerializableOntologyQuery(block.getQuery()));
+        //String newDescription = ontologyDescriptionGenerator.getDescriptionForOperation(block.getOperation(), blockBuildingHelper.stripSerializableOntologyQuery(block.getQuery()));
         builder.setTitle("Save Operation Confirmation");
 
         dialogView = layoutInflater.inflate(R.layout.dialog_confirmation_popup_spoken, null);
         confirmationPromptTextView = (TextView) dialogView.findViewById(R.id.text_confirmation_prompt);
         if(confirmationPromptTextView != null){
-            confirmationPromptTextView.setText(Html.fromHtml("Are you sure you want to record the operation: " + newDescription));
+            //TODO: show the source code temporarily
+            //confirmationPromptTextView.setText(Html.fromHtml("Are you sure you want to record the operation: " + newDescription));
+            confirmationPromptTextView.setText(Html.fromHtml("Are you sure you want to record the operation: " + block.toString()));
+
         }
         speakButton = (ImageButton) dialogView.findViewById(R.id.button_verbal_instruction_talk);
 

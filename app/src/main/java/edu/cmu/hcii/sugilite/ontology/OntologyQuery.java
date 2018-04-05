@@ -343,7 +343,7 @@ public class OntologyQuery {
             s = s.trim();
 
             //process the possible OntologyQueryFilter
-            if(s.startsWith("ARG_MIN") || s.startsWith("ARG_MAX") || s.startsWith("EXISTS")){
+            if(s.startsWith("argmin") || s.startsWith("argmax") || s.startsWith("exists")){
                 //contains an OntologyQueryFilter -- need to process
                 int filterEndIndex = s.indexOf(" ", s.indexOf(" ") + 1);
                 String ontologyFilterString = s.substring(0, filterEndIndex);

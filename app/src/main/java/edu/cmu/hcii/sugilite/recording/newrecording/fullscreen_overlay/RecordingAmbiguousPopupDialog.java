@@ -356,21 +356,31 @@ public class RecordingAmbiguousPopupDialog extends SugiliteDialogManager impleme
             OntologyQuery query = OntologyQueryUtils.getQueryWithClassAndPackageConstraints(OntologyQuery.deserialize(queryFormula), actualClickedNode.getEntityValue());
 
             //TODO: fix the bug in query.executeOn -- it should not change the query
-            OntologyQuery queryClone = OntologyQuery.deserialize(query.toString());
-            Set<SugiliteEntity> queryResults =  queryClone.executeOn(uiSnapshot);
 
-            for(SugiliteEntity entity : queryResults){
-                if(entity.getType().equals(Node.class)){
-                    Node node = (Node) entity.getEntityValue();
-                    if (node.getClickable()) {
-                        filteredNodes.add(node);
-                        filteredNodeNodeIdMap.put(node, entity.getEntityId());
-                    }
-                    if (OntologyQueryUtils.isSameNode(actualClickedNode.getEntityValue(), node)) {
-                        matched = true;
+            try {
+                OntologyQuery queryClone = OntologyQuery.deserialize(query.toString());
+                Set<SugiliteEntity> queryResults =  queryClone.executeOn(uiSnapshot);
+                for(SugiliteEntity entity : queryResults){
+                    if(entity.getType().equals(Node.class)){
+                        Node node = (Node) entity.getEntityValue();
+                        if (node.getClickable()) {
+                            filteredNodes.add(node);
+                            filteredNodeNodeIdMap.put(node, entity.getEntityId());
+                        }
+                        if (OntologyQueryUtils.isSameNode(actualClickedNode.getEntityValue(), node)) {
+                            matched = true;
+                        }
                     }
                 }
+
             }
+            catch (Exception e){
+                Gson gson = new Gson();
+                e.printStackTrace();
+                System.out.println("ERROR QUERY: " + queryFormula);
+                System.out.println("ERROR QUERY JSON" + gson.toJson(query));
+            }
+
 
             if (filteredNodes.size() > 0 && matched) {
                 //matched, add the result to the list

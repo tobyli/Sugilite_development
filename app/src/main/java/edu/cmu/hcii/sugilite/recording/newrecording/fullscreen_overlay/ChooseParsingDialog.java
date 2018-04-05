@@ -14,10 +14,8 @@ import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -34,10 +32,11 @@ import edu.cmu.hcii.sugilite.ontology.OntologyQuery;
 import edu.cmu.hcii.sugilite.ontology.SerializableOntologyQuery;
 import edu.cmu.hcii.sugilite.ontology.SugiliteEntity;
 import edu.cmu.hcii.sugilite.ontology.UISnapshot;
+import edu.cmu.hcii.sugilite.ontology.description.DescriptionGenerator;
+import edu.cmu.hcii.sugilite.ontology.description.OntologyDescriptionGenerator;
 import edu.cmu.hcii.sugilite.recording.newrecording.SugiliteBlockBuildingHelper;
 import edu.cmu.hcii.sugilite.recording.newrecording.dialog_management.SugiliteDialogManager;
 import edu.cmu.hcii.sugilite.recording.newrecording.dialog_management.SugiliteDialogSimpleState;
-import edu.cmu.hcii.sugilite.recording.newrecording.dialog_management.SugiliteDialogUtteranceFilter;
 
 /**
  * @author toby
@@ -53,6 +52,7 @@ public class ChooseParsingDialog extends SugiliteDialogManager {
     SugiliteEntity<Node> actualClickedNode;
     SugiliteData sugiliteData;
     SharedPreferences sharedPreferences;
+    OntologyDescriptionGenerator ontologyDescriptionGenerator;
 
     private View dialogView;
     private List<Pair<OntologyQuery, List<Node>>> matchingQueriesMatchedNodesList;
@@ -79,7 +79,7 @@ public class ChooseParsingDialog extends SugiliteDialogManager {
         for(Pair<OntologyQuery, List<Node>> entry : matchingQueriesMatchedNodesList){
             resultQueries.add(entry.first);
         }
-
+        ontologyDescriptionGenerator = new OntologyDescriptionGenerator(context);
         //build the dialog
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
         //builder.setTitle("Select from disambiguation results");
@@ -98,11 +98,11 @@ public class ChooseParsingDialog extends SugiliteDialogManager {
 
         i = 0;
         for (OntologyQuery query : resultQueries) {
-            stringArray[i++] = query.toString();
+            stringArray[i++] = ontologyDescriptionGenerator.getDescriptionForOntologyQuery(new SerializableOntologyQuery(query));
         }
 
 
-        ArrayAdapter<String> adapter = new ArrayAdapter<String>(context, android.R.layout.simple_list_item_1, stringArray) {
+        ArrayAdapter<String> adapter = new ArrayAdapter<String>(context, android.R.layout.simple_list_item_2, stringArray) {
             //override the arrayadapter to show HTML-styled textviews in the listview
             @Override
             public View getView(int position, View convertView, ViewGroup parent) {
@@ -115,7 +115,7 @@ public class ChooseParsingDialog extends SugiliteDialogManager {
                 TextView tv1 = (TextView) row.findViewById(android.R.id.text1);
                 tv1.setText(Html.fromHtml(getItem(position)));
                 TextView tv2 = (TextView) row.findViewById(android.R.id.text2);
-                tv2.setText("Matched " + String.valueOf(matchingQueriesMatchedNodesList.get(position).second.size()) + " nodes");
+                tv2.setText(ontologyQueryArray[position].toString() + "\n" + "Matched " + String.valueOf(matchingQueriesMatchedNodesList.get(position).second.size()) + " nodes");
                 textViews.put(tv1, ontologyQueryArray[position]);
                 return row;
             }

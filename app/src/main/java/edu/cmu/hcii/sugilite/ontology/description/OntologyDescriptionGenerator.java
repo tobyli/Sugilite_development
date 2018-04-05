@@ -81,11 +81,14 @@ public class OntologyDescriptionGenerator {
     }
 
 
-    static private String setColor(String message, String color) {
+    public static String setColor(String message, String color) {
         return "<font color=\"" + color + "\"><b>" + message + "</b></font>";
     }
 
     private String formatting(SugiliteRelation sr, String[] os) {
+        if(sr == null){
+            return "NULL";
+        }
         if (sr.equals(SugiliteRelation.HAS_SCREEN_LOCATION) || sr.equals(SugiliteRelation.HAS_PARENT_LOCATION))
             return DescriptionGenerator.descriptionMap.get(sr) + setColor("(" + os[0] + ")", Const.SCRIPT_IDENTIFYING_FEATURE_COLOR);
 
@@ -107,28 +110,29 @@ public class OntologyDescriptionGenerator {
 
     public String getDescriptionForOperation(SugiliteOperation operation, SerializableOntologyQuery sq){
         //TODO: temporily disable because of crashes due to unable to handle filters
-        return sq.toString();
-        /*
+        //return sq.toString();
+        String prefix = "";
+
         if(operation.getOperationType() == SugiliteOperation.CLICK){
-            return getDescriptionForOperation(setColor("Click on ", Const.SCRIPT_ACTION_COLOR), sq);
+            return prefix + getDescriptionForOperation(setColor("Click on ", Const.SCRIPT_ACTION_COLOR), sq);
         }
         else if(operation.getOperationType() == SugiliteOperation.READ_OUT){
-            return getDescriptionForOperation(setColor("Read out ", Const.SCRIPT_ACTION_COLOR), sq);
+            return prefix + getDescriptionForOperation(setColor("Read out ", Const.SCRIPT_ACTION_COLOR), sq);
         }
         else if(operation.getOperationType() == SugiliteOperation.SET_TEXT){
-            return getDescriptionForOperation(setColor("Set text ", Const.SCRIPT_ACTION_COLOR), sq);
+            return prefix + getDescriptionForOperation(setColor("Set text ", Const.SCRIPT_ACTION_COLOR), sq);
         }
         else if(operation.getOperationType() == SugiliteOperation.READOUT_CONST){
-            return getDescriptionForOperation(setColor("Read out constant ", Const.SCRIPT_ACTION_COLOR), sq);
+            return prefix + getDescriptionForOperation(setColor("Read out constant ", Const.SCRIPT_ACTION_COLOR), sq);
         }
         else if(operation.getOperationType() == SugiliteOperation.LOAD_AS_VARIABLE){
-            return getDescriptionForOperation(setColor("Set variable to the following: ", Const.SCRIPT_ACTION_COLOR), sq);
+            return prefix + getDescriptionForOperation(setColor("Set variable to the following: ", Const.SCRIPT_ACTION_COLOR), sq);
         }
         else{
             //TODO: handle more types of operations ***
             return null;
         }
-        */
+
     }
 
     private String getDescriptionForOperation(String verb, SerializableOntologyQuery sq){
@@ -144,26 +148,33 @@ public class OntologyDescriptionGenerator {
         String translatedFilter = "";
         if(f != null) {
             fr = f.getRelation();
-            if (fr.equals(SugiliteRelation.HAS_LIST_ORDER) || fr.equals(SugiliteRelation.HAS_PARENT_WITH_LIST_ORDER))
-                translatedFilter = String.format(DescriptionGenerator.descriptionMap.get(fr),FilterTranslation.getFilterTranslation(f));
-            else
-                translatedFilter = ("the "+FilterTranslation.getFilterTranslation(f)+" "+DescriptionGenerator.descriptionMap.get(fr)).trim();
+            if (fr.equals(SugiliteRelation.HAS_LIST_ORDER) || fr.equals(SugiliteRelation.HAS_PARENT_WITH_LIST_ORDER)) {
+                translatedFilter = String.format(DescriptionGenerator.descriptionMap.get(fr), FilterTranslation.getFilterTranslation(f));
+            }
+            else {
+                translatedFilter = ("the " + FilterTranslation.getFilterTranslation(f) + " " + DescriptionGenerator.descriptionMap.get(fr)).trim();
+            }
+            translatedFilter = setColor(translatedFilter, Const.SCRIPT_ACTION_PARAMETER_COLOR);
         }
         String conjunction = "has ";
         result = "the item that ";
         if (f != null)
             result += conjunction + translatedFilter + " or ";
         for (int i = 0; i < l-1; i++) {
-            if (queries[i].getR().equals(SugiliteRelation.HAS_CLASS_NAME)||queries[i].getR().equals(SugiliteRelation.HAS_LIST_ORDER)||queries[i].getR().equals(SugiliteRelation.HAS_PARENT_WITH_LIST_ORDER))
+            if (queries[i].getR().equals(SugiliteRelation.HAS_CLASS_NAME)||queries[i].getR().equals(SugiliteRelation.HAS_LIST_ORDER)||queries[i].getR().equals(SugiliteRelation.HAS_PARENT_WITH_LIST_ORDER)) {
                 conjunction = "is ";
-            else
+            }
+            else {
                 conjunction = "has ";
+            }
             result += conjunction + args[i] + " or ";
         }
-        if (queries[l-1].getR().equals(SugiliteRelation.HAS_PACKAGE_NAME))
+        if (queries[l-1].getR().equals(SugiliteRelation.HAS_PACKAGE_NAME)) {
             conjunction = "is ";
-        else
+        }
+        else {
             conjunction = "has ";
+        }
         result += conjunction+args[l-1];
 
         return result;
@@ -180,18 +191,20 @@ public class OntologyDescriptionGenerator {
         String translatedFilter = "";
         if(f != null) {
             fr = f.getRelation();
-            if (fr.equals(SugiliteRelation.HAS_LIST_ORDER) || fr.equals(SugiliteRelation.HAS_PARENT_WITH_LIST_ORDER))
-                translatedFilter = String.format(DescriptionGenerator.descriptionMap.get(fr),FilterTranslation.getFilterTranslation(f));
-            else
-                translatedFilter = ("the "+FilterTranslation.getFilterTranslation(f)+" "+DescriptionGenerator.descriptionMap.get(fr)).trim();
+            if (fr.equals(SugiliteRelation.HAS_LIST_ORDER) || fr.equals(SugiliteRelation.HAS_PARENT_WITH_LIST_ORDER)) {
+                translatedFilter = String.format(DescriptionGenerator.descriptionMap.get(fr), FilterTranslation.getFilterTranslation(f));
+            }
+            else {
+                translatedFilter = ("the " + FilterTranslation.getFilterTranslation(f) + " " + DescriptionGenerator.descriptionMap.get(fr)).trim();
+            }
+            translatedFilter = setColor(translatedFilter, Const.SCRIPT_ACTION_PARAMETER_COLOR);
         }
-        if (r.equals(SugiliteRelation.HAS_CLASS_NAME)) {
+        if (r != null && r.equals(SugiliteRelation.HAS_CLASS_NAME)) {
             SugiliteRelation r2 = queries[1].getR();
             SugiliteRelation r3 = queries[ql-1].getR();
 
             // get the description of the object; e.g. the 1st button
-            if (r2.equals(SugiliteRelation.HAS_LIST_ORDER) || r2.equals(SugiliteRelation.HAS_PARENT_WITH_LIST_ORDER))
-            {
+            if (r2 != null && (r2.equals(SugiliteRelation.HAS_LIST_ORDER) || r2.equals(SugiliteRelation.HAS_PARENT_WITH_LIST_ORDER))) {
                 result += args[1].replace("item","");
                 result += args[0];
                 // the 1st button --> the first button
@@ -214,14 +227,14 @@ public class OntologyDescriptionGenerator {
                     // the 1st button that has [filter] and/or something
                     if (f!=null) {
                         result += " that has " + translatedFilter;
-                        if (r3.equals(SugiliteRelation.HAS_PACKAGE_NAME))
+                        if (r3 != null && r3.equals(SugiliteRelation.HAS_PACKAGE_NAME))
                             result += " " + args[2];
                         else
                             result += " and " + args[2];
                     }
                     // the 1st button that has something
                     else {
-                        if (r3.equals(SugiliteRelation.HAS_PACKAGE_NAME))
+                        if (r3 != null && r3.equals(SugiliteRelation.HAS_PACKAGE_NAME))
                             result += " " + args[2];
                         else
                             result += " that has " + args[2];
@@ -233,9 +246,9 @@ public class OntologyDescriptionGenerator {
                     if (f!=null)
                         result += translatedFilter+", ";
                     result += args[2];
-                    if (r3.equals(SugiliteRelation.HAS_PACKAGE_NAME))
+                    if (r3 != null && r3.equals(SugiliteRelation.HAS_PACKAGE_NAME))
                     {
-                        for (int i = 3; i < l-2; i++) {
+                        for (int i = 3; i < l - 2; i++) {
                             result += ", " + args[i];
                         }
                         result += " and " + args[l-2];
@@ -250,27 +263,27 @@ public class OntologyDescriptionGenerator {
                     }
                 }
             }
-            else{
+            else {
                 result = String.format("the %s", args[0]);
                 // the button that has something
                 if (l==2) {
                     if (f!=null) {
                         result += " that has " + translatedFilter;
-                        if (r3.equals(SugiliteRelation.HAS_PACKAGE_NAME))
+                        if (r3 != null && r3.equals(SugiliteRelation.HAS_PACKAGE_NAME))
                             result += " " + args[1];
                         else
                             result += " and " + args[1];
                     }
                     else
                     {
-                        if (r3.equals(SugiliteRelation.HAS_PACKAGE_NAME))
+                        if (r3 != null && r3.equals(SugiliteRelation.HAS_PACKAGE_NAME))
                             result += " " + args[1];
                         else
                             result += " that has " + args[1];
                     }
                 }
                 else if (l == 3) {
-                    if (r3.equals(SugiliteRelation.HAS_PACKAGE_NAME))
+                    if (r3 != null && r3.equals(SugiliteRelation.HAS_PACKAGE_NAME))
                     {
                         if (f!=null) {
                             result += " that has " + translatedFilter;
@@ -293,7 +306,7 @@ public class OntologyDescriptionGenerator {
                     if (f!=null)
                         result += translatedFilter+", ";
                     result += args[1];
-                    if (r3.equals(SugiliteRelation.HAS_PACKAGE_NAME))
+                    if (r3 != null && r3.equals(SugiliteRelation.HAS_PACKAGE_NAME))
                     {
                         for (int i = 2; i < l-2; i++) {
                             result += ", " + args[i];
@@ -313,8 +326,7 @@ public class OntologyDescriptionGenerator {
 
         }
 
-        else if (r.equals(SugiliteRelation.HAS_LIST_ORDER) || r.equals(SugiliteRelation.HAS_PARENT_WITH_LIST_ORDER))
-        {
+        else if (r != null && (r.equals(SugiliteRelation.HAS_LIST_ORDER) || r.equals(SugiliteRelation.HAS_PARENT_WITH_LIST_ORDER))) {
             result += args[0];
             if (l==2)
             {
@@ -335,7 +347,7 @@ public class OntologyDescriptionGenerator {
             }
             SugiliteRelation r3 = queries[ql-1].getR();
             if (l == 3) {
-                if (r3.equals(SugiliteRelation.HAS_PACKAGE_NAME)) {
+                if (r3 != null && r3.equals(SugiliteRelation.HAS_PACKAGE_NAME)) {
                     result += " that has ";
                     if (f != null)
                         result += translatedFilter+" and ";
@@ -355,7 +367,7 @@ public class OntologyDescriptionGenerator {
                 if (f != null)
                     result += translatedFilter+", ";
                 result += args[1];
-                if (r3.equals(SugiliteRelation.HAS_PACKAGE_NAME))
+                if (r3 != null && r3.equals(SugiliteRelation.HAS_PACKAGE_NAME))
                 {
                     for (int i = 2; i < l-2; i++) {
                         result += ", " + args[i];
@@ -391,21 +403,24 @@ public class OntologyDescriptionGenerator {
     }
 
     private String descriptionForSingleQuery(OntologyQuery q) {
-        SugiliteEntity[] objectArr = q.getObject().toArray(new SugiliteEntity[q.getObject().size()]);
         String[] objectString = new String[1];
         SugiliteRelation r = q.getR();
-        if(r.equals(SugiliteRelation.HAS_CLASS_NAME)) {
-            objectString[0] = ObjectTranslation.getTranslation(objectArr[0].toString());
-        }
-        else {
-            if (r.equals(SugiliteRelation.HAS_TEXT) || r.equals(SugiliteRelation.HAS_CONTENT_DESCRIPTION) || r.equals(SugiliteRelation.HAS_CHILD_TEXT) || r.equals(SugiliteRelation.HAS_SIBLING_TEXT))
-                objectString[0] = objectArr[0].toString();
-            else if (r.equals(SugiliteRelation.HAS_PACKAGE_NAME))
-                objectString[0] = getAppName(objectArr[0].toString());
-            else if (r.equals(SugiliteRelation.HAS_CLASS_NAME))
-                objectString[0] = "";
-            else
-                objectString[0] = objectArr[0].toString();
+        if(q.getObject() != null) {
+            SugiliteEntity[] objectArr = q.getObject().toArray(new SugiliteEntity[q.getObject().size()]);
+            if(r.equals(SugiliteRelation.HAS_CLASS_NAME)) {
+                objectString[0] = ObjectTranslation.getTranslation(objectArr[0].toString());
+            }
+            else {
+                if (r.equals(SugiliteRelation.HAS_TEXT) || r.equals(SugiliteRelation.HAS_CONTENT_DESCRIPTION) || r.equals(SugiliteRelation.HAS_CHILD_TEXT) || r.equals(SugiliteRelation.HAS_SIBLING_TEXT)) {
+                    objectString[0] = objectArr[0].toString();
+                }
+                else if (r.equals(SugiliteRelation.HAS_PACKAGE_NAME)) {
+                    objectString[0] = getAppName(objectArr[0].toString());
+                }
+                else {
+                    objectString[0] = objectArr[0].toString();
+                }
+            }
         }
         return formatting(r, objectString);
     }
@@ -415,11 +430,10 @@ public class OntologyDescriptionGenerator {
         SugiliteRelation fr = f.getRelation();
         String result = "";
         SugiliteRelation r = q.getR();
-        if (f.getRelation().equals(SugiliteRelation.HAS_PARENT_WITH_LIST_ORDER) || f.getRelation().equals(SugiliteRelation.HAS_LIST_ORDER))
-        {
+        if (f.getRelation().equals(SugiliteRelation.HAS_PARENT_WITH_LIST_ORDER) || f.getRelation().equals(SugiliteRelation.HAS_LIST_ORDER))  {
             result += String.format(DescriptionGenerator.descriptionMap.get(fr),FilterTranslation.getFilterTranslation(f));
             if (!(r.equals(SugiliteRelation.HAS_PARENT_WITH_LIST_ORDER) || r.equals(SugiliteRelation.HAS_LIST_ORDER)))
-                result += " that has "+descriptionForSingleQuery(q);
+                result += " that has "+ descriptionForSingleQuery(q);
             return result;
         }
         String translatedFilter = "the "+FilterTranslation.getFilterTranslation(f)+" "+DescriptionGenerator.descriptionMap.get(fr);
@@ -441,21 +455,25 @@ public class OntologyDescriptionGenerator {
      * @return
      */
     public String getDescriptionForOntologyQuery(SerializableOntologyQuery sq) {
+        String postfix = "";
+
         OntologyQuery ontologyQuery = new OntologyQuery(sq);
         SugiliteRelation r = ontologyQuery.getR();
         OntologyQueryFilter f = ontologyQuery.getOntologyQueryFilter();
         if (ontologyQuery.getSubRelation() == OntologyQuery.relationType.nullR) {
             // base case
             // this should have size 1 always, the array is only used in execution for when there's a query whose results are used as the objects of the next one
-            if (f == null)
-                return descriptionForSingleQuery(ontologyQuery);
-            else
-                return descriptionForSingleQueryWithFilter(ontologyQuery);
+            if (f == null) {
+                return descriptionForSingleQuery(ontologyQuery) + postfix;
+            }
+            else {
+                return descriptionForSingleQueryWithFilter(ontologyQuery) + postfix;
+            }
 
         }
+
         OntologyQuery[] subQueryArray = ontologyQuery.getSubQueries().toArray(new OntologyQuery[ontologyQuery.getSubQueries().size()]);
         Arrays.sort(subQueryArray, RelationWeight.ontologyQueryComparator);
-
 
         //TODO: the use of "and" and "or" should be grammatically correct
         if (ontologyQuery.getSubRelation() == OntologyQuery.relationType.AND || ontologyQuery.getSubRelation() == OntologyQuery.relationType.OR || ontologyQuery.getSubRelation() == OntologyQuery.relationType.PREV) {
@@ -464,31 +482,31 @@ public class OntologyDescriptionGenerator {
             for (int i = 0; i < size; i++) {
                 //SerializableOntologyQuery soq = new SerializableOntologyQuery(subQueryArray[i]);
                 //arr[i] = getDescriptionForOntologyQuery(soq);
-                arr[i] = descriptionForSingleQuery(subQueryArray[i]);
+                arr[i] = getDescriptionForOntologyQuery(new SerializableOntologyQuery(subQueryArray[i]));
             }
-
 
             if (ontologyQuery.getSubRelation() == OntologyQuery.relationType.AND) {
                 //return StringUtils.join(arr, " ");
-                return translationWithRelationshipAnd(arr,subQueryArray, f);
+                return translationWithRelationshipAnd(arr,subQueryArray, f) + postfix;
             }
-            else if (ontologyQuery.getSubRelation() == OntologyQuery.relationType.OR)
-                return translationWithRelationshipOr(arr,subQueryArray,f);
-            else {
+            else if (ontologyQuery.getSubRelation() == OntologyQuery.relationType.OR) {
+                return translationWithRelationshipOr(arr, subQueryArray, f) + postfix;
+            }
+
+            else if (ontologyQuery.getSubRelation() == OntologyQuery.relationType.PREV) {
                 String res = "the item that has ";
                 res += DescriptionGenerator.descriptionMap.get(r);
                 res += "that has " + arr[0];
                 for (int i = 1; i<arr.length;i++) {
                     res += " and " + arr[i];
                 }
-                return res;
+                return res + postfix;
             }
         }
 
-        // SubRelation == relationType.PREV
-        SerializableOntologyQuery soq0 = new SerializableOntologyQuery(subQueryArray[0]);
-
-        return r.getRelationName() + " " + getDescriptionForOntologyQuery(soq0);
+        //SerializableOntologyQuery soq0 = new SerializableOntologyQuery(subQueryArray[0]);
+        //return r.getRelationName() + " " + getDescriptionForOntologyQuery(soq0);
+        return "NULL";
     }
 
     public static void main(String[] args){

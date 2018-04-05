@@ -9,6 +9,9 @@ import edu.cmu.hcii.sugilite.ontology.OntologyQuery;
 import edu.cmu.hcii.sugilite.ontology.SerializableOntologyQuery;
 import edu.cmu.hcii.sugilite.ontology.SugiliteRelation;
 
+import static edu.cmu.hcii.sugilite.Const.SCRIPT_VIEW_ID_COLOR;
+import static edu.cmu.hcii.sugilite.ontology.description.OntologyDescriptionGenerator.setColor;
+
 /**
  * Created by Wanling Ding on 01/02/2018.
  */
@@ -19,18 +22,18 @@ public class DescriptionGenerator {
     static {
         descriptionMap = new HashMap<SugiliteRelation,String>();
         descriptionMap.put(SugiliteRelation.HAS_CLASS_NAME,"");
-        descriptionMap.put(SugiliteRelation.HAS_TEXT,"text ");
-        descriptionMap.put(SugiliteRelation.HAS_PARENT,"parent ");
-        descriptionMap.put(SugiliteRelation.HAS_VIEW_ID,"view id ");
-        descriptionMap.put(SugiliteRelation.HAS_CONTENT_DESCRIPTION,"content ");
-        descriptionMap.put(SugiliteRelation.HAS_SCREEN_LOCATION,"the exact location ");
-        descriptionMap.put(SugiliteRelation.HAS_PARENT_LOCATION,"the parent location ");
+        descriptionMap.put(SugiliteRelation.HAS_TEXT, setColor("text ", SCRIPT_VIEW_ID_COLOR));
+        descriptionMap.put(SugiliteRelation.HAS_PARENT, setColor("parent ", SCRIPT_VIEW_ID_COLOR));
+        descriptionMap.put(SugiliteRelation.HAS_VIEW_ID, setColor("view id " ,SCRIPT_VIEW_ID_COLOR));
+        descriptionMap.put(SugiliteRelation.HAS_CONTENT_DESCRIPTION, setColor("content ", SCRIPT_VIEW_ID_COLOR));
+        descriptionMap.put(SugiliteRelation.HAS_SCREEN_LOCATION, setColor("the exact location ", SCRIPT_VIEW_ID_COLOR));
+        descriptionMap.put(SugiliteRelation.HAS_PARENT_LOCATION, setColor("the parent location ", SCRIPT_VIEW_ID_COLOR));
         descriptionMap.put(SugiliteRelation.HAS_PACKAGE_NAME,"in ");
-        descriptionMap.put(SugiliteRelation.HAS_CHILD,"child ");
+        descriptionMap.put(SugiliteRelation.HAS_CHILD, setColor("child ", SCRIPT_VIEW_ID_COLOR));
 
-        descriptionMap.put(SugiliteRelation.HAS_CHILD_TEXT,"child text ");
+        descriptionMap.put(SugiliteRelation.HAS_CHILD_TEXT, setColor("child text ", SCRIPT_VIEW_ID_COLOR));
         descriptionMap.put(SugiliteRelation.HAS_SIBLING_TEXT,"");
-        descriptionMap.put(SugiliteRelation.HAS_SIBLING,"sibling ");
+        descriptionMap.put(SugiliteRelation.HAS_SIBLING, setColor("sibling ", SCRIPT_VIEW_ID_COLOR));
 
         descriptionMap.put(SugiliteRelation.IS_EDITABLE,"is editable ");
         descriptionMap.put(SugiliteRelation.IS_CLICKABLE,"is clickable ");
@@ -49,7 +52,7 @@ public class DescriptionGenerator {
         descriptionMap.put(SugiliteRelation.CONTAINS_TIME,"time ");
         descriptionMap.put(SugiliteRelation.CONTAINS_DATE,"date ");
         descriptionMap.put(SugiliteRelation.CONTAINS_DURATION,"duration ");
-        descriptionMap.put(SugiliteRelation.CONTAINS_LENGTH,"length ");
+        descriptionMap.put(SugiliteRelation.CONTAINS_LENGTH,"distance ");
         descriptionMap.put(SugiliteRelation.CONTAINS_PERCENTAGE,"percentage ");
         descriptionMap.put(SugiliteRelation.CONTAINS_VOLUME,"volume ");
 

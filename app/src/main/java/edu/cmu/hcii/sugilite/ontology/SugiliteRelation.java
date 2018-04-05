@@ -138,6 +138,13 @@ public class SugiliteRelation implements Serializable {
         stringRelationMap.put("numeric_percentage", CONTAINS_PERCENTAGE);
         stringRelationMap.put("numeric_volume", CONTAINS_VOLUME);
 
+        stringRelationMap.put("CONTAINS", CONTAINS);
+        stringRelationMap.put("RIGHT", RIGHT);
+        stringRelationMap.put("LEFT", LEFT);
+        stringRelationMap.put("ABOVE", ABOVE);
+        stringRelationMap.put("BELOW", BELOW);
+        stringRelationMap.put("NEAR", NEAR);
+        stringRelationMap.put("NEXT_TO", NEXT_TO);
     }
 
     @Override

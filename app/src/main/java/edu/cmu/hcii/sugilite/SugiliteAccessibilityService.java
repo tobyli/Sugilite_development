@@ -233,9 +233,9 @@ public class SugiliteAccessibilityService extends AccessibilityService {
      * @param runnable
      */
     public void runOnUiThread(Runnable runnable) {
-        Log.i(TAG, "SERVICE_UI_THREAD_POSTING");
+        //Log.i(TAG, "SERVICE_UI_THREAD_POSTING");
         statusIconManager.getStatusIcon().post(runnable);
-        Log.i(TAG, "SERVICE_UI_THREAD_POSTED");
+        //Log.i(TAG, "SERVICE_UI_THREAD_POSTED");
     }
 
 
@@ -747,6 +747,9 @@ public class SugiliteAccessibilityService extends AccessibilityService {
 
     public void updateUISnapshotInVerbalInstructionManager(){
         try {
+            //for profiling purpose
+            long startTime = System.currentTimeMillis();
+
             List<AccessibilityWindowInfo> windows = getWindows();
             verbalInstructionIconManager.rotateStatusIcon();
             if (windows.size() > 0) {
@@ -771,6 +774,11 @@ public class SugiliteAccessibilityService extends AccessibilityService {
                     });
                 }
             }
+
+            //for profiling purpose
+            long stopTime = System.currentTimeMillis();
+            Log.i(TAG, "Updated UI Snapshot! -- Takes " + String.valueOf(stopTime - startTime) + "ms");
+
         }
         catch (Exception e){
             e.printStackTrace();

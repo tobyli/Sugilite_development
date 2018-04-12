@@ -50,11 +50,11 @@ public class SugiliteNodeAnnotator {
 
     public List<AnnotatingResult> annotate(Set<SugiliteEntity<Node>> nodes) {
         List<AnnotatingResult> result = new ArrayList<>();
+        nodes.removeIf(n -> !(n.getEntityValue().getClickable()) && n.getEntityValue().getText() == null);
+        nodes.removeIf(n -> !onScreen(n));
         for (SugiliteEntity<Node> n1 : nodes) {
-            if (!onScreen(n1)) continue;
             for (SugiliteEntity<Node> n2 : nodes) {
                 if (n1 == n2) continue;
-                if (!onScreen(n2)) continue;
                 Rect r1 = Rect.unflattenFromString(n1.getEntityValue().getBoundsInScreen());
                 Rect r2 = Rect.unflattenFromString(n2.getEntityValue().getBoundsInScreen());
                 if (r1.intersect(r2)) continue;

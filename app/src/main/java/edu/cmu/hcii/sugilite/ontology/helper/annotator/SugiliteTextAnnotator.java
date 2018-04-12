@@ -1,6 +1,7 @@
 package edu.cmu.hcii.sugilite.ontology.helper.annotator;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import edu.cmu.hcii.sugilite.ontology.SugiliteRelation;
@@ -11,7 +12,7 @@ import edu.cmu.hcii.sugilite.ontology.SugiliteRelation;
  * @time 11:37 PM
  */
 public class SugiliteTextAnnotator {
-    protected List<SugiliteTextAnnotator> subAnnotators;
+    private List<SugiliteTextAnnotator> subAnnotators;
     public SugiliteTextAnnotator(){
         this(false);
     }
@@ -28,15 +29,12 @@ public class SugiliteTextAnnotator {
                     new LengthAnnotator(),
                     new PercentageAnnotator(),
                     new DurationAnnotator(),
-                    new VolumeAnnotator(),
-                    new NumberAnnotator());
+                    new VolumeAnnotator());
         }
     }
 
-    public void addAnnotator(SugiliteTextAnnotator... entityTagAnnotators){
-        for(SugiliteTextAnnotator entityTagAnnotator : entityTagAnnotators) {
-            subAnnotators.add(entityTagAnnotator);
-        }
+    private void addAnnotator(SugiliteTextAnnotator... entityTagAnnotators){
+        Collections.addAll(subAnnotators, entityTagAnnotators);
     }
 
     public List<AnnotatingResult> annotate(String text){
@@ -93,6 +91,6 @@ public class SugiliteTextAnnotator {
             this.relation = relation;
         }
 
-        public void setNumericValue(Double val) {this.numericValue = val; }
+        void setNumericValue(Double val) {this.numericValue = val; }
     }
 }

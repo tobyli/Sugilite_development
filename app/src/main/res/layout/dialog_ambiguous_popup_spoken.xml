@@ -12,7 +12,7 @@
         android:layout_height="0dp"
         android:layout_weight="1"
         android:orientation="vertical"
-        android:visibility="visible">
+        android:visibility="gone">
 
         <TextView
             android:id="@+id/textView17"
@@ -33,6 +33,11 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"></ListView>
 
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@android:color/darker_gray"/>
+
     </LinearLayout>
 
     <LinearLayout
@@ -51,8 +56,7 @@
             android:text="Please describe your intention for this action"
             android:textColor="#000000"
             android:textSize="18sp"
-            android:layout_marginBottom="10dp"
-            android:textStyle="bold" />
+            android:layout_marginBottom="10dp" />
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -65,8 +69,9 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="0.8"
                 android:ems="10"
-                android:hint="Enter your query here"
-                android:inputType="text" />
+                android:hint="@string/edit_textbox_hint"
+                android:inputType="textMultiLine"
+                android:scrollHorizontally="false" />
 
             <ImageButton
                 android:id="@+id/button_verbal_instruction_talk"

@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.Map;
 
 import edu.cmu.hcii.sugilite.Const;
-import edu.cmu.hcii.sugilite.Node;
+import edu.cmu.hcii.sugilite.model.Node;
 import edu.cmu.hcii.sugilite.R;
 import edu.cmu.hcii.sugilite.ontology.SerializableUISnapshot;
 import edu.cmu.hcii.sugilite.ontology.SugiliteSerializableEntity;

@@ -1,19 +1,15 @@
 package edu.cmu.hcii.sugilite.ontology.helper;
 
-import org.w3c.dom.Entity;
-
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import edu.cmu.hcii.sugilite.Node;
+import edu.cmu.hcii.sugilite.model.Node;
 import edu.cmu.hcii.sugilite.ontology.SugiliteEntity;
 import edu.cmu.hcii.sugilite.ontology.SugiliteRelation;
 import edu.cmu.hcii.sugilite.ontology.SugiliteTriple;
 import edu.cmu.hcii.sugilite.ontology.UISnapshot;
-import edu.cmu.hcii.sugilite.ontology.helper.annotator.EmailAddressAnnotator;
-import edu.cmu.hcii.sugilite.ontology.helper.annotator.PhoneNumberAnnotator;
 import edu.cmu.hcii.sugilite.ontology.helper.annotator.SugiliteTextAnnotator;
 
 /**

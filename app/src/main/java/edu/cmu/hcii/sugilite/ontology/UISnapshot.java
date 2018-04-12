@@ -1,6 +1,7 @@
 package edu.cmu.hcii.sugilite.ontology;
 
 import android.graphics.Rect;
+import android.util.Log;
 import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityNodeInfo;
 import android.view.accessibility.AccessibilityWindowInfo;
@@ -13,12 +14,14 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
-import edu.cmu.hcii.sugilite.Node;
+import edu.cmu.hcii.sugilite.model.Node;
 import edu.cmu.hcii.sugilite.automation.AutomatorUtil;
 import edu.cmu.hcii.sugilite.ontology.helper.ListOrderResolver;
 import edu.cmu.hcii.sugilite.ontology.helper.TextStringParseHelper;
-import edu.cmu.hcii.sugilite.ontology.helper.annotator.SugiliteNodeAnnotator;
 import edu.cmu.hcii.sugilite.ontology.helper.annotator.SugiliteTextAnnotator;
 
 /**
@@ -47,7 +50,9 @@ public class UISnapshot {
     private transient Map<Double, SugiliteEntity<Double>> doubleSugiliteEntityMap;
     private transient Map<Boolean, SugiliteEntity<Boolean>> booleanSugiliteEntityMap;
     private transient Map<Node, AccessibilityNodeInfo> nodeAccessibilityNodeInfoMap;
+    private transient UISnapshot uiSnapshot;
 
+    protected static final String TAG = UISnapshot.class.getSimpleName();
 
 
     public UISnapshot(){
@@ -72,10 +77,12 @@ public class UISnapshot {
         //TODO: contruct a UI snapshot from an event
         //get the rootNode from event and pass into to the below function
         this();
+        this.uiSnapshot = this;
     }
 
     public UISnapshot(List<AccessibilityWindowInfo> windows, boolean toConstructNodeAccessibilityNodeInfoMap, SugiliteTextAnnotator sugiliteTextAnnotator) {
         this();
+        this.uiSnapshot = this;
         List<Node> allNodes = new ArrayList<>();
         for(AccessibilityWindowInfo window : windows){
             AccessibilityNodeInfo rootNode = window.getRoot();
@@ -83,11 +90,15 @@ public class UISnapshot {
                 allNodes.addAll(preOrderNodeTraverseWithZIndex(rootNode, toConstructNodeAccessibilityNodeInfoMap, window.getLayer(), new ArrayList<>()));
             }
         }
+        long startTime = System.currentTimeMillis();
         constructFromListOfNodes(allNodes, sugiliteTextAnnotator);
+        long stopTime = System.currentTimeMillis();
+        Log.i(TAG, "Constructed from List of Nodes! -- Takes " + String.valueOf(stopTime - startTime) + "ms");
     }
 
     public UISnapshot(AccessibilityNodeInfo rootNode, boolean toConstructNodeAccessibilityNodeInfoMap, SugiliteTextAnnotator sugiliteTextAnnotator) {
         this();
+        this.uiSnapshot = this;
         List<AccessibilityNodeInfo> allOldNodes = AutomatorUtil.preOrderTraverse(rootNode);
         List<Node> allNodes = new ArrayList<>();
         for(AccessibilityNodeInfo oldNode : allOldNodes){
@@ -109,6 +120,9 @@ public class UISnapshot {
      * @param sugiliteTextAnnotator
      */
     private void constructFromListOfNodes(List<Node> allNodes, SugiliteTextAnnotator sugiliteTextAnnotator){
+        //create a multi-thread executor for parsing strings
+        ExecutorService executor = Executors.newFixedThreadPool(10);
+
         if(allNodes != null){
             for(Node node : allNodes) {
                 if(node.getPackageName() != null && (node.getPackageName().contains("com.android.systemui") || node.getPackageName().contains("sugilite"))){
@@ -183,6 +197,10 @@ public class UISnapshot {
                 //parent location
                 addEntityStringTriple(currentEntity, node.getBoundsInParent(), SugiliteRelation.HAS_PARENT_LOCATION);
 
+
+                //*** temporarily disable HAS_PARENT and HAS_CHILD relations ***
+
+
                 //has_parent relation
                 if (node.getParent() != null) {
                     //parent
@@ -206,6 +224,8 @@ public class UISnapshot {
                     }
                 }
 
+
+
                 //has_child_text relation
                 if (node.getParent() != null && node.getText() != null){
                     String text = node.getText();
@@ -227,12 +247,7 @@ public class UISnapshot {
                     }
                 }
 
-
-
-
                 // TODO: add sibling text info
-
-
 
             }
 
@@ -259,7 +274,7 @@ public class UISnapshot {
                     }
                 }
             }
-
+            long startTime = System.currentTimeMillis();
             //parse the string entities
             TextStringParseHelper textStringParseHelper = new TextStringParseHelper(sugiliteTextAnnotator);
 
@@ -271,12 +286,29 @@ public class UISnapshot {
             }
 
             for(SugiliteEntity<String> entity : tempEntities){
-                textStringParseHelper.parseAndAddNewRelations(entity, this);
+                Runnable r = new Runnable() {
+                    @Override
+                    public void run() {
+                        textStringParseHelper.parseAndAddNewRelations(entity, uiSnapshot);
+                    }
+                };
+                executor.execute(r);
             }
+
+            executor.shutdown();
+            try {
+                executor.awaitTermination(15, TimeUnit.SECONDS);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
+            long stopTime = System.currentTimeMillis();
+            Log.i(TAG, "Parsed Strings! -- Takes " + String.valueOf(stopTime - startTime) + "ms");
+            //*** temporarily disable geometric relations ***
 
             //parse node entities
 
-
+            /*
             Set<SugiliteEntity<Node>> nodeEntities = new HashSet<>();
 
             for(Map.Entry<Node, SugiliteEntity<Node>> entry : nodeSugiliteEntityMap.entrySet()){
@@ -287,6 +319,7 @@ public class UISnapshot {
             for (SugiliteNodeAnnotator.AnnotatingResult res : annotator.annotate(nodeEntities)) {
                 this.addEntityNodeTriple(res.getSubject(), res.getObject(), res.getRelation());
             }
+            */
 
         }
 
@@ -309,14 +342,14 @@ public class UISnapshot {
             counter ++;
             Node childNode = entry.getKey();
 
-            addEntityStringTriple(nodeSugiliteEntityMap.get(childNode), String.valueOf(counter), SugiliteRelation.HAS_LIST_ORDER);
-            //addEntityNumericTriple(nodeSugiliteEntityMap.get(childNode), Double.valueOf(counter), SugiliteRelation.HAS_LIST_ORDER);
+            //addEntityStringTriple(nodeSugiliteEntityMap.get(childNode), String.valueOf(counter), SugiliteRelation.HAS_LIST_ORDER);
+            addEntityNumericTriple(nodeSugiliteEntityMap.get(childNode), Double.valueOf(counter), SugiliteRelation.HAS_LIST_ORDER);
 
             SugiliteEntity<Node> childEntity = nodeSugiliteEntityMap.get(childNode);
             if(childEntity != null){
                 for(SugiliteEntity<Node> entity : getAllChildEntities(childEntity, new HashSet<>())){
-                    addEntityStringTriple(entity, String.valueOf(counter), SugiliteRelation.HAS_PARENT_WITH_LIST_ORDER);
-                    //addEntityNumericTriple(entity, Double.valueOf(counter), SugiliteRelation.HAS_PARENT_WITH_LIST_ORDER);
+                    //addEntityStringTriple(entity, String.valueOf(counter), SugiliteRelation.HAS_PARENT_WITH_LIST_ORDER);
+                    addEntityNumericTriple(entity, Double.valueOf(counter), SugiliteRelation.HAS_PARENT_WITH_LIST_ORDER);
                 }
             }
         }
@@ -342,6 +375,10 @@ public class UISnapshot {
         return results;
     }
 
+    public static String cleanUpString(String string){
+        return string.replace("(", "").replace(")", "").replace("\"", "");
+    }
+
 
     /**
      * helper function used for adding a <SugiliteEntity, SugiliteEntity<String>, SugiliteRelation) triple
@@ -349,9 +386,12 @@ public class UISnapshot {
      * @param string
      * @param relation
      */
-    public void addEntityStringTriple(SugiliteEntity currentEntity, String string, SugiliteRelation relation){
+    public synchronized void addEntityStringTriple(SugiliteEntity currentEntity, String string, SugiliteRelation relation){
         //class
         SugiliteEntity<String> objectEntity = null;
+
+        //clean up the string
+        string = cleanUpString(string);
 
         if (stringSugiliteEntityMap.containsKey(string)) {
             objectEntity = stringSugiliteEntityMap.get(string);

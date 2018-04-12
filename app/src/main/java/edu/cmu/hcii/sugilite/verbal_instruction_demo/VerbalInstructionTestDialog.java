@@ -28,10 +28,11 @@ import java.util.List;
 import java.util.Map;
 
 import edu.cmu.hcii.sugilite.Const;
-import edu.cmu.hcii.sugilite.Node;
+import edu.cmu.hcii.sugilite.model.Node;
 import edu.cmu.hcii.sugilite.R;
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.ontology.SerializableUISnapshot;
+import edu.cmu.hcii.sugilite.ontology.SugiliteRelation;
 import edu.cmu.hcii.sugilite.ontology.SugiliteSerializableEntity;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.server_comm.SugiliteVerbalInstructionHTTPQueryInterface;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.server_comm.SugiliteVerbalInstructionHTTPQueryManager;
@@ -120,8 +121,10 @@ public class VerbalInstructionTestDialog implements SugiliteVoiceInterface, Sugi
             @Override
             public void onClick(View v)
             {
+
+
                 String userInput = instructionTextbox.getText().toString();
-                VerbalInstructionServerQuery query = new VerbalInstructionServerQuery(userInput, serializableUISnapshot.triplesToString());
+                VerbalInstructionServerQuery query = new VerbalInstructionServerQuery(userInput, serializableUISnapshot.triplesToStringWithFilter(SugiliteRelation.HAS_CHILD, SugiliteRelation.HAS_PARENT), null);
 
                 //save the query locally
                 dumpQuery(query);

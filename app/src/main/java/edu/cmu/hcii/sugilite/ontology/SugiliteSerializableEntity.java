@@ -3,7 +3,7 @@ package edu.cmu.hcii.sugilite.ontology;
 import android.view.accessibility.AccessibilityNodeInfo;
 
 import edu.cmu.hcii.sugilite.BuildConfig;
-import edu.cmu.hcii.sugilite.Node;
+import edu.cmu.hcii.sugilite.model.Node;
 
 import java.io.Serializable;
 

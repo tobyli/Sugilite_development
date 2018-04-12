@@ -4,7 +4,7 @@ import java.util.AbstractMap;
 import java.util.HashSet;
 import java.util.Set;
 
-import edu.cmu.hcii.sugilite.Node;
+import edu.cmu.hcii.sugilite.model.Node;
 
 /**
  * @author toby
@@ -12,7 +12,11 @@ import edu.cmu.hcii.sugilite.Node;
  * @time 3:05 PM
  */
 public class OntologyQueryUtils {
+
     public static OntologyQuery getQueryWithClassAndPackageConstraints(OntologyQuery query, Node clickedNode){
+        return getQueryWithClassAndPackageConstraints(query, clickedNode, true, true);
+    }
+    public static OntologyQuery getQueryWithClassAndPackageConstraints(OntologyQuery query, Node clickedNode, boolean toAddClassQuery, boolean toAddPackageQuery){
         //de-serialize the query
         OntologyQuery classQuery = null;
         OntologyQuery packageQuery = null;
@@ -30,13 +34,23 @@ public class OntologyQueryUtils {
             packageQuery.setQueryFunction(SugiliteRelation.HAS_PACKAGE_NAME);
         }
 
+        if(query != null && query.getSubRelation() == OntologyQuery.relationType.AND && query.getSubQueries() != null){
+            for(OntologyQuery query1 : query.getSubQueries()){
+                if(query1 != null){
+                    if(query1.getR().equals(SugiliteRelation.HAS_CLASS_NAME)){
+                        toAddClassQuery = false;
+                    }
+                    if(query1.getR().equals(SugiliteRelation.HAS_PACKAGE_NAME)){
+                        toAddPackageQuery = false;
+                    }
+                }
+            }
 
-        if(query != null && query.getSubRelation() == OntologyQuery.relationType.AND){
             //add classQuery and packageQuery directly to query if query is of AND type
-            if(classQuery != null) {
+            if(classQuery != null && toAddClassQuery) {
                 query.addSubQuery(classQuery);
             }
-            if(packageQuery != null) {
+            if(packageQuery != null && toAddPackageQuery) {
                 query.addSubQuery(packageQuery);
             }
             return query;
@@ -54,10 +68,10 @@ public class OntologyQueryUtils {
             if(query != null) {
                 parentQuery.addSubQuery(query);
             }
-            if(classQuery != null) {
+            if(classQuery != null && toAddClassQuery) {
                 parentQuery.addSubQuery(classQuery);
             }
-            if(packageQuery != null) {
+            if(packageQuery != null && toAddPackageQuery) {
                 parentQuery.addSubQuery(packageQuery);
             }
 

@@ -1,10 +1,6 @@
 package edu.cmu.hcii.sugilite.ontology;
 
-import android.view.accessibility.AccessibilityNodeInfo;
-
-import com.google.gson.Gson;
-
-import edu.cmu.hcii.sugilite.Node;
+import edu.cmu.hcii.sugilite.model.Node;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -114,6 +110,35 @@ public class SerializableUISnapshot implements Serializable {
         List<List<String>> result = new ArrayList<>();
 
         for(SugiliteSerializableTriple triple : triples){
+            List<String> tripleList = new ArrayList<>();
+            if(triple.getSubjectId() != null) {
+                tripleList.add(triple.getSubjectId());
+            }
+            if(triple.getPredicateStringValue() != null) {
+                tripleList.add(triple.getPredicateStringValue());
+            }
+            if(triple.getObjectStringValue() != null) {
+                tripleList.add(triple.getObjectStringValue());
+            }
+            if(tripleList.size() == 3){
+                result.add(tripleList);
+            }
+        }
+        return result;
+
+    }
+
+    public List<List<String>> triplesToStringWithFilter(SugiliteRelation ... relations){
+        Set<String> relationsToFilter = new HashSet<>();
+        for(SugiliteRelation relation : relations){
+            relationsToFilter.add(relation.getRelationName());
+        }
+        List<List<String>> result = new ArrayList<>();
+
+        for(SugiliteSerializableTriple triple : triples){
+            if(relationsToFilter.contains(triple.getPredicateStringValue())){
+                continue;
+            }
             List<String> tripleList = new ArrayList<>();
             if(triple.getSubjectId() != null) {
                 tripleList.add(triple.getSubjectId());

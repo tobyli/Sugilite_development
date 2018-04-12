@@ -1,7 +1,5 @@
 package edu.cmu.hcii.sugilite.ontology.helper;
 
-import android.view.accessibility.AccessibilityNodeInfo;
-
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -10,7 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import edu.cmu.hcii.sugilite.Node;
+import edu.cmu.hcii.sugilite.model.Node;
 
 /**
  * @author toby

@@ -127,4 +127,8 @@ public class Const {
     //date format
     public static final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd=HH_mm_ss-SSS");
 
+    public static String boldify(String string){
+        return "<b>" + string + "</b>";
+    }
+
 }

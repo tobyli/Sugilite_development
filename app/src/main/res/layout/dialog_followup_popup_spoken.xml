@@ -53,7 +53,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:ems="10"
-            android:text="Send a verbal instruction"
+            android:text="Your query matches 2 items on the screen. Please give additional instructions on how to determine which one to choose"
             android:textColor="#000000"
             android:textSize="18sp"
             android:textStyle="bold" />
@@ -69,8 +69,9 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="0.8"
                 android:ems="10"
-                android:hint="Enter your query here"
-                android:inputType="text" />
+                android:hint="@string/edit_textbox_hint"
+                android:inputType="textMultiLine"
+                android:scrollHorizontally="false" />
 
             <ImageButton
                 android:id="@+id/button_verbal_instruction_talk"
@@ -82,7 +83,8 @@
                 android:cropToPadding="true"
                 android:elevation="2dp"
                 android:scaleType="fitCenter"
-                android:src="@mipmap/tap_to_talk" />
+                android:src="@mipmap/tap_to_talk"
+                android:visibility="visible"/>
         </LinearLayout>
     </LinearLayout>
 

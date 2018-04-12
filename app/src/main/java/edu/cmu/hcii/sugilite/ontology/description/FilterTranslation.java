@@ -43,6 +43,10 @@ public class FilterTranslation {
 
         filterMap.put(new OntologyQueryFilter(max,SugiliteRelation.CONTAINS_VOLUME),"biggest");
         filterMap.put(new OntologyQueryFilter(max,SugiliteRelation.CONTAINS_VOLUME),"smallest");
+
+        filterMap.put(new OntologyQueryFilter(max,SugiliteRelation.CONTAINS_NUMBER),"biggest");
+        filterMap.put(new OntologyQueryFilter(max,SugiliteRelation.CONTAINS_NUMBER),"smallest");
+
 //        HashMap<OntologyQueryFilter.FilterType,String> list_order_filter = new HashMap<OntologyQueryFilter.FilterType,String>();
 //        list_order_filter.put(OntologyQueryFilter.FilterType.ARG_MAX,"last");
 //        list_order_filter.put(OntologyQueryFilter.FilterType.ARG_MIN,"first");

@@ -354,6 +354,7 @@ public class StatusIconManager {
 
             @Override
             public boolean onTouch(final View v, MotionEvent event) {
+                v.performClick();
                 if (gestureDetector.onTouchEvent(event)) {
                     // gesture is clicking -> pop up the on-click menu
                     AlertDialog.Builder textDialogBuilder = new AlertDialog.Builder(context);
@@ -458,7 +459,7 @@ public class StatusIconManager {
                             operationList.add("Turn on verbal instruction");
                         }
                     }
-
+                    operationList.add("Hide Duck Icon");
                     operationList.add("Quit Sugilite");
                     String[] operations = new String[operationList.size()];
                     operations = operationList.toArray(operations);
@@ -495,7 +496,9 @@ public class StatusIconManager {
                                     prefEditor.apply();
 
                                     progressDialog = new AlertDialog.Builder(context).setMessage(Const.SAVING_MESSAGE).create();
-                                    progressDialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
+                                    if(progressDialog.getWindow() != null) {
+                                        progressDialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
+                                    }
                                     progressDialog.setCanceledOnTouchOutside(false);
                                     progressDialog.show();
                                     new Thread(new Runnable() {
@@ -524,7 +527,7 @@ public class StatusIconManager {
                                     }).start();
 
 
-                                    if (sugiliteData.initiatedExternally == true && sugiliteData.getScriptHead() != null) {
+                                    if (sugiliteData.initiatedExternally && sugiliteData.getScriptHead() != null) {
                                         sugiliteData.communicationController.sendRecordingFinishedSignal(sugiliteData.getScriptHead().getScriptName());
                                         sugiliteData.sendCallbackMsg(Const.FINISHED_RECORDING, jsonProcessor.scriptToJson(sugiliteData.getScriptHead()), sugiliteData.callbackString);
                                     }
@@ -545,9 +548,12 @@ public class StatusIconManager {
                                     Toast.makeText(context, "resume recording", Toast.LENGTH_SHORT).show();
                                     sugiliteData.setCurrentSystemState(SugiliteData.RECORDING_STATE);
                                     break;
+                                case "Hide Duck Icon":
+                                    //step: remove the duck and the status view
+                                    removeStatusIcon();
+                                    break;
                                 case "Quit Sugilite":
                                     Toast.makeText(context, "quit sugilite", Toast.LENGTH_SHORT).show();
-                                    //TODO: it should actually quit SUGILITE
 
                                     //step 1: end recording if one is in progress
                                     if(recordingInProgress){
@@ -555,7 +561,9 @@ public class StatusIconManager {
                                         prefEditor.putBoolean("recording_in_process", false);
                                         prefEditor.apply();
                                         progressDialog = new AlertDialog.Builder(context).setMessage(Const.SAVING_MESSAGE).create();
-                                        progressDialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
+                                        if(progressDialog.getWindow() != null) {
+                                            progressDialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
+                                        }
                                         progressDialog.setCanceledOnTouchOutside(false);
                                         progressDialog.show();
                                         new Thread(new Runnable() {
@@ -697,7 +705,7 @@ public class StatusIconManager {
                                                 //run the script
                                                 SharedPreferences.Editor prefEditor = sharedPreferences.edit();
                                                 prefEditor.putBoolean("recording_in_process", false);
-                                                prefEditor.commit();
+                                                prefEditor.apply();
 
                                                 try {
                                                     subscriptBlock.run(context, sugiliteData, sugiliteScriptDao, sharedPreferences);
@@ -712,7 +720,9 @@ public class StatusIconManager {
                                     });
 
                                     Dialog chooseSubscriptDialog = chooseSubscriptDialogBuilder.create();
-                                    chooseSubscriptDialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
+                                    if(chooseSubscriptDialog.getWindow() != null) {
+                                        chooseSubscriptDialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
+                                    }
                                     chooseSubscriptDialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_box);
                                     chooseSubscriptDialog.show();
                                     break;
@@ -797,8 +807,10 @@ public class StatusIconManager {
                             }
                         }
                     });
-                    duckDialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
-                    duckDialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_box);
+                    if(duckDialog.getWindow() != null) {
+                        duckDialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
+                        duckDialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_box);
+                    }
                     duckDialog.show();
                     return true;
 

@@ -7,6 +7,7 @@ import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.graphics.LightingColorFilter;
 import android.speech.tts.TextToSpeech;
+import android.support.annotation.NonNull;
 import android.text.Html;
 import android.util.Pair;
 import android.view.LayoutInflater;
@@ -23,29 +24,29 @@ import android.widget.Toast;
 
 import com.google.gson.Gson;
 
-import java.util.AbstractMap;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import edu.cmu.hcii.sugilite.Node;
+import edu.cmu.hcii.sugilite.model.Node;
 import edu.cmu.hcii.sugilite.R;
 import edu.cmu.hcii.sugilite.SugiliteAccessibilityService;
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.model.block.util.SugiliteAvailableFeaturePack;
 import edu.cmu.hcii.sugilite.model.block.operation.SugiliteOperationBlock;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteOperation;
+import edu.cmu.hcii.sugilite.model.operation.SugiliteUnaryOperation;
 import edu.cmu.hcii.sugilite.ontology.OntologyQuery;
 import edu.cmu.hcii.sugilite.ontology.OntologyQueryUtils;
 import edu.cmu.hcii.sugilite.ontology.SerializableOntologyQuery;
 import edu.cmu.hcii.sugilite.ontology.SerializableUISnapshot;
 import edu.cmu.hcii.sugilite.ontology.SugiliteEntity;
+import edu.cmu.hcii.sugilite.ontology.SugiliteRelation;
 import edu.cmu.hcii.sugilite.ontology.UISnapshot;
+import edu.cmu.hcii.sugilite.ontology.description.OntologyDescriptionGenerator;
 import edu.cmu.hcii.sugilite.recording.newrecording.SugiliteBlockBuildingHelper;
 import edu.cmu.hcii.sugilite.recording.newrecording.dialog_management.SugiliteDialogManager;
 import edu.cmu.hcii.sugilite.recording.newrecording.dialog_management.SugiliteDialogSimpleState;
@@ -59,6 +60,7 @@ import edu.cmu.hcii.sugilite.verbal_instruction_demo.server_comm.VerbalInstructi
 import static edu.cmu.hcii.sugilite.Const.MUL_ZEROS;
 import static edu.cmu.hcii.sugilite.Const.RECORDING_DARK_GRAY_COLOR;
 import static edu.cmu.hcii.sugilite.Const.RECORDING_OFF_BUTTON_COLOR;
+import static edu.cmu.hcii.sugilite.Const.boldify;
 
 /**
  * @author toby
@@ -84,6 +86,10 @@ public class RecordingAmbiguousPopupDialog extends SugiliteDialogManager impleme
     private VerbalInstructionRecordingManager verbalInstructionRecordingManager;
     private SugiliteData sugiliteData;
     private SharedPreferences sharedPreferences;
+    private TextView textPrompt;
+    private OntologyDescriptionGenerator descriptionGenerator;
+
+    private int errorCount = 0;
 
     //states
     private SugiliteDialogSimpleState askingForVerbalInstructionState = new SugiliteDialogSimpleState("ASKING_FOR_VERBAL_INSTRUCTION", this);
@@ -92,12 +98,12 @@ public class RecordingAmbiguousPopupDialog extends SugiliteDialogManager impleme
     private SugiliteDialogSimpleState resultWontMatchState = new SugiliteDialogSimpleState("RESULT_WONT_MATCH_STATE", this);
 
 
-    public RecordingAmbiguousPopupDialog(Context context, List<Pair<SerializableOntologyQuery, Double>> queryScoreList, SugiliteAvailableFeaturePack featurePack, SugiliteBlockBuildingHelper blockBuildingHelper, LayoutInflater layoutInflater, Runnable clickRunnable, UISnapshot uiSnapshot, SugiliteEntity<Node> actualClickedNode, SugiliteData sugiliteData, SharedPreferences sharedPreferences, TextToSpeech tts) {
+    public RecordingAmbiguousPopupDialog(Context context, List<Pair<SerializableOntologyQuery, Double>> queryScoreList, SugiliteAvailableFeaturePack featurePack, SugiliteBlockBuildingHelper blockBuildingHelper, LayoutInflater layoutInflater, Runnable clickRunnable, UISnapshot uiSnapshot, SugiliteEntity<Node> actualClickedNode, SugiliteData sugiliteData, SharedPreferences sharedPreferences, TextToSpeech tts, int errorCount) {
         super(context, tts);
         this.queryScoreList = queryScoreList;
         this.featurePack = featurePack;
         this.sugiliteVerbalInstructionHTTPQueryManager = new SugiliteVerbalInstructionHTTPQueryManager(this, sharedPreferences);
-
+        this.descriptionGenerator = new OntologyDescriptionGenerator(context);
 
         //TODO: need to operate on a copy of ui snapshot
         this.uiSnapshot = uiSnapshot;
@@ -110,7 +116,7 @@ public class RecordingAmbiguousPopupDialog extends SugiliteDialogManager impleme
         this.sharedPreferences = sharedPreferences;
         this.gson = new Gson();
         this.verbalInstructionRecordingManager = new VerbalInstructionRecordingManager(context, sugiliteData, sharedPreferences);
-
+        this.errorCount = errorCount;
 
         //build the dialog
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
@@ -120,7 +126,9 @@ public class RecordingAmbiguousPopupDialog extends SugiliteDialogManager impleme
         //set the list view for query parse candidates
         ListView mainListView = (ListView) dialogView.findViewById(R.id.listview_query_candidates);
         verbalInstructionEditText = (EditText) dialogView.findViewById(R.id.edittext_instruction_content);
-        Map<TextView, SugiliteOperationBlock> textViews = new HashMap<>();
+        textPrompt = (TextView) dialogView.findViewById(R.id.text_prompt);
+
+        //Map<TextView, SugiliteOperationBlock> textViews = new HashMap<>();
 
         queryScoreList = queryScoreList.subList(0, 1);
         String[] stringArray = new String[queryScoreList.size()];
@@ -142,8 +150,9 @@ public class RecordingAmbiguousPopupDialog extends SugiliteDialogManager impleme
 
         ArrayAdapter<String> adapter = new ArrayAdapter<String>(context, android.R.layout.simple_list_item_1, stringArray) {
             //override the arrayadapter to show HTML-styled textviews in the listview
+            @NonNull
             @Override
-            public View getView(int position, View convertView, ViewGroup parent) {
+            public View getView(int position, View convertView, @NonNull ViewGroup parent) {
                 View row;
                 if (null == convertView) {
                     row = layoutInflater.inflate(android.R.layout.simple_list_item_1, null);
@@ -152,7 +161,7 @@ public class RecordingAmbiguousPopupDialog extends SugiliteDialogManager impleme
                 }
                 TextView tv = (TextView) row.findViewById(android.R.id.text1);
                 tv.setText(Html.fromHtml(getItem(position)));
-                textViews.put(tv, sugiliteOperationBlockArray[position]);
+                //textViews.put(tv, sugiliteOperationBlockArray[position]);
                 return row;
             }
 
@@ -231,7 +240,9 @@ public class RecordingAmbiguousPopupDialog extends SugiliteDialogManager impleme
 
 
     public void show() {
-        dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
+        if(dialog.getWindow() != null) {
+            dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
+        }
         dialog.show();
 
         //initiate the dialog manager when the dialog is shown
@@ -241,7 +252,9 @@ public class RecordingAmbiguousPopupDialog extends SugiliteDialogManager impleme
 
     private void showProgressDialog() {
         progressDialog = new AlertDialog.Builder(context).setMessage("Processing the query ...").create();
-        progressDialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
+        if(progressDialog.getWindow() != null) {
+            progressDialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
+        }
         progressDialog.setCanceledOnTouchOutside(false);
         progressDialog.show();
     }
@@ -255,8 +268,13 @@ public class RecordingAmbiguousPopupDialog extends SugiliteDialogManager impleme
         //send the instruction out to the server for semantic parsing
         if (verbalInstructionEditText != null) {
             String userInput = verbalInstructionEditText.getText().toString();
+            String className = null;
+            if(actualClickedNode != null && actualClickedNode.getEntityValue() != null){
+                className = actualClickedNode.getEntityValue().getClassName();
+            }
+
             //send out the ASR result
-            VerbalInstructionServerQuery query = new VerbalInstructionServerQuery(userInput, serializableUISnapshot.triplesToString());
+            VerbalInstructionServerQuery query = new VerbalInstructionServerQuery(userInput, serializableUISnapshot.triplesToStringWithFilter(SugiliteRelation.HAS_CHILD, SugiliteRelation.HAS_PARENT, SugiliteRelation.HAS_CONTENT_DESCRIPTION), className);
             //send the query
             Thread thread = new Thread() {
                 @Override
@@ -300,10 +318,10 @@ public class RecordingAmbiguousPopupDialog extends SugiliteDialogManager impleme
         refreshSpeakButtonStyle(speakButton);
     }
 
-    @Override
     /**
      * callback for the HTTP query when the result is available
      */
+    @Override
     public void resultReceived(int responseCode, String result) {
         final int MAX_QUERY_CANDIDATE_NUMBER = 7;
 
@@ -349,7 +367,7 @@ public class RecordingAmbiguousPopupDialog extends SugiliteDialogManager impleme
 
             boolean matched = false;
             List<Node> filteredNodes = new ArrayList<>();
-            Map<Node, Integer> filteredNodeNodeIdMap = new HashMap<>();
+            //Map<Node, Integer> filteredNodeNodeIdMap = new HashMap<>();
 
             //construct the query, run the query, and compare the result against the actually clicked on node
 
@@ -366,7 +384,7 @@ public class RecordingAmbiguousPopupDialog extends SugiliteDialogManager impleme
                         Node node = (Node) entity.getEntityValue();
                         if (node.getClickable()) {
                             filteredNodes.add(node);
-                            filteredNodeNodeIdMap.put(node, entity.getEntityId());
+                            //filteredNodeNodeIdMap.put(node, entity.getEntityId());
                         }
                         if (OntologyQueryUtils.isSameNode(actualClickedNode.getEntityValue(), node)) {
                             matched = true;
@@ -395,7 +413,7 @@ public class RecordingAmbiguousPopupDialog extends SugiliteDialogManager impleme
 
         if(false) {
             //don't sort the results -- keep the original order from the parser
-            Collections.sort(matchingQueriesMatchedNodesList, new Comparator<Pair<OntologyQuery, List<Node>>>() {
+            matchingQueriesMatchedNodesList.sort(new Comparator<Pair<OntologyQuery, List<Node>>>() {
                 @Override
                 public int compare(Pair<OntologyQuery, List<Node>> o1, Pair<OntologyQuery, List<Node>> o2) {
                     return o1.second.size() - o2.second.size();
@@ -414,14 +432,13 @@ public class RecordingAmbiguousPopupDialog extends SugiliteDialogManager impleme
 
 
         if (matchingQueriesMatchedNodesList.size() == 1) {
-            //sort the list by the size of matched node and length, and see if the top result has filteredNodes.size() = 1
             OntologyQuery query = matchingQueriesMatchedNodesList.get(0).first;
             Toast.makeText(context, query.toString(), Toast.LENGTH_SHORT).show();
 
             //check if this has filteredNodes.size() = 1 -- whether need to show the followup question dialog
             if(matchingQueriesMatchedNodesList.get(0).second.size() > 1) {
                 //prompt for further generalization
-                FollowUpQuestionDialog followUpQuestionDialog = new FollowUpQuestionDialog(context, tts, query, uiSnapshot, actualClickedNode, matchingQueriesMatchedNodesList.get(0).second, featurePack, queryScoreList, blockBuildingHelper, layoutInflater, clickRunnable, sugiliteData, sharedPreferences);
+                FollowUpQuestionDialog followUpQuestionDialog = new FollowUpQuestionDialog(context, tts, query, uiSnapshot, actualClickedNode, matchingQueriesMatchedNodesList.get(0).second, featurePack, queryScoreList, blockBuildingHelper, layoutInflater, clickRunnable, sugiliteData, sharedPreferences, 0);
                 followUpQuestionDialog.setNumberOfMatchedNodes(matchingQueriesMatchedNodesList.get(0).second.size());
                 followUpQuestionDialog.show();
             } else {
@@ -437,16 +454,35 @@ public class RecordingAmbiguousPopupDialog extends SugiliteDialogManager impleme
             }
             dialog.dismiss();
         }
+
         else if(matchingQueriesMatchedNodesList.size() > 1){
             ChooseParsingDialog chooseParsingDialog = new ChooseParsingDialog(context, matchingQueriesMatchedNodesList.subList(0, Integer.min(matchingQueriesMatchedNodesList.size(), MAX_QUERY_CANDIDATE_NUMBER)), blockBuildingHelper, layoutInflater, clickRunnable, uiSnapshot, actualClickedNode, sugiliteData, sharedPreferences, tts, featurePack, queryScoreList);
             chooseParsingDialog.show();
             dialog.dismiss();
         }
+
         else {
             //empty result, show the dialog and switch to empty result state
             dialog.show();
             setCurrentState(resultWontMatchState);
             initPrompt();
+
+            String descriptionForTopQuery = null;
+            try {
+                OntologyQuery topQuery = OntologyQuery.deserialize(results.getQueries().get(0).getFormula());
+                SugiliteOperation operation = new SugiliteUnaryOperation(SugiliteOperation.CLICK);
+                topQuery = OntologyQueryUtils.getQueryWithClassAndPackageConstraints(topQuery, actualClickedNode.getEntityValue(), true, false);
+                descriptionForTopQuery = descriptionGenerator.getDescriptionForOperation(operation, new SerializableOntologyQuery(topQuery));
+                if(descriptionForTopQuery != null){
+                    textPrompt.setText(Html.fromHtml(boldify(context.getString(R.string.disambiguation_result_wont_match)) + "<br><br> Intepretation for your description: " + descriptionForTopQuery));
+
+                }
+            }
+            catch (Exception e){
+                e.printStackTrace();
+            }
+
+
         }
     }
 
@@ -497,6 +533,7 @@ public class RecordingAmbiguousPopupDialog extends SugiliteDialogManager impleme
             public void run() {
                 //clear the edittext
                 verbalInstructionEditText.setText("");
+                textPrompt.setText(Html.fromHtml(boldify(context.getString(R.string.disambiguation_prompt))));
             }
         });
 
@@ -506,6 +543,51 @@ public class RecordingAmbiguousPopupDialog extends SugiliteDialogManager impleme
             public void run() {
                 //askingForInstructionConfirmationState.setPrompt(context.getString(R.string.disambiguation_confirm, verbalInstructionEditText.getText()));
                 askingForInstructionConfirmationState.setPrompt(context.getString(R.string.disambiguation_confirm));
+                textPrompt.setText(Html.fromHtml(boldify(context.getString(R.string.disambiguation_confirm))));
+            }
+        });
+
+        resultWontMatchState.setOnInitiatedRunnable(new Runnable() {
+            @Override
+            public void run() {
+                //clear the edittext
+                verbalInstructionEditText.setText("");
+
+                //increment for error count
+                errorCount ++;
+
+                if(errorCount > 1){
+                    //set prompt to the error one
+                    resultWontMatchState.setPrompt(context.getString(R.string.disambiguation_result_wont_match_repeated));
+                    textPrompt.setText(Html.fromHtml(boldify(context.getString(R.string.disambiguation_result_wont_match_repeated))));
+                }
+
+                else{
+                    resultWontMatchState.setPrompt(context.getString(R.string.disambiguation_result_wont_match));
+                    textPrompt.setText(Html.fromHtml(boldify(context.getString(R.string.disambiguation_result_wont_match))));
+                }
+            }
+        });
+
+        emptyResultState.setOnInitiatedRunnable(new Runnable() {
+            @Override
+            public void run() {
+                //clear the edittext
+                verbalInstructionEditText.setText("");
+
+                //increment for error count
+                errorCount ++;
+
+                if(errorCount > 1){
+                    //set prompt to the error one
+                    emptyResultState.setPrompt(context.getString(R.string.disambiguation_error_repeated));
+                    textPrompt.setText(Html.fromHtml(boldify(context.getString(R.string.disambiguation_error_repeated))));
+                }
+
+                else {
+                    emptyResultState.setPrompt(context.getString(R.string.disambiguation_error));
+                    textPrompt.setText(Html.fromHtml(boldify(context.getString(R.string.disambiguation_error))));
+                }
             }
         });
 

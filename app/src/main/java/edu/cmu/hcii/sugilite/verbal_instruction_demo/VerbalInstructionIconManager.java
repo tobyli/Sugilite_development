@@ -248,6 +248,10 @@ public class VerbalInstructionIconManager implements SugiliteVoiceInterface {
         }
     }
 
+    public ImageView getStatusIcon() {
+        return statusIcon;
+    }
+
     public boolean isShowingIcon() {
         return showingIcon;
     }
@@ -388,10 +392,13 @@ public class VerbalInstructionIconManager implements SugiliteVoiceInterface {
                                                 //remove and re-add the status icon so that it can show on top of the overlay
                                                 removeStatusIcon();
                                                 addStatusIcon();
+
+                                                /*
                                                 if(duckIconManager != null){
                                                     duckIconManager.removeStatusIcon();
                                                     duckIconManager.addStatusIcon();
                                                 }
+                                                */
 
                                             }
                                     }

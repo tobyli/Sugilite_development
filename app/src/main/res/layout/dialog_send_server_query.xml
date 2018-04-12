@@ -18,8 +18,9 @@
             android:layout_height="wrap_content"
             android:layout_weight="0.8"
             android:ems="10"
-            android:hint="Enter your query here"
-            android:inputType="text" />
+            android:hint="@string/edit_textbox_hint"
+            android:inputType="textMultiLine"
+            android:scrollHorizontally="false" />
 
         <ImageButton
             android:id="@+id/button_verbal_instruction_talk"

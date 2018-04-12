@@ -28,14 +28,12 @@ import com.google.gson.Gson;
 
 import java.util.AbstractMap;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import edu.cmu.hcii.sugilite.Node;
+import edu.cmu.hcii.sugilite.model.Node;
 import edu.cmu.hcii.sugilite.R;
 import edu.cmu.hcii.sugilite.SugiliteAccessibilityService;
 import edu.cmu.hcii.sugilite.SugiliteData;
@@ -47,6 +45,7 @@ import edu.cmu.hcii.sugilite.ontology.OntologyQueryUtils;
 import edu.cmu.hcii.sugilite.ontology.SerializableOntologyQuery;
 import edu.cmu.hcii.sugilite.ontology.SerializableUISnapshot;
 import edu.cmu.hcii.sugilite.ontology.SugiliteEntity;
+import edu.cmu.hcii.sugilite.ontology.SugiliteRelation;
 import edu.cmu.hcii.sugilite.ontology.UISnapshot;
 import edu.cmu.hcii.sugilite.ontology.description.OntologyDescriptionGenerator;
 import edu.cmu.hcii.sugilite.recording.newrecording.SugiliteBlockBuildingHelper;
@@ -63,6 +62,7 @@ import edu.cmu.hcii.sugilite.verbal_instruction_demo.util.NavigationBarUtil;
 import static edu.cmu.hcii.sugilite.Const.MUL_ZEROS;
 import static edu.cmu.hcii.sugilite.Const.RECORDING_DARK_GRAY_COLOR;
 import static edu.cmu.hcii.sugilite.Const.RECORDING_OFF_BUTTON_COLOR;
+import static edu.cmu.hcii.sugilite.Const.boldify;
 
 /**
  * @author toby
@@ -101,6 +101,8 @@ public class FollowUpQuestionDialog extends SugiliteDialogManager implements Sug
     private View previewOverlay;
     private FollowUpQuestionDialog followUpQuestionDialog;
 
+    private int errorCount = 0;
+
 
     private Handler handler;
 
@@ -123,7 +125,7 @@ public class FollowUpQuestionDialog extends SugiliteDialogManager implements Sug
     private AlertDialog dialog;
     private Dialog progressDialog;
 
-    public FollowUpQuestionDialog(Context context, TextToSpeech tts, OntologyQuery initialQuery, UISnapshot uiSnapshot, SugiliteEntity<Node> actualClickedNode, List<Node> matchedNodes, SugiliteAvailableFeaturePack featurePack, List<Pair<SerializableOntologyQuery, Double>> queryScoreList, SugiliteBlockBuildingHelper blockBuildingHelper, LayoutInflater layoutInflater, Runnable clickRunnable, SugiliteData sugiliteData, SharedPreferences sharedPreferences){
+    public FollowUpQuestionDialog(Context context, TextToSpeech tts, OntologyQuery initialQuery, UISnapshot uiSnapshot, SugiliteEntity<Node> actualClickedNode, List<Node> matchedNodes, SugiliteAvailableFeaturePack featurePack, List<Pair<SerializableOntologyQuery, Double>> queryScoreList, SugiliteBlockBuildingHelper blockBuildingHelper, LayoutInflater layoutInflater, Runnable clickRunnable, SugiliteData sugiliteData, SharedPreferences sharedPreferences, int errorCount){
         super(context, tts);
         this.previousQuery = null;
         this.currentQuery = initialQuery;
@@ -144,13 +146,15 @@ public class FollowUpQuestionDialog extends SugiliteDialogManager implements Sug
         this.navigationBarUtil = new NavigationBarUtil();
         this.handler = new Handler();
         this.followUpQuestionDialog = this;
+        this.errorCount = errorCount;
+
         if(matchedNodes != null) {
             this.matchedNodes = matchedNodes;
         } else {
             this.matchedNodes = new ArrayList<>();
         }
 
-        windowManager = (WindowManager) context.getSystemService(context.WINDOW_SERVICE);
+        windowManager = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
         displayMetrics = new DisplayMetrics();
         windowManager.getDefaultDisplay().getMetrics(displayMetrics);
 
@@ -230,7 +234,9 @@ public class FollowUpQuestionDialog extends SugiliteDialogManager implements Sug
     }
 
     public void show(){
-        dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
+        if(dialog.getWindow() != null) {
+            dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
+        }
         dialog.show();
 
         //clear the handler
@@ -255,7 +261,12 @@ public class FollowUpQuestionDialog extends SugiliteDialogManager implements Sug
         if (verbalInstructionEditText != null) {
             String userInput = verbalInstructionEditText.getText().toString();
             //send out the ASR result
-            VerbalInstructionServerQuery query = new VerbalInstructionServerQuery(userInput, serializableUISnapshot.triplesToString());
+            String className = null;
+            if(actualClickedNode != null && actualClickedNode.getEntityValue() != null){
+                className = actualClickedNode.getEntityValue().getClassName();
+            }
+
+            VerbalInstructionServerQuery query = new VerbalInstructionServerQuery(userInput, serializableUISnapshot.triplesToStringWithFilter(SugiliteRelation.HAS_PARENT, SugiliteRelation.HAS_CHILD, SugiliteRelation.HAS_CONTENT_DESCRIPTION), className);
             //send the query
             Thread thread = new Thread() {
                 @Override
@@ -315,7 +326,7 @@ public class FollowUpQuestionDialog extends SugiliteDialogManager implements Sug
     private void backButtonOnClick(){
         if(previousQuery != null) {
             //go back to the followup question dialog with the previous query
-            FollowUpQuestionDialog followUpQuestionDialog = new FollowUpQuestionDialog(context, tts, previousQuery, uiSnapshot, actualClickedNode, previousMatchedNodes, featurePack, queryScoreList, blockBuildingHelper, layoutInflater, clickRunnable, sugiliteData, sharedPreferences);
+            FollowUpQuestionDialog followUpQuestionDialog = new FollowUpQuestionDialog(context, tts, previousQuery, uiSnapshot, actualClickedNode, previousMatchedNodes, featurePack, queryScoreList, blockBuildingHelper, layoutInflater, clickRunnable, sugiliteData, sharedPreferences, 0);
             dialog.dismiss();
             if(previousMatchedNodes != null && previousMatchedNodes.size() > 1) {
                 followUpQuestionDialog.setNumberOfMatchedNodes(previousMatchedNodes.size());
@@ -327,14 +338,16 @@ public class FollowUpQuestionDialog extends SugiliteDialogManager implements Sug
         else{
             //go back to the original ambiguous popup dialog
             dialog.dismiss();
-            RecordingAmbiguousPopupDialog ambiguousPopupDialog = new RecordingAmbiguousPopupDialog(context, queryScoreList, featurePack, blockBuildingHelper, layoutInflater, clickRunnable, uiSnapshot, actualClickedNode, sugiliteData, sharedPreferences, tts);
+            RecordingAmbiguousPopupDialog ambiguousPopupDialog = new RecordingAmbiguousPopupDialog(context, queryScoreList, featurePack, blockBuildingHelper, layoutInflater, clickRunnable, uiSnapshot, actualClickedNode, sugiliteData, sharedPreferences, tts, 0);
             ambiguousPopupDialog.show();
         }
     }
 
     private void showProgressDialog() {
         progressDialog = new AlertDialog.Builder(context).setMessage("Processing the query ...").create();
-        progressDialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
+        if(progressDialog.getWindow() != null) {
+            progressDialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
+        }
         progressDialog.setCanceledOnTouchOutside(false);
         progressDialog.show();
     }
@@ -344,8 +357,8 @@ public class FollowUpQuestionDialog extends SugiliteDialogManager implements Sug
      */
     private void refreshPreviewTextView(){
         //TODO: show the source code temporarily
-        //String html = ontologyDescriptionGenerator.getDescriptionForOntologyQuery(SugiliteBlockBuildingHelper.stripSerializableOntologyQuery(new SerializableOntologyQuery(currentQuery)));
-        String html = SugiliteBlockBuildingHelper.stripSerializableOntologyQuery(new SerializableOntologyQuery(currentQuery)).toString();
+        String html = ontologyDescriptionGenerator.getDescriptionForOntologyQuery(SugiliteBlockBuildingHelper.stripSerializableOntologyQuery(new SerializableOntologyQuery(currentQuery)));
+        //String html = SugiliteBlockBuildingHelper.stripSerializableOntologyQuery(new SerializableOntologyQuery(currentQuery)).toString();
         currentQueryTextView.setText(Html.fromHtml(html));
     }
 
@@ -410,6 +423,49 @@ public class FollowUpQuestionDialog extends SugiliteDialogManager implements Sug
             public void run() {
                 //clear the edittext
                 verbalInstructionEditText.setText("");
+            }
+        });
+
+        resultWontMatchState.setOnInitiatedRunnable(new Runnable() {
+            @Override
+            public void run() {
+                //clear the edittext
+                verbalInstructionEditText.setText("");
+
+                errorCount ++;
+
+                if(errorCount > 1){
+                    //set prompt to the error one
+                    resultWontMatchState.setPrompt(context.getString(R.string.disambiguation_result_wont_match_repeated));
+                    //textPrompt.setText(Html.fromHtml(boldify(context.getString(R.string.disambiguation_result_wont_match_repeated))));
+                }
+
+                else{
+                    resultWontMatchState.setPrompt(context.getString(R.string.disambiguation_result_wont_match));
+                    //textPrompt.setText(Html.fromHtml(boldify(context.getString(R.string.disambiguation_result_wont_match))));
+                }
+
+            }
+        });
+
+        emptyResultState.setOnInitiatedRunnable(new Runnable() {
+            @Override
+            public void run() {
+                //clear the edittext
+                verbalInstructionEditText.setText("");
+
+                errorCount ++;
+
+                if(errorCount > 1){
+                    //set prompt to the error one
+                    emptyResultState.setPrompt(context.getString(R.string.disambiguation_error_repeated));
+                    //textPrompt.setText(Html.fromHtml(boldify(context.getString(R.string.disambiguation_error_repeated))));
+                }
+
+                else {
+                    emptyResultState.setPrompt(context.getString(R.string.disambiguation_error));
+                    //textPrompt.setText(Html.fromHtml(boldify(context.getString(R.string.disambiguation_error))));
+                }
             }
         });
 
@@ -490,11 +546,7 @@ public class FollowUpQuestionDialog extends SugiliteDialogManager implements Sug
     }
 
     public boolean isShowing(){
-        if(dialog != null) {
-            return dialog.isShowing();
-        } else{
-            return false;
-        }
+        return dialog != null && dialog.isShowing();
     }
 
     public void uncollapse(){
@@ -514,24 +566,85 @@ public class FollowUpQuestionDialog extends SugiliteDialogManager implements Sug
             }
 
             //show the on dialog
+            if(dialog.getWindow() != null) {
+                final View decorView = dialog
+                        .getWindow()
+                        .getDecorView();
+                ObjectAnimator scaleDown = ObjectAnimator.ofPropertyValuesHolder(decorView,
+                        PropertyValuesHolder.ofFloat(View.SCALE_X, 0.0f, 1.0f),
+                        PropertyValuesHolder.ofFloat(View.SCALE_Y, 0.0f, 1.0f),
+                        PropertyValuesHolder.ofFloat(View.TRANSLATION_X, prevXOffset, 0),
+                        PropertyValuesHolder.ofFloat(View.TRANSLATION_Y, prevYOffset, 0),
+                        PropertyValuesHolder.ofFloat(View.ALPHA, 0.5f, 1.0f));
+
+                scaleDown.addListener(new Animator.AnimatorListener() {
+                    @Override
+                    public void onAnimationEnd(Animator animation) {
+                        setCurrentState(askingForVerbalInstructionFollowUpState);
+                        initPrompt();
+                    }
+
+                    @Override
+                    public void onAnimationStart(Animator animation) {
+                    }
+
+                    @Override
+                    public void onAnimationCancel(Animator animation) {
+                    }
+
+                    @Override
+                    public void onAnimationRepeat(Animator animation) {
+                    }
+                });
+                scaleDown.setDuration(1000);
+                scaleDown.start();
+            }
+        }
+    }
+
+    private void collapse(){
+        if(dialog.getWindow() != null) {
             final View decorView = dialog
                     .getWindow()
                     .getDecorView();
+
+            int icon_x = displayMetrics.widthPixels;
+            int icon_y = 400;
+            int center_x = displayMetrics.widthPixels / 2;
+            int center_y = displayMetrics.heightPixels / 2;
+            if (verbalInstructionIconManager != null) {
+                icon_x = verbalInstructionIconManager.getCurrent_x();
+                icon_y = verbalInstructionIconManager.getCurrent_y();
+            }
+
+            float x_offset = icon_x - center_x;
+            float y_offset = icon_y - center_y;
+            prevXOffset = x_offset;
+            prevYOffset = y_offset;
+
+            //show the off dialog
             ObjectAnimator scaleDown = ObjectAnimator.ofPropertyValuesHolder(decorView,
-                    PropertyValuesHolder.ofFloat(View.SCALE_X, 0.0f, 1.0f),
-                    PropertyValuesHolder.ofFloat(View.SCALE_Y, 0.0f, 1.0f),
-                    PropertyValuesHolder.ofFloat(View.TRANSLATION_X, prevXOffset, 0),
-                    PropertyValuesHolder.ofFloat(View.TRANSLATION_Y, prevYOffset, 0),
-                    PropertyValuesHolder.ofFloat(View.ALPHA, 0.5f, 1.0f));
+                    PropertyValuesHolder.ofFloat(View.SCALE_X, 1.0f, 0.0f),
+                    PropertyValuesHolder.ofFloat(View.SCALE_Y, 1.0f, 0.0f),
+                    PropertyValuesHolder.ofFloat(View.TRANSLATION_X, 0, x_offset),
+                    PropertyValuesHolder.ofFloat(View.TRANSLATION_Y, 0, y_offset),
+                    PropertyValuesHolder.ofFloat(View.ALPHA, 1.0f, 0.5f));
             scaleDown.addListener(new Animator.AnimatorListener() {
                 @Override
                 public void onAnimationEnd(Animator animation) {
-                    setCurrentState(askingForVerbalInstructionFollowUpState);
-                    initPrompt();
+                    flagDismissedByCollapsing = true;
+                    dialog.dismiss();
+                    handler.postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            uncollapse();
+                        }
+                    }, 6000);
                 }
 
                 @Override
                 public void onAnimationStart(Animator animation) {
+                    stopASRandTTS();
                 }
 
                 @Override
@@ -545,59 +658,6 @@ public class FollowUpQuestionDialog extends SugiliteDialogManager implements Sug
             scaleDown.setDuration(1000);
             scaleDown.start();
         }
-    }
-
-    private void collapse(){
-        final View decorView = dialog
-                .getWindow()
-                .getDecorView();
-
-        int icon_x = displayMetrics.widthPixels;
-        int icon_y = 400;
-        int center_x = displayMetrics.widthPixels / 2;
-        int center_y = displayMetrics.heightPixels / 2;
-        if(verbalInstructionIconManager != null){
-            icon_x = verbalInstructionIconManager.getCurrent_x();
-            icon_y = verbalInstructionIconManager.getCurrent_y();
-        }
-
-        float x_offset = icon_x - center_x;
-        float y_offset = icon_y - center_y;
-        prevXOffset = x_offset;
-        prevYOffset = y_offset;
-
-        //show the off dialog
-        ObjectAnimator scaleDown = ObjectAnimator.ofPropertyValuesHolder(decorView,
-                PropertyValuesHolder.ofFloat(View.SCALE_X, 1.0f, 0.0f),
-                PropertyValuesHolder.ofFloat(View.SCALE_Y, 1.0f, 0.0f),
-                PropertyValuesHolder.ofFloat(View.TRANSLATION_X, 0, x_offset),
-                PropertyValuesHolder.ofFloat(View.TRANSLATION_Y, 0, y_offset),
-                PropertyValuesHolder.ofFloat(View.ALPHA, 1.0f, 0.5f));
-        scaleDown.addListener(new Animator.AnimatorListener() {
-            @Override
-            public void onAnimationEnd(Animator animation) {
-                flagDismissedByCollapsing = true;
-                dialog.dismiss();
-                handler.postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        uncollapse();
-                    }
-                }, 6000);
-            }
-            @Override
-            public void onAnimationStart(Animator animation) {
-                stopASRandTTS();
-            }
-            @Override
-            public void onAnimationCancel(Animator animation) {
-            }
-            @Override
-            public void onAnimationRepeat(Animator animation) {
-            }
-        });
-        scaleDown.setDuration(1000);
-        scaleDown.start();
     }
 
     @Override
@@ -629,7 +689,7 @@ public class FollowUpQuestionDialog extends SugiliteDialogManager implements Sug
         for (VerbalInstructionServerResults.VerbalInstructionResult verbalInstructionResult : results.getQueries()) {
             boolean matched = false;
             List<Node> filteredNodes = new ArrayList<>();
-            Map<Node, Integer> filteredNodeNodeIdMap = new HashMap<>();
+            //Map<Node, Integer> filteredNodeNodeIdMap = new HashMap<>();
 
             //construct the query, run the query, and compare the result against the actually clicked on node
 
@@ -647,7 +707,7 @@ public class FollowUpQuestionDialog extends SugiliteDialogManager implements Sug
                     Node node = (Node) entity.getEntityValue();
                     if (node.getClickable()) {
                         filteredNodes.add(node);
-                        filteredNodeNodeIdMap.put(node, entity.getEntityId());
+                        //filteredNodeNodeIdMap.put(node, entity.getEntityId());
                     }
                     if (OntologyQueryUtils.isSameNode(actualClickedNode.getEntityValue(), node)) {
                         matched = true;
@@ -660,11 +720,12 @@ public class FollowUpQuestionDialog extends SugiliteDialogManager implements Sug
                 matchingQueriesMatchedNodesList.add(new AbstractMap.SimpleEntry<>(combinedQuery, filteredNodes));
             }
         }
-
-        Collections.sort(matchingQueriesMatchedNodesList, new Comparator<Map.Entry<OntologyQuery, List<Node>>>() {
-            @Override
-            public int compare(Map.Entry<OntologyQuery, List<Node>> o1, Map.Entry<OntologyQuery, List<Node>> o2) {
-                return o1.getValue().size() - o2.getValue().size();
+        if(false) {
+            //don't sort the results -- keep the original order from the parser
+            matchingQueriesMatchedNodesList.sort(new Comparator<Map.Entry<OntologyQuery, List<Node>>>() {
+                @Override
+                public int compare(Map.Entry<OntologyQuery, List<Node>> o1, Map.Entry<OntologyQuery, List<Node>> o2) {
+                    return o1.getValue().size() - o2.getValue().size();
                 /*
                 if(o1.getValue().size() != o2.getValue().size()){
                     return o1.getValue().size() - o2.getValue().size();
@@ -672,11 +733,12 @@ public class FollowUpQuestionDialog extends SugiliteDialogManager implements Sug
                 else{
                     return o1.getKey().toString().length() - o2.getKey().toString().length();
                 }*/
-            }
-        });
+                }
+            });
+        }
 
         //sort the list by the size of matched node and length, and see if the top result has filteredNodes.size() = 1
-        if (matchingQueriesMatchedNodesList != null && (!matchingQueriesMatchedNodesList.isEmpty())) {
+        if (matchingQueriesMatchedNodesList.size() > 0) {
             OntologyQuery query = matchingQueriesMatchedNodesList.get(0).getKey();
 
             if(matchingQueriesMatchedNodesList.get(0).getValue().size() > 1) {

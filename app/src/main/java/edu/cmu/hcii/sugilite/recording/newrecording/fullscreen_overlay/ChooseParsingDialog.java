@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.speech.tts.TextToSpeech;
+import android.support.annotation.NonNull;
 import android.text.Html;
 import android.util.Pair;
 import android.view.LayoutInflater;
@@ -18,11 +19,9 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
-import edu.cmu.hcii.sugilite.Node;
+import edu.cmu.hcii.sugilite.model.Node;
 import edu.cmu.hcii.sugilite.R;
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.model.block.operation.SugiliteOperationBlock;
@@ -32,7 +31,6 @@ import edu.cmu.hcii.sugilite.ontology.OntologyQuery;
 import edu.cmu.hcii.sugilite.ontology.SerializableOntologyQuery;
 import edu.cmu.hcii.sugilite.ontology.SugiliteEntity;
 import edu.cmu.hcii.sugilite.ontology.UISnapshot;
-import edu.cmu.hcii.sugilite.ontology.description.DescriptionGenerator;
 import edu.cmu.hcii.sugilite.ontology.description.OntologyDescriptionGenerator;
 import edu.cmu.hcii.sugilite.recording.newrecording.SugiliteBlockBuildingHelper;
 import edu.cmu.hcii.sugilite.recording.newrecording.dialog_management.SugiliteDialogManager;
@@ -87,7 +85,7 @@ public class ChooseParsingDialog extends SugiliteDialogManager {
 
         //set the list view for query parse candidates
         ListView mainListView = (ListView) dialogView.findViewById(R.id.listview_query_candidates);
-        Map<TextView, OntologyQuery> textViews = new HashMap<>();
+        //Map<TextView, OntologyQuery> textViews = new HashMap<>();
         String[] stringArray = new String[resultQueries.size()];
         OntologyQuery[] ontologyQueryArray = new OntologyQuery[resultQueries.size()];
 
@@ -104,8 +102,9 @@ public class ChooseParsingDialog extends SugiliteDialogManager {
 
         ArrayAdapter<String> adapter = new ArrayAdapter<String>(context, android.R.layout.simple_list_item_2, stringArray) {
             //override the arrayadapter to show HTML-styled textviews in the listview
+            @NonNull
             @Override
-            public View getView(int position, View convertView, ViewGroup parent) {
+            public View getView(int position, View convertView, @NonNull ViewGroup parent) {
                 View row;
                 if (null == convertView) {
                     row = layoutInflater.inflate(android.R.layout.simple_list_item_2, null);
@@ -116,7 +115,7 @@ public class ChooseParsingDialog extends SugiliteDialogManager {
                 tv1.setText(Html.fromHtml(getItem(position)));
                 TextView tv2 = (TextView) row.findViewById(android.R.id.text2);
                 tv2.setText(ontologyQueryArray[position].toString() + "\n" + "Matched " + String.valueOf(matchingQueriesMatchedNodesList.get(position).second.size()) + " nodes");
-                textViews.put(tv1, ontologyQueryArray[position]);
+                //textViews.put(tv1, ontologyQueryArray[position]);
                 return row;
             }
 
@@ -141,7 +140,7 @@ public class ChooseParsingDialog extends SugiliteDialogManager {
                     OntologyQuery query = matchingQueriesMatchedNodesList.get(position).first;
                     if(matchingQueriesMatchedNodesList.get(position).second.size() > 1) {
                         //prompt for further generalization
-                        FollowUpQuestionDialog followUpQuestionDialog = new FollowUpQuestionDialog(context, tts, query, uiSnapshot, actualClickedNode, matchingQueriesMatchedNodesList.get(0).second, featurePack, queryScoreList, blockBuildingHelper, layoutInflater, clickRunnable, sugiliteData, sharedPreferences);
+                        FollowUpQuestionDialog followUpQuestionDialog = new FollowUpQuestionDialog(context, tts, query, uiSnapshot, actualClickedNode, matchingQueriesMatchedNodesList.get(0).second, featurePack, queryScoreList, blockBuildingHelper, layoutInflater, clickRunnable, sugiliteData, sharedPreferences, 0);
                         followUpQuestionDialog.setNumberOfMatchedNodes(matchingQueriesMatchedNodesList.get(0).second.size());
                         followUpQuestionDialog.show();
                     } else {
@@ -176,7 +175,9 @@ public class ChooseParsingDialog extends SugiliteDialogManager {
     }
 
     public void show() {
-        dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
+        if(dialog.getWindow() != null) {
+            dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
+        }
         dialog.show();
 
         //initiate the dialog manager when the dialog is shown

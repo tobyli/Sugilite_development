@@ -13,10 +13,9 @@ import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import edu.cmu.hcii.sugilite.Const;
-import edu.cmu.hcii.sugilite.Node;
+import edu.cmu.hcii.sugilite.model.Node;
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.model.block.util.SugiliteAvailableFeaturePack;
 import edu.cmu.hcii.sugilite.model.block.operation.SugiliteOperationBlock;
@@ -181,7 +180,7 @@ public class OverlayClickedDialog {
                 click(node.getEntityValue(), x, y, overlay);
             }
         },
-                uiSnapshot, actualClickedNode, sugiliteData, sharedPreferences, tts);
+                uiSnapshot, actualClickedNode, sugiliteData, sharedPreferences, tts, 0);
         recordingAmbiguousPopupDialog.show();
     }
 

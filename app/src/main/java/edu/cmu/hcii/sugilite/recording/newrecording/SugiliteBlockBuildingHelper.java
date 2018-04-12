@@ -14,7 +14,7 @@ import java.util.Map;
 import java.util.Set;
 
 import edu.cmu.hcii.sugilite.Const;
-import edu.cmu.hcii.sugilite.Node;
+import edu.cmu.hcii.sugilite.model.Node;
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptFileDao;
@@ -190,7 +190,7 @@ public class SugiliteBlockBuildingHelper {
             Set<SugiliteTriple> triples2 = uiSnapshot.getSubjectPredicateTriplesMap().get(new AbstractMap.SimpleEntry<>(foundEntity.getEntityId(), SugiliteRelation.HAS_PARENT_WITH_LIST_ORDER.getRelationId()));
             if(triples2 != null){
                 for(SugiliteTriple triple : triples2){
-                    String order = (String)triple.getObject().getEntityValue();
+                    String order = triple.getObject().getEntityValue().toString();
 
                     OntologyQuery clonedQuery = new OntologyQuery(new SerializableOntologyQuery(q));
                     OntologyQuery subQuery = new OntologyQuery(OntologyQuery.relationType.nullR);
@@ -211,20 +211,21 @@ public class SugiliteBlockBuildingHelper {
         List<String> childTexts = featurePack.childTexts;
         if(childTexts != null && childTexts.size() > 0){
             int count = 0;
+            double score = 2.01 + (((double)(count++)) / (double) childTexts.size());
+            OntologyQuery clonedQuery = new OntologyQuery(new SerializableOntologyQuery(q));
             for(String childText : childTexts){
-                double score = 2 + (((double)(count++)) / (double) childTexts.size());
                 if(childText != null && !childText.equals(featurePack.text)) {
-                    OntologyQuery clonedQuery = new OntologyQuery(new SerializableOntologyQuery(q));
                     OntologyQuery subQuery = new OntologyQuery(OntologyQuery.relationType.nullR);
                     Set<SugiliteEntity> object = new HashSet<>();
                     object.add(new SugiliteEntity(-1, String.class, childText));
                     subQuery.setObject(object);
                     subQuery.setQueryFunction(SugiliteRelation.HAS_CHILD_TEXT);
                     clonedQuery.addSubQuery(subQuery);
-                    hasNonBoundingBoxFeature = true;
                     queries.add(Pair.create(new SerializableOntologyQuery(clonedQuery), score));
+                    hasNonBoundingBoxFeature = true;
                 }
             }
+            queries.add(Pair.create(new SerializableOntologyQuery(clonedQuery), 2.0));
         }
 
         if(featurePack.boundsInScreen != null && (!featurePack.boundsInScreen.equals("NULL"))){

@@ -5,8 +5,6 @@ import android.graphics.Rect;
 
 import java.util.Objects;
 
-import edu.cmu.hcii.sugilite.Node;
-
 /**
  * @author toby
  * @date 9/25/17

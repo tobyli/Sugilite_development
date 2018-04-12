@@ -3,9 +3,8 @@ package edu.cmu.hcii.sugilite.ontology.helper.annotator;
 import android.graphics.Rect;
 
 import edu.cmu.hcii.sugilite.ontology.SugiliteRelation;
-import edu.cmu.hcii.sugilite.Node;
+import edu.cmu.hcii.sugilite.model.Node;
 import edu.cmu.hcii.sugilite.ontology.SugiliteEntity;
-import edu.cmu.hcii.sugilite.ontology.UISnapshot;
 
 import java.util.ArrayList;
 import java.util.Set;

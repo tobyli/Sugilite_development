@@ -90,21 +90,21 @@ public class OntologyDescriptionGenerator {
             return "NULL";
         }
         if (sr.equals(SugiliteRelation.HAS_SCREEN_LOCATION) || sr.equals(SugiliteRelation.HAS_PARENT_LOCATION))
-            return DescriptionGenerator.descriptionMap.get(sr) + setColor("(" + os[0] + ")", Const.SCRIPT_IDENTIFYING_FEATURE_COLOR);
+            return DescriptionGenerator.getDescription(sr) + setColor("(" + os[0] + ")", Const.SCRIPT_IDENTIFYING_FEATURE_COLOR);
 
         else if (sr.equals(SugiliteRelation.HAS_TEXT) ||
                 sr.equals(SugiliteRelation.HAS_CONTENT_DESCRIPTION) ||
                 sr.equals(SugiliteRelation.HAS_CHILD_TEXT) ||
                 sr.equals(SugiliteRelation.HAS_SIBLING_TEXT) ||
                 sr.equals(SugiliteRelation.HAS_VIEW_ID)) {
-            return DescriptionGenerator.descriptionMap.get(sr) + setColor("\"" +  os[0] + "\"", Const.SCRIPT_IDENTIFYING_FEATURE_COLOR);
+            return DescriptionGenerator.getDescription(sr) + setColor("\"" +  os[0] + "\"", Const.SCRIPT_IDENTIFYING_FEATURE_COLOR);
         }
 
         else if (sr.equals(SugiliteRelation.HAS_LIST_ORDER) || sr.equals(SugiliteRelation.HAS_PARENT_WITH_LIST_ORDER)) {
             os[0] = numberToOrder(os[0]);
-            return String.format(DescriptionGenerator.descriptionMap.get(sr), setColor(os[0], Const.SCRIPT_IDENTIFYING_FEATURE_COLOR));
+            return String.format(DescriptionGenerator.getDescription(sr), setColor(os[0], Const.SCRIPT_IDENTIFYING_FEATURE_COLOR));
         }
-        return DescriptionGenerator.descriptionMap.get(sr) + setColor(os[0], Const.SCRIPT_IDENTIFYING_FEATURE_COLOR);
+        return DescriptionGenerator.getDescription(sr) + setColor(os[0], Const.SCRIPT_IDENTIFYING_FEATURE_COLOR);
     }
 
 
@@ -149,10 +149,10 @@ public class OntologyDescriptionGenerator {
         if(f != null) {
             fr = f.getRelation();
             if (fr.equals(SugiliteRelation.HAS_LIST_ORDER) || fr.equals(SugiliteRelation.HAS_PARENT_WITH_LIST_ORDER)) {
-                translatedFilter = String.format(DescriptionGenerator.descriptionMap.get(fr), FilterTranslation.getFilterTranslation(f));
+                translatedFilter = String.format(DescriptionGenerator.getDescription(fr), FilterTranslation.getFilterTranslation(f));
             }
             else {
-                translatedFilter = ("the " + FilterTranslation.getFilterTranslation(f) + " " + DescriptionGenerator.descriptionMap.get(fr)).trim();
+                translatedFilter = ("the " + FilterTranslation.getFilterTranslation(f) + " " + DescriptionGenerator.getDescription(fr)).trim();
             }
             translatedFilter = setColor(translatedFilter, Const.SCRIPT_ACTION_PARAMETER_COLOR);
         }
@@ -194,10 +194,10 @@ public class OntologyDescriptionGenerator {
         if(f != null) {
             fr = f.getRelation();
             if (fr.equals(SugiliteRelation.HAS_LIST_ORDER) || fr.equals(SugiliteRelation.HAS_PARENT_WITH_LIST_ORDER)) {
-                translatedFilter = String.format(DescriptionGenerator.descriptionMap.get(fr), FilterTranslation.getFilterTranslation(f));
+                translatedFilter = String.format(DescriptionGenerator.getDescription(fr), FilterTranslation.getFilterTranslation(f));
             }
             else {
-                translatedFilter = ("the " + FilterTranslation.getFilterTranslation(f) + " " + DescriptionGenerator.descriptionMap.get(fr)).trim();
+                translatedFilter = ("the " + FilterTranslation.getFilterTranslation(f) + " " + DescriptionGenerator.getDescription(fr)).trim();
             }
             translatedFilter = setColor(translatedFilter, Const.SCRIPT_ACTION_PARAMETER_COLOR);
         }
@@ -527,12 +527,12 @@ public class OntologyDescriptionGenerator {
         String result = "";
         SugiliteRelation r = q.getR();
         if (f.getRelation().equals(SugiliteRelation.HAS_PARENT_WITH_LIST_ORDER) || f.getRelation().equals(SugiliteRelation.HAS_LIST_ORDER))  {
-            result += String.format(DescriptionGenerator.descriptionMap.get(fr),FilterTranslation.getFilterTranslation(f));
+            result += String.format(DescriptionGenerator.getDescription(fr),FilterTranslation.getFilterTranslation(f));
             if (!(r.equals(SugiliteRelation.HAS_PARENT_WITH_LIST_ORDER) || r.equals(SugiliteRelation.HAS_LIST_ORDER)))
                 result += " that has "+ descriptionForSingleQuery(q);
             return result;
         }
-        String translatedFilter = "the "+FilterTranslation.getFilterTranslation(f)+" "+DescriptionGenerator.descriptionMap.get(fr);
+        String translatedFilter = "the "+FilterTranslation.getFilterTranslation(f)+" "+DescriptionGenerator.getDescription(fr);
         if (r.equals(SugiliteRelation.HAS_PARENT_WITH_LIST_ORDER) || r.equals(SugiliteRelation.HAS_LIST_ORDER))
         {
             result += descriptionForSingleQuery(q);
@@ -591,7 +591,7 @@ public class OntologyDescriptionGenerator {
 
             else if (ontologyQuery.getSubRelation() == OntologyQuery.relationType.PREV) {
                 String res = "the item that has ";
-                res += DescriptionGenerator.descriptionMap.get(r);
+                res += DescriptionGenerator.getDescription(r);
                 res += "that has " + arr[0];
                 for (int i = 1; i<arr.length;i++) {
                     res += " and " + arr[i];

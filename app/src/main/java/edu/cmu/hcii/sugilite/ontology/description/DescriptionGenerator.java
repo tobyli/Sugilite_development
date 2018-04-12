@@ -18,7 +18,7 @@ import static edu.cmu.hcii.sugilite.ontology.description.OntologyDescriptionGene
 
 public class DescriptionGenerator {
 
-    public static final HashMap<SugiliteRelation, String> descriptionMap;
+    private static final HashMap<SugiliteRelation, String> descriptionMap;
     static {
         descriptionMap = new HashMap<SugiliteRelation,String>();
         descriptionMap.put(SugiliteRelation.HAS_CLASS_NAME,"");
@@ -31,7 +31,7 @@ public class DescriptionGenerator {
         descriptionMap.put(SugiliteRelation.HAS_PACKAGE_NAME,"in ");
         descriptionMap.put(SugiliteRelation.HAS_CHILD, setColor("child ", SCRIPT_VIEW_ID_COLOR));
 
-        descriptionMap.put(SugiliteRelation.HAS_CHILD_TEXT, setColor("child text ", SCRIPT_VIEW_ID_COLOR));
+        descriptionMap.put(SugiliteRelation.HAS_CHILD_TEXT, setColor("text ", SCRIPT_VIEW_ID_COLOR));
         descriptionMap.put(SugiliteRelation.HAS_SIBLING_TEXT,"");
         descriptionMap.put(SugiliteRelation.HAS_SIBLING, setColor("sibling ", SCRIPT_VIEW_ID_COLOR));
 
@@ -46,6 +46,14 @@ public class DescriptionGenerator {
         descriptionMap.put(SugiliteRelation.HAS_PARENT_WITH_LIST_ORDER,"the %s item");
         descriptionMap.put(SugiliteRelation.IS_A_LIST,"is a list ");
 
+        descriptionMap.put(SugiliteRelation.ABOVE, setColor("above ", SCRIPT_VIEW_ID_COLOR));
+        descriptionMap.put(SugiliteRelation.BELOW, setColor("above ", SCRIPT_VIEW_ID_COLOR));
+        descriptionMap.put(SugiliteRelation.NEAR, setColor("near ", SCRIPT_VIEW_ID_COLOR));
+        descriptionMap.put(SugiliteRelation.NEXT_TO, setColor("next to ", SCRIPT_VIEW_ID_COLOR));
+        descriptionMap.put(SugiliteRelation.RIGHT, setColor("to the right of ", SCRIPT_VIEW_ID_COLOR));
+        descriptionMap.put(SugiliteRelation.LEFT, setColor("to the left of ", SCRIPT_VIEW_ID_COLOR));
+
+
         descriptionMap.put(SugiliteRelation.CONTAINS_EMAIL_ADDRESS,"email address ");
         descriptionMap.put(SugiliteRelation.CONTAINS_PHONE_NUMBER,"phone number ");
         descriptionMap.put(SugiliteRelation.CONTAINS_MONEY,"price ");
@@ -55,11 +63,12 @@ public class DescriptionGenerator {
         descriptionMap.put(SugiliteRelation.CONTAINS_LENGTH,"distance ");
         descriptionMap.put(SugiliteRelation.CONTAINS_PERCENTAGE,"percentage ");
         descriptionMap.put(SugiliteRelation.CONTAINS_VOLUME,"volume ");
+        descriptionMap.put(SugiliteRelation.CONTAINS_NUMBER,"number ");
 
 
     }
 
-    public String getDescription(SugiliteRelation r)
+    public static String getDescription(SugiliteRelation r)
     {
         return descriptionMap.get(r);
     }

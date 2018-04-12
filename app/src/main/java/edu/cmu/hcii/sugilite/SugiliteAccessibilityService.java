@@ -33,6 +33,11 @@ import java.util.Set;
 import java.util.Iterator;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.SynchronousQueue;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 import edu.cmu.hcii.sugilite.communication.SugiliteCommunicationController;
 import edu.cmu.hcii.sugilite.communication.SugiliteEventBroadcastingActivity;
@@ -88,7 +93,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
     ExecutorService executor = Executors.newFixedThreadPool(10);
 
     //this thread is for generating ui snapshots
-    ExecutorService uiSnapshotGenerationExecutor = Executors.newFixedThreadPool(5);
+    ExecutorService uiSnapshotGenerationExecutor;
 
 
     public SugiliteAccessibilityService() {
@@ -141,6 +146,11 @@ public class SugiliteAccessibilityService extends AccessibilityService {
         homeScreenPackageNameSet = new HashSet<>();
         homeScreenPackageNameSet.addAll(Arrays.asList(HOME_SCREEN_PACKAGE_NAMES));
 
+
+        SynchronousQueue<Runnable> threadPoolQueue = new SynchronousQueue<>();
+        ThreadFactory threadFactory = Executors.defaultThreadFactory();
+        uiSnapshotGenerationExecutor = new ThreadPoolExecutor(0, 5, 60L, TimeUnit.SECONDS, threadPoolQueue, threadFactory);
+
         try {
             //TODO: periodically check the status of communication controller
             sugiliteData.communicationController = SugiliteCommunicationController.getInstance(
@@ -180,7 +190,8 @@ public class SugiliteAccessibilityService extends AccessibilityService {
         prefEditor.putBoolean("recording_in_process", false);
         prefEditor.putBoolean("root_enabled", true);
         prefEditor.putBoolean("auto_fill_enabled", true);
-        prefEditor.commit();
+        prefEditor.apply();
+
         sugiliteData.clearInstructionQueue();
         if(sugiliteData.errorHandler == null){
             sugiliteData.errorHandler = new ErrorHandler(this, sugiliteData, sharedPreferences);
@@ -233,9 +244,9 @@ public class SugiliteAccessibilityService extends AccessibilityService {
      * @param runnable
      */
     public void runOnUiThread(Runnable runnable) {
-        //Log.i(TAG, "SERVICE_UI_THREAD_POSTING");
-        statusIconManager.getStatusIcon().post(runnable);
-        //Log.i(TAG, "SERVICE_UI_THREAD_POSTED");
+        Handler h = new Handler(getApplicationContext().getMainLooper());
+        h.post(runnable);
+
     }
 
 
@@ -264,7 +275,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
 
         //Type of accessibility events to handle in this function
         //return if the event is not among the accessibilityEventArrayToHandle
-        if(!accessibilityEventSetToHandle.contains(Integer.valueOf(event.getEventType()))) {
+        if(!accessibilityEventSetToHandle.contains(event.getEventType())) {
             return;
         }
 
@@ -287,7 +298,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
         */
 
         //add previous click information for building UI hierachy from vocabs
-        if(BUILDING_VOCAB && (!trackingExcludedPackages.contains(event.getPackageName())) && event.getEventType() == AccessibilityEvent.TYPE_VIEW_CLICKED && sourceNode != null){
+        if(BUILDING_VOCAB && (!trackingExcludedPackages.contains(event.getPackageName().toString())) && event.getEventType() == AccessibilityEvent.TYPE_VIEW_CLICKED && sourceNode != null){
             if(sourceNode.getText() != null)
                 previousClickText = sourceNode.getText().toString();
             else
@@ -369,11 +380,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
                 preOrderTraverseSibNode = AutomatorUtil.preOrderTraverseSiblings(sourceNode);
             }
             if(preOrderTraverseSibNode != null){
-                Iterator<AccessibilityNodeInfo> litr = preOrderTraverseSibNode.iterator();
-                while(litr.hasNext()){
-                    AccessibilityNodeInfo n = litr.next();
-                    if(n.getText() == null) litr.remove();
-                }
+                preOrderTraverseSibNode.removeIf(n -> n.getText() == null);
             }
 
 
@@ -386,7 +393,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
 
 
             //add package name to the relevant package set
-            if(sugiliteData.getScriptHead() != null && event.getPackageName() != null && (!exceptedPackages.contains(event.getPackageName()))) {
+            if(sugiliteData.getScriptHead() != null && event.getPackageName() != null && (!exceptedPackages.contains(event.getPackageName().toString()))) {
                 sugiliteData.getScriptHead().relevantPackages.add(event.getPackageName().toString());
             }
             //skip internal interactions and interactions on system ui
@@ -394,7 +401,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
             availableAlternativeNodes.addAll(getAvailableAlternativeNodes(sourceNode, rootNodeForRecording, preOrderTracerseRootNodeForRecording));
 
             //refresh the elementsWithTextLabels list
-            if(KEEP_ALL_TEXT_LABEL_LIST && event.getPackageName() != null && (!exceptedPackages.contains(event.getPackageName()))){
+            if(KEEP_ALL_TEXT_LABEL_LIST && event.getPackageName() != null && (!exceptedPackages.contains(event.getPackageName().toString()))){
                 List<AccessibilityNodeInfo> nodes = getAllNodesWithText(rootNodeForRecording, preOrderTracerseRootNodeForRecording);
                 boolean toRefresh = true;
                 //hack used to avoid getting items in the duck popup
@@ -440,7 +447,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
 
             //if the event is to be recorded, process it
             if (accessibilityEventSetToSend.contains(event.getEventType()) &&
-                    (!exceptedPackages.contains(event.getPackageName())) &&
+                    (!exceptedPackages.contains(event.getPackageName().toString())) &&
                     (!recordingOverlayManager.isShowingOverlay())) {
 
                 //TODO: ignore events if the recording overlay is on
@@ -484,7 +491,11 @@ public class SugiliteAccessibilityService extends AccessibilityService {
                             UISnapshot uiSnapshot = new UISnapshot(final_root, true, sugiliteTextAnnotator);
 
                             //temp hack for ViewGroup in Google Now Launcher
-                            if (sourceNode != null && sourceNode.getClassName() != null && sourceNode.getPackageName() != null && sourceNode.getClassName().toString().contentEquals("android.view.ViewGroup") && homeScreenPackageNameSet.contains(sourceNode.getPackageName().toString())) {/*do nothing (don't show popup for ViewGroup in home screen)*/} else {
+                            if (sourceNode != null && sourceNode.getClassName() != null && sourceNode.getPackageName() != null && sourceNode.getClassName().toString().contentEquals("android.view.ViewGroup") && homeScreenPackageNameSet.contains(sourceNode.getPackageName().toString())) {
+                                /*do nothing (don't show popup for ViewGroup in home screen)*/
+                            }
+
+                            else {
                                 File screenshot = null;
                                 if (sharedPreferences.getBoolean("root_enabled", false)) {
                                     //1. take screenshot
@@ -617,7 +628,10 @@ public class SugiliteAccessibilityService extends AccessibilityService {
                         sendBroadcast(intent);
                     }
                 }
-            } catch (Exception e) {
+            }
+
+            catch (Exception e) {
+                //empty catch block
             }
         }
 
@@ -635,11 +649,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
                 preOrderTraverseSibNode = AutomatorUtil.preOrderTraverseSiblings(sourceNode);
             }
             if(preOrderTraverseSibNode != null){
-                Iterator<AccessibilityNodeInfo> litr = preOrderTraverseSibNode.iterator();
-                while(litr.hasNext()){
-                    AccessibilityNodeInfo n = litr.next();
-                    if(n.getText() == null) litr.remove();
-                }
+                preOrderTraverseSibNode.removeIf(n -> n.getText() == null);
             }
 
             final AccessibilityNodeInfo rootNodeForTracking = rootNode;
@@ -652,7 +662,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
                 @Override
                 public void run() {
                     //background tracking in progress
-                    if (accessibilityEventSetToTrack.contains(event.getEventType()) && (!trackingExcludedPackages.contains(event.getPackageName()))) {
+                    if (accessibilityEventSetToTrack.contains(event.getEventType()) && (!trackingExcludedPackages.contains(event.getPackageName().toString()))) {
                         sugilteTrackingHandler.handle(event, sourceNode, generateFeaturePack(event, sourceNode, rootNodeForTracking, null, null, preOrderTraverseSourceNodeForTracking, preOrderTracerseRootNodeForTracking, preOrderTraverseSibNodeForTracking));
                     }
 
@@ -761,23 +771,28 @@ public class SugiliteAccessibilityService extends AccessibilityService {
                 }
                 //if(!rootNodePackageNames.contains("edu.cmu.hcii.sugilite")) {
                 if (true) {
-                    uiSnapshotGenerationExecutor.execute(new Runnable() {
-                        @Override
-                        public void run() {
-                            UISnapshot uiSnapshot = new UISnapshot(windows, true, sugiliteTextAnnotator);
-                            if (uiSnapshot.getNodeAccessibilityNodeInfoMap().size() >= 5) {
-                                //filter out (mostly) empty ui snapshots
-                                verbalInstructionIconManager.setLatestUISnapshot(uiSnapshot);
-                                System.out.println("updated ui snapshot in verbal instruction manager");
+                    try {
+                        uiSnapshotGenerationExecutor.execute(new Runnable() {
+                            @Override
+                            public void run() {
+                                UISnapshot uiSnapshot = new UISnapshot(windows, true, sugiliteTextAnnotator);
+                                if (uiSnapshot.getNodeAccessibilityNodeInfoMap().size() >= 5) {
+                                    //filter out (mostly) empty ui snapshots
+                                    verbalInstructionIconManager.setLatestUISnapshot(uiSnapshot);
+                                    System.out.println("updated ui snapshot in verbal instruction manager");
+                                    long stopTime = System.currentTimeMillis();
+                                    Log.i(TAG, "Updated UI Snapshot! -- Takes " + String.valueOf(stopTime - startTime) + "ms");
+                                }
                             }
-                        }
-                    });
+                        });
+                    }
+                    catch (RejectedExecutionException e){
+                        //do nothing
+                    }
                 }
             }
 
             //for profiling purpose
-            long stopTime = System.currentTimeMillis();
-            Log.i(TAG, "Updated UI Snapshot! -- Takes " + String.valueOf(stopTime - startTime) + "ms");
 
         }
         catch (Exception e){
@@ -909,10 +924,9 @@ public class SugiliteAccessibilityService extends AccessibilityService {
 
     protected List<AccessibilityNodeInfo> getAllNodesWithText(AccessibilityNodeInfo rootNode, List<AccessibilityNodeInfo> preOderTraverseRootNode) {
         List<AccessibilityNodeInfo> retList = new ArrayList<>();
-        List<AccessibilityNodeInfo> allNodes = preOderTraverseRootNode;
-        if (allNodes == null)
+        if (preOderTraverseRootNode == null)
             return retList;
-        for (AccessibilityNodeInfo node : allNodes) {
+        for (AccessibilityNodeInfo node : preOderTraverseRootNode) {
             if(node.getText() != null)
                 retList.add(node);
         }
@@ -921,11 +935,10 @@ public class SugiliteAccessibilityService extends AccessibilityService {
 
     protected HashSet<Map.Entry<String, String>> getAlternativeLabels (AccessibilityNodeInfo sourceNode, AccessibilityNodeInfo rootNode, List<AccessibilityNodeInfo> preOderTraverseRootNode){
         HashSet<Map.Entry<String, String>> retMap = new HashSet<>();
-        List<AccessibilityNodeInfo> allNodes = preOderTraverseRootNode;
-        if(allNodes == null)
+        if(preOderTraverseRootNode == null)
             return retMap;
-        for(AccessibilityNodeInfo node : allNodes){
-            if(exceptedPackages.contains(node.getPackageName()))
+        for(AccessibilityNodeInfo node : preOderTraverseRootNode){
+            if(exceptedPackages.contains(node.getPackageName().toString()))
                 continue;
             if(!node.isClickable())
                 continue;
@@ -971,15 +984,13 @@ public class SugiliteAccessibilityService extends AccessibilityService {
      * @return
      */
     protected HashSet<SerializableNodeInfo> getAvailableAlternativeNodes (AccessibilityNodeInfo sourceNode, AccessibilityNodeInfo rootNode, List<AccessibilityNodeInfo> preOderTraverseRootNode){
-        List<AccessibilityNodeInfo> allNodes = preOderTraverseRootNode;
         HashSet<SerializableNodeInfo> retSet = new HashSet<>();
-        if(allNodes == null)
+        if(preOderTraverseRootNode == null)
             return retSet;
-        for(AccessibilityNodeInfo node : allNodes){
-            if(exceptedPackages.contains(node.getPackageName()))
+        for(AccessibilityNodeInfo node : preOderTraverseRootNode){
+            if(exceptedPackages.contains(node.getPackageName().toString()))
                 continue;
             if(sourceNode != null &&
-                    node != null &&
                     node.getClassName() != null &&
                     sourceNode.getClassName() != null &&
                     (!sourceNode.getClassName().toString().equals(node.getClassName().toString())))
@@ -990,13 +1001,6 @@ public class SugiliteAccessibilityService extends AccessibilityService {
             retSet.add(nodeToAdd);
         }
         return retSet;
-    }
-
-    static class UISnapShotSerializer implements JsonSerializer<UISnapshot> {
-        @Override
-        public JsonElement serialize(UISnapshot src, Type typeOfSrc, JsonSerializationContext context) {
-            return context.serialize(new SerializableUISnapshot(src));
-        }
     }
 }
 

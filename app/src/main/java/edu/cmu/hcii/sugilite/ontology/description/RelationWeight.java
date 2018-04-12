@@ -45,10 +45,23 @@ public class RelationWeight {
 
         weightMap.put(SugiliteRelation.CONTAINS_EMAIL_ADDRESS,20);
         weightMap.put(SugiliteRelation.CONTAINS_PHONE_NUMBER,21);
+
         weightMap.put(SugiliteRelation.CONTAINS_MONEY,22);
         weightMap.put(SugiliteRelation.CONTAINS_TIME,23);
         weightMap.put(SugiliteRelation.CONTAINS_DATE,24);
         weightMap.put(SugiliteRelation.CONTAINS_DURATION,25);
+        weightMap.put(SugiliteRelation.CONTAINS_LENGTH,26);
+        weightMap.put(SugiliteRelation.CONTAINS_PERCENTAGE,27);
+        weightMap.put(SugiliteRelation.CONTAINS_VOLUME,28);
+        weightMap.put(SugiliteRelation.CONTAINS_NUMBER,29);
+
+        weightMap.put(SugiliteRelation.CONTAINS, 30);
+        weightMap.put(SugiliteRelation.RIGHT, 31);
+        weightMap.put(SugiliteRelation.LEFT, 32);
+        weightMap.put(SugiliteRelation.ABOVE, 33);
+        weightMap.put(SugiliteRelation.BELOW, 34);
+        weightMap.put(SugiliteRelation.NEAR, 35);
+        weightMap.put(SugiliteRelation.NEXT_TO, 36);
     }
 
     public int getWeight(SugiliteRelation r)

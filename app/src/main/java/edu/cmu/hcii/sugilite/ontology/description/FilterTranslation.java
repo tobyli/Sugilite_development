@@ -43,34 +43,7 @@ public class FilterTranslation {
 
         filterMap.put(new OntologyQueryFilter(max,SugiliteRelation.CONTAINS_VOLUME),"biggest");
         filterMap.put(new OntologyQueryFilter(max,SugiliteRelation.CONTAINS_VOLUME),"smallest");
-//        HashMap<OntologyQueryFilter.FilterType,String> list_order_filter = new HashMap<OntologyQueryFilter.FilterType,String>();
-//        list_order_filter.put(OntologyQueryFilter.FilterType.ARG_MAX,"last");
-//        list_order_filter.put(OntologyQueryFilter.FilterType.ARG_MIN,"first");
-//        filterMap.put(SugiliteRelation.HAS_LIST_ORDER,list_order_filter);
-//        filterMap.put(SugiliteRelation.HAS_PARENT_WITH_LIST_ORDER,list_order_filter);
 
-//        HashMap<OntologyQueryFilter.FilterType,String> money_filter = new HashMap<OntologyQueryFilter.FilterType,String>();
-//        money_filter.put(OntologyQueryFilter.FilterType.ARG_MAX,"most expensive");
-//        money_filter.put(OntologyQueryFilter.FilterType.ARG_MIN,"cheapest");
-//        filterMap.put(SugiliteRelation.CONTAINS_MONEY,money_filter);
-
-//        HashMap<OntologyQueryFilter.FilterType,String> time_filter = new HashMap<OntologyQueryFilter.FilterType,String>();
-//        time_filter.put(OntologyQueryFilter.FilterType.ARG_MAX,"latest");
-//        time_filter.put(OntologyQueryFilter.FilterType.ARG_MIN,"earliest");
-//        filterMap.put(SugiliteRelation.CONTAINS_TIME,time_filter);
-//        filterMap.put(SugiliteRelation.CONTAINS_DATE,time_filter);
-
-//        HashMap<OntologyQueryFilter.FilterType,String> length_filter = new HashMap<OntologyQueryFilter.FilterType,String>();
-//        length_filter.put(OntologyQueryFilter.FilterType.ARG_MAX,"longest");
-//        length_filter.put(OntologyQueryFilter.FilterType.ARG_MIN,"shortest");
-//        filterMap.put(SugiliteRelation.CONTAINS_DURATION,length_filter);
-//        filterMap.put(SugiliteRelation.CONTAINS_LENGTH,length_filter);
-
-//        HashMap<OntologyQueryFilter.FilterType,String> size_filter = new HashMap<OntologyQueryFilter.FilterType,String>();
-//        size_filter.put(OntologyQueryFilter.FilterType.ARG_MAX,"biggest");
-//        size_filter.put(OntologyQueryFilter.FilterType.ARG_MIN,"smallest");
-//        filterMap.put(SugiliteRelation.CONTAINS_PERCENTAGE,length_filter);
-//        filterMap.put(SugiliteRelation.CONTAINS_VOLUME,length_filter);
     }
 
     public static String getFilterTranslation(OntologyQueryFilter f) {

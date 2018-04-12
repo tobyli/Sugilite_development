@@ -48,6 +48,7 @@ public class DescriptionGenerator {
 
         descriptionMap.put(SugiliteRelation.CONTAINS_EMAIL_ADDRESS,"email address ");
         descriptionMap.put(SugiliteRelation.CONTAINS_PHONE_NUMBER,"phone number ");
+
         descriptionMap.put(SugiliteRelation.CONTAINS_MONEY,"price ");
         descriptionMap.put(SugiliteRelation.CONTAINS_TIME,"time ");
         descriptionMap.put(SugiliteRelation.CONTAINS_DATE,"date ");
@@ -55,7 +56,15 @@ public class DescriptionGenerator {
         descriptionMap.put(SugiliteRelation.CONTAINS_LENGTH,"distance ");
         descriptionMap.put(SugiliteRelation.CONTAINS_PERCENTAGE,"percentage ");
         descriptionMap.put(SugiliteRelation.CONTAINS_VOLUME,"volume ");
+        descriptionMap.put(SugiliteRelation.CONTAINS_NUMBER,"number ");
 
+        descriptionMap.put(SugiliteRelation.CONTAINS, "contains ");
+        descriptionMap.put(SugiliteRelation.RIGHT, "right to ");
+        descriptionMap.put(SugiliteRelation.LEFT, "left to ");
+        descriptionMap.put(SugiliteRelation.ABOVE, "above ");
+        descriptionMap.put(SugiliteRelation.BELOW, "below ");
+        descriptionMap.put(SugiliteRelation.NEAR, "near ");
+        descriptionMap.put(SugiliteRelation.NEXT_TO, "next to ");
 
     }
 

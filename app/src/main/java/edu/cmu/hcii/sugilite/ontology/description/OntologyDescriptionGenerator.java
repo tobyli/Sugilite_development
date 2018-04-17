@@ -139,8 +139,11 @@ public class OntologyDescriptionGenerator {
 
     private boolean isListOrderRelation(SugiliteRelation r)
     {
-        if (r.equals(SugiliteRelation.HAS_LIST_ORDER) || r.equals(SugiliteRelation.HAS_PARENT_WITH_LIST_ORDER))
-            return true;
+        if (r!=null) {
+            if (r.equals(SugiliteRelation.HAS_LIST_ORDER) || r.equals(SugiliteRelation.HAS_PARENT_WITH_LIST_ORDER)) {
+                return true;
+            }
+        }
         return false;
     }
 
@@ -148,20 +151,27 @@ public class OntologyDescriptionGenerator {
         return verb + getDescriptionForOntologyQuery(sq);
     }
 
+    private String translateFilter(OntologyQueryFilter f)
+    {
+        SugiliteRelation filterR = null;
+        String translation = "";
+        filterR = f.getRelation();
+        if (isListOrderRelation(filterR)) {
+            translation = String.format(DescriptionGenerator.getDescription(filterR), FilterTranslation.getFilterTranslation(f));
+        }
+        else {
+            translation = ("the " + FilterTranslation.getFilterTranslation(f) + " " + DescriptionGenerator.getDescription(filterR)).trim();
+        }
+        return translation;
+    }
+
     // separating or from and
     private String translationWithRelationshipOr(String[] args, OntologyQuery[] queries, OntologyQueryFilter f) {
         String result = "";
         int argL = args.length;
-        SugiliteRelation filterR = null;
         String translatedFilter = "";
         if(f != null) {
-            filterR = f.getRelation();
-            if (isListOrderRelation(filterR)) {
-                translatedFilter = String.format(DescriptionGenerator.getDescription(filterR), FilterTranslation.getFilterTranslation(f));
-            }
-            else {
-                translatedFilter = ("the " + FilterTranslation.getFilterTranslation(f) + " " + DescriptionGenerator.getDescription(filterR)).trim();
-            }
+            translatedFilter = translateFilter(f);
             translatedFilter = setColor(translatedFilter, Const.SCRIPT_ACTION_PARAMETER_COLOR);
         }
         String conjunction = "has ";
@@ -192,6 +202,63 @@ public class OntologyDescriptionGenerator {
         return result;
     }
 
+    private String listOrderTranslation(String result, String translation, String[] args)
+    {
+        result = "";
+        result += translation.replace("item", "");
+        result += args[0];
+        return result;
+    }
+
+    private String packageNameSpecialCaseHandler(String[] args, OntologyQueryFilter f, String result, String translatedFilter, boolean isListOrder, SugiliteRelation lastR, int argL, boolean needsMoreChange)
+    {
+
+        if (lastR != null && lastR.equals(SugiliteRelation.HAS_PACKAGE_NAME)) {
+            if (!needsMoreChange)
+            {
+                result += " " + args[argL-1];
+            }
+            else
+            {
+                result += " that has " + args[argL-2];
+                result += " " + args[argL-1];
+            }
+        } else {
+            if (!needsMoreChange)
+            {
+                result += " that has " + args[argL-1];
+            }
+            else
+            {
+                result += " that has " + args[argL-2];
+                result += " and " + args[argL-1];
+            }
+        }
+        if (f != null && !isListOrder)
+            result += " with " + translatedFilter;
+        return result;
+    }
+
+    private String packageNameHandlerWithForLoop(String[] args, OntologyQueryFilter f, String result, String translatedFilter, boolean isListOrder, SugiliteRelation lastR, int argL, int num)
+    {
+        if (lastR != null && lastR.equals(SugiliteRelation.HAS_PACKAGE_NAME)) {
+            for (int i = num; i < argL - 2; i++) {
+                result += ", " + args[i];
+            }
+            result += " and " + args[argL - 2];
+            result += " " + args[argL - 1];
+
+        } else {
+            for (int i = num; i < argL - 1; i++) {
+                result += ", " + args[i];
+            }
+            result += " and " + args[argL - 1];
+
+        }
+        if (f != null && !isListOrder)
+            result += " with " + translatedFilter;
+        return result;
+    }
 
     private String translationWithRelationshipAnd(String[] args, OntologyQuery[] queries, OntologyQueryFilter f) {
         String result = "";
@@ -201,16 +268,10 @@ public class OntologyDescriptionGenerator {
         SugiliteRelation lastR = queries[queryL-1].getR();
         SugiliteRelation filterR = null;
         String translatedFilter = "";
+        boolean isListOrder = false;
         if(f != null) {
             filterR = f.getRelation();
-            if (isListOrderRelation(filterR)) {
-                // e.g. the first item
-                translatedFilter = String.format(DescriptionGenerator.getDescription(filterR), FilterTranslation.getFilterTranslation(f));
-            }
-            else {
-                // e.g. the earliest time
-                translatedFilter = ("the " + FilterTranslation.getFilterTranslation(f) + " " + DescriptionGenerator.getDescription(filterR)).trim();
-            }
+            translatedFilter = translateFilter(f);
             translatedFilter = setColor(translatedFilter, Const.SCRIPT_ACTION_PARAMETER_COLOR);
         }
         if (firstR != null && firstR.equals(SugiliteRelation.HAS_CLASS_NAME)) {
@@ -218,269 +279,98 @@ public class OntologyDescriptionGenerator {
             // special case: class + list order
             if (secondR != null && isListOrderRelation(secondR)) {
                 result += args[1].replace("item", "");
-                // e.g. the 1st item --> the 1st button
                 result += args[0];
                 if (argL == 2) {
                     if (f != null) {
-                        // e.g. the 1st button --> the first button
                         if (isListOrderRelation(filterR)) {
-                            result = "";
-                            result += translatedFilter.replace("item", "");
-                            result += args[0];
-                        } else
-                            // e.g. the 1st button with the earliest time
-                            result += " with " + translatedFilter;
-                    }
-                } else if (argL == 3) {
-                    boolean isListOrder = false;
-                    if (f != null) {
-                        if (isListOrderRelation(filterR)) {
-                            result = "";
-                            result += translatedFilter.replace("item", "");
-                            result += args[0];
-                            isListOrder = true;
-                        }
-                    }
-                        if (lastR != null && lastR.equals(SugiliteRelation.HAS_PACKAGE_NAME)) {
-                            // e.g. the 1st button in homescreen
-                            result += " " + args[2];
-                            if (f != null && !isListOrder)
-                                // e.g. the 1st button in homescreen with the earliest time
-                                result += " with " + translatedFilter;
-                        } else {
-                            // e.g. the 1st button that has text hello
-                            result += " that has " + args[2];
-                            if (f != null && !isListOrder)
-                                // e.g. the 1st button that has text hello with the earliest time
-                                result += " with " + translatedFilter;
-                        }
 
-                } else if (argL == 4) {
-                    boolean isListOrder = false;
-                    if (f != null) {
-                        if (isListOrderRelation(filterR)) {
-                            result = "";
-                            result += translatedFilter.replace("item", "");
-                            result += args[0];
+                            result = listOrderTranslation(result, translatedFilter, args);
                             isListOrder = true;
                         }
-                    }
-                    if (lastR != null && lastR.equals(SugiliteRelation.HAS_PACKAGE_NAME)) {
-                        // e.g. the 1st button that has text hello in homescreen
-                        result += " that has " + args[2];
-                        result += " " + args[3];
-                        if (f != null && !isListOrder)
-                            // e.g. the 1st button that has text hello in homescreen with the earliest time
-                            result += " with " + translatedFilter;
-                    } else {
-                        // e.g. the 1st button that has text hello and child text world
-                        result += " that has " + args[2];
-                        result += " and " + args[3];
-                        if (f != null && !isListOrder)
-                            // e.g. the 1st button that has text hello and child text world with the earliest time
+                        else
                             result += " with " + translatedFilter;
                     }
                 }
-                // general case
-                else if (argL > 4) {
-                    boolean isListOrder = false;
+                else {
                     if (f != null) {
                         if (isListOrderRelation(filterR)) {
-                            result = "";
-                            result += translatedFilter.replace("item", "");
-                            result += args[0];
+                            result = listOrderTranslation(result, translatedFilter, args);
                             isListOrder = true;
                         }
                     }
-                    result += " that has ";
-                    result += args[2];
-                    if (lastR != null && lastR.equals(SugiliteRelation.HAS_PACKAGE_NAME)) {
-                        for (int i = 3; i < argL - 2; i++) {
-                            result += ", " + args[i];
-                        }
-                        result += " and " + args[argL - 2];
-                        result += " " + args[argL - 1];
-                        if (f != null && !isListOrder)
-                            result += " with " + translatedFilter;
-                    } else {
-                        for (int i = 3; i < argL - 1; i++) {
-                            result += ", " + args[i];
-                        }
-                        result += " and " + args[argL - 1];
-                        if (f != null && !isListOrder)
-                            result += " with " + translatedFilter;
+                    if (argL == 3) {
+                        result = packageNameSpecialCaseHandler(args, f, result, translatedFilter, isListOrder, lastR, argL, false);
+                    }
+                    else if (argL == 4) {
+                        result = packageNameSpecialCaseHandler(args, f, result, translatedFilter, isListOrder, lastR, argL, true);
+                    }
+                    // general case
+                    else if (argL > 4) {
+                        result += " that has ";
+                        result += args[2];
+                        result = packageNameHandlerWithForLoop(args, f, result, translatedFilter, isListOrder, lastR, argL, 3);
                     }
                 }
             }
             // special case: only class, no list order
             else {
-                boolean isListOrder = false;
+
                 if (f != null) {
-                    if (isListOrderRelation(filterR)) {
-                        // e.g. the first item --> the first button
-                        result = translatedFilter.replace("item", "");
-                        result += args[0];
+                    if (isListOrderRelation(filterR))
+                    {
+                        result = listOrderTranslation(result, translatedFilter, args);
                         isListOrder = true;
-                    } else
-                        // e.g. the button
+                    }
+                    else
                         result = String.format("the %s", args[0]);
                 } else
-                    // e.g. the button
                     result = String.format("the %s", args[0]);
 
                 if (argL == 2) {
-                    if (lastR != null && lastR.equals(SugiliteRelation.HAS_PACKAGE_NAME)) {
-                        // e.g. the button in homescreen
-                        result += " " + args[1];
-                        if (f != null && !isListOrder)
-                            // e.g. the button in homescreen with the earliest time
-                            result += " with " + translatedFilter;
-                    } else {
-                        // e.g. the button that has text hello
-                        result += " that has " + args[1];
-                        if (f != null && !isListOrder)
-                            // e.g. the button that has text hello with the earliest time
-                            result += " with " + translatedFilter;
-                    }
-                } else if (argL == 3) {
-                    if (lastR != null && lastR.equals(SugiliteRelation.HAS_PACKAGE_NAME)) {
-                        // e.g. the button that has text hello in homescreen
-                        result += " that has " + args[1];
-                        result += " " + args[2];
-                        if (f != null && !isListOrder) {
-                            // e.g. the button that has text hello in homescreen with the earliest time
-                            result += " with " + translatedFilter;
-                        }
-                    } else {
-                        // e.g. the button that has text hello and child text world
-                        result += " that has " + args[1];
-                        result += " and " + args[2];
-                        if (f != null && !isListOrder) {
-                            // e.g. the button that has text hello and child text world with the earliest time
-                            result += " with " + translatedFilter;
-                        }
-                    }
+                    result = packageNameSpecialCaseHandler(args,f,result,translatedFilter,isListOrder,lastR,2,false);
+                }
+                else if (argL == 3) {
+                    result = packageNameSpecialCaseHandler(args,f,result,translatedFilter,isListOrder,lastR,3,true);
                 }
                 // general case
                 else if (argL > 3) {
                     result += " that has ";
                     result += args[1];
-                    if (lastR != null && lastR.equals(SugiliteRelation.HAS_PACKAGE_NAME)) {
-                        for (int i = 2; i < argL - 2; i++) {
-                            result += ", " + args[i];
-                        }
-                        result += " and " + args[argL - 2];
-                        result += " " + args[argL - 1];
-                        if (f != null && !isListOrder)
-                            result += " with " + translatedFilter;
-                    } else {
-                        for (int i = 2; i < argL - 1; i++) {
-                            result += ", " + args[i];
-                        }
-                        result += " and " + args[argL - 1];
-                        if (f != null && !isListOrder)
-                            result += " with " + translatedFilter;
-                    }
+                    result = packageNameHandlerWithForLoop(args,f,result,translatedFilter,isListOrder,lastR,argL,2);
                 }
             }
         }
 
         // special case: only list order, no class
         else if (firstR != null && isListOrderRelation(firstR)) {
-            boolean isListOrder = false;
+
             result += args[0];
             if (argL==2)
             {
-                if (f!=null) {
-                    if (isListOrderRelation(filterR))
-                    {
-                        // e.g. the 1st item --> the first item
-                        result = translatedFilter;
-                        isListOrder = true;
-                    }
-                }
-                if (lastR != null && lastR.equals(SugiliteRelation.HAS_PACKAGE_NAME))
-                {
-                    // e.g. the 1st item in homescreen
-                    result += " "+args[1];
-                    if (f!=null && !isListOrder)
-                        // e.g. the 1st item in homescreen with the earliest time
-                        result += " with " + translatedFilter;
-                }
-                else {
-                    // e.g the 1st item that has text hello
-                    result += " that has " + args[1];
-                    if (f!=null && !isListOrder)
-                        // e.g the 1st item that has text hello with the earliest time
-                        result += " with " + translatedFilter;
-                }
-
+                result = packageNameSpecialCaseHandler(args,f,result,translatedFilter,isListOrder,lastR,2,false);
             }
-
-            if (argL == 3) {
-                if (f!=null) {
-                    if (isListOrderRelation(filterR))
-                    {
+            else {
+                if (f != null) {
+                    if (isListOrderRelation(filterR)) {
                         result = translatedFilter;
                         isListOrder = true;
                     }
                 }
-
-                if (lastR != null && lastR.equals(SugiliteRelation.HAS_PACKAGE_NAME)) {
-                    // e.g. the 1st item that has text hello in homescreen
+                if (argL == 3) {
+                    result = packageNameSpecialCaseHandler(args, f, result, translatedFilter, isListOrder, lastR, 3, true);
+                }
+                // general case
+                if (argL > 3) {
                     result += " that has ";
                     result += args[1];
-                    result += " " + args[2];
-                    if (f!=null && !isListOrder)
-                        // e.g. the 1st item that has text hello in homescreen with the earliest time
-                        result += " with "+translatedFilter;
-                }
-                else {
-                    // e.g. the 1st item that has text hello and child text world
-                    result += " that has ";
-                    result += args[1];
-                    result += " and " + args[2];
-                    if (f!=null && !isListOrder)
-                        // e.g. the 1st item that has text hello and child text world with the earliest time
-                        result += " with "+translatedFilter;
-                }
-            }
-            // general case
-            if (argL > 3) {
-                if (f!=null) {
-                    if (isListOrderRelation(filterR))
-                    {
-                        result = translatedFilter;
-                        isListOrder = true;
-                    }
-                }
-                result += " that has ";
-                result += args[1];
-                if (lastR != null && lastR.equals(SugiliteRelation.HAS_PACKAGE_NAME))
-                {
-                    for (int i = 2; i < argL-2; i++) {
-                        result += ", " + args[i];
-                    }
-                    result += " and " + args[argL-2];
-                    result += " " + args[argL-1];
-                    if (f!=null && !isListOrder)
-                        result += " with "+translatedFilter;
-                }
-                else
-                {
-                    for (int i = 2; i < argL - 1; i++) {
-                        result += ", " + args[i];
-                    }
-                    result += " and " + args[argL - 1];
-                    if (f!=null && !isListOrder)
-                        result += " with "+translatedFilter;
+                    result = packageNameHandlerWithForLoop(args, f, result, translatedFilter, isListOrder, lastR, argL, 2);
                 }
             }
         }
 
         // general case
         else {
-            boolean isListOrder = false;
+
             if (f != null)
             {
                 if (isListOrderRelation(filterR))
@@ -496,29 +386,7 @@ public class OntologyDescriptionGenerator {
                 result = "the item that has ";
             // e.g. the item that has text hello
             result += args[0];
-            if (lastR != null && lastR.equals(SugiliteRelation.HAS_PACKAGE_NAME))
-            {
-                // e.g. the item that has text hello and child text world in homescreen
-                for (int i = 1; i < argL-2; i++) {
-                    result += ", " + args[i];
-                }
-                result += " and " + args[argL-2];
-                result += " " + args[argL-1];
-                if (f!=null && !isListOrder)
-                    // e.g. the item that has text hello and child text world in homescreen with the earliest time
-                    result += " with "+translatedFilter;
-            }
-            else
-            {
-                // e.g. the item that has text hello and child text world
-                for (int i = 1; i < argL - 1; i++) {
-                    result += ", " + args[i];
-                }
-                result += " and " + args[argL-1];
-                if (f!=null && !isListOrder)
-                    // e.g. the item that has text hello and child text world with the earliest time
-                    result += " with "+translatedFilter;
-            }
+            result = packageNameHandlerWithForLoop(args,f,result,translatedFilter,isListOrder,lastR,argL,1);
 
         }
 

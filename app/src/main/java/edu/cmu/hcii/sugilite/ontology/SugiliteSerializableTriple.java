@@ -19,6 +19,11 @@ public class SugiliteSerializableTriple implements Serializable{
     private String objectStringValue;
     private String predicateStringValue;
 
+    public SugiliteSerializableTriple(String subjectId, String objectStringValue, String predicateStringValue){
+        this.subjectId = subjectId;
+        this.objectStringValue = objectStringValue;
+        this.predicateStringValue = predicateStringValue;
+    }
 
     public SugiliteSerializableTriple(SugiliteTriple t){
         this.subject = new SugiliteSerializableEntity(t.getSubject());
@@ -55,9 +60,67 @@ public class SugiliteSerializableTriple implements Serializable{
             return true;
         }
         if(obj instanceof SugiliteSerializableTriple){
-            return ((SugiliteSerializableTriple) obj).subject.equals(this.subject) &&
-                    ((SugiliteSerializableTriple) obj).predicate.equals(this.predicate) &&
-                    ((SugiliteSerializableTriple) obj).object.equals(this.object);
+            if(((SugiliteSerializableTriple) obj).subject != null && this.subject == null){
+                return false;
+            }
+            if(((SugiliteSerializableTriple) obj).subject == null && this.subject != null){
+                return false;
+            }
+            if(((SugiliteSerializableTriple) obj).subject != null && this.subject != null && (!((SugiliteSerializableTriple) obj).subject.equals(this.subject))){
+                return false;
+            }
+
+            if(((SugiliteSerializableTriple) obj).predicate != null && this.predicate == null){
+                return false;
+            }
+            if(((SugiliteSerializableTriple) obj).predicate == null && this.predicate != null){
+                return false;
+            }
+            if(((SugiliteSerializableTriple) obj).predicate != null && this.predicate != null && (!((SugiliteSerializableTriple) obj).predicate.equals(this.predicate))){
+                return false;
+            }
+
+            if(((SugiliteSerializableTriple) obj).object != null && this.object == null){
+                return false;
+            }
+            if(((SugiliteSerializableTriple) obj).object == null && this.object != null){
+                return false;
+            }
+            if(((SugiliteSerializableTriple) obj).object != null && this.object != null && (!((SugiliteSerializableTriple) obj).object.equals(this.object))){
+                return false;
+            }
+
+            if(((SugiliteSerializableTriple) obj).subjectId != null && this.subjectId == null){
+                return false;
+            }
+            if(((SugiliteSerializableTriple) obj).subjectId == null && this.subjectId != null){
+                return false;
+            }
+            if(((SugiliteSerializableTriple) obj).subjectId != null && this.subjectId != null && (!((SugiliteSerializableTriple) obj).subjectId.equals(this.subjectId))){
+                return false;
+            }
+
+            if(((SugiliteSerializableTriple) obj).objectStringValue != null && this.objectStringValue == null){
+                return false;
+            }
+            if(((SugiliteSerializableTriple) obj).objectStringValue == null && this.objectStringValue != null){
+                return false;
+            }
+            if(((SugiliteSerializableTriple) obj).objectStringValue != null && this.objectStringValue != null && (!((SugiliteSerializableTriple) obj).objectStringValue.equals(this.objectStringValue))){
+                return false;
+            }
+
+            if(((SugiliteSerializableTriple) obj).predicateStringValue != null && this.predicateStringValue == null){
+                return false;
+            }
+            if(((SugiliteSerializableTriple) obj).predicateStringValue == null && this.predicateStringValue != null){
+                return false;
+            }
+            if(((SugiliteSerializableTriple) obj).predicateStringValue != null && this.predicateStringValue != null && (!((SugiliteSerializableTriple) obj).predicateStringValue.equals(this.predicateStringValue))){
+                return false;
+            }
+
+            return true;
         }
         else {
             return false;
@@ -66,9 +129,12 @@ public class SugiliteSerializableTriple implements Serializable{
 
     @Override
     public int hashCode() {
-        return Objects.hash(this.subject.getEntityValue(),
-                this.predicate.getRelationId(),
-                this.object.getEntityValue());
+        return Objects.hash(subject == null ? null : subject.getEntityValue(),
+                subject == null ? null : predicate.getRelationId(),
+                object == null ? null : object.getEntityValue(),
+                subjectId == null ? null : subjectId,
+                predicateStringValue == null ? null : predicateStringValue,
+                objectStringValue == null ? null : objectStringValue);
     }
 
 

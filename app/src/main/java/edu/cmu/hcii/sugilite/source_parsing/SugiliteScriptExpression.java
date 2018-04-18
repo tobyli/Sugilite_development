@@ -22,6 +22,7 @@ import edu.cmu.hcii.sugilite.model.variable.StringVariable;
 import edu.cmu.hcii.sugilite.model.variable.Variable;
 import edu.cmu.hcii.sugilite.ontology.OntologyQuery;
 import edu.cmu.hcii.sugilite.ontology.SerializableOntologyQuery;
+import edu.cmu.hcii.sugilite.ontology.SugiliteSerializableEntity;
 import edu.cmu.hcii.sugilite.ontology.description.OntologyDescriptionGenerator;
 
 /**
@@ -72,6 +73,29 @@ public class SugiliteScriptExpression<T> {
         }
     }
 
+    void extractVariableFromQuery(SerializableOntologyQuery query, SugiliteStartingBlock startingBlock){
+        if(query.getObject() != null){
+            for(SugiliteSerializableEntity sugiliteSerializableEntity : query.getObject()){
+                if(sugiliteSerializableEntity.getEntityValue() instanceof String){
+                    if(((String) sugiliteSerializableEntity.getEntityValue()).startsWith("@")){
+                        String variableName = sugiliteSerializableEntity.getEntityValue().toString().substring(1);
+                        if(! startingBlock.variableNameDefaultValueMap.containsKey(variableName)){
+                            //need to add to the variable map
+                            startingBlock.variableNameDefaultValueMap.put(variableName, new StringVariable(Variable.USER_INPUT, variableName, ""));
+                        }
+                    }
+                }
+            }
+        }
+        if(query.getSubQueries() != null){
+            for(SerializableOntologyQuery serializableOntologyQuery : query.getSubQueries()){
+                if(query != null){
+                    extractVariableFromQuery(serializableOntologyQuery, startingBlock);
+                }
+            }
+        }
+    }
+
     /**
      * convert an SugiliteScriptExpression to a SugiliteBlock
      * @return
@@ -87,7 +111,13 @@ public class SugiliteScriptExpression<T> {
             SugiliteUnaryOperation operation = new SugiliteUnaryOperation(SugiliteUnaryOperation.getOperationType(operationName));
             SugiliteOperationBlock operationBlock = new SugiliteOperationBlock();
             operationBlock.setOperation(operation);
-            operationBlock.setQuery(new SerializableOntologyQuery(OntologyQuery.deserialize(arguments.get(0).getScriptContent())));
+            SerializableOntologyQuery query = new SerializableOntologyQuery(OntologyQuery.deserialize(arguments.get(0).getScriptContent()));
+
+            //extract variables from the query
+            extractVariableFromQuery(query, startingBlock);
+
+
+            operationBlock.setQuery(query);
 
             //set the description
             if(descriptionGenerator != null) {

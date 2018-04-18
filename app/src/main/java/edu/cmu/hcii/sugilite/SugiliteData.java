@@ -6,6 +6,7 @@ import android.content.SharedPreferences;
 import android.os.Handler;
 import android.os.Looper;
 import android.preference.PreferenceManager;
+import android.speech.tts.TextToSpeech;
 import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityNodeInfo;
 
@@ -80,6 +81,7 @@ public class SugiliteData extends Application {
     public StatusIconManager statusIconManager = null;
     public VerbalInstructionIconManager verbalInstructionIconManager = null;
 
+    private TextToSpeech tts;
 
 
     //used to indicate the state of the sugilite system
@@ -310,5 +312,11 @@ public class SugiliteData extends Application {
 
     }
 
+    public void setTTS(TextToSpeech tts) {
+        this.tts = tts;
+    }
 
+    public TextToSpeech getTTS() {
+        return tts;
+    }
 }

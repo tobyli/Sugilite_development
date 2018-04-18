@@ -33,7 +33,7 @@ import edu.cmu.hcii.sugilite.model.variable.Variable;
  * @date 7/15/16
  * @time 3:20 PM
  */
-public class ChooseVariableDialog extends AbstractSugiliteDialog {
+public class ChooseVariableDialog implements AbstractSugiliteDialog {
     private Context context;
     private AlertDialog dialog;
     private String selectedItemName;

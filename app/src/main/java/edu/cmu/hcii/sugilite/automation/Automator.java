@@ -38,6 +38,7 @@ import edu.cmu.hcii.sugilite.model.variable.StringVariable;
 import edu.cmu.hcii.sugilite.model.variable.Variable;
 import edu.cmu.hcii.sugilite.model.variable.VariableHelper;
 import edu.cmu.hcii.sugilite.ontology.OntologyQuery;
+import edu.cmu.hcii.sugilite.ontology.SerializableOntologyQuery;
 import edu.cmu.hcii.sugilite.ontology.SugiliteEntity;
 import edu.cmu.hcii.sugilite.ontology.UISnapshot;
 import edu.cmu.hcii.sugilite.ontology.helper.annotator.SugiliteTextAnnotator;
@@ -476,8 +477,14 @@ public class Automator {
                     }
                 }
 
+
+
+
                 //de-serialize the OntologyQuery
                 OntologyQuery q = new OntologyQuery(operationBlock.getQuery());
+
+                //replace variables in the query
+                q = OntologyQuery.deserialize(variableHelper.parse(q.toString()));
 
                 //execute the OntologyQuery on the current UI snapshot
                 Set<SugiliteEntity> querySet = q.executeOn(uiSnapshot);

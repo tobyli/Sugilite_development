@@ -40,7 +40,7 @@ import edu.cmu.hcii.sugilite.model.variable.StringVariable;
  * @date 10/27/16
  * @time 12:29 PM
  */
-public class SelectElementWithTextDialog extends AbstractSugiliteDialog {
+public class SelectElementWithTextDialog implements AbstractSugiliteDialog {
     private Context context;
     private AlertDialog dialog;
     private LayoutInflater inflater;

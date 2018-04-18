@@ -384,23 +384,8 @@ public class VerbalInstructionIconManager implements SugiliteVoiceInterface {
                                             sugiliteStudyHandler.setToRecordNextOperation(true);
                                             break;
                                         case "Switch recording overlay":
-                                            if(recordingOverlayManager.isShowingOverlay()){
-                                                recordingOverlayManager.removeOverlays();
-                                            }
-                                            else{
-                                                recordingOverlayManager.enableOverlay();
-                                                //remove and re-add the status icon so that it can show on top of the overlay
-                                                removeStatusIcon();
-                                                addStatusIcon();
-
-                                                /*
-                                                if(duckIconManager != null){
-                                                    duckIconManager.removeStatusIcon();
-                                                    duckIconManager.addStatusIcon();
-                                                }
-                                                */
-
-                                            }
+                                            switchCatOverlay();
+                                            break;
                                     }
                                 }
                             });
@@ -447,6 +432,26 @@ public class VerbalInstructionIconManager implements SugiliteVoiceInterface {
             }
 
         });
+    }
+
+    public void switchCatOverlay(){
+        if(recordingOverlayManager.isShowingOverlay()){
+            recordingOverlayManager.removeOverlays();
+        }
+        else{
+            recordingOverlayManager.enableOverlay();
+            //remove and re-add the status icon so that it can show on top of the overlay
+            removeStatusIcon();
+            addStatusIcon();
+
+                                                /*
+                                                if(duckIconManager != null){
+                                                    duckIconManager.removeStatusIcon();
+                                                    duckIconManager.addStatusIcon();
+                                                }
+                                                */
+
+        }
     }
 
     private void testASR(){

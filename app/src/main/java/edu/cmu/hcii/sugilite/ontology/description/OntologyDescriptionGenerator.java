@@ -502,11 +502,16 @@ public class OntologyDescriptionGenerator {
                 for (int i = 1; i < argL-2; i++) {
                     result += ", " + args[i];
                 }
-                result += " and " + args[argL-2];
-                result += " " + args[argL-1];
-                if (f!=null && !isListOrder)
+                if(argL - 2 >= 0) {
+                    result += " and " + args[argL - 2];
+                }
+                if(argL - 1 >= 0) {
+                    result += " " + args[argL - 1];
+                }
+                if (f!=null && !isListOrder) {
                     // e.g. the item that has text hello and child text world in homescreen with the earliest time
-                    result += " with "+translatedFilter;
+                    result += " with " + translatedFilter;
+                }
             }
             else
             {
@@ -514,10 +519,13 @@ public class OntologyDescriptionGenerator {
                 for (int i = 1; i < argL - 1; i++) {
                     result += ", " + args[i];
                 }
-                result += " and " + args[argL-1];
-                if (f!=null && !isListOrder)
+                if(argL - 1 >= 0) {
+                    result += " and " + args[argL - 1];
+                }
+                if (f!=null && !isListOrder) {
                     // e.g. the item that has text hello and child text world with the earliest time
-                    result += " with "+translatedFilter;
+                    result += " with " + translatedFilter;
+                }
             }
 
         }

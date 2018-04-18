@@ -154,6 +154,39 @@ public class SerializableUISnapshot implements Serializable {
             }
         }
         return result;
-
     }
+
+    public Map<String, Set<SugiliteSerializableTriple>> getSubjectTriplesMap() {
+        return subjectTriplesMap;
+    }
+
+    public Map<String, Set<SugiliteSerializableTriple>> getObjectTriplesMap() {
+        return objectTriplesMap;
+    }
+
+    public Map<String, Set<SugiliteSerializableTriple>> getPredicateTriplesMap() {
+        return predicateTriplesMap;
+    }
+
+    public void setSubjectTriplesMap(Map<String, Set<SugiliteSerializableTriple>> subjectTriplesMap) {
+        this.subjectTriplesMap = subjectTriplesMap;
+    }
+
+    public void setObjectTriplesMap(Map<String, Set<SugiliteSerializableTriple>> objectTriplesMap) {
+        this.objectTriplesMap = objectTriplesMap;
+    }
+
+    public void setPredicateTriplesMap(Map<String, Set<SugiliteSerializableTriple>> predicateTriplesMap) {
+        this.predicateTriplesMap = predicateTriplesMap;
+    }
+
+    public void setSugiliteRelationIdSugiliteRelationMap(Map<Integer, SugiliteRelation> sugiliteRelationIdSugiliteRelationMap) {
+        this.sugiliteRelationIdSugiliteRelationMap = sugiliteRelationIdSugiliteRelationMap;
+    }
+
+    public void addTriple (SugiliteSerializableTriple sugiliteSerializableTriple){
+        triples.add(sugiliteSerializableTriple);
+    }
+
+
 }

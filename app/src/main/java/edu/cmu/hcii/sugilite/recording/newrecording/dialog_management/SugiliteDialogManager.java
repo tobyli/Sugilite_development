@@ -38,6 +38,7 @@ public abstract class SugiliteDialogManager implements SugiliteVoiceInterface {
     protected AnimationDrawable speakingDrawable;
     protected AnimationDrawable listeningDrawable;
     protected Drawable notListeningDrawable;
+    private ImageButton speakButton = null;
 
     public SugiliteDialogManager(Context context, TextToSpeech tts) {
         this.context = context;
@@ -95,22 +96,23 @@ public abstract class SugiliteDialogManager implements SugiliteVoiceInterface {
      * @param speakButton
      */
     protected void refreshSpeakButtonStyle(ImageButton speakButton){
-        if(isSpeaking()){
-            speakButton.setImageDrawable(speakingDrawable);
-            speakButton.getBackground().setColorFilter(new LightingColorFilter(MUL_ZEROS, RECORDING_SPEAKING_BUTTON_COLOR));
-            speakButton.getDrawable().setColorFilter(new LightingColorFilter(MUL_ZEROS, RECORDING_WHITE_COLOR));
-            speakingDrawable.start();
-            //dialog.getWindow().getDecorView().getBackground().setColorFilter(new LightingColorFilter(MUL_ZEROS, RECORDING_SPEAKING_ON_BACKGROUND_COLOR));
-        }
-        else {
-            if (isListening()) {
-                speakButton.setImageDrawable(listeningDrawable);
-                speakButton.getBackground().setColorFilter(new LightingColorFilter(MUL_ZEROS, RECORDING_ON_BUTTON_COLOR));
+        if(speakButton != null) {
+            if (isSpeaking()) {
+                speakButton.setImageDrawable(speakingDrawable);
+                speakButton.getBackground().setColorFilter(new LightingColorFilter(MUL_ZEROS, RECORDING_SPEAKING_BUTTON_COLOR));
                 speakButton.getDrawable().setColorFilter(new LightingColorFilter(MUL_ZEROS, RECORDING_WHITE_COLOR));
+                speakingDrawable.start();
+                //dialog.getWindow().getDecorView().getBackground().setColorFilter(new LightingColorFilter(MUL_ZEROS, RECORDING_SPEAKING_ON_BACKGROUND_COLOR));
             } else {
-                speakButton.setImageDrawable(notListeningDrawable);
-                speakButton.getBackground().setColorFilter(new LightingColorFilter(MUL_ZEROS, RECORDING_OFF_BUTTON_COLOR));
-                speakButton.getDrawable().setColorFilter(new LightingColorFilter(MUL_ZEROS, RECORDING_DARK_GRAY_COLOR));
+                if (isListening()) {
+                    speakButton.setImageDrawable(listeningDrawable);
+                    speakButton.getBackground().setColorFilter(new LightingColorFilter(MUL_ZEROS, RECORDING_ON_BUTTON_COLOR));
+                    speakButton.getDrawable().setColorFilter(new LightingColorFilter(MUL_ZEROS, RECORDING_WHITE_COLOR));
+                } else {
+                    speakButton.setImageDrawable(notListeningDrawable);
+                    speakButton.getBackground().setColorFilter(new LightingColorFilter(MUL_ZEROS, RECORDING_OFF_BUTTON_COLOR));
+                    speakButton.getDrawable().setColorFilter(new LightingColorFilter(MUL_ZEROS, RECORDING_DARK_GRAY_COLOR));
+                }
             }
         }
     }
@@ -148,21 +150,25 @@ public abstract class SugiliteDialogManager implements SugiliteVoiceInterface {
     @Override
     public void listeningStarted() {
         isListening = true;
+        refreshSpeakButtonStyle(speakButton);
     }
 
     @Override
     public void listeningEnded() {
         isListening = false;
+        refreshSpeakButtonStyle(speakButton);
     }
 
     @Override
     public void speakingStarted() {
         isSpeaking = true;
+        refreshSpeakButtonStyle(speakButton);
     }
 
     @Override
     public void speakingEnded() {
         isSpeaking = false;
+        refreshSpeakButtonStyle(speakButton);
     }
 
     public boolean isListening() {
@@ -183,7 +189,9 @@ public abstract class SugiliteDialogManager implements SugiliteVoiceInterface {
     }
 
     public void speak(String utterance, Runnable runnableOnDone) {
-        sugiliteVoiceRecognitionListener.speak(utterance, String.valueOf(Calendar.getInstance().getTimeInMillis()), runnableOnDone);
+        if(tts != null) {
+            sugiliteVoiceRecognitionListener.speak(utterance, String.valueOf(Calendar.getInstance().getTimeInMillis()), runnableOnDone);
+        }
     }
 
     public SugiliteDialogState getCurrentState() {
@@ -192,5 +200,9 @@ public abstract class SugiliteDialogManager implements SugiliteVoiceInterface {
 
     public void setCurrentState(SugiliteDialogState currentState) {
         this.currentState = currentState;
+    }
+
+    public void setSpeakButton(ImageButton speakButton) {
+        this.speakButton = speakButton;
     }
 }

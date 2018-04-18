@@ -53,7 +53,7 @@ public class Const {
 
     //App name to display
     public static final String appName = "Sugilite";
-    public static final String appNameUpperCase = "SUGILITE";
+    public static final String appNameUpperCase = "APPINITE";
 
     public static final int ID_APP_TRACKER = 1001;
     public static final String APP_TRACKER = "APP_TRACKER";

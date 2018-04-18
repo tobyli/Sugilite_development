@@ -88,19 +88,23 @@ public class SugiliteRelation implements Serializable {
     public static final SugiliteRelation CONTAINS_DURATION = new SugiliteRelation(26, "numeric_duration");
     public static final SugiliteRelation CONTAINS_LENGTH = new SugiliteRelation(27, "numeric_length");
     public static final SugiliteRelation CONTAINS_PERCENTAGE = new SugiliteRelation(28, "numeric_percentage");
-    public static final SugiliteRelation CONTAINS_VOLUME = new SugiliteRelation(28, "numeric_volume");
-    public static final SugiliteRelation CONTAINS_NUMBER = new SugiliteRelation(29, "numeric_number");
+    public static final SugiliteRelation CONTAINS_VOLUME = new SugiliteRelation(29, "numeric_volume");
+    public static final SugiliteRelation CONTAINS_NUMBER = new SugiliteRelation(30, "numeric_number");
 
 
 
     //spatial relations
-    public static final SugiliteRelation CONTAINS = new SugiliteRelation(30, "CONTAINS");
-    public static final SugiliteRelation RIGHT = new SugiliteRelation(31, "RIGHT");
-    public static final SugiliteRelation LEFT = new SugiliteRelation(32, "LEFT");
-    public static final SugiliteRelation ABOVE = new SugiliteRelation(33, "ABOVE");
-    public static final SugiliteRelation BELOW = new SugiliteRelation(34, "BELOW");
-    public static final SugiliteRelation NEAR = new SugiliteRelation(35, "NEAR");
-    public static final SugiliteRelation NEXT_TO = new SugiliteRelation(36, "NEXT_TO");
+    public static final SugiliteRelation CONTAINS = new SugiliteRelation(31, "CONTAINS");
+    public static final SugiliteRelation RIGHT = new SugiliteRelation(32, "RIGHT");
+    public static final SugiliteRelation LEFT = new SugiliteRelation(33, "LEFT");
+    public static final SugiliteRelation ABOVE = new SugiliteRelation(34, "ABOVE");
+    public static final SugiliteRelation BELOW = new SugiliteRelation(35, "BELOW");
+    public static final SugiliteRelation NEAR = new SugiliteRelation(36, "NEAR");
+    public static final SugiliteRelation NEXT_TO = new SugiliteRelation(37, "NEXT_TO");
+
+    //Deprecated
+    public static final SugiliteRelation IS = new SugiliteRelation(38, "is");
+
 
 
     public static final Map<String, SugiliteRelation> stringRelationMap;
@@ -151,6 +155,8 @@ public class SugiliteRelation implements Serializable {
         stringRelationMap.put("BELOW", BELOW);
         stringRelationMap.put("NEAR", NEAR);
         stringRelationMap.put("NEXT_TO", NEXT_TO);
+
+        stringRelationMap.put("is", IS);
     }
 
     @Override

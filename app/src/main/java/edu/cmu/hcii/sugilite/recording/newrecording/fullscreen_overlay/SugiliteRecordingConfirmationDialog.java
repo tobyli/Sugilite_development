@@ -14,6 +14,7 @@ import android.view.View;
 import android.view.WindowManager;
 import android.widget.ImageButton;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.util.List;
 
@@ -76,7 +77,7 @@ public class SugiliteRecordingConfirmationDialog extends SugiliteDialogManager {
 
 
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
-        String newDescription = ontologyDescriptionGenerator.getDescriptionForOperation(block.getOperation(), blockBuildingHelper.stripSerializableOntologyQuery(block.getQuery()));
+        String newDescription = ontologyDescriptionGenerator.getDescriptionForOperation(block.getOperation(), block.getQuery());
         builder.setTitle("Save Operation Confirmation");
 
         dialogView = layoutInflater.inflate(R.layout.dialog_confirmation_popup_spoken, null);
@@ -84,6 +85,7 @@ public class SugiliteRecordingConfirmationDialog extends SugiliteDialogManager {
         if(confirmationPromptTextView != null){
             //TODO: show the source code temporarily
             confirmationPromptTextView.setText(Html.fromHtml("Are you sure you want to record the operation: " + newDescription));
+            Toast.makeText(context, block.toString(), Toast.LENGTH_SHORT).show();
             //confirmationPromptTextView.setText(Html.fromHtml("Are you sure you want to record the operation: " + block.toString()));
 
         }
@@ -207,7 +209,7 @@ public class SugiliteRecordingConfirmationDialog extends SugiliteDialogManager {
     @Override
     public void initDialogManager() {
         //set the prompt
-        String newDescription = ontologyDescriptionGenerator.getDescriptionForOperation(block.getOperation(), blockBuildingHelper.stripSerializableOntologyQuery(block.getQuery()));
+        String newDescription = ontologyDescriptionGenerator.getDescriptionForOperation(block.getOperation(), block.getQuery());
         newDescription = Html.fromHtml(context.getString(R.string.ask_if_record, newDescription)).toString();
         askingForConfirmationState.setPrompt(newDescription);
         detailPromptState.setPrompt(context.getString(R.string.expand_ask_if_record));

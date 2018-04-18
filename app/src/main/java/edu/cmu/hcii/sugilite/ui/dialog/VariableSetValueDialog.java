@@ -7,6 +7,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Handler;
+import android.speech.tts.TextToSpeech;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.WindowManager;
@@ -16,6 +17,8 @@ import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import org.apache.commons.lang3.text.WordUtils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -33,6 +36,9 @@ import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.model.variable.StringVariable;
 import edu.cmu.hcii.sugilite.model.variable.Variable;
+import edu.cmu.hcii.sugilite.recording.newrecording.dialog_management.SugiliteDialogManager;
+import edu.cmu.hcii.sugilite.recording.newrecording.dialog_management.SugiliteDialogSimpleState;
+import edu.cmu.hcii.sugilite.recording.newrecording.dialog_management.SugiliteDialogUtteranceFilter;
 import edu.cmu.hcii.sugilite.study.ScriptUsageLogManager;
 
 import static edu.cmu.hcii.sugilite.Const.SCRIPT_DELAY;
@@ -43,10 +49,12 @@ import static edu.cmu.hcii.sugilite.Const.SCRIPT_DELAY;
  * @time 8:47 PM
  */
 
+
 /**
- * for running scripts with parameters
+ * dialog for running scripts with parameters
  */
-public class VariableSetValueDialog extends AbstractSugiliteDialog{
+public class VariableSetValueDialog extends SugiliteDialogManager implements AbstractSugiliteDialog{
+
     private Context context;
     private AlertDialog dialog;
     private Map<String,Variable> variableDefaultValueMap, stringVariableMap;
@@ -57,7 +65,20 @@ public class VariableSetValueDialog extends AbstractSugiliteDialog{
     private SugiliteData sugiliteData;
     private int state;
 
+
+
+    //adding speech for VLHCC DEMO
+    private SugiliteDialogSimpleState askingForValueState = new SugiliteDialogSimpleState("ASKING_FOR_VARIABLE_VALUE", this);
+    private SugiliteDialogSimpleState askingForValueConfirmationState = new SugiliteDialogSimpleState("ASKING_FOR_VARIABLE_VALUE_CONFIRMATION_VALUE", this);
+    private EditText firstVariableEditText;
+    private String firstVariableName;
+
+
+
     public VariableSetValueDialog(final Context context, LayoutInflater inflater, SugiliteData sugiliteData, SugiliteStartingBlock startingBlock, SharedPreferences sharedPreferences, int state){
+        //constructor for SugiliteDialogManager
+        super(context, sugiliteData.getTTS());
+
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
         this.context = context;
         this.sharedPreferences = sharedPreferences;
@@ -122,6 +143,11 @@ public class VariableSetValueDialog extends AbstractSugiliteDialog{
                 linearLayout.addView(variableValue);
                 variableSelectionViewMap.put(entry.getKey(), variableValue);
 
+                if(firstVariableName == null && firstVariableEditText == null){
+                    firstVariableName = entry.getKey();
+                    firstVariableEditText = variableValue;
+                }
+
             }
             mainLayout.addView(linearLayout);
         }
@@ -146,13 +172,13 @@ public class VariableSetValueDialog extends AbstractSugiliteDialog{
 
     public void show(){
         dialog.show();
-        dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(new View.OnClickListener()
-        {
+        dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v)
             {
                 //check if all fields have been set
                 boolean allReady = true;
+
                 for(Map.Entry<String, View> entry: variableSelectionViewMap.entrySet()) {
                     if(entry.getValue() instanceof TextView) {
                         if (((TextView)entry.getValue()).getText().toString().length() < 1) {
@@ -161,6 +187,7 @@ public class VariableSetValueDialog extends AbstractSugiliteDialog{
                         }
                     }
                 }
+
                 if(allReady) {
                     //update all
                     for (Map.Entry<String, View> entry : variableSelectionViewMap.entrySet()) {
@@ -178,8 +205,14 @@ public class VariableSetValueDialog extends AbstractSugiliteDialog{
                 }
             }
         });
+        if(firstVariableEditText != null && firstVariableName != null) {
+            initDialogManager();
+        }
+
     }
     AlertDialog progressDialog;
+
+
     /**
      * @param afterExecutionOperation @nullable, this operation will be pushed into the queue after the exeution
      * this is used for resume recording
@@ -235,4 +268,51 @@ public class VariableSetValueDialog extends AbstractSugiliteDialog{
         context.startActivity(startMain);
     }
 
+    @Override
+    public void initDialogManager() {
+        //TODO: initiate the dialog manager
+        askingForValueState.setPrompt("Do you want to use the parameter value \"" + firstVariableName + "\", or you can say something else?");
+        //askingForValueState.setPrompt("What's the value for the parameter " + firstVariableName + "?");
+        askingForValueState.setNoASRResultState(askingForValueState);
+        askingForValueState.addNextStateUtteranceFilter(askingForValueConfirmationState, SugiliteDialogUtteranceFilter.getConstantFilter(true));
+        askingForValueState.setOnInitiatedRunnable(new Runnable() {
+            @Override
+            public void run() {
+                if(!firstVariableEditText.getText().toString().equals(firstVariableName)) {
+                    firstVariableEditText.setText("");
+                }
+            }
+        });
+        //set on switched away runnable - the verbal instruction state should set the value for the text box
+        askingForValueState.setOnSwitchedAwayRunnable(new Runnable() {
+            @Override
+            public void run() {
+                if (askingForValueState.getASRResult() != null && (!askingForValueState.getASRResult().isEmpty())) {
+                    firstVariableEditText.setText(capitalize(askingForValueState.getASRResult().get(0)));
+                }
+            }
+        });
+
+        askingForValueConfirmationState.setPrompt("Is this parameter value correct?");
+        askingForValueConfirmationState.setNoASRResultState(askingForValueState);
+        askingForValueConfirmationState.setUnmatchedState(askingForValueState);
+        askingForValueConfirmationState.addNextStateUtteranceFilter(askingForValueState, SugiliteDialogUtteranceFilter.getSimpleContainingFilter("no", "nah"));
+        askingForValueConfirmationState.addExitRunnableUtteranceFilter(SugiliteDialogUtteranceFilter.getSimpleContainingFilter("yes", "yeah"), new Runnable() {
+            @Override
+            public void run() {
+                if(dialog != null || dialog.getButton(DialogInterface.BUTTON_POSITIVE) != null) {
+                    dialog.getButton(DialogInterface.BUTTON_POSITIVE).performClick();
+                    speak("Executing the task...", null);
+                }
+            }
+        });
+
+        //set current sate
+        setCurrentState(askingForValueState);
+        initPrompt();
+    }
+
+    private static String capitalize(String str){
+        return WordUtils.capitalize(str);
+    }
 }

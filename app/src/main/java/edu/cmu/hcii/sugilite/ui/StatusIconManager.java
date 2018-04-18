@@ -536,7 +536,7 @@ public class StatusIconManager {
                                     break;
                                 case "New Recording":
                                     //create a new script
-                                    NewScriptDialog newScriptDialog = new NewScriptDialog(v.getContext(), sugiliteScriptDao, serviceStatusManager, sharedPreferences, sugiliteData, true, null, null);
+                                    NewScriptDialog newScriptDialog = new NewScriptDialog(v.getContext(), layoutInflater, sugiliteScriptDao, serviceStatusManager, sharedPreferences, sugiliteData, true, null, null);
                                     newScriptDialog.show();
                                     break;
                                 case "Resume Last Recording":

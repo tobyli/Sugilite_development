@@ -75,8 +75,8 @@ public class SugiliteBlockBuildingHelper {
 
         //description is set
         //TODO: fix
-        operationBlock.setDescription(operationBlock.toString());
-        //operationBlock.setDescription(ontologyDescriptionGenerator.getDescriptionForOperation(sugiliteOperation, query));
+        //operationBlock.setDescription(operationBlock.toString());
+        operationBlock.setDescription(ontologyDescriptionGenerator.getDescriptionForOperation(sugiliteOperation, query));
         return operationBlock;
     }
 

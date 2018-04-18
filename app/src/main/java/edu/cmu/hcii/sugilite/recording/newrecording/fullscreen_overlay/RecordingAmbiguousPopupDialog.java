@@ -76,7 +76,6 @@ public class RecordingAmbiguousPopupDialog extends SugiliteDialogManager impleme
     private View dialogView;
     private AlertDialog progressDialog;
     private Gson gson;
-    private ImageButton speakButton;
     private SerializableUISnapshot serializableUISnapshot;
     private UISnapshot uiSnapshot;
     private SugiliteEntity<Node> actualClickedNode;
@@ -88,8 +87,10 @@ public class RecordingAmbiguousPopupDialog extends SugiliteDialogManager impleme
     private SharedPreferences sharedPreferences;
     private TextView textPrompt;
     private OntologyDescriptionGenerator descriptionGenerator;
+    private ImageButton mySpeakButton;
 
     private int errorCount = 0;
+    public static boolean CHECK_FOR_GROUNDING_MATCH = false;
 
     //states
     private SugiliteDialogSimpleState askingForVerbalInstructionState = new SugiliteDialogSimpleState("ASKING_FOR_VERBAL_INSTRUCTION", this);
@@ -171,9 +172,9 @@ public class RecordingAmbiguousPopupDialog extends SugiliteDialogManager impleme
 
 
         //initiate the speak button
-        speakButton = (ImageButton) dialogView.findViewById(R.id.button_verbal_instruction_talk);
-        speakButton.getBackground().setColorFilter(new LightingColorFilter(MUL_ZEROS, RECORDING_OFF_BUTTON_COLOR));
-        speakButton.setOnClickListener(new View.OnClickListener() {
+        mySpeakButton  = (ImageButton) dialogView.findViewById(R.id.button_verbal_instruction_talk);
+        mySpeakButton.getBackground().setColorFilter(new LightingColorFilter(MUL_ZEROS, RECORDING_OFF_BUTTON_COLOR));
+        mySpeakButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 // speak button
@@ -184,9 +185,9 @@ public class RecordingAmbiguousPopupDialog extends SugiliteDialogManager impleme
                 }
             }
         });
-        speakButton.setImageDrawable(notListeningDrawable);
-        speakButton.getDrawable().setColorFilter(new LightingColorFilter(MUL_ZEROS, RECORDING_DARK_GRAY_COLOR));
-
+        mySpeakButton.setImageDrawable(notListeningDrawable);
+        mySpeakButton.getDrawable().setColorFilter(new LightingColorFilter(MUL_ZEROS, RECORDING_DARK_GRAY_COLOR));
+        setSpeakButton(mySpeakButton);
 
         builder.setView(dialogView);
 
@@ -247,7 +248,7 @@ public class RecordingAmbiguousPopupDialog extends SugiliteDialogManager impleme
 
         //initiate the dialog manager when the dialog is shown
         initDialogManager();
-        refreshSpeakButtonStyle(speakButton);
+        refreshSpeakButtonStyle(mySpeakButton);
     }
 
     private void showProgressDialog() {
@@ -294,30 +295,6 @@ public class RecordingAmbiguousPopupDialog extends SugiliteDialogManager impleme
         }
     }
 
-    @Override
-    public void listeningStarted() {
-        super.listeningStarted();
-        refreshSpeakButtonStyle(speakButton);
-    }
-
-    @Override
-    public void listeningEnded() {
-        super.listeningEnded();
-        refreshSpeakButtonStyle(speakButton);
-    }
-
-    @Override
-    public void speakingStarted() {
-        super.speakingStarted();
-        refreshSpeakButtonStyle(speakButton);
-    }
-
-    @Override
-    public void speakingEnded() {
-        super.speakingEnded();
-        refreshSpeakButtonStyle(speakButton);
-    }
-
     /**
      * callback for the HTTP query when the result is available
      */
@@ -353,13 +330,13 @@ public class RecordingAmbiguousPopupDialog extends SugiliteDialogManager impleme
         List<Pair<OntologyQuery, List<Node>>> matchingQueriesMatchedNodesList = new ArrayList<>();
 
         for (VerbalInstructionServerResults.VerbalInstructionResult verbalInstructionResult : results.getQueries()) {
-            if(verbalInstructionResult.getGrounding() == null || verbalInstructionResult.getGrounding().isEmpty()){
+            if((verbalInstructionResult.getGrounding() == null || verbalInstructionResult.getGrounding().isEmpty()) && CHECK_FOR_GROUNDING_MATCH){
                 //empty grounding
                 continue;
             }
 
             Set<String> groundings = new HashSet<>(verbalInstructionResult.getGrounding());
-            if(!groundings.contains("@" + actualClickedNode.getEntityId().toString())){
+            if((!groundings.contains("@" + actualClickedNode.getEntityId().toString())) && CHECK_FOR_GROUNDING_MATCH){
                 //grouding doesn't contain the clicked item
                 continue;
             }
@@ -372,7 +349,7 @@ public class RecordingAmbiguousPopupDialog extends SugiliteDialogManager impleme
             //construct the query, run the query, and compare the result against the actually clicked on node
 
             String queryFormula = verbalInstructionResult.getFormula();
-            OntologyQuery query = OntologyQueryUtils.getQueryWithClassAndPackageConstraints(OntologyQuery.deserialize(queryFormula), actualClickedNode.getEntityValue());
+            OntologyQuery query = OntologyQueryUtils.getQueryWithClassAndPackageConstraints(OntologyQuery.deserialize(queryFormula), actualClickedNode.getEntityValue(), false, true, true);
 
             //TODO: fix the bug in query.executeOn -- it should not change the query
 
@@ -389,7 +366,13 @@ public class RecordingAmbiguousPopupDialog extends SugiliteDialogManager impleme
                         if (OntologyQueryUtils.isSameNode(actualClickedNode.getEntityValue(), node)) {
                             matched = true;
                         }
+
+
                     }
+                }
+
+                if(!CHECK_FOR_GROUNDING_MATCH){
+                    matched = true;
                 }
 
             }
@@ -471,7 +454,7 @@ public class RecordingAmbiguousPopupDialog extends SugiliteDialogManager impleme
             try {
                 OntologyQuery topQuery = OntologyQuery.deserialize(results.getQueries().get(0).getFormula());
                 SugiliteOperation operation = new SugiliteUnaryOperation(SugiliteOperation.CLICK);
-                topQuery = OntologyQueryUtils.getQueryWithClassAndPackageConstraints(topQuery, actualClickedNode.getEntityValue(), true, false);
+                topQuery = OntologyQueryUtils.getQueryWithClassAndPackageConstraints(topQuery, actualClickedNode.getEntityValue(), false, true, true);
                 descriptionForTopQuery = descriptionGenerator.getDescriptionForOperation(operation, new SerializableOntologyQuery(topQuery));
                 if(descriptionForTopQuery != null){
                     textPrompt.setText(Html.fromHtml(boldify(context.getString(R.string.disambiguation_result_wont_match)) + "<br><br> Intepretation for your description: " + descriptionForTopQuery));

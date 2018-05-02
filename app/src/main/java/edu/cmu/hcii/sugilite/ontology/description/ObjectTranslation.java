@@ -33,10 +33,6 @@ public class ObjectTranslation {
     {
         ArrayList<String> classList = new ArrayList<String>();
         classList.add("item");
-//        for (String val : objectMap.values())
-//        {
-//            classList.add(val);
-//        }
         classList.addAll(objectMap.values());
         return classList;
     }

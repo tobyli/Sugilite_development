@@ -63,6 +63,7 @@ import static edu.cmu.hcii.sugilite.Const.MUL_ZEROS;
 import static edu.cmu.hcii.sugilite.Const.RECORDING_DARK_GRAY_COLOR;
 import static edu.cmu.hcii.sugilite.Const.RECORDING_OFF_BUTTON_COLOR;
 import static edu.cmu.hcii.sugilite.Const.boldify;
+import static edu.cmu.hcii.sugilite.recording.newrecording.fullscreen_overlay.RecordingAmbiguousPopupDialog.CHECK_FOR_GROUNDING_MATCH;
 
 /**
  * @author toby
@@ -100,6 +101,7 @@ public class FollowUpQuestionDialog extends SugiliteDialogManager implements Sug
     private VerbalInstructionIconManager verbalInstructionIconManager;
     private View previewOverlay;
     private FollowUpQuestionDialog followUpQuestionDialog;
+    private TextView textPromptTextView;
 
     private int errorCount = 0;
 
@@ -169,6 +171,7 @@ public class FollowUpQuestionDialog extends SugiliteDialogManager implements Sug
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
         dialogView = layoutInflater.inflate(R.layout.dialog_followup_popup_spoken, null);
         currentQueryTextView = (TextView) dialogView.findViewById(R.id.text_current_query_content);
+        textPromptTextView = (TextView) dialogView.findViewById(R.id.text_prompt);
         verbalInstructionEditText = (EditText) dialogView.findViewById(R.id.edittext_instruction_content);
 
         refreshPreviewTextView();
@@ -357,7 +360,8 @@ public class FollowUpQuestionDialog extends SugiliteDialogManager implements Sug
      */
     private void refreshPreviewTextView(){
         //TODO: show the source code temporarily
-        String html = ontologyDescriptionGenerator.getDescriptionForOntologyQuery(SugiliteBlockBuildingHelper.stripSerializableOntologyQuery(new SerializableOntologyQuery(currentQuery)));
+        String html = ontologyDescriptionGenerator.getDescriptionForOntologyQuery(new SerializableOntologyQuery(currentQuery));
+        Toast.makeText(context, currentQuery.toString(), Toast.LENGTH_SHORT).show();
         //String html = SugiliteBlockBuildingHelper.stripSerializableOntologyQuery(new SerializableOntologyQuery(currentQuery)).toString();
         currentQueryTextView.setText(Html.fromHtml(html));
     }
@@ -370,10 +374,12 @@ public class FollowUpQuestionDialog extends SugiliteDialogManager implements Sug
         this.numberOfMatchedNodes = numberOfMatchedNodes;
         if(numberOfMatchedNodes > 0) {
             askingForVerbalInstructionFollowUpState.setPrompt(context.getString(R.string.disambiguation_followup_prompt, numberOfMatchedNodes));
+            textPromptTextView.setText(context.getString(R.string.disambiguation_followup_prompt, numberOfMatchedNodes));
         }
         else{
             //when the numberOfMatchedNodes < 0 (i.e. the dialog was generated through the back button)
             askingForVerbalInstructionFollowUpState.setPrompt(context.getString(R.string.disambiguation_followup_no_count_prompt));
+            textPromptTextView.setText(context.getString(R.string.disambiguation_followup_no_count_prompt));
         }
     }
 
@@ -551,6 +557,8 @@ public class FollowUpQuestionDialog extends SugiliteDialogManager implements Sug
 
     public void uncollapse(){
         if(dialog != null && (!dialog.isShowing())) {
+            //disable the prompt after uncollapsing
+            askingForVerbalInstructionFollowUpState.setPrompt("");
             //clear the handler
             if(handler != null){
                 handler.removeCallbacksAndMessages(null);
@@ -694,9 +702,8 @@ public class FollowUpQuestionDialog extends SugiliteDialogManager implements Sug
             //construct the query, run the query, and compare the result against the actually clicked on node
 
             String queryFormula = verbalInstructionResult.getFormula();
-            OntologyQuery resolvedQuery = OntologyQueryUtils.getQueryWithClassAndPackageConstraints(OntologyQuery.deserialize(queryFormula), actualClickedNode.getEntityValue());
+            OntologyQuery resolvedQuery = OntologyQueryUtils.getQueryWithClassAndPackageConstraints(OntologyQuery.deserialize(queryFormula), actualClickedNode.getEntityValue(), false, true, true);
             OntologyQuery combinedQuery = OntologyQueryUtils.combineTwoQueries(currentQuery, resolvedQuery);
-
             OntologyQuery queryClone = OntologyQuery.deserialize(combinedQuery.toString());
 
             //TODO: fix the bug in query.executeOn -- it should not change the query
@@ -710,6 +717,9 @@ public class FollowUpQuestionDialog extends SugiliteDialogManager implements Sug
                         //filteredNodeNodeIdMap.put(node, entity.getEntityId());
                     }
                     if (OntologyQueryUtils.isSameNode(actualClickedNode.getEntityValue(), node)) {
+                        matched = true;
+                    }
+                    if(!CHECK_FOR_GROUNDING_MATCH){
                         matched = true;
                     }
                 }

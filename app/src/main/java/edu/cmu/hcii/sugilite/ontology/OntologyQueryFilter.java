@@ -13,6 +13,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import edu.cmu.hcii.sugilite.model.Node;
+
 /**
  * @author toby
  * @date 3/22/18
@@ -108,6 +110,16 @@ public class OntologyQueryFilter implements Serializable {
             List<Pair<SugiliteEntity, Comparable>> entityWithObjectValues = new ArrayList<>();
 
             for(SugiliteEntity entity : sugiliteEntities){
+
+
+                //*** temporarily only consider clickable items in argmin/max
+                if(entity.getEntityValue() instanceof Node){
+                    if(((Node) entity.getEntityValue()).getClickable() == false){
+                        continue;
+                    }
+                }
+                //***
+
                 Set<SugiliteTriple> allMatchedTriples = uiSnapshot.getSubjectPredicateTriplesMap().get(new AbstractMap.SimpleEntry<>(entity.getEntityId(), relation.getRelationId()));
                 if(allMatchedTriples == null || allMatchedTriples.isEmpty()){
                     continue;

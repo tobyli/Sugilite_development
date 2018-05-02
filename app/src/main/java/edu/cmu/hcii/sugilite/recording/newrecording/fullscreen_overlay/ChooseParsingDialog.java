@@ -42,6 +42,10 @@ import edu.cmu.hcii.sugilite.recording.newrecording.dialog_management.SugiliteDi
  * @time 1:00 PM
  */
 public class ChooseParsingDialog extends SugiliteDialogManager {
+    private static final boolean TO_SKIP = true;
+
+
+
     Context context;
     SugiliteBlockBuildingHelper blockBuildingHelper;
     LayoutInflater layoutInflater;
@@ -53,6 +57,7 @@ public class ChooseParsingDialog extends SugiliteDialogManager {
     OntologyDescriptionGenerator ontologyDescriptionGenerator;
 
     private View dialogView;
+    private ListView mainListView;
     private List<Pair<OntologyQuery, List<Node>>> matchingQueriesMatchedNodesList;
     private List<OntologyQuery> resultQueries;
     private Dialog dialog;
@@ -84,7 +89,7 @@ public class ChooseParsingDialog extends SugiliteDialogManager {
         dialogView = layoutInflater.inflate(R.layout.dialog_choosing_parsing, null);
 
         //set the list view for query parse candidates
-        ListView mainListView = (ListView) dialogView.findViewById(R.id.listview_query_candidates);
+        mainListView = (ListView) dialogView.findViewById(R.id.listview_query_candidates);
         //Map<TextView, OntologyQuery> textViews = new HashMap<>();
         String[] stringArray = new String[resultQueries.size()];
         OntologyQuery[] ontologyQueryArray = new OntologyQuery[resultQueries.size()];
@@ -179,10 +184,14 @@ public class ChooseParsingDialog extends SugiliteDialogManager {
             dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
         }
         dialog.show();
-
-        //initiate the dialog manager when the dialog is shown
-        initDialogManager();
-        //refreshSpeakButtonStyle(speakButton);
+        if(TO_SKIP){
+            mainListView.performItemClick(mainListView.getAdapter().getView(0, null, null), 0, mainListView.getItemIdAtPosition(0));
+        }
+        else{
+            //initiate the dialog manager when the dialog is shown
+            initDialogManager();
+            //refreshSpeakButtonStyle(speakButton);
+        }
     }
 
     /**

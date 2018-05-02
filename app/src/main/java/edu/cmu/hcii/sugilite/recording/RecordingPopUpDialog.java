@@ -81,7 +81,7 @@ import static edu.cmu.hcii.sugilite.Const.SQL_SCRIPT_DAO;
  */
 
 @Deprecated
-public class RecordingPopUpDialog extends AbstractSugiliteDialog {
+public class RecordingPopUpDialog implements AbstractSugiliteDialog {
 
     private int triggerMode;
     private SugiliteAvailableFeaturePack featurePack;

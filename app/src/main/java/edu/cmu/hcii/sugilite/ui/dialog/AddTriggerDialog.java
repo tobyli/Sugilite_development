@@ -36,7 +36,7 @@ import static android.view.View.GONE;
  * Created by toby on 1/11/17.
  */
 
-public class AddTriggerDialog extends AbstractSugiliteDialog {
+public class AddTriggerDialog implements AbstractSugiliteDialog {
 
     private Context context;
     private AlertDialog dialog;

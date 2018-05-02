@@ -120,6 +120,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
             }
         });
         tts.setLanguage(Locale.US);
+        sugiliteData.setTTS(tts);
         sugiliteStudyHandler = new SugiliteStudyHandler(context, LayoutInflater.from(getApplicationContext()), this, tts);
         statusIconManager = new StatusIconManager(this, sugiliteData, sharedPreferences, accessibilityManager);
         sugiliteData.statusIconManager = statusIconManager;

@@ -1,10 +1,10 @@
 package edu.cmu.hcii.sugilite.ontology.helper.annotator;
 
-import android.graphics.Rect;
 
 import edu.cmu.hcii.sugilite.ontology.SugiliteRelation;
 import edu.cmu.hcii.sugilite.model.Node;
 import edu.cmu.hcii.sugilite.ontology.SugiliteEntity;
+import edu.cmu.hcii.sugilite.ontology.helper.annotator.util.MyRect;
 
 import java.util.ArrayList;
 import java.util.Set;
@@ -44,6 +44,10 @@ public class SugiliteNodeAnnotator {
 
         public SugiliteEntity<Node> getSubject() {return subject;}
 
+        public SugiliteEntity<Node> getObjectEntity() {
+            return object;
+        }
+
         public Node getObject() {return object.getEntityValue();}
     }
 
@@ -54,8 +58,8 @@ public class SugiliteNodeAnnotator {
         for (SugiliteEntity<Node> n1 : nodes) {
             for (SugiliteEntity<Node> n2 : nodes) {
                 if (n1 == n2) continue;
-                Rect r1 = Rect.unflattenFromString(n1.getEntityValue().getBoundsInScreen());
-                Rect r2 = Rect.unflattenFromString(n2.getEntityValue().getBoundsInScreen());
+                MyRect r1 = MyRect.unflattenFromString(n1.getEntityValue().getBoundsInScreen());
+                MyRect r2 = MyRect.unflattenFromString(n2.getEntityValue().getBoundsInScreen());
                 if (r1.intersect(r2)) continue;
                 if (r1.contains(r2))
                     result.add(new AnnotatingResult(SugiliteRelation.CONTAINS, n1, n2));
@@ -99,7 +103,7 @@ public class SugiliteNodeAnnotator {
         return Math.sqrt((x1-x2)*(x1-x2) + (y1-y2)*(y1-y2));
     }
 
-    private int separation(Rect r1, Rect r2) {
+    private int separation(MyRect r1, MyRect r2) {
         int dx, dy;
         if (r1.left >= r2.right) dx = r1.left - r2.right;
         else if (r2.left >= r1.right) dx = r2.left - r1.right;

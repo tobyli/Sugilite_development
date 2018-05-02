@@ -5,8 +5,8 @@ package edu.cmu.hcii.sugilite.ui.dialog;
  * @date 10/5/16
  * @time 2:18 PM
  */
-public abstract class AbstractSugiliteDialog {
+public interface AbstractSugiliteDialog {
 
-    abstract public void show();
+     void show();
 
 }

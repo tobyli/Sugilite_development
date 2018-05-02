@@ -1,5 +1,7 @@
 package edu.cmu.hcii.sugilite.verbal_instruction_demo.speech;
 
+import android.accessibilityservice.AccessibilityService;
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
@@ -9,6 +11,7 @@ import android.speech.SpeechRecognizer;
 import android.speech.tts.TextToSpeech;
 import android.speech.tts.UtteranceProgressListener;
 import android.util.Log;
+import android.view.View;
 import android.widget.Toast;
 
 import java.util.ArrayList;
@@ -32,7 +35,6 @@ public class SugiliteVoiceRecognitionListener implements RecognitionListener {
     private Context context;
     private long lastStartListening = -1;
     private TextToSpeech tts;
-    private SugiliteAccessibilityService accessibilityService;
 
 
     //the parent interface
@@ -42,9 +44,7 @@ public class SugiliteVoiceRecognitionListener implements RecognitionListener {
         this.context = context;
         this.sugiliteVoiceInterface = voiceInterface;
         this.tts = tts;
-        if(context instanceof SugiliteAccessibilityService){
-            accessibilityService = (SugiliteAccessibilityService) context;
-        }
+
 
         recognizerIntent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
         recognizerIntent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_PREFERENCE,
@@ -78,6 +78,20 @@ public class SugiliteVoiceRecognitionListener implements RecognitionListener {
 
     }
 
+    private void runOnUiThread(Runnable runnable) throws Exception{
+        if(context instanceof SugiliteAccessibilityService) {
+            ((SugiliteAccessibilityService) context).runOnUiThread(runnable);
+        }
+
+        else if(context instanceof Activity) {
+            ((Activity) context).runOnUiThread(runnable);
+        }
+
+        else {
+            throw new Exception("no context available for running on ui thread");
+        }
+    }
+
     public void speak(String content, String utteranceId, Runnable onDone){
         HashMap<String, String> params = new HashMap<String, String>();
         params.put(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID,utteranceId);
@@ -85,25 +99,35 @@ public class SugiliteVoiceRecognitionListener implements RecognitionListener {
             @Override
             public void onStart(String utteranceId) {
                 if(sugiliteVoiceInterface != null) {
-                    accessibilityService.runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            sugiliteVoiceInterface.speakingStarted();
-                        }
-                    });
+                    try {
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                sugiliteVoiceInterface.speakingStarted();
+                            }
+                        });
+                    }
+                    catch (Exception e){
+                        e.printStackTrace();
+                    }
                 }
             }
 
             @Override
             public void onDone(String utteranceId) {
-                accessibilityService.runOnUiThread(onDone);
-                if(sugiliteVoiceInterface != null) {
-                    accessibilityService.runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            sugiliteVoiceInterface.speakingEnded();
-                        }
-                    });
+                try {
+                    runOnUiThread(onDone);
+                    if (sugiliteVoiceInterface != null) {
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                sugiliteVoiceInterface.speakingEnded();
+                            }
+                        });
+                    }
+                }
+                catch (Exception e){
+                    e.printStackTrace();
                 }
                 System.out.println("TTS IS DONE: " + utteranceId);
             }
@@ -111,12 +135,17 @@ public class SugiliteVoiceRecognitionListener implements RecognitionListener {
             @Override
             public void onError(String utteranceId) {
                 if(sugiliteVoiceInterface != null) {
-                    accessibilityService.runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            sugiliteVoiceInterface.speakingEnded();
-                        }
-                    });
+                    try {
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                sugiliteVoiceInterface.speakingEnded();
+                            }
+                        });
+                    }
+                    catch (Exception e){
+                        e.printStackTrace();
+                    }
                 }
             }
         });
@@ -127,12 +156,17 @@ public class SugiliteVoiceRecognitionListener implements RecognitionListener {
         if(tts.isSpeaking()){
             tts.stop();
             if(sugiliteVoiceInterface != null) {
-                accessibilityService.runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        sugiliteVoiceInterface.speakingEnded();
-                    }
-                });
+                try {
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            sugiliteVoiceInterface.speakingEnded();
+                        }
+                    });
+                }
+                catch (Exception e){
+                    e.printStackTrace();
+                }
             }
         }
     }

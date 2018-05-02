@@ -64,16 +64,20 @@ public class OntologyQuery {
     }
 
     public void addSubQuery(OntologyQuery sub){
+        /*
         if(BuildConfig.DEBUG && !(SubRelation != relationType.nullR && SubQueries != null)){
             throw new AssertionError();
         }
+        */
         SubQueries.add(sub);
     }
 
     public void setQueryFunction(BiFunction<SubjectEntityObjectEntityPair, UISnapshot, Boolean> f, SugiliteRelation r){
+        /*
         if(BuildConfig.DEBUG && !(SubRelation == relationType.nullR)){
             throw new AssertionError();
         }
+        */
         QueryFunction = f;
         this.r = r;
     }
@@ -103,16 +107,20 @@ public class OntologyQuery {
     }
 
     public void setObject(Set<SugiliteEntity> o){
+        /*
         if(BuildConfig.DEBUG && !(SubRelation == relationType.nullR)){
             throw new AssertionError();
         }
+        */
         object = o;
     }
 
     public void addObject(SugiliteEntity o){
+        /*
         if(BuildConfig.DEBUG && !(SubRelation == relationType.nullR)){
             throw new AssertionError();
         }
+        */
         if(object == null){
             object = new HashSet<>();
         }
@@ -120,16 +128,20 @@ public class OntologyQuery {
     }
 
     public void setSubject(Set<SugiliteEntity> s){
+        /*
         if(BuildConfig.DEBUG && !(SubRelation == relationType.nullR)){
             throw new AssertionError();
         }
+        */
         subject = s;
     }
 
     public void addSubject(SugiliteEntity s){
+        /*
         if(BuildConfig.DEBUG && !(SubRelation == relationType.nullR)){
             throw new AssertionError();
         }
+        */
         if(subject == null){
             subject = new HashSet<>();
         }
@@ -141,9 +153,11 @@ public class OntologyQuery {
     }
 
     public void setSubQueries(Set<OntologyQuery> subQueries) {
+        /*
         if(BuildConfig.DEBUG && !(SubRelation != relationType.nullR)){
             throw new AssertionError();
         }
+        */
         SubQueries = subQueries;
     }
 

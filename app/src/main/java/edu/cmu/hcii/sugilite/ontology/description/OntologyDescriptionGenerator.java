@@ -87,6 +87,7 @@ public class OntologyDescriptionGenerator {
         return "<font color=\"" + color + "\"><b>" + message + "</b></font>";
     }
 
+    // deals with some special cases to make description more readable
     private String formatting(SugiliteRelation sr, String[] os) {
         if(sr == null){
             return "NULL";
@@ -106,6 +107,7 @@ public class OntologyDescriptionGenerator {
             os[0] = numberToOrder(os[0]);
             return String.format(DescriptionGenerator.getDescription(sr), setColor(os[0], Const.SCRIPT_IDENTIFYING_FEATURE_COLOR));
         }
+
         return DescriptionGenerator.getDescription(sr) + setColor(os[0], Const.SCRIPT_IDENTIFYING_FEATURE_COLOR);
     }
 
@@ -137,6 +139,7 @@ public class OntologyDescriptionGenerator {
 
     }
 
+    // determines if the relation is about list order
     private boolean isListOrderRelation(SugiliteRelation r)
     {
         if (r!=null) {
@@ -151,6 +154,7 @@ public class OntologyDescriptionGenerator {
         return verb + getDescriptionForOntologyQuery(sq);
     }
 
+    // translates the filters
     private String translateFilter(OntologyQueryFilter f)
     {
         SugiliteRelation filterR = null;
@@ -165,17 +169,24 @@ public class OntologyDescriptionGenerator {
         return translation;
     }
 
-    // separating or from and
+    // separating "or" from "and"
     private String translationWithRelationshipOr(String[] args, OntologyQuery[] queries, OntologyQueryFilter f) {
         String result = "";
         int argL = args.length;
         String translatedFilter = "";
+        String conjunction = "has ";
+        boolean isListOrder = false;
         if(f != null) {
             translatedFilter = translateFilter(f);
             translatedFilter = setColor(translatedFilter, Const.SCRIPT_ACTION_PARAMETER_COLOR);
+            if (isListOrderRelation(f.getRelation()))
+            {
+                result = translatedFilter + " that ";
+                isListOrder = true;
+            }
         }
-        String conjunction = "has ";
-        result = "the item that ";
+        if (!isListOrder)
+            result = "the item that ";
 
         for (int i = 0; i < argL-1; i++) {
             if (queries[i].getR().equals(SugiliteRelation.HAS_CLASS_NAME)||isListOrderRelation(queries[i].getR())) {
@@ -196,13 +207,15 @@ public class OntologyDescriptionGenerator {
             conjunction = "has ";
         }
         result += conjunction+args[argL-1];
-        if (f != null)
+        if (f != null && !isListOrder)
             result += ", with " + translatedFilter;
 
         return result;
     }
 
-    private String listOrderTranslation(String result, String translation, String[] args)
+    // translates the list order filter with class name
+    // e.g. the first item --> the first button
+    private String filterListOrderTranslationWithClassName(String result, String translation, String[] args)
     {
         result = "";
         result += translation.replace("item", "");
@@ -210,28 +223,32 @@ public class OntologyDescriptionGenerator {
         return result;
     }
 
+    // handles the special case for package name (no for loop)
+    // package name always appears at the end and does not need "and"
+    // e.g. in home screen
     private String packageNameSpecialCaseHandler(String[] args, OntologyQueryFilter f, String result, String translatedFilter, boolean isListOrder, SugiliteRelation lastR, int argL, boolean needsMoreChange)
     {
 
         if (lastR != null && lastR.equals(SugiliteRelation.HAS_PACKAGE_NAME)) {
-            if (!needsMoreChange)
+            if (!needsMoreChange) // all queries before package name are taken care of
             {
-                result += " " + args[argL-1];
+                result += " " + args[argL-1]; // just add package name relation
             }
             else
             {
-                result += " that has " + args[argL-2];
-                result += " " + args[argL-1];
+                result += " that has " + args[argL-2]; // the query before package name needs to be included
+                result += " " + args[argL-1]; // and then add package name relation
             }
-        } else {
-            if (!needsMoreChange)
+        }
+        else { // the last relation is not package name, so there is no package name relation in the queries
+            if (!needsMoreChange) // all queries before last query are taken care of
             {
-                result += " that has " + args[argL-1];
+                result += " that has " + args[argL-1]; // add the last relation
             }
             else
             {
-                result += " that has " + args[argL-2];
-                result += " and " + args[argL-1];
+                result += " that has " + args[argL-2]; // the query before last query needs to be included
+                result += " and " + args[argL-1]; // and then add the last relation
             }
         }
         if (f != null && !isListOrder)
@@ -239,16 +256,19 @@ public class OntologyDescriptionGenerator {
         return result;
     }
 
+    // handles the special case for package name (with for loop)
     private String packageNameHandlerWithForLoop(String[] args, OntologyQueryFilter f, String result, String translatedFilter, boolean isListOrder, SugiliteRelation lastR, int argL, int num)
     {
         if (lastR != null && lastR.equals(SugiliteRelation.HAS_PACKAGE_NAME)) {
             for (int i = num; i < argL - 2; i++) {
                 result += ", " + args[i];
             }
-            result += " and " + args[argL - 2];
+            if (num < argL -1)
+                result += " and " + args[argL - 2];
             result += " " + args[argL - 1];
 
-        } else {
+        }
+        else {
             for (int i = num; i < argL - 1; i++) {
                 result += ", " + args[i];
             }
@@ -264,39 +284,47 @@ public class OntologyDescriptionGenerator {
         String result = "";
         int argL = args.length;
         int queryL = queries.length;
-        SugiliteRelation firstR = queries[0].getR();
-        SugiliteRelation lastR = queries[queryL-1].getR();
-        SugiliteRelation filterR = null;
+        SugiliteRelation firstR = queries[0].getR(); // first relation
+        SugiliteRelation lastR = queries[queryL-1].getR(); // last relation
+        SugiliteRelation filterR = null; // filter relation
         String translatedFilter = "";
         boolean isListOrder = false;
         if(f != null) {
+            // translate the filter
             filterR = f.getRelation();
             translatedFilter = translateFilter(f);
             translatedFilter = setColor(translatedFilter, Const.SCRIPT_ACTION_PARAMETER_COLOR);
         }
+        // if there is class name, it should be the first
         if (firstR != null && firstR.equals(SugiliteRelation.HAS_CLASS_NAME)) {
+            // if there is list order, it should be the second
             SugiliteRelation secondR = queries[1].getR();
             // special case: class + list order
             if (secondR != null && isListOrderRelation(secondR)) {
+                // e.g. the 1st item --> the 1st button
                 result += args[1].replace("item", "");
                 result += args[0];
+                // only class and list order
                 if (argL == 2) {
                     if (f != null) {
                         if (isListOrderRelation(filterR)) {
-
-                            result = listOrderTranslation(result, translatedFilter, args);
+                            // e.g. the 1st button --> the first button
+                            result = filterListOrderTranslationWithClassName(result, translatedFilter, args);
                             isListOrder = true;
                         }
                         else
+                            // e.g. the 1st button with the cheapest price
                             result += " with " + translatedFilter;
                     }
                 }
+                // there is other relation besides class name and list order
                 else {
                     if (f != null) {
                         if (isListOrderRelation(filterR)) {
-                            result = listOrderTranslation(result, translatedFilter, args);
+                            result = filterListOrderTranslationWithClassName(result, translatedFilter, args);
                             isListOrder = true;
                         }
+                        // other filters are handled in packageName handler function
                     }
                     if (argL == 3) {
                         result = packageNameSpecialCaseHandler(args, f, result, translatedFilter, isListOrder, lastR, argL, false);
@@ -304,8 +332,8 @@ public class OntologyDescriptionGenerator {
                     else if (argL == 4) {
                         result = packageNameSpecialCaseHandler(args, f, result, translatedFilter, isListOrder, lastR, argL, true);
                     }
-                    // general case
-                    else if (argL > 4) {
+                    // needs for loop
+                    else {
                         result += " that has ";
                         result += args[2];
                         result = packageNameHandlerWithForLoop(args, f, result, translatedFilter, isListOrder, lastR, argL, 3);
@@ -314,16 +342,16 @@ public class OntologyDescriptionGenerator {
             }
             // special case: only class, no list order
             else {
-
                 if (f != null) {
                     if (isListOrderRelation(filterR))
                     {
-                        result = listOrderTranslation(result, translatedFilter, args);
+                        result = filterListOrderTranslationWithClassName(result, translatedFilter, args);
                         isListOrder = true;
                     }
                     else
-                        result = String.format("the %s", args[0]);
-                } else
+                        result = String.format("the %s", args[0]); // e.g. the button
+                }
+                else
                     result = String.format("the %s", args[0]);
 
                 if (argL == 2) {
@@ -332,8 +360,8 @@ public class OntologyDescriptionGenerator {
                 else if (argL == 3) {
                     result = packageNameSpecialCaseHandler(args,f,result,translatedFilter,isListOrder,lastR,3,true);
                 }
-                // general case
-                else if (argL > 3) {
+                // needs for loop
+                else {
                     result += " that has ";
                     result += args[1];
                     result = packageNameHandlerWithForLoop(args,f,result,translatedFilter,isListOrder,lastR,argL,2);
@@ -343,28 +371,25 @@ public class OntologyDescriptionGenerator {
 
         // special case: only list order, no class
         else if (firstR != null && isListOrderRelation(firstR)) {
-
             result += args[0];
+            if (f != null) {
+                if (isListOrderRelation(filterR)) {
+                    result = translatedFilter;
+                    isListOrder = true;
+                }
+            }
             if (argL==2)
             {
                 result = packageNameSpecialCaseHandler(args,f,result,translatedFilter,isListOrder,lastR,2,false);
             }
+            else if (argL == 3) {
+                result = packageNameSpecialCaseHandler(args, f, result, translatedFilter, isListOrder, lastR, 3, true);
+            }
+            // needs for loop
             else {
-                if (f != null) {
-                    if (isListOrderRelation(filterR)) {
-                        result = translatedFilter;
-                        isListOrder = true;
-                    }
-                }
-                if (argL == 3) {
-                    result = packageNameSpecialCaseHandler(args, f, result, translatedFilter, isListOrder, lastR, 3, true);
-                }
-                // general case
-                if (argL > 3) {
-                    result += " that has ";
-                    result += args[1];
-                    result = packageNameHandlerWithForLoop(args, f, result, translatedFilter, isListOrder, lastR, argL, 2);
-                }
+                result += " that has ";
+                result += args[1];
+                result = packageNameHandlerWithForLoop(args, f, result, translatedFilter, isListOrder, lastR, argL, 2);
             }
         }
 
@@ -389,7 +414,6 @@ public class OntologyDescriptionGenerator {
             result = packageNameHandlerWithForLoop(args,f,result,translatedFilter,isListOrder,lastR,argL,1);
 
         }
-
         return result;
     }
 
@@ -402,10 +426,7 @@ public class OntologyDescriptionGenerator {
                 objectString[0] = ObjectTranslation.getTranslation(objectArr[0].toString());
             }
             else {
-                if (r.equals(SugiliteRelation.HAS_TEXT) || r.equals(SugiliteRelation.HAS_CONTENT_DESCRIPTION) || r.equals(SugiliteRelation.HAS_CHILD_TEXT) || r.equals(SugiliteRelation.HAS_SIBLING_TEXT)) {
-                    objectString[0] = objectArr[0].toString();
-                }
-                else if (r.equals(SugiliteRelation.HAS_PACKAGE_NAME)) {
+                if (r.equals(SugiliteRelation.HAS_PACKAGE_NAME)) {
                     objectString[0] = getAppName(objectArr[0].toString());
                 }
                 else {
@@ -421,16 +442,25 @@ public class OntologyDescriptionGenerator {
         SugiliteRelation filterR = f.getRelation();
         String result = "";
         SugiliteRelation r = q.getR();
+        String translatedFilter = translateFilter(f);
         if (isListOrderRelation(filterR))  {
-            result += String.format(DescriptionGenerator.getDescription(filterR),FilterTranslation.getFilterTranslation(f));
-            if (!(isListOrderRelation(r)))
+            result += translatedFilter;
+            if (r.equals(SugiliteRelation.HAS_CLASS_NAME))
+                result = result.replace("item", descriptionForSingleQuery(q));
+            else if (r.equals(SugiliteRelation.HAS_PACKAGE_NAME))
+                result += " "+descriptionForSingleQuery(q);
+            else if (!(isListOrderRelation(r)))
                 result += " that has "+ descriptionForSingleQuery(q);
             return result;
         }
-        String translatedFilter = "the "+FilterTranslation.getFilterTranslation(f)+" "+DescriptionGenerator.getDescription(filterR);
-        if (isListOrderRelation(r))
+        if (isListOrderRelation(r) || r.equals(SugiliteRelation.HAS_CLASS_NAME))
         {
             result += descriptionForSingleQuery(q);
+            result += " with "+translatedFilter;
+        }
+        else if (r.equals(SugiliteRelation.HAS_PACKAGE_NAME))
+        {
+            result += "item "+descriptionForSingleQuery(q);
             result += " with "+translatedFilter;
         }
         else {
@@ -452,6 +482,26 @@ public class OntologyDescriptionGenerator {
         if (r.equals(SugiliteRelation.HAS_PARENT) || r.equals(SugiliteRelation.HAS_CHILD) || r.equals(SugiliteRelation.HAS_SIBLING))
             return true;
         return false;
+    }
+
+    private String translationWithRelationshipPrev(String[] args, SugiliteRelation r)
+    {
+        String res = "the item that ";
+        //res += DescriptionGenerator.getDescription(r);
+        if (isParentChildSiblingPrev(r))
+            res += "has ";
+        else if (isSpatialRelationship(r)) {
+            if (!r.equals(SugiliteRelation.CONTAINS))
+                res += "is ";
+        }
+        res += DescriptionGenerator.getDescription(r);
+        if (isSpatialRelationship(r))
+            res += "the item ";
+        res += "that has " + args[0];
+        for (int i = 1; i<args.length;i++) {
+            res += " and " + args[i];
+        }
+        return res;
     }
 
     /**
@@ -479,7 +529,6 @@ public class OntologyDescriptionGenerator {
         OntologyQuery[] subQueryArray = ontologyQuery.getSubQueries().toArray(new OntologyQuery[ontologyQuery.getSubQueries().size()]);
         Arrays.sort(subQueryArray, RelationWeight.ontologyQueryComparator);
 
-        //TODO: the use of "and" and "or" should be grammatically correct
         if (ontologyQuery.getSubRelation() == OntologyQuery.relationType.AND || ontologyQuery.getSubRelation() == OntologyQuery.relationType.OR || ontologyQuery.getSubRelation() == OntologyQuery.relationType.PREV) {
             int size = subQueryArray.length;
             String[] arr = new String[size];
@@ -495,20 +544,7 @@ public class OntologyDescriptionGenerator {
             }
 
             else if (ontologyQuery.getSubRelation() == OntologyQuery.relationType.PREV) {
-                String res = "the item that ";
-                res += DescriptionGenerator.getDescription(r);
-                if (isParentChildSiblingPrev(r))
-                    res += "has ";
-                else if (isSpatialRelationship(r))
-                    res += "is ";
-                res += DescriptionGenerator.getDescription(r);
-                if (isSpatialRelationship(r))
-                    res += "the item ";
-                res += "that has " + arr[0];
-                for (int i = 1; i<arr.length;i++) {
-                    res += " and " + arr[i];
-                }
-                return res + postfix;
+                return translationWithRelationshipPrev(arr, r) + postfix;
             }
         }
 

@@ -46,6 +46,7 @@ public class DescriptionGenerator {
         descriptionMap.put(SugiliteRelation.HAS_PARENT_WITH_LIST_ORDER,"the %s item");
         descriptionMap.put(SugiliteRelation.IS_A_LIST,"is a list ");
 
+        descriptionMap.put(SugiliteRelation.CONTAINS, setColor("contains ", SCRIPT_VIEW_ID_COLOR));
         descriptionMap.put(SugiliteRelation.ABOVE, setColor("above ", SCRIPT_VIEW_ID_COLOR));
         descriptionMap.put(SugiliteRelation.BELOW, setColor("above ", SCRIPT_VIEW_ID_COLOR));
         descriptionMap.put(SugiliteRelation.NEAR, setColor("near ", SCRIPT_VIEW_ID_COLOR));

@@ -47,12 +47,6 @@ public class FilterTranslation {
         filterMap.put(new OntologyQueryFilter(max,SugiliteRelation.CONTAINS_NUMBER),"biggest");
         filterMap.put(new OntologyQueryFilter(max,SugiliteRelation.CONTAINS_NUMBER),"smallest");
 
-//        HashMap<OntologyQueryFilter.FilterType,String> list_order_filter = new HashMap<OntologyQueryFilter.FilterType,String>();
-//        list_order_filter.put(OntologyQueryFilter.FilterType.ARG_MAX,"last");
-//        list_order_filter.put(OntologyQueryFilter.FilterType.ARG_MIN,"first");
-//        filterMap.put(SugiliteRelation.HAS_LIST_ORDER,list_order_filter);
-//        filterMap.put(SugiliteRelation.HAS_PARENT_WITH_LIST_ORDER,list_order_filter);
-
     }
 
     public static String getFilterTranslation(OntologyQueryFilter f) {

@@ -188,5 +188,7 @@ public class SerializableUISnapshot implements Serializable {
         triples.add(sugiliteSerializableTriple);
     }
 
-
+    public Set<SugiliteSerializableTriple> getTriples() {
+        return triples;
+    }
 }

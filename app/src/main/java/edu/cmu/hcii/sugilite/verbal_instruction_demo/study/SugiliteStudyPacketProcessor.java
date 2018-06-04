@@ -1,5 +1,7 @@
 package edu.cmu.hcii.sugilite.verbal_instruction_demo.study;
 
+import android.graphics.Rect;
+
 import com.google.gson.Gson;
 
 import java.io.BufferedReader;
@@ -9,6 +11,10 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.AbstractMap;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -22,8 +28,10 @@ import edu.cmu.hcii.sugilite.ontology.SugiliteSerializableEntity;
 import edu.cmu.hcii.sugilite.ontology.SugiliteSerializableTriple;
 import edu.cmu.hcii.sugilite.ontology.SugiliteTriple;
 import edu.cmu.hcii.sugilite.ontology.UISnapshot;
+import edu.cmu.hcii.sugilite.ontology.helper.ListOrderResolver;
 import edu.cmu.hcii.sugilite.ontology.helper.annotator.SugiliteNodeAnnotator;
 import edu.cmu.hcii.sugilite.ontology.helper.annotator.SugiliteTextAnnotator;
+import edu.cmu.hcii.sugilite.ontology.helper.annotator.util.MyRect;
 
 /**
  * @author toby
@@ -96,23 +104,65 @@ public class SugiliteStudyPacketProcessor {
         }
 
         //add spatial relations
-        Set<SugiliteEntity<Node>> tempNodeEntities = new HashSet<>();
+        Map<String, SugiliteEntity<Node>> tempNodeEntities = new HashMap<>();
         for(SugiliteSerializableEntity sugiliteSerializableEntity : uiSnapshot.getSugiliteEntityIdSugiliteEntityMap().values()){
             if (sugiliteSerializableEntity.getEntityValue() instanceof Map){
                 try{
                     String jsonString = new Gson().toJson(sugiliteSerializableEntity.getEntityValue());
                     Node node = new Gson().fromJson(jsonString, Node.class);
                     SugiliteEntity<Node> newEntity = new SugiliteEntity<>(sugiliteSerializableEntity.getEntityId(), Node.class, node);
-                    tempNodeEntities.add(newEntity);
+                    tempNodeEntities.put(newEntity.getEntityId().toString(), newEntity);
                 }
                 catch (Exception e){
                     e.printStackTrace();
                 }
             }
         }
+        Map<String, SugiliteEntity<Node>> entityIdEntityMap = new HashMap<>();
+        entityIdEntityMap.putAll(tempNodeEntities);
+
         SugiliteNodeAnnotator nodeAnnotator = new SugiliteNodeAnnotator();
-        for (SugiliteNodeAnnotator.AnnotatingResult res : nodeAnnotator.annotate(tempNodeEntities)) {
+        for (SugiliteNodeAnnotator.AnnotatingResult res : nodeAnnotator.annotate(tempNodeEntities.values())) {
             uiSnapshot.addTriple(new SugiliteSerializableTriple("@" + res.getSubject().getEntityId().toString(), "@" + res.getObjectEntity().getEntityId().toString(), res.getRelation().getRelationName()));
+        }
+
+        //add index-based relations
+        for(SugiliteEntity<Node> nodeEntity : entityIdEntityMap.values()){
+            if(nodeEntity == null || nodeEntity.getEntityValue() == null){
+                continue;
+            }
+            // TODO: add order in list info
+            ListOrderResolver listOrderResolver = new ListOrderResolver();
+
+            //get all triples whose subject is node entity, and predicate is HAS_CHILD
+            Set<SugiliteSerializableTriple> triples = new HashSet<>();
+            for(SugiliteSerializableTriple triple : uiSnapshot.getTriples()){
+                if(triple.getSubjectId().equals("@" + nodeEntity.getEntityId()) && triple.getPredicateStringValue().equals(SugiliteRelation.HAS_CHILD.getRelationName())){
+                    triples.add(triple);
+                }
+            }
+
+            Map<Node, String> childNodes = new HashMap<>();
+            if(triples != null) {
+                for (SugiliteSerializableTriple triple : triples) {
+                    try {
+                        String childEntityId = triple.getObjectStringValue().replace("@", "");
+                        MyRect rect = MyRect.unflattenFromString(entityIdEntityMap.get(childEntityId).getEntityValue().getBoundsInScreen());
+                        int size = rect.width() * rect.height();
+                        if (size > 0) {
+                            childNodes.put(entityIdEntityMap.get(childEntityId).getEntityValue(), childEntityId);
+                        }
+                    }
+                    catch (Exception e){
+                        e.printStackTrace();
+                    }
+                }
+
+                if (listOrderResolver.isAList(nodeEntity.getEntityValue(), childNodes.keySet())) {
+                    uiSnapshot.addTriple(new SugiliteSerializableTriple("@" + nodeEntity.getEntityId().toString(), "true", SugiliteRelation.IS_A_LIST.getRelationName()));
+                    addOrderForChildren(childNodes, uiSnapshot, entityIdEntityMap);
+                }
+            }
         }
 
 
@@ -122,6 +172,63 @@ public class SugiliteStudyPacketProcessor {
         uiSnapshot.setPredicateTriplesMap(null);
         uiSnapshot.setSugiliteRelationIdSugiliteRelationMap(null);
         return packet;
+    }
+
+    private static void addOrderForChildren(Map<Node, String> children, SerializableUISnapshot uiSnapshot, Map<String, SugiliteEntity<Node>> tempNodeEntities){
+        //add list order for list items
+        List<Map.Entry<Node, Integer>> childNodeYValueList = new ArrayList<>();
+        for(Node childNode : children.keySet()){
+            childNodeYValueList.add(new AbstractMap.SimpleEntry<>(childNode, Integer.valueOf(childNode.getBoundsInScreen().split(" ")[1])));
+        }
+        childNodeYValueList.sort(new Comparator<Map.Entry<Node, Integer>>() {
+            @Override
+            public int compare(Map.Entry<Node, Integer> o1, Map.Entry<Node, Integer> o2) {
+                return o1.getValue() - o2.getValue();
+            }
+        });
+        int counter = 0;
+        for(Map.Entry<Node, Integer> entry : childNodeYValueList){
+            counter ++;
+            Node childNode = entry.getKey();
+            String subjectEntityId = children.get(childNode);
+            uiSnapshot.addTriple(new SugiliteSerializableTriple("@" + subjectEntityId.toString(), String.valueOf(counter), SugiliteRelation.HAS_LIST_ORDER.getRelationName()));
+
+            SugiliteSerializableEntity<Node> childEntity = uiSnapshot.getSugiliteEntityIdSugiliteEntityMap().get("@" + entry.getValue());
+            if(childEntity != null){
+                for(String entityId : getAllChildEntityIds(childEntity, new HashSet<String>(), uiSnapshot, tempNodeEntities)){
+                    //addEntityStringTriple(entity, String.valueOf(counter), SugiliteRelation.HAS_PARENT_WITH_LIST_ORDER);
+                    uiSnapshot.addTriple(new SugiliteSerializableTriple(entityId, String.valueOf(counter), SugiliteRelation.HAS_PARENT_WITH_LIST_ORDER.getRelationName()));
+                }
+            }
+        }
+    }
+
+    private static Set<String> getAllChildEntityIds(SugiliteSerializableEntity<Node> node, Set<String> coveredNodes, SerializableUISnapshot uiSnapshot, Map<String, SugiliteEntity<Node>> tempNodeEntities){
+        Set<String> results = new HashSet<>();
+        Set<SugiliteSerializableTriple> triples = new HashSet<>();
+        for(SugiliteSerializableTriple triple : uiSnapshot.getTriples())
+        {
+            if(triple.getSubjectId().equals("@" + node.getEntityId().toString()) && triple.getPredicateStringValue().equals(SugiliteRelation.HAS_CHILD.getRelationName())){
+                triples.add(triple);
+            }
+        }
+        if(triples != null) {
+            for (SugiliteSerializableTriple triple : triples) {
+                try {
+                    if (coveredNodes.contains(triple.getObjectStringValue())) {
+                        continue;
+                    }
+                    results.add(triple.getObjectStringValue());
+                    coveredNodes.add(triple.getObjectStringValue());
+                    results.addAll(getAllChildEntityIds(new SugiliteSerializableEntity<>(tempNodeEntities.get(triple.getObjectStringValue().replace("@", ""))), coveredNodes, uiSnapshot, tempNodeEntities));
+                }
+                catch (Exception e){
+                    e.printStackTrace();
+                }
+            }
+        }
+        coveredNodes.addAll(results);
+        return results;
     }
 
     private static void writeFile(File file, String string) {
@@ -142,9 +249,37 @@ public class SugiliteStudyPacketProcessor {
     }
 
     public static void main(String[] args) {
-        System.out.println("hello world");
-        File testFile = new File("/Users/toby/20180301/sugilite_study_packets/packet_2018-03-01=15_21_56-739.json");
+
+        File dir = new File("/Users/toby/20180301/sugilite_study_packets");
+        int count = 0;
+        if(dir.isDirectory()){
+            for(File file : dir.listFiles()){
+                if(! file.getName().endsWith(".json")){
+                    continue;
+                }
+                if(file.getName().startsWith("RECONSTRUCTED")){
+                    continue;
+                }
+                try{
+                    SugiliteStudyPacket packet = readPacket(file);
+                    String fileName = "RECONSTRUCTED_" + file.getName();
+                    //System.out.println(dir.getAbsolutePath());
+                    writeFile(new File(dir.getAbsolutePath() + "/" + fileName), new Gson().toJson(reParse(packet)));
+                    System.out.println("Wrote " + count++ + " JSON files");
+                }
+                catch (Exception e){
+                    e.printStackTrace();
+                }
+            }
+        }
+
+
+        /*
+        File testFile = new File("/Users/toby/20180301/sugilite_study_packets/packet_2018-03-09=19_47_29-235.json");
         SugiliteStudyPacket packet = readPacket(testFile);
-        writeFile(new File("test.json"), new Gson().toJson(reParse(packet)));
+        SugiliteStudyPacket newPacket = reParse(packet);
+        //System.out.println(dir.getAbsolutePath());
+        writeFile(new File("test3.json"), new Gson().toJson(reParse(packet)));
+        */
     }
 }

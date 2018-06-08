@@ -7,6 +7,7 @@ import edu.cmu.hcii.sugilite.ontology.SugiliteEntity;
 import edu.cmu.hcii.sugilite.ontology.helper.annotator.util.MyRect;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Set;
 import java.util.List;
 
@@ -51,7 +52,7 @@ public class SugiliteNodeAnnotator {
         public Node getObject() {return object.getEntityValue();}
     }
 
-    public List<AnnotatingResult> annotate(Set<SugiliteEntity<Node>> nodes) {
+    public List<AnnotatingResult> annotate(Collection<SugiliteEntity<Node>> nodes) {
         List<AnnotatingResult> result = new ArrayList<>();
         nodes.removeIf(n -> !(n.getEntityValue().getClickable()) && n.getEntityValue().getText() == null);
         nodes.removeIf(n -> !onScreen(n));

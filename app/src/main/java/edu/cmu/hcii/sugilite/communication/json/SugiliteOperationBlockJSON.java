@@ -8,7 +8,7 @@ import java.util.List;
 import edu.cmu.hcii.sugilite.Const;
 import edu.cmu.hcii.sugilite.model.block.util.SerializableNodeInfo;
 import edu.cmu.hcii.sugilite.model.block.util.SugiliteAvailableFeaturePack;
-import edu.cmu.hcii.sugilite.model.block.operation.SugiliteOperationBlock;
+import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteOperation;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteReadoutOperation;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteSetTextOperation;

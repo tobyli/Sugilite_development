@@ -38,7 +38,7 @@ import edu.cmu.hcii.sugilite.R;
 import edu.cmu.hcii.sugilite.SugiliteAccessibilityService;
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.model.block.util.SugiliteAvailableFeaturePack;
-import edu.cmu.hcii.sugilite.model.block.operation.SugiliteOperationBlock;
+import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteOperation;
 import edu.cmu.hcii.sugilite.ontology.OntologyQuery;
 import edu.cmu.hcii.sugilite.ontology.OntologyQueryUtils;
@@ -62,7 +62,6 @@ import edu.cmu.hcii.sugilite.verbal_instruction_demo.util.NavigationBarUtil;
 import static edu.cmu.hcii.sugilite.Const.MUL_ZEROS;
 import static edu.cmu.hcii.sugilite.Const.RECORDING_DARK_GRAY_COLOR;
 import static edu.cmu.hcii.sugilite.Const.RECORDING_OFF_BUTTON_COLOR;
-import static edu.cmu.hcii.sugilite.Const.boldify;
 import static edu.cmu.hcii.sugilite.recording.newrecording.fullscreen_overlay.RecordingAmbiguousPopupDialog.CHECK_FOR_GROUNDING_MATCH;
 
 /**

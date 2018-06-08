@@ -5,7 +5,7 @@ import java.io.Serializable;
 import java.util.Calendar;
 import java.util.Random;
 
-
+import edu.cmu.hcii.sugilite.SugiliteData;///
 /**
  * @author toby
  * @date 6/10/16
@@ -20,7 +20,13 @@ public abstract class SugiliteBlock implements Serializable{
     public int blockType;
     public static int REGULAR_OPERATION = 1, CONDITION = 2, FOR_EACH_LOOP = 3, RETURN_VALUE = 4, END_BLOCK = 5, STARTING_BLOCK = 6, SPECIAL_OPERATION = 8;
     //each block can only have 1 previous block
+
     SugiliteBlock previousBlock;
+
+    //for storing e.g., the parent condition block
+    SugiliteBlock parentBlock;
+
+
     private String description;
     private File screenshot;
     private int blockId;
@@ -47,12 +53,28 @@ public abstract class SugiliteBlock implements Serializable{
     public void setScreenshot (File screenshot){
         this.screenshot = screenshot;
     }
+
+    public void setParentBlock(SugiliteBlock parentBlock) {
+        this.parentBlock = parentBlock;
+    }
+
     public File getScreenshot(){
         return screenshot;
     }
+
     public SugiliteBlock getNextBlock() {
+        if(nextBlock == null && parentBlock != null){
+            //handle the "merge" of condition blocks
+            return parentBlock.getNextBlock();
+        }
         return nextBlock;
     }
+
+    //dummy method for SugiliteConditionBlock to override
+    public SugiliteBlock getNextBlockToRun(SugiliteData sugiliteData) {///
+        return null;///
+    }///
+
     public void setNextBlock(SugiliteBlock nextBlock) {
         this.nextBlock = nextBlock;
     }

@@ -17,6 +17,7 @@ public class SugiliteLoadVariableOperation extends SugiliteTrinaryOperation impl
     public String getVariableName(){
         return variableName;
     }
+
     public void setVariableName(String variableName){
         this.variableName = variableName;
     }

@@ -26,12 +26,17 @@ public class PercentageAnnotator extends SugiliteTextAnnotator {
 
         Matcher matcher = pattern.matcher(text);
         while (matcher.find()) {
-            String matchedString = text.substring(matcher.start(), matcher.end());
-            if (matcher.start() > 0 && text.charAt(matcher.start()-1)=='-')
-                matchedString = text.substring(matcher.start()-1, matcher.end());
-            String[] parsed = matchedString.split("[p %]");
-            results.add(new AnnotatingResult(RELATION, text.substring(matcher.start(), matcher.end()),
-                    matcher.start(), matcher.end(), Double.valueOf(parsed[0])));
+            try {
+                String matchedString = text.substring(matcher.start(), matcher.end());
+                if (matcher.start() > 0 && text.charAt(matcher.start() - 1) == '-')
+                    matchedString = text.substring(matcher.start() - 1, matcher.end());
+                String[] parsed = matchedString.split("[p %]");
+                results.add(new AnnotatingResult(RELATION, text.substring(matcher.start(), matcher.end()),
+                        matcher.start(), matcher.end(), Double.valueOf(parsed[0])));
+            }
+            catch (Exception e){
+                e.printStackTrace();
+            }
         }
         return results;
     }

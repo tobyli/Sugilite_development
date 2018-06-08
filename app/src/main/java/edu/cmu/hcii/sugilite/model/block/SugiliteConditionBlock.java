@@ -2,7 +2,10 @@ package edu.cmu.hcii.sugilite.model.block;
 
 import java.io.Serializable;
 
+import edu.cmu.hcii.sugilite.SugiliteData;
+
 import edu.cmu.hcii.sugilite.model.operator.SugiliteOperator;
+import edu.cmu.hcii.sugilite.model.variable.StringVariable;
 
 import static edu.cmu.hcii.sugilite.source_parsing.SugiliteScriptExpression.addQuoteToTokenIfNeeded;
 
@@ -11,87 +14,69 @@ import static edu.cmu.hcii.sugilite.source_parsing.SugiliteScriptExpression.addQ
  */
 
 public class SugiliteConditionBlock extends SugiliteBlock implements Serializable {
-    private SugiliteBlock block1, block2;
-    private SugiliteOperator operator;
-    private String parameter1, parameter2;
+    private SugiliteBlock ifBlock;
+    private SugiliteBlock nextBlock;
 
-    public SugiliteConditionBlock (SugiliteBlock block1, SugiliteBlock block2, String parameter1, SugiliteOperator operator, String parameter2, SugiliteBlock previousBlock){
+    //optional
+    private SugiliteBlock elseBlock;
+
+    private SugiliteBooleanExpression sugiliteBooleanExpression;
+
+    public SugiliteConditionBlock(SugiliteBlock ifBlock, SugiliteBlock nextBlock, SugiliteBlock elseBlock, SugiliteBooleanExpression sugiliteBooleanExpression, SugiliteBlock previousBlock) {
         super();
         this.blockType = SugiliteBlock.CONDITION;
         this.setDescription("Conditional Block");
         this.setScreenshot(null);
+        this.ifBlock = ifBlock;
+        this.nextBlock = nextBlock;
+        this.elseBlock = elseBlock;
+        this.sugiliteBooleanExpression = sugiliteBooleanExpression;
+        this.previousBlock = previousBlock;
 
-
-        this.block1 = block1;
-        this.block2 = block2;
-        this.parameter1 = parameter1;
-        this.operator = operator;
-        this.parameter2 = parameter2;
-    }
-
-    public void setBlock1(SugiliteBlock block){
-        this.block1 = block;
-    }
-    public void setBlock2(SugiliteBlock block){
-        this.block2 = block;
-    }
-    public void setParameter1(String parameter){
-        this.parameter1 = parameter;
-    }
-    public void setParameter2(String parameter){
-        this.parameter2 = parameter;
-    }
-
-    public void setOperator(SugiliteOperator operator) {
-        this.operator = operator;
-    }
-
-    public SugiliteBlock getBlock1(){
-        return block1;
-    }
-    public SugiliteBlock getBlock2(){
-        return block2;
-    }
-    public String getParameter1(){
-        return parameter1;
-    }
-    public String getParameter2(){
-        return parameter2;
-    }
-
-    public SugiliteOperator getOperator() {
-        return operator;
-    }
-
-    public SugiliteBlock getNextBlock(){
-        switch (operator.getOperatorType()){
-            case SugiliteOperator.EQUAL:
-                if(parameter1.contentEquals(parameter2)) return block1;
-                else return block2;
-            case SugiliteOperator.NOT_EQUAL:
-                if(!parameter1.contentEquals(parameter2)) return block1;
-                else return block2;
-            case SugiliteOperator.GREATER_THAN:
-                if(Double.valueOf(parameter1) > Double.valueOf(parameter2)) return block1;
-                else return block2;
-            case SugiliteOperator.SMALLER_THAN:
-                if(Double.valueOf(parameter1) < Double.valueOf(parameter2)) return block1;
-                else return block2;
-            case SugiliteOperator.GREATER_THAN_OR_EQUAL_TO:
-                if(Double.valueOf(parameter1) >= Double.valueOf(parameter2)) return block1;
-                else return block2;
-            case SugiliteOperator.SMALLER_THAN_OR_EQUAL_TO:
-                if(Double.valueOf(parameter1) <= Double.valueOf(parameter2)) return block1;
-                else return block2;
-            case SugiliteOperator.TEXT_CONTAINS:
-                if(parameter1.contains(parameter2)) return block1;
-                else return block2;
+        //set the parentBlock for ifBlock and nextBlock so that the control flow can be correctly merged
+        if (ifBlock != null) {
+            ifBlock.setParentBlock(this);
         }
-        return null;
+        if (nextBlock != null) {
+            nextBlock.setParentBlock(this);
+        }
+    }
+
+    @Override
+    public SugiliteBlock getNextBlockToRun(SugiliteData sugiliteData) {///added sugiliteData parameter
+        //TODO: evaluate sugiliteBooleanExpression at runtime, and then return either ifBlock, nextBlock or elseBlock
+        if (sugiliteBooleanExpression.evaluate(sugiliteData)) {///added sugiliteData parameter
+            return ifBlock;
+        } else {
+            if (elseBlock != null) {
+                return elseBlock;
+            } else {
+                return nextBlock;
+            }
+        }
+    }
+
+    @Override
+    public SugiliteBlock getNextBlock() {///added this method
+        return nextBlock;
     }
 
     @Override
     public String toString() {
-        return "(IF" + " " + "(" + operator.getOperatorType() + " " + addQuoteToTokenIfNeeded(parameter1) + " " + addQuoteToTokenIfNeeded(parameter2) + ") " + block1.toString() + " " + block2.toString() + ")";
+        //TODO: implement
+        if(elseBlock != null) {
+            return "(IF " + sugiliteBooleanExpression.toString() + " " + ifBlock.toString() + " " + elseBlock.toString() + ")";
+        }
+        else {
+            return "(IF " + sugiliteBooleanExpression.toString() + " " + ifBlock.toString() + ")";
+        }
     }
+
+    /**
+     * (IF (expression) (block(s) 1) (<optional> block(s) 2))
+     *
+     * Other things to implement:
+     * 1. in edu.cmu.hcii.sugilite.automation.Automater: need to correctly execute scripts with SugiliteConditionalBlock
+     * 2. in edu.cmu.hcii.sugilite.source_parsing.SugiliteScriptParser: need to be able to parse source codes with conditionals
+     */
 }

@@ -6,8 +6,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
+import edu.cmu.hcii.sugilite.model.block.SugiliteBooleanExpression;
+import edu.cmu.hcii.sugilite.model.block.SugiliteConditionBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
-import edu.cmu.hcii.sugilite.model.block.operation.SugiliteOperationBlock;
+import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
 import edu.cmu.hcii.sugilite.model.block.operation.special_operation.SugiliteDelaySpecialOperationBlock;
 import edu.cmu.hcii.sugilite.model.block.operation.special_operation.SugiliteSubscriptSpecialOperationBlock;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteBinaryOperation;
@@ -249,6 +251,33 @@ public class SugiliteScriptExpression<T> {
             SugiliteDelaySpecialOperationBlock operationBlock = new SugiliteDelaySpecialOperationBlock(delayTime);
             operationBlock.setDescription(operationBlock.toString());
             return operationBlock;
+        }
+
+        else if(operationName.contentEquals("IF") && arguments.size() == 2) {
+            SugiliteBlock ifBlock = arguments.get(1).toSugiliteBlock(startingBlock, descriptionGenerator);
+            SugiliteBlock previousBlock = ifBlock.getPreviousBlock();
+            SugiliteBlock nextBlock = ifBlock.getNextBlock();
+
+            String booleanExp = arguments.get(0).getScriptContent();
+            booleanExp = booleanExp.replace(" ","");
+            SugiliteBooleanExpression booleanExpression = new SugiliteBooleanExpression(booleanExp);
+
+            SugiliteConditionBlock conditionBlock = new SugiliteConditionBlock(ifBlock, nextBlock, null, booleanExpression, previousBlock);
+            return conditionBlock;
+        }
+
+        else if(operationName.contentEquals("IF") && arguments.size() == 3) {
+            SugiliteBlock ifBlock = arguments.get(1).toSugiliteBlock(startingBlock, descriptionGenerator);
+            SugiliteBlock elseBlock = arguments.get(2).toSugiliteBlock(startingBlock, descriptionGenerator);
+            SugiliteBlock previousBlock = ifBlock.getPreviousBlock();
+            SugiliteBlock nextBlock = ifBlock.getNextBlock();
+
+            String booleanExp = arguments.get(0).getScriptContent();
+            booleanExp = booleanExp.replace(" ","");
+            SugiliteBooleanExpression booleanExpression = new SugiliteBooleanExpression(booleanExp);
+
+            SugiliteConditionBlock conditionBlock = new SugiliteConditionBlock(ifBlock, nextBlock, elseBlock, booleanExpression, previousBlock);
+            return conditionBlock;
         }
 
         return null;

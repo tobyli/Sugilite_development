@@ -1,11 +1,9 @@
-package edu.cmu.hcii.sugilite.model.block.operation;
+package edu.cmu.hcii.sugilite.model.block;
 
 import java.io.Serializable;
 
 import edu.cmu.hcii.sugilite.model.block.operation.special_operation.SugiliteSpecialOperationBlock;
 import edu.cmu.hcii.sugilite.model.block.util.SugiliteAvailableFeaturePack;
-import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
-import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.model.block.util.UIElementMatchingFilter;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteBinaryOperation;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteOperation;

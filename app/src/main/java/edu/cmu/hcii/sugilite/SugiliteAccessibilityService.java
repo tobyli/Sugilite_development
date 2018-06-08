@@ -20,7 +20,6 @@ import android.widget.Toast;
 import com.google.gson.*;
 
 import java.io.*;
-import java.lang.reflect.Type;
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -30,7 +29,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
-import java.util.Iterator;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.RejectedExecutionException;
@@ -42,7 +40,6 @@ import java.util.concurrent.TimeUnit;
 import edu.cmu.hcii.sugilite.communication.SugiliteCommunicationController;
 import edu.cmu.hcii.sugilite.communication.SugiliteEventBroadcastingActivity;
 import edu.cmu.hcii.sugilite.dao.SugiliteAppVocabularyDao;
-import edu.cmu.hcii.sugilite.ontology.SerializableUISnapshot;
 import edu.cmu.hcii.sugilite.ontology.UISnapshot;
 import edu.cmu.hcii.sugilite.ontology.helper.annotator.SugiliteTextAnnotator;
 import edu.cmu.hcii.sugilite.recording.SugiliteScreenshotManager;
@@ -51,7 +48,7 @@ import edu.cmu.hcii.sugilite.automation.*;
 import edu.cmu.hcii.sugilite.model.block.util.SerializableNodeInfo;
 import edu.cmu.hcii.sugilite.model.block.util.SugiliteAvailableFeaturePack;
 import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
-import edu.cmu.hcii.sugilite.model.block.operation.SugiliteOperationBlock;
+import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
 import edu.cmu.hcii.sugilite.model.trigger.SugiliteTriggerHandler;
 import edu.cmu.hcii.sugilite.recording.TextChangedEventHandler;
 import edu.cmu.hcii.sugilite.recording.newrecording.NewDemonstrationHandler;
@@ -231,7 +228,6 @@ public class SugiliteAccessibilityService extends AccessibilityService {
             }
         }, 500);
     }
-
 
     @Override
     public void onServiceConnected() {

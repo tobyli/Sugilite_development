@@ -31,30 +31,34 @@ public class DurationAnnotator extends SugiliteTextAnnotator {
         int curEnd = -3;
         Matcher matcher = pattern.matcher(text);
         while (matcher.find()) {
-            String matchedString = text.substring(matcher.start(), matcher.end());
-            String[] parsed;
-            if (matchedString.contains(" "))
-                parsed = matchedString.split(" ");
-            else {
-                parsed = new String[2];
-                parsed[0] = matchedString.split("[a-z]")[0];
-                parsed[1] = matchedString.substring(parsed[0].length());
+            try {
+                String matchedString = text.substring(matcher.start(), matcher.end());
+                String[] parsed;
+                if (matchedString.contains(" "))
+                    parsed = matchedString.split(" ");
+                else {
+                    parsed = new String[2];
+                    parsed[0] = matchedString.split("[a-z]")[0];
+                    parsed[1] = matchedString.substring(parsed[0].length());
+                }
+                double num = Double.valueOf(parsed[0]);
+                if (parsed[1].startsWith("h")) num *= HOUR;
+                else if (parsed[1].startsWith("d")) num *= DAY;
+                else if (parsed[1].startsWith("m")) num *= MINUTE;
+                else if (parsed[1].startsWith("s")) num *= SECOND;
+                if (matcher.start() - curEnd == 1 && text.charAt(curEnd) == ' ') {
+                    AnnotatingResult last = results.get(results.size() - 1);
+                    last.setNumericValue(last.getNumericValue() + num);
+                } else {
+                    AnnotatingResult res = new AnnotatingResult(RELATION, text.substring(matcher.start(), matcher.end()),
+                            matcher.start(), matcher.end(), num);
+                    results.add(res);
+                }
+                curEnd = matcher.end();
             }
-            double num = Double.valueOf(parsed[0]);
-            if (parsed[1].startsWith("h")) num *= HOUR;
-            else if (parsed[1].startsWith("d")) num *= DAY;
-            else if (parsed[1].startsWith("m")) num *= MINUTE;
-            else if (parsed[1].startsWith("s")) num *= SECOND;
-            if (matcher.start() - curEnd == 1 && text.charAt(curEnd) == ' ') {
-                AnnotatingResult last = results.get(results.size() - 1);
-                last.setNumericValue(last.getNumericValue() + num);
+            catch (Exception e){
+                e.printStackTrace();
             }
-            else {
-                AnnotatingResult res = new AnnotatingResult(RELATION, text.substring(matcher.start(), matcher.end()),
-                        matcher.start(), matcher.end(), num);
-                results.add(res);
-            }
-            curEnd = matcher.end();
         }
         return results;
     }

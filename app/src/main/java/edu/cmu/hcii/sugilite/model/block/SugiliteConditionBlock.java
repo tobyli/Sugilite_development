@@ -52,8 +52,6 @@ public class SugiliteConditionBlock extends SugiliteBlock implements Serializabl
                 return nextBlock;
             }
         }
-
-
     }
 
     @Override
@@ -70,4 +68,6 @@ public class SugiliteConditionBlock extends SugiliteBlock implements Serializabl
      * 1. in edu.cmu.hcii.sugilite.automation.Automater: need to correctly execute scripts with SugiliteConditionalBlock
      * 2. in edu.cmu.hcii.sugilite.source_parsing.SugiliteScriptParser: need to be able to parse source codes with conditionals
      */
+
+
 }

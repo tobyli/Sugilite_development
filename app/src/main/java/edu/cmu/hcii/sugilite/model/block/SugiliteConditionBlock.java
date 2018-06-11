@@ -62,22 +62,7 @@ public class SugiliteConditionBlock extends SugiliteBlock implements Serializabl
     @Override
     public SugiliteBlock getNextBlock() {///added this method
         return nextBlock;
-
-
-    /*@Override
-    public SugiliteBlock getNextBlock() {
-        //TODO: evaluate sugiliteBooleanExpression at runtime, and then return either ifBlock, nextBlock or elseBlock
-        if (sugiliteBooleanExpression.evaluate()) {
-            return ifBlock;
-        } else {
-            if (elseBlock != null) {
-                return elseBlock;
-            } else {
-                return nextBlock;
-            }
-        }
-
-    }*/
+    }
 
     @Override
     public String toString() {

@@ -27,26 +27,21 @@ public class SugiliteBooleanExpression implements Serializable {
 
     public Boolean evaluate(SugiliteData sugiliteData) {
         //TODO: implement -- returns the eval result of this expression at runtime
-        String be = booleanExpression.substring(1,booleanExpression.length()-1).trim();
-        System.out.println(be);
+        String be = booleanExpression.substring(1, booleanExpression.length() - 1).trim();
         String[] split = be.split(" ");
         String operator = split[0];
 
-        if(operator.equals("conj") || operator.equals("disj")) {
-            System.out.println("IF");
+        if (operator.equals("conj") || operator.equals("disj")) {
             List<String> subs = new ArrayList<String>();
             List<Boolean> checks = new ArrayList<Boolean>();
             String sub0 = be;
 
             while (sub0.contains("(")) {
-                System.out.println("WHILE");
                 int ind1 = sub0.indexOf("(");
                 String sub1 = sub0.substring(ind1);
-                System.out.println(sub1);
                 int count2 = 0;
                 for (char c : sub1.toCharArray()) {
-                    System.out.println("FOR0");
-                    if(c == ')') {
+                    if (c == ')') {
                         break;
                     }
                     if (c == '(') {
@@ -57,48 +52,42 @@ public class SugiliteBooleanExpression implements Serializable {
                 int count4 = ind1;
                 int ind2 = 0;
                 for (char k : sub1.toCharArray()) {
-                    System.out.println("FOR1");
                     if (k == ')') {
                         count3 = count3 + 1;
                     }
                     if (count3 == count2) {
-                        ind2 = count4-1;
+                        ind2 = count4 - 1;
                         break;
                     }
                     count4 = count4 + 1;
                 }
-                String sub2 = sub1;
-                sub1 = sub0.substring(ind1+1, ind2);
-                subs.add("("+sub1+")");
+                sub1 = sub0.substring(ind1 + 1, ind2);
+                subs.add("(" + sub1 + ")");
                 sub0 = sub0.substring(ind2);
             }
 
-            for(String sub : subs) {
-                System.out.println("FOR2");
+            for (String sub : subs) {
                 SugiliteBooleanExpression sbe = new SugiliteBooleanExpression(sub);
                 Boolean check = sbe.evaluate(sugiliteData);
                 checks.add(check);
             }
 
-            if(operator.equals("conj")) {
-                for(Boolean ch : checks) {
-                    if(ch == false) {
+            if (operator.equals("conj")) {
+                for (Boolean ch : checks) {
+                    if (ch == false) {
                         return false;
                     }
                 }
                 return true;
-            }
-            else {
-                for(Boolean ch : checks) {
-                    if(ch == true) {
+            } else {
+                for (Boolean ch : checks) {
+                    if (ch == true) {
                         return true;
                     }
                 }
                 return false;
             }
-        }
-        else {
-            System.out.println("ELSE");
+        } else {
             String exp1 = split[1];
             String exp2 = split[2];
 
@@ -136,9 +125,8 @@ public class SugiliteBooleanExpression implements Serializable {
                     case "!=":
                         return e1 != e2;
                 }
-            }
-            else {
-                switch(operator) {
+            } else {
+                switch (operator) {
                     case "stringContains":
                         return expression1.contains(expression2);
                     case "stringEquals":
@@ -149,21 +137,11 @@ public class SugiliteBooleanExpression implements Serializable {
             }
             return null;
         }
-=======
-
-    public Boolean evaluate(){
-        //TODO: implement -- returns the eval result of this expression at runtime
-        return null;
-
     }
 
     @Override
     public String toString() {
         //TODO: implement
-
         return booleanExpression;
-=======
-        return null;
-
     }
 }

@@ -2,6 +2,7 @@ package edu.cmu.hcii.sugilite.model.block;
 
 import java.io.Serializable;
 
+
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.model.variable.VariableHelper;
 
@@ -17,6 +18,7 @@ public class SugiliteBooleanExpression implements Serializable {
 
     //should support comparison between variables & comparision between a variable and a constant -- probably won't need to support nested/composite expressions for now
     //should support common operators (e.g., >, <, <=, >=, ==, !=, stringContains)
+
     private String booleanExpression;
 
     public SugiliteBooleanExpression(String booleanExpression) {
@@ -147,11 +149,21 @@ public class SugiliteBooleanExpression implements Serializable {
             }
             return null;
         }
+=======
+
+    public Boolean evaluate(){
+        //TODO: implement -- returns the eval result of this expression at runtime
+        return null;
+
     }
 
     @Override
     public String toString() {
         //TODO: implement
+
         return booleanExpression;
+=======
+        return null;
+
     }
 }

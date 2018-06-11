@@ -183,7 +183,7 @@ public class SugiliteScriptExpression<T> {
             }
 
             //set the description
-            if (descriptionGenerator != null) {
+            if (descriptionGenerator != null && operationBlock.getQuery() != null) {
                 operationBlock.setDescription(descriptionGenerator.getDescriptionForOperation(operation, operationBlock.getQuery()));
             } else {
                 operationBlock.setDescription(operationBlock.toString());

@@ -259,7 +259,7 @@ public class SugiliteScriptExpression<T> {
             SugiliteBlock nextBlock = ifBlock.getNextBlock();
 
             String booleanExp = arguments.get(0).getScriptContent();
-            booleanExp = booleanExp.replace(" ","");
+            booleanExp = booleanExp.substring(1,booleanExp.length()-1).trim();
             SugiliteBooleanExpression booleanExpression = new SugiliteBooleanExpression(booleanExp);
 
             SugiliteConditionBlock conditionBlock = new SugiliteConditionBlock(ifBlock, nextBlock, null, booleanExpression, previousBlock);
@@ -273,7 +273,6 @@ public class SugiliteScriptExpression<T> {
             SugiliteBlock nextBlock = ifBlock.getNextBlock();
 
             String booleanExp = arguments.get(0).getScriptContent();
-            booleanExp = booleanExp.replace(" ","");
             SugiliteBooleanExpression booleanExpression = new SugiliteBooleanExpression(booleanExp);
 
             SugiliteConditionBlock conditionBlock = new SugiliteConditionBlock(ifBlock, nextBlock, elseBlock, booleanExpression, previousBlock);

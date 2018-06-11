@@ -6,6 +6,7 @@ import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.model.variable.VariableHelper;
 
 import org.apache.commons.lang3.StringUtils;///
+import java.util.*;///
 
 /**
  * @author toby
@@ -24,96 +25,128 @@ public class SugiliteBooleanExpression implements Serializable {
 
     public Boolean evaluate(SugiliteData sugiliteData) {
         //TODO: implement -- returns the eval result of this expression at runtime
-        String exp1 = "";
-        String exp2 = "";
-        String operator = "";
-        int ind1 = 0;
+        String be = booleanExpression.substring(1,booleanExpression.length()-1).trim();
+        System.out.println(be);
+        String[] split = be.split(" ");
+        String operator = split[0];
 
-        if(booleanExpression.contains(">")) {
-            ind1 = booleanExpression.indexOf(">");
-            operator = ">";
-        }
-        else if(booleanExpression.contains("<")) {
-            ind1 = booleanExpression.indexOf("<");
-            operator = "<";
-        }
-        else if(booleanExpression.contains(">=")) {
-            ind1 = booleanExpression.indexOf(">=");
-            operator = ">=";
-        }
-        else if(booleanExpression.contains("<=")) {
-            ind1 = booleanExpression.indexOf("<=");
-            operator = "<=";
-        }
-        else if(booleanExpression.contains("==")) {
-            ind1 = booleanExpression.indexOf("==");
-            operator = "==";
-        }
-        else if(booleanExpression.contains("!=")) {
-            ind1 = booleanExpression.indexOf("!=");
-            operator = "!=";
-        }
-        exp1 = booleanExpression.substring(1,ind1).trim();
-        exp2 = booleanExpression.substring(ind1+1,booleanExpression.length()-1).trim();
-        //need to implement for situations with more than 2 operators like (x == 1 && y == 2)
+        if(operator.equals("conj") || operator.equals("disj")) {
+            System.out.println("IF");
+            List<String> subs = new ArrayList<String>();
+            List<Boolean> checks = new ArrayList<Boolean>();
+            String sub0 = be;
 
-        VariableHelper variableHelper = new VariableHelper(sugiliteData.stringVariableMap);
-        String expression1 = variableHelper.parse(exp1);
-        String expression2 = variableHelper.parse(exp2);
+            while (sub0.contains("(")) {
+                System.out.println("WHILE");
+                int ind1 = sub0.indexOf("(");
+                String sub1 = sub0.substring(ind1);
+                System.out.println(sub1);
+                int count2 = 0;
+                for (char c : sub1.toCharArray()) {
+                    System.out.println("FOR0");
+                    if(c == ')') {
+                        break;
+                    }
+                    if (c == '(') {
+                        count2 = count2 + 1;
+                    }
+                }
+                int count3 = 0;
+                int count4 = ind1;
+                int ind2 = 0;
+                for (char k : sub1.toCharArray()) {
+                    System.out.println("FOR1");
+                    if (k == ')') {
+                        count3 = count3 + 1;
+                    }
+                    if (count3 == count2) {
+                        ind2 = count4-1;
+                        break;
+                    }
+                    count4 = count4 + 1;
+                }
+                String sub2 = sub1;
+                sub1 = sub0.substring(ind1+1, ind2);
+                subs.add("("+sub1+")");
+                sub0 = sub0.substring(ind2);
+            }
 
-        Boolean num1 = true;
-        Boolean num2 = true;
-        try {
-            Double num = Double.parseDouble(expression1);
-        } catch (NumberFormatException e) {
-            num1 = false;
-        }
-        try {
-            Double num = Double.parseDouble(expression2);
-        } catch (NumberFormatException e) {
-            num2 = false;
-        }
-        if(num1 && num2) {
-            double e1 = Double.parseDouble(expression1);
-            double e2 = Double.parseDouble(expression2);
-            if(operator == ">") {
-                return e1 > e2;
+            for(String sub : subs) {
+                System.out.println("FOR2");
+                SugiliteBooleanExpression sbe = new SugiliteBooleanExpression(sub);
+                Boolean check = sbe.evaluate(sugiliteData);
+                checks.add(check);
             }
-            else if(operator == "<") {
-                return e1 < e2;
+
+            if(operator.equals("conj")) {
+                for(Boolean ch : checks) {
+                    if(ch == false) {
+                        return false;
+                    }
+                }
+                return true;
             }
-            else if(operator == ">=") {
-                return e1 >= e2;
-            }
-            else if(operator == "<=") {
-                return e1 <= e2;
-            }
-            else if(operator == "==") {
-                System.out.println(e1==e2);
-                return e1 == e2;
-            }
-            else if(operator == "!=") {
-                return e1 != e2;
+            else {
+                for(Boolean ch : checks) {
+                    if(ch == true) {
+                        return true;
+                    }
+                }
+                return false;
             }
         }
         else {
-            if(operator == "stringContains") {
-                return expression1.contains(expression2);
+            System.out.println("ELSE");
+            String exp1 = split[1];
+            String exp2 = split[2];
+
+            VariableHelper variableHelper = new VariableHelper(sugiliteData.stringVariableMap);
+            String expression1 = variableHelper.parse(exp1);
+            String expression2 = variableHelper.parse(exp2);
+
+            Boolean num1 = true;
+            Boolean num2 = true;
+            try {
+                Double num = Double.parseDouble(expression1);
+            } catch (NumberFormatException e) {
+                num1 = false;
             }
-            else if(operator == "stringEquals") {
-                return expression1.equals(expression2);
+            try {
+                Double num = Double.parseDouble(expression2);
+            } catch (NumberFormatException e) {
+                num2 = false;
             }
-            else if(operator == "stringEqualsIgnoreCase") {
-                return expression1.equalsIgnoreCase(expression2);
+
+            if (num1 && num2) {
+                double e1 = Double.parseDouble(expression1);
+                double e2 = Double.parseDouble(expression2);
+                switch (operator) {
+                    case ">":
+                        return e1 > e2;
+                    case "<":
+                        return e1 < e2;
+                    case ">=":
+                        return e1 >= e2;
+                    case "<=":
+                        return e1 <= e2;
+                    case "==":
+                        return e1 == e2;
+                    case "!=":
+                        return e1 != e2;
+                }
             }
-            else if(operator == "==") {
-                return expression1 == expression2;
+            else {
+                switch(operator) {
+                    case "stringContains":
+                        return expression1.contains(expression2);
+                    case "stringEquals":
+                        return expression1.equals(expression2);
+                    case "stringEqualsIgnoreCase":
+                        return expression1.equalsIgnoreCase(expression2);
+                }
             }
-            else if(operator == "!=") {
-                return expression1 != expression2;
-            }
+            return null;
         }
-        return null;
     }
 
     @Override

@@ -7,10 +7,15 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.Map;
+import java.util.HashMap;
 
 import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
+import edu.cmu.hcii.sugilite.model.block.SugiliteBooleanExpression;
+import edu.cmu.hcii.sugilite.model.block.SugiliteConditionBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.ontology.description.OntologyDescriptionGenerator;
+import edu.cmu.hcii.sugilite.SugiliteData;///
 
 /**
  * @author toby
@@ -105,13 +110,15 @@ public class SugiliteScriptParser {
         for(SugiliteScriptExpression expression : expressionList){
             //turn each expression to a block
             SugiliteBlock block = expression.toSugiliteBlock(startingBlock, ontologyDescriptionGenerator);
-            if(block instanceof SugiliteStartingBlock){
+            if(block instanceof SugiliteStartingBlock) {
                 //contains a starting block
                 startingBlock = (SugiliteStartingBlock) block;
             }
             else {
                 currentBlock.setNextBlock(block);
-                block.setPreviousBlock(currentBlock);
+                if(block != null) {///
+                    block.setPreviousBlock(currentBlock);///
+                }///
             }
             currentBlock = block;
         }

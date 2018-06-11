@@ -25,6 +25,7 @@ import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptFileDao;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptSQLDao;
 import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
+import edu.cmu.hcii.sugilite.model.block.SugiliteConditionBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteErrorHandlingForkBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
 import edu.cmu.hcii.sugilite.model.block.operation.special_operation.SugiliteSpecialOperationBlock;
@@ -353,6 +354,14 @@ public class Automator {
                 return true;
             }
             /**
+             * nothing special needed for conditional blocks, just add next block to queue
+             */
+            else if (blockToMatch instanceof SugiliteConditionBlock) {///
+                sugiliteData.removeInstructionQueueItem();///
+                addNextBlockToQueue(blockToMatch);///
+                return true;///
+            }///
+            /**
              * for special operation blocks, the run() method should be executed
              */
             else if (blockToMatch instanceof SugiliteSpecialOperationBlock){
@@ -672,7 +681,7 @@ public class Automator {
         if(block instanceof SugiliteStartingBlock) {
             sugiliteData.addInstruction(block.getNextBlock());
         }
-        else if (block instanceof  SugiliteOperationBlock) {
+        else if (block instanceof SugiliteOperationBlock) {
             sugiliteData.addInstruction(block.getNextBlock());
         }
         //if the current block is a fork, then SUGILITE needs to determine which "next block" to add to the queue
@@ -706,6 +715,9 @@ public class Automator {
         else if (block instanceof SugiliteSpecialOperationBlock) {
             sugiliteData.addInstruction(block.getNextBlock());
         }
+        else if (block instanceof SugiliteConditionBlock) {///
+            sugiliteData.addInstruction(block.getNextBlockToRun(sugiliteData));///
+        }///
         else {
             throw new RuntimeException("Unsupported Block Type!");
         }

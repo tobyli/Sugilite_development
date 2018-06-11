@@ -42,6 +42,7 @@ import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptFileDao;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptSQLDao;
 import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
+import edu.cmu.hcii.sugilite.model.block.SugiliteConditionBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteErrorHandlingForkBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
 import edu.cmu.hcii.sugilite.model.block.operation.special_operation.SugiliteSpecialOperationBlock;
@@ -153,6 +154,8 @@ public class ScriptDetailActivity extends AppCompatActivity {
                 iterBlock = ((SugiliteSpecialOperationBlock) iterBlock).getNextBlock();
             else if (iterBlock instanceof SugiliteErrorHandlingForkBlock)
                 break;
+            else if (iterBlock instanceof SugiliteConditionBlock)///
+                iterBlock = ((SugiliteConditionBlock) iterBlock).getNextBlock();///
             else
                 new Exception("unsupported block type").printStackTrace();
         }

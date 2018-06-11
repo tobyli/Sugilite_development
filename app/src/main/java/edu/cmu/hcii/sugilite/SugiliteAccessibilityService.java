@@ -229,7 +229,6 @@ public class SugiliteAccessibilityService extends AccessibilityService {
         }, 500);
     }
 
-
     @Override
     public void onServiceConnected() {
         super.onServiceConnected();

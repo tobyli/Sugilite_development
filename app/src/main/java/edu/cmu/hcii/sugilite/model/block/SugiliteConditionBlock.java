@@ -2,7 +2,10 @@ package edu.cmu.hcii.sugilite.model.block;
 
 import java.io.Serializable;
 
+import edu.cmu.hcii.sugilite.SugiliteData;
+
 import edu.cmu.hcii.sugilite.model.operator.SugiliteOperator;
+import edu.cmu.hcii.sugilite.model.variable.StringVariable;
 
 import static edu.cmu.hcii.sugilite.source_parsing.SugiliteScriptExpression.addQuoteToTokenIfNeeded;
 
@@ -14,8 +17,10 @@ public class SugiliteConditionBlock extends SugiliteBlock implements Serializabl
     private SugiliteBlock ifBlock;
     private SugiliteBlock nextBlock;
 
+
     //optional
     private SugiliteBlock elseBlock;
+
 
     private SugiliteBooleanExpression sugiliteBooleanExpression;
 
@@ -41,9 +46,9 @@ public class SugiliteConditionBlock extends SugiliteBlock implements Serializabl
 
 
     @Override
-    public SugiliteBlock getNextBlock() {
+    public SugiliteBlock getNextBlockToRun(SugiliteData sugiliteData) {///added sugiliteData parameter
         //TODO: evaluate sugiliteBooleanExpression at runtime, and then return either ifBlock, nextBlock or elseBlock
-        if (sugiliteBooleanExpression.evaluate()) {
+        if (sugiliteBooleanExpression.evaluate(sugiliteData)) {///added sugiliteData parameter
             return ifBlock;
         } else {
             if (elseBlock != null) {
@@ -55,10 +60,36 @@ public class SugiliteConditionBlock extends SugiliteBlock implements Serializabl
     }
 
     @Override
+    public SugiliteBlock getNextBlock() {///added this method
+        return nextBlock;
+
+
+    /*@Override
+    public SugiliteBlock getNextBlock() {
+        //TODO: evaluate sugiliteBooleanExpression at runtime, and then return either ifBlock, nextBlock or elseBlock
+        if (sugiliteBooleanExpression.evaluate()) {
+            return ifBlock;
+        } else {
+            if (elseBlock != null) {
+                return elseBlock;
+            } else {
+                return nextBlock;
+            }
+        }
+
+    }*/
+
+    @Override
     public String toString() {
         //TODO: implement
 
-        return null;
+        if(elseBlock != null) {
+            return "(IF " + sugiliteBooleanExpression.toString() + " " + ifBlock.toString() + " " + elseBlock.toString() + ")";
+        }
+        else {
+            return "(IF " + sugiliteBooleanExpression.toString() + " " + ifBlock.toString() + ")";
+        }
+
     }
 
     /**
@@ -68,6 +99,5 @@ public class SugiliteConditionBlock extends SugiliteBlock implements Serializabl
      * 1. in edu.cmu.hcii.sugilite.automation.Automater: need to correctly execute scripts with SugiliteConditionalBlock
      * 2. in edu.cmu.hcii.sugilite.source_parsing.SugiliteScriptParser: need to be able to parse source codes with conditionals
      */
-
 
 }

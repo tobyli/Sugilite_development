@@ -30,4 +30,12 @@ public class EmailAddressAnnotator extends SugiliteTextAnnotator {
     }
 
     private static final SugiliteRelation RELATION = SugiliteRelation.CONTAINS_EMAIL_ADDRESS;
+
+    public static void main(String[] args ){
+        EmailAddressAnnotator emailAnnotator = new EmailAddressAnnotator();
+        List<AnnotatingResult> results = emailAnnotator.annotate("marissaradensky@gmail.com or mradensky19@amherst.edu or blah.");
+        System.out.println(results.size());
+        System.out.println(results.get(0).getMatchedString());
+        System.out.println(results.get(1).getMatchedString());
+    }
 }

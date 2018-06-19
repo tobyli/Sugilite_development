@@ -64,4 +64,11 @@ public class DurationAnnotator extends SugiliteTextAnnotator {
     }
 
     private static final SugiliteRelation RELATION = SugiliteRelation.CONTAINS_DURATION;
+
+    public static void main(String[] args ){
+        DurationAnnotator durationAnnotator = new DurationAnnotator();
+        List<AnnotatingResult> results = durationAnnotator.annotate("see you in 3hrs and 20minutes");
+        System.out.println(results.size());
+        System.out.println(results.get(0).getMatchedString());
+    }
 }

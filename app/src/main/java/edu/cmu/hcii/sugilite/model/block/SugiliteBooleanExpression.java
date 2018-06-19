@@ -1,13 +1,20 @@
 package edu.cmu.hcii.sugilite.model.block;
 
 import java.io.Serializable;
-
+import java.util.ArrayList;
+import java.util.List;
 
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.model.variable.VariableHelper;
-
-import org.apache.commons.lang3.StringUtils;///
-import java.util.*;///
+import edu.cmu.hcii.sugilite.ontology.helper.annotator.DateAnnotator;
+import edu.cmu.hcii.sugilite.ontology.helper.annotator.DurationAnnotator;
+import edu.cmu.hcii.sugilite.ontology.helper.annotator.LengthAnnotator;
+import edu.cmu.hcii.sugilite.ontology.helper.annotator.MoneyAnnotator;
+import edu.cmu.hcii.sugilite.ontology.helper.annotator.PercentageAnnotator;
+import edu.cmu.hcii.sugilite.ontology.helper.annotator.PhoneNumberAnnotator;
+import edu.cmu.hcii.sugilite.ontology.helper.annotator.SugiliteTextAnnotator;
+import edu.cmu.hcii.sugilite.ontology.helper.annotator.TimeAnnotator;
+import edu.cmu.hcii.sugilite.ontology.helper.annotator.VolumeAnnotator;
 
 /**
  * @author toby
@@ -27,11 +34,13 @@ public class SugiliteBooleanExpression implements Serializable {
 
     public Boolean evaluate(SugiliteData sugiliteData) {
         //TODO: implement -- returns the eval result of this expression at runtime
-        String be = booleanExpression.substring(1, booleanExpression.length() - 1).trim();
+        String be = booleanExpression.substring(1,booleanExpression.length()-1).trim();
         String[] split = be.split(" ");
         String operator = split[0];
+        String expression1 = "";
+        String expression2 = "";
 
-        if (operator.equals("conj") || operator.equals("disj")) {
+        if (operator.equals("&&") || operator.equals("||")) {
             List<String> subs = new ArrayList<String>();
             List<Boolean> checks = new ArrayList<Boolean>();
             String sub0 = be;
@@ -39,30 +48,25 @@ public class SugiliteBooleanExpression implements Serializable {
             while (sub0.contains("(")) {
                 int ind1 = sub0.indexOf("(");
                 String sub1 = sub0.substring(ind1);
-                int count2 = 0;
-                for (char c : sub1.toCharArray()) {
-                    if (c == ')') {
+
+                int seen4 = 0;
+                int seen3 = 0;
+                int ind2 = ind1;
+                for (char x : sub1.toCharArray()) {
+                    if (x == ')') {
+                        seen3 += 1;
+                    } else if (x == '(') {
+                        seen4 += 1;
+                    }
+                    if (seen3 == seen4) {
                         break;
                     }
-                    if (c == '(') {
-                        count2 = count2 + 1;
-                    }
+
+                    ind2 += 1;
                 }
-                int count3 = 0;
-                int count4 = ind1;
-                int ind2 = 0;
-                for (char k : sub1.toCharArray()) {
-                    if (k == ')') {
-                        count3 = count3 + 1;
-                    }
-                    if (count3 == count2) {
-                        ind2 = count4 - 1;
-                        break;
-                    }
-                    count4 = count4 + 1;
-                }
-                sub1 = sub0.substring(ind1 + 1, ind2);
-                subs.add("(" + sub1 + ")");
+
+                sub1 = sub0.substring(ind1, ind2);
+                subs.add(sub1);
                 sub0 = sub0.substring(ind2);
             }
 
@@ -72,31 +76,73 @@ public class SugiliteBooleanExpression implements Serializable {
                 checks.add(check);
             }
 
-            if (operator.equals("conj")) {
+            if (operator.equals("&&")) {
                 for (Boolean ch : checks) {
-                    if (ch == false) {
+                    if (!ch) {
                         return false;
                     }
                 }
                 return true;
             } else {
                 for (Boolean ch : checks) {
-                    if (ch == true) {
+                    if (ch) {
                         return true;
                     }
                 }
                 return false;
             }
-        } else {
+        }
+        else {
+            expression1 = split[1];
+            expression2 = split[2];
             String exp1 = split[1];
             String exp2 = split[2];
 
             VariableHelper variableHelper = new VariableHelper(sugiliteData.stringVariableMap);
-            String expression1 = variableHelper.parse(exp1);
-            String expression2 = variableHelper.parse(exp2);
+            expression1 = variableHelper.parse(expression1);
+            expression2 = variableHelper.parse(expression2);
 
+            double e1;
+            double e2;
             Boolean num1 = true;
             Boolean num2 = true;
+
+            if(operator.contains("Annotate")) {
+                SugiliteTextAnnotator annotator = new SugiliteTextAnnotator(true);
+                List<SugiliteTextAnnotator.AnnotatingResult> result1 = annotator.annotate(expression1);
+                List<SugiliteTextAnnotator.AnnotatingResult> result2 = annotator.annotate(expression2);
+                if (!result1.isEmpty()) {
+                    if(operator.contains("string")) {
+                        expression1 = result1.get(0).getMatchedString();
+                    }
+                    else {
+                        expression1 = Double.toString(result1.get(0).getNumericValue().doubleValue());
+                    }
+                    if(result1.get(0).getRelation().toString().equals("CONTAINS_PHONE_NUMBER")) {
+                        expression1 = expression1.replace(" ","").replace("-","").replace(")","").replace("(","");
+                    }
+                    if (!result2.isEmpty()) {
+                        if(operator.contains("string")) {
+                            expression2 = result2.get(0).getMatchedString();
+                        }
+                        else {
+                            expression2 = Double.toString(result2.get(0).getNumericValue().doubleValue());
+                        }
+                        if(result2.get(0).getRelation().toString().equals("CONTAINS_PHONE_NUMBER")) {
+                            expression2 = expression2.replace(" ","").replace("-","").replace(")","").replace("(","");
+                        }
+                    }
+                    else {
+                        System.out.println("Unable to annotate the following expression: " + expression2 + ". Please make sure the expression makes sense.");
+                        throw new IllegalArgumentException();
+                    }
+                }
+                else {
+                    System.out.println("Unable to annotate the following expression: " + expression1 + ". Please make sure the expression makes sense.");
+                    throw new IllegalArgumentException();
+                }
+            }
+
             try {
                 Double num = Double.parseDouble(expression1);
             } catch (NumberFormatException e) {
@@ -109,33 +155,46 @@ public class SugiliteBooleanExpression implements Serializable {
             }
 
             if (num1 && num2) {
-                double e1 = Double.parseDouble(expression1);
-                double e2 = Double.parseDouble(expression2);
-                switch (operator) {
-                    case ">":
-                        return e1 > e2;
-                    case "<":
-                        return e1 < e2;
-                    case ">=":
-                        return e1 >= e2;
-                    case "<=":
-                        return e1 <= e2;
-                    case "==":
-                        return e1 == e2;
-                    case "!=":
-                        return e1 != e2;
+                e1 = Double.parseDouble(expression1);
+                e2 = Double.parseDouble(expression2);
+
+                if(operator.contains(">=")) {
+                    return e1 >= e2;
                 }
-            } else {
-                switch (operator) {
-                    case "stringContains":
-                        return expression1.contains(expression2);
-                    case "stringEquals":
-                        return expression1.equals(expression2);
-                    case "stringEqualsIgnoreCase":
-                        return expression1.equalsIgnoreCase(expression2);
+                else if(operator.contains("<=")) {
+                    return e1 <= e2;
+                }
+                else if(operator.contains(">")) {
+                    return e1 > e2;
+                }
+                else if(operator.contains("<")) {
+                    return e1 < e2;
+                }
+                else if(operator.contains("==")) {
+                    return e1 == e2;
+                }
+                else if(operator.contains("!=")) {
+                    return e1 != e2;
                 }
             }
-            return null;
+            if(operator.contains("stringContainsIgnoreCase")) {
+                expression1 = expression1.toLowerCase();
+                expression2 = expression2.toLowerCase();
+                return expression1.contains(expression2);
+            }
+            else if(operator.contains("stringContains")) {
+                return expression1.contains(expression2);
+            }
+            else if(operator.contains("stringEqualsIgnoreCase")) {
+                return expression1.equalsIgnoreCase(expression2);
+            }
+            else if(operator.contains("stringEquals")) {
+                return expression1.equals(expression2);
+            }
+            else {
+                System.out.println("There was a problem with the following condition: (" + operator + " " + exp1 + " " + exp2 + "). Please make sure the condition makes sense.");
+                throw new IllegalArgumentException();
+            }
         }
     }
 

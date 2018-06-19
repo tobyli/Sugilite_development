@@ -11,6 +11,8 @@ import java.util.Map;
  * @time 5:57 PM
  */
 public class SugiliteRelation implements Serializable {
+    private static final long serialVersionUID = 1963030960748924140L;
+
     private Integer relationId;
     private String relationName;
 
@@ -90,6 +92,7 @@ public class SugiliteRelation implements Serializable {
     public static final SugiliteRelation CONTAINS_PERCENTAGE = new SugiliteRelation(28, "numeric_percentage");
     public static final SugiliteRelation CONTAINS_VOLUME = new SugiliteRelation(29, "numeric_volume");
     public static final SugiliteRelation CONTAINS_NUMBER = new SugiliteRelation(30, "numeric_number");
+    public static final SugiliteRelation CONTAINS_TEMPERATURE = new SugiliteRelation(39,"numeric_temperature");///added later so relationID higher
 
 
 
@@ -146,6 +149,7 @@ public class SugiliteRelation implements Serializable {
         stringRelationMap.put("numeric_percentage", CONTAINS_PERCENTAGE);
         stringRelationMap.put("numeric_volume", CONTAINS_VOLUME);
         stringRelationMap.put("numeric_number", CONTAINS_NUMBER);
+        stringRelationMap.put("numeric_temperature", CONTAINS_TEMPERATURE);///
 
 
         stringRelationMap.put("CONTAINS", CONTAINS);

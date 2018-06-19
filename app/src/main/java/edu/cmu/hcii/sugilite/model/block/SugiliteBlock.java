@@ -12,6 +12,8 @@ import edu.cmu.hcii.sugilite.SugiliteData;///
  * @time 2:02 PM
  */
 public abstract class SugiliteBlock implements Serializable{
+    private static final long serialVersionUID = 6174630121022335205L;
+
     public SugiliteBlock(){
         Random rand = new Random();
         blockId = rand.nextInt(Integer.MAX_VALUE);
@@ -31,7 +33,8 @@ public abstract class SugiliteBlock implements Serializable{
     private File screenshot;
     private int blockId;
     private long createdTime;
-    private SugiliteBlock nextBlock;
+    SugiliteBlock nextBlock;
+    //private SugiliteBlock nextBlock;
     public long getCreatedTime(){
         return createdTime;
     }
@@ -63,6 +66,7 @@ public abstract class SugiliteBlock implements Serializable{
     }
 
     public SugiliteBlock getNextBlock() {
+        System.out.println("GETNEXT");
         if(nextBlock == null && parentBlock != null){
             //handle the "merge" of condition blocks
             return parentBlock.getNextBlock();

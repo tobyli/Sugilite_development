@@ -14,8 +14,10 @@ import static edu.cmu.hcii.sugilite.source_parsing.SugiliteScriptExpression.addQ
  */
 
 public class SugiliteConditionBlock extends SugiliteBlock implements Serializable {
+    private static final long serialVersionUID = -5272239376931158724L;
+
     private SugiliteBlock ifBlock;
-    private SugiliteBlock nextBlock;
+    //private SugiliteBlock nextBlock;
 
 
     //optional
@@ -24,13 +26,13 @@ public class SugiliteConditionBlock extends SugiliteBlock implements Serializabl
 
     private SugiliteBooleanExpression sugiliteBooleanExpression;
 
-    public SugiliteConditionBlock(SugiliteBlock ifBlock, SugiliteBlock nextBlock, SugiliteBlock elseBlock, SugiliteBooleanExpression sugiliteBooleanExpression, SugiliteBlock previousBlock) {
+    public SugiliteConditionBlock(SugiliteBlock ifBlock, SugiliteBlock elseBlock, SugiliteBooleanExpression sugiliteBooleanExpression, SugiliteBlock previousBlock) {
         super();
         this.blockType = SugiliteBlock.CONDITION;
         this.setDescription("Conditional Block");
         this.setScreenshot(null);
         this.ifBlock = ifBlock;
-        this.nextBlock = nextBlock;
+        //this.nextBlock = nextBlock;
         this.elseBlock = elseBlock;
         this.sugiliteBooleanExpression = sugiliteBooleanExpression;
         this.previousBlock = previousBlock;
@@ -39,9 +41,12 @@ public class SugiliteConditionBlock extends SugiliteBlock implements Serializabl
         if (ifBlock != null) {
             ifBlock.setParentBlock(this);
         }
-        if (nextBlock != null) {
-            nextBlock.setParentBlock(this);
+        if (elseBlock != null) {
+            elseBlock.setParentBlock(this);
         }
+        /*if (nextBlock != null) {
+            nextBlock.setParentBlock(this);
+        }*/
     }
 
 
@@ -57,11 +62,6 @@ public class SugiliteConditionBlock extends SugiliteBlock implements Serializabl
                 return nextBlock;
             }
         }
-    }
-
-    @Override
-    public SugiliteBlock getNextBlock() {///added this method
-        return nextBlock;
     }
 
     @Override

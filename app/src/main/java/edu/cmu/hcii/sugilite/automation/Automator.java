@@ -399,7 +399,6 @@ public class Automator {
                 if (operationBlock.getOperation().getOperationType() == SugiliteOperation.SPECIAL_GO_HOME ||
                         operationBlock.getOperation().getOperationType() == SugiliteOperation.READOUT_CONST) {
 
-
                     //** perform the operation with node = null - because the special_go_home operation and readout_const operations will have a null filter
                     boolean retVal = performAction(null, operationBlock);
                     if (retVal) {
@@ -716,7 +715,13 @@ public class Automator {
             sugiliteData.addInstruction(block.getNextBlock());
         }
         else if (block instanceof SugiliteConditionBlock) {///
-            sugiliteData.addInstruction(block.getNextBlockToRun(sugiliteData));///
+            SugiliteBlock b = block.getNextBlockToRun(sugiliteData);
+            sugiliteData.addInstruction(b);
+
+            SugiliteBlock b2 = block.getNextBlock();
+            if(b != b2) {
+                sugiliteData.addInstruction(b2);
+            }
         }///
         else {
             throw new RuntimeException("Unsupported Block Type!");

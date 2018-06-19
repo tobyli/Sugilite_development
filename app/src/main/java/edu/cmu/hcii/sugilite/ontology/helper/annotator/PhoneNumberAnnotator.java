@@ -20,7 +20,7 @@ public class PhoneNumberAnnotator extends SugiliteTextAnnotator {
     @Override
     public List<AnnotatingResult> annotate(String text) {
         List<AnnotatingResult> results = new ArrayList<>();
-        Pattern pattern = Pattern.compile("((\\([0-9]{3}\\)) |([0-9]{3}-))[0-9]{3}-[0-9]{4}");
+        Pattern pattern = Pattern.compile("((\\([0-9]{3}\\))|([0-9]{3}))(-|\\s)?[0-9]{3}(-|\\s)?[0-9]{4}");
         Matcher matcher = pattern.matcher(text);
         while (matcher.find()){
             AnnotatingResult result = new AnnotatingResult(RELATION, text.substring(matcher.start(), matcher.end()), matcher.start(), matcher.end());
@@ -33,7 +33,8 @@ public class PhoneNumberAnnotator extends SugiliteTextAnnotator {
 
     public static void main(String[] args ){
         PhoneNumberAnnotator phoneNumberAnnotator = new PhoneNumberAnnotator();
-        List<AnnotatingResult> results = phoneNumberAnnotator.annotate("you can call me at 612 756 8886, i'm available everyday");
+        List<AnnotatingResult> results = phoneNumberAnnotator.annotate("you can call me at (612)-756-8886, i'm available everyday");
         System.out.println(results.size());
+        System.out.println(results.get(0).getNumericValue().intValue());
     }
 }

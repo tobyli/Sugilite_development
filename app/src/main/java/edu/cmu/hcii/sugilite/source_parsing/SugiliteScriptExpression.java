@@ -256,13 +256,12 @@ public class SugiliteScriptExpression<T> {
         else if(operationName.contentEquals("IF") && arguments.size() == 2) {
             SugiliteBlock ifBlock = arguments.get(1).toSugiliteBlock(startingBlock, descriptionGenerator);
             SugiliteBlock previousBlock = ifBlock.getPreviousBlock();
-            SugiliteBlock nextBlock = ifBlock.getNextBlock();
+            //SugiliteBlock nextBlock = ifBlock.getNextBlock();
 
             String booleanExp = arguments.get(0).getScriptContent();
-            booleanExp = booleanExp.substring(1,booleanExp.length()-1).trim();
             SugiliteBooleanExpression booleanExpression = new SugiliteBooleanExpression(booleanExp);
 
-            SugiliteConditionBlock conditionBlock = new SugiliteConditionBlock(ifBlock, nextBlock, null, booleanExpression, previousBlock);
+            SugiliteConditionBlock conditionBlock = new SugiliteConditionBlock(ifBlock,null, booleanExpression, previousBlock);
             return conditionBlock;
         }
 
@@ -270,12 +269,12 @@ public class SugiliteScriptExpression<T> {
             SugiliteBlock ifBlock = arguments.get(1).toSugiliteBlock(startingBlock, descriptionGenerator);
             SugiliteBlock elseBlock = arguments.get(2).toSugiliteBlock(startingBlock, descriptionGenerator);
             SugiliteBlock previousBlock = ifBlock.getPreviousBlock();
-            SugiliteBlock nextBlock = ifBlock.getNextBlock();
+            //SugiliteBlock nextBlock = ifBlock.getNextBlock();
 
             String booleanExp = arguments.get(0).getScriptContent();
             SugiliteBooleanExpression booleanExpression = new SugiliteBooleanExpression(booleanExp);
 
-            SugiliteConditionBlock conditionBlock = new SugiliteConditionBlock(ifBlock, nextBlock, elseBlock, booleanExpression, previousBlock);
+            SugiliteConditionBlock conditionBlock = new SugiliteConditionBlock(ifBlock, elseBlock, booleanExpression, previousBlock);
             return conditionBlock;
         }
 

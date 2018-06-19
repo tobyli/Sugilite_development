@@ -109,6 +109,7 @@ public class SugiliteScriptParser {
         SugiliteBlock currentBlock = startingBlock;
         for(SugiliteScriptExpression expression : expressionList){
             //turn each expression to a block
+            System.out.println("Parsing");
             SugiliteBlock block = expression.toSugiliteBlock(startingBlock, ontologyDescriptionGenerator);
             if(block instanceof SugiliteStartingBlock) {
                 //contains a starting block
@@ -116,9 +117,8 @@ public class SugiliteScriptParser {
             }
             else {
                 currentBlock.setNextBlock(block);
-                if(block != null) {///
-                    block.setPreviousBlock(currentBlock);///
-                }///
+                block.setPreviousBlock(currentBlock);
+                System.out.println(currentBlock.toString());
             }
             currentBlock = block;
         }

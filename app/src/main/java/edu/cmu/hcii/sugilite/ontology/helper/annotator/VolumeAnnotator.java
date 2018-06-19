@@ -29,14 +29,21 @@ public class VolumeAnnotator extends SugiliteTextAnnotator {
     @Override
     public List<AnnotatingResult> annotate(String text) {
         List<AnnotatingResult> results = new ArrayList<>();
-        String regex = "\\b\\d+?(.\\d+?)? (m[Ll]?|L|(fl )?oz|ounce(s)?|tsp|cp|pt|qt|gal)\\b";
+        String regex = "\\b\\d+?(.\\d+?)?( )?(m[Ll]?|L|(fl )?oz|ounce(s)?|tsp|cp|pt|qt|gal)\\b";
         Pattern pattern = Pattern.compile(regex);
 
         int curEnd = -3;
         Matcher matcher = pattern.matcher(text);
         while (matcher.find()) {
             String matchedString = text.substring(matcher.start(), matcher.end());
-            String[] parsed = matchedString.split(" ");
+            String[] parsed;
+            if (matchedString.contains(" "))
+                parsed = matchedString.split(" ");
+            else {
+                parsed = new String[2];
+                parsed[0] = matchedString.split("[a-z]")[0];
+                parsed[1] = matchedString.substring(parsed[0].length());
+            }
             double num = Double.valueOf(parsed[0]);
             if (parsed[1].startsWith("m")) num *= MILLILITER;
             else if (parsed[1].startsWith("L")) num *= LITER;
@@ -62,4 +69,13 @@ public class VolumeAnnotator extends SugiliteTextAnnotator {
     }
 
     private static final SugiliteRelation RELATION = SugiliteRelation.CONTAINS_VOLUME;
+
+
+    public static void main(String[] args ){
+        VolumeAnnotator va = new VolumeAnnotator();
+        List<AnnotatingResult> results = va.annotate("200tsp is less than 5ml");
+        System.out.println(results.size());
+        System.out.println(results.get(0).getMatchedString());
+        System.out.println(results.get(1).getMatchedString());
+    }
 }

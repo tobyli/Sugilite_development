@@ -29,14 +29,21 @@ public class LengthAnnotator extends SugiliteTextAnnotator {
     @Override
     public List<AnnotatingResult> annotate(String text) {
         List<AnnotatingResult> results = new ArrayList<>();
-        String regex = "\\b[0-9]+?(.)?[0-9]*? (km|m|ft|feet|mile(s)?|mi|yd|inch|cm)\\b";
+        String regex = "\\b[0-9]+?(.)?[0-9]*?( )?(km|m|ft|feet|mile(s)?|mi|yd|inch|cm)\\b";
         Pattern pattern = Pattern.compile(regex);
 
         int curEnd = -3;
         Matcher matcher = pattern.matcher(text);
         while (matcher.find()) {
             String matchedString = text.substring(matcher.start(), matcher.end());
-            String[] parsed = matchedString.split(" ");
+            String[] parsed;
+            if (matchedString.contains(" "))
+                parsed = matchedString.split(" ");
+            else {
+                parsed = new String[2];
+                parsed[0] = matchedString.split("[a-z]")[0];
+                parsed[1] = matchedString.substring(parsed[0].length());
+            }
             try {
                 double value = -1;
                 double num = Double.valueOf(parsed[0]);
@@ -60,10 +67,20 @@ public class LengthAnnotator extends SugiliteTextAnnotator {
                     }
                     curEnd = matcher.end();
                 }
-            } catch (Exception e) {}
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
         return results;
     }
 
     private static final SugiliteRelation RELATION = SugiliteRelation.CONTAINS_LENGTH;
+
+    public static void main(String[] args ){
+        LengthAnnotator lengthAnnotator = new LengthAnnotator();
+        List<AnnotatingResult> results = lengthAnnotator.annotate("1ft or 0.3048m");
+        System.out.println(results.size());
+        System.out.println(results.get(0).getNumericValue().doubleValue());
+        System.out.println(results.get(1).getNumericValue().doubleValue());
+    }
 }

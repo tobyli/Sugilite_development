@@ -65,6 +65,7 @@ public class NewDemonstrationHandler {
      * @param uiSnapshot
      */
     public void handleEvent(SugiliteAvailableFeaturePack featurePack, Set<Map.Entry<String, String>> availableAlternatives, UISnapshot uiSnapshot){
+        System.out.println("HANDLE");
         //determine if disambiguation is needed
 
         //show the confirmation popup if not ambiguous

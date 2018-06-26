@@ -618,7 +618,7 @@ public class StatusIconManager {
                                     dialog.dismiss();
                                     break;
                                 case "Add GO_HOME Operation Block":
-                                    //insert a GO_HOME opeartion block AND go home
+                                    //insert a GO_HOME opertion block AND go home
                                     SugiliteOperationBlock operationBlock = new SugiliteOperationBlock();
                                     SugiliteOperation operation = new SugiliteOperation(SugiliteOperation.SPECIAL_GO_HOME);
                                     operationBlock.setOperation(operation);

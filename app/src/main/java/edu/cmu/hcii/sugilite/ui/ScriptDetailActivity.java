@@ -42,11 +42,13 @@ import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptFileDao;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptSQLDao;
 import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
+import edu.cmu.hcii.sugilite.model.block.SugiliteBooleanExpression;
 import edu.cmu.hcii.sugilite.model.block.SugiliteConditionBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteErrorHandlingForkBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
 import edu.cmu.hcii.sugilite.model.block.operation.special_operation.SugiliteSpecialOperationBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
+import edu.cmu.hcii.sugilite.recording.ReadableDescriptionGenerator;
 import edu.cmu.hcii.sugilite.recording.RecordingPopUpDialog;
 import edu.cmu.hcii.sugilite.model.variable.Variable;
 import edu.cmu.hcii.sugilite.study.ScriptUsageLogManager;
@@ -189,6 +191,31 @@ public class ScriptDetailActivity extends AppCompatActivity {
             tv.setOnTouchListener(textViewOnTouchListener);
             registerForContextMenu(tv);
             return tv;
+        } else if (block instanceof SugiliteConditionBlock) {
+            SugiliteBooleanExpression booleanExpression = ((SugiliteConditionBlock) block).getSugiliteBooleanExpression();
+            booleanExpression.setSugiliteData(sugiliteData);
+            String boolExp = booleanExpression.toString();
+            boolExp = boolExp.substring(1,boolExp.length()-1).trim();
+            String[] split = boolExp.split("\\(");
+            boolExp = booleanExpression.breakdown(booleanExpression.getSugiliteData(), 0,null);
+            if(!split[0].contains("&&") && !split[0].contains("||")) {
+                boolExp = ReadableDescriptionGenerator.setColor(boolExp, "#954608");
+            }
+            if(((SugiliteConditionBlock) block).getElseBlock() != null) {
+                System.out.println(boolExp);
+                block.setDescription(ReadableDescriptionGenerator.setColor("If ", Const.SCRIPT_CONDITIONAL_COLOR) + boolExp + "<br/> &nbsp;&nbsp;&nbsp;&nbsp;" + ((SugiliteConditionBlock) block).getIfBlock().getDescription() + "<br/>" + ReadableDescriptionGenerator.setColor("Else", Const.SCRIPT_CONDITIONAL_COLOR) + "<br/> &nbsp;&nbsp;&nbsp;&nbsp;" + ((SugiliteConditionBlock) block).getElseBlock().getDescription());
+            }
+            else {
+                block.setDescription(ReadableDescriptionGenerator.setColor("If ", Const.SCRIPT_CONDITIONAL_COLOR) + boolExp + "<br/> &nbsp;&nbsp;&nbsp;&nbsp;" + ((SugiliteConditionBlock) block).getIfBlock().getDescription());
+            }
+
+            TextView tv = new TextView(context);
+            tv.setText(Html.fromHtml(block.getDescription()));
+            tv.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
+            tv.setPadding(10, 10, 10, 10);
+            tv.setOnTouchListener(textViewOnTouchListener);
+            registerForContextMenu(tv);
+            return tv;
         } else if (block instanceof SugiliteErrorHandlingForkBlock) {
             LinearLayout mainLayout = new LinearLayout(context);
             mainLayout.setOrientation(LinearLayout.VERTICAL);
@@ -214,6 +241,8 @@ public class ScriptDetailActivity extends AppCompatActivity {
                     iterBlock = ((SugiliteOperationBlock) iterBlock).getNextBlock();
                 else if (iterBlock instanceof  SugiliteSpecialOperationBlock)
                     iterBlock = ((SugiliteSpecialOperationBlock) iterBlock).getNextBlock();
+                else if (iterBlock instanceof SugiliteConditionBlock)
+                    iterBlock = ((SugiliteConditionBlock) iterBlock).getNextBlock();
                 else if (iterBlock instanceof SugiliteErrorHandlingForkBlock)
                     break;
                 else
@@ -242,6 +271,8 @@ public class ScriptDetailActivity extends AppCompatActivity {
                     iterBlock = ((SugiliteOperationBlock) iterBlock).getNextBlock();
                 else if (iterBlock instanceof  SugiliteSpecialOperationBlock)
                     iterBlock = ((SugiliteSpecialOperationBlock) iterBlock).getNextBlock();
+                else if (iterBlock instanceof SugiliteConditionBlock)
+                    iterBlock = ((SugiliteConditionBlock) iterBlock).getNextBlock();
                 else if (iterBlock instanceof SugiliteErrorHandlingForkBlock)
                     break;
                 else

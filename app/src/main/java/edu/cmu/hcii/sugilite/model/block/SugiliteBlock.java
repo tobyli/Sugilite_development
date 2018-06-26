@@ -34,7 +34,6 @@ public abstract class SugiliteBlock implements Serializable{
     private int blockId;
     private long createdTime;
     SugiliteBlock nextBlock;
-    //private SugiliteBlock nextBlock;
     public long getCreatedTime(){
         return createdTime;
     }
@@ -66,18 +65,12 @@ public abstract class SugiliteBlock implements Serializable{
     }
 
     public SugiliteBlock getNextBlock() {
-        System.out.println("GETNEXT");
         if(nextBlock == null && parentBlock != null){
             //handle the "merge" of condition blocks
             return parentBlock.getNextBlock();
         }
         return nextBlock;
     }
-
-    //dummy method for SugiliteConditionBlock to override
-    public SugiliteBlock getNextBlockToRun(SugiliteData sugiliteData) {///
-        return null;///
-    }///
 
     public void setNextBlock(SugiliteBlock nextBlock) {
         this.nextBlock = nextBlock;

@@ -1,6 +1,7 @@
 package edu.cmu.hcii.sugilite.model.block.util;
 
 import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
+import edu.cmu.hcii.sugilite.model.block.SugiliteConditionBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
 import edu.cmu.hcii.sugilite.model.block.operation.special_operation.SugiliteSpecialOperationBlock;
@@ -27,6 +28,9 @@ public class ScriptPrinter {
         }
         if(block instanceof SugiliteSpecialOperationBlock){
             return results + getStringScript(((SugiliteSpecialOperationBlock) block).getNextBlock());
+        }
+        if(block instanceof SugiliteConditionBlock){
+            return results + getStringScript(((SugiliteConditionBlock) block).getNextBlock());
         }
         return "ERROR";
     }

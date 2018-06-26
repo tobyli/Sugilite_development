@@ -534,7 +534,6 @@ public class FullScreenRecordingOverlayManager {
         operationBlock.setElementMatchingFilter(null);
         operationBlock.setScreenshot(null);
         operationBlock.setQuery(serializedQuery);
-
         operationBlock.setDescription(readableDescriptionGenerator.generateDescriptionForVerbalBlock(operationBlock, formula, "UTTERANCE"));
         return operationBlock;
     }

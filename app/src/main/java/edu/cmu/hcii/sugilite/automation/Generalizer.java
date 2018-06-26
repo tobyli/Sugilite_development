@@ -12,6 +12,7 @@ import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptFileDao;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptSQLDao;
+import edu.cmu.hcii.sugilite.model.block.SugiliteConditionBlock;
 import edu.cmu.hcii.sugilite.model.block.util.SerializableNodeInfo;
 import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteErrorHandlingForkBlock;
@@ -142,6 +143,10 @@ public class Generalizer {
             }
             else if (block instanceof SugiliteStartingBlock)
                 block = ((SugiliteStartingBlock) block).getNextBlock();
+            else if (block instanceof SugiliteConditionBlock) {///
+                block.setDescription("If " + ((SugiliteConditionBlock) block).getSugiliteBooleanExpression());
+                block = ((SugiliteConditionBlock) block).getNextBlock();
+            }
             else if (block instanceof SugiliteErrorHandlingForkBlock)
                 block = ((SugiliteErrorHandlingForkBlock) block).getOriginalNextBlock();
             else

@@ -26,6 +26,8 @@ import edu.cmu.hcii.sugilite.ontology.OntologyQuery;
 import edu.cmu.hcii.sugilite.ontology.SerializableOntologyQuery;
 import edu.cmu.hcii.sugilite.ontology.SugiliteSerializableEntity;
 import edu.cmu.hcii.sugilite.ontology.description.OntologyDescriptionGenerator;
+import edu.cmu.hcii.sugilite.recording.ReadableDescriptionGenerator;
+import edu.cmu.hcii.sugilite.Const;
 
 /**
  * @author toby
@@ -256,7 +258,6 @@ public class SugiliteScriptExpression<T> {
         else if(operationName.contentEquals("IF") && arguments.size() == 2) {
             SugiliteBlock ifBlock = arguments.get(1).toSugiliteBlock(startingBlock, descriptionGenerator);
             SugiliteBlock previousBlock = ifBlock.getPreviousBlock();
-            //SugiliteBlock nextBlock = ifBlock.getNextBlock();
 
             String booleanExp = arguments.get(0).getScriptContent();
             SugiliteBooleanExpression booleanExpression = new SugiliteBooleanExpression(booleanExp);
@@ -269,7 +270,6 @@ public class SugiliteScriptExpression<T> {
             SugiliteBlock ifBlock = arguments.get(1).toSugiliteBlock(startingBlock, descriptionGenerator);
             SugiliteBlock elseBlock = arguments.get(2).toSugiliteBlock(startingBlock, descriptionGenerator);
             SugiliteBlock previousBlock = ifBlock.getPreviousBlock();
-            //SugiliteBlock nextBlock = ifBlock.getNextBlock();
 
             String booleanExp = arguments.get(0).getScriptContent();
             SugiliteBooleanExpression booleanExpression = new SugiliteBooleanExpression(booleanExp);

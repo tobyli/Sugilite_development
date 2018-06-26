@@ -113,6 +113,7 @@ public class OntologyDescriptionGenerator {
 
 
     public String getDescriptionForOperation(SugiliteOperation operation, SerializableOntologyQuery sq){
+        System.out.println("DESCRIPTION");
         //TODO: temporily disable because of crashes due to unable to handle filters
         //return sq.toString();
         String prefix = "";

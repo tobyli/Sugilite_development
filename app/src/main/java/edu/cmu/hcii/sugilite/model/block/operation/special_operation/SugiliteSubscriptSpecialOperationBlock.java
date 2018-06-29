@@ -71,6 +71,7 @@ public class SugiliteSubscriptSpecialOperationBlock extends SugiliteSpecialOpera
                             //show the dialog to obtain user input
                             variableSetValueDialog.show();
                         else
+                            System.out.println("here1");
                             variableSetValueDialog.executeScript(getNextBlock());
                     } else {
                         //execute the script without showing the dialog

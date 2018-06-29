@@ -49,6 +49,7 @@ public class SugiliteStartingBlock extends SugiliteBlock implements Serializable
 
 
     public SugiliteBlock getTail(){
+        System.out.println("TAIL");
         SugiliteBlock currentBlock = this;
         while(true){
             if(currentBlock instanceof SugiliteStartingBlock){
@@ -68,6 +69,12 @@ public class SugiliteStartingBlock extends SugiliteBlock implements Serializable
                     return currentBlock;
                 else
                     currentBlock = ((SugiliteSpecialOperationBlock) currentBlock).getNextBlock();
+            }
+            else if(currentBlock instanceof SugiliteConditionBlock){
+                if(((SugiliteConditionBlock) currentBlock).getNextBlock() == null)
+                    return currentBlock;
+                else
+                    currentBlock = ((SugiliteConditionBlock) currentBlock).getNextBlock();
             }
             else if(currentBlock instanceof SugiliteErrorHandlingForkBlock){
                 if(((SugiliteErrorHandlingForkBlock) currentBlock).getOriginalNextBlock() == null)

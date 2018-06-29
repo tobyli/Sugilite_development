@@ -131,7 +131,7 @@ public class OntologyDescriptionGenerator {
             return prefix + getDescriptionForOperation(setColor("Read out constant ", Const.SCRIPT_ACTION_COLOR), sq);
         }
         else if(operation.getOperationType() == SugiliteOperation.LOAD_AS_VARIABLE){
-            return prefix + getDescriptionForOperation(setColor("Set variable to the following: ", Const.SCRIPT_ACTION_COLOR), sq);
+            return prefix + getDescriptionForOperation(setColor("Set value to the following: ", Const.SCRIPT_ACTION_COLOR), sq);
         }
         else{
             //TODO: handle more types of operations ***

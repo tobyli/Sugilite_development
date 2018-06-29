@@ -4,6 +4,7 @@ import java.io.Serializable;
 
 import edu.cmu.hcii.sugilite.SugiliteData;
 
+import edu.cmu.hcii.sugilite.model.block.operation.special_operation.SugiliteSpecialOperationBlock;
 import edu.cmu.hcii.sugilite.model.operator.SugiliteOperator;
 import edu.cmu.hcii.sugilite.model.variable.StringVariable;
 
@@ -86,6 +87,20 @@ public class SugiliteConditionBlock extends SugiliteBlock implements Serializabl
 
     public SugiliteBlock getElseBlock() {
         return elseBlock;
+    }
+
+    public void setElseBlock(SugiliteBlock e) { elseBlock = e;}
+
+    public void delete(){
+        SugiliteBlock previousBlock = getPreviousBlock();
+        if(previousBlock instanceof SugiliteStartingBlock)
+            ((SugiliteStartingBlock) previousBlock).setNextBlock(null);
+        if(previousBlock instanceof SugiliteOperationBlock)
+            ((SugiliteOperationBlock) previousBlock).setNextBlock(null);
+        if(previousBlock instanceof SugiliteSpecialOperationBlock)
+            ((SugiliteSpecialOperationBlock) previousBlock).setNextBlock(null);
+        if(previousBlock instanceof SugiliteConditionBlock)
+            ((SugiliteConditionBlock) previousBlock).setNextBlock(null);
     }
 
     /**

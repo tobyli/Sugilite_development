@@ -33,6 +33,7 @@ import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.automation.Automator;
 import edu.cmu.hcii.sugilite.automation.AutomatorUtil;
 import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
+import edu.cmu.hcii.sugilite.model.block.SugiliteConditionBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.model.variable.StringVariable;
 import edu.cmu.hcii.sugilite.model.variable.Variable;
@@ -214,7 +215,7 @@ public class VariableSetValueDialog extends SugiliteDialogManager implements Abs
 
 
     /**
-     * @param afterExecutionOperation @nullable, this operation will be pushed into the queue after the exeution
+     * @param afterExecutionOperation @nullable, this operation will be pushed into the queue after the execution
      * this is used for resume recording
      */
     public void executeScript(final SugiliteBlock afterExecutionOperation){
@@ -245,6 +246,9 @@ public class VariableSetValueDialog extends SugiliteDialogManager implements Abs
                     }
                 };
                 sugiliteData.runScript(startingBlock, afterExecutionOperation, state);
+                if(context instanceof SugiliteData) {
+                    progressDialog.dismiss();
+                }
                 if(context instanceof SugiliteAccessibilityService) {
                     ((SugiliteAccessibilityService) context).runOnUiThread(dismissDialog);
                 }
@@ -257,7 +261,7 @@ public class VariableSetValueDialog extends SugiliteDialogManager implements Abs
         handler.postDelayed(delayAndRunScript, SCRIPT_DELAY);
 
 
-
+        System.out.println("start");
         //go to home screen for running the automation
         Intent startMain = new Intent(Intent.ACTION_MAIN);
         startMain.addCategory(Intent.CATEGORY_HOME);

@@ -719,7 +719,7 @@ public class Automator {
             sugiliteData.addInstruction(b);
 
             SugiliteBlock b2 = block.getNextBlock();
-            if(b != b2) {
+            if(b != b2 && b2 != null) {
                 sugiliteData.addInstruction(b2);
             }
         }

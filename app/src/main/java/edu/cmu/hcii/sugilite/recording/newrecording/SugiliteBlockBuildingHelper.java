@@ -19,6 +19,7 @@ import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptFileDao;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptSQLDao;
+import edu.cmu.hcii.sugilite.model.block.SugiliteConditionBlock;
 import edu.cmu.hcii.sugilite.model.block.util.SugiliteAvailableFeaturePack;
 import edu.cmu.hcii.sugilite.model.block.SugiliteErrorHandlingForkBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
@@ -276,6 +277,9 @@ public class SugiliteBlockBuildingHelper {
         }
         else if (sugiliteData.getCurrentScriptBlock() instanceof SugiliteSpecialOperationBlock){
             ((SugiliteSpecialOperationBlock) sugiliteData.getCurrentScriptBlock()).setNextBlock(block);
+        }
+        else if (sugiliteData.getCurrentScriptBlock() instanceof SugiliteConditionBlock){
+            ((SugiliteConditionBlock) sugiliteData.getCurrentScriptBlock()).setNextBlock(block);
         }
         else{
             throw new RuntimeException("Unsupported Block Type!");

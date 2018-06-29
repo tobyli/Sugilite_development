@@ -17,6 +17,7 @@ import edu.cmu.hcii.sugilite.model.block.util.SerializableNodeInfo;
 import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteErrorHandlingForkBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
+import edu.cmu.hcii.sugilite.model.block.operation.special_operation.SugiliteSubscriptSpecialOperationBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.model.block.util.UIElementMatchingFilter;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteOperation;
@@ -144,7 +145,7 @@ public class Generalizer {
             else if (block instanceof SugiliteStartingBlock)
                 block = ((SugiliteStartingBlock) block).getNextBlock();
             else if (block instanceof SugiliteConditionBlock) {///
-                block.setDescription("If " + ((SugiliteConditionBlock) block).getSugiliteBooleanExpression());
+                block.setDescription(descriptionGenerator.generateReadableDescription(block));
                 block = ((SugiliteConditionBlock) block).getNextBlock();
             }
             else if (block instanceof SugiliteErrorHandlingForkBlock)

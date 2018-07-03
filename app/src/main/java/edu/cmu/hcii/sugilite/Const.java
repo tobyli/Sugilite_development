@@ -118,7 +118,7 @@ public class Const {
     public static final String LOADING_MESSAGE = "Loading the script...\n", SAVING_MESSAGE = "Saving the script... \n";
 
     public static final String GET_CONDITION = "Please give your condition for the new fork. \n";
-    public static final String CHECK_FOR_ELSE = "Would you like to add an else statement to your conditional statement? \n";
+    public static final String CHECK_FOR_ELSE = "Would you like to do something if the condition is not fulfilled? \n";
 
 
     public static final int FILE_SCRIPT_DAO = 1, SQL_SCRIPT_DAO = 2;

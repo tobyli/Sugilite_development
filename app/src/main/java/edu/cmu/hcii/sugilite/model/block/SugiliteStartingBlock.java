@@ -49,7 +49,6 @@ public class SugiliteStartingBlock extends SugiliteBlock implements Serializable
 
 
     public SugiliteBlock getTail(){
-        System.out.println("TAIL");
         SugiliteBlock currentBlock = this;
         while(true){
             if(currentBlock instanceof SugiliteStartingBlock){

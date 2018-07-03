@@ -212,8 +212,8 @@ public class ScriptDetailActivity extends AppCompatActivity {
             for(int c = 0; c < count-1; c++) {
                 tabs += t;
             }
-            block.setDescription(ReadableDescriptionGenerator.setColor("If ", Const.SCRIPT_CONDITIONAL_COLOR) + boolExp + "<br/>" + ReadableDescriptionGenerator.setColor(" then ", Const.SCRIPT_CONDITIONAL_COLOR) + tabs + ifBlock.getDescription());
-            return ReadableDescriptionGenerator.setColor("If ", Const.SCRIPT_CONDITIONAL_COLOR) + boolExp + "<br/>" + ReadableDescriptionGenerator.setColor(" then ", Const.SCRIPT_CONDITIONAL_COLOR) + tabs + ifBlock.getDescription();
+            block.setDescription(ReadableDescriptionGenerator.setColor("If ", Const.SCRIPT_CONDITIONAL_COLOR) + boolExp + ReadableDescriptionGenerator.setColor(" then ", Const.SCRIPT_CONDITIONAL_COLOR) + " <br/>" + tabs + ifBlock.getDescription());
+            return ReadableDescriptionGenerator.setColor("If ", Const.SCRIPT_CONDITIONAL_COLOR) + boolExp + ReadableDescriptionGenerator.setColor(" then ", Const.SCRIPT_CONDITIONAL_COLOR)  + " <br/>" + tabs + ifBlock.getDescription();
         }
     }
 
@@ -622,11 +622,13 @@ public class ScriptDetailActivity extends AppCompatActivity {
             return;
         attemptToFork(script,textView);
         try {
+            System.out.println("try : " + script.getTail());
             script = sugiliteScriptDao.read(scriptName);
         }
         catch (Exception e){
             e.printStackTrace();
         }
+        System.out.println("after : " + script.getTail());
         loadOperationList();
         /*
         1. create a new fork popup that generates fork blocks
@@ -647,7 +649,6 @@ public class ScriptDetailActivity extends AppCompatActivity {
                         break;
                     }
                     try {
-                        //script = sugiliteScriptDao.read(scriptName);
                         current = currentBlock;
 
                         final EditText input = new EditText(context);
@@ -673,9 +674,8 @@ public class ScriptDetailActivity extends AppCompatActivity {
                                     @Override
                                     public void onClick(DialogInterface dialog, int which) {
                                         try {
-                                            System.out.println("made it2");
                                             dialog.dismiss();
-                                            resumeRecording();
+                                            resumeRecording(scb);
                                             //scb.setElseBlock(script.getTail());
                                         }
                                         catch (Exception e){
@@ -686,7 +686,6 @@ public class ScriptDetailActivity extends AppCompatActivity {
                                 builder2.setNegativeButton("NO", new DialogInterface.OnClickListener() {
                                     @Override
                                     public void onClick(DialogInterface dialog, int which) {
-                                        System.out.println("made it3");
                                         dialog.dismiss();
                                     }
                                 });
@@ -696,9 +695,10 @@ public class ScriptDetailActivity extends AppCompatActivity {
                                 alert2.show();
 
                                 try {
-                                    System.out.println("made it");
                                     sugiliteScriptDao.save(script);
+                                    System.out.println("before commit : " + script.getTail());
                                     sugiliteScriptDao.commitSave();
+                                    System.out.println("after commit : " + script.getTail());
                                 }
                                 catch (Exception e){
                                     e.printStackTrace();
@@ -710,6 +710,7 @@ public class ScriptDetailActivity extends AppCompatActivity {
                         alert.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
                         alert.setCanceledOnTouchOutside(true);
                         alert.show();
+                        System.out.println("weird part : " + script.getTail());
                     }
                     catch (Exception e){
                         e.printStackTrace();
@@ -930,9 +931,7 @@ public class ScriptDetailActivity extends AppCompatActivity {
 
     //TODO: rewrite resume recording
     private void resumeRecording(){
-        System.out.println("RESUMING");
         if(!serviceStatusManager.isRunning()){
-            System.out.println("IF");
             //prompt the user if the accessiblity service is not active
             AlertDialog.Builder builder1 = new AlertDialog.Builder(this);
             builder1.setTitle("Service not running")
@@ -946,7 +945,6 @@ public class ScriptDetailActivity extends AppCompatActivity {
                     }).show();
         }
         else {
-            System.out.println("ELSE");
             SharedPreferences.Editor prefEditor = sharedPreferences.edit();
             //turn off the recording before executing
             prefEditor.putBoolean("recording_in_process", false);
@@ -954,32 +952,63 @@ public class ScriptDetailActivity extends AppCompatActivity {
             prefEditor.commit();
             sugiliteData.initiatedExternally = false;
             sugiliteData.setScriptHead(script);
-            System.out.println("here3");
-            System.out.println(script);
-            System.out.println(script.getTail());
             sugiliteData.setCurrentScriptBlock(script.getTail());
-            System.out.println("here4");
             //force stop all the relevant packages
             for (String packageName : script.relevantPackages) {
-                System.out.println("FOR");
                 AutomatorUtil.killPackage(packageName);
             }
-            System.out.println("here5");
             sugiliteData.runScript(script, true, SugiliteData.EXECUTION_STATE);
-            System.out.println("here6");
             //need to have this delay to ensure that the killing has finished before we start executing
             try {
-                System.out.println("DELAY");
                 Thread.sleep(SCRIPT_DELAY);
             } catch (Exception e) {
                 // do nothing
             }
-            System.out.println("here7");
             Intent startMain = new Intent(Intent.ACTION_MAIN);
             startMain.addCategory(Intent.CATEGORY_HOME);
             startMain.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             startActivity(startMain);
-            System.out.println("here8");
+        }
+    }
+
+    private void resumeRecording(SugiliteBlock s){
+        if(!serviceStatusManager.isRunning()){
+            //prompt the user if the accessiblity service is not active
+            AlertDialog.Builder builder1 = new AlertDialog.Builder(this);
+            builder1.setTitle("Service not running")
+                    .setMessage("The " + Const.appNameUpperCase + " accessiblity service is not enabled. Please enable the service in the phone settings before recording.")
+                    .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            serviceStatusManager.promptEnabling();
+                            //do nothing
+                        }
+                    }).show();
+        }
+        else {
+            SharedPreferences.Editor prefEditor = sharedPreferences.edit();
+            //turn off the recording before executing
+            prefEditor.putBoolean("recording_in_process", false);
+            prefEditor.putString("scriptName", script.getScriptName().replace(".SugiliteScript", ""));
+            prefEditor.commit();
+            sugiliteData.initiatedExternally = false;
+            sugiliteData.setScriptHead(script);
+            sugiliteData.setCurrentScriptBlock(s);
+            //force stop all the relevant packages
+            for (String packageName : script.relevantPackages) {
+                AutomatorUtil.killPackage(packageName);
+            }
+            sugiliteData.runScript(script, true, SugiliteData.EXECUTION_STATE);
+            //need to have this delay to ensure that the killing has finished before we start executing
+            try {
+                Thread.sleep(SCRIPT_DELAY);
+            } catch (Exception e) {
+                // do nothing
+            }
+            Intent startMain = new Intent(Intent.ACTION_MAIN);
+            startMain.addCategory(Intent.CATEGORY_HOME);
+            startMain.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(startMain);
         }
     }
 

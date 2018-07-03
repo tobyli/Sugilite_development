@@ -263,7 +263,7 @@ public class SugiliteBooleanExpression implements Serializable {
 
     public String breakdown() {
         String hex = Const.SCRIPT_CONDITIONAL_COLOR_2;
-        //String hex2 = Const.SCRIPT_CONDITIONAL_COLOR_3;//"#FF3396", "#950884", "#FFE633", "#e24141"};
+        //String hex2 = "#FF3396", "#950884", "#FFE633", "#e24141"};
         String be = booleanExpression.substring(1,booleanExpression.length()-1).trim();
         String[] split = be.split(" ");
         String operator;
@@ -322,13 +322,16 @@ public class SugiliteBooleanExpression implements Serializable {
                 int count = 0;
                 while(count < pieces.size()) {
                     if(count == pieces.size()-1) {
-                        combined += ReadableDescriptionGenerator.setColor(" and ", hex) + ReadableDescriptionGenerator.setColor(pieces.get(count) + " )", hex);
+                        if(pieces.size() > 2) {
+                            combined += ReadableDescriptionGenerator.setColor(",", hex);
+                        }
+                        combined += ReadableDescriptionGenerator.setColor(" and " + pieces.get(count) + " )", hex);
                     }
                     else if(count == 0) {
                         combined += ReadableDescriptionGenerator.setColor("( " + pieces.get(0), hex);
                     }
                     else {
-                        combined += ReadableDescriptionGenerator.setColor(" and ", hex);
+                        combined += ReadableDescriptionGenerator.setColor(", ", hex);
                         if(pieces.get(count).substring(0,5).equals("<font")) {
                             combined += pieces.get(count);
                         }
@@ -343,13 +346,16 @@ public class SugiliteBooleanExpression implements Serializable {
                 int count = 0;
                 while(count < pieces.size()) {
                     if(count == pieces.size()-1) {
-                        combined += ReadableDescriptionGenerator.setColor(" or ", hex) + ReadableDescriptionGenerator.setColor(pieces.get(count) + " )", hex);
+                        if(pieces.size() > 2) {
+                            combined += ReadableDescriptionGenerator.setColor(",", hex);
+                        }
+                        combined += ReadableDescriptionGenerator.setColor(" or " + pieces.get(count) + " )", hex);
                     }
                     else if(count == 0) {
                         combined += ReadableDescriptionGenerator.setColor("( " + pieces.get(0), hex);
                     }
                     else {
-                        combined += ReadableDescriptionGenerator.setColor(" or ", hex);
+                        combined += ReadableDescriptionGenerator.setColor(", ", hex);
                         if(pieces.get(count).substring(0,5).equals("<font")) {
                             combined += pieces.get(count);
                         }
@@ -417,7 +423,7 @@ public class SugiliteBooleanExpression implements Serializable {
             for (String x : s) {
                 expression1 += x + " ";
             }
-            expression1 = "variable for " + expression1.toLowerCase();
+            expression1 = "the value of " + ReadableDescriptionGenerator.setColor(expression1.toLowerCase(), Const.SCRIPT_CONDITIONAL_COLOR_3);
         }
         if(!expression2.substring(0,1).equals("@")) {
             expression2 = "'" + expression2 + "'";
@@ -429,7 +435,7 @@ public class SugiliteBooleanExpression implements Serializable {
             for (String y : s2) {
                 expression2 += y + " ";
             }
-            expression2 = "variable for " + expression2.toLowerCase();
+            expression2 = "the value of " + ReadableDescriptionGenerator.setColor(expression2.toLowerCase(), Const.SCRIPT_CONDITIONAL_COLOR_3);
         }
 
         if(operator.contains("stringContainsIgnoreCase")) {
@@ -446,15 +452,15 @@ public class SugiliteBooleanExpression implements Serializable {
         }
         else if(operator.contains("stringEqualsIgnoreCase")) {
             if(not) {
-                return expression1 + " ≠ " + expression2 + " [ignoring capitalization]";
+                return expression1 + " is not " + expression2 + " [ignoring capitalization]";
             }
-            return expression1 + " = " + expression2 + " [ignoring capitalization]";
+            return expression1 + " is " + expression2 + " [ignoring capitalization]";
         }
         else if(operator.contains("stringEquals")) {
             if(not) {
-                return expression1 + " ≠ " + expression2;
+                return expression1 + " is not " + expression2;
             }
-            return expression1 + " = " + expression2;
+            return expression1 + " is " + expression2;
         }
         else {
             throw new IllegalArgumentException();

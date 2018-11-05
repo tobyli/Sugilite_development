@@ -98,7 +98,7 @@ public class Const {
 
     //colors
     public static final String SCRIPT_ACTION_COLOR = "#ffa500", SCRIPT_ACTION_PARAMETER_COLOR = "#bc002f", SCRIPT_TARGET_TYPE_COLOR = "#36a095"
-            , SCRIPT_IDENTIFYING_FEATURE_COLOR = "#008400", SCRIPT_VIEW_ID_COLOR = "#1f71e2", SCRIPT_WITHIN_APP_COLOR = "#ff00ff", SCRIPT_LINK_COLOR = "#2e159f";
+            , SCRIPT_IDENTIFYING_FEATURE_COLOR = "#008400", SCRIPT_VIEW_ID_COLOR = "#1f71e2", SCRIPT_WITHIN_APP_COLOR = "#ff00ff", SCRIPT_LINK_COLOR = "#2e159f", SCRIPT_CONDITIONAL_COLOR = "#9333FF", SCRIPT_CONDITIONAL_COLOR_2 = "#6D3333", SCRIPT_CONDITIONAL_COLOR_3 = "#10b29a";
 
     public static int RECORDING_OVERLAY_COLOR = 0x20FFFF00;
     public static int PREVIEW_OVERLAY_COLOR = 0xB0000000;
@@ -116,6 +116,9 @@ public class Const {
 
 
     public static final String LOADING_MESSAGE = "Loading the script...\n", SAVING_MESSAGE = "Saving the script... \n";
+
+    public static final String GET_CONDITION = "Please give your condition for the new fork. \n";
+    public static final String CHECK_FOR_ELSE = "Would you like to do something if the condition is not fulfilled? \n";
 
 
     public static final int FILE_SCRIPT_DAO = 1, SQL_SCRIPT_DAO = 2;

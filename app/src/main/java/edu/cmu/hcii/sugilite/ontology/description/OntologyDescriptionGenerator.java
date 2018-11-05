@@ -14,12 +14,14 @@ import java.util.Arrays;
 import java.util.*;
 
 import edu.cmu.hcii.sugilite.Const;
+import edu.cmu.hcii.sugilite.model.operation.SugiliteLoadVariableOperation;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteOperation;
 import edu.cmu.hcii.sugilite.ontology.OntologyQuery;
 import edu.cmu.hcii.sugilite.ontology.OntologyQueryFilter;
 import edu.cmu.hcii.sugilite.ontology.SerializableOntologyQuery;
 import edu.cmu.hcii.sugilite.ontology.SugiliteEntity;
 import edu.cmu.hcii.sugilite.ontology.SugiliteRelation;
+import edu.cmu.hcii.sugilite.recording.newrecording.SugiliteBlockBuildingHelper;
 
 /**
  * Created by Wanling Ding on 22/02/2018.
@@ -130,7 +132,14 @@ public class OntologyDescriptionGenerator {
             return prefix + getDescriptionForOperation(setColor("Read out constant ", Const.SCRIPT_ACTION_COLOR), sq);
         }
         else if(operation.getOperationType() == SugiliteOperation.LOAD_AS_VARIABLE){
-            return prefix + getDescriptionForOperation(setColor("Set variable to the following: ", Const.SCRIPT_ACTION_COLOR), sq);
+            System.out.println("HERE");
+            String vari = ((SugiliteLoadVariableOperation) operation).getParameter1();
+            String[] s = vari.split("(?=\\p{Upper})");
+            vari = "";
+            for (String x : s) {
+                vari += x + " ";
+            }
+            return prefix + getDescriptionForOperation(setColor("Set value of ", Const.SCRIPT_ACTION_COLOR) + setColor(vari.toLowerCase(), Const.SCRIPT_CONDITIONAL_COLOR_3) + setColor("to the following: ", Const.SCRIPT_ACTION_COLOR) + "the text in ", sq);
         }
         else{
             //TODO: handle more types of operations ***
@@ -553,6 +562,8 @@ public class OntologyDescriptionGenerator {
             }
 
             if (ontologyQuery.getSubRelation() == OntologyQuery.relationType.AND) {
+                System.out.println(translationWithRelationshipAnd(arr,subQueryArray, filter));
+                System.out.println(postfix);
                 return translationWithRelationshipAnd(arr,subQueryArray, filter) + postfix;
             }
             else if (ontologyQuery.getSubRelation() == OntologyQuery.relationType.OR) {

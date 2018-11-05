@@ -4,6 +4,7 @@ import java.io.Serializable;
 
 import edu.cmu.hcii.sugilite.SugiliteData;
 
+import edu.cmu.hcii.sugilite.model.block.operation.special_operation.SugiliteSpecialOperationBlock;
 import edu.cmu.hcii.sugilite.model.operator.SugiliteOperator;
 import edu.cmu.hcii.sugilite.model.variable.StringVariable;
 
@@ -29,7 +30,7 @@ public class SugiliteConditionBlock extends SugiliteBlock implements Serializabl
     public SugiliteConditionBlock(SugiliteBlock ifBlock, SugiliteBlock elseBlock, SugiliteBooleanExpression sugiliteBooleanExpression, SugiliteBlock previousBlock) {
         super();
         this.blockType = SugiliteBlock.CONDITION;
-        this.setDescription("Conditional Block");
+        this.setDescription("");
         this.setScreenshot(null);
         this.ifBlock = ifBlock;
         //this.nextBlock = nextBlock;
@@ -50,7 +51,6 @@ public class SugiliteConditionBlock extends SugiliteBlock implements Serializabl
     }
 
 
-    @Override
     public SugiliteBlock getNextBlockToRun(SugiliteData sugiliteData) {///added sugiliteData parameter
         //TODO: evaluate sugiliteBooleanExpression at runtime, and then return either ifBlock, nextBlock or elseBlock
         if (sugiliteBooleanExpression.evaluate(sugiliteData)) {///added sugiliteData parameter
@@ -75,6 +75,32 @@ public class SugiliteConditionBlock extends SugiliteBlock implements Serializabl
             return "(IF " + sugiliteBooleanExpression.toString() + " " + ifBlock.toString() + ")";
         }
 
+    }
+
+    public SugiliteBooleanExpression getSugiliteBooleanExpression() {
+        return sugiliteBooleanExpression;
+    }
+
+    public SugiliteBlock getIfBlock() {
+        return ifBlock;
+    }
+
+    public SugiliteBlock getElseBlock() {
+        return elseBlock;
+    }
+
+    public void setElseBlock(SugiliteBlock e) {elseBlock = e;}
+
+    public void delete(){
+        SugiliteBlock previousBlock = getPreviousBlock();
+        if(previousBlock instanceof SugiliteStartingBlock)
+            ((SugiliteStartingBlock) previousBlock).setNextBlock(null);
+        if(previousBlock instanceof SugiliteOperationBlock)
+            ((SugiliteOperationBlock) previousBlock).setNextBlock(null);
+        if(previousBlock instanceof SugiliteSpecialOperationBlock)
+            ((SugiliteSpecialOperationBlock) previousBlock).setNextBlock(null);
+        if(previousBlock instanceof SugiliteConditionBlock)
+            ((SugiliteConditionBlock) previousBlock).setNextBlock(null);
     }
 
     /**

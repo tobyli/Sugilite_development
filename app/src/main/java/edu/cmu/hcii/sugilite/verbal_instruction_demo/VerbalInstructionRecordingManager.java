@@ -140,7 +140,6 @@ public class VerbalInstructionRecordingManager {
         operationBlock.setElementMatchingFilter(null);
         operationBlock.setScreenshot(null);
         operationBlock.setQuery(serializedQuery);
-
         operationBlock.setDescription(readableDescriptionGenerator.generateDescriptionForVerbalBlock(operationBlock, formula, utterance));
         return operationBlock;
     }

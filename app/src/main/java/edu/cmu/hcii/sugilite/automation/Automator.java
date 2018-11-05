@@ -714,15 +714,15 @@ public class Automator {
         else if (block instanceof SugiliteSpecialOperationBlock) {
             sugiliteData.addInstruction(block.getNextBlock());
         }
-        else if (block instanceof SugiliteConditionBlock) {///
-            SugiliteBlock b = block.getNextBlockToRun(sugiliteData);
+        else if (block instanceof SugiliteConditionBlock) {
+            SugiliteBlock b = ((SugiliteConditionBlock) block).getNextBlockToRun(sugiliteData);
             sugiliteData.addInstruction(b);
 
             SugiliteBlock b2 = block.getNextBlock();
-            if(b != b2) {
+            if(b != b2 && b2 != null) {
                 sugiliteData.addInstruction(b2);
             }
-        }///
+        }
         else {
             throw new RuntimeException("Unsupported Block Type!");
         }

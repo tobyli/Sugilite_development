@@ -61,22 +61,22 @@
         </activity>
         <activity
             android:name=".recording.RecordingPopUpActivity"
-            tools:node="merge"></activity>
+            tools:node="merge" />
         <activity
             android:name=".recording.RecordingPopupSubMenuActivity"
             android:noHistory="true"
-            tools:node="merge"></activity>
+            tools:node="merge" />
         <activity
             android:name=".ui.ScriptDetailActivity"
-            tools:node="merge"></activity>
+            tools:node="merge" />
         <activity
             android:name=".ui.ScriptDebuggingActivity"
-            tools:node="merge"></activity>
+            tools:node="merge" />
         <activity
             android:name=".recording.mRecordingPopUpActivity"
             android:label="Sugilite Script Recording"
             android:noHistory="true"
-            tools:node="merge"></activity>
+            tools:node="merge" />
         <activity
             android:name=".communication.SugiliteCommunicationActivity"
             android:noHistory="true"
@@ -118,7 +118,9 @@
             </intent-filter>
         </receiver>
 
-        <activity android:name=".ui.ScriptSourceActivity"></activity>
+        <activity android:name=".ui.ScriptSourceActivity" />
+        <activity android:name=".pumice.ui.PumiceMainActivity" />
+        <activity android:name=".pumice.ui.PumiceDialogActivity"></activity>
     </application>
 
 </manifest>

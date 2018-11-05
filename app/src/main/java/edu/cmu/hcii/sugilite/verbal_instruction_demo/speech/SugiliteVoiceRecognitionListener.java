@@ -94,6 +94,7 @@ public class SugiliteVoiceRecognitionListener implements RecognitionListener {
 
     public void speak(String content, String utteranceId, Runnable onDone){
         HashMap<String, String> params = new HashMap<String, String>();
+        String originalUtteranceId = utteranceId;
         params.put(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID,utteranceId);
         tts.setOnUtteranceProgressListener(new UtteranceProgressListener() {
             @Override
@@ -115,21 +116,22 @@ public class SugiliteVoiceRecognitionListener implements RecognitionListener {
 
             @Override
             public void onDone(String utteranceId) {
-                try {
-                    runOnUiThread(onDone);
-                    if (sugiliteVoiceInterface != null) {
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                sugiliteVoiceInterface.speakingEnded();
-                            }
-                        });
+                if(utteranceId.equals(originalUtteranceId)) {
+                    try {
+                        runOnUiThread(onDone);
+                        if (sugiliteVoiceInterface != null) {
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    sugiliteVoiceInterface.speakingEnded();
+                                }
+                            });
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
                     }
+                    System.out.println("TTS IS DONE: " + utteranceId);
                 }
-                catch (Exception e){
-                    e.printStackTrace();
-                }
-                System.out.println("TTS IS DONE: " + utteranceId);
             }
 
             @Override
@@ -149,7 +151,7 @@ public class SugiliteVoiceRecognitionListener implements RecognitionListener {
                 }
             }
         });
-        tts.speak(content, TextToSpeech.QUEUE_FLUSH, params);
+        tts.speak(content, TextToSpeech.QUEUE_ADD, params);
     }
 
     public void stopTTS(){

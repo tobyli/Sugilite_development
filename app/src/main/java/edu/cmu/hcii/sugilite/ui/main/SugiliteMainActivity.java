@@ -31,6 +31,7 @@ import edu.cmu.hcii.sugilite.dao.SugiliteScriptFileDao;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptSQLDao;
 import edu.cmu.hcii.sugilite.dao.SugiliteTriggerDao;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
+import edu.cmu.hcii.sugilite.pumice.ui.PumiceDialogActivity;
 import edu.cmu.hcii.sugilite.study.ScriptUsageLogManager;
 import edu.cmu.hcii.sugilite.study.StudyConst;
 import edu.cmu.hcii.sugilite.study.StudyDataUploadManager;
@@ -285,6 +286,13 @@ public class SugiliteMainActivity extends AppCompatActivity {
         if(id == R.id.clear_usage_log){
             new ScriptUsageLogManager(context).clearLog();
             return true;
+        }
+        if(id == R.id.launch_pumice){
+            //launch pumice
+            Intent intent = new Intent(this, PumiceDialogActivity.class);
+            startActivity(intent);
+            return true;
+
         }
         return super.onOptionsItemSelected(item);
     }

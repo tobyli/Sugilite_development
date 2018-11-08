@@ -71,7 +71,7 @@ public class PumiceStartUtteranceIntentHandler implements PumiceUtteranceIntentH
                 break;
             case TEST_WEATHER:
                 ImageView imageView = new ImageView(context);
-                imageView.setImageDrawable(context.getResources().getDrawable(R.mipmap.demo_card));
+                imageView.setImageDrawable(context.getResources().getDrawable(R.mipmap.user_avatar));//SHOULD BE R.mipmap.demo_card
                 dialogManager.sendAgentViewMessage(imageView, "Here is the weather", true, false);
                 break;
             case INIT_INSTRUCTION:

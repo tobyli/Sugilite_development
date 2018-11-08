@@ -27,6 +27,10 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import android.graphics.drawable.ColorDrawable;
+import android.graphics.Color;
+import android.graphics.PorterDuff.Mode;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
@@ -41,6 +45,7 @@ import edu.cmu.hcii.sugilite.automation.ServiceStatusManager;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptFileDao;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptSQLDao;
+import edu.cmu.hcii.sugilite.model.operation.SugiliteOperation;
 import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteBooleanExpression;
 import edu.cmu.hcii.sugilite.model.block.SugiliteConditionBlock;
@@ -52,10 +57,11 @@ import edu.cmu.hcii.sugilite.recording.ReadableDescriptionGenerator;
 import edu.cmu.hcii.sugilite.recording.RecordingPopUpDialog;
 import edu.cmu.hcii.sugilite.model.variable.Variable;
 import edu.cmu.hcii.sugilite.study.ScriptUsageLogManager;
-import edu.cmu.hcii.sugilite.ui.dialog.NewScriptDialog;
 import edu.cmu.hcii.sugilite.ui.dialog.VariableSetValueDialog;
 import edu.cmu.hcii.sugilite.ui.main.SugiliteMainActivity;
+import edu.cmu.hcii.sugilite.source_parsing.SugiliteScriptParser;
 
+import static edu.cmu.hcii.sugilite.Const.PACKAGE_NAME;
 import static edu.cmu.hcii.sugilite.Const.SCRIPT_DELAY;
 import static edu.cmu.hcii.sugilite.Const.SQL_SCRIPT_DAO;
 
@@ -71,8 +77,14 @@ public class ScriptDetailActivity extends AppCompatActivity {
     private ServiceStatusManager serviceStatusManager;
     private Context context;
     private AlertDialog progressDialog;
+    private AlertDialog editDialog;
+    private String newText = "";
+    private EditText editText;
+    private SugiliteBlock newBlock;
     private String condition = "";
     private SugiliteBlock current;
+    private boolean addConditionalBlock;
+    private int newBlockIndex;
 
 
     @Override
@@ -241,11 +253,22 @@ public class ScriptDetailActivity extends AppCompatActivity {
             return tv;
         } else if (block instanceof SugiliteConditionBlock) {
             setConditionBlockDescription((SugiliteConditionBlock) block, 0);
-
             TextView tv = new TextView(context);
             tv.setText(Html.fromHtml(block.getDescription()));
             tv.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
             tv.setPadding(10, 10, 10, 10);
+            if(addConditionalBlock) {
+                /*Drawable[] d = tv.getCompoundDrawables();
+                for(int i = 0; i < d.length; i++) {
+                    d[i].setColorFilter(0x800000ff,Mode.MULTIPLY);
+                }*/
+                //ColorDrawable cd = new ColorDrawable(0x800000ff);
+                //cd.setBounds(3,0,3,0);
+                //ColorDrawable cd2 = new ColorDrawable(0x800000ff);
+                //tv.setCompoundDrawablesWithIntrinsicBounds(cd,cd,cd,cd);
+                tv.setBackgroundColor(Color.YELLOW);
+                //addConditionalBlock = false;
+            }
             tv.setOnTouchListener(textViewOnTouchListener);
             registerForContextMenu(tv);
             return tv;
@@ -545,10 +568,158 @@ public class ScriptDetailActivity extends AppCompatActivity {
             System.out.println("Can't find view " + item.getItemId());
             return;
         }
-        Toast.makeText(this, "Edit doesn't work", Toast.LENGTH_SHORT).show();
+        addingToScriptTest();
+        //Toast.makeText(this, "Edit doesn't work", Toast.LENGTH_SHORT).show();
 
         //TODO: need to fix script editing for the new query format
         //attemptToEdit(script, textView);
+    }
+    private void addingToScriptTest() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+        editText = new EditText(context);
+        builder.setView(editText);
+        builder.setMessage("What would you like to do?");//"(IF (<= 2 80) (CLICK (hasText 'iced coffee'))"
+        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                addConditionalBlock = true;
+                newText = editText.getText().toString();
+                SugiliteScriptParser ssp = new SugiliteScriptParser();
+                newBlock = ssp.parseBlockFromString(newText).getNextBlock();
+                newBlockIndex = 1;
+                /*SugiliteBooleanExpression bool = new SugiliteBooleanExpression(" " + newText + " ");
+                SugiliteBlock ifBlock1 = new SugiliteOperationBlock();
+                SugiliteOperation so = new SugiliteOperation(7);
+                ((SugiliteOperationBlock) ifBlock1).setOperation(so);
+                newBlock = new SugiliteConditionBlock(ifBlock1,null,bool,script);*/
+                SugiliteBlock holdBlock = script.getNextBlock();
+                script.setNextBlock(newBlock);
+                newBlock.setNextBlock(holdBlock);
+                loadOperationList();
+                addingToScriptTest2();
+            }
+        });
+        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.cancel();
+            }
+        });
+        editDialog = builder.create();
+        editDialog.show();
+    }
+    private void addingToScriptTest2() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+        builder.setMessage("Ok, does it look like the new step happens at the right time?");
+        builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                addingToScriptTest4();
+            }
+        });
+        builder.setNegativeButton("No", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                addingToScriptTest3();
+            }
+        });
+        editDialog = builder.create();
+        editDialog.show();
+    }
+    private void addingToScriptTest3() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+        editText = new EditText(context);
+        builder.setView(editText);
+        builder.setMessage("Ok, after what step should the new step happen?");
+        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                newText = editText.getText().toString();
+                int i = Integer.parseInt(newText);//index of step that new step should go after; indices start at 1 and new step starts at index 1
+                int j = newBlockIndex;
+                SugiliteBlock iterBlock = script;
+                int count = 0;
+                while(count < i) {
+                    if (iterBlock instanceof SugiliteStartingBlock)
+                        iterBlock = ((SugiliteStartingBlock) iterBlock).getNextBlock();
+                    else if (iterBlock instanceof SugiliteOperationBlock)
+                        iterBlock = ((SugiliteOperationBlock) iterBlock).getNextBlock();
+                    else if (iterBlock instanceof SugiliteSpecialOperationBlock)
+                        iterBlock = ((SugiliteSpecialOperationBlock) iterBlock).getNextBlock();
+                    else if (iterBlock instanceof SugiliteConditionBlock)
+                        iterBlock = ((SugiliteConditionBlock) iterBlock).getNextBlock();
+                    else
+                        new Exception("unsupported block type").printStackTrace();
+                    count++;
+                }
+                SugiliteBlock iterNextBlock = iterBlock.getNextBlock();
+                SugiliteBlock newNextBlock = newBlock.getNextBlock();
+                SugiliteBlock newPrevBlock;
+                if(j == 1) {
+                    newPrevBlock = script;
+                }
+                else {
+                    newPrevBlock = newBlock.getPreviousBlock();
+                }
+
+                int check = j+1;
+                if(i == check) {
+                    iterBlock.setPreviousBlock(newPrevBlock);
+                    newPrevBlock.setNextBlock(iterBlock);
+                }
+                else  {
+                    if(newNextBlock != null) {
+                        newNextBlock.setPreviousBlock(newPrevBlock);
+                    }
+                    newPrevBlock.setNextBlock(newNextBlock);
+                }
+
+                newBlock.setPreviousBlock(iterBlock);
+                iterBlock.setNextBlock(newBlock);
+
+
+                newBlock.setNextBlock(iterNextBlock);
+                if(iterNextBlock != null) {
+                    iterNextBlock.setPreviousBlock(newBlock);
+                }
+
+                if(j < i) {
+                    newBlockIndex = i;
+                }
+                else {
+                    newBlockIndex = i+1;
+                }
+
+                loadOperationList();
+                addingToScriptTest2();
+            }
+        });
+        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.cancel();
+            }
+        });
+        editDialog = builder.create();
+        editDialog.show();
+    }
+    private void addingToScriptTest4() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+        builder.setMessage("Great, would you like me to run through the task to make sure the new step works correctly?");
+        builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                scriptDetailRunButtonOnClick(contextTextView);
+            }
+        });
+        builder.setNegativeButton("No", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.cancel();
+            }
+        });
+        editDialog = builder.create();
+        editDialog.show();
     }
     private boolean attemptToEdit(SugiliteBlock currentBlock, TextView textView){
         while(true){

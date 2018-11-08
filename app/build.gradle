@@ -3,7 +3,7 @@ apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion 25
-    buildToolsVersion '27.0.3'
+    buildToolsVersion '28.0.3'
     defaultConfig {
         applicationId "edu.cmu.hcii.sugilite"
         minSdkVersion 24
@@ -60,7 +60,6 @@ dependencies {
     compile files('libs/RootTools.jar')
     deployerJars "org.apache.maven.wagon:wagon-ssh:2.9"
     compile 'com.daasuu:BubbleLayout:1.2.0'
-
 }
 
 //We need this in order to deploy Sugilite as a maven library

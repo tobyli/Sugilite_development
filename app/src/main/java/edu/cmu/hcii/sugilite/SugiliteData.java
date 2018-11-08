@@ -141,9 +141,11 @@ public class SugiliteData extends Application {
         startRecordingWhenFinishExecuting = false;
         this.afterExecutionOperation = afterExecutionOperation;
         this.instructionQueue.clear();
-        errorHandler.relevantPackages.clear();
-        errorHandler.relevantPackages.addAll(startingBlock.relevantPackages);
-        errorHandler.reportSuccess(Calendar.getInstance().getTimeInMillis());
+        if(errorHandler != null) {
+            errorHandler.relevantPackages.clear();
+            errorHandler.relevantPackages.addAll(startingBlock.relevantPackages);
+            errorHandler.reportSuccess(Calendar.getInstance().getTimeInMillis());
+        }
         List<SugiliteBlock> blocks = traverseBlock(startingBlock);
         addInstruction(startingBlock);
 
@@ -172,7 +174,9 @@ public class SugiliteData extends Application {
             setCurrentSystemState(DEFAULT_STATE);
             return;
         }
-        errorHandler.reportSuccess();
+        if(errorHandler != null) {
+            errorHandler.reportSuccess();
+        }
         instructionQueue.add(block);
     }
     public void addInstructions(Queue<SugiliteBlock> blocks){

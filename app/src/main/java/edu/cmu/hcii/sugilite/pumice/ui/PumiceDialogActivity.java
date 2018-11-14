@@ -183,4 +183,20 @@ public class PumiceDialogActivity extends AppCompatActivity implements SugiliteV
             }
         }
     }
+
+    @Override
+    protected void onStop() {
+        if (tts != null) {
+            tts.stop();
+        }
+        super.onStop();
+    }
+
+    @Override
+    protected void onDestroy() {
+        if(tts != null) {
+            tts.shutdown();
+        }
+        super.onDestroy();
+    }
 }

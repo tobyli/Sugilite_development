@@ -1,4 +1,4 @@
-package edu.cmu.hcii.sugilite.model.block.operation.special_operation;
+package edu.cmu.hcii.sugilite.model.block.special_operation;
 
 import android.content.Context;
 import android.content.SharedPreferences;

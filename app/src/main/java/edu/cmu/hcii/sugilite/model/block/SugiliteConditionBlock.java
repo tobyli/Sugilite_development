@@ -4,11 +4,9 @@ import java.io.Serializable;
 
 import edu.cmu.hcii.sugilite.SugiliteData;
 
-import edu.cmu.hcii.sugilite.model.block.operation.special_operation.SugiliteSpecialOperationBlock;
-import edu.cmu.hcii.sugilite.model.operator.SugiliteOperator;
-import edu.cmu.hcii.sugilite.model.variable.StringVariable;
-
-import static edu.cmu.hcii.sugilite.source_parsing.SugiliteScriptExpression.addQuoteToTokenIfNeeded;
+import edu.cmu.hcii.sugilite.model.block.booleanexp.SugiliteBooleanExpression;
+import edu.cmu.hcii.sugilite.model.block.booleanexp.SugiliteBooleanExpressionNew;
+import edu.cmu.hcii.sugilite.model.block.special_operation.SugiliteSpecialOperationBlock;
 
 /**
  * Created by toby on 8/11/16.
@@ -22,9 +20,11 @@ public class SugiliteConditionBlock extends SugiliteBlock implements Serializabl
 
 
     //optional
+
+
     private SugiliteBlock elseBlock;
 
-
+    private SugiliteBooleanExpressionNew sugiliteBooleanExpressionNew;
     private SugiliteBooleanExpression sugiliteBooleanExpression;
 
     public SugiliteConditionBlock(SugiliteBlock ifBlock, SugiliteBlock elseBlock, SugiliteBooleanExpression sugiliteBooleanExpression, SugiliteBlock previousBlock) {
@@ -69,16 +69,20 @@ public class SugiliteConditionBlock extends SugiliteBlock implements Serializabl
         //TODO: implement
 
         if(elseBlock != null) {
-            return "(IF " + sugiliteBooleanExpression.toString() + " " + ifBlock.toString() + " " + elseBlock.toString() + ")";
+            return "(call if " + sugiliteBooleanExpression.toString() + " " + ifBlock.toString() + " " + elseBlock.toString() + ")";
         }
         else {
-            return "(IF " + sugiliteBooleanExpression.toString() + " " + ifBlock.toString() + ")";
+            return "(call if " + sugiliteBooleanExpression.toString() + " " + ifBlock.toString() + ")";
         }
 
     }
 
     public SugiliteBooleanExpression getSugiliteBooleanExpression() {
         return sugiliteBooleanExpression;
+    }
+
+    public void setSugiliteBooleanExpressionNew(SugiliteBooleanExpressionNew sugiliteBooleanExpressionNew) {
+        this.sugiliteBooleanExpressionNew = sugiliteBooleanExpressionNew;
     }
 
     public SugiliteBlock getIfBlock() {

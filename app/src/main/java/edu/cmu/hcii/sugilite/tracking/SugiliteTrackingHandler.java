@@ -15,6 +15,10 @@ import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.model.block.util.UIElementMatchingFilter;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteOperation;
+import edu.cmu.hcii.sugilite.model.operation.binary.SugiliteSetTextOperation;
+import edu.cmu.hcii.sugilite.model.operation.unary.SugiliteClickOperation;
+import edu.cmu.hcii.sugilite.model.operation.unary.SugiliteLongClickOperation;
+import edu.cmu.hcii.sugilite.model.operation.unary.SugiliteSelectOperation;
 
 /**
  * Created by toby on 7/25/16.
@@ -40,20 +44,16 @@ public class SugiliteTrackingHandler {
         SugiliteOperation sugiliteOperation = null;
         switch (event.getEventType()){
             case AccessibilityEvent.TYPE_VIEW_CLICKED:
-                sugiliteOperation = new SugiliteOperation();
-                sugiliteOperation.setOperationType(SugiliteOperation.CLICK);
+                sugiliteOperation = new SugiliteClickOperation();
                 break;
             case AccessibilityEvent.TYPE_VIEW_LONG_CLICKED:
-                sugiliteOperation = new SugiliteOperation();
-                sugiliteOperation.setOperationType(SugiliteOperation.LONG_CLICK);
+                sugiliteOperation = new SugiliteLongClickOperation();
                 break;
             case AccessibilityEvent.TYPE_VIEW_SELECTED:
-                sugiliteOperation = new SugiliteOperation();
-                sugiliteOperation.setOperationType(SugiliteOperation.SELECT);
+                sugiliteOperation = new SugiliteSelectOperation();
                 break;
             case AccessibilityEvent.TYPE_VIEW_TEXT_CHANGED:
-                sugiliteOperation = new SugiliteOperation();
-                sugiliteOperation.setOperationType(SugiliteOperation.SET_TEXT);
+                sugiliteOperation = new SugiliteSetTextOperation();
                 break;
         }
         Rect boundsInParents = new Rect();

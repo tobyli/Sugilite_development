@@ -7,15 +7,10 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.Map;
-import java.util.HashMap;
 
 import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
-import edu.cmu.hcii.sugilite.model.block.SugiliteBooleanExpression;
-import edu.cmu.hcii.sugilite.model.block.SugiliteConditionBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.ontology.description.OntologyDescriptionGenerator;
-import edu.cmu.hcii.sugilite.SugiliteData;///
 
 /**
  * @author toby
@@ -46,7 +41,11 @@ public class SugiliteScriptParser {
         List<String> list = new ArrayList<String>();
         Matcher m = Pattern.compile("([^\"]\\S*|\".+?\")\\s*").matcher(source.replace("(", " ( ").replace(")", " ) "));
         while (m.find()) {
-            list.add(m.group(1).replace("\"", "").trim());
+            String result = new String(m.group(1));
+            if(result.startsWith("\"") && result.endsWith("\"")){
+                result = result.substring(1, result.length() - 1);
+            }
+            list.add(result.trim());
         }
         return list;
     }

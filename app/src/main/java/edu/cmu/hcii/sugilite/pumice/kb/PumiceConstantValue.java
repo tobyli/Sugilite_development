@@ -1,5 +1,4 @@
 package edu.cmu.hcii.sugilite.pumice.kb;
-
 import com.google.gson.Gson;
 
 /**

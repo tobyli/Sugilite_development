@@ -1,4 +1,4 @@
-package edu.cmu.hcii.sugilite.model.block.operation.special_operation;
+package edu.cmu.hcii.sugilite.model.block.special_operation;
 
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -29,6 +29,6 @@ public class SugiliteDelaySpecialOperationBlock extends SugiliteSpecialOperation
 
     @Override
     public String toString() {
-        return "(" + "DELAY" + " " + delayInMilliseconds + ")";
+        return "(" + "call" + " " + "delay" + " " + delayInMilliseconds + ")";
     }
 }

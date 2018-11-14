@@ -59,6 +59,9 @@ public class PumiceDialogManager implements SugiliteVerbalInstructionHTTPQueryIn
         this.pumiceDialogState = new PumiceDialogState(new PumiceStartUtteranceIntentHandler(context), new PumiceKnowledgeManager());
         this.sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
         this.httpQueryManager = new SugiliteVerbalInstructionHTTPQueryManager(this, sharedPreferences);
+<<<<<<< HEAD
+>>>>>>> ca4093a365953dac63660eb9db6e3d62abf3f3d6
+=======
 >>>>>>> ca4093a365953dac63660eb9db6e3d62abf3f3d6
 
         //** testing **

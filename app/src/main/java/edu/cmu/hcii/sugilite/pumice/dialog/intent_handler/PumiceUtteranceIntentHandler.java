@@ -11,7 +11,11 @@ import edu.cmu.hcii.sugilite.pumice.dialog.PumiceDialogManager;
  */
 public interface PumiceUtteranceIntentHandler {
 <<<<<<< HEAD
+<<<<<<< HEAD
     enum PumiceIntent {INIT_INSTRUCTION, TEST_WEATHER, START_OVER, UNDO_STEP, SHOW_KNOWLEDGE, SHOW_RAW_KNOWLEDGE, ADD_CONDITIONAL}
+=======
+    enum PumiceIntent {USER_INIT_INSTRUCTION, TEST_WEATHER, START_OVER, UNDO_STEP, SHOW_KNOWLEDGE, SHOW_RAW_KNOWLEDGE}
+>>>>>>> ca4093a365953dac63660eb9db6e3d62abf3f3d6
 =======
     enum PumiceIntent {USER_INIT_INSTRUCTION, TEST_WEATHER, START_OVER, UNDO_STEP, SHOW_KNOWLEDGE, SHOW_RAW_KNOWLEDGE}
 >>>>>>> ca4093a365953dac63660eb9db6e3d62abf3f3d6

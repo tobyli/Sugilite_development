@@ -6,6 +6,8 @@ import edu.cmu.hcii.sugilite.model.operation.binary.SugiliteBinaryOperation;
 import edu.cmu.hcii.sugilite.model.value.SugiliteValue;
 import edu.cmu.hcii.sugilite.ontology.SerializableOntologyQuery;
 
+import static edu.cmu.hcii.sugilite.source_parsing.SugiliteScriptExpression.addQuoteToTokenIfNeeded;
+
 /**
  * @author toby
  * @date 3/21/18
@@ -71,5 +73,10 @@ public class SugiliteGetOperation extends SugiliteBinaryOperation<String, String
     public String evaluate() {
         //TODO: this should actually execute the get operation to get the result
         return null;
+    }
+
+    @Override
+    public String toString() {
+        return "(" + "call get " + addQuoteToTokenIfNeeded(getParameter0().toString()) + " " + addQuoteToTokenIfNeeded(getParameter1().toString()) + ")";
     }
 }

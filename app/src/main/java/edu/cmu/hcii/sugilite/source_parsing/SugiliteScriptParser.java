@@ -39,6 +39,7 @@ public class SugiliteScriptParser {
      */
     public static List<String> tokenize(String source){
         List<String> list = new ArrayList<String>();
+        source = source.replace("\\\"", "\"");
         Matcher m = Pattern.compile("([^\"]\\S*|\".+?\")\\s*").matcher(source.replace("(", " ( ").replace(")", " ) "));
         while (m.find()) {
             String result = new String(m.group(1));

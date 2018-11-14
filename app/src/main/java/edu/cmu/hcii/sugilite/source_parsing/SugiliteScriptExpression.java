@@ -29,6 +29,7 @@ import edu.cmu.hcii.sugilite.model.operation.unary.SugiliteResolveProcedureOpera
 import edu.cmu.hcii.sugilite.model.operation.unary.SugiliteResolveValueQueryOperation;
 import edu.cmu.hcii.sugilite.model.operation.unary.SugiliteSelectOperation;
 import edu.cmu.hcii.sugilite.model.operation.unary.SugiliteUnaryOperation;
+import edu.cmu.hcii.sugilite.model.value.SugiliteSimpleConstant;
 import edu.cmu.hcii.sugilite.model.variable.StringVariable;
 import edu.cmu.hcii.sugilite.model.variable.Variable;
 import edu.cmu.hcii.sugilite.ontology.OntologyQuery;
@@ -76,15 +77,45 @@ public class SugiliteScriptExpression<T> {
             }
             return result;
         }
+        else if (node.getChildren().size() > 1){
+            //typed constant?
+            SugiliteScriptExpression result = null;
+
+            if(node.getValue() != null) {
+                //when the node already has a value --> simply use that value
+                result = new SugiliteScriptExpression<SugiliteSimpleConstant<String>>();
+                result.setConstantValue(new SugiliteSimpleConstant<>(node.getValue()));
+            } else if (node.getChildren().get(0).getValue() != null && node.getChildren().get(1).getValue() != null && node.getChildren().get(0).getValue().equals("string")){
+                //string constant
+                result = new SugiliteScriptExpression<SugiliteSimpleConstant<String>>();
+                result.setConstantValue(new SugiliteSimpleConstant<>(node.getChildren().get(1).getValue()));
+            } else if (node.getChildren().get(0).getValue() != null && node.getChildren().get(1).getValue() != null && node.getChildren().get(2).getValue() == null && node.getChildren().get(0).getValue().equals("number")){
+                //number constant
+                result = new SugiliteScriptExpression<SugiliteSimpleConstant<Number>>();
+                result.setConstantValue(new SugiliteSimpleConstant<>(node.getChildren().get(1).getValue()));
+            } else if (node.getChildren().get(0).getValue() != null && node.getChildren().get(1).getValue() != null && node.getChildren().get(2).getValue() != null && node.getChildren().get(0).getValue().equals("number")){
+                //number constant
+                result = new SugiliteScriptExpression<SugiliteSimpleConstant<Number>>();
+                result.setConstantValue(new SugiliteSimpleConstant<>(node.getChildren().get(1).getValue(), node.getChildren().get(2).getValue()));
+            }
+            else {
+                //TODO: temp hack -- use the raw script content
+                result = new SugiliteScriptExpression<SugiliteSimpleConstant<String>>();
+                result.setConstantValue(new SugiliteSimpleConstant<>(node.getScriptContent()));
+            }
+            result.setScriptContent(node.getScriptContent());
+            result.setConstant(true);
+            return result;
+        }
         else {
-            //constant
-            SugiliteScriptExpression<String> result = new SugiliteScriptExpression<>();
+            //simple constant
+            SugiliteScriptExpression<SugiliteSimpleConstant<String>> result = new SugiliteScriptExpression<>();
             result.setConstant(true);
             if(node.getValue() != null) {
-                result.setConstantValue(node.getValue());
+                result.setConstantValue(new SugiliteSimpleConstant<>(node.getValue()));
             } else {
                 //TODO: temp hack
-                result.setConstantValue(node.getScriptContent());
+                result.setConstantValue(new SugiliteSimpleConstant<>(node.getScriptContent()));
             }
             result.setScriptContent(node.getScriptContent());
             return result;
@@ -346,11 +377,13 @@ public class SugiliteScriptExpression<T> {
     }
 
     static public String addQuoteToTokenIfNeeded(String s){
-        if(s.contains(" ")){
-            return "\"" + s + "\"";
-        } else {
-            return s;
-        }
+        if(!((s.startsWith("(") && s.endsWith(")")) || (s.startsWith("\"") && s.endsWith("\"")))) {
+            if (s.contains(" ")) {
+                return "\"" + s + "\"";
+            } else {
+                return s;
+            }
+        } return s;
     }
 
     public void setOperationName(String operationName) {

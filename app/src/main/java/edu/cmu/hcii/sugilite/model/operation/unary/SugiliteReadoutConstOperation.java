@@ -5,6 +5,8 @@ import java.io.Serializable;
 import edu.cmu.hcii.sugilite.model.operation.binary.SugiliteBinaryOperation;
 import edu.cmu.hcii.sugilite.ontology.SerializableOntologyQuery;
 
+import static edu.cmu.hcii.sugilite.source_parsing.SugiliteScriptExpression.addQuoteToTokenIfNeeded;
+
 /**
  * @author toby
  * @date 3/21/18
@@ -46,5 +48,10 @@ public class SugiliteReadoutConstOperation extends SugiliteUnaryOperation<String
     @Override
     public SerializableOntologyQuery getDataDescriptionQueryIfAvailable() {
         return null;
+    }
+
+    @Override
+    public String toString() {
+        return "(" + "call read_out " + addQuoteToTokenIfNeeded(getParameter0().toString()) + ")";
     }
 }

@@ -4,6 +4,8 @@ import java.io.Serializable;
 
 import edu.cmu.hcii.sugilite.ontology.SerializableOntologyQuery;
 
+import static edu.cmu.hcii.sugilite.source_parsing.SugiliteScriptExpression.addQuoteToTokenIfNeeded;
+
 /**
  * @author toby
  * @date 6/10/16
@@ -24,7 +26,7 @@ public class SugiliteSetTextOperation extends SugiliteBinaryOperation<String, Se
     }
 
     public void setQuery(SerializableOntologyQuery targetUIElementDataDescriptionQuery) {
-        this.targetUIElementDataDescriptionQuery = targetUIElementDataDescriptionQuery;
+        setParameter1(targetUIElementDataDescriptionQuery);
     }
 
     @Override
@@ -54,6 +56,11 @@ public class SugiliteSetTextOperation extends SugiliteBinaryOperation<String, Se
     @Override
     public SerializableOntologyQuery getDataDescriptionQueryIfAvailable() {
         return targetUIElementDataDescriptionQuery;
+    }
+
+    @Override
+    public String toString() {
+        return "(" + "call set_text " + addQuoteToTokenIfNeeded(getParameter0().toString()) + " " + addQuoteToTokenIfNeeded(getParameter1().toString()) + ")";
     }
 }
 

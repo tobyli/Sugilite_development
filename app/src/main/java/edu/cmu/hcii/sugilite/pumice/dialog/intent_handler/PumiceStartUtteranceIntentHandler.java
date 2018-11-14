@@ -3,6 +3,8 @@ package edu.cmu.hcii.sugilite.pumice.dialog.intent_handler;
 import android.content.Context;
 import android.widget.ImageView;
 
+import java.util.Calendar;
+
 import edu.cmu.hcii.sugilite.R;
 import edu.cmu.hcii.sugilite.pumice.communication.PumiceInstructionPacket;
 import edu.cmu.hcii.sugilite.pumice.dialog.PumiceDialogManager;
@@ -14,8 +16,10 @@ import edu.cmu.hcii.sugilite.pumice.dialog.PumiceDialogManager;
  */
 public class PumiceStartUtteranceIntentHandler implements PumiceUtteranceIntentHandler {
     private transient Context context;
+    Calendar calendar;
     public PumiceStartUtteranceIntentHandler(Context context){
         this.context = context;
+        this.calendar = Calendar.getInstance();
     }
 
     @Override
@@ -54,7 +58,7 @@ public class PumiceStartUtteranceIntentHandler implements PumiceUtteranceIntentH
         }
 
         else {
-            return PumiceIntent.INIT_INSTRUCTION;
+            return PumiceIntent.USER_INIT_INSTRUCTION;
         }
     }
 
@@ -74,9 +78,16 @@ public class PumiceStartUtteranceIntentHandler implements PumiceUtteranceIntentH
                 imageView.setImageDrawable(context.getResources().getDrawable(R.mipmap.user_avatar));//SHOULD BE R.mipmap.demo_card
                 dialogManager.sendAgentViewMessage(imageView, "Here is the weather", true, false);
                 break;
-            case INIT_INSTRUCTION:
+            case USER_INIT_INSTRUCTION:
                 dialogManager.sendAgentMessage("I have received your instruction: " + utterance.getContent(), true, false);
-                dialogManager.sendAgentMessage("Sending out server query: \n\n" + new PumiceInstructionPacket(dialogManager.getPumiceKnowledgeManager(), utterance.getContent()).toString(), false, false);
+                PumiceInstructionPacket pumiceInstructionPacket = new PumiceInstructionPacket(dialogManager.getPumiceKnowledgeManager(), PumiceIntent.USER_INIT_INSTRUCTION, calendar.getTimeInMillis(), utterance.getContent());
+                dialogManager.sendAgentMessage("Sending out server query: \n\n" + pumiceInstructionPacket.toString(), false, false);
+                try {
+                    dialogManager.getHttpQueryManager().sendPumiceInstructionPacketOnASeparateThread(pumiceInstructionPacket);
+                } catch (Exception e){
+                    e.printStackTrace();
+                }
+                System.out.println(pumiceInstructionPacket.toString());
                 break;
             case SHOW_KNOWLEDGE:
                 dialogManager.sendAgentMessage("Below are the existing knowledge: \n\n" + dialogManager.getPumiceKnowledgeManager().getKnowledgeInString(), true, false);

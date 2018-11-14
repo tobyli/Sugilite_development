@@ -36,7 +36,8 @@ import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.model.block.util.SugiliteAvailableFeaturePack;
 import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteOperation;
-import edu.cmu.hcii.sugilite.model.operation.SugiliteUnaryOperation;
+import edu.cmu.hcii.sugilite.model.operation.unary.SugiliteClickOperation;
+import edu.cmu.hcii.sugilite.model.operation.unary.SugiliteUnaryOperation;
 import edu.cmu.hcii.sugilite.ontology.OntologyQuery;
 import edu.cmu.hcii.sugilite.ontology.SerializableOntologyQuery;
 import edu.cmu.hcii.sugilite.ontology.SugiliteEntity;
@@ -523,9 +524,8 @@ public class FullScreenRecordingOverlayManager {
 
     private SugiliteOperationBlock generateBlock(OntologyQuery query, String formula) {
         //generate the sugilite operation
-        SugiliteUnaryOperation sugiliteOperation = new SugiliteUnaryOperation();
+        SugiliteClickOperation sugiliteOperation = new SugiliteClickOperation();
         //assume it's click for now -- need to expand to more types of operations
-        sugiliteOperation.setOperationType(SugiliteOperation.CLICK);
         SerializableOntologyQuery serializedQuery = new SerializableOntologyQuery(query);
 
         SugiliteOperationBlock operationBlock = new SugiliteOperationBlock();
@@ -533,7 +533,7 @@ public class FullScreenRecordingOverlayManager {
         operationBlock.setFeaturePack(null);
         operationBlock.setElementMatchingFilter(null);
         operationBlock.setScreenshot(null);
-        operationBlock.setQuery(serializedQuery);
+        sugiliteOperation.setQuery(serializedQuery);
         operationBlock.setDescription(readableDescriptionGenerator.generateDescriptionForVerbalBlock(operationBlock, formula, "UTTERANCE"));
         return operationBlock;
     }

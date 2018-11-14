@@ -13,6 +13,8 @@ import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
+import edu.cmu.hcii.sugilite.pumice.communication.PumiceInstructionPacket;
+
 /**
  * @author toby
  * @date 12/10/17
@@ -29,6 +31,21 @@ public class SugiliteVerbalInstructionHTTPQueryManager {
         this.parentInterface = parentInterface;
         this.sharedPreferences = sharedPreferences;
         this.gson = new Gson();
+    }
+
+    public void sendPumiceInstructionPacketOnASeparateThread(PumiceInstructionPacket packet) throws Exception {
+        Thread thread = new Thread() {
+            @Override
+            public void run() {
+                try {
+                    String content = gson.toJson(packet);
+                    sendRequest(content);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        };
+        thread.start();
     }
 
     public void sendQueryRequest(VerbalInstructionServerQuery query) throws Exception {

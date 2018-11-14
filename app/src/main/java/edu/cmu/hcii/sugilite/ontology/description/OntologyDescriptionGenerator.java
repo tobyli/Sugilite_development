@@ -3,25 +3,19 @@ package edu.cmu.hcii.sugilite.ontology.description;
 import android.content.Context;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
-import android.text.Html;
-import android.text.TextUtils;
-
-import org.apache.commons.lang3.StringUtils;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.util.Arrays;
-import java.util.*;
 
 import edu.cmu.hcii.sugilite.Const;
-import edu.cmu.hcii.sugilite.model.operation.SugiliteLoadVariableOperation;
+import edu.cmu.hcii.sugilite.model.operation.trinary.SugiliteLoadVariableOperation;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteOperation;
 import edu.cmu.hcii.sugilite.ontology.OntologyQuery;
 import edu.cmu.hcii.sugilite.ontology.OntologyQueryFilter;
 import edu.cmu.hcii.sugilite.ontology.SerializableOntologyQuery;
 import edu.cmu.hcii.sugilite.ontology.SugiliteEntity;
 import edu.cmu.hcii.sugilite.ontology.SugiliteRelation;
-import edu.cmu.hcii.sugilite.recording.newrecording.SugiliteBlockBuildingHelper;
 
 /**
  * Created by Wanling Ding on 22/02/2018.
@@ -143,6 +137,7 @@ public class OntologyDescriptionGenerator {
         }
         else{
             //TODO: handle more types of operations ***
+            System.err.println("can't handle operation " + operation.getOperationType());
             return null;
         }
 

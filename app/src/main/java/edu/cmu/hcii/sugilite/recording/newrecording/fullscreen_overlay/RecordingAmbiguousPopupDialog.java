@@ -38,7 +38,8 @@ import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.model.block.util.SugiliteAvailableFeaturePack;
 import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteOperation;
-import edu.cmu.hcii.sugilite.model.operation.SugiliteUnaryOperation;
+import edu.cmu.hcii.sugilite.model.operation.unary.SugiliteClickOperation;
+import edu.cmu.hcii.sugilite.model.operation.unary.SugiliteUnaryOperation;
 import edu.cmu.hcii.sugilite.ontology.OntologyQuery;
 import edu.cmu.hcii.sugilite.ontology.OntologyQueryUtils;
 import edu.cmu.hcii.sugilite.ontology.SerializableOntologyQuery;
@@ -453,7 +454,7 @@ public class RecordingAmbiguousPopupDialog extends SugiliteDialogManager impleme
             String descriptionForTopQuery = null;
             try {
                 OntologyQuery topQuery = OntologyQuery.deserialize(results.getQueries().get(0).getFormula());
-                SugiliteOperation operation = new SugiliteUnaryOperation(SugiliteOperation.CLICK);
+                SugiliteOperation operation = new SugiliteClickOperation();
                 topQuery = OntologyQueryUtils.getQueryWithClassAndPackageConstraints(topQuery, actualClickedNode.getEntityValue(), false, true, true);
                 descriptionForTopQuery = descriptionGenerator.getDescriptionForOperation(operation, new SerializableOntologyQuery(topQuery));
                 if(descriptionForTopQuery != null){

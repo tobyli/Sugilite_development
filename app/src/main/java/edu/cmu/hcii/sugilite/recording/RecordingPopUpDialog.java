@@ -55,14 +55,17 @@ import edu.cmu.hcii.sugilite.model.block.util.SugiliteAvailableFeaturePack;
 import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteErrorHandlingForkBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
-import edu.cmu.hcii.sugilite.model.block.operation.special_operation.SugiliteSpecialOperationBlock;
+import edu.cmu.hcii.sugilite.model.block.special_operation.SugiliteSpecialOperationBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.model.block.util.UIElementMatchingFilter;
-import edu.cmu.hcii.sugilite.model.operation.SugiliteLoadVariableOperation;
+import edu.cmu.hcii.sugilite.model.operation.trinary.SugiliteLoadVariableOperation;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteOperation;
-import edu.cmu.hcii.sugilite.model.operation.SugiliteReadoutOperation;
-import edu.cmu.hcii.sugilite.model.operation.SugiliteSetTextOperation;
-import edu.cmu.hcii.sugilite.model.operation.SugiliteUnaryOperation;
+import edu.cmu.hcii.sugilite.model.operation.binary.SugiliteReadoutOperation;
+import edu.cmu.hcii.sugilite.model.operation.binary.SugiliteSetTextOperation;
+import edu.cmu.hcii.sugilite.model.operation.unary.SugiliteClickOperation;
+import edu.cmu.hcii.sugilite.model.operation.unary.SugiliteLongClickOperation;
+import edu.cmu.hcii.sugilite.model.operation.unary.SugiliteSelectOperation;
+import edu.cmu.hcii.sugilite.model.operation.unary.SugiliteUnaryOperation;
 import edu.cmu.hcii.sugilite.model.variable.StringVariable;
 import edu.cmu.hcii.sugilite.model.variable.Variable;
 import edu.cmu.hcii.sugilite.ontology.OntologyQuery;
@@ -1806,27 +1809,32 @@ public class RecordingPopUpDialog implements AbstractSugiliteDialog {
         }
 
         // serialize the query
-        SerializableOntologyQuery sq = new SerializableOntologyQuery(q);
-        return sq;
+        return new SerializableOntologyQuery(q);
     }
 
     private SugiliteOperationBlock generateBlock(){
         //determine the action first
-        SugiliteOperation sugiliteOperation = new SugiliteUnaryOperation();
+        SugiliteOperation sugiliteOperation = null;
         String actionSpinnerSelectedItem = actionSpinner.getSelectedItem().toString();
-        if (actionSpinnerSelectedItem.contentEquals("Click"))
-            sugiliteOperation.setOperationType(SugiliteOperation.CLICK);
-        if (actionSpinnerSelectedItem.contentEquals("Long Click"))
-            sugiliteOperation.setOperationType(SugiliteOperation.LONG_CLICK);
-        if(actionSpinnerSelectedItem.contentEquals("Select"))
-            sugiliteOperation.setOperationType(SugiliteOperation.SELECT);
-
+        if (actionSpinnerSelectedItem.contentEquals("Click")) {
+            sugiliteOperation = new SugiliteClickOperation();
+            ((SugiliteClickOperation)sugiliteOperation).setQuery(generateQuery());
+        }
+        if (actionSpinnerSelectedItem.contentEquals("Long Click")) {
+            sugiliteOperation = new SugiliteLongClickOperation();
+            ((SugiliteLongClickOperation)sugiliteOperation).setQuery(generateQuery());
+        }
+        if(actionSpinnerSelectedItem.contentEquals("Select")) {
+            sugiliteOperation = new SugiliteSelectOperation();
+            ((SugiliteSelectOperation)sugiliteOperation).setQuery(generateQuery());
+        }
         if (actionSpinnerSelectedItem.contentEquals("Read Out")) {
             sugiliteOperation = new SugiliteReadoutOperation();
             if(dialogRootView.findViewById(R.id.text_to_read_out_spinner) != null){
                 String selectionText = ((Spinner)dialogRootView.findViewById(R.id.text_to_read_out_spinner)).getSelectedItem().toString();
                 ((SugiliteReadoutOperation)sugiliteOperation).setPropertyToReadout(selectionText.substring(0, selectionText.indexOf(":")));
             }
+            ((SugiliteReadoutOperation)sugiliteOperation).setQuery(generateQuery());
         }
         if (actionSpinnerSelectedItem.contentEquals("Load as Variable")){
             sugiliteOperation = new SugiliteLoadVariableOperation();
@@ -1835,7 +1843,8 @@ public class RecordingPopUpDialog implements AbstractSugiliteDialog {
                 ((SugiliteLoadVariableOperation)sugiliteOperation).setPropertyToSave(selectionText.substring(0, selectionText.indexOf(":")));
                 String variableName = loadVariableVariableName.getText().toString();
                 ((SugiliteLoadVariableOperation)sugiliteOperation).setVariableName(variableName);
-                            }
+            }
+            ((SugiliteLoadVariableOperation)sugiliteOperation).setQuery(generateQuery());
         }
         if (actionSpinnerSelectedItem.contentEquals("Set Text")) {
             sugiliteOperation = new SugiliteSetTextOperation();
@@ -1844,6 +1853,8 @@ public class RecordingPopUpDialog implements AbstractSugiliteDialog {
                 String rawText = ((EditText) dialogRootView.findViewById(R.id.action_parameter_set_text)).getText().toString();
                 ((SugiliteSetTextOperation) sugiliteOperation).setText(extractParameter(rawText));
             }
+            ((SugiliteSetTextOperation)sugiliteOperation).setQuery(generateQuery());
+
             /*
 
             switch (triggerMode) {
@@ -1861,7 +1872,6 @@ public class RecordingPopUpDialog implements AbstractSugiliteDialog {
         operationBlock.setOperation(sugiliteOperation);
         operationBlock.setFeaturePack(featurePack);
         operationBlock.setElementMatchingFilter(generateFilter());
-        operationBlock.setQuery(generateQuery());
         operationBlock.setScreenshot(featurePack.screenshot);
         operationBlock.setDescription(readableDescriptionGenerator.generateReadableDescription(operationBlock));
         return operationBlock;

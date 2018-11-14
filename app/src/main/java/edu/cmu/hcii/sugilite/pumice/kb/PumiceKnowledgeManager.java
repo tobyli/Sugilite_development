@@ -5,6 +5,11 @@ import android.content.Context;
 import java.util.ArrayList;
 import java.util.List;
 
+import edu.cmu.hcii.sugilite.pumice.kb.PumiceBooleanExpKnowledge;
+import edu.cmu.hcii.sugilite.pumice.kb.PumiceConstantValue;
+import edu.cmu.hcii.sugilite.pumice.kb.PumiceProceduralKnowledge;
+import edu.cmu.hcii.sugilite.pumice.kb.PumiceValueQueryKnowledge;
+
 /**
  * @author toby
  * @date 10/29/18

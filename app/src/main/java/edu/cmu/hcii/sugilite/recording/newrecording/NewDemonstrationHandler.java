@@ -173,7 +173,7 @@ public class NewDemonstrationHandler {
 
     private void showConfirmation(SugiliteOperationBlock block, SugiliteAvailableFeaturePack featurePack, List<Pair<SerializableOntologyQuery, Double>> queryScoreList){
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
-        String newDescription = readableDescriptionGenerator.generateDescriptionForVerbalBlock(block, blockBuildingHelper.stripSerializableOntologyQuery(block.getQuery()).toString(), "UTTERANCE");
+        String newDescription = readableDescriptionGenerator.generateDescriptionForVerbalBlock(block, blockBuildingHelper.stripSerializableOntologyQuery(block.getOperation().getDataDescriptionQueryIfAvailable()).toString(), "UTTERANCE");
         builder.setTitle("Save Operation Confirmation").setMessage(Html.fromHtml("Are you sure you want to record the operation: " + newDescription));
         builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                     @Override

@@ -47,12 +47,15 @@ import edu.cmu.hcii.sugilite.dao.SugiliteScriptFileDao;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptSQLDao;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteOperation;
 import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
-import edu.cmu.hcii.sugilite.model.block.SugiliteBooleanExpression;
+import edu.cmu.hcii.sugilite.model.block.booleanexp.SugiliteBooleanExpression;
 import edu.cmu.hcii.sugilite.model.block.SugiliteConditionBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteErrorHandlingForkBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
-import edu.cmu.hcii.sugilite.model.block.operation.special_operation.SugiliteSpecialOperationBlock;
+import edu.cmu.hcii.sugilite.model.block.special_operation.SugiliteSpecialOperationBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
+import edu.cmu.hcii.sugilite.pumice.dialog.PumiceDialogManager;
+import edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.PumiceConditionalIntentHandler;
+import edu.cmu.hcii.sugilite.pumice.ui.PumiceDialogActivity;
 import edu.cmu.hcii.sugilite.recording.ReadableDescriptionGenerator;
 import edu.cmu.hcii.sugilite.recording.RecordingPopUpDialog;
 import edu.cmu.hcii.sugilite.model.variable.Variable;
@@ -1025,6 +1028,7 @@ public class ScriptDetailActivity extends AppCompatActivity {
         menu.add(Menu.NONE, Menu.FIRST, 1, "Resume Recording");
         menu.add(Menu.NONE, Menu.FIRST + 1, 2, "Rename Script");
         menu.add(Menu.NONE, Menu.FIRST + 2, 3, "Delete Script");
+        menu.add(Menu.NONE, Menu.FIRST + 3, 4, "Edit Script");
         return true;
     }
 
@@ -1096,14 +1100,25 @@ public class ScriptDetailActivity extends AppCompatActivity {
                             }
                         }).show();
                 break;
+            case Menu.FIRST + 3:
+                //edit the script
+                editScript();
         }
         return true;
+    }
+    private void editScript() {
+        Intent intent = new Intent(this, PumiceDialogActivity.class);
+        startActivity(intent);
+        //PumiceDialogActivity pda = new PumiceDialogActivity();
+        //PumiceConditionalIntentHandler pcih = new PumiceConditionalIntentHandler(pda);
+        //PumiceDialogManager pdm = new PumiceDialogManager(pda);
+        //pdm.sendAgentMessage("What would you like to do?",true,true);
     }
 
     //TODO: rewrite resume recording
     private void resumeRecording(){
         if(!serviceStatusManager.isRunning()){
-            //prompt the user if the accessiblity service is not active
+            //prompt the user if the accessibility service is not active
             AlertDialog.Builder builder1 = new AlertDialog.Builder(this);
             builder1.setTitle("Service not running")
                     .setMessage("The " + Const.appNameUpperCase + " accessiblity service is not enabled. Please enable the service in the phone settings before recording.")

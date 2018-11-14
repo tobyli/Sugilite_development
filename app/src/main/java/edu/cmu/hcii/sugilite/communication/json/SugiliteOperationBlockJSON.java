@@ -10,9 +10,11 @@ import edu.cmu.hcii.sugilite.model.block.util.SerializableNodeInfo;
 import edu.cmu.hcii.sugilite.model.block.util.SugiliteAvailableFeaturePack;
 import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteOperation;
-import edu.cmu.hcii.sugilite.model.operation.SugiliteReadoutOperation;
-import edu.cmu.hcii.sugilite.model.operation.SugiliteSetTextOperation;
-import edu.cmu.hcii.sugilite.model.operation.SugiliteUnaryOperation;
+import edu.cmu.hcii.sugilite.model.operation.binary.SugiliteReadoutOperation;
+import edu.cmu.hcii.sugilite.model.operation.binary.SugiliteSetTextOperation;
+import edu.cmu.hcii.sugilite.model.operation.unary.SugiliteClickOperation;
+import edu.cmu.hcii.sugilite.model.operation.unary.SugiliteLongClickOperation;
+import edu.cmu.hcii.sugilite.model.operation.unary.SugiliteUnaryOperation;
 import edu.cmu.hcii.sugilite.recording.ReadableDescriptionGenerator;
 
 /**
@@ -77,21 +79,25 @@ public class SugiliteOperationBlockJSON {
             ((SugiliteReadoutOperation)operation).setPropertyToReadout(actionParameter);
         }
         else {
-            operation = new SugiliteUnaryOperation();
-            if(actionType.equals("CLICK"))
+            if(actionType.equals("CLICK")) {
+                operation = new SugiliteClickOperation();
                 operation.setOperationType(SugiliteOperation.CLICK);
-            else if (actionType.equals("LONG_CLICK"))
+                operationBlock.setOperation(operation);
+            }
+            else if (actionType.equals("LONG_CLICK")) {
+                operation = new SugiliteLongClickOperation();
                 operation.setOperationType(SugiliteOperation.LONG_CLICK);
-            else if (actionType.equals("SPECIAL_GO_HOME"))
-                operation.setOperationType(SugiliteOperation.SPECIAL_GO_HOME);
+                operationBlock.setOperation(operation);
+            }
         }
         //TODO: disable edit for those without feature pack;
         operationBlock.setFeaturePack(null);
-        if(filter != null)
+        if(filter != null) {
             operationBlock.setElementMatchingFilter(filter.toUIElementMatchingFilter());
-        operationBlock.setOperation(operation);
-        if(nextBlock != null)
+        }
+        if(nextBlock != null) {
             operationBlock.setNextBlock(nextBlock.toSugiliteOperationBlock(context));
+        }
         operationBlock.setPreviousBlock(null);
         operationBlock.setDescription(generator.generateReadableDescription(operationBlock));
         return operationBlock;

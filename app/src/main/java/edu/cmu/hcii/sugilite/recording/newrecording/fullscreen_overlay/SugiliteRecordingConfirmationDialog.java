@@ -77,7 +77,7 @@ public class SugiliteRecordingConfirmationDialog extends SugiliteDialogManager {
 
 
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
-        String newDescription = ontologyDescriptionGenerator.getDescriptionForOperation(block.getOperation(), block.getQuery());
+        String newDescription = ontologyDescriptionGenerator.getDescriptionForOperation(block.getOperation(), block.getOperation().getDataDescriptionQueryIfAvailable());
         builder.setTitle("Save Operation Confirmation");
 
         dialogView = layoutInflater.inflate(R.layout.dialog_confirmation_popup_spoken, null);
@@ -209,7 +209,7 @@ public class SugiliteRecordingConfirmationDialog extends SugiliteDialogManager {
     @Override
     public void initDialogManager() {
         //set the prompt
-        String newDescription = ontologyDescriptionGenerator.getDescriptionForOperation(block.getOperation(), block.getQuery());
+        String newDescription = ontologyDescriptionGenerator.getDescriptionForOperation(block.getOperation(), block.getOperation().getDataDescriptionQueryIfAvailable());
         newDescription = Html.fromHtml(context.getString(R.string.ask_if_record, newDescription)).toString();
         askingForConfirmationState.setPrompt(newDescription);
         detailPromptState.setPrompt(context.getString(R.string.expand_ask_if_record));

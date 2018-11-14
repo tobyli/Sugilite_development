@@ -28,13 +28,13 @@ import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteConditionBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteErrorHandlingForkBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
-import edu.cmu.hcii.sugilite.model.block.operation.special_operation.SugiliteSpecialOperationBlock;
+import edu.cmu.hcii.sugilite.model.block.special_operation.SugiliteSpecialOperationBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
-import edu.cmu.hcii.sugilite.model.operation.SugiliteLoadVariableOperation;
+import edu.cmu.hcii.sugilite.model.operation.trinary.SugiliteLoadVariableOperation;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteOperation;
-import edu.cmu.hcii.sugilite.model.operation.SugiliteReadoutConstOperation;
-import edu.cmu.hcii.sugilite.model.operation.SugiliteReadoutOperation;
-import edu.cmu.hcii.sugilite.model.operation.SugiliteSetTextOperation;
+import edu.cmu.hcii.sugilite.model.operation.unary.SugiliteReadoutConstOperation;
+import edu.cmu.hcii.sugilite.model.operation.binary.SugiliteReadoutOperation;
+import edu.cmu.hcii.sugilite.model.operation.binary.SugiliteSetTextOperation;
 import edu.cmu.hcii.sugilite.model.variable.StringVariable;
 import edu.cmu.hcii.sugilite.model.variable.Variable;
 import edu.cmu.hcii.sugilite.model.variable.VariableHelper;
@@ -163,7 +163,7 @@ public class Automator {
                 return false;
             }
 
-            if (operationBlock.getQuery() == null) {
+            if (operationBlock.getOperation().containsDataDescriptionQuery() == false) {
                 //there is no query in the operation block
                 if (operationBlock.getOperation().getOperationType() == SugiliteOperation.SPECIAL_GO_HOME) {
                     //perform the go home operation - because the go home operation will have a null filter
@@ -252,7 +252,7 @@ public class Automator {
                 UISnapshot uiSnapshot = new UISnapshot(rootNode, true, sugiliteTextAnnotator);
 
                 //de-serialize the OntologyQuery
-                OntologyQuery q = new OntologyQuery(operationBlock.getQuery());
+                OntologyQuery q = new OntologyQuery(operationBlock.getOperation().getDataDescriptionQueryIfAvailable());
                 Set<SugiliteEntity> querySet = q.executeOn(uiSnapshot);
 
                 List<AccessibilityNodeInfo> filteredNodes = new ArrayList<AccessibilityNodeInfo>();
@@ -394,7 +394,7 @@ public class Automator {
                 return false;
             }
 
-            if (operationBlock.getQuery() == null) {
+            if (operationBlock.getOperation().containsDataDescriptionQuery() == false) {
                 //there is no query in the operation block
                 if (operationBlock.getOperation().getOperationType() == SugiliteOperation.SPECIAL_GO_HOME ||
                         operationBlock.getOperation().getOperationType() == SugiliteOperation.READOUT_CONST) {
@@ -488,7 +488,7 @@ public class Automator {
 
 
                 //de-serialize the OntologyQuery
-                OntologyQuery q = new OntologyQuery(operationBlock.getQuery());
+                OntologyQuery q = new OntologyQuery(operationBlock.getOperation().getDataDescriptionQueryIfAvailable());
 
                 //replace variables in the query
                 q = OntologyQuery.deserialize(variableHelper.parse(q.toString()));

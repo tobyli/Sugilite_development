@@ -1,6 +1,8 @@
 package edu.cmu.hcii.sugilite.pumice.dialog;
 
 import android.content.Context;
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
 import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
@@ -12,11 +14,14 @@ import java.util.Calendar;
 import java.util.List;
 
 import edu.cmu.hcii.sugilite.R;
+import edu.cmu.hcii.sugilite.pumice.communication.PumiceSemanticParsingResultPacket;
 import edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.PumiceStartUtteranceIntentHandler;
 import edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.PumiceUtteranceIntentHandler;
 import edu.cmu.hcii.sugilite.pumice.kb.PumiceKnowledgeManager;
 import edu.cmu.hcii.sugilite.pumice.ui.PumiceDialogActivity;
 import edu.cmu.hcii.sugilite.pumice.ui.util.PumiceDialogUIHelper;
+import edu.cmu.hcii.sugilite.verbal_instruction_demo.server_comm.SugiliteVerbalInstructionHTTPQueryInterface;
+import edu.cmu.hcii.sugilite.verbal_instruction_demo.server_comm.SugiliteVerbalInstructionHTTPQueryManager;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.speech.SugiliteVoiceRecognitionListener;
 
 /**
@@ -24,13 +29,15 @@ import edu.cmu.hcii.sugilite.verbal_instruction_demo.speech.SugiliteVoiceRecogni
  * @date 10/9/18
  * @time 3:56 PM
  */
-public class PumiceDialogManager {
+public class PumiceDialogManager implements SugiliteVerbalInstructionHTTPQueryInterface {
     public enum Sender {AGENT, USER}
     private PumiceDialogActivity context;
     private PumiceDialogView pumiceDialogView;
     private PumiceDialogUIHelper pumiceDialogUIHelper;
     private View speakButtonForCallback;
     private SugiliteVoiceRecognitionListener sugiliteVoiceRecognitionListener;
+    private SugiliteVerbalInstructionHTTPQueryManager httpQueryManager;
+    private SharedPreferences sharedPreferences;
 
     private List<PumiceDialogState> stateHistoryList;
 
@@ -45,6 +52,8 @@ public class PumiceDialogManager {
         this.pumiceDialogUIHelper = new PumiceDialogUIHelper(context);
         this.stateHistoryList = new ArrayList<>();
         this.pumiceDialogState = new PumiceDialogState(new PumiceStartUtteranceIntentHandler(context), new PumiceKnowledgeManager());
+        this.sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
+        this.httpQueryManager = new SugiliteVerbalInstructionHTTPQueryManager(this, sharedPreferences);
 
         //** testing **
         this.pumiceDialogState.getPumiceKnowledgeManager().initForTesting();
@@ -311,5 +320,39 @@ public class PumiceDialogManager {
         }
     }
 
+    public SugiliteVerbalInstructionHTTPQueryManager getHttpQueryManager() {
+        return httpQueryManager;
+    }
 
+    @Override
+    public void runOnMainThread(Runnable r) {
+        context.runOnUiThread(r);
+
+    }
+
+    @Override
+    public void resultReceived(int responseCode, String result) {
+        //TODO: handle server response from the semantic parsing server
+        Gson gson = new Gson();
+        try {
+            PumiceSemanticParsingResultPacket resultPacket = gson.fromJson(result, PumiceSemanticParsingResultPacket.class);
+            if (resultPacket.utteranceType != null) {
+                switch (PumiceUtteranceIntentHandler.PumiceIntent.valueOf(resultPacket.utteranceType)) {
+                    case USER_INIT_INSTRUCTION:
+                        if (resultPacket.queries != null && resultPacket.queries.size() > 0) {
+                            PumiceSemanticParsingResultPacket.QueryGroundingPair topResult = resultPacket.queries.get(0);
+                            if (topResult.formula != null) {
+                                sendAgentMessage("Below is the top parsing result: ", true, false);
+                                sendAgentMessage(topResult.formula, false, false);
+                            }
+                        }
+                        break;
+                    default:
+                        sendAgentMessage("Can't read from the server response", true, false);
+                }
+            }
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+    }
 }

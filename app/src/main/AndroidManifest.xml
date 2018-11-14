@@ -5,6 +5,7 @@
 
     <uses-permission android:name="android.permission.BIND_ACCESSIBILITY_SERVICE" />
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
@@ -60,9 +61,6 @@
                 android:value="edu.cmu.hcii.sugilite.ui.main.SugiliteMainActivity" />
         </activity>
         <activity
-            android:name=".recording.RecordingPopUpActivity"
-            tools:node="merge" />
-        <activity
             android:name=".recording.RecordingPopupSubMenuActivity"
             android:noHistory="true"
             tools:node="merge" />
@@ -72,11 +70,7 @@
         <activity
             android:name=".ui.ScriptDebuggingActivity"
             tools:node="merge" />
-        <activity
-            android:name=".recording.mRecordingPopUpActivity"
-            android:label="Sugilite Script Recording"
-            android:noHistory="true"
-            tools:node="merge" />
+
         <activity
             android:name=".communication.SugiliteCommunicationActivity"
             android:noHistory="true"

@@ -23,9 +23,11 @@ import edu.cmu.hcii.sugilite.model.block.SugiliteConditionBlock;
 import edu.cmu.hcii.sugilite.model.block.util.SugiliteAvailableFeaturePack;
 import edu.cmu.hcii.sugilite.model.block.SugiliteErrorHandlingForkBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
-import edu.cmu.hcii.sugilite.model.block.operation.special_operation.SugiliteSpecialOperationBlock;
+import edu.cmu.hcii.sugilite.model.block.special_operation.SugiliteSpecialOperationBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
-import edu.cmu.hcii.sugilite.model.operation.SugiliteUnaryOperation;
+import edu.cmu.hcii.sugilite.model.operation.SugiliteOperation;
+import edu.cmu.hcii.sugilite.model.operation.unary.SugiliteClickOperation;
+import edu.cmu.hcii.sugilite.model.operation.unary.SugiliteUnaryOperation;
 import edu.cmu.hcii.sugilite.ontology.description.OntologyDescriptionGenerator;
 import edu.cmu.hcii.sugilite.ontology.OntologyQuery;
 import edu.cmu.hcii.sugilite.ontology.SerializableOntologyQuery;
@@ -66,19 +68,23 @@ public class SugiliteBlockBuildingHelper {
     }
 
     public SugiliteOperationBlock getOperationBlockFromQuery(SerializableOntologyQuery query, int opeartionType, SugiliteAvailableFeaturePack featurePack){
-        SugiliteUnaryOperation sugiliteOperation = new SugiliteUnaryOperation();
-        sugiliteOperation.setOperationType(opeartionType);
-        final SugiliteOperationBlock operationBlock = new SugiliteOperationBlock();
-        operationBlock.setOperation(sugiliteOperation);
-        operationBlock.setFeaturePack(featurePack);
-        operationBlock.setQuery(query);
-        operationBlock.setScreenshot(featurePack.screenshot);
+        if(opeartionType == SugiliteOperation.CLICK) {
+            SugiliteClickOperation sugiliteOperation = new SugiliteClickOperation();
+            sugiliteOperation.setOperationType(opeartionType);
+            final SugiliteOperationBlock operationBlock = new SugiliteOperationBlock();
+            operationBlock.setOperation(sugiliteOperation);
+            operationBlock.setFeaturePack(featurePack);
+            sugiliteOperation.setQuery(query);
+            operationBlock.setScreenshot(featurePack.screenshot);
 
-        //description is set
-        //TODO: fix
-        //operationBlock.setDescription(operationBlock.toString());
-        operationBlock.setDescription(ontologyDescriptionGenerator.getDescriptionForOperation(sugiliteOperation, query));
-        return operationBlock;
+            //description is set
+            //TODO: fix
+            //operationBlock.setDescription(operationBlock.toString());
+            operationBlock.setDescription(ontologyDescriptionGenerator.getDescriptionForOperation(sugiliteOperation, query));
+            return operationBlock;
+        } else {
+            throw new RuntimeException("got an unsupported operation type");
+        }
     }
 
     public List<Pair<SerializableOntologyQuery, Double>> generateDefaultQueries(SugiliteAvailableFeaturePack featurePack, UISnapshot uiSnapshot){
@@ -297,8 +303,10 @@ public class SugiliteBlockBuildingHelper {
     public Map<SugiliteOperationBlock, String> getDescriptionsInDifferences(SugiliteOperationBlock[] blocks){
         Map<SugiliteOperationBlock, String> results = new HashMap<>();
         for(SugiliteOperationBlock operationBlock : blocks){
-            SerializableOntologyQuery query = operationBlock.getQuery();
-            results.put(operationBlock, ontologyDescriptionGenerator.getDescriptionForOperation(operationBlock.getOperation(), stripSerializableOntologyQuery(query)));
+            SerializableOntologyQuery query = operationBlock.getOperation().getDataDescriptionQueryIfAvailable();
+            if(query != null) {
+                results.put(operationBlock, ontologyDescriptionGenerator.getDescriptionForOperation(operationBlock.getOperation(), stripSerializableOntologyQuery(query)));
+            }
         }
         return results;
     }

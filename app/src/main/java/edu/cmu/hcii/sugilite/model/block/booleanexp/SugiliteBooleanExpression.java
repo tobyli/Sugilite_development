@@ -1,4 +1,4 @@
-package edu.cmu.hcii.sugilite.model.block;
+package edu.cmu.hcii.sugilite.model.block.booleanexp;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -9,6 +9,7 @@ import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.model.variable.VariableHelper;
 import edu.cmu.hcii.sugilite.ontology.helper.annotator.SugiliteTextAnnotator;
 import edu.cmu.hcii.sugilite.recording.ReadableDescriptionGenerator;
+import edu.cmu.hcii.sugilite.source_parsing.SugiliteScriptExpression;
 
 /**
  * @author toby
@@ -23,6 +24,11 @@ public class SugiliteBooleanExpression implements Serializable {
     private String booleanExpression;
     private SugiliteData sugiliteData;
 
+    public SugiliteBooleanExpression(SugiliteScriptExpression sugiliteScriptExpression) {
+        this.booleanExpression = sugiliteScriptExpression.getScriptContent();
+        this.sugiliteData = null;
+    }
+
     public SugiliteBooleanExpression(String booleanExpression) {
         this.booleanExpression = booleanExpression;
         this.sugiliteData = null;
@@ -36,8 +42,10 @@ public class SugiliteBooleanExpression implements Serializable {
         return sugiliteData;
     }
 
+    //TODO: probably need to restructure the evaluate() method to support nested expressions -> instead of using split() and assume the first expression is always split[1], may want to recursively parse based on the parenthesis structure (see runASTParsingPipeline() method)
+
     public Boolean evaluate(SugiliteData sugiliteData) {
-        //TODO: implement -- returns the eval result of this expression at runtime
+        //TODO: implement -- returns the evaluate result of this expression at runtime
         String be = booleanExpression.substring(1,booleanExpression.length()-1).trim();
         String[] split = be.split(" ");
         String operator;

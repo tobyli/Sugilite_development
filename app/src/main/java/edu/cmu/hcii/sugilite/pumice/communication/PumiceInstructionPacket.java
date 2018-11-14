@@ -1,11 +1,12 @@
 package edu.cmu.hcii.sugilite.pumice.communication;
-
 import com.google.gson.Gson;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.PumiceUtteranceIntentHandler;
 import edu.cmu.hcii.sugilite.pumice.kb.PumiceKnowledgeManager;
+
 
 /**
  * @author toby
@@ -26,26 +27,34 @@ public class PumiceInstructionPacket {
     private String userInput;
     private List<List<String>> triples;
     private String entityClassNameFilter;
+    private Long queryId;
+    private List<String> variableNames;
 
     public PumiceInstructionPacket(){
 
     }
 
-    public PumiceInstructionPacket(PumiceKnowledgeManager existingKnowledge, String userInput, List<List<String>> triples, String entityClassNameFilter){
+    public PumiceInstructionPacket(PumiceKnowledgeManager existingKnowledge, PumiceUtteranceIntentHandler.PumiceIntent pumiceIntent, Long queryId, String userInput, List<List<String>> triples, String entityClassNameFilter){
         this.mode = "USER_COMMAND";
-        this.utteranceType = "USER_INIT_INSTRUCTION";
+        this.utteranceType = pumiceIntent.name();
+        this.queryId = queryId;
         this.existingKnowledge = existingKnowledge;
         this.userInput = userInput;
         this.triples = triples;
         this.entityClassNameFilter = entityClassNameFilter;
     }
 
-    public PumiceInstructionPacket(PumiceKnowledgeManager existingKnowledge, String userInput){
-        this(existingKnowledge, userInput, new ArrayList<>(), "");
+    public PumiceInstructionPacket(PumiceKnowledgeManager existingKnowledge, PumiceUtteranceIntentHandler.PumiceIntent pumiceIntent, Long queryId, String userInput){
+        this(existingKnowledge, pumiceIntent, queryId, userInput, new ArrayList<>(), "");
     }
 
     @Override
     public String toString() {
         return new Gson().toJson(this);
     }
+
+    public static PumiceUtteranceIntentHandler.PumiceIntent getPumiceUtteranceIntentFromString(String intent){
+        return PumiceUtteranceIntentHandler.PumiceIntent.valueOf(intent);
+    }
+
 }

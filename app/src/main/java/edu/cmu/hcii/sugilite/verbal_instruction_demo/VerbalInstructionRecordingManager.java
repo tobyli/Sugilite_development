@@ -20,10 +20,11 @@ import edu.cmu.hcii.sugilite.dao.SugiliteScriptFileDao;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptSQLDao;
 import edu.cmu.hcii.sugilite.model.block.SugiliteErrorHandlingForkBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
-import edu.cmu.hcii.sugilite.model.block.operation.special_operation.SugiliteSpecialOperationBlock;
+import edu.cmu.hcii.sugilite.model.block.special_operation.SugiliteSpecialOperationBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteOperation;
-import edu.cmu.hcii.sugilite.model.operation.SugiliteUnaryOperation;
+import edu.cmu.hcii.sugilite.model.operation.unary.SugiliteClickOperation;
+import edu.cmu.hcii.sugilite.model.operation.unary.SugiliteUnaryOperation;
 import edu.cmu.hcii.sugilite.ontology.OntologyQuery;
 import edu.cmu.hcii.sugilite.ontology.SerializableOntologyQuery;
 import edu.cmu.hcii.sugilite.ontology.SerializableUISnapshot;
@@ -129,7 +130,7 @@ public class VerbalInstructionRecordingManager {
      */
     private SugiliteOperationBlock generateBlock(OntologyQuery query, String formula, String utterance){
         //generate the sugilite operation
-        SugiliteUnaryOperation sugiliteOperation = new SugiliteUnaryOperation();
+        SugiliteClickOperation sugiliteOperation = new SugiliteClickOperation();
         //assume it's click for now -- need to expand to more types of operations
         sugiliteOperation.setOperationType(SugiliteOperation.CLICK);
         SerializableOntologyQuery serializedQuery = new SerializableOntologyQuery(query);
@@ -139,7 +140,7 @@ public class VerbalInstructionRecordingManager {
         operationBlock.setFeaturePack(null);
         operationBlock.setElementMatchingFilter(null);
         operationBlock.setScreenshot(null);
-        operationBlock.setQuery(serializedQuery);
+        sugiliteOperation.setQuery(serializedQuery);
         operationBlock.setDescription(readableDescriptionGenerator.generateDescriptionForVerbalBlock(operationBlock, formula, utterance));
         return operationBlock;
     }

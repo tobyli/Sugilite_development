@@ -2,6 +2,8 @@ package edu.cmu.hcii.sugilite.model.operation.unary;
 
 import edu.cmu.hcii.sugilite.ontology.SerializableOntologyQuery;
 
+import static edu.cmu.hcii.sugilite.source_parsing.SugiliteScriptExpression.addQuoteToTokenIfNeeded;
+
 /**
  * @author toby
  * @date 11/13/18
@@ -36,5 +38,10 @@ public class SugiliteResolveProcedureOperation extends SugiliteUnaryOperation<St
     @Override
     public SerializableOntologyQuery getDataDescriptionQueryIfAvailable() {
         return null;
+    }
+
+    @Override
+    public String toString() {
+        return "(" + "call resolve_procedure " + addQuoteToTokenIfNeeded(getParameter0().toString()) + ")";
     }
 }

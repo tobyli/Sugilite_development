@@ -5,6 +5,8 @@ import java.io.Serializable;
 import edu.cmu.hcii.sugilite.model.operation.trinary.SugiliteTrinaryOperation;
 import edu.cmu.hcii.sugilite.ontology.SerializableOntologyQuery;
 
+import static edu.cmu.hcii.sugilite.source_parsing.SugiliteScriptExpression.addQuoteToTokenIfNeeded;
+
 /**
  * @author toby
  * @date 8/6/16
@@ -35,7 +37,7 @@ public class SugiliteLoadVariableOperation extends SugiliteTrinaryOperation<Stri
     }
 
     public void setQuery(SerializableOntologyQuery targetUIElementDataDescriptionQuery) {
-        this.targetUIElementDataDescriptionQuery = targetUIElementDataDescriptionQuery;
+        setParameter2(targetUIElementDataDescriptionQuery);
     }
 
     @Override
@@ -76,5 +78,10 @@ public class SugiliteLoadVariableOperation extends SugiliteTrinaryOperation<Stri
     @Override
     public SerializableOntologyQuery getDataDescriptionQueryIfAvailable() {
         return targetUIElementDataDescriptionQuery;
+    }
+
+    @Override
+    public String toString() {
+        return "(" + "call load_as_variable " + addQuoteToTokenIfNeeded(getParameter0().toString()) + " " + addQuoteToTokenIfNeeded(getParameter1().toString()) + " " + addQuoteToTokenIfNeeded(getParameter2().toString()) + ")";
     }
 }

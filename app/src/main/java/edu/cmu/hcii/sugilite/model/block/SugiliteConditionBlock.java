@@ -33,7 +33,6 @@ public class SugiliteConditionBlock extends SugiliteBlock implements Serializabl
         this.setDescription("");
         this.setScreenshot(null);
         this.ifBlock = ifBlock;
-        //this.nextBlock = nextBlock;
         this.elseBlock = elseBlock;
         this.sugiliteBooleanExpression = sugiliteBooleanExpression;
         this.previousBlock = previousBlock;
@@ -45,9 +44,6 @@ public class SugiliteConditionBlock extends SugiliteBlock implements Serializabl
         if (elseBlock != null) {
             elseBlock.setParentBlock(this);
         }
-        /*if (nextBlock != null) {
-            nextBlock.setParentBlock(this);
-        }*/
     }
 
 
@@ -69,16 +65,20 @@ public class SugiliteConditionBlock extends SugiliteBlock implements Serializabl
         //TODO: implement
 
         if(elseBlock != null) {
-            return "(call if " + sugiliteBooleanExpression.toString() + " " + ifBlock.toString() + " " + elseBlock.toString() + ")";
+            return "(call if " + sugiliteBooleanExpressionNew.toString() + " " + ifBlock.toString() + " " + elseBlock.toString() + ")";
         }
         else {
-            return "(call if " + sugiliteBooleanExpression.toString() + " " + ifBlock.toString() + ")";
+            return "(call if " + sugiliteBooleanExpressionNew.toString() + " " + ifBlock.toString() + ")";
         }
 
     }
 
     public SugiliteBooleanExpression getSugiliteBooleanExpression() {
         return sugiliteBooleanExpression;
+    }
+
+    public SugiliteBooleanExpressionNew getSugiliteBooleanExpressionNew() {
+        return sugiliteBooleanExpressionNew;
     }
 
     public void setSugiliteBooleanExpressionNew(SugiliteBooleanExpressionNew sugiliteBooleanExpressionNew) {

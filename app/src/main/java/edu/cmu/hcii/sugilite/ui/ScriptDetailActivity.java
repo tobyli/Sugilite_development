@@ -7,8 +7,10 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.media.Image;
 import android.net.Uri;
 import android.preference.PreferenceManager;
+import android.speech.tts.TextToSpeech;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.Html;
@@ -23,6 +25,7 @@ import android.view.View;
 
 import android.view.WindowManager;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -34,6 +37,7 @@ import android.graphics.PorterDuff.Mode;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import edu.cmu.hcii.sugilite.Const;
@@ -55,7 +59,6 @@ import edu.cmu.hcii.sugilite.model.block.special_operation.SugiliteSpecialOperat
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.pumice.dialog.PumiceDialogManager;
 import edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.PumiceConditionalIntentHandler;
-import edu.cmu.hcii.sugilite.pumice.ui.PumiceDialogActivity;
 import edu.cmu.hcii.sugilite.recording.ReadableDescriptionGenerator;
 import edu.cmu.hcii.sugilite.recording.RecordingPopUpDialog;
 import edu.cmu.hcii.sugilite.model.variable.Variable;
@@ -63,12 +66,14 @@ import edu.cmu.hcii.sugilite.study.ScriptUsageLogManager;
 import edu.cmu.hcii.sugilite.ui.dialog.VariableSetValueDialog;
 import edu.cmu.hcii.sugilite.ui.main.SugiliteMainActivity;
 import edu.cmu.hcii.sugilite.source_parsing.SugiliteScriptParser;
+import edu.cmu.hcii.sugilite.verbal_instruction_demo.speech.SugiliteVoiceInterface;
+import edu.cmu.hcii.sugilite.verbal_instruction_demo.speech.SugiliteVoiceRecognitionListener;
 
 import static edu.cmu.hcii.sugilite.Const.PACKAGE_NAME;
 import static edu.cmu.hcii.sugilite.Const.SCRIPT_DELAY;
 import static edu.cmu.hcii.sugilite.Const.SQL_SCRIPT_DAO;
 
-public class ScriptDetailActivity extends AppCompatActivity {
+public class ScriptDetailActivity extends AppCompatActivity implements SugiliteVoiceInterface {
 
     private LinearLayout operationStepList;
     private SugiliteData sugiliteData;
@@ -89,6 +94,12 @@ public class ScriptDetailActivity extends AppCompatActivity {
     private boolean addConditionalBlock;
     private int newBlockIndex;
 
+    private PumiceDialogManager pumiceDialogManager;
+    private TextToSpeech tts;
+    private SugiliteVoiceRecognitionListener sugiliteVoiceRecognitionListener;
+    public boolean isSpeaking = false;
+    public boolean isListening = false;
+    private ImageButton speakButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -581,7 +592,7 @@ public class ScriptDetailActivity extends AppCompatActivity {
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
         editText = new EditText(context);
         builder.setView(editText);
-        builder.setMessage("What would you like to do?");//"(IF (<= 2 80) (CLICK (hasText 'iced coffee'))"
+        builder.setMessage("What would you like to do?");//"(IF (<= 2 80) (CLICK (hasText 'iced coffee')))"
         builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
@@ -1106,13 +1117,57 @@ public class ScriptDetailActivity extends AppCompatActivity {
         }
         return true;
     }
+
     private void editScript() {
-        Intent intent = new Intent(this, PumiceDialogActivity.class);
-        startActivity(intent);
-        //PumiceDialogActivity pda = new PumiceDialogActivity();
-        //PumiceConditionalIntentHandler pcih = new PumiceConditionalIntentHandler(pda);
-        //PumiceDialogManager pdm = new PumiceDialogManager(pda);
-        //pdm.sendAgentMessage("What would you like to do?",true,true);
+        speakButton = (ImageButton) findViewById(R.id.button5);
+        tts = new TextToSpeech(this, new TextToSpeech.OnInitListener() {
+            @Override
+            public void onInit(int status) {
+                System.out.println("START");
+                pumiceDialogManager.sendAgentMessage("What would you like to do?", true, true);
+            }
+        });
+        tts.setLanguage(Locale.US);
+        System.out.println("SEPR");
+        sugiliteVoiceRecognitionListener = new SugiliteVoiceRecognitionListener(this, this, tts);
+        //PumiceConditionalIntentHandler ih = new PumiceConditionalIntentHandler(context);
+        pumiceDialogManager = new PumiceDialogManager(this);
+        pumiceDialogManager.setSpeakButtonForCallback(speakButton);
+        pumiceDialogManager.setSugiliteVoiceRecognitionListener(sugiliteVoiceRecognitionListener);
+    }
+
+    public void determineConditionalLoc() {
+        addConditionalBlock = true;
+        newText = "(call if (call equal (number 90 Fahrenheit) (number 90 Fahrenheit)) (call click (hasText Wish)))"; //dummy example for now
+        SugiliteScriptParser ssp = new SugiliteScriptParser();
+        newBlock = ssp.parseBlockFromString(newText).getNextBlock();
+        newBlockIndex = 1;
+        SugiliteBlock holdBlock = script.getNextBlock();
+        script.setNextBlock(newBlock);
+        newBlock.setNextBlock(holdBlock);
+        loadOperationList();
+        pumiceDialogManager.sendAgentMessage("Ok, does it look like the new step happens at the right time?",true,true);
+    }
+
+    public void pumiceSendButtonOnClick (View view) {
+        // speak button
+        System.out.println("HIIII");
+        if (isListening) {
+            sugiliteVoiceRecognitionListener.stopListening();
+        }
+
+        else {
+            sugiliteVoiceRecognitionListener.startListening();
+        }
+
+        /*
+        if(userTextBox != null) {
+            String userTextBoxContent = userTextBox.getText().toString();
+            if(pumiceDialogManager != null){
+                pumiceDialogManager.sendUserMessage(userTextBoxContent);
+            }
+        }
+        */
     }
 
     //TODO: rewrite resume recording
@@ -1233,5 +1288,39 @@ public class ScriptDetailActivity extends AppCompatActivity {
         }
     };
 
+    @Override
+    public void resultAvailable(List<String> matches) {
+        System.out.println("RESULT");
+        if(matches.size() > 0) {
+            System.out.println(matches.get(0));
+            if(pumiceDialogManager != null){
+                pumiceDialogManager.sendUserMessage(matches.get(0).toString());
+            }
+        }
+    }
+
+    @Override
+    public void speakingStarted() {
+        System.out.println("speakingS");
+        isSpeaking = true;
+    }
+
+    @Override
+    public void speakingEnded() {
+        System.out.println("speakingE");
+        isSpeaking = false;
+    }
+
+    @Override
+    public void listeningStarted() {
+        System.out.println("listeningS");
+        isListening = true;
+    }
+
+    @Override
+    public void listeningEnded() {
+        System.out.println("listeningE");
+        isListening = false;
+    }
 
 }

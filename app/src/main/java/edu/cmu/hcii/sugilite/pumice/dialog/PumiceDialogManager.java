@@ -6,6 +6,7 @@ import android.preference.PreferenceManager;
 import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
+import android.support.v7.app.AppCompatActivity;
 
 import com.google.gson.Gson;
 
@@ -32,7 +33,7 @@ import edu.cmu.hcii.sugilite.verbal_instruction_demo.speech.SugiliteVoiceRecogni
  */
 public class PumiceDialogManager implements SugiliteVerbalInstructionHTTPQueryInterface {
     public enum Sender {AGENT, USER}
-    private PumiceDialogActivity context;
+    public AppCompatActivity context;//made public from private
     private PumiceDialogView pumiceDialogView;
     private PumiceDialogUIHelper pumiceDialogUIHelper;
     private View speakButtonForCallback;
@@ -47,22 +48,14 @@ public class PumiceDialogManager implements SugiliteVerbalInstructionHTTPQueryIn
     //represents the current state of the dialog
     private PumiceDialogState pumiceDialogState;
 
-    public PumiceDialogManager(PumiceDialogActivity context){
+    public PumiceDialogManager(AppCompatActivity context){
         this.context = context;
         this.pumiceDialogView = new PumiceDialogView(context);
         this.pumiceDialogUIHelper = new PumiceDialogUIHelper(context);
         this.stateHistoryList = new ArrayList<>();
-<<<<<<< HEAD
-        //this.pumiceDialogState = new PumiceDialogState(puih, new PumiceKnowledgeManager());
-        this.pumiceDialogState = new PumiceDialogState(new PumiceConditionalIntentHandler(context), new PumiceKnowledgeManager());//new PumiceStartUtteranceIntentHandler(context)
-=======
-        this.pumiceDialogState = new PumiceDialogState(new PumiceStartUtteranceIntentHandler(context), new PumiceKnowledgeManager());
+        this.pumiceDialogState = new PumiceDialogState(new PumiceConditionalIntentHandler(context), new PumiceKnowledgeManager()); //new PumiceStartUtteranceIntentHandler(context)
         this.sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
         this.httpQueryManager = new SugiliteVerbalInstructionHTTPQueryManager(this, sharedPreferences);
-<<<<<<< HEAD
->>>>>>> ca4093a365953dac63660eb9db6e3d62abf3f3d6
-=======
->>>>>>> ca4093a365953dac63660eb9db6e3d62abf3f3d6
 
         //** testing **
         this.pumiceDialogState.getPumiceKnowledgeManager().initForTesting();
@@ -116,6 +109,7 @@ public class PumiceDialogManager implements SugiliteVerbalInstructionHTTPQueryIn
      * @param requireUserResponse
      */
     public void sendAgentMessage(String message, boolean isSpokenMessage, boolean requireUserResponse){
+        System.out.println("SEND");
         PumiceUtterance utterance = new PumiceUtterance(Sender.AGENT, message, Calendar.getInstance().getTimeInMillis(), isSpokenMessage, requireUserResponse);
         pumiceDialogState.getUtteranceHistory().add(utterance);
         pumiceDialogView.addMessage(utterance);
@@ -160,11 +154,14 @@ public class PumiceDialogManager implements SugiliteVerbalInstructionHTTPQueryIn
     }
 
     private void handleSpeakingAndUserResponse(String utterance, boolean isSpokenMessage, boolean requireUserResponse){
+        System.out.println("HANDLE");
         if(isSpokenMessage && sugiliteVoiceRecognitionListener != null) {
             sugiliteVoiceRecognitionListener.speak(utterance, String.valueOf(Calendar.getInstance().getTimeInMillis()), new Runnable() {
                 @Override
                 public void run() {
                     if(requireUserResponse && speakButtonForCallback != null){
+                        System.out.println("HITHER");
+                        speakButtonForCallback.callOnClick();
                         pumiceDialogView.postDelayed(new Runnable() {
                             @Override
                             public void run() {

@@ -39,6 +39,7 @@ public class SugiliteScriptParser {
      */
     public static List<String> tokenize(String source){
         List<String> list = new ArrayList<String>();
+        source = source.replace("\\\"", "\"");
         Matcher m = Pattern.compile("([^\"]\\S*|\".+?\")\\s*").matcher(source.replace("(", " ( ").replace(")", " ) "));
         while (m.find()) {
             String result = new String(m.group(1));
@@ -47,6 +48,7 @@ public class SugiliteScriptParser {
             }
             list.add(result.trim());
         }
+        System.out.println("list: " + list);
         return list;
     }
 
@@ -103,12 +105,13 @@ public class SugiliteScriptParser {
 
     public SugiliteStartingBlock parseBlockFromString(String input){
         List<SugiliteScriptExpression> expressionList = runASTParsingPipeline(input);
-        //System.out.println("Final result: " + expressionList);
+        System.out.println("Final result: " + expressionList);
         SugiliteStartingBlock startingBlock = new SugiliteStartingBlock("test.SugiliteScript");
         SugiliteBlock currentBlock = startingBlock;
         for(SugiliteScriptExpression expression : expressionList){
             //turn each expression to a block
             SugiliteBlock block = expression.toSugiliteBlock(startingBlock, ontologyDescriptionGenerator);
+            System.out.println("BLOCK: " + block);
             if(block instanceof SugiliteStartingBlock) {
                 //contains a starting block
                 startingBlock = (SugiliteStartingBlock) block;

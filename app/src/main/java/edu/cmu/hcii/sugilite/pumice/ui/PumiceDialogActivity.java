@@ -77,7 +77,7 @@ public class PumiceDialogActivity extends AppCompatActivity implements SugiliteV
 
     public void pumiceSendButtonOnClick (View view) {
         // speak button
-
+        System.out.println("HII");
         //clear the text
         if (userTextBox != null){
             userTextBox.setText("");
@@ -163,12 +163,14 @@ public class PumiceDialogActivity extends AppCompatActivity implements SugiliteV
 
     @Override
     public void speakingStarted() {
+        System.out.println("speakingS");
         isSpeaking = true;
         refreshSpeakButtonStyle(speakButton);
     }
 
     @Override
     public void speakingEnded() {
+        System.out.println("speakingE");
         isSpeaking = false;
         refreshSpeakButtonStyle(speakButton);
     }

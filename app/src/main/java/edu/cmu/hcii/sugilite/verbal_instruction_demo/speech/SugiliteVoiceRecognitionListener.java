@@ -62,6 +62,7 @@ public class SugiliteVoiceRecognitionListener implements RecognitionListener {
     }
 
     public void startListening(){
+        System.out.println("START LISTENING");
         speech = SpeechRecognizer.createSpeechRecognizer(context);
         speech.setRecognitionListener(this);
         speech.startListening(recognizerIntent);
@@ -100,6 +101,7 @@ public class SugiliteVoiceRecognitionListener implements RecognitionListener {
             @Override
             public void onStart(String utteranceId) {
                 if(sugiliteVoiceInterface != null) {
+                    System.out.println("starting");
                     try {
                         runOnUiThread(new Runnable() {
                             @Override

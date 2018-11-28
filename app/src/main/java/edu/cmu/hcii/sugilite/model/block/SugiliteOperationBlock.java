@@ -20,7 +20,6 @@ import static edu.cmu.hcii.sugilite.source_parsing.SugiliteScriptExpression.addQ
 public class SugiliteOperationBlock extends SugiliteBlock implements Serializable{
     private SugiliteOperation operation;
     private SugiliteAvailableFeaturePack featurePack;
-    //private SerializableOntologyQuery query;
 
     @Deprecated
     private UIElementMatchingFilter elementMatchingFilter;
@@ -33,12 +32,6 @@ public class SugiliteOperationBlock extends SugiliteBlock implements Serializabl
         this.setDescription("");
     }
 
-    /*
-    public void setQuery(SerializableOntologyQuery query) {
-        this.query = query;
-    }
-    */
-
     public void setOperation(SugiliteOperation operation){
         this.operation = operation;
     }
@@ -46,11 +39,6 @@ public class SugiliteOperationBlock extends SugiliteBlock implements Serializabl
         this.featurePack = featurePack;
     }
 
-    /*
-    public SerializableOntologyQuery getQuery() {
-        return query;
-    }
-    */
 
     public SugiliteOperation getOperation(){
         return operation;
@@ -73,62 +61,7 @@ public class SugiliteOperationBlock extends SugiliteBlock implements Serializabl
 
     @Override
     public String toString() {
-        //TODO: get the string for the block
-        String results = "";
-        String verb = "";
-        switch (operation.getOperationType()){
-            case SugiliteOperation.CLICK:
-                verb = "click";
-                break;
-            case SugiliteOperation.LONG_CLICK:
-                verb = "long_click";
-                break;
-            case SugiliteOperation.SELECT:
-                verb = "select";
-                break;
-            case SugiliteOperation.RETURN:
-                verb = "return";
-                break;
-            case SugiliteOperation.LOAD_AS_VARIABLE:
-                verb = "load_as_variable";
-                break;
-            case SugiliteOperation.READ_OUT:
-                verb = "read_out";
-                break;
-            case SugiliteOperation.SET_TEXT:
-                verb = "set_text";
-                break;
-            case SugiliteOperation.SPECIAL_GO_HOME:
-                verb = "special_go_home";
-                break;
-            case SugiliteOperation.READOUT_CONST:
-                verb = "readout_const";
-                break;
-            case SugiliteOperation.GET:
-                verb = "get";
-                break;
-            case SugiliteOperation.RESOLVE_BOOLEXP:
-                verb = "resolve_boolExp";
-                break;
-            case SugiliteOperation.RESOLVE_PROCEDURE:
-                verb = "resolve_procedure";
-                break;
-            case SugiliteOperation.RESOLVE_VALUEQUERY:
-                verb = "resolve_valueQuery";
-                break;
-        }
-
-        if(operation instanceof SugiliteUnaryOperation){
-            results = "(call " + verb + " " + addQuoteToTokenIfNeeded(((SugiliteUnaryOperation) operation).getParameter0().toString()) + ")";
-        } else if (operation instanceof SugiliteBinaryOperation){
-            results = "(call " + verb + " " + addQuoteToTokenIfNeeded(((SugiliteBinaryOperation) operation).getParameter0().toString()) + " " + addQuoteToTokenIfNeeded(((SugiliteBinaryOperation) operation).getParameter1().toString()) + ")";
-        } else if (operation instanceof SugiliteTrinaryOperation){
-            results = "(call " + verb + " " + addQuoteToTokenIfNeeded(((SugiliteTrinaryOperation) operation).getParameter0().toString()) + " " + addQuoteToTokenIfNeeded(((SugiliteTrinaryOperation) operation).getParameter1().toString()) + " " + addQuoteToTokenIfNeeded(((SugiliteTrinaryOperation) operation).getParameter2().toString()) + ")";
-        } else {
-            results = "(call " + verb + ")";
-        }
-
-        return results;
+        return operation.toString();
     }
 
     @Deprecated

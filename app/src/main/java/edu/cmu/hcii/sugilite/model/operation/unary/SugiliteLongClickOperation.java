@@ -2,6 +2,8 @@ package edu.cmu.hcii.sugilite.model.operation.unary;
 
 import edu.cmu.hcii.sugilite.ontology.SerializableOntologyQuery;
 
+import static edu.cmu.hcii.sugilite.source_parsing.SugiliteScriptExpression.addQuoteToTokenIfNeeded;
+
 /**
  * @author toby
  * @date 11/13/18
@@ -15,7 +17,7 @@ public class SugiliteLongClickOperation extends SugiliteUnaryOperation<Serializa
     }
 
     public void setQuery(SerializableOntologyQuery targetUIElementDataDescriptionQuery) {
-        this.targetUIElementDataDescriptionQuery = targetUIElementDataDescriptionQuery;
+        setParameter0(targetUIElementDataDescriptionQuery);
     }
 
     @Override
@@ -36,5 +38,10 @@ public class SugiliteLongClickOperation extends SugiliteUnaryOperation<Serializa
     @Override
     public SerializableOntologyQuery getDataDescriptionQueryIfAvailable() {
         return targetUIElementDataDescriptionQuery;
+    }
+
+    @Override
+    public String toString() {
+        return "(" + "call long_click " + addQuoteToTokenIfNeeded(getParameter0().toString()) + ")";
     }
 }

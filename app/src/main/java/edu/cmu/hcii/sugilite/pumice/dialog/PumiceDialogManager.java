@@ -15,6 +15,7 @@ import java.util.List;
 
 import edu.cmu.hcii.sugilite.R;
 import edu.cmu.hcii.sugilite.pumice.communication.PumiceSemanticParsingResultPacket;
+import edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.PumiceInitInstructionParsingHandler;
 import edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.PumiceStartUtteranceIntentHandler;
 import edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.PumiceConditionalIntentHandler;
 import edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.PumiceUtteranceIntentHandler;
@@ -36,6 +37,7 @@ public class PumiceDialogManager implements SugiliteVerbalInstructionHTTPQueryIn
     private PumiceDialogView pumiceDialogView;
     private PumiceDialogUIHelper pumiceDialogUIHelper;
     private View speakButtonForCallback;
+    private PumiceInitInstructionParsingHandler pumiceInitInstructionParsingHandler;
     private SugiliteVoiceRecognitionListener sugiliteVoiceRecognitionListener;
     private SugiliteVerbalInstructionHTTPQueryManager httpQueryManager;
     private SharedPreferences sharedPreferences;
@@ -51,6 +53,7 @@ public class PumiceDialogManager implements SugiliteVerbalInstructionHTTPQueryIn
         this.context = context;
         this.pumiceDialogView = new PumiceDialogView(context);
         this.pumiceDialogUIHelper = new PumiceDialogUIHelper(context);
+        this.pumiceInitInstructionParsingHandler = new PumiceInitInstructionParsingHandler(context, this);
         this.stateHistoryList = new ArrayList<>();
 <<<<<<< HEAD
         //this.pumiceDialogState = new PumiceDialogState(puih, new PumiceKnowledgeManager());
@@ -351,8 +354,9 @@ public class PumiceDialogManager implements SugiliteVerbalInstructionHTTPQueryIn
                         if (resultPacket.queries != null && resultPacket.queries.size() > 0) {
                             PumiceSemanticParsingResultPacket.QueryGroundingPair topResult = resultPacket.queries.get(0);
                             if (topResult.formula != null) {
-                                sendAgentMessage("Below is the top parsing result: ", true, false);
+                                sendAgentMessage("Received the parsing result from the server: ", true, false);
                                 sendAgentMessage(topResult.formula, false, false);
+                                pumiceInitInstructionParsingHandler.parseFromNewInitInstruction(topResult.formula);
                             }
                         }
                         break;

@@ -7,7 +7,7 @@ import com.google.gson.Gson;
  * @time 3:02 PM
  */
 public class PumiceValueQueryKnowledge<T> {
-    enum ValueType {NUMERICAL, STRING}
+    public enum ValueType {NUMERICAL, STRING}
     private String valueName;
     private ValueType valueType;
 

@@ -39,6 +39,7 @@ public class SugiliteScriptParser {
      */
     public static List<String> tokenize(String source){
         List<String> list = new ArrayList<String>();
+        source = source.replace("\\\"", "\"");
         Matcher m = Pattern.compile("([^\"]\\S*|\".+?\")\\s*").matcher(source.replace("(", " ( ").replace(")", " ) "));
         while (m.find()) {
             String result = new String(m.group(1));
@@ -122,7 +123,7 @@ public class SugiliteScriptParser {
         return startingBlock;
     }
 
-    public String scriptToString(SugiliteBlock block){
+    public static String scriptToString(SugiliteBlock block){
         if(block != null) {
             String result = block.toString();
             if (block.getNextBlock() != null) {

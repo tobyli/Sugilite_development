@@ -123,7 +123,7 @@ public class SugiliteScriptParser {
         return startingBlock;
     }
 
-    public String scriptToString(SugiliteBlock block){
+    public static String scriptToString(SugiliteBlock block){
         if(block != null) {
             String result = block.toString();
             if (block.getNextBlock() != null) {

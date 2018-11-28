@@ -23,21 +23,68 @@ public class SugiliteBooleanExpressionNew implements SugiliteValue<Boolean> {
     private SugiliteValue arg0;
     private SugiliteValue arg1;
 
+    //IF boolOperation is set, it will be used for evaluate() instead of the boolOperator, arg0 and arg1. It should be either a resolve_boolExp() operation or a boolExpName typed get() operation
+    private SugiliteValue<Boolean> boolOperation;
+
     public SugiliteBooleanExpressionNew(SugiliteScriptExpression sugiliteScriptExpression) {
         this.sugiliteData = null;
-        this.boolOperator = getBoolOperatorFromString(sugiliteScriptExpression.getOperationName());
-        if(sugiliteScriptExpression.getArguments() != null) {
-            List<SugiliteScriptExpression> argList = sugiliteScriptExpression.getArguments();
-            if(sugiliteScriptExpression.getArguments().get(0) != null) {
-                this.arg0 = parseSugiliteValueFromScriptExpression(argList.get(0));
-            }
-            if(sugiliteScriptExpression.getArguments().get(0) != null) {
-                this.arg1 = parseSugiliteValueFromScriptExpression(argList.get(1));
+        List<SugiliteScriptExpression> argList = sugiliteScriptExpression.getArguments();
+        if (sugiliteScriptExpression.getOperationName().equalsIgnoreCase("resolve_boolExp") && argList.get(0) != null){
+            //resolve_boolExp query
+            this.boolOperation = new SugiliteResolveBoolExpOperation();
+            ((SugiliteResolveBoolExpOperation) boolOperation).setParameter0(parseSugiliteValueFromScriptExpression(argList.get(0)).evaluate().toString());
+        } else if (sugiliteScriptExpression.getOperationName().equalsIgnoreCase("get") && argList.get(0) != null && argList.get(1) != null &&
+                argList.get(1).isConstant() && argList.get(1).getConstantValue().toString().contains("boolFunctionName")){
+            this.boolOperation = new SugiliteGetOperation<Boolean>();
+            ((SugiliteGetOperation)boolOperation).setName(parseSugiliteValueFromScriptExpression(argList.get(0)).evaluate().toString());
+            ((SugiliteGetOperation)boolOperation).setType(parseSugiliteValueFromScriptExpression(argList.get(1)).evaluate().toString());
+        }
+        else {
+            //regular boolean expression
+            this.boolOperator = getBoolOperatorFromString(sugiliteScriptExpression.getOperationName());
+            if (sugiliteScriptExpression.getArguments() != null) {
+                if (sugiliteScriptExpression.getArguments().get(0) != null) {
+                    this.arg0 = parseSugiliteValueFromScriptExpression(argList.get(0));
+                }
+                if (sugiliteScriptExpression.getArguments().get(1) != null) {
+                    this.arg1 = parseSugiliteValueFromScriptExpression(argList.get(1));
+                }
             }
         }
         this.booleanExpression = this.toString();
     }
 
+    public BoolOperator getBoolOperator() {
+        return boolOperator;
+    }
+
+    public String getBooleanExpression() {
+        return booleanExpression;
+    }
+
+    public SugiliteValue<Boolean> getBoolOperation() {
+        return boolOperation;
+    }
+
+    public void setBoolOperation(SugiliteValue<Boolean> boolOperation) {
+        this.boolOperation = boolOperation;
+    }
+
+    public SugiliteValue getArg0() {
+        return arg0;
+    }
+
+    public SugiliteValue getArg1() {
+        return arg1;
+    }
+
+    public void setArg0(SugiliteValue arg0) {
+        this.arg0 = arg0;
+    }
+
+    public void setArg1(SugiliteValue arg1) {
+        this.arg1 = arg1;
+    }
 
     public void setSugiliteData(SugiliteData s) {
         sugiliteData = s;
@@ -95,18 +142,34 @@ public class SugiliteBooleanExpressionNew implements SugiliteValue<Boolean> {
                 List<SugiliteScriptExpression> argList = scriptExpression.getArguments();
                 if (scriptExpression.getOperationName().equals("resolve_boolExp") && scriptExpression.getArguments().size() == 1){
                     SugiliteResolveBoolExpOperation boolExpOperation = new SugiliteResolveBoolExpOperation();
-                    boolExpOperation.setParameter0(argList.get(0).getConstantValue().toString());
+                    String parameter0 = argList.get(0).getConstantValue().toString();
+                    if(argList.get(0).getConstantValue() instanceof SugiliteSimpleConstant){
+                        parameter0 = ((SugiliteSimpleConstant) argList.get(0).getConstantValue()).evaluate().toString();
+                    }
+                    boolExpOperation.setParameter0(parameter0);
                     return boolExpOperation;
 
                 } else if (scriptExpression.getOperationName().equals("resolve_valueQuery") && scriptExpression.getArguments().size() == 1){
                     SugiliteResolveValueQueryOperation valueQueryOperation = new SugiliteResolveValueQueryOperation();
-                    valueQueryOperation.setParameter0(argList.get(0).getConstantValue().toString());
+                    String parameter0 = argList.get(0).getConstantValue().toString();
+                    if(argList.get(0).getConstantValue() instanceof SugiliteSimpleConstant){
+                        parameter0 = ((SugiliteSimpleConstant) argList.get(0).getConstantValue()).evaluate().toString();
+                    }
+                    valueQueryOperation.setParameter0(parameter0);
                     return valueQueryOperation;
 
                 } else if (scriptExpression.getOperationName().equals("get") && scriptExpression.getArguments().size() == 2){
                     SugiliteGetOperation getOperation = new SugiliteGetOperation();
-                    getOperation.setParameter0(argList.get(0).getConstantValue().toString());
-                    getOperation.setParameter1(argList.get(1).getConstantValue().toString());
+                    String parameter0 = argList.get(0).getConstantValue().toString();
+                    if(argList.get(0).getConstantValue() instanceof SugiliteSimpleConstant){
+                        parameter0 = ((SugiliteSimpleConstant) argList.get(0).getConstantValue()).evaluate().toString();
+                    }
+                    String parameter1 = argList.get(1).getConstantValue().toString();
+                    if(argList.get(1).getConstantValue() instanceof SugiliteSimpleConstant){
+                        parameter1 = ((SugiliteSimpleConstant) argList.get(1).getConstantValue()).evaluate().toString();
+                    }
+                    getOperation.setParameter0(parameter0);
+                    getOperation.setParameter1(parameter1);
                     return getOperation;
                 }
             }
@@ -141,6 +204,10 @@ public class SugiliteBooleanExpressionNew implements SugiliteValue<Boolean> {
 
     @Override
     public String toString() {
-        return "(call " + boolOperator.name() + " " + arg0.toString() + " " + arg1.toString() + ")";
+        if(boolOperation != null){
+            return boolOperation.toString();
+        } else {
+            return "(call " + boolOperator.name() + " " + arg0.toString() + " " + arg1.toString() + ")";
+        }
     }
 }

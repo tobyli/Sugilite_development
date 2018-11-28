@@ -17,11 +17,18 @@ import static edu.cmu.hcii.sugilite.source_parsing.SugiliteScriptExpression.addQ
 /**
  * the operation used for reading out a constant
  */
-public class SugiliteGetOperation extends SugiliteBinaryOperation<String, String> implements Serializable, SugiliteValue<String> {
+public class SugiliteGetOperation<T> extends SugiliteBinaryOperation<String, String> implements Serializable, SugiliteValue<T> {
     private String name, type;
+    public static String VALUE_QUERY_NAME = "valueQueryName", BOOL_FUNCTION_NAME = "boolFunctionName", PROCEDURE_NAME = "procedureName";
     public SugiliteGetOperation(){
         super();
         this.setOperationType(GET);
+    }
+
+    public SugiliteGetOperation(String name, String type){
+        this();
+        this.name = name;
+        this.type = type;
     }
     public String getName(){
         return name;
@@ -70,7 +77,7 @@ public class SugiliteGetOperation extends SugiliteBinaryOperation<String, String
     }
 
     @Override
-    public String evaluate() {
+    public T evaluate() {
         //TODO: this should actually execute the get operation to get the result
         return null;
     }

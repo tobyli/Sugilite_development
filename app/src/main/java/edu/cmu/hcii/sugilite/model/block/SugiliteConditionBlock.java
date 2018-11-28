@@ -77,6 +77,10 @@ public class SugiliteConditionBlock extends SugiliteBlock implements Serializabl
         return sugiliteBooleanExpression;
     }
 
+    public SugiliteBooleanExpressionNew getSugiliteBooleanExpressionNew() {
+        return sugiliteBooleanExpressionNew;
+    }
+
     public void setSugiliteBooleanExpressionNew(SugiliteBooleanExpressionNew sugiliteBooleanExpressionNew) {
         this.sugiliteBooleanExpressionNew = sugiliteBooleanExpressionNew;
     }

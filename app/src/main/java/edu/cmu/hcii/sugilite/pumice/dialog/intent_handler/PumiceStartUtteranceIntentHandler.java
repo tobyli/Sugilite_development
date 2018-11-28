@@ -81,7 +81,8 @@ public class PumiceStartUtteranceIntentHandler implements PumiceUtteranceIntentH
             case USER_INIT_INSTRUCTION:
                 dialogManager.sendAgentMessage("I have received your instruction: " + utterance.getContent(), true, false);
                 PumiceInstructionPacket pumiceInstructionPacket = new PumiceInstructionPacket(dialogManager.getPumiceKnowledgeManager(), PumiceIntent.USER_INIT_INSTRUCTION, calendar.getTimeInMillis(), utterance.getContent());
-                dialogManager.sendAgentMessage("Sending out server query: \n\n" + pumiceInstructionPacket.toString(), false, false);
+                dialogManager.sendAgentMessage("Sending out the server query below...", true, false);
+                dialogManager.sendAgentMessage(pumiceInstructionPacket.toString(), false, false);
                 try {
                     dialogManager.getHttpQueryManager().sendPumiceInstructionPacketOnASeparateThread(pumiceInstructionPacket);
                 } catch (Exception e){

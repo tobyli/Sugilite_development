@@ -59,7 +59,11 @@ public class PumiceBooleanExpKnowledge {
     }
 
     public String getProcedureDescription(){
-        return "How to know whether " + utterance + " using " + param1.getValueName();
+        String description = "How to know whether " + utterance;
+        if (param1 != null) {
+            description = description + " using " + param1.getValueName();
+        }
+        return description;
     }
 
     @Override

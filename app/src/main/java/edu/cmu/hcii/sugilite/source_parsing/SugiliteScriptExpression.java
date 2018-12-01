@@ -78,7 +78,7 @@ public class SugiliteScriptExpression<T> {
             return result;
         }
         else if (node.getChildren().size() > 1){
-            //typed constant?
+            //check if it's a typed constant?
             SugiliteScriptExpression result = null;
 
             if(node.getValue() != null) {
@@ -98,27 +98,41 @@ public class SugiliteScriptExpression<T> {
                 result = new SugiliteScriptExpression<SugiliteSimpleConstant<Number>>();
                 result.setConstantValue(new SugiliteSimpleConstant<>(node.getChildren().get(1).getValue(), node.getChildren().get(2).getValue()));
             }
-            else {
+
+            else if(representMultipleSteps(node.getChildren())) {
+                //multiple steps -> each child represents a single step;
+
+
+            } else {
                 //TODO: temp hack -- use the raw script content
                 result = new SugiliteScriptExpression<SugiliteSimpleConstant<String>>();
                 result.setConstantValue(new SugiliteSimpleConstant<>(node.getScriptContent()));
             }
+
             result.setScriptContent(node.getScriptContent());
             result.setConstant(true);
             return result;
         }
-        else {
-            //simple constant
-            SugiliteScriptExpression<SugiliteSimpleConstant<String>> result = new SugiliteScriptExpression<>();
-            result.setConstant(true);
-            if(node.getValue() != null) {
-                result.setConstantValue(new SugiliteSimpleConstant<>(node.getValue()));
+        else if (node.getChildren().size() == 1){
+            //node.children.size == 1
+            if(node.getChildren().get(0).getScriptContent().startsWith("(") && node.getChildren().get(0).getScriptContent().endsWith(")")){
+                //check if a single step with extra parenthesis - if so, return the parsing result for the only child
+                return parse(node.getChildren().get(0));
             } else {
-                //TODO: temp hack
-                result.setConstantValue(new SugiliteSimpleConstant<>(node.getScriptContent()));
+                //is a simple constant
+                SugiliteScriptExpression<SugiliteSimpleConstant<String>> result = new SugiliteScriptExpression<>();
+                result.setConstant(true);
+                if (node.getValue() != null) {
+                    result.setConstantValue(new SugiliteSimpleConstant<>(node.getValue()));
+                } else {
+                    //TODO: temp hack
+                    result.setConstantValue(new SugiliteSimpleConstant<>(node.getScriptContent()));
+                }
+                result.setScriptContent(node.getScriptContent());
+                return result;
             }
-            result.setScriptContent(node.getScriptContent());
-            return result;
+        } else {
+            throw new RuntimeException("empty node with no child");
         }
     }
 
@@ -143,6 +157,15 @@ public class SugiliteScriptExpression<T> {
                 }
             }
         }
+    }
+
+    private static boolean representMultipleSteps(List<SugiliteScriptNode> nodes){
+        for(SugiliteScriptNode node : nodes){
+            if(! (node.getScriptContent().startsWith("(") && node.getScriptContent().endsWith(")"))){
+                return false;
+            }
+        }
+        return true;
     }
 
     /**
@@ -342,6 +365,8 @@ public class SugiliteScriptExpression<T> {
 
         else if(operationName.contentEquals("if") && arguments.size() == 2) {
             SugiliteBlock ifBlock = arguments.get(1).toSugiliteBlock(startingBlock, descriptionGenerator);
+            //TODO: able to handle extra parenthesis
+
             SugiliteBlock previousBlock = ifBlock.getPreviousBlock();
             SugiliteBooleanExpression booleanExpression = new SugiliteBooleanExpression(arguments.get(0));
             SugiliteBooleanExpressionNew booleanExpression2 = new SugiliteBooleanExpressionNew(arguments.get(0));

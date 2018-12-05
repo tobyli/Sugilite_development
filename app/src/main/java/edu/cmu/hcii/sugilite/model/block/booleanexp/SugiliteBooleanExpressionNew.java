@@ -28,26 +28,26 @@ public class SugiliteBooleanExpressionNew implements SugiliteValue<Boolean> {
 
     public SugiliteBooleanExpressionNew(SugiliteScriptExpression sugiliteScriptExpression) {
         this.sugiliteData = null;
-        List<SugiliteScriptExpression> argList = sugiliteScriptExpression.getArguments();
+        List<List<SugiliteScriptExpression>> argList = sugiliteScriptExpression.getArguments();
         if (sugiliteScriptExpression.getOperationName().equalsIgnoreCase("resolve_boolExp") && argList.get(0) != null){
             //resolve_boolExp query
             this.boolOperation = new SugiliteResolveBoolExpOperation();
-            ((SugiliteResolveBoolExpOperation) boolOperation).setParameter0(parseSugiliteValueFromScriptExpression(argList.get(0)).evaluate().toString());
+            ((SugiliteResolveBoolExpOperation) boolOperation).setParameter0(parseSugiliteValueFromScriptExpression(argList.get(0).get(0)).evaluate().toString());
         } else if (sugiliteScriptExpression.getOperationName().equalsIgnoreCase("get") && argList.get(0) != null && argList.get(1) != null &&
-                argList.get(1).isConstant() && argList.get(1).getConstantValue().toString().contains("boolFunctionName")){
+                argList.get(1).get(0).isConstant() && argList.get(1).get(0).getConstantValue().toString().contains("boolFunctionName")){
             this.boolOperation = new SugiliteGetOperation<Boolean>();
-            ((SugiliteGetOperation)boolOperation).setName(parseSugiliteValueFromScriptExpression(argList.get(0)).evaluate().toString());
-            ((SugiliteGetOperation)boolOperation).setType(parseSugiliteValueFromScriptExpression(argList.get(1)).evaluate().toString());
+            ((SugiliteGetOperation)boolOperation).setName(parseSugiliteValueFromScriptExpression(argList.get(0).get(0)).evaluate().toString());
+            ((SugiliteGetOperation)boolOperation).setType(parseSugiliteValueFromScriptExpression(argList.get(1).get(0)).evaluate().toString());
         }
         else {
             //regular boolean expression
             this.boolOperator = getBoolOperatorFromString(sugiliteScriptExpression.getOperationName());
             if (sugiliteScriptExpression.getArguments() != null) {
                 if (sugiliteScriptExpression.getArguments().get(0) != null) {
-                    this.arg0 = parseSugiliteValueFromScriptExpression(argList.get(0));
+                    this.arg0 = parseSugiliteValueFromScriptExpression(argList.get(0).get(0));
                 }
                 if (sugiliteScriptExpression.getArguments().get(1) != null) {
-                    this.arg1 = parseSugiliteValueFromScriptExpression(argList.get(1));
+                    this.arg1 = parseSugiliteValueFromScriptExpression(argList.get(1).get(0));
                 }
             }
         }

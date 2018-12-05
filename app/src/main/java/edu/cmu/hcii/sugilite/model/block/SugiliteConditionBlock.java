@@ -16,7 +16,6 @@ public class SugiliteConditionBlock extends SugiliteBlock implements Serializabl
     private static final long serialVersionUID = -5272239376931158724L;
 
     private SugiliteBlock ifBlock;
-    //private SugiliteBlock nextBlock;
 
 
     //optional
@@ -46,6 +45,10 @@ public class SugiliteConditionBlock extends SugiliteBlock implements Serializabl
         }
     }
 
+    public SugiliteConditionBlock(SugiliteBlock ifBlock, SugiliteBlock elseBlock, SugiliteBooleanExpression sugiliteBooleanExpression) {
+        this(ifBlock, elseBlock, sugiliteBooleanExpression, null);
+    }
+
 
     public SugiliteBlock getNextBlockToRun(SugiliteData sugiliteData) {///added sugiliteData parameter
         //TODO: evaluate sugiliteBooleanExpression at runtime, and then return either ifBlock, nextBlock or elseBlock
@@ -65,10 +68,10 @@ public class SugiliteConditionBlock extends SugiliteBlock implements Serializabl
         //TODO: implement
 
         if(elseBlock != null) {
-            return "(call if " + sugiliteBooleanExpressionNew.toString() + " " + ifBlock.toString() + " " + elseBlock.toString() + ")";
+            return "(call if " + sugiliteBooleanExpressionNew.toString() + " " + getStringForASeriesOfBlock(ifBlock) + " " + getStringForASeriesOfBlock(elseBlock) + ")";
         }
         else {
-            return "(call if " + sugiliteBooleanExpressionNew.toString() + " " + ifBlock.toString() + ")";
+            return "(call if " + sugiliteBooleanExpressionNew.toString() + " " + getStringForASeriesOfBlock(ifBlock) + ")";
         }
 
     }
@@ -109,6 +112,18 @@ public class SugiliteConditionBlock extends SugiliteBlock implements Serializabl
             ((SugiliteSpecialOperationBlock) previousBlock).setNextBlock(null);
         if(previousBlock instanceof SugiliteConditionBlock)
             ((SugiliteConditionBlock) previousBlock).setNextBlock(null);
+    }
+
+    private String getStringForASeriesOfBlock(SugiliteBlock block){
+        String result = "";
+        if(block != null){
+            result += block.toString();
+            if(block.getNextBlock() != null){
+                result += " ";
+                result += getStringForASeriesOfBlock(block.getNextBlock());
+            }
+        }
+        return result;
     }
 
     /**

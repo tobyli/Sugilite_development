@@ -8,6 +8,8 @@ import java.util.stream.Collectors;
 
 import edu.cmu.hcii.sugilite.BuildConfig;
 
+import static edu.cmu.hcii.sugilite.source_parsing.SugiliteScriptExpression.addQuoteToTokenIfNeeded;
+
 /**
  * Created by nancyli on 9/27/17.
  */
@@ -449,7 +451,7 @@ public class OntologyQuery {
             // base case
             // this should have size 1 always, the array is only used in execution for when there's a query whose results are used as the objects of the next one
             SugiliteEntity[] objectArr = object.toArray(new SugiliteEntity[object.size()]);
-            baseQueryString = "(" + r.getRelationName() + " " + objectArr[0].toString() + ")";
+            baseQueryString = "(" + r.getRelationName() + " " + addQuoteToTokenIfNeeded(objectArr[0].toString()) + ")";
         }
 
         else {

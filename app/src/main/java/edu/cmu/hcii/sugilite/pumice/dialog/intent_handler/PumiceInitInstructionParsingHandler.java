@@ -20,6 +20,7 @@ import edu.cmu.hcii.sugilite.pumice.kb.PumiceBooleanExpKnowledge;
 import edu.cmu.hcii.sugilite.pumice.kb.PumiceProceduralKnowledge;
 import edu.cmu.hcii.sugilite.pumice.kb.PumiceValueQueryKnowledge;
 import edu.cmu.hcii.sugilite.source_parsing.SugiliteScriptParser;
+import edu.cmu.hcii.sugilite.ui.ScriptDetailActivity;
 
 import static edu.cmu.hcii.sugilite.model.operation.binary.SugiliteGetOperation.BOOL_FUNCTION_NAME;
 import static edu.cmu.hcii.sugilite.model.operation.binary.SugiliteGetOperation.PROCEDURE_NAME;
@@ -35,7 +36,7 @@ import static edu.cmu.hcii.sugilite.model.operation.binary.SugiliteGetOperation.
  * this class handles the top-down parsing for resolving unknown concepts in scripts by replacing 'resolve' functions with 'get' functions and adding new entries into the knowledge graph
  */
 public class PumiceInitInstructionParsingHandler {
-    private SugiliteStartingBlock currentScript;
+    public SugiliteStartingBlock currentScript;//was private
     private SugiliteScriptParser sugiliteScriptParser;
     private PumiceDialogManager pumiceDialogManager;
     Context context;
@@ -56,16 +57,28 @@ public class PumiceInitInstructionParsingHandler {
         }
         //resolve the unknown concepts in the current script
         resolveScript(currentScript);
+        pumiceDialogManager.tResult = currentScript;
 
         //done
-        pumiceDialogManager.sendAgentMessage("I've finished resolving all concepts in the script", true, false);
-        printCurrentScript();
+        if(context instanceof ScriptDetailActivity) {
+            pumiceDialogManager.sendAgentMessage("I've finished resolving all concepts you mentioned", true, false);
+        }
+        else {
+            pumiceDialogManager.sendAgentMessage("I've finished resolving all concepts in the script", true, false);
+        }
+        printCurrentScript(serverResult);
     }
 
-    private void printCurrentScript(){
-        pumiceDialogManager.sendAgentMessage("Below is the current script after concept resolution: ", true, false);
-        pumiceDialogManager.sendAgentMessage(sugiliteScriptParser.scriptToString(currentScript), false, false);
-        pumiceDialogManager.sendAgentMessage("Below is the updated list of existing knowledge: \n\n" + pumiceDialogManager.getPumiceKnowledgeManager().getKnowledgeInString(), true, false);
+    private void printCurrentScript(String s){
+        if(context instanceof ScriptDetailActivity) {
+            pumiceDialogManager.sendAgentMessage(sugiliteScriptParser.scriptToString(currentScript), false, false);
+            pumiceDialogManager.sendAgentMessage("Should I add the new step to the script?",true,true);
+        }
+        else {
+            pumiceDialogManager.sendAgentMessage("Below is the current script after concept resolution: ", true, false);
+            pumiceDialogManager.sendAgentMessage(sugiliteScriptParser.scriptToString(currentScript), false, false);
+            pumiceDialogManager.sendAgentMessage("Below is the updated list of existing knowledge: \n\n" + pumiceDialogManager.getPumiceKnowledgeManager().getKnowledgeInString(), true, false);
+        }
     }
 
     /**

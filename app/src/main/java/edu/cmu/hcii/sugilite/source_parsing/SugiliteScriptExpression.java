@@ -150,9 +150,6 @@ public class SugiliteScriptExpression<T> {
      * @return
      */
     public SugiliteBlock toSugiliteBlock(SugiliteStartingBlock startingBlock, OntologyDescriptionGenerator descriptionGenerator){
-        System.out.println("opName: " + operationName);
-        System.out.println(arguments.size());
-        System.out.println(arguments);
         if(operationName == null){
             //not a valid operation
             return null;
@@ -169,7 +166,6 @@ public class SugiliteScriptExpression<T> {
             }
             switch (operationName) {
                 case "click":
-                    System.out.println("HITHER");
                     operation = new SugiliteClickOperation();
                     ((SugiliteClickOperation)operation).setQuery(new SerializableOntologyQuery(OntologyQuery.deserialize(arguments.get(0).getScriptContent())));
                     break;
@@ -199,7 +195,6 @@ public class SugiliteScriptExpression<T> {
                     break;
             }
             operationBlock.setOperation(operation);
-            System.out.println("opB " + operationBlock);
             SerializableOntologyQuery query = new SerializableOntologyQuery(OntologyQuery.deserialize(arguments.get(0).getScriptContent()));
 
             //extract variables from the query
@@ -215,7 +210,6 @@ public class SugiliteScriptExpression<T> {
             if(operationBlock.getDescription() == null){
                 operationBlock.setDescription(operationBlock.toString());
             }
-            System.out.println("operationBlock " + operationBlock);
             return operationBlock;
         }
 
@@ -345,12 +339,19 @@ public class SugiliteScriptExpression<T> {
             return operationBlock;
         }
 
+        else if(operationName.contentEquals("if") && arguments.size() == 1) {
+            SugiliteBooleanExpression booleanExpression = new SugiliteBooleanExpression(arguments.get(0));
+            SugiliteBooleanExpressionNew booleanExpression2 = new SugiliteBooleanExpressionNew(arguments.get(0));
+            SugiliteConditionBlock conditionBlock = new SugiliteConditionBlock(null,null, booleanExpression, null);
+            //test purpose
+            conditionBlock.setSugiliteBooleanExpressionNew(booleanExpression2);
+            return conditionBlock;
+        }
+
         else if(operationName.contentEquals("if") && arguments.size() == 2) {
             SugiliteBlock ifBlock = arguments.get(1).toSugiliteBlock(startingBlock, descriptionGenerator);
             SugiliteBlock previousBlock = ifBlock.getPreviousBlock();
-            System.out.println("HERE0" + arguments.get(0).getConstantValue());
             SugiliteBooleanExpression booleanExpression = new SugiliteBooleanExpression(arguments.get(0));
-            System.out.println("HERE" + arguments.get(0).getConstantValue());
             SugiliteBooleanExpressionNew booleanExpression2 = new SugiliteBooleanExpressionNew(arguments.get(0));
 
             SugiliteConditionBlock conditionBlock = new SugiliteConditionBlock(ifBlock,null, booleanExpression, previousBlock);

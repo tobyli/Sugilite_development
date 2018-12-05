@@ -89,6 +89,10 @@ public class SugiliteConditionBlock extends SugiliteBlock implements Serializabl
         return ifBlock;
     }
 
+    public void setIfBlock(SugiliteBlock ib) {
+        ifBlock = ib;
+    }
+
     public SugiliteBlock getElseBlock() {
         return elseBlock;
     }

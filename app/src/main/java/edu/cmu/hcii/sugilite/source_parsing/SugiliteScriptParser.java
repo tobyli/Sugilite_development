@@ -48,7 +48,6 @@ public class SugiliteScriptParser {
             }
             list.add(result.trim());
         }
-        System.out.println("list: " + list);
         return list;
     }
 
@@ -111,7 +110,6 @@ public class SugiliteScriptParser {
         for(SugiliteScriptExpression expression : expressionList){
             //turn each expression to a block
             SugiliteBlock block = expression.toSugiliteBlock(startingBlock, ontologyDescriptionGenerator);
-            System.out.println("BLOCK: " + block);
             if(block instanceof SugiliteStartingBlock) {
                 //contains a starting block
                 startingBlock = (SugiliteStartingBlock) block;

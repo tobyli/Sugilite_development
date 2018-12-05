@@ -23,9 +23,11 @@ import edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.PumiceUtteranceIntentH
 import edu.cmu.hcii.sugilite.pumice.kb.PumiceKnowledgeManager;
 import edu.cmu.hcii.sugilite.pumice.ui.PumiceDialogActivity;
 import edu.cmu.hcii.sugilite.pumice.ui.util.PumiceDialogUIHelper;
+import edu.cmu.hcii.sugilite.ui.ScriptDetailActivity;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.server_comm.SugiliteVerbalInstructionHTTPQueryInterface;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.server_comm.SugiliteVerbalInstructionHTTPQueryManager;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.speech.SugiliteVoiceRecognitionListener;
+import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
 
 /**
  * @author toby
@@ -42,6 +44,7 @@ public class PumiceDialogManager implements SugiliteVerbalInstructionHTTPQueryIn
     private SugiliteVoiceRecognitionListener sugiliteVoiceRecognitionListener;
     private SugiliteVerbalInstructionHTTPQueryManager httpQueryManager;
     private SharedPreferences sharedPreferences;
+    public SugiliteBlock tResult;
 
     private List<PumiceDialogState> stateHistoryList;
 
@@ -354,6 +357,7 @@ public class PumiceDialogManager implements SugiliteVerbalInstructionHTTPQueryIn
                                 sendAgentMessage("Received the parsing result from the server: ", true, false);
                                 sendAgentMessage(topResult.formula, false, false);
                                 pumiceInitInstructionParsingHandler.parseFromNewInitInstruction(topResult.formula);
+                                tResult = pumiceInitInstructionParsingHandler.currentScript.getNextBlock();
                             }
                         }
                         break;

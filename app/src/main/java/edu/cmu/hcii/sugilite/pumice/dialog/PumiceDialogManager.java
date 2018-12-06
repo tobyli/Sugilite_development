@@ -12,11 +12,10 @@ import com.google.gson.Gson;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
+import java.util.concurrent.Callable;
 
 import edu.cmu.hcii.sugilite.R;
-import edu.cmu.hcii.sugilite.pumice.communication.PumiceSemanticParsingResultPacket;
-import edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.PumiceInitInstructionParsingHandler;
-import edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.PumiceStartUtteranceIntentHandler;
+import edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.PumiceDefaultUtteranceIntentHandler;
 import edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.PumiceUtteranceIntentHandler;
 import edu.cmu.hcii.sugilite.pumice.kb.PumiceKnowledgeManager;
 import edu.cmu.hcii.sugilite.pumice.ui.PumiceDialogActivity;
@@ -54,7 +53,7 @@ public class PumiceDialogManager implements SugiliteVerbalInstructionHTTPQueryIn
         this.pumiceDialogUIHelper = new PumiceDialogUIHelper(context);
         this.pumiceInitInstructionParsingHandler = new PumiceInitInstructionParsingHandler(context, this);
         this.stateHistoryList = new ArrayList<>();
-        this.pumiceDialogState = new PumiceDialogState(new PumiceStartUtteranceIntentHandler(context), new PumiceKnowledgeManager());
+        this.pumiceDialogState = new PumiceDialogState(new PumiceDefaultUtteranceIntentHandler(context), new PumiceKnowledgeManager());
         this.sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
         this.httpQueryManager = new SugiliteVerbalInstructionHTTPQueryManager(this, sharedPreferences);
 
@@ -66,13 +65,13 @@ public class PumiceDialogManager implements SugiliteVerbalInstructionHTTPQueryIn
         sendUserMessage(message, pumiceDialogState.getPumiceUtteranceIntentHandlerInUse());
     }
 
+    /**
+     * used when the user's message needs a different intent handler than the one currently in use
+     * @param message
+     * @param pumiceUtteranceIntentHandler
+     */
     private void sendUserMessage(String message, PumiceUtteranceIntentHandler pumiceUtteranceIntentHandler){
-        //save the current PumiceDialogState to the deque and get a new one
-        stateHistoryList.add(pumiceDialogState);
-        pumiceDialogState = pumiceDialogState.getDuplicateWithNewIntentHandler(context, pumiceUtteranceIntentHandler);
-        if(stateHistoryList.size() >= 1){
-            pumiceDialogState.setPreviousState(stateHistoryList.get(stateHistoryList.size() - 1));
-        }
+        updateUtteranceIntentHandlerInANewState(pumiceUtteranceIntentHandler);
         // ** finished saving the current PumiceDialogState **
 
         PumiceUtterance utterance = new PumiceUtterance(Sender.USER, message, Calendar.getInstance().getTimeInMillis(), true,false);
@@ -82,10 +81,20 @@ public class PumiceDialogManager implements SugiliteVerbalInstructionHTTPQueryIn
         //classify the intent of user message
         PumiceUtteranceIntentHandler.PumiceIntent intent = pumiceUtteranceIntentHandler.detectIntentFromUtterance(utterance);
 
-
         //handle the incoming user message based on the identified intent
         pumiceUtteranceIntentHandler.handleIntentWithUtterance(this, intent, utterance);
 
+
+
+    }
+
+    public void updateUtteranceIntentHandlerInANewState(PumiceUtteranceIntentHandler pumiceUtteranceIntentHandler){
+        //save the current PumiceDialogState to the deque and get a new one
+        stateHistoryList.add(pumiceDialogState);
+        pumiceDialogState = pumiceDialogState.getDuplicateWithNewIntentHandler(context, pumiceUtteranceIntentHandler);
+        if(stateHistoryList.size() >= 1){
+            pumiceDialogState.setPreviousState(stateHistoryList.get(stateHistoryList.size() - 1));
+        }
     }
 
     /**
@@ -96,11 +105,15 @@ public class PumiceDialogManager implements SugiliteVerbalInstructionHTTPQueryIn
      * @param requireUserResponse
      */
     public void sendAgentViewMessage(View viewContent, String altText, boolean isSpokenMessage, boolean requireUserResponse){
-        PumiceUtterance utterance = new PumiceUtterance(Sender.AGENT, "[CARD]" + altText, Calendar.getInstance().getTimeInMillis(), isSpokenMessage, requireUserResponse);
-        pumiceDialogState.getUtteranceHistory().add(utterance);
-        pumiceDialogView.addMessage(viewContent, Sender.AGENT);
-
-        handleSpeakingAndUserResponse(altText, isSpokenMessage, requireUserResponse);
+        runOnMainThread(new Runnable() {
+            @Override
+            public void run() {
+                PumiceUtterance utterance = new PumiceUtterance(Sender.AGENT, "[CARD]" + altText, Calendar.getInstance().getTimeInMillis(), isSpokenMessage, requireUserResponse);
+                pumiceDialogState.getUtteranceHistory().add(utterance);
+                pumiceDialogView.addMessage(viewContent, Sender.AGENT);
+                handleSpeakingAndUserResponse(altText, isSpokenMessage, requireUserResponse);
+            }
+        });
     }
 
     /**
@@ -110,11 +123,15 @@ public class PumiceDialogManager implements SugiliteVerbalInstructionHTTPQueryIn
      * @param requireUserResponse
      */
     public void sendAgentMessage(String message, boolean isSpokenMessage, boolean requireUserResponse){
-        PumiceUtterance utterance = new PumiceUtterance(Sender.AGENT, message, Calendar.getInstance().getTimeInMillis(), isSpokenMessage, requireUserResponse);
-        pumiceDialogState.getUtteranceHistory().add(utterance);
-        pumiceDialogView.addMessage(utterance);
-
-        handleSpeakingAndUserResponse(message, isSpokenMessage, requireUserResponse);
+        runOnMainThread(new Runnable() {
+            @Override
+            public void run() {
+                PumiceUtterance utterance = new PumiceUtterance(Sender.AGENT, message, Calendar.getInstance().getTimeInMillis(), isSpokenMessage, requireUserResponse);
+                pumiceDialogState.getUtteranceHistory().add(utterance);
+                pumiceDialogView.addMessage(utterance);
+                handleSpeakingAndUserResponse(message, isSpokenMessage, requireUserResponse);
+            }
+        });
     }
     public void revertToLastState(){
         if(pumiceDialogState.getPreviousState() != null && pumiceDialogState.getPreviousState().getPreviousState() != null) {
@@ -327,6 +344,17 @@ public class PumiceDialogManager implements SugiliteVerbalInstructionHTTPQueryIn
         return httpQueryManager;
     }
 
+    public PumiceInitInstructionParsingHandler getPumiceInitInstructionParsingHandler() {
+        return pumiceInitInstructionParsingHandler;
+    }
+
+    public class GetTheIntentHandlingResultForTheNextUserInput implements Callable<Object> {
+        @Override
+        public Object call() throws Exception {
+            return null;
+        }
+    }
+
     @Override
     public void runOnMainThread(Runnable r) {
         context.runOnUiThread(r);
@@ -335,28 +363,6 @@ public class PumiceDialogManager implements SugiliteVerbalInstructionHTTPQueryIn
 
     @Override
     public void resultReceived(int responseCode, String result) {
-        //TODO: handle server response from the semantic parsing server
-        Gson gson = new Gson();
-        try {
-            PumiceSemanticParsingResultPacket resultPacket = gson.fromJson(result, PumiceSemanticParsingResultPacket.class);
-            if (resultPacket.utteranceType != null) {
-                switch (PumiceUtteranceIntentHandler.PumiceIntent.valueOf(resultPacket.utteranceType)) {
-                    case USER_INIT_INSTRUCTION:
-                        if (resultPacket.queries != null && resultPacket.queries.size() > 0) {
-                            PumiceSemanticParsingResultPacket.QueryGroundingPair topResult = resultPacket.queries.get(0);
-                            if (topResult.formula != null) {
-                                sendAgentMessage("Received the parsing result from the server: ", true, false);
-                                sendAgentMessage(topResult.formula, false, false);
-                                pumiceInitInstructionParsingHandler.parseFromNewInitInstruction(topResult.formula);
-                            }
-                        }
-                        break;
-                    default:
-                        sendAgentMessage("Can't read from the server response", true, false);
-                }
-            }
-        } catch (Exception e){
-            e.printStackTrace();
-        }
+       pumiceDialogState.getPumiceUtteranceIntentHandlerInUse().handleServerResponse(this, responseCode, result);
     }
 }

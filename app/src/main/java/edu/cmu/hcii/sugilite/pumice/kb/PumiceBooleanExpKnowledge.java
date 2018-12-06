@@ -17,6 +17,10 @@ public class PumiceBooleanExpKnowledge {
     private Comparator comparator;
     private PumiceConstantValue param2;
 
+    public PumiceBooleanExpKnowledge(){
+
+    }
+
     public PumiceBooleanExpKnowledge (String expName, String utterance, PumiceValueQueryKnowledge param1, Comparator comparator, PumiceConstantValue param2){
         this.expName = expName;
         this.utterance = utterance;
@@ -56,6 +60,10 @@ public class PumiceBooleanExpKnowledge {
             }
         }
         return false;
+    }
+
+    public void setExpName(String expName) {
+        this.expName = expName;
     }
 
     public String getProcedureDescription(){

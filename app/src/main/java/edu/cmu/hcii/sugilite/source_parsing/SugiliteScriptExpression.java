@@ -120,28 +120,28 @@ public class SugiliteScriptExpression<T> {
             returnList.add(result);
             return returnList;
         }
-        else if (node.getChildren().size() == 1){
-            //node.children.size == 1
-            if(node.getChildren().get(0).getScriptContent().startsWith("(") && node.getChildren().get(0).getScriptContent().endsWith(")")){
-                //check if a single step with extra parenthesis - if so, return the parsing result for the only child
-                return parse(node.getChildren().get(0));
-            } else {
-                //is a simple constant
-                SugiliteScriptExpression<SugiliteSimpleConstant<String>> result = new SugiliteScriptExpression<>();
-                result.setConstant(true);
-                if (node.getValue() != null) {
-                    result.setConstantValue(new SugiliteSimpleConstant<>(node.getValue()));
-                } else {
-                    //TODO: temp hack
-                    result.setConstantValue(new SugiliteSimpleConstant<>(node.getScriptContent()));
-                }
-                result.setScriptContent(node.getScriptContent());
-                returnList.add(result);
-                return returnList;
-            }
-        } else {
-            throw new RuntimeException("empty node with no child");
+        else if (node.getChildren().size() == 1 && node.getChildren().get(0).getScriptContent().startsWith("(") && node.getChildren().get(0).getScriptContent().endsWith(")")) {
+            //extra redundant parenthesis
+            return parse(node.getChildren().get(0));
         }
+
+        else {
+            //is a simple constant
+            SugiliteScriptExpression<SugiliteSimpleConstant<String>> result = new SugiliteScriptExpression<>();
+            result.setConstant(true);
+            if (node.getValue() != null) {
+                result.setConstantValue(new SugiliteSimpleConstant<>(node.getValue()));
+            } else if (node.getScriptContent() != null) {
+                //TODO: temp hack
+                result.setConstantValue(new SugiliteSimpleConstant<>(node.getScriptContent()));
+            } else {
+                throw new RuntimeException("empty node with no child");
+            }
+            result.setScriptContent(node.getScriptContent());
+            returnList.add(result);
+            return returnList;
+        }
+
     }
 
     void extractVariableFromQuery(SerializableOntologyQuery query, SugiliteStartingBlock startingBlock){

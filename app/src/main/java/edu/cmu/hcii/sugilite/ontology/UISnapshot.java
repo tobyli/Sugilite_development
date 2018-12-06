@@ -101,14 +101,16 @@ public class UISnapshot {
         this.uiSnapshot = this;
         List<AccessibilityNodeInfo> allOldNodes = AutomatorUtil.preOrderTraverse(rootNode);
         List<Node> allNodes = new ArrayList<>();
-        for(AccessibilityNodeInfo oldNode : allOldNodes){
-            Node node = new Node(oldNode);
-            if(node.getPackageName() != null && (node.getPackageName().contains("com.android.systemui") || node.getPackageName().contains("sugilite"))){
-                continue;
-            }
-            allNodes.add(node);
-            if(toConstructNodeAccessibilityNodeInfoMap){
-                nodeAccessibilityNodeInfoMap.put(node, oldNode);
+        if(allOldNodes != null) {
+            for (AccessibilityNodeInfo oldNode : allOldNodes) {
+                Node node = new Node(oldNode);
+                if (node.getPackageName() != null && (node.getPackageName().contains("com.android.systemui") || node.getPackageName().contains("sugilite"))) {
+                    continue;
+                }
+                allNodes.add(node);
+                if (toConstructNodeAccessibilityNodeInfoMap) {
+                    nodeAccessibilityNodeInfoMap.put(node, oldNode);
+                }
             }
         }
         constructFromListOfNodes(allNodes, sugiliteTextAnnotator);

@@ -73,8 +73,8 @@ public class SugiliteVerbalInstructionHTTPQueryManager {
         con.setRequestProperty("User-Agent", USER_AGENT);
         con.setRequestProperty("Accept-Language", "en-US,en;q=0.5");
         con.setRequestProperty("Content-Type", "application/json");
-        con.setReadTimeout(1 * 60000);
-        con.setConnectTimeout(1 * 60000);
+        con.setReadTimeout(1 * 10000);
+        con.setConnectTimeout(1 * 10000);
 
         // Send post request
         con.setDoOutput(true);

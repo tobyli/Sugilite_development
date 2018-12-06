@@ -87,7 +87,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
     private SugiliteTextAnnotator sugiliteTextAnnotator;
     private FullScreenRecordingOverlayManager recordingOverlayManager;
     private TextToSpeech tts;
-    ExecutorService executor = Executors.newFixedThreadPool(10);
+    ExecutorService executor = Executors.newFixedThreadPool(1);
 
     //this thread is for generating ui snapshots
     ExecutorService uiSnapshotGenerationExecutor;
@@ -470,11 +470,13 @@ public class SugiliteAccessibilityService extends AccessibilityService {
                     }
                 }
 
-
+                AccessibilityNodeInfo new_root = rootNode;
                 //generate the uiSnapshot
-                AccessibilityNodeInfo new_root = sourceNode;
-                while (new_root.getParent() != null){
-                    new_root = new_root.getParent();
+                if(sourceNode != null) {
+                    new_root = sourceNode;
+                    while (new_root != null && new_root.getParent() != null) {
+                        new_root = new_root.getParent();
+                    }
                 }
                 final AccessibilityNodeInfo final_root = new_root;
 

@@ -49,7 +49,7 @@ public class PumiceUserExplainProcedureIntentHandler implements PumiceUtteranceI
                 @Override
                 public void run() {
                     AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(context);
-                    dialogBuilder.setMessage("Please start demonstrating this procedure")
+                    dialogBuilder.setMessage("Please start demonstrating this procedure.  Click OK to continue.")
                             .setIcon(android.R.drawable.ic_dialog_alert)
                             .setPositiveButton("OK", new DialogInterface.OnClickListener() {
                                 @Override

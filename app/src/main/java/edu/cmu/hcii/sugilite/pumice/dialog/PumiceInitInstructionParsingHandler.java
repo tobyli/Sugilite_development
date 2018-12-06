@@ -45,7 +45,7 @@ public class PumiceInitInstructionParsingHandler {
     private ExecutorService es;
     private PumiceDialogManager pumiceDialogManager;
 
-    //locks used to notify when a new intent has been handled by handlers that return a new knowledge object as the result
+    //locks used to notify() when a new intent has been handled by handlers that return a new knowledge object as the result
     public PumiceBooleanExpKnowledge resolveBoolExpLock = new PumiceBooleanExpKnowledge();
     public PumiceValueQueryKnowledge resolveValueLock = new PumiceValueQueryKnowledge();
     public PumiceProceduralKnowledge resolveProcedureLock = new PumiceProceduralKnowledge();
@@ -57,8 +57,12 @@ public class PumiceInitInstructionParsingHandler {
         this.sugiliteScriptParser = new SugiliteScriptParser();
         this.pumiceDialogManager = pumiceDialogManager;
         this.es = Executors.newCachedThreadPool();
-
     }
+
+    /**
+     * called externally to resolve all "resolve_" type function calls in the semantic parsing result
+     * @param serverResult
+     */
     public void parseFromNewInitInstruction(String serverResult){
         try {
             if(serverResult.length() > 0) {
@@ -71,9 +75,7 @@ public class PumiceInitInstructionParsingHandler {
         //resolve the unknown concepts in the current script
         try {
             resolveScript(currentScript);
-        } catch (ExecutionException e){
-            e.printStackTrace();
-        } catch (InterruptedException e){
+        } catch (Exception e){
             e.printStackTrace();
         }
 
@@ -82,15 +84,9 @@ public class PumiceInitInstructionParsingHandler {
         printCurrentScript();
     }
 
-    private void printCurrentScript(){
-        pumiceDialogManager.sendAgentMessage("Below is the current script after concept resolution: ", true, false);
-        pumiceDialogManager.sendAgentMessage(sugiliteScriptParser.scriptToString(currentScript), false, false);
-        pumiceDialogManager.sendAgentMessage("Below is the updated list of existing knowledge...", true, false);
-        pumiceDialogManager.sendAgentMessage(pumiceDialogManager.getPumiceKnowledgeManager().getKnowledgeInString(), false, false);
-    }
 
     /**
-     * go through a block, resolve unknown concepts in that block and ALL subsequent blocks
+     * go through a block, recursively resolve unknown concepts in that block and ALL subsequent blocks
      * @param block
      */
     private void resolveScript(SugiliteBlock block) throws ExecutionException, InterruptedException{
@@ -166,18 +162,7 @@ public class PumiceInitInstructionParsingHandler {
         }
     }
 
-    private void handleExistingGetFunctionInScript(SugiliteGetOperation getOperation){
-        if (getOperation.getType().equals(VALUE_QUERY_NAME)){
-            pumiceDialogManager.sendAgentMessage("I already know how to find out the value for " + getOperation.getName() + ".", true, false);
-        } else if (getOperation.getType().equals(BOOL_FUNCTION_NAME)){
-            pumiceDialogManager.sendAgentMessage("I already know how to tell whether " + getOperation.getName() + ".", true, false);
-        } else if (getOperation.getType().equals(PROCEDURE_NAME)){
-            pumiceDialogManager.sendAgentMessage("I already know how to " + getOperation.getName() + ".", true, false);
-        }
-    }
-
-
-    public class ResolveOperationTask implements Callable<SugiliteOperation> {
+    private class ResolveOperationTask implements Callable<SugiliteOperation> {
         /**
          * async task used for resolving unknown concepts in a "resolve" type of operation
          * @param operation
@@ -279,7 +264,26 @@ public class PumiceInitInstructionParsingHandler {
         }
     }
 
+    private void printCurrentScript(){
+        pumiceDialogManager.sendAgentMessage("Below is the current script after concept resolution: ", true, false);
+        pumiceDialogManager.sendAgentMessage(sugiliteScriptParser.scriptToString(currentScript), false, false);
+        pumiceDialogManager.sendAgentMessage("Below is the updated list of existing knowledge...", true, false);
+        pumiceDialogManager.sendAgentMessage(pumiceDialogManager.getPumiceKnowledgeManager().getKnowledgeInString(), false, false);
+    }
 
+    /**
+     * method called when process a "get" operation encountered in the parsing process
+     * @param getOperation
+     */
+    private void handleExistingGetFunctionInScript(SugiliteGetOperation getOperation){
+        if (getOperation.getType().equals(VALUE_QUERY_NAME)){
+            pumiceDialogManager.sendAgentMessage("I already know how to find out the value for " + getOperation.getName() + ".", true, false);
+        } else if (getOperation.getType().equals(BOOL_FUNCTION_NAME)){
+            pumiceDialogManager.sendAgentMessage("I already know how to tell whether " + getOperation.getName() + ".", true, false);
+        } else if (getOperation.getType().equals(PROCEDURE_NAME)){
+            pumiceDialogManager.sendAgentMessage("I already know how to " + getOperation.getName() + ".", true, false);
+        }
+    }
 
 
 }

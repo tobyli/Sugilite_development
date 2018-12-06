@@ -96,7 +96,8 @@ public class ScriptDetailActivity extends AppCompatActivity implements SugiliteV
     private SugiliteBlock newBlock;
     private String condition = "";
     private SugiliteBlock current;
-    private int newBlockIndex;
+    public int newBlockIndex;
+    public int lastBlockIndex;
 
     private PumiceDialogManager pumiceDialogManager;
     private TextToSpeech tts;
@@ -104,7 +105,7 @@ public class ScriptDetailActivity extends AppCompatActivity implements SugiliteV
     public boolean isSpeaking = false;
     public boolean isListening = false;
     private ImageButton speakButton;
-    private boolean clickedStep;
+    public boolean clickedStep;
     private SugiliteVerbalInstructionHTTPQueryManager sugiliteVerbalInstructionHTTPQueryManager;
     private SerializableUISnapshot serializableUISnapshot;
 
@@ -200,6 +201,7 @@ public class ScriptDetailActivity extends AppCompatActivity implements SugiliteV
                 new Exception("unsupported block type").printStackTrace();
             counter++;
         }
+        lastBlockIndex = counter-1;
 
         TextView tv = new TextView(context);
         tv.setText(Html.fromHtml("<b>END SCRIPT</b>"));
@@ -241,9 +243,39 @@ public class ScriptDetailActivity extends AppCompatActivity implements SugiliteV
                 tabs2 += t;
             }
             String ifBlockDes = "";
+            SugiliteBlock iterBlock = ifBlock;
+            while(iterBlock != null) {
+                ifBlockDes = ifBlockDes + " <br/>" + tabs + iterBlock.getDescription();
+                if (iterBlock instanceof SugiliteStartingBlock)
+                    iterBlock = ((SugiliteStartingBlock) iterBlock).getNextBlockCond();
+                else if (iterBlock instanceof SugiliteOperationBlock)
+                    iterBlock = ((SugiliteOperationBlock) iterBlock).getNextBlockCond();
+                else if (iterBlock instanceof SugiliteSpecialOperationBlock)
+                    iterBlock = ((SugiliteSpecialOperationBlock) iterBlock).getNextBlockCond();
+                else if (iterBlock instanceof SugiliteConditionBlock)
+                    iterBlock = ((SugiliteConditionBlock) iterBlock).getNextBlockCond();
+                else
+                    new Exception("unsupported block type").printStackTrace();
+            }
             String elseBlockDes = "";
-            block.setDescription(ReadableDescriptionGenerator.setColor("If ", Const.SCRIPT_CONDITIONAL_COLOR) + boolExp + ReadableDescriptionGenerator.setColor(" then ", Const.SCRIPT_CONDITIONAL_COLOR)  + " <br/>" + tabs + ifBlock.getDescription() + "<br/>" + tabs2 + ReadableDescriptionGenerator.setColor("Otherwise", Const.SCRIPT_CONDITIONAL_COLOR) + "<br/>" + tabs + elseBlock.getDescription());
-            return ReadableDescriptionGenerator.setColor("If ", Const.SCRIPT_CONDITIONAL_COLOR) + boolExp + ReadableDescriptionGenerator.setColor(" then ", Const.SCRIPT_CONDITIONAL_COLOR) + " <br/>" + tabs + ifBlock.getDescription() + "<br/>" + tabs2 + ReadableDescriptionGenerator.setColor("Otherwise", Const.SCRIPT_CONDITIONAL_COLOR) + "<br/>" + tabs + elseBlock.getDescription();
+            SugiliteBlock iterBlock2 = elseBlock;
+            while(iterBlock2 != null) {
+                System.out.println(iterBlock2);
+                System.out.println(iterBlock2.getDescription());
+                elseBlockDes = elseBlockDes + " <br/>" + tabs + iterBlock2.getDescription();
+                if (iterBlock2 instanceof SugiliteStartingBlock)
+                    iterBlock2 = ((SugiliteStartingBlock) iterBlock2).getNextBlockCond();
+                else if (iterBlock2 instanceof SugiliteOperationBlock)
+                    iterBlock2 = ((SugiliteOperationBlock) iterBlock2).getNextBlockCond();
+                else if (iterBlock2 instanceof SugiliteSpecialOperationBlock)
+                    iterBlock2 = ((SugiliteSpecialOperationBlock) iterBlock2).getNextBlockCond();
+                else if (iterBlock2 instanceof SugiliteConditionBlock)
+                    iterBlock2 = ((SugiliteConditionBlock) iterBlock2).getNextBlockCond();
+                else
+                    new Exception("unsupported block type").printStackTrace();
+            }
+            block.setDescription(ReadableDescriptionGenerator.setColor("If ", Const.SCRIPT_CONDITIONAL_COLOR) + boolExp + ReadableDescriptionGenerator.setColor(" then ", Const.SCRIPT_CONDITIONAL_COLOR)  + ifBlockDes + "<br/>" + tabs2 + ReadableDescriptionGenerator.setColor("Otherwise", Const.SCRIPT_CONDITIONAL_COLOR) + elseBlockDes);
+            return ReadableDescriptionGenerator.setColor("If ", Const.SCRIPT_CONDITIONAL_COLOR) + boolExp + ReadableDescriptionGenerator.setColor(" then ", Const.SCRIPT_CONDITIONAL_COLOR) + ifBlockDes + "<br/>" + tabs2 + ReadableDescriptionGenerator.setColor("Otherwise", Const.SCRIPT_CONDITIONAL_COLOR) + elseBlockDes;
         }
         else {
             String t = "&nbsp;&nbsp;&nbsp;&nbsp;";
@@ -251,8 +283,23 @@ public class ScriptDetailActivity extends AppCompatActivity implements SugiliteV
             for(int c = 0; c < count-1; c++) {
                 tabs += t;
             }
-            block.setDescription(ReadableDescriptionGenerator.setColor("If ", Const.SCRIPT_CONDITIONAL_COLOR) + boolExp + ReadableDescriptionGenerator.setColor(" then ", Const.SCRIPT_CONDITIONAL_COLOR) + " <br/>" + tabs + ifBlock.getDescription());
-            return ReadableDescriptionGenerator.setColor("If ", Const.SCRIPT_CONDITIONAL_COLOR) + boolExp + ReadableDescriptionGenerator.setColor(" then ", Const.SCRIPT_CONDITIONAL_COLOR)  + " <br/>" + tabs + ifBlock.getDescription();
+            String ifBlockDes = "";
+            SugiliteBlock iterBlock = ifBlock;
+            while(iterBlock != null) {
+                ifBlockDes = ifBlockDes + " <br/>" + tabs + iterBlock.getDescription();
+                if (iterBlock instanceof SugiliteStartingBlock)
+                    iterBlock = ((SugiliteStartingBlock) iterBlock).getNextBlockCond();
+                else if (iterBlock instanceof SugiliteOperationBlock)
+                    iterBlock = ((SugiliteOperationBlock) iterBlock).getNextBlockCond();
+                else if (iterBlock instanceof SugiliteSpecialOperationBlock)
+                    iterBlock = ((SugiliteSpecialOperationBlock) iterBlock).getNextBlockCond();
+                else if (iterBlock instanceof SugiliteConditionBlock)
+                    iterBlock = ((SugiliteConditionBlock) iterBlock).getNextBlockCond();
+                else
+                    new Exception("unsupported block type").printStackTrace();
+            }
+            block.setDescription(ReadableDescriptionGenerator.setColor("If ", Const.SCRIPT_CONDITIONAL_COLOR) + boolExp + ReadableDescriptionGenerator.setColor(" then ", Const.SCRIPT_CONDITIONAL_COLOR) + ifBlockDes);
+            return ReadableDescriptionGenerator.setColor("If ", Const.SCRIPT_CONDITIONAL_COLOR) + boolExp + ReadableDescriptionGenerator.setColor(" then ", Const.SCRIPT_CONDITIONAL_COLOR) + ifBlockDes;
         }
     }
 
@@ -992,7 +1039,7 @@ public class ScriptDetailActivity extends AppCompatActivity implements SugiliteV
         tts = new TextToSpeech(this, new TextToSpeech.OnInitListener() {
             @Override
             public void onInit(int status) {
-                pumiceDialogManager.sendAgentMessage("What would you like to do?", true, true);
+                pumiceDialogManager.sendAgentMessage("You are adding a step to do different things in different cases. What should I check to figure out what case we're in?", true, true);
             }
         });
         tts.setLanguage(Locale.US);
@@ -1006,6 +1053,7 @@ public class ScriptDetailActivity extends AppCompatActivity implements SugiliteV
     public void determineConditionalLoc(SugiliteBlock sb) {
         //String newText = "(call if (call equal (number 90 Fahrenheit) (number 90 Fahrenheit)) (call click (hasText coldCoffee)))";
         newBlock = sb;
+        ((SugiliteConditionBlock) newBlock).setIfBlock(null);
         if(clickedStep) {
             newBlockIndex = Integer.parseInt(contextTextView.getText().toString().substring(0,1));
         }
@@ -1013,34 +1061,31 @@ public class ScriptDetailActivity extends AppCompatActivity implements SugiliteV
             newBlockIndex = 1;
         }
         newBlock.inScope = true;
-        if(((SugiliteConditionBlock) newBlock).getIfBlock() != null) {
-            if(clickedStep) {
-                pumiceDialogManager.sendAgentMessage("Ok, do you want this step to go before or after the step you clicked?",true,true);
-            }
-            else {
-                System.out.println("newBlock: " + newBlock);
-                System.out.println("script: " + script);
+        //if(((SugiliteConditionBlock) newBlock).getIfBlock() != null) {
+        if(clickedStep) {
+                pumiceDialogManager.sendAgentMessage("Ok, do you want this check to happen before or after step " + newBlockIndex + "?",true,true);
+        } else {
                 SugiliteBlock holdBlock = script.getNextBlock();
-                System.out.println("holdBlock: " + holdBlock);
                 script.setNextBlock(newBlock);
-                script.setPreviousBlock(null);
                 newBlock.setPreviousBlock(script);
                 newBlock.setNextBlock(holdBlock);
                 holdBlock.setPreviousBlock(newBlock);
                 loadOperationList();
-                pumiceDialogManager.sendAgentMessage("Ok, does it look like the new step happens at the right time?",true,true);
-            }
+                pumiceDialogManager.sendAgentMessage("Ok, does it look like the check happens at the right time?",true,true);
         }
+        /*}
         else {
-            //need to make it so will hold entire script, handle for both versions of editScript()
+            //handle for both versions of editScript()
             SugiliteBlock holdBlock = script.getNextBlock();
-            ((SugiliteConditionBlock) newBlock).setIfBlock(holdBlock);
             script.setNextBlock(newBlock);
-            holdBlock.setParentBlock(newBlock);
+            newBlock.setPreviousBlock(script);
+            ((SugiliteConditionBlock) newBlock).setIfBlock(holdBlock);
             holdBlock.setPreviousBlock(null);
+            holdBlock.setParentBlock(newBlock);
+            newBlock.setNextBlock(null);
             loadOperationList();
             //pumiceDialogManager.sendAgentMessage("Ok, does it look like the new step happens at the right time?",true,true);
-        }
+        }*/
     }
 
     public void determineConditionalLoc2(boolean after) {
@@ -1076,7 +1121,7 @@ public class ScriptDetailActivity extends AppCompatActivity implements SugiliteV
             newBlockIndex = i+1;
         }
         loadOperationList();
-        pumiceDialogManager.sendAgentMessage("Ok, does it look like the new step happens at the right time?",true,true);
+        pumiceDialogManager.sendAgentMessage("Ok, does it look like the check happens at the right time?",true,true);
     }
 
     public void testRun() {

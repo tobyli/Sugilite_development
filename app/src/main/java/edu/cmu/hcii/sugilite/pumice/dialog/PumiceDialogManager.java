@@ -15,6 +15,8 @@ import java.util.Calendar;
 import java.util.List;
 
 import edu.cmu.hcii.sugilite.R;
+import edu.cmu.hcii.sugilite.model.block.SugiliteConditionBlock;
+import edu.cmu.hcii.sugilite.model.block.booleanexp.SugiliteBooleanExpressionNew;
 import edu.cmu.hcii.sugilite.pumice.communication.PumiceSemanticParsingResultPacket;
 import edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.PumiceInitInstructionParsingHandler;
 import edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.PumiceStartUtteranceIntentHandler;
@@ -45,6 +47,10 @@ public class PumiceDialogManager implements SugiliteVerbalInstructionHTTPQueryIn
     private SugiliteVerbalInstructionHTTPQueryManager httpQueryManager;
     private SharedPreferences sharedPreferences;
     public SugiliteBlock tResult;
+    public String check;
+    public boolean addElse = false;
+    public SugiliteBlock conditionBlock = null;
+    public boolean justChecking = false;
 
     private List<PumiceDialogState> stateHistoryList;
 
@@ -115,7 +121,6 @@ public class PumiceDialogManager implements SugiliteVerbalInstructionHTTPQueryIn
      * @param requireUserResponse
      */
     public void sendAgentMessage(String message, boolean isSpokenMessage, boolean requireUserResponse){
-        System.out.println("SEND");
         PumiceUtterance utterance = new PumiceUtterance(Sender.AGENT, message, Calendar.getInstance().getTimeInMillis(), isSpokenMessage, requireUserResponse);
         pumiceDialogState.getUtteranceHistory().add(utterance);
         pumiceDialogView.addMessage(utterance);
@@ -166,7 +171,6 @@ public class PumiceDialogManager implements SugiliteVerbalInstructionHTTPQueryIn
                 @Override
                 public void run() {
                     if(requireUserResponse && speakButtonForCallback != null){
-                        System.out.println("HITHER");
                         speakButtonForCallback.callOnClick();
                         pumiceDialogView.postDelayed(new Runnable() {
                             @Override
@@ -354,10 +358,10 @@ public class PumiceDialogManager implements SugiliteVerbalInstructionHTTPQueryIn
                         if (resultPacket.queries != null && resultPacket.queries.size() > 0) {
                             PumiceSemanticParsingResultPacket.QueryGroundingPair topResult = resultPacket.queries.get(0);
                             if (topResult.formula != null) {
+                                System.out.println("HERE " + topResult.formula);
                                 sendAgentMessage("Received the parsing result from the server: ", true, false);
                                 sendAgentMessage(topResult.formula, false, false);
                                 pumiceInitInstructionParsingHandler.parseFromNewInitInstruction(topResult.formula);
-                                tResult = pumiceInitInstructionParsingHandler.currentScript.getNextBlock();
                             }
                         }
                         break;
@@ -369,4 +373,10 @@ public class PumiceDialogManager implements SugiliteVerbalInstructionHTTPQueryIn
             e.printStackTrace();
         }
     }
+
+    public void settResult(SugiliteBlock tResult) {
+        this.tResult = tResult;
+    }
+
+    public void setCheckResult(String check) { this.check = check;}
 }

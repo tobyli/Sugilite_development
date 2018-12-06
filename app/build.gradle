@@ -2,12 +2,12 @@ apply plugin: 'com.android.application'
 //apply plugin: 'com.android.library'
 
 android {
-    compileSdkVersion 25
+    compileSdkVersion 26//25
     buildToolsVersion '28.0.3'
     defaultConfig {
         applicationId "edu.cmu.hcii.sugilite"
         minSdkVersion 24
-        targetSdkVersion 25
+        targetSdkVersion 26//25
         versionCode 2
         versionName "1.1"
         multiDexEnabled true
@@ -50,9 +50,9 @@ dependencies {
     implementation 'com.android.support.constraint:constraint-layout:1.1.3'
     compile fileTree(include: ['*.jar'], dir: 'libs')
     testCompile 'junit:junit:4.12'
-    compile 'com.android.support:appcompat-v7:25.3.1'
-    compile 'com.android.support:design:25.3.1'
-    compile 'com.android.support:support-v4:25.3.1'
+    compile 'com.android.support:appcompat-v7:26.0.2'//25.3.1
+    compile 'com.android.support:design:26.0.2'//25.3.1
+    compile 'com.android.support:support-v4:26.0.2'//25.3.1
     compile 'com.google.code.gson:gson:2.2.4'
     compile 'com.opencsv:opencsv:3.9'
     compile 'org.apache.commons:commons-lang3:3.4'

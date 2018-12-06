@@ -73,6 +73,10 @@ public abstract class SugiliteBlock implements Serializable{
         return nextBlock;
     }
 
+    public SugiliteBlock getNextBlockCond() {
+        return nextBlock;
+    }
+
     public void setNextBlock(SugiliteBlock nextBlock) {
         this.nextBlock = nextBlock;
     }

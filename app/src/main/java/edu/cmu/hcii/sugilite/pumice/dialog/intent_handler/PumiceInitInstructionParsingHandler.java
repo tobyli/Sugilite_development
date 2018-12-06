@@ -47,8 +47,11 @@ public class PumiceInitInstructionParsingHandler {
 
     }
     public void parseFromNewInitInstruction(String serverResult){
+        System.out.println("ASDF");
+        System.out.println(serverResult);
+        currentScript = null;
         try {
-            if(serverResult.length() > 0) {
+            if(serverResult.length() > 0 && serverResult.contains("resolve_")) {
                 SugiliteStartingBlock script = sugiliteScriptParser.parseBlockFromString(serverResult);
                 currentScript = script;
             }
@@ -57,7 +60,11 @@ public class PumiceInitInstructionParsingHandler {
         }
         //resolve the unknown concepts in the current script
         resolveScript(currentScript);
-        pumiceDialogManager.tResult = currentScript;
+        pumiceDialogManager.settResult(currentScript.getNextBlock());
+        System.out.println("ASDF2");
+        System.out.println(serverResult);
+        System.out.println(currentScript);
+        System.out.println(currentScript.getNextBlock());
 
         //done
         if(context instanceof ScriptDetailActivity) {
@@ -66,13 +73,17 @@ public class PumiceInitInstructionParsingHandler {
         else {
             pumiceDialogManager.sendAgentMessage("I've finished resolving all concepts in the script", true, false);
         }
-        printCurrentScript(serverResult);
+        printCurrentScript();
     }
 
-    private void printCurrentScript(String s){
-        if(context instanceof ScriptDetailActivity) {
-            pumiceDialogManager.sendAgentMessage(sugiliteScriptParser.scriptToString(currentScript), false, false);
-            pumiceDialogManager.sendAgentMessage("Should I add the new step to the script?",true,true);
+    private void printCurrentScript(){
+        if(context instanceof ScriptDetailActivity && !pumiceDialogManager.addElse) {
+            pumiceDialogManager.sendAgentMessage("I understood to check if" + pumiceDialogManager.check, true, false);
+            pumiceDialogManager.sendAgentMessage("Should I add this new check to the script?",true,true);
+        }
+        else if(context instanceof ScriptDetailActivity) {
+            pumiceDialogManager.sendAgentMessage("What I understood to do is " + ((SugiliteConditionBlock) currentScript.getNextBlock()).getIfBlock().toString(), true, false);
+            pumiceDialogManager.sendAgentMessage("Should I add this to the script?",true,true);
         }
         else {
             pumiceDialogManager.sendAgentMessage("Below is the current script after concept resolution: ", true, false);
@@ -153,6 +164,7 @@ public class PumiceInitInstructionParsingHandler {
         if (getOperation.getType().equals(VALUE_QUERY_NAME)){
             pumiceDialogManager.sendAgentMessage("I already know how to find out the value for " + getOperation.getName() + ".", true, false);
         } else if (getOperation.getType().equals(BOOL_FUNCTION_NAME)){
+            pumiceDialogManager.check = getOperation.getName();
             pumiceDialogManager.sendAgentMessage("I already know how to tell whether " + getOperation.getName() + ".", true, false);
         } else if (getOperation.getType().equals(PROCEDURE_NAME)){
             pumiceDialogManager.sendAgentMessage("I already know how to " + getOperation.getName() + ".", true, false);
@@ -166,7 +178,9 @@ public class PumiceInitInstructionParsingHandler {
     private SugiliteOperation resolveOperation(SugiliteOperation operation){
         if (operation instanceof SugiliteResolveProcedureOperation){
             String procedureUtterance = ((SugiliteResolveProcedureOperation) operation).getParameter0();
-            pumiceDialogManager.sendAgentMessage("How do I " + procedureUtterance + "?", true, false);
+            if(!pumiceDialogManager.justChecking) {
+                pumiceDialogManager.sendAgentMessage("How do I " + procedureUtterance + "?", true, false);
+            }
             //TODO: resolve -- user response
 
             //for testing purpose
@@ -175,27 +189,38 @@ public class PumiceInitInstructionParsingHandler {
             PumiceProceduralKnowledge proceduralKnowledge = new PumiceProceduralKnowledge(procedureUtterance, procedureUtterance, appList);
 
             pumiceDialogManager.getPumiceKnowledgeManager().addPumiceProceduralKnowledge(proceduralKnowledge);
-            pumiceDialogManager.sendAgentMessage("OK, I learned how to " + procedureUtterance + ".", true, false);
+            if(!pumiceDialogManager.justChecking) {
+                pumiceDialogManager.sendAgentMessage("OK, I learned how to " + procedureUtterance + ".", true, false);
+            }
             return new SugiliteGetOperation<Void>(procedureUtterance, SugiliteGetOperation.PROCEDURE_NAME);
         }
 
-        else if (operation instanceof SugiliteResolveValueQueryOperation){
+        else if (operation instanceof SugiliteResolveValueQueryOperation) {
             String valueUtterance = ((SugiliteResolveValueQueryOperation) operation).getParameter0();
-            pumiceDialogManager.sendAgentMessage("How do I find out the value for " + valueUtterance + "?", true, false);
+            if (!pumiceDialogManager.justChecking) {
+                pumiceDialogManager.sendAgentMessage("How do I find out the value for " + valueUtterance + "?", true, false);
+            }
             //TODO: resolve -- user response
             PumiceValueQueryKnowledge valueQueryKnowledge = new PumiceValueQueryKnowledge(valueUtterance, PumiceValueQueryKnowledge.ValueType.STRING);
             pumiceDialogManager.getPumiceKnowledgeManager().addPumiceValueQueryKnowledge(valueQueryKnowledge);
-            pumiceDialogManager.sendAgentMessage("OK, I learned how to find out the value for " + valueUtterance + ".", true, false);
+            if(!pumiceDialogManager.justChecking) {
+                pumiceDialogManager.sendAgentMessage("OK, I learned how to find out the value for " + valueUtterance + ".", true, false);
+            }
             return new SugiliteGetOperation<Number>(valueUtterance, VALUE_QUERY_NAME);
         }
 
         else if (operation instanceof SugiliteResolveBoolExpOperation){
             String boolUtterance = ((SugiliteResolveBoolExpOperation) operation).getParameter0();
-            pumiceDialogManager.sendAgentMessage("How do I tell whether " + boolUtterance + "?", true, false);
+            pumiceDialogManager.check = boolUtterance;
+            if(!pumiceDialogManager.addElse) {
+                pumiceDialogManager.sendAgentMessage("How do I tell whether " + boolUtterance + "?", true, false);
+            }
             //TODO: resolve -- user response
             PumiceBooleanExpKnowledge booleanExpKnowledge = new PumiceBooleanExpKnowledge(boolUtterance, boolUtterance, null, null, null);
             pumiceDialogManager.getPumiceKnowledgeManager().addPumiceBooleanExpKnowledge(booleanExpKnowledge);
-            pumiceDialogManager.sendAgentMessage("OK, I learned how to tell whether " + boolUtterance + ".", true, false);
+            if(!pumiceDialogManager.addElse) {
+                pumiceDialogManager.sendAgentMessage("OK, I learned how to tell whether " + boolUtterance + ".", true, false);
+            }
             return new SugiliteGetOperation<Boolean>(boolUtterance, VALUE_QUERY_NAME);
         }
 

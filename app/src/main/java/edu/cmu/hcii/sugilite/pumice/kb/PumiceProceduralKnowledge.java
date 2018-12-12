@@ -20,6 +20,10 @@ public class PumiceProceduralKnowledge {
     private List<String> involvedAppNames;
     private Map<String, PumiceProceduralKnowledgeParameter> parameterNameParameterMap;
 
+    public PumiceProceduralKnowledge(){
+
+    }
+
     public PumiceProceduralKnowledge(String procedureName, String utterance, Collection<String> involvedAppNames){
         this.procedureName = procedureName;
         this.utterance = utterance;
@@ -51,6 +55,13 @@ public class PumiceProceduralKnowledge {
         return "How to " + parameterizedUtterance + " in " + StringUtils.join(involvedAppNames, ",");
     }
 
+    public void setProcedureName(String procedureName) {
+        this.procedureName = procedureName;
+    }
+
+    public void setUtterance(String utterance) {
+        this.utterance = utterance;
+    }
 
     public static class PumiceProceduralKnowledgeParameter<T> {
         //T currently supports numerical and String

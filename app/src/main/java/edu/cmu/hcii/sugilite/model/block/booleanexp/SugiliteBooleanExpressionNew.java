@@ -139,34 +139,34 @@ public class SugiliteBooleanExpressionNew implements SugiliteValue<Boolean> {
                 return new SugiliteBooleanExpressionNew(scriptExpression);
 
             } else if (scriptExpression.getArguments() != null) {
-                List<SugiliteScriptExpression> argList = scriptExpression.getArguments();
+                List<List<SugiliteScriptExpression>> argList = scriptExpression.getArguments();
                 if (scriptExpression.getOperationName().equals("resolve_boolExp") && scriptExpression.getArguments().size() == 1){
                     SugiliteResolveBoolExpOperation boolExpOperation = new SugiliteResolveBoolExpOperation();
-                    String parameter0 = argList.get(0).getConstantValue().toString();
-                    if(argList.get(0).getConstantValue() instanceof SugiliteSimpleConstant){
-                        parameter0 = ((SugiliteSimpleConstant) argList.get(0).getConstantValue()).evaluate().toString();
+                    String parameter0 = argList.get(0).get(0).getConstantValue().toString();
+                    if(argList.get(0).get(0).getConstantValue() instanceof SugiliteSimpleConstant){
+                        parameter0 = ((SugiliteSimpleConstant) argList.get(0).get(0).getConstantValue()).evaluate().toString();
                     }
                     boolExpOperation.setParameter0(parameter0);
                     return boolExpOperation;
 
                 } else if (scriptExpression.getOperationName().equals("resolve_valueQuery") && scriptExpression.getArguments().size() == 1){
                     SugiliteResolveValueQueryOperation valueQueryOperation = new SugiliteResolveValueQueryOperation();
-                    String parameter0 = argList.get(0).getConstantValue().toString();
-                    if(argList.get(0).getConstantValue() instanceof SugiliteSimpleConstant){
-                        parameter0 = ((SugiliteSimpleConstant) argList.get(0).getConstantValue()).evaluate().toString();
+                    String parameter0 = argList.get(0).get(0).getConstantValue().toString();
+                    if(argList.get(0).get(0).getConstantValue() instanceof SugiliteSimpleConstant){
+                        parameter0 = ((SugiliteSimpleConstant) argList.get(0).get(0).getConstantValue()).evaluate().toString();
                     }
                     valueQueryOperation.setParameter0(parameter0);
                     return valueQueryOperation;
 
                 } else if (scriptExpression.getOperationName().equals("get") && scriptExpression.getArguments().size() == 2){
                     SugiliteGetOperation getOperation = new SugiliteGetOperation();
-                    String parameter0 = argList.get(0).getConstantValue().toString();
-                    if(argList.get(0).getConstantValue() instanceof SugiliteSimpleConstant){
-                        parameter0 = ((SugiliteSimpleConstant) argList.get(0).getConstantValue()).evaluate().toString();
+                    String parameter0 = argList.get(0).get(0).getConstantValue().toString();
+                    if(argList.get(0).get(0).getConstantValue() instanceof SugiliteSimpleConstant){
+                        parameter0 = ((SugiliteSimpleConstant) argList.get(0).get(0).getConstantValue()).evaluate().toString();
                     }
-                    String parameter1 = argList.get(1).getConstantValue().toString();
-                    if(argList.get(1).getConstantValue() instanceof SugiliteSimpleConstant){
-                        parameter1 = ((SugiliteSimpleConstant) argList.get(1).getConstantValue()).evaluate().toString();
+                    String parameter1 = argList.get(1).get(0).getConstantValue().toString();
+                    if(argList.get(1).get(0).getConstantValue() instanceof SugiliteSimpleConstant){
+                        parameter1 = ((SugiliteSimpleConstant) argList.get(1).get(0).getConstantValue()).evaluate().toString();
                     }
                     getOperation.setParameter0(parameter0);
                     getOperation.setParameter1(parameter1);

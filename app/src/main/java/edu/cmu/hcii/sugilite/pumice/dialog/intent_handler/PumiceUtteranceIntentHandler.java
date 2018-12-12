@@ -10,7 +10,7 @@ import edu.cmu.hcii.sugilite.pumice.dialog.PumiceDialogManager;
  * @time 1:33 PM
  */
 public interface PumiceUtteranceIntentHandler {
-    enum PumiceIntent {USER_INIT_INSTRUCTION, TEST_WEATHER, START_OVER, UNDO_STEP, SHOW_KNOWLEDGE, SHOW_RAW_KNOWLEDGE, ADD_CONDITIONAL, ADD_CONDITIONAL_2, ADD_TO_SCRIPT, CHECKING_LOC, RUN_THROUGH, MOVE_STEP, GET_SCOPE, ADD_ELSE, TELL_ELSE, ADD_TELL_ELSE, SCRIPT_ADD_TELL_ELSE}
+    enum PumiceIntent {USER_INIT_INSTRUCTION, TEST_WEATHER, START_OVER, UNDO_STEP, SHOW_KNOWLEDGE, SHOW_RAW_KNOWLEDGE, DEFINE_BOOL_EXP, DEFINE_VALUE_EXP, DEFINE_VALUE_DEMONSTRATION, DEFINE_PROCEDURE_EXP, DEFINE_PROCEDURE_DEMONSTATION,ADD_CONDITIONAL, ADD_CONDITIONAL_2, ADD_TO_SCRIPT, CHECKING_LOC, RUN_THROUGH, MOVE_STEP, GET_SCOPE, ADD_ELSE, TELL_ELSE, ADD_TELL_ELSE, SCRIPT_ADD_TELL_ELSE}
 
 
     /**
@@ -21,5 +21,6 @@ public interface PumiceUtteranceIntentHandler {
     PumiceIntent detectIntentFromUtterance(PumiceDialogManager.PumiceUtterance utterance);
     void handleIntentWithUtterance(PumiceDialogManager dialogManager, PumiceIntent pumiceIntent, PumiceDialogManager.PumiceUtterance utterance);
     void setContext(Context context);
+    void handleServerResponse(PumiceDialogManager dialogManager, int responseCode, String result);
 
 }

@@ -11,6 +11,10 @@ public class PumiceValueQueryKnowledge<T> {
     private String valueName;
     private ValueType valueType;
 
+    public PumiceValueQueryKnowledge(){
+
+    }
+
     public PumiceValueQueryKnowledge(String valueName, ValueType valueType){
         this.valueName = valueName;
         this.valueType = valueType;
@@ -22,6 +26,10 @@ public class PumiceValueQueryKnowledge<T> {
 
     public ValueType getValueType() {
         return valueType;
+    }
+
+    public void setValueName(String valueName) {
+        this.valueName = valueName;
     }
 
     T getValue(){

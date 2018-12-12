@@ -3,10 +3,15 @@ package edu.cmu.hcii.sugilite.pumice.dialog.intent_handler;
 import android.content.Context;
 import android.widget.ImageView;
 
+import com.google.gson.Gson;
+
 import java.util.Calendar;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import edu.cmu.hcii.sugilite.R;
 import edu.cmu.hcii.sugilite.pumice.communication.PumiceInstructionPacket;
+import edu.cmu.hcii.sugilite.pumice.communication.PumiceSemanticParsingResultPacket;
 import edu.cmu.hcii.sugilite.pumice.dialog.PumiceDialogManager;
 
 /**
@@ -14,12 +19,16 @@ import edu.cmu.hcii.sugilite.pumice.dialog.PumiceDialogManager;
  * @date 10/26/18
  * @time 1:33 PM
  */
-public class PumiceStartUtteranceIntentHandler implements PumiceUtteranceIntentHandler {
+
+public class PumiceDefaultUtteranceIntentHandler implements PumiceUtteranceIntentHandler {
     private transient Context context;
-    Calendar calendar;
-    public PumiceStartUtteranceIntentHandler(Context context){
+    private Calendar calendar;
+    private ExecutorService es;
+
+    public PumiceDefaultUtteranceIntentHandler(Context context){
         this.context = context;
         this.calendar = Calendar.getInstance();
+        this.es = Executors.newCachedThreadPool();
     }
 
     @Override
@@ -62,6 +71,12 @@ public class PumiceStartUtteranceIntentHandler implements PumiceUtteranceIntentH
         }
     }
 
+    /**
+     * handle the intent when the user is in the default state
+     * @param dialogManager
+     * @param pumiceIntent
+     * @param utterance
+     */
     @Override
     public void handleIntentWithUtterance(PumiceDialogManager dialogManager, PumiceIntent pumiceIntent, PumiceDialogManager.PumiceUtterance utterance) {
         switch (pumiceIntent) {
@@ -91,14 +106,50 @@ public class PumiceStartUtteranceIntentHandler implements PumiceUtteranceIntentH
                 System.out.println(pumiceInstructionPacket.toString());
                 break;
             case SHOW_KNOWLEDGE:
-                dialogManager.sendAgentMessage("Below are the existing knowledge: \n\n" + dialogManager.getPumiceKnowledgeManager().getKnowledgeInString(), true, false);
+                dialogManager.sendAgentMessage("Below are the existing knowledge...", true, false);
+                dialogManager.sendAgentMessage(dialogManager.getPumiceKnowledgeManager().getKnowledgeInString(), false, false);
                 break;
             case SHOW_RAW_KNOWLEDGE:
-                dialogManager.sendAgentMessage("Below are the existing knowledge: \n\n" + dialogManager.getPumiceKnowledgeManager().getRawKnowledgeInString(), false, false);
+                dialogManager.sendAgentMessage("Below are the raw knowledge..." + dialogManager.getPumiceKnowledgeManager().getRawKnowledgeInString(), true, false);
+                dialogManager.sendAgentMessage(dialogManager.getPumiceKnowledgeManager().getRawKnowledgeInString(), false, false);
                 break;
             default:
                 dialogManager.sendAgentMessage("I don't understand this intent", true, false);
                 break;
+        }
+    }
+
+    @Override
+    public void handleServerResponse(PumiceDialogManager dialogManager, int responseCode, String result) {
+        //TODO: handle server response from the semantic parsing server
+        Gson gson = new Gson();
+        try {
+            PumiceSemanticParsingResultPacket resultPacket = gson.fromJson(result, PumiceSemanticParsingResultPacket.class);
+            if (resultPacket.utteranceType != null) {
+                switch (PumiceUtteranceIntentHandler.PumiceIntent.valueOf(resultPacket.utteranceType)) {
+                    case USER_INIT_INSTRUCTION:
+                        if (resultPacket.queries != null && resultPacket.queries.size() > 0) {
+                            PumiceSemanticParsingResultPacket.QueryGroundingPair topResult = resultPacket.queries.get(0);
+                            if (topResult.formula != null) {
+                                dialogManager.sendAgentMessage("Received the parsing result from the server: ", true, false);
+                                dialogManager.sendAgentMessage(topResult.formula, false, false);
+                                Runnable r = new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        dialogManager.getPumiceInitInstructionParsingHandler().parseFromNewInitInstruction(topResult.formula);
+                                    }
+                                };
+                                //do the parse on a new thread so it doesn't block the conversational I/O
+                                es.submit(r);
+                            }
+                        }
+                        break;
+                    default:
+                        dialogManager.sendAgentMessage("Can't read from the server response", true, false);
+                }
+            }
+        } catch (Exception e){
+            e.printStackTrace();
         }
     }
 }

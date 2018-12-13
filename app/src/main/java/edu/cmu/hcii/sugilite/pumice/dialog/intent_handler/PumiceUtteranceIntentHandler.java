@@ -12,7 +12,6 @@ import edu.cmu.hcii.sugilite.pumice.dialog.PumiceDialogManager;
 public interface PumiceUtteranceIntentHandler {
     enum PumiceIntent {USER_INIT_INSTRUCTION, TEST_WEATHER, START_OVER, UNDO_STEP, SHOW_KNOWLEDGE, SHOW_RAW_KNOWLEDGE, DEFINE_BOOL_EXP, DEFINE_VALUE_EXP, DEFINE_VALUE_DEMONSTRATION, DEFINE_PROCEDURE_EXP, DEFINE_PROCEDURE_DEMONSTATION}
 
-
     /**
      * detect the intent type from a given user utterance
      * @param utterance
@@ -21,6 +20,4 @@ public interface PumiceUtteranceIntentHandler {
     PumiceIntent detectIntentFromUtterance(PumiceDialogManager.PumiceUtterance utterance);
     void handleIntentWithUtterance(PumiceDialogManager dialogManager, PumiceIntent pumiceIntent, PumiceDialogManager.PumiceUtterance utterance);
     void setContext(Context context);
-    void handleServerResponse(PumiceDialogManager dialogManager, int responseCode, String result);
-
 }

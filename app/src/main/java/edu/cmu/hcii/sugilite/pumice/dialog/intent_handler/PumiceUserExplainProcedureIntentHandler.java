@@ -10,6 +10,7 @@ import java.util.List;
 
 import edu.cmu.hcii.sugilite.pumice.dialog.PumiceDialogManager;
 import edu.cmu.hcii.sugilite.pumice.kb.PumiceProceduralKnowledge;
+import edu.cmu.hcii.sugilite.verbal_instruction_demo.server_comm.SugiliteVerbalInstructionHTTPQueryInterface;
 
 /**
  * @author toby
@@ -18,12 +19,22 @@ import edu.cmu.hcii.sugilite.pumice.kb.PumiceProceduralKnowledge;
  */
 
 //class used for handle utterances when the user explain a PumiceProceduralKnowledge
-public class PumiceUserExplainProcedureIntentHandler implements PumiceUtteranceIntentHandler {
+public class PumiceUserExplainProcedureIntentHandler implements PumiceUtteranceIntentHandler, SugiliteVerbalInstructionHTTPQueryInterface {
     private transient Context context;
+    private transient PumiceDialogManager pumiceDialogManager;
+    private String parentKnowledgeName;
+
+    //need to notify this lock when the procedure is resolved, and return the value through this object
+    private PumiceProceduralKnowledge resolveProcedureLock;
     Calendar calendar;
-    public PumiceUserExplainProcedureIntentHandler(Context context){
+
+
+    public PumiceUserExplainProcedureIntentHandler(PumiceDialogManager pumiceDialogManager, Context context, PumiceProceduralKnowledge resolveProcedureLock, String parentKnowledgeName){
+        this.pumiceDialogManager = pumiceDialogManager;
         this.context = context;
         this.calendar = Calendar.getInstance();
+        this.resolveProcedureLock = resolveProcedureLock;
+        this.parentKnowledgeName = parentKnowledgeName;
     }
 
     @Override
@@ -41,7 +52,7 @@ public class PumiceUserExplainProcedureIntentHandler implements PumiceUtteranceI
             //test
             List<String> appList = new ArrayList<>();
             appList.add("Test App 2");
-            returnUserExplainProcedureResult(dialogManager, new PumiceProceduralKnowledge(utterance.getContent(), utterance.getContent(), appList));
+            returnUserExplainProcedureResult(dialogManager, new PumiceProceduralKnowledge(parentKnowledgeName, utterance.getContent(), appList));
         }
 
         else if (pumiceIntent.equals(PumiceIntent.DEFINE_PROCEDURE_DEMONSTATION)){
@@ -56,8 +67,8 @@ public class PumiceUserExplainProcedureIntentHandler implements PumiceUtteranceI
                                 public void onClick(DialogInterface dialog, int which) {
                                     //TODO: handle demonstration
                                     List<String> appList = new ArrayList<>();
-                                    appList.add("Test App 2");
-                                    returnUserExplainProcedureResult(dialogManager, new PumiceProceduralKnowledge(utterance.getContent(), utterance.getContent(), appList));
+                                    appList.add("The Test App");
+                                    returnUserExplainProcedureResult(dialogManager, new PumiceProceduralKnowledge(parentKnowledgeName, utterance.getContent(), appList));
                                 }
                             }).show();
                 }
@@ -65,7 +76,7 @@ public class PumiceUserExplainProcedureIntentHandler implements PumiceUtteranceI
         }
 
         //set the intent handler back to the default one
-        dialogManager.updateUtteranceIntentHandlerInANewState(new PumiceDefaultUtteranceIntentHandler(context));
+        dialogManager.updateUtteranceIntentHandlerInANewState(new PumiceDefaultUtteranceIntentHandler(pumiceDialogManager, context));
     }
 
     @Override
@@ -78,9 +89,14 @@ public class PumiceUserExplainProcedureIntentHandler implements PumiceUtteranceI
     }
 
     @Override
-    public void handleServerResponse(PumiceDialogManager dialogManager, int responseCode, String result) {
+    public void resultReceived(int responseCode, String result) {
         //TODO: handle server response
         //notify the thread for resolving unknown bool exp that the intent has been fulfilled
+    }
+
+    @Override
+    public void runOnMainThread(Runnable r) {
+        pumiceDialogManager.runOnMainThread(r);
     }
 
     /**
@@ -89,9 +105,9 @@ public class PumiceUserExplainProcedureIntentHandler implements PumiceUtteranceI
      * @param proceduralKnowledge
      */
     private void returnUserExplainProcedureResult(PumiceDialogManager dialogManager, PumiceProceduralKnowledge proceduralKnowledge){
-        synchronized (dialogManager.getPumiceInitInstructionParsingHandler().resolveProcedureLock) {
-            dialogManager.getPumiceInitInstructionParsingHandler().resolveProcedureLock.notify();
-            dialogManager.getPumiceInitInstructionParsingHandler().resolveProcedureLock = proceduralKnowledge;
+        synchronized (resolveProcedureLock) {
+            resolveProcedureLock.copyFrom(proceduralKnowledge);
+            resolveProcedureLock.notify();
         }
     }
 

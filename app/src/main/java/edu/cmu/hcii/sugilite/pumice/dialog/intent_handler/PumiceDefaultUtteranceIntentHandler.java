@@ -13,6 +13,7 @@ import edu.cmu.hcii.sugilite.R;
 import edu.cmu.hcii.sugilite.pumice.communication.PumiceInstructionPacket;
 import edu.cmu.hcii.sugilite.pumice.communication.PumiceSemanticParsingResultPacket;
 import edu.cmu.hcii.sugilite.pumice.dialog.PumiceDialogManager;
+import edu.cmu.hcii.sugilite.verbal_instruction_demo.server_comm.SugiliteVerbalInstructionHTTPQueryInterface;
 
 /**
  * @author toby
@@ -20,15 +21,15 @@ import edu.cmu.hcii.sugilite.pumice.dialog.PumiceDialogManager;
  * @time 1:33 PM
  */
 
-public class PumiceDefaultUtteranceIntentHandler implements PumiceUtteranceIntentHandler {
+public class PumiceDefaultUtteranceIntentHandler implements PumiceUtteranceIntentHandler, SugiliteVerbalInstructionHTTPQueryInterface {
     private transient Context context;
+    private transient PumiceDialogManager pumiceDialogManager;
     private Calendar calendar;
-    private ExecutorService es;
 
-    public PumiceDefaultUtteranceIntentHandler(Context context){
+    public PumiceDefaultUtteranceIntentHandler(PumiceDialogManager pumiceDialogManager, Context context){
+        this.pumiceDialogManager = pumiceDialogManager;
         this.context = context;
         this.calendar = Calendar.getInstance();
-        this.es = Executors.newCachedThreadPool();
     }
 
     @Override
@@ -95,13 +96,15 @@ public class PumiceDefaultUtteranceIntentHandler implements PumiceUtteranceInten
                 break;
             case USER_INIT_INSTRUCTION:
                 dialogManager.sendAgentMessage("I have received your instruction: " + utterance.getContent(), true, false);
-                PumiceInstructionPacket pumiceInstructionPacket = new PumiceInstructionPacket(dialogManager.getPumiceKnowledgeManager(), PumiceIntent.USER_INIT_INSTRUCTION, calendar.getTimeInMillis(), utterance.getContent());
+                PumiceInstructionPacket pumiceInstructionPacket = new PumiceInstructionPacket(dialogManager.getPumiceKnowledgeManager(), PumiceIntent.USER_INIT_INSTRUCTION, calendar.getTimeInMillis(), utterance.getContent(), "ROOT");
                 dialogManager.sendAgentMessage("Sending out the server query below...", true, false);
                 dialogManager.sendAgentMessage(pumiceInstructionPacket.toString(), false, false);
                 try {
-                    dialogManager.getHttpQueryManager().sendPumiceInstructionPacketOnASeparateThread(pumiceInstructionPacket);
+                    dialogManager.getHttpQueryManager().sendPumiceInstructionPacketOnASeparateThread(pumiceInstructionPacket, this);
                 } catch (Exception e){
+                    //TODO: error handling
                     e.printStackTrace();
+                    pumiceDialogManager.sendAgentMessage("Failed to send the query", true, false);
                 }
                 System.out.println(pumiceInstructionPacket.toString());
                 break;
@@ -120,8 +123,8 @@ public class PumiceDefaultUtteranceIntentHandler implements PumiceUtteranceInten
     }
 
     @Override
-    public void handleServerResponse(PumiceDialogManager dialogManager, int responseCode, String result) {
-        //TODO: handle server response from the semantic parsing server
+    public void resultReceived(int responseCode, String result) {
+        //handle server response from the semantic parsing server
         Gson gson = new Gson();
         try {
             PumiceSemanticParsingResultPacket resultPacket = gson.fromJson(result, PumiceSemanticParsingResultPacket.class);
@@ -131,25 +134,37 @@ public class PumiceDefaultUtteranceIntentHandler implements PumiceUtteranceInten
                         if (resultPacket.queries != null && resultPacket.queries.size() > 0) {
                             PumiceSemanticParsingResultPacket.QueryGroundingPair topResult = resultPacket.queries.get(0);
                             if (topResult.formula != null) {
-                                dialogManager.sendAgentMessage("Received the parsing result from the server: ", true, false);
-                                dialogManager.sendAgentMessage(topResult.formula, false, false);
-                                Runnable r = new Runnable() {
+                                pumiceDialogManager.sendAgentMessage("Received the parsing result from the server: ", true, false);
+                                pumiceDialogManager.sendAgentMessage(topResult.formula, false, false);
+
+                                //do the parse on a new thread so it doesn't block the conversational I/O
+                                pumiceDialogManager.getExecutorService().submit(new Runnable() {
                                     @Override
                                     public void run() {
-                                        dialogManager.getPumiceInitInstructionParsingHandler().parseFromNewInitInstruction(topResult.formula);
+                                        //parse and process the server response
+                                        pumiceDialogManager.getPumiceInitInstructionParsingHandler().parseFromNewInitInstruction(topResult.formula);
                                     }
-                                };
-                                //do the parse on a new thread so it doesn't block the conversational I/O
-                                es.submit(r);
+                                });
+                            } else {
+                                throw new RuntimeException("empty formula");
                             }
+                        } else {
+                            throw new RuntimeException("empty server result");
                         }
                         break;
                     default:
-                        dialogManager.sendAgentMessage("Can't read from the server response", true, false);
+                        throw new RuntimeException("wrong type of result");
                 }
             }
         } catch (Exception e){
+            //TODO: error handling
+            pumiceDialogManager.sendAgentMessage("Can't read from the server response", true, false);
             e.printStackTrace();
         }
+    }
+
+    @Override
+    public void runOnMainThread(Runnable r) {
+        pumiceDialogManager.runOnMainThread(r);
     }
 }

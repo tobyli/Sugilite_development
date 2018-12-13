@@ -5,6 +5,8 @@ import android.content.Context;
 import java.util.ArrayList;
 import java.util.List;
 
+import edu.cmu.hcii.sugilite.model.block.booleanexp.SugiliteBooleanExpressionNew;
+import edu.cmu.hcii.sugilite.model.value.SugiliteSimpleConstant;
 import edu.cmu.hcii.sugilite.pumice.kb.PumiceBooleanExpKnowledge;
 import edu.cmu.hcii.sugilite.pumice.kb.PumiceConstantValue;
 import edu.cmu.hcii.sugilite.pumice.kb.PumiceProceduralKnowledge;
@@ -61,8 +63,8 @@ public class PumiceKnowledgeManager {
         PumiceValueQueryKnowledge<Double> testValueQueryKnowledge = new PumiceValueQueryKnowledge<>("temperature", PumiceValueQueryKnowledge.ValueType.NUMERICAL);
         addPumiceValueQueryKnowledge(testValueQueryKnowledge);
 
-        PumiceBooleanExpKnowledge testBooleanExpKnowledge = new PumiceBooleanExpKnowledge("it is hot", "it is hot", testValueQueryKnowledge, PumiceBooleanExpKnowledge.Comparator.GREATER_THAN, new PumiceConstantValue(90, "Fahrenheit"));
-        addPumiceBooleanExpKnowledge(testBooleanExpKnowledge);
+        //PumiceBooleanExpKnowledge testBooleanExpKnowledge = new PumiceBooleanExpKnowledge("it is hot", "the temperature is above 90 degrees", testValueQueryKnowledge.getSugiliteOperation(), SugiliteBooleanExpressionNew.BoolOperator.GREATER_THAN, new SugiliteSimpleConstant<>(90, "Fahrenheit"));
+        //addPumiceBooleanExpKnowledge(testBooleanExpKnowledge);
     }
 
     public String getKnowledgeInString(){

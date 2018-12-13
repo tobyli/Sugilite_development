@@ -134,7 +134,7 @@ public class FollowUpQuestionDialog extends SugiliteDialogManager implements Sug
         this.layoutInflater = layoutInflater;
         this.uiSnapshot = uiSnapshot;
         this.serializableUISnapshot = new SerializableUISnapshot(uiSnapshot);
-        this.sugiliteVerbalInstructionHTTPQueryManager = new SugiliteVerbalInstructionHTTPQueryManager(this, sharedPreferences);
+        this.sugiliteVerbalInstructionHTTPQueryManager = new SugiliteVerbalInstructionHTTPQueryManager(sharedPreferences);
         this.sharedPreferences = sharedPreferences;
         this.actualClickedNode = actualClickedNode;
         this.featurePack = featurePack;
@@ -270,17 +270,12 @@ public class FollowUpQuestionDialog extends SugiliteDialogManager implements Sug
 
             VerbalInstructionServerQuery query = new VerbalInstructionServerQuery(userInput, serializableUISnapshot.triplesToStringWithFilter(SugiliteRelation.HAS_PARENT, SugiliteRelation.HAS_CHILD, SugiliteRelation.HAS_CONTENT_DESCRIPTION), className);
             //send the query
-            Thread thread = new Thread() {
-                @Override
-                public void run() {
-                    try {
-                        sugiliteVerbalInstructionHTTPQueryManager.sendQueryRequest(query);
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                }
-            };
-            thread.start();
+
+            try {
+                sugiliteVerbalInstructionHTTPQueryManager.sendQueryRequestOnASeparateThread(query, this);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
 
             //show loading popup
             dialog.dismiss();

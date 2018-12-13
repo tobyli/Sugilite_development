@@ -30,22 +30,29 @@ public class PumiceInstructionPacket {
     private Long queryId;
     private List<String> variableNames;
 
+    private String parentKnowledgeName;
+
     public PumiceInstructionPacket(){
 
     }
 
-    public PumiceInstructionPacket(PumiceKnowledgeManager existingKnowledge, PumiceUtteranceIntentHandler.PumiceIntent pumiceIntent, Long queryId, String userInput, List<List<String>> triples, String entityClassNameFilter){
+    public PumiceInstructionPacket(PumiceKnowledgeManager existingKnowledge, String utteranceType, Long queryId, String userInput, String parentKnowledgeName, List<List<String>> triples, String entityClassNameFilter){
         this.mode = "USER_COMMAND";
-        this.utteranceType = pumiceIntent.name();
+        this.utteranceType = utteranceType;
         this.queryId = queryId;
         this.existingKnowledge = existingKnowledge;
         this.userInput = userInput;
         this.triples = triples;
         this.entityClassNameFilter = entityClassNameFilter;
+        this.parentKnowledgeName = parentKnowledgeName;
     }
 
-    public PumiceInstructionPacket(PumiceKnowledgeManager existingKnowledge, PumiceUtteranceIntentHandler.PumiceIntent pumiceIntent, Long queryId, String userInput){
-        this(existingKnowledge, pumiceIntent, queryId, userInput, new ArrayList<>(), "");
+    public PumiceInstructionPacket(PumiceKnowledgeManager existingKnowledge, PumiceUtteranceIntentHandler.PumiceIntent pumiceIntent, Long queryId, String userInput, String parentKnowledgeName){
+        this(existingKnowledge, pumiceIntent.name(), queryId, userInput, parentKnowledgeName, new ArrayList<>(), "");
+    }
+
+    public PumiceInstructionPacket(PumiceKnowledgeManager existingKnowledge, String utteranceType, Long queryId, String userInput, String parentKnowledgeName){
+        this(existingKnowledge, utteranceType, queryId, userInput, parentKnowledgeName, new ArrayList<>(), "");
     }
 
     @Override

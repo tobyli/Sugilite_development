@@ -45,11 +45,6 @@ public class PumiceInitInstructionParsingHandler {
     private ExecutorService es;
     private PumiceDialogManager pumiceDialogManager;
 
-    //locks used to notify() when a new intent has been handled by handlers that return a new knowledge object as the result
-    public PumiceBooleanExpKnowledge resolveBoolExpLock = new PumiceBooleanExpKnowledge();
-    public PumiceValueQueryKnowledge resolveValueLock = new PumiceValueQueryKnowledge();
-    public PumiceProceduralKnowledge resolveProcedureLock = new PumiceProceduralKnowledge();
-
     private Context context;
 
     public PumiceInitInstructionParsingHandler(Context context, PumiceDialogManager pumiceDialogManager){
@@ -57,6 +52,20 @@ public class PumiceInitInstructionParsingHandler {
         this.sugiliteScriptParser = new SugiliteScriptParser();
         this.pumiceDialogManager = pumiceDialogManager;
         this.es = Executors.newCachedThreadPool();
+    }
+
+    public PumiceBooleanExpKnowledge parseFromBoolExpInstruction(String serverFormula, String userUtterance, String parentKnowledgeName){
+        System.out.println("RECEIVED bool exp formula: " + serverFormula);
+
+        if(serverFormula.length() == 0) {
+            throw new RuntimeException("empty server result!");
+        }
+
+        else {
+            SugiliteBooleanExpressionNew booleanExpression = sugiliteScriptParser.parseBooleanExpressionFromString(serverFormula);
+            PumiceBooleanExpKnowledge booleanExpKnowledge = new PumiceBooleanExpKnowledge(parentKnowledgeName, userUtterance, booleanExpression);
+            return booleanExpKnowledge;
+        }
     }
 
     /**
@@ -68,6 +77,8 @@ public class PumiceInitInstructionParsingHandler {
             if(serverResult.length() > 0) {
                 SugiliteStartingBlock script = sugiliteScriptParser.parseBlockFromString(serverResult);
                 currentScript = script;
+            } else {
+                throw new RuntimeException("empty server result!");
             }
         } catch (Exception e){
             e.printStackTrace();
@@ -182,8 +193,11 @@ public class PumiceInitInstructionParsingHandler {
                 pumiceDialogManager.sendAgentMessage("How do I " + procedureUtterance + "?" + " You can explain, or say \"demonstrate\" to demonstrate", true, true);
                 //TODO: resolve -- user response - actually learn the procedure
 
+                //locks used to notify() when a new intent has been handled by handlers that return a new knowledge object as the result
+                PumiceProceduralKnowledge resolveProcedureLock = new PumiceProceduralKnowledge();
+
                 //update the dialog manager with a new intent handler
-                pumiceDialogManager.updateUtteranceIntentHandlerInANewState(new PumiceUserExplainProcedureIntentHandler(context));
+                pumiceDialogManager.updateUtteranceIntentHandlerInANewState(new PumiceUserExplainProcedureIntentHandler(pumiceDialogManager, context, resolveProcedureLock, procedureUtterance));
 
                 //wait for the user to explain the bool exp
                 synchronized (resolveProcedureLock) {
@@ -209,8 +223,11 @@ public class PumiceInitInstructionParsingHandler {
                 String valueUtterance = ((SugiliteResolveValueQueryOperation) operation).getParameter0();
                 pumiceDialogManager.sendAgentMessage("How do I find out the value for " + valueUtterance + "?" + " You can explain, or say \"demonstrate\" to demonstrate", true, true);
 
+                //locks used to notify() when a new intent has been handled by handlers that return a new knowledge object as the result
+                PumiceValueQueryKnowledge resolveValueLock = new PumiceValueQueryKnowledge();
+
                 //update the dialog manager with a new intent handler
-                pumiceDialogManager.updateUtteranceIntentHandlerInANewState(new PumiceUserExplainValueIntentHandler(context));
+                pumiceDialogManager.updateUtteranceIntentHandlerInANewState(new PumiceUserExplainValueIntentHandler(pumiceDialogManager, context, resolveValueLock, valueUtterance));
 
 
                 //wait for the user to explain the bool exp
@@ -238,8 +255,10 @@ public class PumiceInitInstructionParsingHandler {
                 pumiceDialogManager.sendAgentMessage("How do I tell whether " + boolUtterance + "?", true, true);
                 //TODO: resolve -- user response - actually learn the boolean exp
 
+                //locks used to notify() when a new intent has been handled by handlers that return a new knowledge object as the result
+                PumiceBooleanExpKnowledge resolveBoolExpLock = new PumiceBooleanExpKnowledge();
                 //update the dialog manager with a new intent handler
-                pumiceDialogManager.updateUtteranceIntentHandlerInANewState(new PumiceUserExplainBoolExpIntentHandler(context));
+                pumiceDialogManager.updateUtteranceIntentHandlerInANewState(new PumiceUserExplainBoolExpIntentHandler(pumiceDialogManager, context, resolveBoolExpLock, boolUtterance));
 
                 //wait for the user to explain the bool exp
                 synchronized (resolveBoolExpLock) {

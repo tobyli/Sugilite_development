@@ -1,6 +1,9 @@
 package edu.cmu.hcii.sugilite.pumice.kb;
 import com.google.gson.Gson;
 
+import edu.cmu.hcii.sugilite.model.block.booleanexp.SugiliteBooleanExpressionNew;
+import edu.cmu.hcii.sugilite.model.value.SugiliteValue;
+
 /**
  * @author toby
  * @date 10/29/18
@@ -10,18 +13,17 @@ public class PumiceBooleanExpKnowledge {
     private String expName;
     private String utterance;
 
-    enum Comparator {GREATER_THAN, LESS_THAN, GREATER_THAN_OR_EQUAL_TO, LESS_THAN_OR_EQUAL_TO, EQUAL, NOT_EQUAL, CONTAINS, NOT_CONTAINS}
 
     //initial version
-    private PumiceValueQueryKnowledge param1;
-    private Comparator comparator;
-    private PumiceConstantValue param2;
+    private SugiliteValue param1;
+    private SugiliteBooleanExpressionNew.BoolOperator comparator;
+    private SugiliteValue param2;
 
     public PumiceBooleanExpKnowledge(){
 
     }
 
-    public PumiceBooleanExpKnowledge (String expName, String utterance, PumiceValueQueryKnowledge param1, Comparator comparator, PumiceConstantValue param2){
+    public PumiceBooleanExpKnowledge (String expName, String utterance, SugiliteValue param1, SugiliteBooleanExpressionNew.BoolOperator comparator, SugiliteValue param2){
         this.expName = expName;
         this.utterance = utterance;
         this.param1 = param1;
@@ -29,6 +31,19 @@ public class PumiceBooleanExpKnowledge {
         this.param2 = param2;
     }
 
+    public PumiceBooleanExpKnowledge (String expName, String utterance, SugiliteBooleanExpressionNew sugiliteBooleanExpression){
+        this(expName, utterance, sugiliteBooleanExpression.getArg0(), sugiliteBooleanExpression.getBoolOperator(), sugiliteBooleanExpression.getArg1());
+    }
+
+    public void copyFrom(PumiceBooleanExpKnowledge pumiceBooleanExpKnowledge){
+        this.expName = pumiceBooleanExpKnowledge.expName;
+        this.utterance = pumiceBooleanExpKnowledge.utterance;
+        this.param1 = pumiceBooleanExpKnowledge.param1;
+        this.comparator = pumiceBooleanExpKnowledge.comparator;
+        this.param2 = pumiceBooleanExpKnowledge.param2;
+    }
+
+    /*
     public boolean evaluate(){
         if(param1.getValueType().equals(PumiceValueQueryKnowledge.ValueType.NUMERICAL) && param2.getValueType().equals(PumiceConstantValue.ValueType.NUMERICAL)){
             switch (comparator){
@@ -61,15 +76,19 @@ public class PumiceBooleanExpKnowledge {
         }
         return false;
     }
+    */
 
     public void setExpName(String expName) {
         this.expName = expName;
     }
 
     public String getProcedureDescription(){
-        String description = "How to know whether " + utterance;
+        String description = "How to know whether " + expName;
         if (param1 != null) {
-            description = description + " using " + param1.getValueName();
+            description = description + " using " + param1.toString();
+        }
+        if (utterance != null) {
+            description = description + " by checking if " + utterance;
         }
         return description;
     }

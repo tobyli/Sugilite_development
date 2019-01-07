@@ -96,7 +96,7 @@ public class PumiceDefaultUtteranceIntentHandler implements PumiceUtteranceInten
             case USER_INIT_INSTRUCTION:
                 dialogManager.sendAgentMessage("I have received your instruction: " + utterance.getContent(), true, false);
                 PumiceInstructionPacket pumiceInstructionPacket = new PumiceInstructionPacket(dialogManager.getPumiceKnowledgeManager(), PumiceIntent.USER_INIT_INSTRUCTION, calendar.getTimeInMillis(), utterance.getContent());
-                dialogManager.sendAgentMessage("Sending out the server query below...", true, false);
+                dialogManager.sendAgentMessage("Sending out the server query...", true, false);
                 dialogManager.sendAgentMessage(pumiceInstructionPacket.toString(), false, false);
                 try {
                     dialogManager.getHttpQueryManager().sendPumiceInstructionPacketOnASeparateThread(pumiceInstructionPacket);
@@ -148,7 +148,7 @@ public class PumiceDefaultUtteranceIntentHandler implements PumiceUtteranceInten
                         dialogManager.sendAgentMessage("Can't read from the server response", true, false);
                 }
             }
-        } catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }

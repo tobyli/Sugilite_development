@@ -20,8 +20,7 @@ import edu.cmu.hcii.sugilite.R;
 import edu.cmu.hcii.sugilite.model.block.SugiliteConditionBlock;
 import edu.cmu.hcii.sugilite.model.block.booleanexp.SugiliteBooleanExpressionNew;
 import edu.cmu.hcii.sugilite.pumice.communication.PumiceSemanticParsingResultPacket;
-import edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.PumiceInitInstructionParsingHandler;
-import edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.PumiceStartUtteranceIntentHandler;
+import edu.cmu.hcii.sugilite.pumice.dialog.PumiceInitInstructionParsingHandler;
 import edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.PumiceConditionalIntentHandler;
 
 import edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.PumiceDefaultUtteranceIntentHandler;
@@ -55,7 +54,7 @@ public class PumiceDialogManager implements SugiliteVerbalInstructionHTTPQueryIn
     public String check;
     public boolean addElse = false;
     public SugiliteBlock conditionBlock = null;
-    public boolean justChecking = false;
+    public PumiceConditionalIntentHandler pcih = null;
 
     private List<PumiceDialogState> stateHistoryList;
 
@@ -64,14 +63,13 @@ public class PumiceDialogManager implements SugiliteVerbalInstructionHTTPQueryIn
     //represents the current state of the dialog
     private PumiceDialogState pumiceDialogState;
 
-    public PumiceDialogManager(AppCompatActivity context){
+    public PumiceDialogManager(AppCompatActivity context, PumiceUtteranceIntentHandler pcih){
         this.context = context;
         this.pumiceDialogView = new PumiceDialogView(context);
         this.pumiceDialogUIHelper = new PumiceDialogUIHelper(context);
         this.pumiceInitInstructionParsingHandler = new PumiceInitInstructionParsingHandler(context, this);
         this.stateHistoryList = new ArrayList<>();
-	//this.pumiceDialogState = new PumiceDialogState(new PumiceConditionalIntentHandler(context), new PumiceKnowledgeManager()); //new PumiceStartUtteranceIntentHandler(context)
-        this.pumiceDialogState = new PumiceDialogState(new PumiceDefaultUtteranceIntentHandler(context), new PumiceKnowledgeManager());
+        this.pumiceDialogState = new PumiceDialogState(pcih, new PumiceKnowledgeManager());
         this.sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
         this.httpQueryManager = new SugiliteVerbalInstructionHTTPQueryManager(this, sharedPreferences);
 
@@ -189,7 +187,6 @@ public class PumiceDialogManager implements SugiliteVerbalInstructionHTTPQueryIn
     }
 
     private void handleSpeakingAndUserResponse(String utterance, boolean isSpokenMessage, boolean requireUserResponse){
-        System.out.println("HANDLE");
         if(isSpokenMessage && sugiliteVoiceRecognitionListener != null) {
             sugiliteVoiceRecognitionListener.speak(utterance, String.valueOf(Calendar.getInstance().getTimeInMillis()), new Runnable() {
                 @Override
@@ -344,6 +341,10 @@ public class PumiceDialogManager implements SugiliteVerbalInstructionHTTPQueryIn
             return pumiceUtteranceIntentHandlerInUse;
         }
 
+        public void setPumiceUtteranceIntentHandlerInUse(PumiceUtteranceIntentHandler pumiceUtteranceIntentHandlerInUse) {
+            this.pumiceUtteranceIntentHandlerInUse = pumiceUtteranceIntentHandlerInUse;
+        }
+
         public void setPreviousState(PumiceDialogState previousState) {
             this.previousState = previousState;
         }
@@ -358,6 +359,10 @@ public class PumiceDialogManager implements SugiliteVerbalInstructionHTTPQueryIn
             PumiceKnowledgeManager newPumiceKnowledgeManager = gson.fromJson(gson.toJson(pumiceKnowledgeManager), PumiceKnowledgeManager.class);
             return new PumiceDialogState(newUtteranceHistory, intentHandler, newPumiceKnowledgeManager);
         }
+    }
+
+    public void setPumiceUtteranceIntentHandlerInUse(PumiceUtteranceIntentHandler p) {
+        this.pumiceDialogState.setPumiceUtteranceIntentHandlerInUse(p);
     }
 
     public SugiliteVerbalInstructionHTTPQueryManager getHttpQueryManager() {
@@ -414,5 +419,11 @@ public class PumiceDialogManager implements SugiliteVerbalInstructionHTTPQueryIn
         this.tResult = tResult;
     }
 
-    public void setCheckResult(String check) { this.check = check;}
+    public void setPcih(PumiceConditionalIntentHandler p) {
+        pcih = p;
+    }
+
+    public PumiceConditionalIntentHandler getPcih() {
+        return pcih;
+    }
 }

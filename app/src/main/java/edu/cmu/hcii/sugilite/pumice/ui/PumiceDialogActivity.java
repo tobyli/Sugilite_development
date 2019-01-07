@@ -16,6 +16,7 @@ import java.util.Locale;
 
 import edu.cmu.hcii.sugilite.R;
 import edu.cmu.hcii.sugilite.pumice.dialog.PumiceDialogManager;
+import edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.PumiceDefaultUtteranceIntentHandler;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.speech.SugiliteVoiceInterface;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.speech.SugiliteVoiceRecognitionListener;
 
@@ -60,7 +61,7 @@ public class PumiceDialogActivity extends AppCompatActivity implements SugiliteV
         tts.setLanguage(Locale.US);
         //initiate sugiliteVoiceRecognitionListener
         this.sugiliteVoiceRecognitionListener = new SugiliteVoiceRecognitionListener(this, this, tts);
-        bindDialogManager(new PumiceDialogManager(this));
+        bindDialogManager(new PumiceDialogManager(this, new PumiceDefaultUtteranceIntentHandler(this)));
     }
 
 

@@ -34,6 +34,8 @@ import edu.cmu.hcii.sugilite.study.ScriptUsageLogManager;
 import edu.cmu.hcii.sugilite.ui.StatusIconManager;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.VerbalInstructionIconManager;
 
+
+
 /**
  * @author toby
  * @date 6/13/16
@@ -82,6 +84,10 @@ public class SugiliteData extends Application {
     public VerbalInstructionIconManager verbalInstructionIconManager = null;
 
     private TextToSpeech tts;
+
+    public boolean testing = false;
+    public boolean runDone = false;
+    public boolean testRun = false;
 
 
     //used to indicate the state of the sugilite system
@@ -323,4 +329,5 @@ public class SugiliteData extends Application {
     public TextToSpeech getTTS() {
         return tts;
     }
+
 }

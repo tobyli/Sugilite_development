@@ -178,9 +178,7 @@ public class PumiceInitInstructionParsingHandler {
     private SugiliteOperation resolveOperation(SugiliteOperation operation){
         if (operation instanceof SugiliteResolveProcedureOperation){
             String procedureUtterance = ((SugiliteResolveProcedureOperation) operation).getParameter0();
-            if(!pumiceDialogManager.justChecking) {
-                pumiceDialogManager.sendAgentMessage("How do I " + procedureUtterance + "?", true, false);
-            }
+            pumiceDialogManager.sendAgentMessage("How do I " + procedureUtterance + "?", true, false);
             //TODO: resolve -- user response
 
             //for testing purpose
@@ -189,23 +187,17 @@ public class PumiceInitInstructionParsingHandler {
             PumiceProceduralKnowledge proceduralKnowledge = new PumiceProceduralKnowledge(procedureUtterance, procedureUtterance, appList);
 
             pumiceDialogManager.getPumiceKnowledgeManager().addPumiceProceduralKnowledge(proceduralKnowledge);
-            if(!pumiceDialogManager.justChecking) {
-                pumiceDialogManager.sendAgentMessage("OK, I learned how to " + procedureUtterance + ".", true, false);
-            }
+            pumiceDialogManager.sendAgentMessage("OK, I learned how to " + procedureUtterance + ".", true, false);
             return new SugiliteGetOperation<Void>(procedureUtterance, SugiliteGetOperation.PROCEDURE_NAME);
         }
 
         else if (operation instanceof SugiliteResolveValueQueryOperation) {
             String valueUtterance = ((SugiliteResolveValueQueryOperation) operation).getParameter0();
-            if (!pumiceDialogManager.justChecking) {
-                pumiceDialogManager.sendAgentMessage("How do I find out the value for " + valueUtterance + "?", true, false);
-            }
+            pumiceDialogManager.sendAgentMessage("How do I find out the value for " + valueUtterance + "?", true, false);
             //TODO: resolve -- user response
             PumiceValueQueryKnowledge valueQueryKnowledge = new PumiceValueQueryKnowledge(valueUtterance, PumiceValueQueryKnowledge.ValueType.STRING);
             pumiceDialogManager.getPumiceKnowledgeManager().addPumiceValueQueryKnowledge(valueQueryKnowledge);
-            if(!pumiceDialogManager.justChecking) {
-                pumiceDialogManager.sendAgentMessage("OK, I learned how to find out the value for " + valueUtterance + ".", true, false);
-            }
+            pumiceDialogManager.sendAgentMessage("OK, I learned how to find out the value for " + valueUtterance + ".", true, false);
             return new SugiliteGetOperation<Number>(valueUtterance, VALUE_QUERY_NAME);
         }
 

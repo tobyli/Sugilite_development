@@ -21,7 +21,7 @@ import edu.cmu.hcii.sugilite.pumice.communication.PumiceInstructionPacket;
  * @time 1:12 AM
  */
 public class SugiliteVerbalInstructionHTTPQueryManager {
-    private final String DEFAULT_SERVER_URL =  "http://codermoder.com:4567/semparse";
+    private final String DEFAULT_SERVER_URL =  "http://35.211.149.88:4567/semparse";//"http://codermoder.com:4567/semparse";
     private final String USER_AGENT = "Mozilla/5.0";
     private Gson gson;
     private SharedPreferences sharedPreferences;

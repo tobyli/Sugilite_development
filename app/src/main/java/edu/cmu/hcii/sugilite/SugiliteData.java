@@ -34,6 +34,8 @@ import edu.cmu.hcii.sugilite.study.ScriptUsageLogManager;
 import edu.cmu.hcii.sugilite.ui.StatusIconManager;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.VerbalInstructionIconManager;
 
+
+
 /**
  * @author toby
  * @date 6/13/16
@@ -82,6 +84,10 @@ public class SugiliteData extends Application {
     public VerbalInstructionIconManager verbalInstructionIconManager = null;
 
     private TextToSpeech tts;
+
+    public boolean testing = false;
+    public boolean runDone = false;
+    public boolean testRun = false;
 
 
     //used to indicate the state of the sugilite system
@@ -141,9 +147,11 @@ public class SugiliteData extends Application {
         startRecordingWhenFinishExecuting = false;
         this.afterExecutionOperation = afterExecutionOperation;
         this.instructionQueue.clear();
-        errorHandler.relevantPackages.clear();
-        errorHandler.relevantPackages.addAll(startingBlock.relevantPackages);
-        errorHandler.reportSuccess(Calendar.getInstance().getTimeInMillis());
+        if(errorHandler != null) {
+            errorHandler.relevantPackages.clear();
+            errorHandler.relevantPackages.addAll(startingBlock.relevantPackages);
+            errorHandler.reportSuccess(Calendar.getInstance().getTimeInMillis());
+        }
         List<SugiliteBlock> blocks = traverseBlock(startingBlock);
         addInstruction(startingBlock);
 
@@ -172,7 +180,9 @@ public class SugiliteData extends Application {
             setCurrentSystemState(DEFAULT_STATE);
             return;
         }
-        errorHandler.reportSuccess();
+        if(errorHandler != null) {
+            errorHandler.reportSuccess();
+        }
         instructionQueue.add(block);
     }
     public void addInstructions(Queue<SugiliteBlock> blocks){
@@ -319,4 +329,5 @@ public class SugiliteData extends Application {
     public TextToSpeech getTTS() {
         return tts;
     }
+
 }

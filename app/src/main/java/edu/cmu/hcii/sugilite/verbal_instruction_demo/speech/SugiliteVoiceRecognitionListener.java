@@ -20,6 +20,8 @@ import java.util.HashMap;
 import java.util.Locale;
 
 import edu.cmu.hcii.sugilite.SugiliteAccessibilityService;
+import edu.cmu.hcii.sugilite.SugiliteData;
+import edu.cmu.hcii.sugilite.ui.ScriptDetailActivity;
 
 /**
  * @author toby
@@ -66,14 +68,17 @@ public class SugiliteVoiceRecognitionListener implements RecognitionListener {
     }
 
     public void startListening(){
-        speech = SpeechRecognizer.createSpeechRecognizer(context);
-        speech.setRecognitionListener(this);
-        speech.startListening(recognizerIntent);
-        lastStartListening = Calendar.getInstance().getTimeInMillis();
-        sugiliteVoiceInterface.listeningStarted();
+            System.out.println("START LISTENING");
+            speech = SpeechRecognizer.createSpeechRecognizer(context);
+            speech.setRecognitionListener(this);
+            speech.startListening(recognizerIntent);
+            lastStartListening = Calendar.getInstance().getTimeInMillis();
+            sugiliteVoiceInterface.listeningStarted();
     }
 
     public void stopListening(){
+        //SugiliteData sugiliteData = ((ScriptDetailActivity) context).getSugiliteData();
+        //while(sugiliteData.testRun && !sugiliteData.runDone) {
         if(speech != null) {
             speech.stopListening();
             speech.destroy();
@@ -104,6 +109,7 @@ public class SugiliteVoiceRecognitionListener implements RecognitionListener {
             @Override
             public void onStart(String utteranceId) {
                 if(sugiliteVoiceInterface != null) {
+                    System.out.println("starting");
                     try {
                         runOnUiThread(new Runnable() {
                             @Override

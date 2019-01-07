@@ -12,6 +12,7 @@ import android.graphics.PixelFormat;
 import android.graphics.Rect;
 import android.net.Uri;
 import android.provider.Settings;
+import android.renderscript.Script;
 import android.text.Html;
 import android.util.DisplayMetrics;
 import android.view.GestureDetector;
@@ -935,5 +936,24 @@ public class StatusIconManager {
 
     public void setVerbalInstructionIconManager(VerbalInstructionIconManager verbalInstructionIconManager) {
         this.verbalInstructionIconManager = verbalInstructionIconManager;
+    }
+
+    public void pauseTestRun(Activity a) {
+        SugiliteStartingBlock script = ((ScriptDetailActivity) a).getScript();
+        sugiliteData.clearInstructionQueue();
+        //sugiliteData.setCurrentSystemState(SugiliteData.DEFAULT_STATE);
+        if(storedQueue != null)
+            storedQueue.clear();
+
+        //Intent intent = new Intent(context, ScriptDetailActivity.class);
+        //intent.putExtra("scriptName", script.getScriptName());
+        //intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        //context.startActivity(intent);
+        Intent openMainActivity= new Intent(a,ScriptDetailActivity.class);
+        openMainActivity.putExtra("scriptName", script.getScriptName());
+        openMainActivity.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        openMainActivity.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+        context.startActivity(openMainActivity);
+        //}
     }
 }

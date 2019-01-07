@@ -18,13 +18,17 @@ import edu.cmu.hcii.sugilite.model.operation.binary.SugiliteGetOperation;
 import edu.cmu.hcii.sugilite.model.operation.unary.SugiliteResolveBoolExpOperation;
 import edu.cmu.hcii.sugilite.model.operation.unary.SugiliteResolveProcedureOperation;
 import edu.cmu.hcii.sugilite.model.operation.unary.SugiliteResolveValueQueryOperation;
+import edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.PumiceDefaultUtteranceIntentHandler;
 import edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.PumiceUserExplainBoolExpIntentHandler;
 import edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.PumiceUserExplainProcedureIntentHandler;
 import edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.PumiceUserExplainValueIntentHandler;
 import edu.cmu.hcii.sugilite.pumice.kb.PumiceBooleanExpKnowledge;
+import edu.cmu.hcii.sugilite.pumice.kb.PumiceKnowledgeManager;
 import edu.cmu.hcii.sugilite.pumice.kb.PumiceProceduralKnowledge;
 import edu.cmu.hcii.sugilite.pumice.kb.PumiceValueQueryKnowledge;
 import edu.cmu.hcii.sugilite.source_parsing.SugiliteScriptParser;
+import edu.cmu.hcii.sugilite.ui.ScriptDetailActivity;
+import edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.PumiceConditionalIntentHandler;
 
 import static edu.cmu.hcii.sugilite.model.operation.binary.SugiliteGetOperation.BOOL_FUNCTION_NAME;
 import static edu.cmu.hcii.sugilite.model.operation.binary.SugiliteGetOperation.PROCEDURE_NAME;
@@ -86,15 +90,36 @@ public class PumiceInitInstructionParsingHandler {
         //resolve the unknown concepts in the current script
         try {
             resolveScript(currentScript);
+            pumiceDialogManager.settResult(currentScript.getNextBlock());
         } catch (Exception e){
             e.printStackTrace();
         }
 
         //done
-        pumiceDialogManager.sendAgentMessage("I've finished resolving all concepts in the script", true, false);
+        if(!(context instanceof ScriptDetailActivity)) {
+            pumiceDialogManager.sendAgentMessage("I've finished resolving all concepts in the script", true, false);
+        }
         printCurrentScript();
     }
 
+    private void printCurrentScript(){
+        if(context instanceof ScriptDetailActivity && !pumiceDialogManager.addElse) {
+            pumiceDialogManager.updateUtteranceIntentHandlerInANewState(new PumiceConditionalIntentHandler(context));
+            pumiceDialogManager.sendAgentMessage("I understood to check if" + pumiceDialogManager.check, true, false);
+            pumiceDialogManager.sendAgentMessage("Should I add this new check to the script?",true,true);
+        }
+        else if(context instanceof ScriptDetailActivity) {
+            pumiceDialogManager.updateUtteranceIntentHandlerInANewState(pumiceDialogManager.getPcih());
+            pumiceDialogManager.sendAgentMessage("What I understood to do is " + ((SugiliteConditionBlock) currentScript.getNextBlock()).getIfBlock().toString(), true, false);
+            pumiceDialogManager.sendAgentMessage("Should I add this to the script?",true,true);
+        }
+        else {
+            pumiceDialogManager.sendAgentMessage("Below is the current script after concept resolution: ", true, false);
+            pumiceDialogManager.sendAgentMessage(sugiliteScriptParser.scriptToString(currentScript), false, false);
+            pumiceDialogManager.sendAgentMessage("Below is the updated list of existing knowledge...", true, false);
+            pumiceDialogManager.sendAgentMessage(pumiceDialogManager.getPumiceKnowledgeManager().getKnowledgeInString(), false, false);
+        }
+    }
 
     /**
      * go through a block, recursively resolve unknown concepts in that block and ALL subsequent blocks
@@ -197,14 +222,14 @@ public class PumiceInitInstructionParsingHandler {
                 PumiceProceduralKnowledge resolveProcedureLock = new PumiceProceduralKnowledge();
 
                 //update the dialog manager with a new intent handler
-                pumiceDialogManager.updateUtteranceIntentHandlerInANewState(new PumiceUserExplainProcedureIntentHandler(pumiceDialogManager, context, resolveProcedureLock, procedureUtterance));
 
+                pumiceDialogManager.updateUtteranceIntentHandlerInANewState(new PumiceUserExplainProcedureIntentHandler(pumiceDialogManager, context, resolveProcedureLock, procedureUtterance));
                 //wait for the user to explain the bool exp
                 synchronized (resolveProcedureLock) {
                     try {
                         System.out.println("waiting for the user to explain the procedure");
                         resolveProcedureLock.wait();
-                    } catch (InterruptedException e){
+                    } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
                 }
@@ -223,22 +248,23 @@ public class PumiceInitInstructionParsingHandler {
                 String valueUtterance = ((SugiliteResolveValueQueryOperation) operation).getParameter0();
                 pumiceDialogManager.sendAgentMessage("How do I find out the value for " + valueUtterance + "?" + " You can explain, or say \"demonstrate\" to demonstrate", true, true);
 
+
                 //locks used to notify() when a new intent has been handled by handlers that return a new knowledge object as the result
                 PumiceValueQueryKnowledge resolveValueLock = new PumiceValueQueryKnowledge();
 
                 //update the dialog manager with a new intent handler
                 pumiceDialogManager.updateUtteranceIntentHandlerInANewState(new PumiceUserExplainValueIntentHandler(pumiceDialogManager, context, resolveValueLock, valueUtterance));
 
-
                 //wait for the user to explain the bool exp
                 synchronized (resolveValueLock) {
                     try {
                         System.out.println("waiting for the user to explain the value");
                         resolveValueLock.wait();
-                    } catch (InterruptedException e){
+                    } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
                 }
+
 
                 System.out.println("Worker thread got server parsing result for value parsing " + resolveValueLock);
                 PumiceValueQueryKnowledge valueQueryKnowledge = resolveValueLock;
@@ -252,42 +278,41 @@ public class PumiceInitInstructionParsingHandler {
 
             else if (operation instanceof SugiliteResolveBoolExpOperation){
                 String boolUtterance = ((SugiliteResolveBoolExpOperation) operation).getParameter0();
-                pumiceDialogManager.sendAgentMessage("How do I tell whether " + boolUtterance + "?", true, true);
+                pumiceDialogManager.check = boolUtterance;
+                if(!pumiceDialogManager.addElse) {
+                    pumiceDialogManager.sendAgentMessage("How do I tell whether " + boolUtterance + "?", true, true);
+                }
                 //TODO: resolve -- user response - actually learn the boolean exp
+
 
                 //locks used to notify() when a new intent has been handled by handlers that return a new knowledge object as the result
                 PumiceBooleanExpKnowledge resolveBoolExpLock = new PumiceBooleanExpKnowledge();
                 //update the dialog manager with a new intent handler
                 pumiceDialogManager.updateUtteranceIntentHandlerInANewState(new PumiceUserExplainBoolExpIntentHandler(pumiceDialogManager, context, resolveBoolExpLock, boolUtterance));
-
-                //wait for the user to explain the bool exp
-                synchronized (resolveBoolExpLock) {
-                    try {
-                        System.out.println("waiting for the user to explain the boolean exp");
-                        resolveBoolExpLock.wait();
-                    } catch (InterruptedException e){
+                if(!pumiceDialogManager.addElse) {
+                  //wait for the user to explain the bool exp
+                  synchronized (resolveBoolExpLock) {
+                      try {
+                          System.out.println("waiting for the user to explain the boolean exp");
+                          resolveBoolExpLock.wait();
+                      } catch (InterruptedException e){
                         e.printStackTrace();
-                    }
+                      }
+                  }
                 }
-
                 System.out.println("Worker thread got server parsing result for bool exp parsing " + resolveBoolExpLock);
                 PumiceBooleanExpKnowledge booleanExpKnowledge = resolveBoolExpLock;
                 booleanExpKnowledge.setExpName(boolUtterance);
 
                 pumiceDialogManager.getPumiceKnowledgeManager().addPumiceBooleanExpKnowledge(booleanExpKnowledge);
-                pumiceDialogManager.sendAgentMessage("OK, I learned how to tell whether " + boolUtterance + ".", true, false);
+                if(!pumiceDialogManager.addElse) {
+                    pumiceDialogManager.sendAgentMessage("OK, I learned how to tell whether " + boolUtterance + ".", true, false);
+                }
                 return new SugiliteGetOperation<Boolean>(boolUtterance, VALUE_QUERY_NAME);
             }
 
             throw new RuntimeException("wrong type of operation for resolving");
         }
-    }
-
-    private void printCurrentScript(){
-        pumiceDialogManager.sendAgentMessage("Below is the current script after concept resolution: ", true, false);
-        pumiceDialogManager.sendAgentMessage(sugiliteScriptParser.scriptToString(currentScript), false, false);
-        pumiceDialogManager.sendAgentMessage("Below is the updated list of existing knowledge...", true, false);
-        pumiceDialogManager.sendAgentMessage(pumiceDialogManager.getPumiceKnowledgeManager().getKnowledgeInString(), false, false);
     }
 
     /**

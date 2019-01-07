@@ -1,6 +1,10 @@
 package edu.cmu.hcii.sugilite.pumice.kb;
 import com.google.gson.Gson;
 
+import edu.cmu.hcii.sugilite.model.operation.binary.SugiliteGetOperation;
+
+import static edu.cmu.hcii.sugilite.model.operation.binary.SugiliteGetOperation.VALUE_QUERY_NAME;
+
 /**
  * @author toby
  * @date 10/30/18
@@ -18,6 +22,11 @@ public class PumiceValueQueryKnowledge<T> {
     public PumiceValueQueryKnowledge(String valueName, ValueType valueType){
         this.valueName = valueName;
         this.valueType = valueType;
+    }
+
+    public void copyFrom(PumiceValueQueryKnowledge pumiceValueQueryKnowledge){
+        this.valueName = pumiceValueQueryKnowledge.valueName;
+        this.valueType = pumiceValueQueryKnowledge.valueType;
     }
 
     public String getValueName() {
@@ -43,5 +52,9 @@ public class PumiceValueQueryKnowledge<T> {
     @Override
     public String toString() {
         return new Gson().toJson(this);
+    }
+
+    public SugiliteGetOperation getSugiliteOperation(){
+        return new SugiliteGetOperation(valueName, VALUE_QUERY_NAME);
     }
 }

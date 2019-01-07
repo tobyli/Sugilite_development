@@ -104,7 +104,7 @@ public class RecordingAmbiguousPopupDialog extends SugiliteDialogManager impleme
         super(context, tts);
         this.queryScoreList = queryScoreList;
         this.featurePack = featurePack;
-        this.sugiliteVerbalInstructionHTTPQueryManager = new SugiliteVerbalInstructionHTTPQueryManager(this, sharedPreferences);
+        this.sugiliteVerbalInstructionHTTPQueryManager = new SugiliteVerbalInstructionHTTPQueryManager(sharedPreferences);
         this.descriptionGenerator = new OntologyDescriptionGenerator(context);
 
         //TODO: need to operate on a copy of ui snapshot
@@ -278,18 +278,11 @@ public class RecordingAmbiguousPopupDialog extends SugiliteDialogManager impleme
             //send out the ASR result
             VerbalInstructionServerQuery query = new VerbalInstructionServerQuery(userInput, serializableUISnapshot.triplesToStringWithFilter(SugiliteRelation.HAS_CHILD, SugiliteRelation.HAS_PARENT, SugiliteRelation.HAS_CONTENT_DESCRIPTION), className);
             //send the query
-            Thread thread = new Thread() {
-                @Override
-                public void run() {
-                    try {
-                        sugiliteVerbalInstructionHTTPQueryManager.sendQueryRequest(query);
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                }
-            };
-            thread.start();
-
+            try {
+                sugiliteVerbalInstructionHTTPQueryManager.sendQueryRequestOnASeparateThread(query, this);
+            } catch (Exception e){
+                e.printStackTrace();
+            }
             //show loading popup
             dialog.dismiss();
             showProgressDialog();

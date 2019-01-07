@@ -54,7 +54,7 @@ public class PumiceDialogActivity extends AppCompatActivity implements SugiliteV
         this.tts = new TextToSpeech(this, new TextToSpeech.OnInitListener() {
             @Override
             public void onInit(int status) {
-                pumiceDialogManager.sendAgentMessage("Hi I'm Sugilite bot! How are you doing today?", true, true);
+                pumiceDialogManager.sendAgentMessage("Hi I'm Sugilite bot! How can I help you?", true, true);
             }
         });
         initiateDrawables();

@@ -32,6 +32,13 @@ public class PumiceProceduralKnowledge {
         parameterNameParameterMap = new HashMap<>();
     }
 
+    public void copyFrom(PumiceProceduralKnowledge pumiceProceduralKnowledge){
+        this.procedureName = pumiceProceduralKnowledge.procedureName;
+        this.utterance = pumiceProceduralKnowledge.utterance;
+        this.involvedAppNames = pumiceProceduralKnowledge.involvedAppNames;
+        this.parameterNameParameterMap = pumiceProceduralKnowledge.parameterNameParameterMap;
+    }
+
     public void addParameter(PumiceProceduralKnowledgeParameter parameter){
         parameterNameParameterMap.put(parameter.parameterName, parameter);
     }

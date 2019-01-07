@@ -22,6 +22,7 @@ public class PumiceSemanticParsingResultPacket {
     }
 
     public String utteranceType;
+    public String userUtterance;
     public Long queryId;
     public List<QueryGroundingPair> queries;
 }

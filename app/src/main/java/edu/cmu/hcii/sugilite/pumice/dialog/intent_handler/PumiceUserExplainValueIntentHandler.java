@@ -8,6 +8,7 @@ import java.util.Calendar;
 
 import edu.cmu.hcii.sugilite.pumice.dialog.PumiceDialogManager;
 import edu.cmu.hcii.sugilite.pumice.kb.PumiceValueQueryKnowledge;
+import edu.cmu.hcii.sugilite.verbal_instruction_demo.server_comm.SugiliteVerbalInstructionHTTPQueryInterface;
 
 /**
  * @author toby
@@ -16,12 +17,21 @@ import edu.cmu.hcii.sugilite.pumice.kb.PumiceValueQueryKnowledge;
  */
 
 //class used for handle utterances when the user explain a PumiceValueQueryKnowledge
-public class PumiceUserExplainValueIntentHandler implements PumiceUtteranceIntentHandler {
+public class PumiceUserExplainValueIntentHandler implements PumiceUtteranceIntentHandler, SugiliteVerbalInstructionHTTPQueryInterface {
     private transient Context context;
+    private transient PumiceDialogManager pumiceDialogManager;
+    private String parentKnowledgeName;
+
+    //need to notify this lock when the value is resolved, and return the value through this object
+    private PumiceValueQueryKnowledge resolveValueLock;
     Calendar calendar;
-    public PumiceUserExplainValueIntentHandler(Context context){
+
+    public PumiceUserExplainValueIntentHandler(PumiceDialogManager pumiceDialogManager, Context context, PumiceValueQueryKnowledge resolveValueLock, String parentKnowledgeName){
+        this.pumiceDialogManager = pumiceDialogManager;
         this.context = context;
         this.calendar = Calendar.getInstance();
+        this.resolveValueLock = resolveValueLock;
+        this.parentKnowledgeName = parentKnowledgeName;
     }
 
     @Override
@@ -37,7 +47,7 @@ public class PumiceUserExplainValueIntentHandler implements PumiceUtteranceInten
             dialogManager.sendAgentMessage("I have received your explanation: " + utterance.getContent(), true, false);
             //TODO: send out the server query
             //test
-            returnUserExplainValueResult(dialogManager, new PumiceValueQueryKnowledge<String>(utterance.getContent(), PumiceValueQueryKnowledge.ValueType.STRING));
+            returnUserExplainValueResult(dialogManager, new PumiceValueQueryKnowledge<String>(parentKnowledgeName, PumiceValueQueryKnowledge.ValueType.STRING));
         }
 
         else if (pumiceIntent.equals(PumiceIntent.DEFINE_VALUE_DEMONSTRATION)){
@@ -45,13 +55,13 @@ public class PumiceUserExplainValueIntentHandler implements PumiceUtteranceInten
                 @Override
                 public void run() {
                     AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(context);
-                    dialogBuilder.setMessage("Please start demonstrating finding this value")
+                    dialogBuilder.setMessage("Please start demonstrating finding this value. Click OK to continue.")
                             .setIcon(android.R.drawable.ic_dialog_alert)
                             .setPositiveButton("OK", new DialogInterface.OnClickListener() {
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {
                                     //TODO: handle demonstration
-                                    returnUserExplainValueResult(dialogManager, new PumiceValueQueryKnowledge<String>(utterance.getContent(), PumiceValueQueryKnowledge.ValueType.STRING));
+                                    returnUserExplainValueResult(dialogManager, new PumiceValueQueryKnowledge<String>(parentKnowledgeName, PumiceValueQueryKnowledge.ValueType.STRING));
                                 }
                             }).show();
                 }
@@ -59,7 +69,7 @@ public class PumiceUserExplainValueIntentHandler implements PumiceUtteranceInten
         }
 
         //set the intent handler back to the default one
-        dialogManager.updateUtteranceIntentHandlerInANewState(new PumiceDefaultUtteranceIntentHandler(context));
+        dialogManager.updateUtteranceIntentHandlerInANewState(new PumiceDefaultUtteranceIntentHandler(pumiceDialogManager, context));
     }
 
     @Override
@@ -72,11 +82,16 @@ public class PumiceUserExplainValueIntentHandler implements PumiceUtteranceInten
     }
 
     @Override
-    public void handleServerResponse(PumiceDialogManager dialogManager, int responseCode, String result) {
+    public void resultReceived(int responseCode, String result) {
         //TODO: handle server response
         //notify the thread for resolving unknown bool exp that the intent has been fulfilled
 
 
+    }
+
+    @Override
+    public void runOnMainThread(Runnable r) {
+        pumiceDialogManager.runOnMainThread(r);
     }
 
     /**
@@ -85,9 +100,9 @@ public class PumiceUserExplainValueIntentHandler implements PumiceUtteranceInten
      * @param valueQueryKnowledge
      */
     private void returnUserExplainValueResult(PumiceDialogManager dialogManager, PumiceValueQueryKnowledge valueQueryKnowledge){
-        synchronized (dialogManager.getPumiceInitInstructionParsingHandler().resolveValueLock) {
-            dialogManager.getPumiceInitInstructionParsingHandler().resolveValueLock.notify();
-            dialogManager.getPumiceInitInstructionParsingHandler().resolveValueLock = valueQueryKnowledge;
+        synchronized (resolveValueLock) {
+            resolveValueLock.copyFrom(valueQueryKnowledge);
+            resolveValueLock.notify();
         }
     }
 

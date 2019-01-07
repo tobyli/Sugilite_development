@@ -35,6 +35,7 @@ public class OverlayChosenPopupDialog implements SugiliteVerbalInstructionHTTPQu
     private SugiliteData sugiliteData;
     private SharedPreferences sharedPreferences;
     private SugiliteVerbalInstructionHTTPQueryManager httpQueryManager;
+    private OverlayChosenPopupDialog overlayChosenPopupDialog;
 
     public OverlayChosenPopupDialog(Context context, LayoutInflater inflater, VerbalInstructionOverlayManager overlayManager, Node node, VerbalInstructionServerResults.VerbalInstructionResult chosenResult, List<VerbalInstructionServerResults.VerbalInstructionResult> allResults, SerializableUISnapshot serializableUISnapshot, String utterance,  SugiliteData sugiliteData, SharedPreferences sharedPreferences){
         this.context = context;
@@ -42,7 +43,8 @@ public class OverlayChosenPopupDialog implements SugiliteVerbalInstructionHTTPQu
         this.sugiliteData = sugiliteData;
         this.sharedPreferences = sharedPreferences;
         this.verbalInstructionRecordingManager = new VerbalInstructionRecordingManager(context, sugiliteData, sharedPreferences);
-        this.httpQueryManager = new SugiliteVerbalInstructionHTTPQueryManager(this, sharedPreferences);
+        this.httpQueryManager = new SugiliteVerbalInstructionHTTPQueryManager(sharedPreferences);
+        this.overlayChosenPopupDialog = this;
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
         builder.setTitle(Const.appNameUpperCase + " Verbal Instruction");
 
@@ -66,17 +68,13 @@ public class OverlayChosenPopupDialog implements SugiliteVerbalInstructionHTTPQu
                         //confirm parse, send the result back to the server
                         Toast.makeText(context, "Confirmed parse: " + chosenResult.getFormula(), Toast.LENGTH_SHORT).show();
                         VerbalInstructionServerResponse response = new VerbalInstructionServerResponse(chosenResult.getFormula(), chosenResult.getId());
-                        Thread thread = new Thread() {
-                            @Override
-                            public void run() {
-                                try {
-                                    httpQueryManager.sendResponseRequest(response);
-                                } catch (Exception e) {
-                                    e.printStackTrace();
-                                }
-                            }
-                        };
-                        thread.start();
+
+                        try {
+                            httpQueryManager.sendResponseRequestOnASeparateThread(response, overlayChosenPopupDialog);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+
                         overlayManager.removeOverlays();
 
                         //TODO: if in the recording mode, add the step to recording

@@ -58,6 +58,7 @@ public class VerbalInstructionTestDialog implements SugiliteVoiceInterface, Sugi
     private VerbalInstructionOverlayManager overlayManager;
     private Gson gson;
     private LinearLayout mainLayout;
+    private VerbalInstructionTestDialog verbalInstructionTestDialog;
     public boolean isListening = false;
 
 
@@ -65,9 +66,10 @@ public class VerbalInstructionTestDialog implements SugiliteVoiceInterface, Sugi
         this.serializableUISnapshot = serializableUISnapshot;
         this.context = context;
         this.sugiliteVoiceRecognitionListener = new SugiliteVoiceRecognitionListener(context, this, tts);
-        this.sugiliteVerbalInstructionHTTPQueryManager = new SugiliteVerbalInstructionHTTPQueryManager(this, sharedPreferences);
+        this.sugiliteVerbalInstructionHTTPQueryManager = new SugiliteVerbalInstructionHTTPQueryManager(sharedPreferences);
         this.overlayManager = new VerbalInstructionOverlayManager(context, sugiliteData, sharedPreferences);
         this.gson = new Gson();
+        this.verbalInstructionTestDialog = this;
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
         View dialogView = inflater.inflate(R.layout.dialog_send_server_query, null);
         mainLayout = (LinearLayout)dialogView.findViewById(R.id.layout_send_server_query);
@@ -131,19 +133,15 @@ public class VerbalInstructionTestDialog implements SugiliteVoiceInterface, Sugi
                 VerbalInstructionIconManager.dumpUISnapshot(serializableUISnapshot);
 
                 //send the query
-                Thread thread = new Thread() {
-                    @Override
-                    public void run() {
-                        try {
-                            sugiliteVerbalInstructionHTTPQueryManager.sendQueryRequest(query);
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
-                    }
-                };
+
+                try {
+                    sugiliteVerbalInstructionHTTPQueryManager.sendQueryRequestOnASeparateThread(query, verbalInstructionTestDialog);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+
 
                 //TODO: show loading popup
-                thread.start();
                 showProgressDialog();
 
             }

@@ -14,6 +14,8 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import edu.cmu.hcii.sugilite.R;
 
@@ -40,7 +42,7 @@ import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
  * @date 10/9/18
  * @time 3:56 PM
  */
-public class PumiceDialogManager implements SugiliteVerbalInstructionHTTPQueryInterface {
+public class PumiceDialogManager{
     public enum Sender {AGENT, USER}
     public AppCompatActivity context;//made public from private
     private PumiceDialogView pumiceDialogView;
@@ -50,6 +52,7 @@ public class PumiceDialogManager implements SugiliteVerbalInstructionHTTPQueryIn
     private SugiliteVoiceRecognitionListener sugiliteVoiceRecognitionListener;
     private SugiliteVerbalInstructionHTTPQueryManager httpQueryManager;
     private SharedPreferences sharedPreferences;
+    private ExecutorService executorService;
     public SugiliteBlock tResult;
     public String check;
     public boolean addElse = false;
@@ -71,7 +74,8 @@ public class PumiceDialogManager implements SugiliteVerbalInstructionHTTPQueryIn
         this.stateHistoryList = new ArrayList<>();
         this.pumiceDialogState = new PumiceDialogState(pcih, new PumiceKnowledgeManager());
         this.sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
-        this.httpQueryManager = new SugiliteVerbalInstructionHTTPQueryManager(this, sharedPreferences);
+        this.httpQueryManager = new SugiliteVerbalInstructionHTTPQueryManager(sharedPreferences);
+        this.executorService = Executors.newCachedThreadPool();
 
         //** testing **
         this.pumiceDialogState.getPumiceKnowledgeManager().initForTesting();
@@ -356,8 +360,9 @@ public class PumiceDialogManager implements SugiliteVerbalInstructionHTTPQueryIn
         PumiceDialogState getDuplicateWithNewIntentHandler(Context context, PumiceUtteranceIntentHandler intentHandler){
             Gson gson = new Gson();
             List<PumiceUtterance> newUtteranceHistory =  new ArrayList<>(utteranceHistory);
-            PumiceKnowledgeManager newPumiceKnowledgeManager = gson.fromJson(gson.toJson(pumiceKnowledgeManager), PumiceKnowledgeManager.class);
-            return new PumiceDialogState(newUtteranceHistory, intentHandler, newPumiceKnowledgeManager);
+            //PumiceKnowledgeManager newPumiceKnowledgeManager = gson.fromJson(gson.toJson(pumiceKnowledgeManager), PumiceKnowledgeManager.class);
+            //TODO: duplicate the knowledge manager
+            return new PumiceDialogState(newUtteranceHistory, intentHandler, pumiceKnowledgeManager);
         }
     }
 
@@ -380,39 +385,12 @@ public class PumiceDialogManager implements SugiliteVerbalInstructionHTTPQueryIn
         }
     }
 
-    @Override
-    public void runOnMainThread(Runnable r) {
-        context.runOnUiThread(r);
-
+    public ExecutorService getExecutorService() {
+        return executorService;
     }
 
-    @Override
-    public void resultReceived(int responseCode, String result) {
-        //TODO: handle server response from the semantic parsing server
-        /*Gson gson = new Gson();
-        try {
-            PumiceSemanticParsingResultPacket resultPacket = gson.fromJson(result, PumiceSemanticParsingResultPacket.class);
-            if (resultPacket.utteranceType != null) {
-                switch (PumiceUtteranceIntentHandler.PumiceIntent.valueOf(resultPacket.utteranceType)) {
-                    case USER_INIT_INSTRUCTION:
-                        if (resultPacket.queries != null && resultPacket.queries.size() > 0) {
-                            PumiceSemanticParsingResultPacket.QueryGroundingPair topResult = resultPacket.queries.get(0);
-                            if (topResult.formula != null) {
-                                System.out.println("HERE " + topResult.formula);
-                                sendAgentMessage("Received the parsing result from the server: ", true, false);
-                                sendAgentMessage(topResult.formula, false, false);
-                                pumiceInitInstructionParsingHandler.parseFromNewInitInstruction(topResult.formula);
-                            }
-                        }
-                        break;
-                    default:
-                        sendAgentMessage("Can't read from the server response", true, false);
-                }
-            }
-        } catch (Exception e){
-            e.printStackTrace();
-        }*/
-       pumiceDialogState.getPumiceUtteranceIntentHandlerInUse().handleServerResponse(this, responseCode, result);
+    public void runOnMainThread(Runnable r) {
+        context.runOnUiThread(r);
     }
 
     public void settResult(SugiliteBlock tResult) {

@@ -10,6 +10,7 @@ import java.util.regex.Pattern;
 
 import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
+import edu.cmu.hcii.sugilite.model.block.booleanexp.SugiliteBooleanExpressionNew;
 import edu.cmu.hcii.sugilite.ontology.description.OntologyDescriptionGenerator;
 
 /**
@@ -100,6 +101,16 @@ public class SugiliteScriptParser {
             expressionList.addAll(SugiliteScriptExpression.parse(node));
         }
         return expressionList;
+    }
+
+    public SugiliteBooleanExpressionNew parseBooleanExpressionFromString(String input){
+        List<SugiliteScriptExpression> expressionList = runASTParsingPipeline(input);
+        if(expressionList.size() == 1){
+            SugiliteScriptExpression expression = expressionList.get(0);
+            return new SugiliteBooleanExpressionNew(expression);
+        } else {
+            throw new RuntimeException("the size of expression needs to be 1!");
+        }
     }
 
     public SugiliteStartingBlock parseBlockFromString(String input){

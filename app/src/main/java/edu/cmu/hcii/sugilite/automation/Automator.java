@@ -711,10 +711,6 @@ public class Automator {
 
 
     private void addNextBlockToQueue(final SugiliteBlock block){
-        if(block == null) {
-            sugiliteData.runDone = true;
-            return;
-        }
         if(block instanceof SugiliteStartingBlock) {
             sugiliteData.addInstruction(block.getNextBlock());
         }
@@ -744,7 +740,7 @@ public class Automator {
                 @Override
                 public void run() {
                     AlertDialog dialog = builder.create();
-                    dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
+                    dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY);
                     dialog.show();
                 }
             });

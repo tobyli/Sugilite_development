@@ -247,7 +247,7 @@ public class RecordingAmbiguousPopupDialog extends SugiliteDialogManager impleme
 
     public void show() {
         if(dialog.getWindow() != null) {
-            dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
+            dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY);
         }
         dialog.show();
 
@@ -259,7 +259,7 @@ public class RecordingAmbiguousPopupDialog extends SugiliteDialogManager impleme
     private void showProgressDialog() {
         progressDialog = new AlertDialog.Builder(context).setMessage("Processing the query ...").create();
         if(progressDialog.getWindow() != null) {
-            progressDialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
+            progressDialog.getWindow().setType(WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY);
         }
         progressDialog.setCanceledOnTouchOutside(false);
         progressDialog.show();

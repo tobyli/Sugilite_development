@@ -91,7 +91,6 @@ public class SugiliteData extends Application {
     private TextToSpeech tts;
 
     public boolean testing = false;
-    public boolean runDone = false;
     public boolean testRun = false;
 
 

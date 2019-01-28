@@ -123,6 +123,12 @@ public class PumiceConditionalIntentHandler implements PumiceUtteranceIntentHand
 
     @Override
     public void handleIntentWithUtterance(PumiceDialogManager dialogManager, PumiceIntent pumiceIntent, PumiceDialogManager.PumiceUtterance utterance) {
+        //placeholder for compiling
+    }
+
+    /*
+    @Override
+    public void handleIntentWithUtterance(PumiceDialogManager dialogManager, PumiceIntent pumiceIntent, PumiceDialogManager.PumiceUtterance utterance) {
 
         switch(pumiceIntent) {
             case FIX_SCOPE:
@@ -164,6 +170,7 @@ public class PumiceConditionalIntentHandler implements PumiceUtteranceIntentHand
                         dialogManager.sendAgentMessage("Ok, please tell me which step went wrong.", true, true);
                     }
                 }*/
+    /*
                 else {
                     moving = true;
                     dialogManager.sendAgentMessage("Ok, please tell me after what step the check should happen.", true, true);
@@ -370,6 +377,8 @@ public class PumiceConditionalIntentHandler implements PumiceUtteranceIntentHand
                 break;
         }
     }
+    */
+
 
     /*@Override
     public void handleServerResponse(PumiceDialogManager dialogManager, int responseCode, String result) {

@@ -126,7 +126,7 @@ public class RecordingOverlayContextClickDialog {
     public void show() {
         if (supportedActions.size() > 0) {
             if (dialog.getWindow() != null) {
-                dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
+                dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY);
             }
             dialog.show();
         }

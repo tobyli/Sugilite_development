@@ -385,15 +385,6 @@ public class SugiliteScriptExpression<T> {
             return operationBlock;
         }
 
-        /*else if(operationName.contentEquals("if") && arguments.size() == 1) {
-            SugiliteBooleanExpression booleanExpression = new SugiliteBooleanExpression(arguments.get(0));
-            SugiliteBooleanExpressionNew booleanExpression2 = new SugiliteBooleanExpressionNew(arguments.get(0));
-            SugiliteConditionBlock conditionBlock = new SugiliteConditionBlock(null,null, booleanExpression, null);
-            //test purpose
-            conditionBlock.setSugiliteBooleanExpressionNew(booleanExpression2);
-            return conditionBlock;
-        }*/
-
         else if(operationName.contentEquals("if") && arguments.size() == 2) {
             SugiliteBlock ifBlock = arguments.get(1).get(0).toSugiliteBlock(startingBlock, descriptionGenerator);
             if(arguments.get(1).size() > 1) {

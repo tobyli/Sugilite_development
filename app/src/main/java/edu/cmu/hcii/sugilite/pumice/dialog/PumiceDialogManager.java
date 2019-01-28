@@ -59,12 +59,6 @@ public class PumiceDialogManager{
     private SugiliteData sugiliteData;
     private ServiceStatusManager serviceStatusManager;
 
-    public SugiliteBlock tResult;
-    public String check;
-    public boolean addElse = false;
-    public SugiliteBlock conditionBlock = null;
-    public PumiceConditionalIntentHandler pcih = null;
-
     private List<PumiceDialogState> stateHistoryList;
 
     //TODO: need to add a structure to represent undo
@@ -72,13 +66,13 @@ public class PumiceDialogManager{
     //represents the current state of the dialog
     private PumiceDialogState pumiceDialogState;
 
-    public PumiceDialogManager(Activity context, PumiceUtteranceIntentHandler pcih){
+    public PumiceDialogManager(Activity context){
         this.context = context;
         this.pumiceDialogView = new PumiceDialogView(context);
         this.pumiceDialogUIHelper = new PumiceDialogUIHelper(context);
         this.pumiceInitInstructionParsingHandler = new PumiceInitInstructionParsingHandler(context, this);
         this.stateHistoryList = new ArrayList<>();
-        this.pumiceDialogState = new PumiceDialogState(pcih, new PumiceKnowledgeManager());
+        this.pumiceDialogState = new PumiceDialogState(new PumiceDefaultUtteranceIntentHandler(this, context), new PumiceKnowledgeManager());
         this.sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
         this.httpQueryManager = new SugiliteVerbalInstructionHTTPQueryManager(sharedPreferences);
         this.executorService = Executors.newCachedThreadPool();
@@ -210,7 +204,6 @@ public class PumiceDialogManager{
                 @Override
                 public void run() {
                     if(requireUserResponse && speakButtonForCallback != null){
-                        speakButtonForCallback.callOnClick();
                         pumiceDialogView.postDelayed(new Runnable() {
                             @Override
                             public void run() {
@@ -388,9 +381,6 @@ public class PumiceDialogManager{
         return httpQueryManager;
     }
 
-    public PumiceInitInstructionParsingHandler getPumiceInitInstructionParsingHandler() {
-        return pumiceInitInstructionParsingHandler;
-    }
 
     public class GetTheIntentHandlingResultForTheNextUserInput implements Callable<Object> {
         @Override
@@ -419,15 +409,8 @@ public class PumiceDialogManager{
         return serviceStatusManager;
     }
 
-    public void settResult(SugiliteBlock tResult) {
-        this.tResult = tResult;
+    public PumiceInitInstructionParsingHandler getPumiceInitInstructionParsingHandler() {
+        return pumiceInitInstructionParsingHandler;
     }
 
-    public void setPcih(PumiceConditionalIntentHandler p) {
-        pcih = p;
-    }
-
-    public PumiceConditionalIntentHandler getPcih() {
-        return pcih;
-    }
 }

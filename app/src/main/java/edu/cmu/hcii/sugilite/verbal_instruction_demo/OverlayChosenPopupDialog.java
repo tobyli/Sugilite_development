@@ -100,7 +100,7 @@ public class OverlayChosenPopupDialog implements SugiliteVerbalInstructionHTTPQu
     }
 
     public void show(){
-        dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
+        dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY);
         dialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_box);
         dialog.show();
     }

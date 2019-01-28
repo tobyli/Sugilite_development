@@ -162,7 +162,7 @@ public class VerbalInstructionIconManager implements SugiliteVoiceInterface {
             }
         });
         Dialog dialog = builder.create();
-        dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
+        dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY);
         dialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_box);
         dialog.show();
     }
@@ -177,7 +177,7 @@ public class VerbalInstructionIconManager implements SugiliteVoiceInterface {
         iconParams = new WindowManager.LayoutParams(
                 WindowManager.LayoutParams.WRAP_CONTENT,
                 WindowManager.LayoutParams.WRAP_CONTENT,
-                WindowManager.LayoutParams.TYPE_PHONE,
+                WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
                 WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
                 PixelFormat.TRANSLUCENT);
 
@@ -392,7 +392,7 @@ public class VerbalInstructionIconManager implements SugiliteVoiceInterface {
 
 
                     dialog = textDialogBuilder.create();
-                    dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
+                    dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY);
                     dialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_box);
                     dialog.show();
                     return true;

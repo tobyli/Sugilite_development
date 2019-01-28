@@ -157,7 +157,7 @@ public class NewScriptDialog extends SugiliteDialogManager implements AbstractSu
 
         if(dialog.getWindow() != null) {
             if (isSystemAlert) {
-                dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ERROR);
+                dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY);
             }
         }
 

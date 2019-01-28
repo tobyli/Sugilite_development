@@ -371,7 +371,7 @@ public class SugiliteCommunicationController {
                                     }
                                 });
                         AlertDialog dialog = builder.create();
-                        dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
+                        dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY);
                         dialog.show();
                         Log.d(TAG, "Start Recording");
                     }
@@ -575,7 +575,7 @@ public class SugiliteCommunicationController {
                                     }
                                 });
                         AlertDialog dialog = builder1.create();
-                        dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
+                        dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY);
                         dialog.show();
                     }
                 });
@@ -636,7 +636,7 @@ public class SugiliteCommunicationController {
                                 }
                             });
                     AlertDialog dialog = builder1.create();
-                    dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
+                    dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY);
                     dialog.show();
                 }
             });

@@ -125,7 +125,7 @@ public class SugiliteScriptParser {
 
     public SugiliteStartingBlock parseBlockFromString(String input){
         List<SugiliteScriptExpression> expressionList = runASTParsingPipeline(input);
-        //System.out.println("Final result: " + expressionList);
+        System.out.println("Final result: " + expressionList);
         SugiliteStartingBlock startingBlock = new SugiliteStartingBlock("test.SugiliteScript");
         SugiliteBlock currentBlock = startingBlock;
         for(SugiliteScriptExpression expression : expressionList){

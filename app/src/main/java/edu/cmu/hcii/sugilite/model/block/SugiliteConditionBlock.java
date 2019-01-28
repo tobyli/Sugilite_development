@@ -103,11 +103,16 @@ public class SugiliteConditionBlock extends SugiliteBlock implements Serializabl
         return thenBlock;
     }
 
+
     public SugiliteBlock getElseBlock() {
         return elseBlock;
     }
 
     public void setElseBlock(SugiliteBlock e) {elseBlock = e;}
+
+    public void setThenBlock(SugiliteBlock thenBlock) {
+        this.thenBlock = thenBlock;
+    }
 
     public void delete(){
         SugiliteBlock previousBlock = getPreviousBlock();

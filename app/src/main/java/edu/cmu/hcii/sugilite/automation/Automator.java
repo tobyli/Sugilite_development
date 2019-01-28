@@ -712,6 +712,7 @@ public class Automator {
 
     private void addNextBlockToQueue(final SugiliteBlock block){
         if(block == null) {
+            sugiliteData.runDone = true;
             return;
         }
         if(block instanceof SugiliteStartingBlock) {

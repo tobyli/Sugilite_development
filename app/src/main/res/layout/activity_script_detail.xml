@@ -49,4 +49,20 @@
         android:layout_alignParentEnd="true"
         android:background="#ff0000"
         android:onClick="scriptDetailDeleteButtonOnClick" />
+
+    <ImageButton
+        android:id="@+id/button5"
+        style="@style/Widget.AppCompat.ImageButton"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="10dp"
+        android:layout_marginTop="10dp"
+        android:layout_weight="0"
+        android:onClick="pumiceSendButtonOnClick"
+        android:padding="5dp"
+        android:adjustViewBounds="true"
+        android:cropToPadding="true"
+        android:elevation="2dp"
+        android:scaleType="fitCenter"
+        android:src="@mipmap/tap_to_talk"/>
 </RelativeLayout>

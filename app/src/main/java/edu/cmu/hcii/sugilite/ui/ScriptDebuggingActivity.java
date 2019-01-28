@@ -248,8 +248,6 @@ public class ScriptDebuggingActivity extends AppCompatActivity {
             new Exception("UNSUPPORTED BLOCK TYPE").printStackTrace();
 
         return null;
-
-
     }
 
     public void scriptDebugRunButtonOnClick (final View view){

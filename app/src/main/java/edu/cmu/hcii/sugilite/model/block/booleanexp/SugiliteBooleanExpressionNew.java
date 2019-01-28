@@ -226,6 +226,7 @@ public class SugiliteBooleanExpressionNew implements SugiliteValue<Boolean> {
     }
 
     public BoolOperator getBoolOperatorFromString(String operatorName){
+        System.out.println("operatorName: " + operatorName);
         if (operatorName.equalsIgnoreCase("not")){
             return BoolOperator.NOT;
         } else if (operatorName.equalsIgnoreCase("equal")){

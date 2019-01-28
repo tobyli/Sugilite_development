@@ -20,6 +20,7 @@ public abstract class SugiliteBlock implements Serializable{
         createdTime = Calendar.getInstance().getTimeInMillis();
     }
     public int blockType;
+    public boolean inScope = false;
     public static int REGULAR_OPERATION = 1, CONDITION = 2, FOR_EACH_LOOP = 3, RETURN_VALUE = 4, END_BLOCK = 5, STARTING_BLOCK = 6, SPECIAL_OPERATION = 8;
     //each block can only have 1 previous block
 
@@ -73,6 +74,10 @@ public abstract class SugiliteBlock implements Serializable{
             //handle the "merge" of condition blocks
             return parentBlock.getNextBlock();
         }
+        return nextBlock;
+    }
+
+    public SugiliteBlock getNextBlockCond() {
         return nextBlock;
     }
 

@@ -83,7 +83,7 @@ public class SugiliteTriggerHandler {
                     e.printStackTrace();
                 }
                 if (script != null) {
-                    VariableSetValueDialog variableSetValueDialog = new VariableSetValueDialog(context, layoutInflater, sugiliteData, script, sharedPreferences, SugiliteData.EXECUTION_STATE);
+                    VariableSetValueDialog variableSetValueDialog = new VariableSetValueDialog(context, layoutInflater, sugiliteData, script, sharedPreferences, SugiliteData.EXECUTION_STATE, null);
                     if (script.variableNameDefaultValueMap.size() > 0) {
                         //has variable
                         sugiliteData.stringVariableMap.putAll(script.variableNameDefaultValueMap);
@@ -98,10 +98,10 @@ public class SugiliteTriggerHandler {
                             //show the dialog to obtain user input
                             variableSetValueDialog.show();
                         else
-                            variableSetValueDialog.executeScript(null);
+                            variableSetValueDialog.executeScript(null, null, null);
                     } else {
                         //execute the script without showing the dialog
-                        variableSetValueDialog.executeScript(null);
+                        variableSetValueDialog.executeScript(null, null, null);
                     }
                 }
             }

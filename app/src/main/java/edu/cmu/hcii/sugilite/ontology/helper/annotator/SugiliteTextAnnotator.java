@@ -1,5 +1,7 @@
 package edu.cmu.hcii.sugilite.ontology.helper.annotator;
 
+import android.support.annotation.NonNull;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -41,7 +43,11 @@ public class SugiliteTextAnnotator {
     public List<AnnotatingResult> annotate(String text){
         List<AnnotatingResult> results = new ArrayList<>();
         for(SugiliteTextAnnotator subAnnotator : subAnnotators){
-            results.addAll(subAnnotator.annotate(text));
+            try {
+                results.addAll(subAnnotator.annotate(text));
+            } catch (Exception e){
+                e.printStackTrace();
+            }
         }
         return results;
     }
@@ -49,7 +55,7 @@ public class SugiliteTextAnnotator {
     /**
      * used for returning the results
      */
-    public static class AnnotatingResult{
+    public static class AnnotatingResult implements Comparable{
         private SugiliteRelation relation;
         private String matchedString;
         private int startIndex;
@@ -93,5 +99,24 @@ public class SugiliteTextAnnotator {
         }
 
         void setNumericValue(Double val) {this.numericValue = val; }
+
+        public static SugiliteTextAnnotator.AnnotatingResult fromString (String source) {
+            SugiliteTextAnnotator annotator = new SugiliteTextAnnotator(true);
+            List<SugiliteTextAnnotator.AnnotatingResult> results = annotator.annotate(source);
+            if (results.size() > 0){
+                return results.get(0);
+            }
+            return null;
+        }
+
+        @Override
+        public int compareTo(@NonNull Object o) {
+            if (o instanceof AnnotatingResult){
+                if (this.relation.equals(((AnnotatingResult) o).getRelation())){
+                    return this.numericValue.compareTo(((AnnotatingResult) o).getNumericValue());
+                }
+            }
+            return 0;
+        }
     }
 }

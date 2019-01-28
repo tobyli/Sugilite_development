@@ -276,7 +276,7 @@ public class ScriptDebuggingActivity extends AppCompatActivity {
                                     }).show();
                         }
                         else {
-                            VariableSetValueDialog variableSetValueDialog = new VariableSetValueDialog(activityContext, getLayoutInflater(), sugiliteData, script, sharedPreferences, SugiliteData.REGULAR_DEBUG_STATE);
+                            VariableSetValueDialog variableSetValueDialog = new VariableSetValueDialog(activityContext, getLayoutInflater(), sugiliteData, script, sharedPreferences, SugiliteData.REGULAR_DEBUG_STATE, null);
                             if(script.variableNameDefaultValueMap.size() > 0) {
                                 //has variable
                                 sugiliteData.stringVariableMap.putAll(script.variableNameDefaultValueMap);
@@ -291,11 +291,11 @@ public class ScriptDebuggingActivity extends AppCompatActivity {
                                     //show the dialog to obtain user input
                                     variableSetValueDialog.show();
                                 else
-                                    variableSetValueDialog.executeScript(null);
+                                    variableSetValueDialog.executeScript(null, null, null);
                             }
                             else{
                                 //execute the script without showing the dialog
-                                variableSetValueDialog.executeScript(null);
+                                variableSetValueDialog.executeScript(null, null, null);
                             }
                         }
                     }
@@ -359,7 +359,7 @@ public class ScriptDebuggingActivity extends AppCompatActivity {
                                     }).show();
                         }
                         else {
-                            VariableSetValueDialog variableSetValueDialog = new VariableSetValueDialog(activityContext, getLayoutInflater(), sugiliteData, script, sharedPreferences, SugiliteData.REGULAR_DEBUG_STATE);
+                            VariableSetValueDialog variableSetValueDialog = new VariableSetValueDialog(activityContext, getLayoutInflater(), sugiliteData, script, sharedPreferences, SugiliteData.REGULAR_DEBUG_STATE, null);
                             if(script.variableNameDefaultValueMap.size() > 0) {
                                 //has variable
                                 sugiliteData.stringVariableMap.putAll(script.variableNameDefaultValueMap);
@@ -374,11 +374,11 @@ public class ScriptDebuggingActivity extends AppCompatActivity {
                                     //show the dialog to obtain user input
                                     variableSetValueDialog.show();
                                 else
-                                    variableSetValueDialog.executeScript(null);
+                                    variableSetValueDialog.executeScript(null, null, null);
                             }
                             else{
                                 //execute the script without showing the dialog
-                                variableSetValueDialog.executeScript(null);
+                                variableSetValueDialog.executeScript(null, null, null);
                             }
                         }
                     }

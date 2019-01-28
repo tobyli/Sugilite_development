@@ -1,5 +1,6 @@
 package edu.cmu.hcii.sugilite.pumice.dialog.intent_handler;
 
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -9,6 +10,8 @@ import java.util.Calendar;
 import java.util.List;
 
 import edu.cmu.hcii.sugilite.pumice.dialog.PumiceDialogManager;
+import edu.cmu.hcii.sugilite.pumice.dialog.demonstration.PumiceProcedureDemonstrationDialog;
+import edu.cmu.hcii.sugilite.pumice.kb.PumiceBooleanExpKnowledge;
 import edu.cmu.hcii.sugilite.pumice.kb.PumiceProceduralKnowledge;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.server_comm.SugiliteVerbalInstructionHTTPQueryInterface;
 
@@ -20,7 +23,7 @@ import edu.cmu.hcii.sugilite.verbal_instruction_demo.server_comm.SugiliteVerbalI
 
 //class used for handle utterances when the user explain a PumiceProceduralKnowledge
 public class PumiceUserExplainProcedureIntentHandler implements PumiceUtteranceIntentHandler, SugiliteVerbalInstructionHTTPQueryInterface {
-    private transient Context context;
+    private transient Activity context;
     private transient PumiceDialogManager pumiceDialogManager;
     private String parentKnowledgeName;
 
@@ -29,7 +32,7 @@ public class PumiceUserExplainProcedureIntentHandler implements PumiceUtteranceI
     Calendar calendar;
 
 
-    public PumiceUserExplainProcedureIntentHandler(PumiceDialogManager pumiceDialogManager, Context context, PumiceProceduralKnowledge resolveProcedureLock, String parentKnowledgeName){
+    public PumiceUserExplainProcedureIntentHandler(PumiceDialogManager pumiceDialogManager, Activity context, PumiceProceduralKnowledge resolveProcedureLock, String parentKnowledgeName){
         this.pumiceDialogManager = pumiceDialogManager;
         this.context = context;
         this.calendar = Calendar.getInstance();
@@ -38,7 +41,7 @@ public class PumiceUserExplainProcedureIntentHandler implements PumiceUtteranceI
     }
 
     @Override
-    public void setContext(Context context) {
+    public void setContext(Activity context) {
         this.context = context;
     }
 
@@ -52,29 +55,21 @@ public class PumiceUserExplainProcedureIntentHandler implements PumiceUtteranceI
             //test
             List<String> appList = new ArrayList<>();
             appList.add("Test App 2");
-            returnUserExplainProcedureResult(dialogManager, new PumiceProceduralKnowledge(parentKnowledgeName, utterance.getContent(), appList));
+            returnUserExplainProcedureResult(new PumiceProceduralKnowledge(parentKnowledgeName, utterance.getContent(), appList));
         }
 
         else if (pumiceIntent.equals(PumiceIntent.DEFINE_PROCEDURE_DEMONSTATION)){
+            PumiceProcedureDemonstrationDialog procedureDemonstrationDialog = new PumiceProcedureDemonstrationDialog(context, parentKnowledgeName, utterance.getContent(), dialogManager.getSharedPreferences(), dialogManager.getSugiliteData(), dialogManager.getServiceStatusManager(), this);
             dialogManager.runOnMainThread(new Runnable() {
                 @Override
                 public void run() {
-                    AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(context);
-                    dialogBuilder.setMessage("Please start demonstrating this procedure.  Click OK to continue.")
-                            .setIcon(android.R.drawable.ic_dialog_alert)
-                            .setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-                                    //TODO: handle demonstration
-                                    List<String> appList = new ArrayList<>();
-                                    appList.add("The Test App");
-                                    returnUserExplainProcedureResult(dialogManager, new PumiceProceduralKnowledge(parentKnowledgeName, utterance.getContent(), appList));
-                                }
-                            }).show();
+                    //the show() method for the dialog needs to be called at the main thread
+                    procedureDemonstrationDialog.show();
                 }
             });
+            //send out the prompt
+            dialogManager.sendAgentMessage("Please start demonstrating how to " + parentKnowledgeName +  ". " + "Click OK to continue.",true, false);
         }
-
         //set the intent handler back to the default one
         dialogManager.updateUtteranceIntentHandlerInANewState(new PumiceDefaultUtteranceIntentHandler(pumiceDialogManager, context));
     }
@@ -86,6 +81,10 @@ public class PumiceUserExplainProcedureIntentHandler implements PumiceUtteranceI
         } else {
             return PumiceIntent.DEFINE_PROCEDURE_EXP;
         }
+    }
+
+    public PumiceDialogManager getPumiceDialogManager() {
+        return pumiceDialogManager;
     }
 
     @Override
@@ -101,15 +100,15 @@ public class PumiceUserExplainProcedureIntentHandler implements PumiceUtteranceI
 
     /**
      * return the result PumiceProceduralKnowledge, and release the lock in the original PumiceInitInstructionParsingHandler
-     * @param dialogManager
      * @param proceduralKnowledge
      */
-    private void returnUserExplainProcedureResult(PumiceDialogManager dialogManager, PumiceProceduralKnowledge proceduralKnowledge){
+    public void returnUserExplainProcedureResult(PumiceProceduralKnowledge proceduralKnowledge){
         synchronized (resolveProcedureLock) {
             resolveProcedureLock.copyFrom(proceduralKnowledge);
             resolveProcedureLock.notify();
         }
     }
+
 
 
 }

@@ -1,6 +1,6 @@
 package edu.cmu.hcii.sugilite.pumice.dialog.intent_handler;
 
-import android.content.Context;
+import android.app.Activity;
 
 import com.google.gson.Gson;
 
@@ -20,7 +20,7 @@ import edu.cmu.hcii.sugilite.verbal_instruction_demo.server_comm.SugiliteVerbalI
 
 //class used for handle utterances when the user explain a PumiceBooleanExpKnowledge
 public class PumiceUserExplainBoolExpIntentHandler implements PumiceUtteranceIntentHandler, SugiliteVerbalInstructionHTTPQueryInterface {
-    private transient Context context;
+    private transient Activity context;
     private transient PumiceDialogManager pumiceDialogManager;
     private String parentKnowledgeName;
 
@@ -28,7 +28,7 @@ public class PumiceUserExplainBoolExpIntentHandler implements PumiceUtteranceInt
     PumiceBooleanExpKnowledge resolveBoolExpLock;
     Calendar calendar;
 
-    public PumiceUserExplainBoolExpIntentHandler(PumiceDialogManager pumiceDialogManager, Context context, PumiceBooleanExpKnowledge resolveBoolExpLock, String parentKnowledgeName){
+    public PumiceUserExplainBoolExpIntentHandler(PumiceDialogManager pumiceDialogManager, Activity context, PumiceBooleanExpKnowledge resolveBoolExpLock, String parentKnowledgeName){
         this.pumiceDialogManager = pumiceDialogManager;
         this.context = context;
         this.calendar = Calendar.getInstance();
@@ -37,13 +37,13 @@ public class PumiceUserExplainBoolExpIntentHandler implements PumiceUtteranceInt
     }
 
     @Override
-    public void setContext(Context context) {
+    public void setContext(Activity context) {
         this.context = context;
     }
 
     @Override
     public void handleIntentWithUtterance(PumiceDialogManager dialogManager, PumiceIntent pumiceIntent, PumiceDialogManager.PumiceUtterance utterance) {
-        if (pumiceIntent.equals(PumiceIntent.DEFINE_BOOL_EXP)){
+        if (pumiceIntent.equals(PumiceIntent.BOOL_EXP_INSTRUCTION)){
             dialogManager.sendAgentMessage("I have received your explanation: " + utterance.getContent(), true, false);
 
             //send out the server query
@@ -66,7 +66,7 @@ public class PumiceUserExplainBoolExpIntentHandler implements PumiceUtteranceInt
 
     @Override
     public PumiceIntent detectIntentFromUtterance(PumiceDialogManager.PumiceUtterance utterance) {
-        return PumiceIntent.DEFINE_BOOL_EXP;
+        return PumiceIntent.BOOL_EXP_INSTRUCTION;
     }
 
     @Override
@@ -92,7 +92,7 @@ public class PumiceUserExplainBoolExpIntentHandler implements PumiceUtteranceInt
                                         PumiceBooleanExpKnowledge pumiceBooleanExpKnowledge = pumiceDialogManager.getPumiceInitInstructionParsingHandler().parseFromBoolExpInstruction(topResult.formula, resultPacket.userUtterance, parentKnowledgeName);
 
                                         //notify the original thread for resolving unknown bool exp that the intent has been fulfilled
-                                        returnUserExplainBoolExpResult(pumiceDialogManager, pumiceBooleanExpKnowledge);
+                                        returnUserExplainBoolExpResult(pumiceBooleanExpKnowledge);
                                     }
                                 });
                             } else {
@@ -120,10 +120,9 @@ public class PumiceUserExplainBoolExpIntentHandler implements PumiceUtteranceInt
 
     /**
      * return the result PumiceBooleanExpKnowledge, and release the lock in the original PumiceInitInstructionParsingHandler
-     * @param dialogManager
      * @param booleanExpKnowledge
      */
-    private void returnUserExplainBoolExpResult(PumiceDialogManager dialogManager, PumiceBooleanExpKnowledge booleanExpKnowledge){
+    public void returnUserExplainBoolExpResult(PumiceBooleanExpKnowledge booleanExpKnowledge){
         synchronized (resolveBoolExpLock) {
             resolveBoolExpLock.copyFrom(booleanExpKnowledge);
             resolveBoolExpLock.notify();

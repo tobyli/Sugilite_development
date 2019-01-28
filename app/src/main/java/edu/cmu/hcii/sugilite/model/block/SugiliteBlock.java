@@ -60,6 +60,10 @@ public abstract class SugiliteBlock implements Serializable{
         this.parentBlock = parentBlock;
     }
 
+    public SugiliteBlock getParentBlock() {
+        return parentBlock;
+    }
+
     public File getScreenshot(){
         return screenshot;
     }

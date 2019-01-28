@@ -123,7 +123,7 @@ public class NewScriptDialog extends SugiliteDialogManager implements AbstractSu
                             sugiliteData.setCurrentSystemState(SugiliteData.RECORDING_STATE);
 
                             //set the active script to the newly created script
-                            sugiliteData.initiateScript(scriptNameEditText.getText().toString() + ".SugiliteScript");
+                            sugiliteData.initiateScript(scriptNameEditText.getText().toString() + ".SugiliteScript", null);
                             sugiliteData.initiatedExternally = false;
                             //save the newly created script to DB
                             try {

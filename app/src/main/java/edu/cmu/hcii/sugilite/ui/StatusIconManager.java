@@ -197,7 +197,8 @@ public class StatusIconManager {
     }
 
     public boolean isShowingIcon() {
-        return showingIcon;
+        return statusIcon.isShown();
+        //return showingIcon;
     }
 
     /**
@@ -506,6 +507,7 @@ public class StatusIconManager {
                                         @Override
                                         public void run()
                                         {
+                                            //commit the script
                                             try {
                                                 sugiliteScriptDao.commitSave();
                                             }
@@ -529,9 +531,19 @@ public class StatusIconManager {
 
 
                                     if (sugiliteData.initiatedExternally && sugiliteData.getScriptHead() != null) {
+                                        //return the recording to the external caller
                                         sugiliteData.communicationController.sendRecordingFinishedSignal(sugiliteData.getScriptHead().getScriptName());
                                         sugiliteData.sendCallbackMsg(Const.FINISHED_RECORDING, jsonProcessor.scriptToJson(sugiliteData.getScriptHead()), sugiliteData.callbackString);
                                     }
+
+                                    if (sugiliteData.getScriptHead() != null && sugiliteData.endRecordingCallback != null){
+                                        //call the endRecordingCallback
+                                        Runnable r = sugiliteData.endRecordingCallback;
+                                        sugiliteData.endRecordingCallback = null;
+                                        r.run();
+                                    }
+
+
                                     sugiliteData.setCurrentSystemState(SugiliteData.DEFAULT_STATE);
                                     Toast.makeText(context, "end recording", Toast.LENGTH_SHORT).show();
                                     break;

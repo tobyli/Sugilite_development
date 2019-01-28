@@ -1,5 +1,6 @@
 package edu.cmu.hcii.sugilite.pumice.dialog.intent_handler;
 
+import android.app.Activity;
 import android.content.Context;
 
 import edu.cmu.hcii.sugilite.pumice.dialog.PumiceDialogManager;
@@ -10,7 +11,7 @@ import edu.cmu.hcii.sugilite.pumice.dialog.PumiceDialogManager;
  * @time 1:33 PM
  */
 public interface PumiceUtteranceIntentHandler {
-    enum PumiceIntent {USER_INIT_INSTRUCTION, TEST_WEATHER, START_OVER, UNDO_STEP, SHOW_KNOWLEDGE, SHOW_RAW_KNOWLEDGE, DEFINE_BOOL_EXP, DEFINE_VALUE_EXP, DEFINE_VALUE_DEMONSTRATION, DEFINE_PROCEDURE_EXP, DEFINE_PROCEDURE_DEMONSTATION}
+    enum PumiceIntent {USER_INIT_INSTRUCTION, TEST_WEATHER, START_OVER, UNDO_STEP, SHOW_KNOWLEDGE, SHOW_RAW_KNOWLEDGE, BOOL_EXP_INSTRUCTION, DEFINE_VALUE_EXP, DEFINE_VALUE_DEMONSTRATION, DEFINE_PROCEDURE_EXP, DEFINE_PROCEDURE_DEMONSTATION, EXECUTION_POSITIVE, EXECUTION_NEGATIVE}
 
     /**
      * detect the intent type from a given user utterance
@@ -19,5 +20,5 @@ public interface PumiceUtteranceIntentHandler {
      */
     PumiceIntent detectIntentFromUtterance(PumiceDialogManager.PumiceUtterance utterance);
     void handleIntentWithUtterance(PumiceDialogManager dialogManager, PumiceIntent pumiceIntent, PumiceDialogManager.PumiceUtterance utterance);
-    void setContext(Context context);
+    void setContext(Activity context);
 }

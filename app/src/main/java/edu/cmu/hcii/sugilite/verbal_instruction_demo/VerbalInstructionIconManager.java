@@ -434,6 +434,25 @@ public class VerbalInstructionIconManager implements SugiliteVoiceInterface {
         });
     }
 
+    public void turnOnCatOverlay() {
+        recordingOverlayManager.enableOverlay();
+        //remove and re-add the status icon so that it can show on top of the overlay
+        removeStatusIcon();
+        addStatusIcon();
+
+
+        if(duckIconManager != null){
+            duckIconManager.removeStatusIcon();
+            duckIconManager.addStatusIcon();
+        }
+    }
+
+    public void turnOffCatOverlay() {
+        if(recordingOverlayManager.isShowingOverlay()){
+            recordingOverlayManager.removeOverlays();
+        }
+    }
+
     public void switchCatOverlay(){
         if(recordingOverlayManager.isShowingOverlay()){
             recordingOverlayManager.removeOverlays();
@@ -444,12 +463,12 @@ public class VerbalInstructionIconManager implements SugiliteVoiceInterface {
             removeStatusIcon();
             addStatusIcon();
 
-                                                /*
-                                                if(duckIconManager != null){
-                                                    duckIconManager.removeStatusIcon();
-                                                    duckIconManager.addStatusIcon();
-                                                }
-                                                */
+
+            if(duckIconManager != null){
+                duckIconManager.removeStatusIcon();
+                duckIconManager.addStatusIcon();
+            }
+
 
         }
     }
@@ -530,6 +549,8 @@ public class VerbalInstructionIconManager implements SugiliteVoiceInterface {
     public void endStudyRecording(){
         statusIcon.setImageResource(R.mipmap.cat_sleep);
     }
+
+
 
 
 

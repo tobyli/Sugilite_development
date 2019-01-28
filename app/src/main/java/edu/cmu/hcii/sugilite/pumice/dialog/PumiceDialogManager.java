@@ -17,6 +17,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import edu.cmu.hcii.sugilite.R;
+import edu.cmu.hcii.sugilite.SugiliteData;
+import edu.cmu.hcii.sugilite.automation.ServiceStatusManager;
 import edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.PumiceDefaultUtteranceIntentHandler;
 import edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.PumiceUtteranceIntentHandler;
 import edu.cmu.hcii.sugilite.pumice.kb.PumiceKnowledgeManager;
@@ -42,6 +44,8 @@ public class PumiceDialogManager{
     private SugiliteVerbalInstructionHTTPQueryManager httpQueryManager;
     private SharedPreferences sharedPreferences;
     private ExecutorService executorService;
+    private SugiliteData sugiliteData;
+    private ServiceStatusManager serviceStatusManager;
 
 
     private List<PumiceDialogState> stateHistoryList;
@@ -61,6 +65,10 @@ public class PumiceDialogManager{
         this.sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
         this.httpQueryManager = new SugiliteVerbalInstructionHTTPQueryManager(sharedPreferences);
         this.executorService = Executors.newCachedThreadPool();
+        this.serviceStatusManager = ServiceStatusManager.getInstance(context);
+        this.sugiliteData = (SugiliteData)(context.getApplication());
+        this.sugiliteData.pumiceDialogManager = this;
+
 
         //** testing **
         this.pumiceDialogState.getPumiceKnowledgeManager().initForTesting();
@@ -169,6 +177,10 @@ public class PumiceDialogManager{
         if(stateHistoryList.get(0) != null){
             revertToState(stateHistoryList.get(0));
         }
+    }
+
+    public PumiceDialogActivity getContext() {
+        return context;
     }
 
     public PumiceKnowledgeManager getPumiceKnowledgeManager() {
@@ -367,5 +379,17 @@ public class PumiceDialogManager{
 
     public void runOnMainThread(Runnable r) {
         context.runOnUiThread(r);
+    }
+
+    public SharedPreferences getSharedPreferences() {
+        return sharedPreferences;
+    }
+
+    public SugiliteData getSugiliteData() {
+        return sugiliteData;
+    }
+
+    public ServiceStatusManager getServiceStatusManager() {
+        return serviceStatusManager;
     }
 }

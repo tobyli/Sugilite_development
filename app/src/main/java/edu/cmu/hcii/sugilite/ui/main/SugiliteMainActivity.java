@@ -100,7 +100,14 @@ public class SugiliteMainActivity extends AppCompatActivity {
         actionBar.addTab(scriptListTab);
         actionBar.addTab(triggerListTab);
 
-
+        /*
+        try {
+            Process suProcess = Runtime.getRuntime().exec("su pm grant 'edu.cmu.hcii.sugilite' android.permission.INJECT_EVENTS");
+            suProcess.waitFor();
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+        */
 
     }
 

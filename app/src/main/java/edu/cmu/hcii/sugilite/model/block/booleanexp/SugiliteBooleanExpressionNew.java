@@ -1,11 +1,15 @@
 package edu.cmu.hcii.sugilite.model.block.booleanexp;
 
 import edu.cmu.hcii.sugilite.SugiliteData;
+import edu.cmu.hcii.sugilite.model.operation.binary.SugiliteGetBoolExpOperation;
 import edu.cmu.hcii.sugilite.model.operation.binary.SugiliteGetOperation;
+import edu.cmu.hcii.sugilite.model.operation.binary.SugiliteGetProcedureOperation;
+import edu.cmu.hcii.sugilite.model.operation.binary.SugiliteGetValueOperation;
 import edu.cmu.hcii.sugilite.model.operation.unary.SugiliteResolveBoolExpOperation;
 import edu.cmu.hcii.sugilite.model.operation.unary.SugiliteResolveValueQueryOperation;
 import edu.cmu.hcii.sugilite.model.value.SugiliteSimpleConstant;
 import edu.cmu.hcii.sugilite.model.value.SugiliteValue;
+import edu.cmu.hcii.sugilite.ontology.helper.annotator.SugiliteTextAnnotator;
 import edu.cmu.hcii.sugilite.source_parsing.SugiliteScriptExpression;
 import java.util.List;
 
@@ -32,12 +36,12 @@ public class SugiliteBooleanExpressionNew implements SugiliteValue<Boolean> {
         if (sugiliteScriptExpression.getOperationName().equalsIgnoreCase("resolve_boolExp") && argList.get(0) != null){
             //resolve_boolExp query
             this.boolOperation = new SugiliteResolveBoolExpOperation();
-            ((SugiliteResolveBoolExpOperation) boolOperation).setParameter0(parseSugiliteValueFromScriptExpression(argList.get(0).get(0)).evaluate().toString());
+            ((SugiliteResolveBoolExpOperation) boolOperation).setParameter0(parseSugiliteValueFromScriptExpression(argList.get(0).get(0)).evaluate(null).toString());
         } else if (sugiliteScriptExpression.getOperationName().equalsIgnoreCase("get") && argList.get(0) != null && argList.get(1) != null &&
                 argList.get(1).get(0).isConstant() && argList.get(1).get(0).getConstantValue().toString().contains("boolFunctionName")){
-            this.boolOperation = new SugiliteGetOperation<Boolean>();
-            ((SugiliteGetOperation)boolOperation).setName(parseSugiliteValueFromScriptExpression(argList.get(0).get(0)).evaluate().toString());
-            ((SugiliteGetOperation)boolOperation).setType(parseSugiliteValueFromScriptExpression(argList.get(1).get(0)).evaluate().toString());
+            this.boolOperation = new SugiliteGetBoolExpOperation();
+            ((SugiliteGetOperation)boolOperation).setName(parseSugiliteValueFromScriptExpression(argList.get(0).get(0)).evaluate(null).toString());
+            ((SugiliteGetOperation)boolOperation).setType(parseSugiliteValueFromScriptExpression(argList.get(1).get(0)).evaluate(null).toString());
         }
         else {
             //regular boolean expression
@@ -93,37 +97,71 @@ public class SugiliteBooleanExpressionNew implements SugiliteValue<Boolean> {
     public SugiliteData getSugiliteData() {
         return sugiliteData;
     }
-
-    public Boolean evaluate(){
-        if(boolOperator.equals(BoolOperator.NOT) && arg0 != null && arg0.evaluate() != null && arg0.evaluate() instanceof Boolean){
-            return !((Boolean) arg0.evaluate());
+    public static Boolean evaluate(SugiliteData sugiliteData, SugiliteValue arg0, SugiliteValue arg1, BoolOperator boolOperator) {
+        Object arg0Value = null, arg1Value = null;
+        if(arg0 != null){
+            arg0Value = arg0.evaluate(sugiliteData);
         }
-        if (arg0 != null && arg1 != null && arg0.evaluate() != null && arg1.evaluate() != null) {
-            switch (boolOperator){
-                case TEXT_CONTAINS:
-                    return arg0.evaluate().toString().contains(arg1.evaluate().toString());
-                case EQUAL:
-                    return arg0.evaluate().equals(arg1.evaluate());
-            }
-            if (arg0.evaluate() instanceof Comparable && arg1.evaluate() instanceof Comparable) {
+        if(arg1 != null){
+            arg1Value = arg1.evaluate(sugiliteData);
+        }
+        if (boolOperator.equals(BoolOperator.NOT) && arg0 != null && arg0Value != null && arg0Value instanceof Boolean){
+            return !((Boolean) arg0Value);
+        }
+        if (arg0Value != null && arg1Value != null) {
+            if (arg0Value instanceof Comparable && arg1Value instanceof Comparable) {
                 //note: Boolean is also Comparable
+
+                //normalize arg0Value and arg1Value using SugiliteTextAnnotator
+                SugiliteTextAnnotator.AnnotatingResult annotatingResult0 = null;
+                if (arg0 instanceof SugiliteSimpleConstant) {
+                    annotatingResult0 = ((SugiliteSimpleConstant) arg0).toAnnotatingResult();
+                } else if (arg0Value instanceof String) {
+                    annotatingResult0 = SugiliteTextAnnotator.AnnotatingResult.fromString((String)arg0Value);
+                }
+
+                SugiliteTextAnnotator.AnnotatingResult annotatingResult1 = null;
+                if (arg1 instanceof SugiliteSimpleConstant) {
+                    annotatingResult1 = ((SugiliteSimpleConstant) arg1).toAnnotatingResult();
+                } else if (arg1Value instanceof String) {
+                    annotatingResult1 = SugiliteTextAnnotator.AnnotatingResult.fromString((String)arg1Value);
+                }
+                //compare using annotatingResults if both are available
+                if (annotatingResult0 != null && annotatingResult1 != null){
+                    arg0Value = annotatingResult0;
+                    arg1Value = annotatingResult1;
+                }
+
+                //TODO: need to implement better comparison method
                 switch (boolOperator) {
                     case GREATER_THAN:
-                        return ((Comparable) arg0.evaluate()).compareTo(arg1.evaluate()) > 0;
+                        return ((Comparable) arg0Value).compareTo(arg1Value) > 0;
                     case LESS_THAN:
-                        return ((Comparable) arg0.evaluate()).compareTo(arg1.evaluate()) < 0;
+                        return ((Comparable) arg0Value).compareTo(arg1Value) < 0;
                     case GREATER_THAN_OR_EQUAL_TO:
-                        return ((Comparable) arg0.evaluate()).compareTo(arg1.evaluate()) >= 0;
+                        return ((Comparable) arg0Value).compareTo(arg1Value) >= 0;
                     case LESS_THAN_OR_EQUAL_TO:
-                        return ((Comparable) arg0.evaluate()).compareTo(arg1.evaluate()) <= 0;
+                        return ((Comparable) arg0Value).compareTo(arg1Value) <= 0;
                     case AND:
-                        return ((Comparable) arg0.evaluate()).compareTo(true) == 0 && ((Comparable) arg1.evaluate()).compareTo(true) == 0;
+                        return ((Comparable) arg0Value).compareTo(true) == 0 && ((Comparable) arg1Value).compareTo(true) == 0;
                     case OR:
-                        return ((Comparable) arg0.evaluate()).compareTo(true) == 0 || ((Comparable) arg1.evaluate()).compareTo(true) == 0;
+                        return ((Comparable) arg0Value).compareTo(true) == 0 || ((Comparable) arg1Value).compareTo(true) == 0;
+                    case TEXT_CONTAINS:
+                        return arg0Value.toString().contains(arg1Value.toString());
+                    case EQUAL:
+                        return arg0Value.equals(arg1Value);
                 }
             }
         }
         throw new RuntimeException("failed to evaluate!");
+    }
+    public Boolean evaluate(SugiliteData sugiliteData){
+        if  (boolOperation != null){
+            //either a resolve_boolExp() operation or a SugiliteGetBoolExpOperation
+            return boolOperation.evaluate(sugiliteData);
+        } else {
+            return evaluate(sugiliteData, arg0, arg1, boolOperator);
+        }
     }
 
     private SugiliteValue parseSugiliteValueFromScriptExpression(SugiliteScriptExpression scriptExpression){
@@ -144,7 +182,7 @@ public class SugiliteBooleanExpressionNew implements SugiliteValue<Boolean> {
                     SugiliteResolveBoolExpOperation boolExpOperation = new SugiliteResolveBoolExpOperation();
                     String parameter0 = argList.get(0).get(0).getConstantValue().toString();
                     if(argList.get(0).get(0).getConstantValue() instanceof SugiliteSimpleConstant){
-                        parameter0 = ((SugiliteSimpleConstant) argList.get(0).get(0).getConstantValue()).evaluate().toString();
+                        parameter0 = ((SugiliteSimpleConstant) argList.get(0).get(0).getConstantValue()).evaluate(null).toString();
                     }
                     boolExpOperation.setParameter0(parameter0);
                     return boolExpOperation;
@@ -153,23 +191,32 @@ public class SugiliteBooleanExpressionNew implements SugiliteValue<Boolean> {
                     SugiliteResolveValueQueryOperation valueQueryOperation = new SugiliteResolveValueQueryOperation();
                     String parameter0 = argList.get(0).get(0).getConstantValue().toString();
                     if(argList.get(0).get(0).getConstantValue() instanceof SugiliteSimpleConstant){
-                        parameter0 = ((SugiliteSimpleConstant) argList.get(0).get(0).getConstantValue()).evaluate().toString();
+                        parameter0 = ((SugiliteSimpleConstant) argList.get(0).get(0).getConstantValue()).evaluate(null).toString();
                     }
                     valueQueryOperation.setParameter0(parameter0);
                     return valueQueryOperation;
 
                 } else if (scriptExpression.getOperationName().equals("get") && scriptExpression.getArguments().size() == 2){
-                    SugiliteGetOperation getOperation = new SugiliteGetOperation();
-                    String parameter0 = argList.get(0).get(0).getConstantValue().toString();
-                    if(argList.get(0).get(0).getConstantValue() instanceof SugiliteSimpleConstant){
-                        parameter0 = ((SugiliteSimpleConstant) argList.get(0).get(0).getConstantValue()).evaluate().toString();
-                    }
                     String parameter1 = argList.get(1).get(0).getConstantValue().toString();
                     if(argList.get(1).get(0).getConstantValue() instanceof SugiliteSimpleConstant){
-                        parameter1 = ((SugiliteSimpleConstant) argList.get(1).get(0).getConstantValue()).evaluate().toString();
+                        parameter1 = ((SugiliteSimpleConstant) argList.get(1).get(0).getConstantValue()).evaluate(null).toString();
                     }
-                    getOperation.setParameter0(parameter0);
-                    getOperation.setParameter1(parameter1);
+                    SugiliteGetOperation getOperation = null;
+                    if (parameter1.equals(SugiliteGetOperation.VALUE_QUERY_NAME)){
+                        getOperation = new SugiliteGetValueOperation();
+                    } else if (parameter1.equals(SugiliteGetOperation.BOOL_FUNCTION_NAME)){
+                        getOperation = new SugiliteGetBoolExpOperation();
+                    } else if (parameter1.equals(SugiliteGetOperation.PROCEDURE_NAME)){
+                        getOperation = new SugiliteGetProcedureOperation();
+                    }
+                    String parameter0 = argList.get(0).get(0).getConstantValue().toString();
+                    if(argList.get(0).get(0).getConstantValue() instanceof SugiliteSimpleConstant){
+                        parameter0 = ((SugiliteSimpleConstant) argList.get(0).get(0).getConstantValue()).evaluate(null).toString();
+                    }
+                    if(getOperation != null) {
+                        getOperation.setParameter0(parameter0);
+                        getOperation.setParameter1(parameter1);
+                    }
                     return getOperation;
                 }
             }
@@ -199,6 +246,16 @@ public class SugiliteBooleanExpressionNew implements SugiliteValue<Boolean> {
             return BoolOperator.OR;
         } else {
             return null;
+        }
+    }
+
+    @Override
+    public String getReadableDescription(){
+        if (boolOperation != null){
+            return boolOperation.getReadableDescription();
+        } else {
+            //TODO: implement
+            return "placeholder";
         }
     }
 

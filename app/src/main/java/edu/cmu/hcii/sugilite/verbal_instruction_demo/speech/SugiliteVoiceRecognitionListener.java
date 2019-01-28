@@ -100,47 +100,71 @@ public class SugiliteVoiceRecognitionListener implements RecognitionListener {
         HashMap<String, String> params = new HashMap<String, String>();
         String originalUtteranceId = utteranceId;
         params.put(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID,utteranceId);
-        tts.setOnUtteranceProgressListener(new UtteranceProgressListener() {
-            @Override
-            public void onStart(String utteranceId) {
-                if(sugiliteVoiceInterface != null) {
-                    try {
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                sugiliteVoiceInterface.speakingStarted();
-                            }
-                        });
-                    }
-                    catch (Exception e){
-                        e.printStackTrace();
+        if (tts != null) {
+            tts.setOnUtteranceProgressListener(new UtteranceProgressListener() {
+                @Override
+                public void onStart(String utteranceId) {
+                    if (sugiliteVoiceInterface != null) {
+                        try {
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    sugiliteVoiceInterface.speakingStarted();
+                                }
+                            });
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
                     }
                 }
-            }
 
-            @Override
-            public void onDone(String utteranceId) {
-                if(utteranceId.equals(originalUtteranceId)) {
-                    try {
-                        runOnUiThread(onDone);
-                        if (sugiliteVoiceInterface != null) {
+                @Override
+                public void onDone(String utteranceId) {
+                    if (utteranceId.equals(originalUtteranceId)) {
+                        try {
+                            runOnUiThread(onDone);
+                            if (sugiliteVoiceInterface != null) {
+                                runOnUiThread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        sugiliteVoiceInterface.speakingEnded();
+                                    }
+                                });
+                            }
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                        System.out.println("TTS IS DONE: " + utteranceId);
+                    }
+                }
+
+                @Override
+                public void onError(String utteranceId) {
+                    if (sugiliteVoiceInterface != null) {
+                        try {
                             runOnUiThread(new Runnable() {
                                 @Override
                                 public void run() {
                                     sugiliteVoiceInterface.speakingEnded();
                                 }
                             });
+                        } catch (Exception e) {
+                            e.printStackTrace();
                         }
-                    } catch (Exception e) {
-                        e.printStackTrace();
                     }
-                    System.out.println("TTS IS DONE: " + utteranceId);
                 }
-            }
+            });
+            tts.speak(content, TextToSpeech.QUEUE_ADD, params);
+        } else {
+            System.out.println("ERROR: TTS is null!");
+        }
+    }
 
-            @Override
-            public void onError(String utteranceId) {
-                if(sugiliteVoiceInterface != null) {
+    public void stopTTS(){
+        if(tts != null) {
+            if (tts.isSpeaking()) {
+                tts.stop();
+                if (sugiliteVoiceInterface != null) {
                     try {
                         runOnUiThread(new Runnable() {
                             @Override
@@ -148,32 +172,13 @@ public class SugiliteVoiceRecognitionListener implements RecognitionListener {
                                 sugiliteVoiceInterface.speakingEnded();
                             }
                         });
-                    }
-                    catch (Exception e){
+                    } catch (Exception e) {
                         e.printStackTrace();
                     }
                 }
             }
-        });
-        tts.speak(content, TextToSpeech.QUEUE_ADD, params);
-    }
-
-    public void stopTTS(){
-        if(tts.isSpeaking()){
-            tts.stop();
-            if(sugiliteVoiceInterface != null) {
-                try {
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            sugiliteVoiceInterface.speakingEnded();
-                        }
-                    });
-                }
-                catch (Exception e){
-                    e.printStackTrace();
-                }
-            }
+        } else {
+            System.out.println("ERROR: TTS is null!");
         }
     }
 

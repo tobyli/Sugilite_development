@@ -37,6 +37,8 @@ import edu.cmu.hcii.sugilite.model.block.SugiliteConditionBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.model.variable.StringVariable;
 import edu.cmu.hcii.sugilite.model.variable.Variable;
+import edu.cmu.hcii.sugilite.pumice.dialog.PumiceDialogManager;
+import edu.cmu.hcii.sugilite.pumice.kb.PumiceKnowledgeManager;
 import edu.cmu.hcii.sugilite.recording.newrecording.dialog_management.SugiliteDialogManager;
 import edu.cmu.hcii.sugilite.recording.newrecording.dialog_management.SugiliteDialogSimpleState;
 import edu.cmu.hcii.sugilite.recording.newrecording.dialog_management.SugiliteDialogUtteranceFilter;
@@ -66,6 +68,7 @@ public class VariableSetValueDialog extends SugiliteDialogManager implements Abs
     private SugiliteData sugiliteData;
     private int state;
 
+    private PumiceDialogManager pumiceDialogManager;
 
 
     //adding speech for VLHCC DEMO
@@ -76,7 +79,7 @@ public class VariableSetValueDialog extends SugiliteDialogManager implements Abs
 
 
 
-    public VariableSetValueDialog(final Context context, LayoutInflater inflater, SugiliteData sugiliteData, SugiliteStartingBlock startingBlock, SharedPreferences sharedPreferences, int state){
+    public VariableSetValueDialog(final Context context, LayoutInflater inflater, SugiliteData sugiliteData, SugiliteStartingBlock startingBlock, SharedPreferences sharedPreferences, int state, PumiceDialogManager pumiceDialogManager){
         //constructor for SugiliteDialogManager
         super(context, sugiliteData.getTTS());
 
@@ -86,6 +89,8 @@ public class VariableSetValueDialog extends SugiliteDialogManager implements Abs
         this.startingBlock = startingBlock;
         this.sugiliteData = sugiliteData;
         this.state = state;
+        this.pumiceDialogManager = pumiceDialogManager;
+
         View dialogView = inflater.inflate(R.layout.dialog_variable_set_value, null);
         LinearLayout mainLayout = (LinearLayout)dialogView.findViewById(R.id.layout_variable_set_value);
         variableDefaultValueMap = startingBlock.variableNameDefaultValueMap;
@@ -171,7 +176,12 @@ public class VariableSetValueDialog extends SugiliteDialogManager implements Abs
         dialog = builder.create();
     }
 
+    @Override
     public void show(){
+        show(null, null);
+    }
+
+    public void show(SugiliteBlock afterExecutionOperation, Runnable afterExecutionRunnable){
         dialog.show();
         dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(new View.OnClickListener() {
             @Override
@@ -198,7 +208,7 @@ public class VariableSetValueDialog extends SugiliteDialogManager implements Abs
                             stringVariableMap.put(entry.getKey(), new StringVariable(entry.getKey(), ((Spinner) entry.getValue()).getSelectedItem().toString()));
                         }
                     }
-                    executeScript(null);
+                    executeScript(afterExecutionOperation, pumiceDialogManager, afterExecutionRunnable);
                     dialog.dismiss();
                 }
                 else {
@@ -218,7 +228,7 @@ public class VariableSetValueDialog extends SugiliteDialogManager implements Abs
      * @param afterExecutionOperation @nullable, this operation will be pushed into the queue after the execution
      * this is used for resume recording
      */
-    public void executeScript(final SugiliteBlock afterExecutionOperation){
+    public void executeScript(final SugiliteBlock afterExecutionOperation, PumiceDialogManager pumiceDialogManager, Runnable afterExecutionRunnable){
         SharedPreferences.Editor prefEditor = sharedPreferences.edit();
         //turn off the recording before executing
         prefEditor.putBoolean("recording_in_process", false);
@@ -245,7 +255,7 @@ public class VariableSetValueDialog extends SugiliteDialogManager implements Abs
                         progressDialog.dismiss();
                     }
                 };
-                sugiliteData.runScript(startingBlock, afterExecutionOperation, state);
+                sugiliteData.runScript(startingBlock, afterExecutionOperation, afterExecutionRunnable, state);
                 if(context instanceof SugiliteData) {
                     progressDialog.dismiss();
                 }
@@ -259,6 +269,9 @@ public class VariableSetValueDialog extends SugiliteDialogManager implements Abs
         };
         Handler handler = new Handler();
         handler.postDelayed(delayAndRunScript, SCRIPT_DELAY);
+
+        //load the pumice knowledge manager
+        sugiliteData.pumiceDialogManager = pumiceDialogManager;
 
 
         System.out.println("start");

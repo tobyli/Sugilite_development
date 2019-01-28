@@ -97,7 +97,7 @@ public class SugiliteRecordingConfirmationDialog extends SugiliteDialogManager {
                 @Override
                 public void onClick(View v) {
                     // speak button
-                    if (isListening() || tts.isSpeaking()) {
+                    if (isListening() || (tts != null && tts.isSpeaking())) {
                         stopASRandTTS();
                     } else {
                         initDialogManager();

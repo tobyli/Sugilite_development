@@ -190,7 +190,7 @@ public class SugiliteCommunicationHelper {
                                         editor.putBoolean("recording_in_process", true);
                                         editor.commit();
 
-                                        sugiliteData.initiateScript(arg1 + ".SugiliteScript");
+                                        sugiliteData.initiateScript(arg1 + ".SugiliteScript", null);
                                         sugiliteData.initiatedExternally = true;
                                         sugiliteData.setCurrentSystemState(SugiliteData.RECORDING_STATE);
 
@@ -534,7 +534,7 @@ public class SugiliteCommunicationHelper {
                     // do nothing, likely this exception is caused by non-rooted device
                 }
             }
-            sugiliteData.runScript(script, null, SugiliteData.EXECUTION_STATE);
+            sugiliteData.runScript(script, null, null, SugiliteData.EXECUTION_STATE);
             try {
                 Thread.sleep(SCRIPT_DELAY);
             } catch (Exception e) {

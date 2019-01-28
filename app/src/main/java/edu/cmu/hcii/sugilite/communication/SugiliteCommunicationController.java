@@ -348,7 +348,7 @@ public class SugiliteCommunicationController {
                                         editor.putBoolean("recording_in_process", true);
                                         editor.commit();
 
-                                        sugiliteData.initiateScript(scriptName + ".SugiliteScript");
+                                        sugiliteData.initiateScript(scriptName + ".SugiliteScript", null);
                                         sugiliteData.initiatedExternally = true;
 
                                         try {
@@ -398,6 +398,14 @@ public class SugiliteCommunicationController {
                             .scriptToJson(sugiliteData.getScriptHead()), callbackString);
                 }
             }
+
+            if (sugiliteData.getScriptHead() != null && sugiliteData.endRecordingCallback != null){
+                //call the endRecordingCallback
+                Runnable r = sugiliteData.endRecordingCallback;
+                sugiliteData.endRecordingCallback = null;
+                r.run();
+            }
+
             if( shouldUseToast ) {
                 Toast.makeText(context, "end recording", Toast.LENGTH_SHORT).show();
             }
@@ -589,7 +597,7 @@ public class SugiliteCommunicationController {
                         // do nothing, likely this exception is caused by non-rooted device
                     }
                 }
-                sugiliteData.runScript(script, null, SugiliteData.EXECUTION_STATE);
+                sugiliteData.runScript(script, null, null, SugiliteData.EXECUTION_STATE);
                 try {
                     Thread.sleep( Const.SCRIPT_DELAY);
                 } catch (Exception e) {

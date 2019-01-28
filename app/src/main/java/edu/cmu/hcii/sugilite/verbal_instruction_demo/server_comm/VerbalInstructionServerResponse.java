@@ -10,6 +10,7 @@ public class VerbalInstructionServerResponse {
     private String feedbackFormula;
     private int feedbackFormulaId;
 
+
     public VerbalInstructionServerResponse(String mode, String feedbackFormula, int feedbackFormulaId){
         this.mode = mode;
         this.feedbackFormula = feedbackFormula;

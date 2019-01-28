@@ -28,6 +28,7 @@ import com.google.gson.Gson;
 
 import java.util.AbstractMap;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -37,9 +38,11 @@ import edu.cmu.hcii.sugilite.model.Node;
 import edu.cmu.hcii.sugilite.R;
 import edu.cmu.hcii.sugilite.SugiliteAccessibilityService;
 import edu.cmu.hcii.sugilite.SugiliteData;
+import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
 import edu.cmu.hcii.sugilite.model.block.util.SugiliteAvailableFeaturePack;
 import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteOperation;
+import edu.cmu.hcii.sugilite.model.operation.unary.SugiliteClickOperation;
 import edu.cmu.hcii.sugilite.ontology.OntologyQuery;
 import edu.cmu.hcii.sugilite.ontology.OntologyQueryUtils;
 import edu.cmu.hcii.sugilite.ontology.SerializableOntologyQuery;
@@ -48,10 +51,12 @@ import edu.cmu.hcii.sugilite.ontology.SugiliteEntity;
 import edu.cmu.hcii.sugilite.ontology.SugiliteRelation;
 import edu.cmu.hcii.sugilite.ontology.UISnapshot;
 import edu.cmu.hcii.sugilite.ontology.description.OntologyDescriptionGenerator;
+import edu.cmu.hcii.sugilite.pumice.communication.PumiceInstructionPacket;
 import edu.cmu.hcii.sugilite.recording.newrecording.SugiliteBlockBuildingHelper;
 import edu.cmu.hcii.sugilite.recording.newrecording.dialog_management.SugiliteDialogManager;
 import edu.cmu.hcii.sugilite.recording.newrecording.dialog_management.SugiliteDialogSimpleState;
 import edu.cmu.hcii.sugilite.recording.newrecording.dialog_management.SugiliteDialogUtteranceFilter;
+import edu.cmu.hcii.sugilite.source_parsing.SugiliteScriptParser;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.VerbalInstructionIconManager;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.server_comm.SugiliteVerbalInstructionHTTPQueryInterface;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.server_comm.SugiliteVerbalInstructionHTTPQueryManager;
@@ -101,6 +106,8 @@ public class FollowUpQuestionDialog extends SugiliteDialogManager implements Sug
     private View previewOverlay;
     private FollowUpQuestionDialog followUpQuestionDialog;
     private TextView textPromptTextView;
+    private SugiliteScriptParser sugiliteScriptParser;
+
 
     private int errorCount = 0;
 
@@ -148,6 +155,8 @@ public class FollowUpQuestionDialog extends SugiliteDialogManager implements Sug
         this.handler = new Handler();
         this.followUpQuestionDialog = this;
         this.errorCount = errorCount;
+        this.sugiliteScriptParser = new SugiliteScriptParser();
+
 
         if(matchedNodes != null) {
             this.matchedNodes = matchedNodes;
@@ -696,35 +705,42 @@ public class FollowUpQuestionDialog extends SugiliteDialogManager implements Sug
             //construct the query, run the query, and compare the result against the actually clicked on node
 
             String queryFormula = verbalInstructionResult.getFormula();
-            OntologyQuery resolvedQuery = OntologyQueryUtils.getQueryWithClassAndPackageConstraints(OntologyQuery.deserialize(queryFormula), actualClickedNode.getEntityValue(), false, true, true);
-            OntologyQuery combinedQuery = OntologyQueryUtils.combineTwoQueries(currentQuery, resolvedQuery);
-            OntologyQuery queryClone = OntologyQuery.deserialize(combinedQuery.toString());
+            SugiliteBlock block = sugiliteScriptParser.parseASingleBlockFromString(queryFormula);
 
-            //TODO: fix the bug in query.executeOn -- it should not change the query
-            Set<SugiliteEntity> queryResults =  queryClone.executeOn(uiSnapshot);
+            if (block instanceof SugiliteOperationBlock && ((SugiliteOperationBlock) block).getOperation() instanceof SugiliteClickOperation) {
+                SerializableOntologyQuery serializableOntologyQuery = ((SugiliteClickOperation) ((SugiliteOperationBlock) block).getOperation()).getParameter0();
+                OntologyQuery resolvedQuery = OntologyQueryUtils.getQueryWithClassAndPackageConstraints(new OntologyQuery(serializableOntologyQuery), actualClickedNode.getEntityValue(), false, true, true);
+                OntologyQuery combinedQuery = OntologyQueryUtils.combineTwoQueries(currentQuery, resolvedQuery);
+                OntologyQuery queryClone = OntologyQuery.deserialize(combinedQuery.toString());
 
-            for(SugiliteEntity entity : queryResults){
-                if(entity.getType().equals(Node.class)){
-                    Node node = (Node) entity.getEntityValue();
-                    if (node.getClickable()) {
-                        filteredNodes.add(node);
-                        //filteredNodeNodeIdMap.put(node, entity.getEntityId());
+                //TODO: fix the bug in query.executeOn -- it should not change the query
+                Set<SugiliteEntity> queryResults = queryClone.executeOn(uiSnapshot);
+
+                for (SugiliteEntity entity : queryResults) {
+                    if (entity.getType().equals(Node.class)) {
+                        Node node = (Node) entity.getEntityValue();
+                        if (node.getClickable()) {
+                            filteredNodes.add(node);
+                            //filteredNodeNodeIdMap.put(node, entity.getEntityId());
+                        }
+                        if (OntologyQueryUtils.isSameNode(actualClickedNode.getEntityValue(), node)) {
+                            matched = true;
+                        }
+                        if (!CHECK_FOR_GROUNDING_MATCH) {
+                            matched = true;
+                        }
                     }
-                    if (OntologyQueryUtils.isSameNode(actualClickedNode.getEntityValue(), node)) {
-                        matched = true;
-                    }
-                    if(!CHECK_FOR_GROUNDING_MATCH){
-                        matched = true;
-                    }
+                }
+
+                if (filteredNodes.size() > 0 && matched) {
+                    //matched, add the result to the list
+                    matchingQueriesMatchedNodesList.add(new AbstractMap.SimpleEntry<>(combinedQuery, filteredNodes));
                 }
             }
 
-            if (filteredNodes.size() > 0 && matched) {
-                //matched, add the result to the list
-                matchingQueriesMatchedNodesList.add(new AbstractMap.SimpleEntry<>(combinedQuery, filteredNodes));
-            }
         }
-        if(false) {
+
+        if (false) {
             //don't sort the results -- keep the original order from the parser
             matchingQueriesMatchedNodesList.sort(new Comparator<Map.Entry<OntologyQuery, List<Node>>>() {
                 @Override

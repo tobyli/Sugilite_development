@@ -69,7 +69,7 @@ public class NewDemonstrationHandler {
         //determine if disambiguation is needed
 
         //show the confirmation popup if not ambiguous
-        List<Pair<SerializableOntologyQuery, Double>> queryScoreList = blockBuildingHelper.generateDefaultQueries(featurePack, uiSnapshot);
+        List<Pair<SerializableOntologyQuery, Double>> queryScoreList = SugiliteBlockBuildingHelper.generateDefaultQueries(featurePack, uiSnapshot, false);
         if(queryScoreList.size() > 0) {
             //threshold for determine whether the results are ambiguous
             if (queryScoreList.size() <= 1 || (queryScoreList.get(1).second.intValue() - queryScoreList.get(0).second.intValue() > 2)) {
@@ -109,10 +109,6 @@ public class NewDemonstrationHandler {
 
     }
 
-    private boolean isAmbiguous(SugiliteAvailableFeaturePack featurePack){
-
-        return false;
-    }
 
     private void showAmbiguousPopup(List<Pair<SerializableOntologyQuery, Double>> queryScoreList, SugiliteAvailableFeaturePack featurePack){
         //the temporary popup to show for when the demonstration is ambiguous

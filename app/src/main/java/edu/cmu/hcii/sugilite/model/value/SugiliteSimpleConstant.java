@@ -1,7 +1,14 @@
 package edu.cmu.hcii.sugilite.model.value;
 
+import android.support.annotation.Nullable;
+
 import java.text.NumberFormat;
 import java.text.ParseException;
+import java.util.List;
+
+import edu.cmu.hcii.sugilite.SugiliteData;
+import edu.cmu.hcii.sugilite.ontology.helper.annotator.SugiliteNodeAnnotator;
+import edu.cmu.hcii.sugilite.ontology.helper.annotator.SugiliteTextAnnotator;
 
 import static edu.cmu.hcii.sugilite.source_parsing.SugiliteScriptExpression.addQuoteToTokenIfNeeded;
 
@@ -27,8 +34,24 @@ public class SugiliteSimpleConstant<T> implements SugiliteValue<T> {
         return unit;
     }
 
+
+    public SugiliteTextAnnotator.AnnotatingResult toAnnotatingResult(){
+        SugiliteTextAnnotator annotator = new SugiliteTextAnnotator(true);
+        List<SugiliteTextAnnotator.AnnotatingResult> results;
+        if (unit != null) {
+            results = annotator.annotate(value.toString() + " " + unit);
+        } else {
+            results = annotator.annotate(value.toString());
+        }
+        if (results.size() > 0){
+            return results.get(0);
+        }
+        return null;
+    }
+
+
     @Override
-    public T evaluate() {
+    public T evaluate(@Nullable SugiliteData sugiliteData) {
         return value;
     }
 
@@ -64,4 +87,8 @@ public class SugiliteSimpleConstant<T> implements SugiliteValue<T> {
         return true;
     }
 
+    @Override
+    public String getReadableDescription() {
+        return value.toString() + " " + unit;
+    }
 }

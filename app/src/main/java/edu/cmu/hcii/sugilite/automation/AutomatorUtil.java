@@ -39,7 +39,7 @@ public class AutomatorUtil {
             os.write(("am force-stop " + packageName).getBytes("ASCII"));
             os.flush();
             os.close();
-            System.out.println(packageName);
+            System.out.println("KILLING: " + packageName);
         } catch (Exception e) {
             System.out.println("FAILED TO KILL RELEVANT PACKAGES (permission denied)");
             e.printStackTrace();

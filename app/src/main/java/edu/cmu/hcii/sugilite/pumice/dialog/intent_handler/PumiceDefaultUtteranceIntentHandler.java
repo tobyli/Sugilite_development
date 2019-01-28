@@ -1,5 +1,6 @@
 package edu.cmu.hcii.sugilite.pumice.dialog.intent_handler;
 
+import android.app.Activity;
 import android.content.Context;
 import android.widget.ImageView;
 
@@ -22,18 +23,18 @@ import edu.cmu.hcii.sugilite.verbal_instruction_demo.server_comm.SugiliteVerbalI
  */
 
 public class PumiceDefaultUtteranceIntentHandler implements PumiceUtteranceIntentHandler, SugiliteVerbalInstructionHTTPQueryInterface {
-    private transient Context context;
+    private transient Activity context;
     private transient PumiceDialogManager pumiceDialogManager;
     private Calendar calendar;
 
-    public PumiceDefaultUtteranceIntentHandler(PumiceDialogManager pumiceDialogManager, Context context){
+    public PumiceDefaultUtteranceIntentHandler(PumiceDialogManager pumiceDialogManager, Activity context){
         this.pumiceDialogManager = pumiceDialogManager;
         this.context = context;
         this.calendar = Calendar.getInstance();
     }
 
     @Override
-    public void setContext(Context context) {
+    public void setContext(Activity context) {
         this.context = context;
     }
 
@@ -142,7 +143,7 @@ public class PumiceDefaultUtteranceIntentHandler implements PumiceUtteranceInten
                                     @Override
                                     public void run() {
                                         //parse and process the server response
-                                        pumiceDialogManager.getPumiceInitInstructionParsingHandler().parseFromNewInitInstruction(topResult.formula);
+                                        pumiceDialogManager.getPumiceInitInstructionParsingHandler().parseFromNewInitInstruction(topResult.formula, resultPacket.userUtterance);
                                     }
                                 });
                             } else {

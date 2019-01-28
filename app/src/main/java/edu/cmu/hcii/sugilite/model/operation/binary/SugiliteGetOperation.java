@@ -2,6 +2,7 @@ package edu.cmu.hcii.sugilite.model.operation.binary;
 
 import java.io.Serializable;
 
+import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.model.operation.binary.SugiliteBinaryOperation;
 import edu.cmu.hcii.sugilite.model.value.SugiliteValue;
 import edu.cmu.hcii.sugilite.ontology.SerializableOntologyQuery;
@@ -15,9 +16,9 @@ import static edu.cmu.hcii.sugilite.source_parsing.SugiliteScriptExpression.addQ
  */
 
 /**
- * the operation used for reading out a constant
+ * the operation used for getting something from the KB
  */
-public class SugiliteGetOperation<T> extends SugiliteBinaryOperation<String, String> implements Serializable, SugiliteValue<T> {
+public abstract class SugiliteGetOperation<T> extends SugiliteBinaryOperation<String, String> implements Serializable, SugiliteValue<T> {
     private String name, type;
     public static String VALUE_QUERY_NAME = "valueQueryName", BOOL_FUNCTION_NAME = "boolFunctionName", PROCEDURE_NAME = "procedureName";
     public SugiliteGetOperation(){
@@ -77,13 +78,16 @@ public class SugiliteGetOperation<T> extends SugiliteBinaryOperation<String, Str
     }
 
     @Override
-    public T evaluate() {
-        //TODO: this should actually execute the get operation to get the result
-        return null;
-    }
+    abstract public T evaluate(SugiliteData sugiliteData);
+
 
     @Override
     public String toString() {
         return "(" + "call get " + addQuoteToTokenIfNeeded(getParameter0().toString()) + " " + addQuoteToTokenIfNeeded(getParameter1().toString()) + ")";
+    }
+
+    @Override
+    public String getReadableDescription() {
+        return getParameter0().toString();
     }
 }

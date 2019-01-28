@@ -41,18 +41,20 @@ public class FragmentTriggerListTab extends Fragment {
      * update the trigger list displayed at the main activity according to the DB
      */
     public void setUpTriggerList() {
-        final ListView triggerList = (ListView)rootView.findViewById(R.id.triggerList);
-        List<String> names = triggerDao.getAllNames();
+        if (rootView != null) {
+            final ListView triggerList = (ListView) rootView.findViewById(R.id.triggerList);
+            List<String> names = triggerDao.getAllNames();
 
-        triggerList.setAdapter(new ArrayAdapter<String>(activity, android.R.layout.simple_list_item_1, names));
-        triggerList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                String triggerName = (String) triggerList.getItemAtPosition(position);
-                Toast.makeText(activity, "CLICKED ON" + triggerName, Toast.LENGTH_SHORT).show();
-            }
-        });
-        registerForContextMenu(triggerList);
+            triggerList.setAdapter(new ArrayAdapter<String>(activity, android.R.layout.simple_list_item_1, names));
+            triggerList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                @Override
+                public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                    String triggerName = (String) triggerList.getItemAtPosition(position);
+                    Toast.makeText(activity, "CLICKED ON" + triggerName, Toast.LENGTH_SHORT).show();
+                }
+            });
+            registerForContextMenu(triggerList);
+        }
     }
 
     //TODO: enable edit/delete/view triggers

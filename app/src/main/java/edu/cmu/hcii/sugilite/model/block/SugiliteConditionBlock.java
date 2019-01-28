@@ -15,7 +15,7 @@ import edu.cmu.hcii.sugilite.model.block.special_operation.SugiliteSpecialOperat
 public class SugiliteConditionBlock extends SugiliteBlock implements Serializable {
     private static final long serialVersionUID = -5272239376931158724L;
 
-    private SugiliteBlock ifBlock;
+    private SugiliteBlock thenBlock;
 
 
     //optional
@@ -26,34 +26,45 @@ public class SugiliteConditionBlock extends SugiliteBlock implements Serializabl
     private SugiliteBooleanExpressionNew sugiliteBooleanExpressionNew;
     private SugiliteBooleanExpression sugiliteBooleanExpression;
 
-    public SugiliteConditionBlock(SugiliteBlock ifBlock, SugiliteBlock elseBlock, SugiliteBooleanExpression sugiliteBooleanExpression, SugiliteBlock previousBlock) {
+    public SugiliteConditionBlock(SugiliteBlock thenBlock, SugiliteBlock elseBlock, SugiliteBooleanExpression sugiliteBooleanExpression, SugiliteBlock previousBlock) {
         super();
         this.blockType = SugiliteBlock.CONDITION;
         this.setDescription("");
         this.setScreenshot(null);
-        this.ifBlock = ifBlock;
+        this.thenBlock = thenBlock;
         this.elseBlock = elseBlock;
         this.sugiliteBooleanExpression = sugiliteBooleanExpression;
         this.previousBlock = previousBlock;
 
-        //set the parentBlock for ifBlock and nextBlock so that the control flow can be correctly merged
-        if (ifBlock != null) {
-            ifBlock.setParentBlock(this);
+        //set the parentBlock for thenBlock and nextBlock so that the control flow can be correctly merged
+        if (thenBlock != null) {
+            thenBlock.setParentBlock(this);
         }
         if (elseBlock != null) {
             elseBlock.setParentBlock(this);
         }
     }
 
-    public SugiliteConditionBlock(SugiliteBlock ifBlock, SugiliteBlock elseBlock, SugiliteBooleanExpression sugiliteBooleanExpression) {
-        this(ifBlock, elseBlock, sugiliteBooleanExpression, null);
+    public SugiliteConditionBlock(SugiliteBlock thenBlock, SugiliteBlock elseBlock, SugiliteBooleanExpression sugiliteBooleanExpression) {
+        this(thenBlock, elseBlock, sugiliteBooleanExpression, null);
     }
 
 
     public SugiliteBlock getNextBlockToRun(SugiliteData sugiliteData) {///added sugiliteData parameter
-        //TODO: evaluate sugiliteBooleanExpression at runtime, and then return either ifBlock, nextBlock or elseBlock
-        if (sugiliteBooleanExpression.evaluate(sugiliteData)) {///added sugiliteData parameter
-            return ifBlock;
+        //TODO: evaluate sugiliteBooleanExpression at runtime, and then return either thenBlock, nextBlock or elseBlock
+        Boolean result = null;
+        synchronized (sugiliteBooleanExpressionNew) {
+            result = sugiliteBooleanExpressionNew.evaluate(sugiliteData);
+        }
+
+        //send an agent message through pumiceDialogManager if one is available
+        if (sugiliteData.pumiceDialogManager != null){
+            String stringResult = result ? "true" : "false";
+            sugiliteData.pumiceDialogManager.sendAgentMessage("The conditional: " + "\"" + sugiliteBooleanExpressionNew.getReadableDescription() + "\" is " + stringResult, true, false);
+        }
+
+        if (result) {///added sugiliteData parameter
+            return thenBlock;
         } else {
             if (elseBlock != null) {
                 return elseBlock;
@@ -68,10 +79,10 @@ public class SugiliteConditionBlock extends SugiliteBlock implements Serializabl
         //TODO: implement
 
         if(elseBlock != null) {
-            return "(call if " + sugiliteBooleanExpressionNew.toString() + " " + getStringForASeriesOfBlock(ifBlock) + " " + getStringForASeriesOfBlock(elseBlock) + ")";
+            return "(call if " + sugiliteBooleanExpressionNew.toString() + " " + getStringForASeriesOfBlock(thenBlock) + " " + getStringForASeriesOfBlock(elseBlock) + ")";
         }
         else {
-            return "(call if " + sugiliteBooleanExpressionNew.toString() + " " + getStringForASeriesOfBlock(ifBlock) + ")";
+            return "(call if " + sugiliteBooleanExpressionNew.toString() + " " + getStringForASeriesOfBlock(thenBlock) + ")";
         }
 
     }
@@ -88,8 +99,8 @@ public class SugiliteConditionBlock extends SugiliteBlock implements Serializabl
         this.sugiliteBooleanExpressionNew = sugiliteBooleanExpressionNew;
     }
 
-    public SugiliteBlock getIfBlock() {
-        return ifBlock;
+    public SugiliteBlock getThenBlock() {
+        return thenBlock;
     }
 
     public SugiliteBlock getElseBlock() {

@@ -10,6 +10,9 @@ import java.util.List;
 public class VerbalInstructionServerResults {
 
     private List<VerbalInstructionResult> queries;
+    public String utteranceType;
+    public String userUtterance;
+    public Long queryId;
 
     public class VerbalInstructionResult {
         private int id;

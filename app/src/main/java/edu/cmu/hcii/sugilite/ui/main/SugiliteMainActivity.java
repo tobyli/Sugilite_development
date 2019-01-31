@@ -100,7 +100,14 @@ public class SugiliteMainActivity extends AppCompatActivity {
         actionBar.addTab(scriptListTab);
         actionBar.addTab(triggerListTab);
 
-
+        /*
+        try {
+            Process suProcess = Runtime.getRuntime().exec("su pm grant 'edu.cmu.hcii.sugilite' android.permission.INJECT_EVENTS");
+            suProcess.waitFor();
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+        */
 
     }
 
@@ -227,7 +234,7 @@ public class SugiliteMainActivity extends AppCompatActivity {
         if(id == R.id.upload_scripts){
             //progress dialog for loading the script
             progressDialog = new AlertDialog.Builder(this).setMessage(Const.LOADING_MESSAGE).create();
-            progressDialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
+            progressDialog.getWindow().setType(WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY);
             progressDialog.setCanceledOnTouchOutside(false);
             progressDialog.show();
             new Thread(new Runnable() {

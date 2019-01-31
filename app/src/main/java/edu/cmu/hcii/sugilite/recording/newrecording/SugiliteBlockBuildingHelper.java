@@ -5,6 +5,7 @@ import android.util.Pair;
 
 import java.util.AbstractMap;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -87,7 +88,7 @@ public class SugiliteBlockBuildingHelper {
         }
     }
 
-    public List<Pair<SerializableOntologyQuery, Double>> generateDefaultQueries(SugiliteAvailableFeaturePack featurePack, UISnapshot uiSnapshot){
+    public static List<Pair<SerializableOntologyQuery, Double>> generateDefaultQueries(SugiliteAvailableFeaturePack featurePack, UISnapshot uiSnapshot, boolean excludeHasTextRelation){
         //generate parent query
         List<Pair<SerializableOntologyQuery, Double>> queries = new ArrayList<>();
         OntologyQuery q = new OntologyQuery(OntologyQuery.relationType.AND);
@@ -107,7 +108,7 @@ public class SugiliteBlockBuildingHelper {
         }
 
 
-        //generate sub queries
+        //generate sub queries -- add the packageName and className constraints to q
 
         if(featurePack.packageName != null && (!featurePack.packageName.equals("NULL"))){
             //add packageName
@@ -129,19 +130,20 @@ public class SugiliteBlockBuildingHelper {
             q.addSubQuery(subQuery);
         }
 
-
-        if(featurePack.text != null && (!featurePack.text.equals("NULL"))){
-            //add a text query
-            OntologyQuery clonedQuery = new OntologyQuery(new SerializableOntologyQuery(q));
-            OntologyQuery subQuery = new OntologyQuery(OntologyQuery.relationType.nullR);
-            Set<SugiliteEntity> object = new HashSet<>();
-            object.add(new SugiliteEntity(-1, String.class, featurePack.text));
-            subQuery.setObject(object);
-            subQuery.setQueryFunction(SugiliteRelation.HAS_TEXT);
-            clonedQuery.addSubQuery(subQuery);
-            hasNonBoundingBoxFeature = true;
-            hasNonChildFeature = true;
-            queries.add(Pair.create(new SerializableOntologyQuery(clonedQuery), 1.1));
+        if (!excludeHasTextRelation) {
+            if (featurePack.text != null && (!featurePack.text.equals("NULL"))) {
+                //add a text query
+                OntologyQuery clonedQuery = new OntologyQuery(new SerializableOntologyQuery(q));
+                OntologyQuery subQuery = new OntologyQuery(OntologyQuery.relationType.nullR);
+                Set<SugiliteEntity> object = new HashSet<>();
+                object.add(new SugiliteEntity(-1, String.class, featurePack.text));
+                subQuery.setObject(object);
+                subQuery.setQueryFunction(SugiliteRelation.HAS_TEXT);
+                clonedQuery.addSubQuery(subQuery);
+                hasNonBoundingBoxFeature = true;
+                hasNonChildFeature = true;
+                queries.add(Pair.create(new SerializableOntologyQuery(clonedQuery), 1.1));
+            }
         }
 
         if(featurePack.contentDescription != null && (!featurePack.contentDescription.equals("NULL")) && (!featurePack.contentDescription.equals(featurePack.text))){
@@ -219,6 +221,7 @@ public class SugiliteBlockBuildingHelper {
         if(childTexts != null && childTexts.size() > 0){
             int count = 0;
             double score = 2.01 + (((double)(count++)) / (double) childTexts.size());
+            Set<String> homeScreenPackageNames = new HashSet<>(Arrays.asList(Const.HOME_SCREEN_PACKAGE_NAMES));
             OntologyQuery clonedQuery = new OntologyQuery(new SerializableOntologyQuery(q));
             for(String childText : childTexts){
                 if(childText != null && !childText.equals(featurePack.text)) {
@@ -228,7 +231,11 @@ public class SugiliteBlockBuildingHelper {
                     subQuery.setObject(object);
                     subQuery.setQueryFunction(SugiliteRelation.HAS_CHILD_TEXT);
                     clonedQuery.addSubQuery(subQuery);
-                    queries.add(Pair.create(new SerializableOntologyQuery(clonedQuery), score));
+                    double newScore = score;
+                    if(featurePack.packageName != null && homeScreenPackageNames.contains(featurePack.packageName)){
+                        newScore = score - 1;
+                    }
+                    queries.add(Pair.create(new SerializableOntologyQuery(clonedQuery), newScore));
                     hasNonBoundingBoxFeature = true;
                 }
             }

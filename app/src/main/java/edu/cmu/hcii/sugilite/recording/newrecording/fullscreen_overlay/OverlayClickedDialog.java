@@ -90,7 +90,7 @@ public class OverlayClickedDialog {
                         dialog.dismiss();
                         break;
                     case "Click without Recording":
-                        click(node.getEntityValue(), x, y, overlay);
+                        recordingOverlayManager.clickNode(node.getEntityValue(), x, y, overlay, false);
                         dialog.dismiss();
                         break;
                     case "Cancel":
@@ -106,10 +106,11 @@ public class OverlayClickedDialog {
      * handle when the operation is to be recorded
      */
     private void handleRecording() {
-        List<Pair<SerializableOntologyQuery, Double>> queryScoreList = blockBuildingHelper.generateDefaultQueries(featurePack, uiSnapshot);
+        List<Pair<SerializableOntologyQuery, Double>> queryScoreList = SugiliteBlockBuildingHelper.generateDefaultQueries(featurePack, uiSnapshot, false);
         if (queryScoreList.size() > 0) {
+            System.out.println("Query Score List: " + queryScoreList);
             //threshold for determine whether the results are ambiguous
-            if (queryScoreList.size() <= 1 || (queryScoreList.get(1).second.intValue() - queryScoreList.get(0).second.intValue() > 2)) {
+            if (queryScoreList.size() <= 1 || (queryScoreList.get(1).second.doubleValue() - queryScoreList.get(0).second.doubleValue() >= 2)) {
                 //not ambiguous, show the confirmation popup
                 SugiliteOperationBlock block = blockBuildingHelper.getOperationBlockFromQuery(queryScoreList.get(0).first, SugiliteOperation.CLICK, featurePack);
                 showConfirmation(block, featurePack, queryScoreList);
@@ -125,38 +126,10 @@ public class OverlayClickedDialog {
         }
     }
 
-    /**
-     * clicking on node at (x, y) -- for the ROOT mode, need to set overlay to pass through clicks first
-     *
-     * @param node
-     * @param x
-     * @param y
-     * @param overlay
-     */
-    private void click(Node node, float x, float y, View overlay) {
-        if (Const.ROOT_ENABLED) {
-            //on a rooted phone, should directly simulate the click itself
-            recordingOverlayManager.setPassThroughOnTouchListener(overlay);
-            try {
-                recordingOverlayManager.clickWithRootPermission(x, y, new Runnable() {
-                    @Override
-                    public void run() {
-                        //allow the overlay to get touch event after finishing the simulated click
-                        recordingOverlayManager.setOverlayOnTouchListener(overlay, true);
-                    }
-                }, node);
-            }
-            catch (Exception e){
-                //do nothing
-            }
-        } else {
-            recordingOverlayManager.addSugiliteOperationBlockBasedOnNode(node);
-        }
-    }
 
     public void show() {
         /*
-        dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
+        dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY);
         dialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_box);
         dialog.show();
         */
@@ -177,7 +150,7 @@ public class OverlayClickedDialog {
         RecordingAmbiguousPopupDialog recordingAmbiguousPopupDialog = new RecordingAmbiguousPopupDialog(context, queryScoreList, featurePack, blockBuildingHelper, layoutInflater, new Runnable() {
             @Override
             public void run() {
-                click(node.getEntityValue(), x, y, overlay);
+                recordingOverlayManager.clickNode(node.getEntityValue(), x, y, overlay, false);
             }
         },
                 uiSnapshot, actualClickedNode, sugiliteData, sharedPreferences, tts, 0);
@@ -195,7 +168,7 @@ public class OverlayClickedDialog {
         Runnable clickRunnable = new Runnable() {
             @Override
             public void run() {
-                click(node.getEntityValue(), x, y, overlay);
+                recordingOverlayManager.clickNode(node.getEntityValue(), x, y, overlay, false);
             }
         };
         SugiliteRecordingConfirmationDialog confirmationDialog = new SugiliteRecordingConfirmationDialog(context, block, featurePack, queryScoreList, clickRunnable, blockBuildingHelper, layoutInflater, uiSnapshot, node, sugiliteData, sharedPreferences, tts);

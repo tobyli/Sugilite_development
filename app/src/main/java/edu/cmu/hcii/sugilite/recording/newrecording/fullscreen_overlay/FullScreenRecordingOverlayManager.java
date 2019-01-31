@@ -21,6 +21,9 @@ import android.widget.Toast;
 
 import com.google.gson.Gson;
 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Comparator;
@@ -37,6 +40,7 @@ import edu.cmu.hcii.sugilite.model.block.util.SugiliteAvailableFeaturePack;
 import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteOperation;
 import edu.cmu.hcii.sugilite.model.operation.unary.SugiliteClickOperation;
+import edu.cmu.hcii.sugilite.model.operation.unary.SugiliteLongClickOperation;
 import edu.cmu.hcii.sugilite.model.operation.unary.SugiliteUnaryOperation;
 import edu.cmu.hcii.sugilite.ontology.OntologyQuery;
 import edu.cmu.hcii.sugilite.ontology.SerializableOntologyQuery;
@@ -131,7 +135,7 @@ public class FullScreenRecordingOverlayManager {
         WindowManager.LayoutParams layoutParams = new WindowManager.LayoutParams(
                 WindowManager.LayoutParams.WRAP_CONTENT,
                 WindowManager.LayoutParams.WRAP_CONTENT,
-                WindowManager.LayoutParams.TYPE_PHONE,
+                WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
                 flag,
                 PixelFormat.TRANSLUCENT);
 
@@ -161,6 +165,8 @@ public class FullScreenRecordingOverlayManager {
                 return false;
             }
         });
+        view.setBackgroundColor(Const.RECORDING_OVERLAY_COLOR_STOP);
+        view.invalidate();
         try {
             windowManager.updateViewLayout(view, updateLayoutParams(WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE));
         } catch (Exception e) {
@@ -172,63 +178,47 @@ public class FullScreenRecordingOverlayManager {
     public void setOverlayOnTouchListener(final View view, final boolean toConsumeEvent) {
         try {
             windowManager.updateViewLayout(view, updateLayoutParams(WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE));
+            view.setBackgroundColor(Const.RECORDING_OVERLAY_COLOR);
+            view.invalidate();
         } catch (Exception e) {
             e.printStackTrace();
         }
 
         view.setOnTouchListener(new View.OnTouchListener() {
-            GestureDetector singleTapUpGestureDetector = new GestureDetector(context, new SingleTapUp());
-            GestureDetector scrollGestureDetector = new GestureDetector(context, new Scroll());
-            GestureDetector flingGestureDetector = new GestureDetector(context, new Fling());
+            GestureDetector myGestureDetector = new GestureDetector(context, new MyGestureDetector());
+           ;
 
             @Override
             public boolean onTouch(final View v, MotionEvent event) {
-                if (singleTapUpGestureDetector.onTouchEvent(event)) {
+                return myGestureDetector.onTouchEvent(event);
+            }
+
+            class MyGestureDetector extends GestureDetector.SimpleOnGestureListener {
+                @Override
+                public boolean onSingleTapConfirmed(MotionEvent event) {
                     //single tap up detected
-                    System.out.println("Single Tap detected");
+                    System.out.println("Single tap detected");
                     float rawX = event.getRawX();
                     float rawY = event.getRawY();
                     handleClick(rawX, rawY);
-                } else if (scrollGestureDetector.onTouchEvent(event)) {
-                    //scroll detected
-                    System.out.println("Scroll detected");
-                } else if (flingGestureDetector.onTouchEvent(event)) {
-                    //fling detected
-                    System.out.println("Fling detected");
-                }
-                return true;
-            }
-
-            class SingleTapUp extends GestureDetector.SimpleOnGestureListener {
-                @Override
-                public boolean onSingleTapUp(MotionEvent event) {
                     return true;
                 }
-            }
 
-            class Scroll extends GestureDetector.SimpleOnGestureListener {
                 @Override
-                public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
-                    if (Const.ROOT_ENABLED) {
-                        recordingOverlayManager.setPassThroughOnTouchListener(overlay);
-                        try {
-                            recordingOverlayManager.performFlingWithRootPermission(e1, e2, new Runnable() {
-                                @Override
-                                public void run() {
-                                    //allow the overlay to get touch event after finishing the simulated gesture
-                                    recordingOverlayManager.setOverlayOnTouchListener(overlay, true);
-                                }
-                            });
-                        }
-                        catch (Exception e){
-                            e.printStackTrace();
-                        }
-                    }
-                    return true;
+                public void onLongPress(MotionEvent event) {
+                    System.out.println("Context click detected");
+                    float rawX = event.getRawX();
+                    float rawY = event.getRawY();
+                    handleContextClick(rawX, rawY, tts);
+                    return;
                 }
-            }
 
-            class Fling extends GestureDetector.SimpleOnGestureListener {
+                @Override
+                public boolean onContextClick(MotionEvent e) {
+                    System.out.println("Context click detected");
+                    return super.onContextClick(e);
+                }
+
                 @Override
                 public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
                     if (Const.ROOT_ENABLED) {
@@ -250,6 +240,29 @@ public class FullScreenRecordingOverlayManager {
                 }
             }
 
+            /*
+            class Scroll extends GestureDetector.SimpleOnGestureListener {
+                @Override
+                public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
+                    if (Const.ROOT_ENABLED) {
+                        recordingOverlayManager.setPassThroughOnTouchListener(overlay);
+                        try {
+                            recordingOverlayManager.performFlingWithRootPermission(e1, e2, new Runnable() {
+                                @Override
+                                public void run() {
+                                    //allow the overlay to get touch event after finishing the simulated gesture
+                                    recordingOverlayManager.setOverlayOnTouchListener(overlay, true);
+                                }
+                            });
+                        }
+                        catch (Exception e){
+                            e.printStackTrace();
+                        }
+                    }
+                    return true;
+                }
+            }
+            */
 
         });
     }
@@ -294,13 +307,20 @@ public class FullScreenRecordingOverlayManager {
         }
     }
 
-    private void handleClick(float x, float y) {
+    private static List<SugiliteEntity<Node>> getMatchedNodesFromCoordinate(float x, float y, UISnapshot uiSnapshot, boolean getClickableNodeOnly, boolean getLongClickableNodeOnly) {
         List<SugiliteEntity<Node>> matchedNodeEntities = new ArrayList<>();
-        if (getUiSnapshot() != null) {
-            for (SugiliteEntity<Node> entity : getUiSnapshot().getNodeSugiliteEntityMap().values()) {
+        if (uiSnapshot != null) {
+            for (SugiliteEntity<Node> entity : uiSnapshot.getNodeSugiliteEntityMap().values()) {
                 Node node = entity.getEntityValue();
-                if (!node.getClickable()) {
-                    continue;
+                if (getClickableNodeOnly) {
+                    if (!node.getClickable()) {
+                        continue;
+                    }
+                }
+                if (getLongClickableNodeOnly) {
+                    if (!node.getLongClickable()) {
+                        continue;
+                    }
                 }
                 Rect boundingBox = Rect.unflattenFromString(node.getBoundsInScreen());
                 if (boundingBox.contains((int) x, (int) y)) {
@@ -316,7 +336,7 @@ public class FullScreenRecordingOverlayManager {
                 public int compare(SugiliteEntity<Node> e1, SugiliteEntity<Node> e2) {
                     Node o1 = e1.getEntityValue();
                     Node o2 = e2.getEntityValue();
-                    if (o1.getWindowZIndex() != null && o2.getWindowZIndex() != null && o1.getWindowZIndex() != o2.getWindowZIndex()) {
+                    if (o1.getWindowZIndex() != null && o2.getWindowZIndex() != null && (!o1.getWindowZIndex().equals(o2.getWindowZIndex()))) {
                         if (o1.getWindowZIndex() > o2.getWindowZIndex()) {
                             return -1;
                         } else {
@@ -344,13 +364,28 @@ public class FullScreenRecordingOverlayManager {
                 }
             });
             //print matched nodes
-            System.out.println("Matched " + matchedNodeEntities.size() + " clickable objects!");
-            Gson gson = new Gson();
+            System.out.println("Matched " + matchedNodeEntities.size() + " objects!");
 
-            //choose the top matched node
-            SugiliteEntity<Node> node = matchedNodeEntities.get(0);
-
-
+            //choose the top-layer matched node
+            return matchedNodeEntities;
+        } else {
+            return null;
+        }
+    }
+    /**
+     * handle when the overlay detects a click at (x, y) -> should determine the UI object to match this click event to, and create an OverlayClickedDialog
+     * @param x
+     * @param y
+     */
+    private void handleClick(float x, float y) {
+        SugiliteEntity<Node> node = null;
+        if (getUiSnapshot() != null) {
+            List<SugiliteEntity<Node>> matchedNodeEntities = getMatchedNodesFromCoordinate(x, y, getUiSnapshot(), true, false);
+            if(matchedNodeEntities != null){
+                node = matchedNodeEntities.get(0);
+            }
+        }
+        if (node != null) {
             if (sugiliteAccessibilityService.getSugiliteStudyHandler().isToRecordNextOperation()) {
                 //save a study packet
                 Date time = Calendar.getInstance().getTime();
@@ -374,7 +409,24 @@ public class FullScreenRecordingOverlayManager {
         }
     }
 
-    public void clickWithRootPermission(float x, float y, Runnable uiThreadRunnable, Node alternativeNode) {
+    private void handleContextClick(float x, float y, TextToSpeech tts) {
+        if (getUiSnapshot() != null) {
+            SugiliteEntity<Node> topLongClickableNode = null;
+            List<SugiliteEntity<Node>> matchedLongClickableNodeEntities = getMatchedNodesFromCoordinate(x, y, getUiSnapshot(), false, true);
+            if(matchedLongClickableNodeEntities != null){
+                topLongClickableNode = matchedLongClickableNodeEntities.get(0);
+            }
+            List<SugiliteEntity<Node>> matchedAllNodeEntities = getMatchedNodesFromCoordinate(x, y, getUiSnapshot(), false, false);
+            if(matchedAllNodeEntities != null) {
+                RecordingOverlayContextClickDialog recordingOverlayContextClickDialog = new RecordingOverlayContextClickDialog(context, this, topLongClickableNode, matchedAllNodeEntities, uiSnapshot, sugiliteData.valueDemonstrationVariableName, sugiliteData, tts, x, y);
+                recordingOverlayContextClickDialog.show();
+            } else {
+                Toast.makeText(context, "No node matched!", Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
+
+    public void clickWithRootPermission(float x, float y, Runnable uiThreadRunnable, Node alternativeNode, boolean isLongClick) {
         Instrumentation m_Instrumentation = new Instrumentation();
         overlay.addOnLayoutChangeListener(new View.OnLayoutChangeListener() {
             /**
@@ -409,7 +461,7 @@ public class FullScreenRecordingOverlayManager {
                         }
                         catch (Exception e){
                             e.printStackTrace();
-                            recordingOverlayManager.addSugiliteOperationBlockBasedOnNode(alternativeNode);
+                            recordingOverlayManager.addSugiliteOperationBlockBasedOnNode(alternativeNode, isLongClick);
                         }
                     }
                 });
@@ -439,6 +491,7 @@ public class FullScreenRecordingOverlayManager {
                     public synchronized void run() {
                         //obtain event1
                         if(event1 != null && event2 != null) {
+                            /*
                             MotionEvent.PointerProperties[] pointerProperties1 = new MotionEvent.PointerProperties[event1.getPointerCount()];
                             MotionEvent.PointerCoords[] pointerCoordses1 = new MotionEvent.PointerCoords[event1.getPointerCount()];
                             for (int i = 0; i < event1.getPointerCount(); i++) {
@@ -465,15 +518,35 @@ public class FullScreenRecordingOverlayManager {
                                     event2.getAction(), event2.getPointerCount(), pointerProperties2, pointerCoordses2, event2.getMetaState(),
                                     event2.getButtonState(), event2.getXPrecision(), event2.getYPrecision(), event2.getDeviceId(), event2.getEdgeFlags(), event2.getSource(), event2.getFlags());
                             System.out.println("EVENT2: " + motionEvent2.toString());
+                            */
+
+                            int x1 = (int)event1.getRawX();
+                            int y1 = (int)event1.getRawY();
+                            int x2 = (int)event2.getRawX();
+                            int y2 = (int)event2.getRawY();
+                            long duration = event2.getEventTime() - event1.getEventTime();
+                            String command = "input swipe " + x1 + " " + y1 + " " + x2 + " " + y2 + " " + duration;
+
 
                             try {
+                                /*
                                 m_Instrumentation.sendPointerSync(motionEvent1);
                                 m_Instrumentation.sendPointerSync(motionEvent2);
+                                */
+                                Process sh = Runtime.getRuntime().exec("su", null, null);
+                                OutputStream os = sh.getOutputStream();
+                                os.write((command).getBytes("ASCII"));
+                                os.flush();
+                                os.close();
+                                System.out.println("SWIPING: " + command);
+                                Thread.sleep(400 + duration);
+
                             }
                             catch (Exception e){
                                 e.printStackTrace();
                             }
                             //sugiliteAccessibilityService.runOnUiThread(uiThreadRunnable);
+
                         }
                     }
                 });
@@ -490,8 +563,11 @@ public class FullScreenRecordingOverlayManager {
         });
     }
 
+    public View getOverlay() {
+        return overlay;
+    }
 
-    public void addSugiliteOperationBlockBasedOnNode(Node node) {
+    public void addSugiliteOperationBlockBasedOnNode(Node node, boolean isLongClick) {
         if (node.getBoundsInScreen() != null) {
             OntologyQuery parentQuery = new OntologyQuery(OntologyQuery.relationType.AND);
             OntologyQuery screenBoundsQuery = new OntologyQuery(OntologyQuery.relationType.nullR);
@@ -512,7 +588,7 @@ public class FullScreenRecordingOverlayManager {
                 packageQuery.setQueryFunction(SugiliteRelation.HAS_PACKAGE_NAME);
                 parentQuery.addSubQuery(packageQuery);
             }
-            SugiliteOperationBlock operationBlock = generateBlock(parentQuery, parentQuery.toString());
+            SugiliteOperationBlock operationBlock = generateBlock(parentQuery, parentQuery.toString(), isLongClick);
 
 
             //add the operation block to the instruction queue specified in sugiliteData
@@ -522,9 +598,9 @@ public class FullScreenRecordingOverlayManager {
 
     }
 
-    private SugiliteOperationBlock generateBlock(OntologyQuery query, String formula) {
+    private SugiliteOperationBlock generateBlock(OntologyQuery query, String formula, boolean isLongClick) {
         //generate the sugilite operation
-        SugiliteClickOperation sugiliteOperation = new SugiliteClickOperation();
+        SugiliteUnaryOperation sugiliteOperation = isLongClick ? new SugiliteLongClickOperation() : new SugiliteClickOperation();
         //assume it's click for now -- need to expand to more types of operations
         SerializableOntologyQuery serializedQuery = new SerializableOntologyQuery(query);
 
@@ -533,9 +609,35 @@ public class FullScreenRecordingOverlayManager {
         operationBlock.setFeaturePack(null);
         operationBlock.setElementMatchingFilter(null);
         operationBlock.setScreenshot(null);
-        sugiliteOperation.setQuery(serializedQuery);
+        if(sugiliteOperation instanceof SugiliteClickOperation) {
+            ((SugiliteClickOperation) sugiliteOperation).setQuery(serializedQuery);
+        }
+        if(sugiliteOperation instanceof SugiliteLongClickOperation) {
+            ((SugiliteLongClickOperation) sugiliteOperation).setQuery(serializedQuery);
+        }
         operationBlock.setDescription(readableDescriptionGenerator.generateDescriptionForVerbalBlock(operationBlock, formula, "UTTERANCE"));
         return operationBlock;
+    }
+
+    public void clickNode(Node node, float x, float y, View overlay, boolean isLongClick) {
+        if (Const.ROOT_ENABLED) {
+            //on a rooted phone, should directly simulate the click itself
+            recordingOverlayManager.setPassThroughOnTouchListener(overlay);
+            try {
+                recordingOverlayManager.clickWithRootPermission(x, y, new Runnable() {
+                    @Override
+                    public void run() {
+                        //allow the overlay to get touch event after finishing the simulated click
+                        recordingOverlayManager.setOverlayOnTouchListener(overlay, true);
+                    }
+                }, node, isLongClick);
+            }
+            catch (Exception e){
+                //do nothing
+            }
+        } else {
+            recordingOverlayManager.addSugiliteOperationBlockBasedOnNode(node, isLongClick);
+        }
     }
 
 

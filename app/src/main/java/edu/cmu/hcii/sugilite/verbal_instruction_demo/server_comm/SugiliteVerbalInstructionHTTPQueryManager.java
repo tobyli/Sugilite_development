@@ -99,8 +99,8 @@ public class SugiliteVerbalInstructionHTTPQueryManager {
         con.setRequestProperty("User-Agent", USER_AGENT);
         con.setRequestProperty("Accept-Language", "en-US,en;q=0.5");
         con.setRequestProperty("Content-Type", "application/json");
-        con.setReadTimeout(1 * 10000);
-        con.setConnectTimeout(1 * 10000);
+        con.setReadTimeout(1 * 3000);
+        con.setConnectTimeout(1 * 3000);
 
         // Send post request
         con.setDoOutput(true);
@@ -134,10 +134,14 @@ public class SugiliteVerbalInstructionHTTPQueryManager {
         Runnable r = new Runnable() {
             @Override
             public void run() {
-                caller.resultReceived(responseCode, response.toString());
+                if(caller != null) {
+                    caller.resultReceived(responseCode, response.toString());
+                }
             }
         };
-        caller.runOnMainThread(r);
+        if (caller != null) {
+            caller.runOnMainThread(r);
+        }
     }
 
 

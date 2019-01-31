@@ -25,12 +25,9 @@ import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ExecutionException;
 
 import edu.cmu.hcii.sugilite.Const;
 import edu.cmu.hcii.sugilite.R;
-import edu.cmu.hcii.sugilite.SugiliteAccessibilityService;
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.automation.Generalizer;
 import edu.cmu.hcii.sugilite.automation.ServiceStatusManager;
@@ -40,13 +37,12 @@ import edu.cmu.hcii.sugilite.dao.SugiliteScriptFileDao;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptSQLDao;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.model.block.util.ScriptPrinter;
-import edu.cmu.hcii.sugilite.model.variable.Variable;
+import edu.cmu.hcii.sugilite.pumice.dialog.demonstration.PumiceDemonstrationUtil;
 import edu.cmu.hcii.sugilite.study.ScriptUsageLogManager;
 import edu.cmu.hcii.sugilite.ui.ScriptDebuggingActivity;
 import edu.cmu.hcii.sugilite.ui.ScriptDetailActivity;
 import edu.cmu.hcii.sugilite.ui.ScriptSourceActivity;
 import edu.cmu.hcii.sugilite.ui.dialog.NewScriptDialog;
-import edu.cmu.hcii.sugilite.ui.dialog.VariableSetValueDialog;
 
 import static edu.cmu.hcii.sugilite.Const.SQL_SCRIPT_DAO;
 
@@ -203,42 +199,8 @@ public class FragmentScriptListTab extends Fragment {
                                 public void onClick(DialogInterface dialog, int which) {
                                     //clear the queue first before adding new instructions
 
-                                    if(!serviceStatusManager.isRunning()){
-                                        //prompt the user if the accessiblity service is not active
-                                        AlertDialog.Builder builder1 = new AlertDialog.Builder(activity);
-                                        builder1.setTitle("Service not running")
-                                                .setMessage("The Sugilite accessiblity service is not enabled. Please enable the service in the phone settings before recording.")
-                                                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                                                    @Override
-                                                    public void onClick(DialogInterface dialog, int which) {
-                                                        serviceStatusManager.promptEnabling();
-                                                        //do nothing
-                                                    }
-                                                }).show();
-                                    }
-                                    else {
-                                        VariableSetValueDialog variableSetValueDialog = new VariableSetValueDialog(activity, activity.getLayoutInflater(), sugiliteData, script, sharedPreferences, SugiliteData.EXECUTION_STATE);
-                                        if(script.variableNameDefaultValueMap.size() > 0) {
-                                            //has variable
-                                            sugiliteData.stringVariableMap.putAll(script.variableNameDefaultValueMap);
-                                            boolean needUserInput = false;
-                                            for(Map.Entry<String, Variable> entry : script.variableNameDefaultValueMap.entrySet()){
-                                                if(entry.getValue().type == Variable.USER_INPUT){
-                                                    needUserInput = true;
-                                                    break;
-                                                }
-                                            }
-                                            if(needUserInput)
-                                                //show the dialog to obtain user input
-                                                variableSetValueDialog.show();
-                                            else
-                                                variableSetValueDialog.executeScript(null);
-                                        }
-                                        else{
-                                            //execute the script without showing the dialog
-                                            variableSetValueDialog.executeScript(null);
-                                        }
-                                    }
+                                    PumiceDemonstrationUtil.executeScript(activity, serviceStatusManager, script, sugiliteData, activity.getLayoutInflater(), sharedPreferences, null, null, null);
+
                                 }
                             })
                             .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
@@ -322,7 +284,7 @@ public class FragmentScriptListTab extends Fragment {
                     final SugiliteStartingBlock startingBlock1 = sugiliteScriptDao.read(scriptName1);
 
                     progressDialog = new AlertDialog.Builder(activity).setMessage(Const.LOADING_MESSAGE).create();
-                    progressDialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
+                    progressDialog.getWindow().setType(WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY);
                     progressDialog.setCanceledOnTouchOutside(false);
                     progressDialog.show();
                     new Thread(new Runnable() {

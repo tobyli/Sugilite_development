@@ -29,6 +29,8 @@ import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.model.variable.Variable;
+import edu.cmu.hcii.sugilite.pumice.dialog.PumiceDialogManager;
+import edu.cmu.hcii.sugilite.pumice.kb.PumiceKnowledgeManager;
 import edu.cmu.hcii.sugilite.recording.RecordingPopUpDialog;
 import edu.cmu.hcii.sugilite.study.ScriptUsageLogManager;
 import edu.cmu.hcii.sugilite.ui.StatusIconManager;
@@ -57,11 +59,14 @@ public class SugiliteData extends Application {
     public Map<String, Variable> stringVariableMap = new HashMap<>();
     public Set<String> registeredBroadcastingListener = new HashSet<>();
     public SugiliteBlock afterExecutionOperation = null;
+    public Runnable afterExecutionRunnable = null;
 
 
     //caches for file IO through the SugiliteScriptFileDao
     public Map<String, SugiliteStartingBlock> sugiliteFileScriptDaoSavingCache = new HashMap<>();
     public Map<String, SugiliteStartingBlock> sugiliteFileScriptDaoReadingCache = new HashMap<>();
+
+    public Runnable endRecordingCallback;
 
 
     private Gson gson = new Gson();
@@ -86,9 +91,10 @@ public class SugiliteData extends Application {
     private TextToSpeech tts;
 
     public boolean testing = false;
-    public boolean runDone = false;
     public boolean testRun = false;
 
+
+    public String valueDemonstrationVariableName = "";
 
     //used to indicate the state of the sugilite system
     public static final int DEFAULT_STATE = 0, RECORDING_STATE = 1, RECORDING_FOR_ERROR_HANDLING_STATE = 2, EXECUTION_STATE = 3, REGULAR_DEBUG_STATE = 4, PAUSED_FOR_DUCK_MENU_IN_REGULAR_EXECUTION_STATE = 6, PAUSED_FOR_ERROR_HANDLING_STATE = 7, PAUSED_FOR_CRUCIAL_STEP_STATE = 8, PAUSED_FOR_BREAKPOINT_STATE = 9, PAUSED_FOR_DUCK_MENU_IN_DEBUG_MODE = 10;
@@ -124,28 +130,33 @@ public class SugiliteData extends Application {
         usageLogManager.addLog(type, scriptName);
     }
 
+    //the current pumiceDialogManager
+    public PumiceDialogManager pumiceDialogManager;
+
     /**
      * set the script head to a new SugiliteStartingBlock with name = scriptName, and set the current script block to that block
      * @param scriptName
      */
-    public void initiateScript(String scriptName){
+    public synchronized void initiateScript(String scriptName, Runnable endRecordingCallback){
         this.instructionQueue.clear();
         this.stringVariableMap.clear();
         this.setScriptHead(new SugiliteStartingBlock(scriptName));
         this.setCurrentScriptBlock(scriptHead);
+        this.endRecordingCallback = endRecordingCallback;
 
         logUsageData(ScriptUsageLogManager.CREATE_SCRIPT, scriptName);
     }
 
-    public void initiateTracking(String trackingName){
+    public synchronized void initiateTracking(String trackingName){
         this.setTrackingHead(new SugiliteStartingBlock(trackingName));
         this.setCurrentTrackingBlock(trackingHead);
         this.trackingName = trackingName;
     }
 
-    public void runScript(SugiliteStartingBlock startingBlock, SugiliteBlock afterExecutionOperation, int state){
+    public synchronized void runScript(SugiliteStartingBlock startingBlock, SugiliteBlock afterExecutionOperation, Runnable afterExecutionRunnable, int state){
         startRecordingWhenFinishExecuting = false;
         this.afterExecutionOperation = afterExecutionOperation;
+        this.afterExecutionRunnable = afterExecutionRunnable;
         this.instructionQueue.clear();
         if(errorHandler != null) {
             errorHandler.relevantPackages.clear();
@@ -160,7 +171,7 @@ public class SugiliteData extends Application {
     }
 
     public void runScript(SugiliteStartingBlock startingBlock, boolean isForResuming, int state){
-        runScript(startingBlock, null, state);
+        runScript(startingBlock, null, null, state);
         startRecordingWhenFinishExecuting = isForResuming;
     }
 
@@ -170,14 +181,20 @@ public class SugiliteData extends Application {
     public void setCurrentTrackingBlock(SugiliteBlock currentTrackingBlock){
         this.currentTrackingBlock = currentTrackingBlock;
     }
-    public void addInstruction(SugiliteBlock block){
+    public synchronized void addInstruction(SugiliteBlock block){
         if(block == null) {
             //note: nullable -> see Automator.addNextBlockToQueue
             if(afterExecutionOperation != null) {
                 instructionQueue.add(afterExecutionOperation);
                 afterExecutionOperation = null;
+            } else {
+                if (afterExecutionRunnable != null) {
+                    //run the after execution runnable
+                    afterExecutionRunnable.run();
+                    afterExecutionRunnable = null;
+                }
+                setCurrentSystemState(DEFAULT_STATE);
             }
-            setCurrentSystemState(DEFAULT_STATE);
             return;
         }
         if(errorHandler != null) {
@@ -190,13 +207,14 @@ public class SugiliteData extends Application {
             return;
         this.instructionQueue.addAll(blocks);
     }
+
     public void clearInstructionQueue(){
         instructionQueue.clear();
     }
     public int getInstructionQueueSize(){
         return instructionQueue.size();
     }
-    public void removeInstructionQueueItem(){
+    public synchronized void removeInstructionQueueItem(){
         instructionQueue.remove();
         if(instructionQueue.size() == 0 && startRecordingWhenFinishExecuting){
             //start recording at the end of "resume recording" operation
@@ -226,7 +244,7 @@ public class SugiliteData extends Application {
     }
 
 
-    private List<SugiliteBlock> traverseBlock(SugiliteStartingBlock startingBlock){
+    private synchronized List<SugiliteBlock> traverseBlock(SugiliteStartingBlock startingBlock){
         List<SugiliteBlock> sugiliteBlocks = new ArrayList<>();
         SugiliteBlock currentBlock = startingBlock;
         while(currentBlock != null){

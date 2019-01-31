@@ -223,7 +223,7 @@ public class ErrorHandler {
                                     }
                                 });
                         AlertDialog replaceOrParallelDialog = replaceOrParallelDialogBuilder.create();
-                        replaceOrParallelDialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
+                        replaceOrParallelDialog.getWindow().setType(WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY);
                         replaceOrParallelDialog.show();
                     }
                 })
@@ -234,7 +234,7 @@ public class ErrorHandler {
                     }
                 });
         AlertDialog dialog = builder.create();
-        dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
+        dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY);
         if(showingErrorDialog == false)
             dialog.show();
         showingErrorDialog = true;

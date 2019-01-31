@@ -1,13 +1,24 @@
 package edu.cmu.hcii.sugilite.pumice.kb;
+import android.content.Context;
+
 import com.google.gson.Gson;
 
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+
+import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
+import edu.cmu.hcii.sugilite.model.variable.Variable;
+import edu.cmu.hcii.sugilite.ontology.description.OntologyDescriptionGenerator;
+
+import static edu.cmu.hcii.sugilite.Const.HOME_SCREEN_PACKAGE_NAMES;
 
 /**
  * @author toby
@@ -19,6 +30,7 @@ public class PumiceProceduralKnowledge {
     private String utterance;
     private List<String> involvedAppNames;
     private Map<String, PumiceProceduralKnowledgeParameter> parameterNameParameterMap;
+    transient private SugiliteStartingBlock sugiliteStartingBlock;
 
     public PumiceProceduralKnowledge(){
 
@@ -29,7 +41,42 @@ public class PumiceProceduralKnowledge {
         this.utterance = utterance;
         this.involvedAppNames = new ArrayList<>();
         this.involvedAppNames.addAll(involvedAppNames);
-        parameterNameParameterMap = new HashMap<>();
+        this.parameterNameParameterMap = new HashMap<>();
+    }
+
+    public PumiceProceduralKnowledge(Context context, String procedureName, String utterance, SugiliteStartingBlock startingBlock){
+        this.procedureName = procedureName;
+        this.utterance = utterance;
+        this.involvedAppNames = new ArrayList<>();
+        this.parameterNameParameterMap = new HashMap<>();
+        this.sugiliteStartingBlock = startingBlock;
+
+        //populate involvedAppNames
+        Set<String> involvedAppPackageNames = new HashSet<>();
+        Set<String> homeScreenPackageNameSet = new HashSet<>(Arrays.asList(HOME_SCREEN_PACKAGE_NAMES));
+        for(String packageName : startingBlock.relevantPackages){
+            if (! homeScreenPackageNameSet.contains(packageName)){
+                involvedAppPackageNames.add(packageName);
+            }
+        }
+        for(String packageName : involvedAppPackageNames){
+            //TODO: get app name for package name
+            involvedAppNames.add(OntologyDescriptionGenerator.getAppName(context, packageName));
+        }
+        //populate parameterNameParameterMap
+        if(startingBlock.variableNameDefaultValueMap != null) {
+            for (Map.Entry<String, Variable> variableNameVariable : startingBlock.variableNameDefaultValueMap.entrySet()) {
+                if (variableNameVariable.getValue().type == Variable.USER_INPUT){
+                    String parameterName = variableNameVariable.getValue().getName();
+                    String defaultValue = variableNameVariable.getValue().getName();
+                    List<String> alternativeValues = new ArrayList<>();
+                    if (startingBlock.variableNameAlternativeValueMap.containsKey(parameterName)){
+                        alternativeValues.addAll(startingBlock.variableNameAlternativeValueMap.get(parameterName));
+                    }
+                    parameterNameParameterMap.put(parameterName, new PumiceProceduralKnowledgeParameter(parameterName, defaultValue, alternativeValues));
+                }
+            }
+        }
     }
 
     public void copyFrom(PumiceProceduralKnowledge pumiceProceduralKnowledge){
@@ -37,6 +84,7 @@ public class PumiceProceduralKnowledge {
         this.utterance = pumiceProceduralKnowledge.utterance;
         this.involvedAppNames = pumiceProceduralKnowledge.involvedAppNames;
         this.parameterNameParameterMap = pumiceProceduralKnowledge.parameterNameParameterMap;
+        this.sugiliteStartingBlock = pumiceProceduralKnowledge.sugiliteStartingBlock;
     }
 
     public void addParameter(PumiceProceduralKnowledgeParameter parameter){
@@ -77,12 +125,17 @@ public class PumiceProceduralKnowledge {
         private List<T> parameterAlternativeValues;
 
         public PumiceProceduralKnowledgeParameter(String parameterName, T parameterDefaultValue){
+            this(parameterName, parameterDefaultValue, null);
+        }
+
+        public PumiceProceduralKnowledgeParameter(String parameterName, T parameterDefaultValue, List<T> parameterAlternativeValues){
             this.parameterName = parameterName;
             this.parameterDefaultValue = parameterDefaultValue;
             this.parameterAlternativeValues = new ArrayList<>();
+            this.parameterAlternativeValues = parameterAlternativeValues;
         }
 
-        public void AddParameterAlternativeValues (T value){
+        public void addParameterAlternativeValues (T value){
             parameterAlternativeValues.add(value);
         }
     }

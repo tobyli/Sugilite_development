@@ -1,5 +1,6 @@
 package edu.cmu.hcii.sugilite.pumice.dialog;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
@@ -18,6 +19,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import edu.cmu.hcii.sugilite.R;
+import edu.cmu.hcii.sugilite.SugiliteData;
+import edu.cmu.hcii.sugilite.automation.ServiceStatusManager;
 
 import edu.cmu.hcii.sugilite.model.block.SugiliteConditionBlock;
 import edu.cmu.hcii.sugilite.model.block.booleanexp.SugiliteBooleanExpressionNew;
@@ -44,7 +47,7 @@ import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
  */
 public class PumiceDialogManager{
     public enum Sender {AGENT, USER}
-    public AppCompatActivity context;//made public from private
+    private Activity context;
     private PumiceDialogView pumiceDialogView;
     private PumiceDialogUIHelper pumiceDialogUIHelper;
     private View speakButtonForCallback;
@@ -53,11 +56,8 @@ public class PumiceDialogManager{
     private SugiliteVerbalInstructionHTTPQueryManager httpQueryManager;
     private SharedPreferences sharedPreferences;
     private ExecutorService executorService;
-    public SugiliteBlock tResult;
-    public String check;
-    public boolean addElse = false;
-    public SugiliteBlock conditionBlock = null;
-    public PumiceConditionalIntentHandler pcih = null;
+    private SugiliteData sugiliteData;
+    private ServiceStatusManager serviceStatusManager;
 
     private List<PumiceDialogState> stateHistoryList;
 
@@ -66,16 +66,20 @@ public class PumiceDialogManager{
     //represents the current state of the dialog
     private PumiceDialogState pumiceDialogState;
 
-    public PumiceDialogManager(AppCompatActivity context, PumiceUtteranceIntentHandler pcih){
+    public PumiceDialogManager(Activity context){
         this.context = context;
         this.pumiceDialogView = new PumiceDialogView(context);
         this.pumiceDialogUIHelper = new PumiceDialogUIHelper(context);
         this.pumiceInitInstructionParsingHandler = new PumiceInitInstructionParsingHandler(context, this);
         this.stateHistoryList = new ArrayList<>();
-        this.pumiceDialogState = new PumiceDialogState(pcih, new PumiceKnowledgeManager());
+        this.pumiceDialogState = new PumiceDialogState(new PumiceDefaultUtteranceIntentHandler(this, context), new PumiceKnowledgeManager());
         this.sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
         this.httpQueryManager = new SugiliteVerbalInstructionHTTPQueryManager(sharedPreferences);
         this.executorService = Executors.newCachedThreadPool();
+        this.serviceStatusManager = ServiceStatusManager.getInstance(context);
+        this.sugiliteData = (SugiliteData)(context.getApplication());
+        this.sugiliteData.pumiceDialogManager = this;
+
 
         //** testing **
         this.pumiceDialogState.getPumiceKnowledgeManager().initForTesting();
@@ -186,6 +190,10 @@ public class PumiceDialogManager{
         }
     }
 
+    public Activity getContext() {
+        return context;
+    }
+
     public PumiceKnowledgeManager getPumiceKnowledgeManager() {
         return pumiceDialogState.getPumiceKnowledgeManager();
     }
@@ -196,7 +204,6 @@ public class PumiceDialogManager{
                 @Override
                 public void run() {
                     if(requireUserResponse && speakButtonForCallback != null){
-                        speakButtonForCallback.callOnClick();
                         pumiceDialogView.postDelayed(new Runnable() {
                             @Override
                             public void run() {
@@ -374,9 +381,6 @@ public class PumiceDialogManager{
         return httpQueryManager;
     }
 
-    public PumiceInitInstructionParsingHandler getPumiceInitInstructionParsingHandler() {
-        return pumiceInitInstructionParsingHandler;
-    }
 
     public class GetTheIntentHandlingResultForTheNextUserInput implements Callable<Object> {
         @Override
@@ -393,15 +397,20 @@ public class PumiceDialogManager{
         context.runOnUiThread(r);
     }
 
-    public void settResult(SugiliteBlock tResult) {
-        this.tResult = tResult;
+    public SharedPreferences getSharedPreferences() {
+        return sharedPreferences;
     }
 
-    public void setPcih(PumiceConditionalIntentHandler p) {
-        pcih = p;
+    public SugiliteData getSugiliteData() {
+        return sugiliteData;
     }
 
-    public PumiceConditionalIntentHandler getPcih() {
-        return pcih;
+    public ServiceStatusManager getServiceStatusManager() {
+        return serviceStatusManager;
     }
+
+    public PumiceInitInstructionParsingHandler getPumiceInitInstructionParsingHandler() {
+        return pumiceInitInstructionParsingHandler;
+    }
+
 }

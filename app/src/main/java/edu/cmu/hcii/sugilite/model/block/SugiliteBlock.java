@@ -61,6 +61,10 @@ public abstract class SugiliteBlock implements Serializable{
         this.parentBlock = parentBlock;
     }
 
+    public SugiliteBlock getParentBlock() {
+        return parentBlock;
+    }
+
     public File getScreenshot(){
         return screenshot;
     }
@@ -70,10 +74,6 @@ public abstract class SugiliteBlock implements Serializable{
             //handle the "merge" of condition blocks
             return parentBlock.getNextBlock();
         }
-        return nextBlock;
-    }
-
-    public SugiliteBlock getNextBlockCond() {
         return nextBlock;
     }
 

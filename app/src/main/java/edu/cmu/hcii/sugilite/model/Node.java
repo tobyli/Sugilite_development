@@ -29,6 +29,7 @@ public class Node implements Serializable {
 //    private List<Node> childNodes;
     private Integer rootNodeDescendantsCount = 0;
     private Boolean isClickable = false;
+    private Boolean isLongClickable = false;
     private Boolean isEditable = false;
     private Boolean isChecked = false;
     private Boolean isCheckable = false;
@@ -79,6 +80,7 @@ public class Node implements Serializable {
         this.boundsInScreen = boundsInScreen.flattenToString();
         this.boundsInParent = boundsInParent.flattenToString();
         this.isClickable = nodeInfo.isClickable();
+        this.isLongClickable = nodeInfo.isLongClickable();
         this.isEditable = nodeInfo.isEditable();
         this.isChecked = nodeInfo.isChecked();
         this.isSelected = nodeInfo.isSelected();
@@ -184,6 +186,10 @@ public class Node implements Serializable {
 
     public Integer getWindowZIndex() {
         return windowZIndex;
+    }
+
+    public Boolean getLongClickable() {
+        return isLongClickable;
     }
 
     public Node getParent() {

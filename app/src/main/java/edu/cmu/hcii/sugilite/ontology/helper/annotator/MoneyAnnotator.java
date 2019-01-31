@@ -39,7 +39,6 @@ public class MoneyAnnotator extends SugiliteTextAnnotator {
             AnnotatingResult result = new AnnotatingResult(RELATION, text.substring(matcher.start(), matcher.end()), matcher.start(), matcher.end(), value);
             results.add(result);
         }
-        System.out.println(results);
         return results;
     }
 

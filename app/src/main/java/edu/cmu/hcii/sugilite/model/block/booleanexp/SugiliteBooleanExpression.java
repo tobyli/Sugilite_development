@@ -16,6 +16,8 @@ import edu.cmu.hcii.sugilite.source_parsing.SugiliteScriptExpression;
  * @date 6/4/18
  * @time 8:57 AM
  */
+
+@Deprecated
 public class SugiliteBooleanExpression implements Serializable {
     private static final long serialVersionUID = 3904255251843766926L;
     //should support comparison between variables & comparision between a variable and a constant -- probably won't need to support nested/composite expressions for now
@@ -45,6 +47,11 @@ public class SugiliteBooleanExpression implements Serializable {
     //TODO: probably need to restructure the evaluate() method to support nested expressions -> instead of using split() and assume the first expression is always split[1], may want to recursively parse based on the parenthesis structure (see runASTParsingPipeline() method)
 
     public Boolean evaluate(SugiliteData sugiliteData) {
+        //TODO: get around
+        if(sugiliteData != null) {
+            return true;
+        }
+
         //TODO: implement -- returns the evaluate result of this expression at runtime
         String be = booleanExpression.substring(1,booleanExpression.length()-1).trim();
         String[] split = be.split(" ");

@@ -105,7 +105,7 @@ public class SelectElementWithTextDialog implements AbstractSugiliteDialog {
                         });
 
                 dialog = builder.create();
-                dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ERROR);
+                dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY);
                 System.out.println("Dialog building finished");
 
                 //
@@ -145,7 +145,7 @@ public class SelectElementWithTextDialog implements AbstractSugiliteDialog {
         WindowManager.LayoutParams params = new WindowManager.LayoutParams(
                 WindowManager.LayoutParams.MATCH_PARENT,
                 WindowManager.LayoutParams.MATCH_PARENT,
-                WindowManager.LayoutParams.TYPE_PHONE,
+                WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
                 WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
                 PixelFormat.TRANSLUCENT);
         DisplayMetrics displaymetrics = new DisplayMetrics();

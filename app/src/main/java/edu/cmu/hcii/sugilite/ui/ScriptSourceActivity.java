@@ -14,8 +14,6 @@ import android.view.View;
 import android.view.WindowManager;
 import android.widget.EditText;
 
-import java.util.Map;
-
 import edu.cmu.hcii.sugilite.Const;
 import edu.cmu.hcii.sugilite.R;
 import edu.cmu.hcii.sugilite.SugiliteAccessibilityService;
@@ -25,10 +23,9 @@ import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptFileDao;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptSQLDao;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
+import edu.cmu.hcii.sugilite.pumice.dialog.demonstration.PumiceDemonstrationUtil;
 import edu.cmu.hcii.sugilite.source_parsing.SugiliteScriptParser;
-import edu.cmu.hcii.sugilite.model.variable.Variable;
 import edu.cmu.hcii.sugilite.ontology.description.OntologyDescriptionGenerator;
-import edu.cmu.hcii.sugilite.ui.dialog.VariableSetValueDialog;
 import edu.cmu.hcii.sugilite.ui.main.SugiliteMainActivity;
 
 import static edu.cmu.hcii.sugilite.Const.SQL_SCRIPT_DAO;
@@ -40,7 +37,7 @@ public class ScriptSourceActivity extends AppCompatActivity {
     private String scriptName;
     private SugiliteData sugiliteData;
     private SugiliteScriptDao sugiliteScriptDao;
-    private Context context;
+    private Activity context;
     private AlertDialog progressDialog;
     private SugiliteStartingBlock script;
     private EditText sourceEditText;
@@ -75,7 +72,7 @@ public class ScriptSourceActivity extends AppCompatActivity {
 
         //progress dialog for loading the script
         progressDialog = new AlertDialog.Builder(context).setMessage(Const.LOADING_MESSAGE).create();
-        progressDialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
+        progressDialog.getWindow().setType(WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY);
         progressDialog.setCanceledOnTouchOutside(false);
         progressDialog.show();
         new Thread(new Runnable() {
@@ -98,13 +95,10 @@ public class ScriptSourceActivity extends AppCompatActivity {
                         loadScriptSource();
                     }
                 };
-                if (context instanceof SugiliteAccessibilityService) {
-                    ((SugiliteAccessibilityService) context).runOnUiThread(loadOperation);
-                    ((SugiliteAccessibilityService) context).runOnUiThread(dismissDialog);
-                } else if (context instanceof Activity) {
-                    ((Activity) context).runOnUiThread(loadOperation);
-                    ((Activity) context).runOnUiThread(dismissDialog);
-                }
+
+                context.runOnUiThread(loadOperation);
+                context.runOnUiThread(dismissDialog);
+
             }
         }).start();
 
@@ -133,41 +127,8 @@ public class ScriptSourceActivity extends AppCompatActivity {
                     .setPositiveButton("Run", new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int which) {
                             //clear the queue first before adding new instructions
+                            PumiceDemonstrationUtil.executeScript(context, serviceStatusManager, script, sugiliteData, getLayoutInflater(), sharedPreferences, null, null, null);
 
-                            if (!serviceStatusManager.isRunning()) {
-                                //prompt the user if the accessiblity service is not active
-                                AlertDialog.Builder builder1 = new AlertDialog.Builder(view.getContext());
-                                builder1.setTitle("Service not running")
-                                        .setMessage("The Sugilite accessiblity service is not enabled. Please enable the service in the phone settings before recording.")
-                                        .setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                                            @Override
-                                            public void onClick(DialogInterface dialog, int which) {
-                                                serviceStatusManager.promptEnabling();
-                                                //do nothing
-                                            }
-                                        }).show();
-                            } else {
-                                VariableSetValueDialog variableSetValueDialog = new VariableSetValueDialog(activityContext, getLayoutInflater(), sugiliteData, newScript, sharedPreferences, SugiliteData.EXECUTION_STATE);
-                                if (script.variableNameDefaultValueMap.size() > 0) {
-                                    //has variable
-                                    sugiliteData.stringVariableMap.putAll(newScript.variableNameDefaultValueMap);
-                                    boolean needUserInput = false;
-                                    for (Map.Entry<String, Variable> entry : newScript.variableNameDefaultValueMap.entrySet()) {
-                                        if (entry.getValue().type == Variable.USER_INPUT) {
-                                            needUserInput = true;
-                                            break;
-                                        }
-                                    }
-                                    if (needUserInput)
-                                        //show the dialog to obtain user input
-                                        variableSetValueDialog.show();
-                                    else
-                                        variableSetValueDialog.executeScript(null);
-                                } else {
-                                    //execute the script without showing the dialog
-                                    variableSetValueDialog.executeScript(null);
-                                }
-                            }
                         }
                     })
                     .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {

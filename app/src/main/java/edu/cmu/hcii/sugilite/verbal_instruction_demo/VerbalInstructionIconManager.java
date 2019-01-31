@@ -162,7 +162,7 @@ public class VerbalInstructionIconManager implements SugiliteVoiceInterface {
             }
         });
         Dialog dialog = builder.create();
-        dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
+        dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY);
         dialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_box);
         dialog.show();
     }
@@ -177,7 +177,7 @@ public class VerbalInstructionIconManager implements SugiliteVoiceInterface {
         iconParams = new WindowManager.LayoutParams(
                 WindowManager.LayoutParams.WRAP_CONTENT,
                 WindowManager.LayoutParams.WRAP_CONTENT,
-                WindowManager.LayoutParams.TYPE_PHONE,
+                WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
                 WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
                 PixelFormat.TRANSLUCENT);
 
@@ -392,7 +392,7 @@ public class VerbalInstructionIconManager implements SugiliteVoiceInterface {
 
 
                     dialog = textDialogBuilder.create();
-                    dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
+                    dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY);
                     dialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_box);
                     dialog.show();
                     return true;
@@ -434,6 +434,25 @@ public class VerbalInstructionIconManager implements SugiliteVoiceInterface {
         });
     }
 
+    public void turnOnCatOverlay() {
+        recordingOverlayManager.enableOverlay();
+        //remove and re-add the status icon so that it can show on top of the overlay
+        removeStatusIcon();
+        addStatusIcon();
+
+
+        if(duckIconManager != null){
+            duckIconManager.removeStatusIcon();
+            duckIconManager.addStatusIcon();
+        }
+    }
+
+    public void turnOffCatOverlay() {
+        if(recordingOverlayManager.isShowingOverlay()){
+            recordingOverlayManager.removeOverlays();
+        }
+    }
+
     public void switchCatOverlay(){
         if(recordingOverlayManager.isShowingOverlay()){
             recordingOverlayManager.removeOverlays();
@@ -444,12 +463,12 @@ public class VerbalInstructionIconManager implements SugiliteVoiceInterface {
             removeStatusIcon();
             addStatusIcon();
 
-                                                /*
-                                                if(duckIconManager != null){
-                                                    duckIconManager.removeStatusIcon();
-                                                    duckIconManager.addStatusIcon();
-                                                }
-                                                */
+
+            if(duckIconManager != null){
+                duckIconManager.removeStatusIcon();
+                duckIconManager.addStatusIcon();
+            }
+
 
         }
     }
@@ -530,6 +549,8 @@ public class VerbalInstructionIconManager implements SugiliteVoiceInterface {
     public void endStudyRecording(){
         statusIcon.setImageResource(R.mipmap.cat_sleep);
     }
+
+
 
 
 

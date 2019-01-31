@@ -151,7 +151,7 @@ public class SugiliteCommunicationActivityBroadcastReciever extends BroadcastRec
 //                                    }
 //                                });
 //                        AlertDialog dialog = builder.create();
-//                        dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
+//                        dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY);
 //                        dialog.show();
 //                    }
 //                }
@@ -370,7 +370,7 @@ public class SugiliteCommunicationActivityBroadcastReciever extends BroadcastRec
 //                        }
 //                    });
 //            AlertDialog dialog = builder1.create();
-//            dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
+//            dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY);
 //            dialog.show();
 //        }
 //        else {

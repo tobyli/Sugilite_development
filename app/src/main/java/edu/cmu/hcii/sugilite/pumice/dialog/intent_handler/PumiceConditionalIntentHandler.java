@@ -13,26 +13,30 @@ import java.util.concurrent.Executors;
 import edu.cmu.hcii.sugilite.pumice.communication.PumiceInstructionPacket;
 import edu.cmu.hcii.sugilite.pumice.communication.PumiceSemanticParsingResultPacket;
 import edu.cmu.hcii.sugilite.pumice.dialog.PumiceDialogManager;
+import edu.cmu.hcii.sugilite.pumice.kb.PumiceBooleanExpKnowledge;
 import edu.cmu.hcii.sugilite.ui.ScriptDetailActivity;
 import edu.cmu.hcii.sugilite.model.block.SugiliteConditionBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
 import edu.cmu.hcii.sugilite.SugiliteData;
+import edu.cmu.hcii.sugilite.verbal_instruction_demo.server_comm.SugiliteVerbalInstructionHTTPQueryInterface;
 
-public class PumiceConditionalIntentHandler implements PumiceUtteranceIntentHandler {
+public class PumiceConditionalIntentHandler implements PumiceUtteranceIntentHandler, SugiliteVerbalInstructionHTTPQueryInterface  {
     private transient Context context;
+    private transient PumiceDialogManager pumiceDialogManager;
     private ExecutorService es;
     Calendar calendar;
-    private PumiceIntent lastIntent;
-    private PumiceDialogManager.PumiceUtterance lastUtterance;
-    private String s;
-    private boolean moving;
+    private PumiceIntent lastIntent; //store last PumiceIntent
+    private PumiceDialogManager.PumiceUtterance lastUtterance; //store last utterance
+    private String s; //string to hold "true" or "false" for message to user
+    private boolean moving; //true if currently moving a step around in the script
     private SugiliteBlock storedBlock;
     private SugiliteConditionBlock originalBlock;
-    private boolean justAddElse = false;
-    public PumiceConditionalIntentHandler(Context context){
+    private boolean justAddElse = false; //remember to add else statement to script
+    public PumiceConditionalIntentHandler(PumiceDialogManager pdm, Context context){
         this.context = context;
         this.calendar = Calendar.getInstance();
         this.es = Executors.newCachedThreadPool();
+        this.pumiceDialogManager = pdm;
     }
 
     @Override
@@ -43,7 +47,6 @@ public class PumiceConditionalIntentHandler implements PumiceUtteranceIntentHand
     @Override
     public PumiceIntent detectIntentFromUtterance(PumiceDialogManager.PumiceUtterance utterance) {
         String text = utterance.getContent().toLowerCase();
-        System.out.println("last " + lastIntent);
         if(lastIntent == PumiceIntent.TELL_ELSE) {
             return PumiceIntent.ADD_TELL_ELSE;
         }
@@ -176,7 +179,7 @@ public class PumiceConditionalIntentHandler implements PumiceUtteranceIntentHand
                 lastUtterance = utterance;
                 SugiliteData sugiliteData = ((ScriptDetailActivity) dialogManager.context).getSugiliteData();
                 sugiliteData.statusIconManager.pauseTestRun(((ScriptDetailActivity) dialogManager.context));
-                dialogManager.sendAgentMessage("I understand there is a problem. Is there a problem with when the check happens or with what happens when the check is" + s + "?", true, true);
+                dialogManager.sendAgentMessage("I understand there is a problem. Is there a problem with when the check happens or with what happens when the check is " + s + "?", true, true);
                 break;
             case SCRIPT_ADD_TELL_ELSE:
                 justAddElse = false;
@@ -197,11 +200,11 @@ public class PumiceConditionalIntentHandler implements PumiceUtteranceIntentHand
                 lastUtterance = utterance;
                 dialogManager.addElse = true;
                 dialogManager.conditionBlock = dialogManager.tResult;
-                PumiceInstructionPacket pumiceInstructionPacket4 = new PumiceInstructionPacket(dialogManager.getPumiceKnowledgeManager(), PumiceIntent.DEFINE_VALUE_EXP, calendar.getTimeInMillis(), utterance.getContent());//"if it is hot" +
+                PumiceInstructionPacket pumiceInstructionPacket4 = new PumiceInstructionPacket(dialogManager.getPumiceKnowledgeManager(), PumiceIntent.USER_INIT_INSTRUCTION, calendar.getTimeInMillis(), "if it's hot " + utterance.getContent(), "if it's hot " + utterance.getContent());
                 dialogManager.sendAgentMessage("Let's make sure I understood what you said...", true, false);
                 dialogManager.sendAgentMessage(pumiceInstructionPacket4.toString(), false, false);
                 try {
-                    dialogManager.getHttpQueryManager().sendPumiceInstructionPacketOnASeparateThread(pumiceInstructionPacket4);
+                    dialogManager.getHttpQueryManager().sendPumiceInstructionPacketOnASeparateThread(pumiceInstructionPacket4, this);
                 } catch (Exception e){
                     e.printStackTrace();
                 }
@@ -232,7 +235,6 @@ public class PumiceConditionalIntentHandler implements PumiceUtteranceIntentHand
                 lastIntent = PumiceIntent.ADD_TO_SCRIPT;
                 lastUtterance = utterance;
                 if(utterance.getContent().contains("yes")) {
-                    dialogManager.setPcih(this);
                     ((ScriptDetailActivity) dialogManager.context).determineConditionalLoc(dialogManager.tResult);
                 }
                 else {
@@ -253,12 +255,11 @@ public class PumiceConditionalIntentHandler implements PumiceUtteranceIntentHand
                 lastUtterance = utterance;
                 String[] removeIf = utterance.getContent().split(" ",3);
                 String toParse = removeIf[2];
-                System.out.println(toParse);
-                PumiceInstructionPacket pumiceInstructionPacket2 = new PumiceInstructionPacket(dialogManager.getPumiceKnowledgeManager(), PumiceIntent.DEFINE_BOOL_EXP, calendar.getTimeInMillis(), toParse);
+                PumiceInstructionPacket pumiceInstructionPacket2 = new PumiceInstructionPacket(dialogManager.getPumiceKnowledgeManager(), "BOOL_EXP_INSTRUCTION", calendar.getTimeInMillis(), toParse, null);
                 dialogManager.sendAgentMessage("Let's make sure I understood what you said...", true, false);
                 dialogManager.sendAgentMessage(pumiceInstructionPacket2.toString(), false, false);
                 try {
-                    dialogManager.getHttpQueryManager().sendPumiceInstructionPacketOnASeparateThread(pumiceInstructionPacket2);
+                    dialogManager.getHttpQueryManager().sendPumiceInstructionPacketOnASeparateThread(pumiceInstructionPacket2, this);
                 } catch (Exception e){
                     e.printStackTrace();
                 }
@@ -282,7 +283,7 @@ public class PumiceConditionalIntentHandler implements PumiceUtteranceIntentHand
                     dialogManager.sendAgentMessage("Ok, please tell me the last step that should happen only if" + dialogManager.check + "is true.", true,true);
                 }
                 else {
-                    dialogManager.sendAgentMessage("Ok, I need you to tell to me what to do if" + dialogManager.check + "is true. Would you like to explain or demonstrate what to do?", true, true);
+                    dialogManager.sendAgentMessage("Ok, I need you to tell me what to do if" + dialogManager.check + "is true. Would you like to explain or demonstrate what to do?", true, true);
                 }
                 break;
             case TELL_IF:
@@ -295,11 +296,11 @@ public class PumiceConditionalIntentHandler implements PumiceUtteranceIntentHand
                 lastUtterance = utterance;
                 dialogManager.addElse = true;
                 dialogManager.conditionBlock = dialogManager.tResult;
-                PumiceInstructionPacket pumiceInstructionPacket5 = new PumiceInstructionPacket(dialogManager.getPumiceKnowledgeManager(), PumiceIntent.DEFINE_BOOL_EXP, calendar.getTimeInMillis(), utterance.getContent());//"if it is hot" +
+                PumiceInstructionPacket pumiceInstructionPacket5 = new PumiceInstructionPacket(dialogManager.getPumiceKnowledgeManager(), PumiceIntent.USER_INIT_INSTRUCTION, calendar.getTimeInMillis(), "if it is hot" + utterance.getContent(), "ROOT");
                     dialogManager.sendAgentMessage("Let's make sure I understood what you said...", true, false);
                 dialogManager.sendAgentMessage(pumiceInstructionPacket5.toString(), false, false);
                 try {
-                    dialogManager.getHttpQueryManager().sendPumiceInstructionPacketOnASeparateThread(pumiceInstructionPacket5);
+                    dialogManager.getHttpQueryManager().sendPumiceInstructionPacketOnASeparateThread(pumiceInstructionPacket5, this);
                 } catch (Exception e){
                     e.printStackTrace();
                 }
@@ -325,13 +326,13 @@ public class PumiceConditionalIntentHandler implements PumiceUtteranceIntentHand
                 }
                 else {
                     dialogManager.sendAgentMessage("Ok, you're all set.",true,false);
-                    ((SugiliteConditionBlock) dialogManager.conditionBlock).inScope = false;
+                    ((ScriptDetailActivity) dialogManager.context).getRidOfScope();
                 }
                 break;
             case MOVE_STEP:
                 lastIntent = PumiceIntent.MOVE_STEP;
                 lastUtterance = utterance;
-                if(!utterance.getContent().matches(".*\\d+.*")) {//need to account for if say number that isn't step
+                if(!utterance.getContent().matches(".*\\d+.*")) {//need to account for if say number that isn't step so check if says "step" or just a number should mean step # was given.
                     dialogManager.sendAgentMessage("Please say the number of the step after which the check should happen.",true,true);
                 }
                 else {
@@ -343,11 +344,11 @@ public class PumiceConditionalIntentHandler implements PumiceUtteranceIntentHand
                 lastIntent = PumiceIntent.USER_INIT_INSTRUCTION;
                 lastUtterance = utterance;
                 dialogManager.sendAgentMessage("I have received your instruction: " + utterance.getContent(), true, false);
-                PumiceInstructionPacket pumiceInstructionPacket = new PumiceInstructionPacket(dialogManager.getPumiceKnowledgeManager(), PumiceIntent.USER_INIT_INSTRUCTION, calendar.getTimeInMillis(), utterance.getContent());
+                PumiceInstructionPacket pumiceInstructionPacket = new PumiceInstructionPacket(dialogManager.getPumiceKnowledgeManager(), PumiceIntent.USER_INIT_INSTRUCTION, calendar.getTimeInMillis(), utterance.getContent(), "ROOT");
                 dialogManager.sendAgentMessage("Sending out the server query below...", true, false);
                 dialogManager.sendAgentMessage(pumiceInstructionPacket.toString(), false, false);
                 try {
-                    dialogManager.getHttpQueryManager().sendPumiceInstructionPacketOnASeparateThread(pumiceInstructionPacket);
+                    dialogManager.getHttpQueryManager().sendPumiceInstructionPacketOnASeparateThread(pumiceInstructionPacket, this);
                 } catch (Exception e){
                     e.printStackTrace();
                 }
@@ -368,24 +369,24 @@ public class PumiceConditionalIntentHandler implements PumiceUtteranceIntentHand
     }*/
 
     @Override
-    public void handleServerResponse(PumiceDialogManager dialogManager, int responseCode, String result) {
-        //TODO: handle server response from the semantic parsing server
+    public void resultReceived(int responseCode, String result) {
+        //handle server response from the semantic parsing server
         Gson gson = new Gson();
         try {
-            System.out.println("HERE");
             PumiceSemanticParsingResultPacket resultPacket = gson.fromJson(result, PumiceSemanticParsingResultPacket.class);
+        //TODO: handle server response from the semantic parsing server
             if (resultPacket.utteranceType != null) {
                 switch (PumiceUtteranceIntentHandler.PumiceIntent.valueOf(resultPacket.utteranceType)) {
                     case USER_INIT_INSTRUCTION:
                         if (resultPacket.queries != null && resultPacket.queries.size() > 0) {
                             PumiceSemanticParsingResultPacket.QueryGroundingPair topResult = resultPacket.queries.get(0);
                             if (topResult.formula != null) {
-                                dialogManager.sendAgentMessage("Received the parsing result from the server: ", true, false);
-                                dialogManager.sendAgentMessage(topResult.formula, false, false);
+                                pumiceDialogManager.sendAgentMessage("Received the parsing result from the server: ", true, false);
+                                pumiceDialogManager.sendAgentMessage(topResult.formula, false, false);
                                 Runnable r = new Runnable() {
                                     @Override
                                     public void run() {
-                                        dialogManager.getPumiceInitInstructionParsingHandler().parseFromNewInitInstruction(topResult.formula);
+                                        pumiceDialogManager.getPumiceInitInstructionParsingHandler().parseFromNewInitInstruction(topResult.formula);
                                     }
                                 };
                                 //do the parse on a new thread so it doesn't block the conversational I/O
@@ -393,35 +394,16 @@ public class PumiceConditionalIntentHandler implements PumiceUtteranceIntentHand
                             }
                         }
                         break;
-                    case DEFINE_BOOL_EXP:
-                        System.out.println("HITHERRR");
-                        System.out.println("resultPacket: " + resultPacket.queries);
+                    case BOOL_EXP_INSTRUCTION:
                         if (resultPacket.queries != null && resultPacket.queries.size() > 0) {
                             PumiceSemanticParsingResultPacket.QueryGroundingPair topResult = resultPacket.queries.get(0);
                             if (topResult.formula != null) {
-                                dialogManager.sendAgentMessage("Received the parsing result from the server: ", true, false);
-                                dialogManager.sendAgentMessage(topResult.formula, false, false);
+                                pumiceDialogManager.sendAgentMessage("Received the parsing result from the server: ", true, false);
+                                pumiceDialogManager.sendAgentMessage(topResult.formula, false, false);
                                 Runnable r = new Runnable() {
                                     @Override
                                     public void run() {
-                                        dialogManager.getPumiceInitInstructionParsingHandler().parseFromNewInitInstruction(topResult.formula);
-                                    }
-                                };
-                                //do the parse on a new thread so it doesn't block the conversational I/O
-                                es.submit(r);
-                            }
-                        }
-                        break;
-                    case DEFINE_VALUE_EXP:
-                        if (resultPacket.queries != null && resultPacket.queries.size() > 0) {
-                            PumiceSemanticParsingResultPacket.QueryGroundingPair topResult = resultPacket.queries.get(0);
-                            if (topResult.formula != null) {
-                                dialogManager.sendAgentMessage("Received the parsing result from the server: ", true, false);
-                                dialogManager.sendAgentMessage(topResult.formula, false, false);
-                                Runnable r = new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        dialogManager.getPumiceInitInstructionParsingHandler().parseFromNewInitInstruction(topResult.formula);
+                                        pumiceDialogManager.getPumiceInitInstructionParsingHandler().parseFromNewInitInstruction("(call if " + topResult.formula + "(call click (hasText 'hi')))");
                                     }
                                 };
                                 //do the parse on a new thread so it doesn't block the conversational I/O
@@ -430,12 +412,17 @@ public class PumiceConditionalIntentHandler implements PumiceUtteranceIntentHand
                         }
                         break;
                     default:
-                        dialogManager.sendAgentMessage("Can't read from the server response", true, false);
+                        pumiceDialogManager.sendAgentMessage("Can't read from the server response", true, false);
                 }
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    @Override
+    public void runOnMainThread(Runnable r) {
+        pumiceDialogManager.runOnMainThread(r);
     }
 }
 

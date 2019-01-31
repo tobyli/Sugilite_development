@@ -61,7 +61,7 @@ public class PumiceDialogActivity extends AppCompatActivity implements SugiliteV
         tts.setLanguage(Locale.US);
         //initiate sugiliteVoiceRecognitionListener
         this.sugiliteVoiceRecognitionListener = new SugiliteVoiceRecognitionListener(this, this, tts);
-        bindDialogManager(new PumiceDialogManager(this, new PumiceDefaultUtteranceIntentHandler(this)));
+        bindDialogManager(new PumiceDialogManager(this,""));
     }
 
 

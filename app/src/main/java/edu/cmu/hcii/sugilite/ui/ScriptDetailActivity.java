@@ -959,6 +959,7 @@ public class ScriptDetailActivity extends AppCompatActivity implements SugiliteV
         menu.add(Menu.NONE, Menu.FIRST + 1, 2, "Rename Script");
         menu.add(Menu.NONE, Menu.FIRST + 2, 3, "Delete Script");
         menu.add(Menu.NONE, Menu.FIRST + 3, 4, "Add Check to Script");
+        menu.add(Menu.NONE, Menu.FIRST + 4, 5, "Edit Script");
         return true;
     }
 
@@ -1033,8 +1034,16 @@ public class ScriptDetailActivity extends AppCompatActivity implements SugiliteV
             case Menu.FIRST + 3:
                 //edit the script
                 editScript(false);
+                break;
+            case Menu.FIRST + 4:
+                editScript2();
+                break;
         }
         return true;
+    }
+
+    private void editScript2() {
+
     }
 
     private void editScript(boolean c) {
@@ -1043,13 +1052,13 @@ public class ScriptDetailActivity extends AppCompatActivity implements SugiliteV
         tts = new TextToSpeech(this, new TextToSpeech.OnInitListener() {
             @Override
             public void onInit(int status) {
-                pumiceDialogManager.sendAgentMessage("You are adding a step to do different things in different cases. What should I check to figure out what case we're in? Please say something like check if it's cold or check if it's before 5pm.", true, true);
+                pumiceDialogManager.sendAgentMessage("You are adding a step to do different things in different cases. What should I check to figure out what case we're in? Please say something like check if it's cold or check if it's before 5pm.You are adding a step to do different things in different cases. What should I check to figure out what case we're in? Please say something like check if it's cold or check if it's before 5pm.", true, true);
             }
         });
         tts.setLanguage(Locale.US);
         sugiliteVoiceRecognitionListener = new SugiliteVoiceRecognitionListener(this, this, tts);
         //PumiceConditionalIntentHandler ih = new PumiceConditionalIntentHandler(context);
-        pumiceDialogManager = new PumiceDialogManager(this, new PumiceConditionalIntentHandler(this));
+        pumiceDialogManager = new PumiceDialogManager(this,"cond");
         pumiceDialogManager.setSpeakButtonForCallback(speakButton);
         pumiceDialogManager.setSugiliteVoiceRecognitionListener(sugiliteVoiceRecognitionListener);
     }
@@ -1152,8 +1161,6 @@ public class ScriptDetailActivity extends AppCompatActivity implements SugiliteV
     }
 
     public void getScope(String s) {
-        System.out.println("GETSCOPE");
-        System.out.println(newBlock);
         int i = Integer.parseInt(s);//index of step that scope of if block should go through
         SugiliteBlock iterBlock = script;
         int count = 0;
@@ -1170,12 +1177,8 @@ public class ScriptDetailActivity extends AppCompatActivity implements SugiliteV
                 new Exception("unsupported block type").printStackTrace();
             count++;
         }
-        System.out.println(iterBlock);
-        System.out.println(newBlock.getNextBlock());
         SugiliteBlock newBlockNext = newBlock.getNextBlock();
         SugiliteBlock storedNext = iterBlock.getNextBlock();
-        System.out.println(newBlockNext);
-        System.out.println(storedNext);
         ((SugiliteConditionBlock) newBlock).setIfBlock(newBlockNext);
         newBlockNext.setParentBlock(newBlock);
         newBlockNext.setPreviousBlock(null);
@@ -1315,6 +1318,11 @@ public class ScriptDetailActivity extends AppCompatActivity implements SugiliteV
 
             loadOperationList();
         }
+    }
+
+    public void getRidOfScope() {
+        newBlock.inScope = false;
+        loadOperationList();
     }
 
     public void pumiceSendButtonOnClick (View view) {

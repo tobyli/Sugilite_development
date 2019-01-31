@@ -57,7 +57,6 @@ public class PumiceDialogManager{
     public String check;
     public boolean addElse = false;
     public SugiliteBlock conditionBlock = null;
-    public PumiceConditionalIntentHandler pcih = null;
 
     private List<PumiceDialogState> stateHistoryList;
 
@@ -66,12 +65,22 @@ public class PumiceDialogManager{
     //represents the current state of the dialog
     private PumiceDialogState pumiceDialogState;
 
-    public PumiceDialogManager(AppCompatActivity context, PumiceUtteranceIntentHandler pcih){
+    public PumiceDialogManager(AppCompatActivity context, String intentHandler){
         this.context = context;
         this.pumiceDialogView = new PumiceDialogView(context);
         this.pumiceDialogUIHelper = new PumiceDialogUIHelper(context);
         this.pumiceInitInstructionParsingHandler = new PumiceInitInstructionParsingHandler(context, this);
         this.stateHistoryList = new ArrayList<>();
+
+        //set intent handler to be either conditional or default
+        PumiceUtteranceIntentHandler pcih = null;
+        if(intentHandler.equals("cond")) {
+            pcih = new PumiceConditionalIntentHandler(this, context);
+        }
+        else {
+            pcih = new PumiceDefaultUtteranceIntentHandler(this, context);
+        }
+
         this.pumiceDialogState = new PumiceDialogState(pcih, new PumiceKnowledgeManager());
         this.sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
         this.httpQueryManager = new SugiliteVerbalInstructionHTTPQueryManager(sharedPreferences);
@@ -103,9 +112,6 @@ public class PumiceDialogManager{
 
         //handle the incoming user message based on the identified intent
         pumiceUtteranceIntentHandler.handleIntentWithUtterance(this, intent, utterance);
-
-
-
     }
 
     public void updateUtteranceIntentHandlerInANewState(PumiceUtteranceIntentHandler pumiceUtteranceIntentHandler){
@@ -393,15 +399,11 @@ public class PumiceDialogManager{
         context.runOnUiThread(r);
     }
 
+    /*
+    store top result from a parser query
+     */
     public void settResult(SugiliteBlock tResult) {
         this.tResult = tResult;
     }
 
-    public void setPcih(PumiceConditionalIntentHandler p) {
-        pcih = p;
-    }
-
-    public PumiceConditionalIntentHandler getPcih() {
-        return pcih;
-    }
 }

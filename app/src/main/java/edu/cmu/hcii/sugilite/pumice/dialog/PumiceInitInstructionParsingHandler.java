@@ -68,8 +68,10 @@ public class PumiceInitInstructionParsingHandler {
         else {
             SugiliteBooleanExpressionNew booleanExpression = sugiliteScriptParser.parseBooleanExpressionFromString(serverFormula);
             PumiceBooleanExpKnowledge booleanExpKnowledge = new PumiceBooleanExpKnowledge(parentKnowledgeName, userUtterance, booleanExpression);
+
             return booleanExpKnowledge;
         }
+
     }
 
     /**
@@ -104,7 +106,7 @@ public class PumiceInitInstructionParsingHandler {
 
     private void printCurrentScript(){
         if(context instanceof ScriptDetailActivity && !pumiceDialogManager.addElse) {
-            pumiceDialogManager.updateUtteranceIntentHandlerInANewState(new PumiceConditionalIntentHandler(context));
+            pumiceDialogManager.updateUtteranceIntentHandlerInANewState(new PumiceConditionalIntentHandler(pumiceDialogManager,context));
             pumiceDialogManager.sendAgentMessage("I understood to check if" + pumiceDialogManager.check, true, false);
             pumiceDialogManager.sendAgentMessage("Should I add this new check to the script?",true,true);
         }

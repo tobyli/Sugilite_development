@@ -43,7 +43,7 @@ public class PumiceUserExplainBoolExpIntentHandler implements PumiceUtteranceInt
 
     @Override
     public void handleIntentWithUtterance(PumiceDialogManager dialogManager, PumiceIntent pumiceIntent, PumiceDialogManager.PumiceUtterance utterance) {
-        if (pumiceIntent.equals(PumiceIntent.DEFINE_BOOL_EXP)){
+        if (pumiceIntent.equals(PumiceIntent.BOOL_EXP_INSTRUCTION)){
             dialogManager.sendAgentMessage("I have received your explanation: " + utterance.getContent(), true, false);
 
             //send out the server query
@@ -66,7 +66,7 @@ public class PumiceUserExplainBoolExpIntentHandler implements PumiceUtteranceInt
 
     @Override
     public PumiceIntent detectIntentFromUtterance(PumiceDialogManager.PumiceUtterance utterance) {
-        return PumiceIntent.DEFINE_BOOL_EXP;
+        return PumiceIntent.BOOL_EXP_INSTRUCTION;
     }
 
     @Override

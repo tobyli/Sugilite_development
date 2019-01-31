@@ -190,7 +190,7 @@ public class SugiliteCommunicationHelper {
                                         editor.putBoolean("recording_in_process", true);
                                         editor.commit();
 
-                                        sugiliteData.initiateScript(arg1 + ".SugiliteScript");
+                                        sugiliteData.initiateScript(arg1 + ".SugiliteScript", null);
                                         sugiliteData.initiatedExternally = true;
                                         sugiliteData.setCurrentSystemState(SugiliteData.RECORDING_STATE);
 
@@ -210,7 +210,7 @@ public class SugiliteCommunicationHelper {
                                     }
                                 });
                         AlertDialog dialog = builder.create();
-                        dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
+                        dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY);
                         dialog.show();
                     }
                 }
@@ -505,7 +505,7 @@ public class SugiliteCommunicationHelper {
                         }
                     });
             AlertDialog dialog = builder1.create();
-            dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
+            dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY);
             dialog.show();
         }
         else {
@@ -534,7 +534,7 @@ public class SugiliteCommunicationHelper {
                     // do nothing, likely this exception is caused by non-rooted device
                 }
             }
-            sugiliteData.runScript(script, null, SugiliteData.EXECUTION_STATE);
+            sugiliteData.runScript(script, null, null, SugiliteData.EXECUTION_STATE);
             try {
                 Thread.sleep(SCRIPT_DELAY);
             } catch (Exception e) {

@@ -15,7 +15,10 @@ import edu.cmu.hcii.sugilite.model.block.special_operation.SugiliteDelaySpecialO
 import edu.cmu.hcii.sugilite.model.block.special_operation.SugiliteSubscriptSpecialOperationBlock;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteSpecialOperation;
 import edu.cmu.hcii.sugilite.model.operation.binary.SugiliteBinaryOperation;
+import edu.cmu.hcii.sugilite.model.operation.binary.SugiliteGetBoolExpOperation;
 import edu.cmu.hcii.sugilite.model.operation.binary.SugiliteGetOperation;
+import edu.cmu.hcii.sugilite.model.operation.binary.SugiliteGetProcedureOperation;
+import edu.cmu.hcii.sugilite.model.operation.binary.SugiliteGetValueOperation;
 import edu.cmu.hcii.sugilite.model.operation.trinary.SugiliteLoadVariableOperation;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteOperation;
 import edu.cmu.hcii.sugilite.model.operation.unary.SugiliteClickOperation;
@@ -193,7 +196,7 @@ public class SugiliteScriptExpression<T> {
             String stringArg = arguments.get(0).get(0).getConstantValue().toString();
             if(arguments.get(0).get(0).getConstantValue() != null && arguments.get(0).get(0).getConstantValue() instanceof SugiliteSimpleConstant){
                 //TODO: handle other types of constants
-                stringArg = ((SugiliteSimpleConstant) arguments.get(0).get(0).getConstantValue()).evaluate().toString();
+                stringArg = ((SugiliteSimpleConstant) arguments.get(0).get(0).getConstantValue()).evaluate(null).toString();
             }
             switch (operationName) {
                 case "click":
@@ -254,7 +257,7 @@ public class SugiliteScriptExpression<T> {
                     operation = new SugiliteReadoutOperation();
                     String parameter0 = arguments.get(0).get(0).getConstantValue().toString();
                     if(arguments.get(0).get(0).getConstantValue() instanceof SugiliteSimpleConstant){
-                        parameter0 = stripQuote(((SugiliteSimpleConstant) arguments.get(0).get(0).getConstantValue()).evaluate().toString());
+                        parameter0 = stripQuote(((SugiliteSimpleConstant) arguments.get(0).get(0).getConstantValue()).evaluate(null).toString());
                     }
                     operation.setParameter0(parameter0);
                     ((SugiliteReadoutOperation)operation).setQuery(new SerializableOntologyQuery(OntologyQuery.deserialize(arguments.get(1).get(0).getScriptContent())));
@@ -263,7 +266,7 @@ public class SugiliteScriptExpression<T> {
                     operation = new SugiliteSetTextOperation();
                     String text = stripQuote(arguments.get(0).get(0).getConstantValue().toString());
                     if(arguments.get(0).get(0).getConstantValue() instanceof SugiliteSimpleConstant){
-                        text = stripQuote(((SugiliteSimpleConstant) arguments.get(0).get(0).getConstantValue()).evaluate().toString());
+                        text = stripQuote(((SugiliteSimpleConstant) arguments.get(0).get(0).getConstantValue()).evaluate(null).toString());
                     }
                     operation.setParameter0(text);
                     ((SugiliteSetTextOperation)operation).setQuery(new SerializableOntologyQuery(OntologyQuery.deserialize(arguments.get(1).get(0).getScriptContent())));
@@ -277,17 +280,29 @@ public class SugiliteScriptExpression<T> {
                     }
                     break;
                 case "get":
-                    operation = new SugiliteGetOperation();
-                    String parameter00 = arguments.get(0).get(0).getConstantValue().toString();
                     String parameter11 = arguments.get(1).get(0).getConstantValue().toString();
+                    if (arguments.get(1).get(0).getConstantValue() instanceof SugiliteSimpleConstant){
+                        parameter11 = stripQuote(((SugiliteSimpleConstant) arguments.get(1).get(0).getConstantValue()).evaluate(null).toString());
+                    }
+
+                    if (parameter11.equals(SugiliteGetOperation.PROCEDURE_NAME)){
+                        operation = new SugiliteGetProcedureOperation();
+                    } else if (parameter11.equals(SugiliteGetOperation.BOOL_FUNCTION_NAME)){
+                        operation = new SugiliteGetBoolExpOperation();
+                    } else if (parameter11.equals(SugiliteGetOperation.VALUE_QUERY_NAME)) {
+                        operation = new SugiliteGetValueOperation();
+                    } else {
+                        throw new RuntimeException("Unknown Get Operation Type");
+                    }
+
+                    String parameter00 = arguments.get(0).get(0).getConstantValue().toString();
                     if(arguments.get(0).get(0).getConstantValue() instanceof SugiliteSimpleConstant){
-                        parameter00 = stripQuote(((SugiliteSimpleConstant) arguments.get(0).get(0).getConstantValue()).evaluate().toString());
+                        parameter00 = stripQuote(((SugiliteSimpleConstant) arguments.get(0).get(0).getConstantValue()).evaluate(null).toString());
                     }
-                    if(arguments.get(1).get(0).getConstantValue() instanceof SugiliteSimpleConstant){
-                        parameter11 = stripQuote(((SugiliteSimpleConstant) arguments.get(1).get(0).getConstantValue()).evaluate().toString());
-                    }
+
                     operation.setParameter0(parameter00);
                     operation.setParameter1(parameter11);
+
                     break;
             }
             operationBlock.setOperation(operation);
@@ -315,10 +330,10 @@ public class SugiliteScriptExpression<T> {
                     String parameter0 = arguments.get(0).get(0).getConstantValue().toString();
                     String parameter1 = arguments.get(1).get(0).getConstantValue().toString();
                     if(arguments.get(0).get(0).getConstantValue() instanceof SugiliteSimpleConstant){
-                        parameter0 = stripQuote(((SugiliteSimpleConstant) arguments.get(0).get(0).getConstantValue()).evaluate().toString());
+                        parameter0 = stripQuote(((SugiliteSimpleConstant) arguments.get(0).get(0).getConstantValue()).evaluate(null).toString());
                     }
                     if(arguments.get(1).get(0).getConstantValue() instanceof SugiliteSimpleConstant){
-                        parameter1 = stripQuote(((SugiliteSimpleConstant) arguments.get(1).get(0).getConstantValue()).evaluate().toString());
+                        parameter1 = stripQuote(((SugiliteSimpleConstant) arguments.get(1).get(0).getConstantValue()).evaluate(null).toString());
                     }
                     operation.setParameter0(parameter0);
                     operation.setParameter1(parameter1);
@@ -369,15 +384,6 @@ public class SugiliteScriptExpression<T> {
             operationBlock.setDescription(operationBlock.toString());
             return operationBlock;
         }
-
-        /*else if(operationName.contentEquals("if") && arguments.size() == 1) {
-            SugiliteBooleanExpression booleanExpression = new SugiliteBooleanExpression(arguments.get(0));
-            SugiliteBooleanExpressionNew booleanExpression2 = new SugiliteBooleanExpressionNew(arguments.get(0));
-            SugiliteConditionBlock conditionBlock = new SugiliteConditionBlock(null,null, booleanExpression, null);
-            //test purpose
-            conditionBlock.setSugiliteBooleanExpressionNew(booleanExpression2);
-            return conditionBlock;
-        }*/
 
         else if(operationName.contentEquals("if") && arguments.size() == 2) {
             SugiliteBlock ifBlock = arguments.get(1).get(0).toSugiliteBlock(startingBlock, descriptionGenerator);

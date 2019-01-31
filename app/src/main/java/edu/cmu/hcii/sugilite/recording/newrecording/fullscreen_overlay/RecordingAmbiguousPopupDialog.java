@@ -35,6 +35,7 @@ import edu.cmu.hcii.sugilite.model.Node;
 import edu.cmu.hcii.sugilite.R;
 import edu.cmu.hcii.sugilite.SugiliteAccessibilityService;
 import edu.cmu.hcii.sugilite.SugiliteData;
+import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
 import edu.cmu.hcii.sugilite.model.block.util.SugiliteAvailableFeaturePack;
 import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteOperation;
@@ -52,6 +53,7 @@ import edu.cmu.hcii.sugilite.recording.newrecording.SugiliteBlockBuildingHelper;
 import edu.cmu.hcii.sugilite.recording.newrecording.dialog_management.SugiliteDialogManager;
 import edu.cmu.hcii.sugilite.recording.newrecording.dialog_management.SugiliteDialogSimpleState;
 import edu.cmu.hcii.sugilite.recording.newrecording.dialog_management.SugiliteDialogUtteranceFilter;
+import edu.cmu.hcii.sugilite.source_parsing.SugiliteScriptParser;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.VerbalInstructionRecordingManager;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.server_comm.SugiliteVerbalInstructionHTTPQueryInterface;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.server_comm.SugiliteVerbalInstructionHTTPQueryManager;
@@ -89,6 +91,7 @@ public class RecordingAmbiguousPopupDialog extends SugiliteDialogManager impleme
     private TextView textPrompt;
     private OntologyDescriptionGenerator descriptionGenerator;
     private ImageButton mySpeakButton;
+    private SugiliteScriptParser sugiliteScriptParser;
 
     private int errorCount = 0;
     public static boolean CHECK_FOR_GROUNDING_MATCH = false;
@@ -106,6 +109,7 @@ public class RecordingAmbiguousPopupDialog extends SugiliteDialogManager impleme
         this.featurePack = featurePack;
         this.sugiliteVerbalInstructionHTTPQueryManager = new SugiliteVerbalInstructionHTTPQueryManager(sharedPreferences);
         this.descriptionGenerator = new OntologyDescriptionGenerator(context);
+        this.sugiliteScriptParser = new SugiliteScriptParser();
 
         //TODO: need to operate on a copy of ui snapshot
         this.uiSnapshot = uiSnapshot;
@@ -243,7 +247,7 @@ public class RecordingAmbiguousPopupDialog extends SugiliteDialogManager impleme
 
     public void show() {
         if(dialog.getWindow() != null) {
-            dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
+            dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY);
         }
         dialog.show();
 
@@ -255,7 +259,7 @@ public class RecordingAmbiguousPopupDialog extends SugiliteDialogManager impleme
     private void showProgressDialog() {
         progressDialog = new AlertDialog.Builder(context).setMessage("Processing the query ...").create();
         if(progressDialog.getWindow() != null) {
-            progressDialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
+            progressDialog.getWindow().setType(WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY);
         }
         progressDialog.setCanceledOnTouchOutside(false);
         progressDialog.show();
@@ -341,51 +345,58 @@ public class RecordingAmbiguousPopupDialog extends SugiliteDialogManager impleme
             //Map<Node, Integer> filteredNodeNodeIdMap = new HashMap<>();
 
             //construct the query, run the query, and compare the result against the actually clicked on node
-
             String queryFormula = verbalInstructionResult.getFormula();
-            OntologyQuery query = OntologyQueryUtils.getQueryWithClassAndPackageConstraints(OntologyQuery.deserialize(queryFormula), actualClickedNode.getEntityValue(), false, true, true);
+            SugiliteBlock block = sugiliteScriptParser.parseASingleBlockFromString(queryFormula);
 
+
+            if(block instanceof SugiliteOperationBlock && ((SugiliteOperationBlock) block).getOperation() instanceof SugiliteClickOperation) {
+                //TODO: handle operations other than clicking
+                SerializableOntologyQuery serializableOntologyQuery = ((SugiliteClickOperation) ((SugiliteOperationBlock) block).getOperation()).getParameter0();
+                OntologyQuery query = OntologyQueryUtils.getQueryWithClassAndPackageConstraints(new OntologyQuery(serializableOntologyQuery), actualClickedNode.getEntityValue(), false, true, true);
+
+
+                try {
+                    OntologyQuery queryClone = OntologyQuery.deserialize(query.toString());
+                    Set<SugiliteEntity> queryResults =  queryClone.executeOn(uiSnapshot);
+                    for(SugiliteEntity entity : queryResults){
+                        if(entity.getType().equals(Node.class)){
+                            Node node = (Node) entity.getEntityValue();
+                            if (node.getClickable()) {
+                                filteredNodes.add(node);
+                                //filteredNodeNodeIdMap.put(node, entity.getEntityId());
+                            }
+                            if (OntologyQueryUtils.isSameNode(actualClickedNode.getEntityValue(), node)) {
+                                matched = true;
+                            }
+
+
+                        }
+                    }
+
+                    if(!CHECK_FOR_GROUNDING_MATCH){
+                        matched = true;
+                    }
+
+                }
+                catch (Exception e){
+                    Gson gson = new Gson();
+                    e.printStackTrace();
+                    System.out.println("ERROR QUERY: " + queryFormula);
+                    System.out.println("ERROR QUERY JSON" + gson.toJson(query));
+                }
+
+
+                if (filteredNodes.size() > 0 && matched) {
+                    //matched, add the result to the list
+                    matchingQueriesMatchedNodesList.add(Pair.create(query, filteredNodes));
+                }
+
+                if(matchingQueriesMatchedNodesList.size() > MAX_QUERY_CANDIDATE_NUMBER){
+                    break;
+                }
+            }
             //TODO: fix the bug in query.executeOn -- it should not change the query
 
-            try {
-                OntologyQuery queryClone = OntologyQuery.deserialize(query.toString());
-                Set<SugiliteEntity> queryResults =  queryClone.executeOn(uiSnapshot);
-                for(SugiliteEntity entity : queryResults){
-                    if(entity.getType().equals(Node.class)){
-                        Node node = (Node) entity.getEntityValue();
-                        if (node.getClickable()) {
-                            filteredNodes.add(node);
-                            //filteredNodeNodeIdMap.put(node, entity.getEntityId());
-                        }
-                        if (OntologyQueryUtils.isSameNode(actualClickedNode.getEntityValue(), node)) {
-                            matched = true;
-                        }
-
-
-                    }
-                }
-
-                if(!CHECK_FOR_GROUNDING_MATCH){
-                    matched = true;
-                }
-
-            }
-            catch (Exception e){
-                Gson gson = new Gson();
-                e.printStackTrace();
-                System.out.println("ERROR QUERY: " + queryFormula);
-                System.out.println("ERROR QUERY JSON" + gson.toJson(query));
-            }
-
-
-            if (filteredNodes.size() > 0 && matched) {
-                //matched, add the result to the list
-                matchingQueriesMatchedNodesList.add(Pair.create(query, filteredNodes));
-            }
-
-            if(matchingQueriesMatchedNodesList.size() > MAX_QUERY_CANDIDATE_NUMBER){
-                break;
-            }
         }
 
         if(false) {

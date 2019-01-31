@@ -168,7 +168,7 @@ public class RecordingPopUpDialog implements AbstractSugiliteDialog {
         builder.setView(dialogRootView)
                 .setTitle("Edit SUGILITE Operation");
         dialog = builder.create();
-        dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
+        dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY);
         dialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_box);
         dialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
             @Override
@@ -219,7 +219,7 @@ public class RecordingPopUpDialog implements AbstractSugiliteDialog {
         builder.setView(dialogRootView)
                 .setTitle("Edit Sugilite Operation");
         dialog = builder.create();
-        dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
+        dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY);
         dialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_box);
         dialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
             @Override
@@ -385,7 +385,7 @@ public class RecordingPopUpDialog implements AbstractSugiliteDialog {
         prefEditor.apply();
 
         progressDialog = new AlertDialog.Builder(context).setMessage(Const.SAVING_MESSAGE).create();
-        progressDialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
+        progressDialog.getWindow().setType(WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY);
         progressDialog.setCanceledOnTouchOutside(false);
 
         Runnable showProgressDialogRunnable = new Runnable() {
@@ -524,7 +524,7 @@ public class RecordingPopUpDialog implements AbstractSugiliteDialog {
                         }
                     });
             final AlertDialog dialog = builder.create();
-            dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
+            dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY);
             dialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
                 @Override
                 public void onDismiss(DialogInterface dialog) {
@@ -617,7 +617,7 @@ public class RecordingPopUpDialog implements AbstractSugiliteDialog {
             @Override
             public void run() {
                 AlertDialog dialog = builder.create();
-                dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
+                dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY);
                 dialog.show();
             }
         };
@@ -1490,7 +1490,7 @@ public class RecordingPopUpDialog implements AbstractSugiliteDialog {
                                     //commit save for triggered_by_edit
 
                                     progressDialog = new AlertDialog.Builder(context).setMessage(Const.SAVING_MESSAGE).create();
-                                    progressDialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
+                                    progressDialog.getWindow().setType(WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY);
                                     progressDialog.setCanceledOnTouchOutside(false);
                                     Runnable showProgressDialogRunnable = new Runnable() {
                                         @Override
@@ -1546,7 +1546,7 @@ public class RecordingPopUpDialog implements AbstractSugiliteDialog {
                                     sugiliteScriptDao.save(originalScript);
                                     //commit save for triggered_by_edit
                                     progressDialog = new AlertDialog.Builder(context).setMessage(Const.SAVING_MESSAGE).create();
-                                    progressDialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
+                                    progressDialog.getWindow().setType(WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY);
                                     progressDialog.setCanceledOnTouchOutside(false);
 
                                     Runnable showProgressDialogRunnable = new Runnable() {

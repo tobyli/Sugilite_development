@@ -1,5 +1,6 @@
 package edu.cmu.hcii.sugilite.model.operation.unary;
 
+import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.model.value.SugiliteValue;
 import edu.cmu.hcii.sugilite.ontology.SerializableOntologyQuery;
 
@@ -42,7 +43,7 @@ public class SugiliteResolveValueQueryOperation extends SugiliteUnaryOperation<S
     }
 
     @Override
-    public String evaluate() {
+    public String evaluate(SugiliteData sugiliteData) {
         //TODO: this should actually execute the query to get the result
         return null;
     }
@@ -50,5 +51,10 @@ public class SugiliteResolveValueQueryOperation extends SugiliteUnaryOperation<S
     @Override
     public String toString() {
         return "(" + "call resolve_value " + addQuoteToTokenIfNeeded(getParameter0().toString()) + ")";
+    }
+
+    @Override
+    public String getReadableDescription() {
+        return text;
     }
 }

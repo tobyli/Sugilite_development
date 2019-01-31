@@ -61,7 +61,7 @@ public class PumiceKnowledgeManager {
         addPumiceProceduralKnowledge(testProceduralKnowledge);
 
         PumiceValueQueryKnowledge<Double> testValueQueryKnowledge = new PumiceValueQueryKnowledge<>("temperature", PumiceValueQueryKnowledge.ValueType.NUMERICAL);
-        addPumiceValueQueryKnowledge(testValueQueryKnowledge);
+        //addPumiceValueQueryKnowledge(testValueQueryKnowledge);
 
         //PumiceBooleanExpKnowledge testBooleanExpKnowledge = new PumiceBooleanExpKnowledge("it is hot", "the temperature is above 90 degrees", testValueQueryKnowledge.getSugiliteOperation(), SugiliteBooleanExpressionNew.BoolOperator.GREATER_THAN, new SugiliteSimpleConstant<>(90, "Fahrenheit"));
         //addPumiceBooleanExpKnowledge(testBooleanExpKnowledge);

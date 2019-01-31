@@ -129,7 +129,7 @@ public class StatusIconManager {
         iconParams = new WindowManager.LayoutParams(
                 WindowManager.LayoutParams.WRAP_CONTENT,
                 WindowManager.LayoutParams.WRAP_CONTENT,
-                WindowManager.LayoutParams.TYPE_PHONE,
+                WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
                 WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
                 PixelFormat.TRANSLUCENT);
 
@@ -146,7 +146,7 @@ public class StatusIconManager {
         textViewParams = new WindowManager.LayoutParams(
                 WindowManager.LayoutParams.WRAP_CONTENT,
                 WindowManager.LayoutParams.WRAP_CONTENT,
-                WindowManager.LayoutParams.TYPE_PHONE,
+                WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
                 WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
                 PixelFormat.TRANSLUCENT);
         textViewParams.gravity = Gravity.BOTTOM | Gravity.CENTER;
@@ -156,7 +156,11 @@ public class StatusIconManager {
         if(currentApiVersion >= 23){
             checkDrawOverlayPermission();
             if(Settings.canDrawOverlays(context))
-                windowManager.addView(statusIcon, iconParams);
+                try {
+                    windowManager.addView(statusIcon, iconParams);
+                } catch (Exception e){
+                    e.printStackTrace();
+                }
 
                 //=== temporarily set the status view to invisible  ===
                 windowManager.addView(statusView, textViewParams);
@@ -198,7 +202,8 @@ public class StatusIconManager {
     }
 
     public boolean isShowingIcon() {
-        return showingIcon;
+        return statusIcon.isShown();
+        //return showingIcon;
     }
 
     /**
@@ -499,7 +504,7 @@ public class StatusIconManager {
 
                                     progressDialog = new AlertDialog.Builder(context).setMessage(Const.SAVING_MESSAGE).create();
                                     if(progressDialog.getWindow() != null) {
-                                        progressDialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
+                                        progressDialog.getWindow().setType(WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY);
                                     }
                                     progressDialog.setCanceledOnTouchOutside(false);
                                     progressDialog.show();
@@ -507,6 +512,7 @@ public class StatusIconManager {
                                         @Override
                                         public void run()
                                         {
+                                            //commit the script
                                             try {
                                                 sugiliteScriptDao.commitSave();
                                             }
@@ -530,9 +536,19 @@ public class StatusIconManager {
 
 
                                     if (sugiliteData.initiatedExternally && sugiliteData.getScriptHead() != null) {
+                                        //return the recording to the external caller
                                         sugiliteData.communicationController.sendRecordingFinishedSignal(sugiliteData.getScriptHead().getScriptName());
                                         sugiliteData.sendCallbackMsg(Const.FINISHED_RECORDING, jsonProcessor.scriptToJson(sugiliteData.getScriptHead()), sugiliteData.callbackString);
                                     }
+
+                                    if (sugiliteData.getScriptHead() != null && sugiliteData.endRecordingCallback != null){
+                                        //call the endRecordingCallback
+                                        Runnable r = sugiliteData.endRecordingCallback;
+                                        sugiliteData.endRecordingCallback = null;
+                                        r.run();
+                                    }
+
+
                                     sugiliteData.setCurrentSystemState(SugiliteData.DEFAULT_STATE);
                                     Toast.makeText(context, "end recording", Toast.LENGTH_SHORT).show();
                                     break;
@@ -564,7 +580,7 @@ public class StatusIconManager {
                                         prefEditor.apply();
                                         progressDialog = new AlertDialog.Builder(context).setMessage(Const.SAVING_MESSAGE).create();
                                         if(progressDialog.getWindow() != null) {
-                                            progressDialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
+                                            progressDialog.getWindow().setType(WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY);
                                         }
                                         progressDialog.setCanceledOnTouchOutside(false);
                                         progressDialog.show();
@@ -723,7 +739,7 @@ public class StatusIconManager {
 
                                     Dialog chooseSubscriptDialog = chooseSubscriptDialogBuilder.create();
                                     if(chooseSubscriptDialog.getWindow() != null) {
-                                        chooseSubscriptDialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
+                                        chooseSubscriptDialog.getWindow().setType(WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY);
                                     }
                                     chooseSubscriptDialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_box);
                                     chooseSubscriptDialog.show();
@@ -810,7 +826,7 @@ public class StatusIconManager {
                         }
                     });
                     if(duckDialog.getWindow() != null) {
-                        duckDialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
+                        duckDialog.getWindow().setType(WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY);
                         duckDialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_box);
                     }
                     duckDialog.show();
@@ -861,7 +877,7 @@ public class StatusIconManager {
         WindowManager.LayoutParams params = new WindowManager.LayoutParams(
                 WindowManager.LayoutParams.WRAP_CONTENT,
                 WindowManager.LayoutParams.WRAP_CONTENT,
-                WindowManager.LayoutParams.TYPE_PHONE,
+                WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
                 WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
                 PixelFormat.TRANSLUCENT);
         params.gravity = Gravity.TOP | Gravity.LEFT;

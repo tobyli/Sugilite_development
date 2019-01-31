@@ -117,7 +117,7 @@ public class VerbalInstructionRecordingManager {
                     }
                 });
             final AlertDialog confirmationDialog = confirmationDialogBuilder.create();
-            confirmationDialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
+            confirmationDialog.getWindow().setType(WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY);
             confirmationDialog.show();
         }
     }

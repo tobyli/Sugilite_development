@@ -32,11 +32,32 @@ public class OntologyDescriptionGenerator {
             this.packageManager = context.getPackageManager();
         }
     }
+    public static String getAppName(Context context, String packageName) {
+        PackageManager packageManager = context.getPackageManager();
+        if(packageName.equals("com.android.launcher3") ||
+                packageName.equals("com.google.android.googlequicksearchbox") ||
+                packageName.equals("com.google.android.apps.nexuslauncher"))
+            return "Home Screen";
+        if(packageManager != null) {
+            ApplicationInfo ai;
+            try {
+                ai = packageManager.getApplicationInfo(packageName, 0);
+            } catch (final PackageManager.NameNotFoundException e) {
+                ai = null;
+            }
+            final String applicationName = (String) (ai != null ? packageManager.getApplicationLabel(ai) : "(unknown)");
+            return applicationName;
+        }
+        else {
+            return packageName;
+        }
+    }
 
     // get the package name for the application
     private String getAppName(String packageName) {
         if(packageName.equals("com.android.launcher3") ||
-                packageName.equals("com.google.android.googlequicksearchbox"))
+                packageName.equals("com.google.android.googlequicksearchbox") ||
+                packageName.equals("com.google.android.apps.nexuslauncher"))
             return "Home Screen";
         if(packageManager != null) {
             ApplicationInfo ai;
@@ -133,7 +154,7 @@ public class OntologyDescriptionGenerator {
             for (String x : s) {
                 vari += x + " ";
             }
-            return prefix + getDescriptionForOperation(setColor("Set value of ", Const.SCRIPT_ACTION_COLOR) + setColor(vari.toLowerCase(), Const.SCRIPT_CONDITIONAL_COLOR_3) + setColor("to the following: ", Const.SCRIPT_ACTION_COLOR) + "the text in ", sq);
+            return prefix + getDescriptionForOperation(setColor("Set value of ", Const.SCRIPT_ACTION_COLOR) + setColor(((SugiliteLoadVariableOperation) operation).getVariableName(), Const.SCRIPT_CONDITIONAL_COLOR_3) + setColor(" to the following: ", Const.SCRIPT_ACTION_COLOR) + "the " +  setColor(((SugiliteLoadVariableOperation) operation).getPropertyToSave(), Const.SCRIPT_CONDITIONAL_COLOR_3) + " property in ", sq);
         }
         else{
             //TODO: handle more types of operations ***

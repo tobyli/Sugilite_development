@@ -49,14 +49,20 @@ public class SugiliteSubscriptSpecialOperationBlock extends SugiliteSpecialOpera
     @Override
     public void run(Context context, final SugiliteData sugiliteData, SugiliteScriptDao sugiliteScriptDao, final SharedPreferences sharedPreferences) throws Exception{
         final SugiliteStartingBlock script = sugiliteScriptDao.read(subscriptName);
-        if(script != null) {
+
+        //send an agent message through pumiceDialogManager if one is available
+        if (sugiliteData.pumiceDialogManager != null){
+            sugiliteData.pumiceDialogManager.sendAgentMessage("Executing the procedure: " + subscriptName.replace(".SugiliteScript", " "), true, false);
+        }
+
+        if (script != null) {
             Handler mainHandler = new Handler(context.getMainLooper());
             final LayoutInflater inflater = (LayoutInflater) context. getSystemService( Context. LAYOUT_INFLATER_SERVICE);
             final Context finalContext = context;
             Runnable myRunnable = new Runnable() {
                 @Override
                 public void run() {
-                    VariableSetValueDialog variableSetValueDialog = new VariableSetValueDialog(finalContext, inflater, sugiliteData, script, sharedPreferences, sugiliteData.getCurrentSystemState());
+                    VariableSetValueDialog variableSetValueDialog = new VariableSetValueDialog(finalContext, inflater, sugiliteData, script, sharedPreferences, sugiliteData.getCurrentSystemState(), sugiliteData.pumiceDialogManager);
                     if (script.variableNameDefaultValueMap.size() > 0) {
                         //has variable
                         sugiliteData.stringVariableMap.putAll(script.variableNameDefaultValueMap);
@@ -67,15 +73,16 @@ public class SugiliteSubscriptSpecialOperationBlock extends SugiliteSpecialOpera
                                 break;
                             }
                         }
-                        if (needUserInput)
-                            //show the dialog to obtain user input
-                            variableSetValueDialog.show();
-                        else
-                            System.out.println("here1");
-                            variableSetValueDialog.executeScript(getNextBlock());
+                        if (needUserInput) {
+                            //show the dialog to obtain user input - run getNextBlock() after finish executing the current one
+                            variableSetValueDialog.show(getNextBlock(), null);
+                        }
+                        else {
+                            variableSetValueDialog.executeScript(getNextBlock(), sugiliteData.pumiceDialogManager, null);
+                        }
                     } else {
-                        //execute the script without showing the dialog
-                        variableSetValueDialog.executeScript(getNextBlock());
+                        //execute the script without showing the dialog - run getNextBlock() after finish executing the current one
+                        variableSetValueDialog.executeScript(getNextBlock(), sugiliteData.pumiceDialogManager, null);
                     }
                 }
             };

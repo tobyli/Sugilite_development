@@ -113,6 +113,16 @@ public class SugiliteScriptParser {
         }
     }
 
+    public SugiliteBlock parseASingleBlockFromString(String input){
+        List<SugiliteScriptExpression> expressionList = runASTParsingPipeline(input);
+        for(SugiliteScriptExpression expression : expressionList){
+            //turn each expression to a block
+            SugiliteBlock block = expression.toSugiliteBlock(null, ontologyDescriptionGenerator);
+            return block;
+        }
+        return null;
+    }
+
     public SugiliteStartingBlock parseBlockFromString(String input){
         List<SugiliteScriptExpression> expressionList = runASTParsingPipeline(input);
         System.out.println("Final result: " + expressionList);

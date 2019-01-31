@@ -173,7 +173,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
                                             Toast.makeText(preference.getContext(), "Changed script name to " + sharedPreferences.getString("scriptName", "NULL"), Toast.LENGTH_SHORT).show();
                                             scriptNamePreference.setSummary(scriptName.getText().toString());
                                             //set the active script to the newly created script
-                                            sugiliteData.initiateScript(scriptName.getText().toString() + ".SugiliteScript");
+                                            sugiliteData.initiateScript(scriptName.getText().toString() + ".SugiliteScript", null);
                                             sugiliteData.initiatedExternally = false;
                                             sugiliteData.setCurrentSystemState(SugiliteData.RECORDING_STATE);
                                             //save the newly created script to DB
@@ -226,6 +226,13 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
                         if(sugiliteData.initiatedExternally == true && sugiliteData.getScriptHead() != null) {
                             sugiliteData.communicationController.sendRecordingFinishedSignal(sugiliteData.getScriptHead().getScriptName());
                             sugiliteData.sendCallbackMsg(Const.FINISHED_RECORDING, jsonProcessor.scriptToJson(sugiliteData.getScriptHead()), sugiliteData.callbackString);
+                        }
+
+                        if (sugiliteData.getScriptHead() != null && sugiliteData.endRecordingCallback != null){
+                            //call the endRecordingCallback
+                            Runnable r = sugiliteData.endRecordingCallback;
+                            sugiliteData.endRecordingCallback = null;
+                            r.run();
                         }
                     }
                     break;

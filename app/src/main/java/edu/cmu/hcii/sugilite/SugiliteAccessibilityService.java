@@ -87,7 +87,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
     private SugiliteTextAnnotator sugiliteTextAnnotator;
     private FullScreenRecordingOverlayManager recordingOverlayManager;
     private TextToSpeech tts;
-    ExecutorService executor = Executors.newFixedThreadPool(1);
+    ExecutorService executor = Executors.newFixedThreadPool(2);
 
     //this thread is for generating ui snapshots
     ExecutorService uiSnapshotGenerationExecutor;
@@ -421,26 +421,6 @@ public class SugiliteAccessibilityService extends AccessibilityService {
                 //System.out.println(event.getPackageName() + " " + sugiliteData.elementsWithTextLabels.size());
             }
 
-            /*
-            //EXPERIMENTAL: for recording overlay
-            if(event.getEventType() == AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED ||
-                    event.getEventType() == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED ||
-                    event.getEventType() == AccessibilityEvent.TYPE_WINDOWS_CHANGED){
-                //generate the uiSnapshot
-                AccessibilityNodeInfo new_root = getRootInActiveWindow();
-                if(new_root != null) {
-                    final AccessibilityNodeInfo final_root = new_root;
-                    UISnapshot uiSnapshot = new UISnapshot(final_root, true, sugiliteTextAnnotator);
-                    System.out.println("ADDING OVERLAYS");
-                    recordingOverlayManager.addAllOverlaysFromSnapshot(uiSnapshot);
-                }
-                else{
-                    System.out.println("NULL ROOT");
-                }
-            }
-            //EXPERIMENTAL: for recording overlay\
-            */
-
 
             //if the event is to be recorded, process it
             if (accessibilityEventSetToSend.contains(event.getEventType()) &&
@@ -449,7 +429,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
 
                 //TODO: ignore events if the recording overlay is on
 
-                //ignore automatically generated events
+                //ignore automatically generated events from the recording overlay
                 long currentTime = Calendar.getInstance().getTimeInMillis();
                 boolean toSkip = false;
                 while(sugiliteData.NodeToIgnoreRecordingBoundsInScreenTimeStampQueue.size() > 0){
@@ -743,14 +723,22 @@ public class SugiliteAccessibilityService extends AccessibilityService {
     public void onDestroy(){
         super.onDestroy();
         Toast.makeText(this, "Sugilite Accessibility Service Stopped", Toast.LENGTH_SHORT).show();
-        if(statusIconManager != null)
+        if(statusIconManager != null) {
             try {
                 statusIconManager.removeStatusIcon();
-            }
-            catch (Exception e){
+            } catch (Exception e) {
                 //failed to remove status icon
                 e.printStackTrace();
             }
+        }
+        if(verbalInstructionIconManager != null) {
+            try {
+                verbalInstructionIconManager.removeStatusIcon();
+            } catch (Exception e) {
+                //failed to remove status icon
+                e.printStackTrace();
+            }
+        }
 
     }
 
@@ -807,7 +795,8 @@ public class SugiliteAccessibilityService extends AccessibilityService {
             List<AccessibilityWindowInfo> windows = getWindows();
             UISnapshot uiSnapshot = new UISnapshot(windows, true, sugiliteTextAnnotator);
             List<AccessibilityNodeInfo> allNodes = AutomatorUtil.getAllNodesFromWindows(windows);
-            if(automatorThread == null) {
+            if(true) {
+            //if(automatorThread == null) {
                 automatorThread = new Thread(new Runnable() {
                     @Override
                     public void run() {

@@ -30,6 +30,8 @@ import edu.cmu.hcii.sugilite.model.block.SugiliteErrorHandlingForkBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
 import edu.cmu.hcii.sugilite.model.block.special_operation.SugiliteSpecialOperationBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
+import edu.cmu.hcii.sugilite.model.block.special_operation.SugiliteSubscriptSpecialOperationBlock;
+import edu.cmu.hcii.sugilite.model.operation.binary.SugiliteGetProcedureOperation;
 import edu.cmu.hcii.sugilite.model.operation.trinary.SugiliteLoadVariableOperation;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteOperation;
 import edu.cmu.hcii.sugilite.model.operation.unary.SugiliteReadoutConstOperation;
@@ -194,8 +196,27 @@ public class Automator {
                     }
                     return retVal;
 
-                } else
+                }
+
+                else if (operationBlock.getOperation() instanceof SugiliteGetProcedureOperation){
+                    //handle "get" query for procedures
+                    String subscriptName = ((SugiliteGetProcedureOperation) operationBlock.getOperation()).evaluate(sugiliteData);
+                    SugiliteSubscriptSpecialOperationBlock subscriptBlock = new SugiliteSubscriptSpecialOperationBlock(subscriptName);
+                    subscriptBlock.setParentBlock(operationBlock.getParentBlock());
+                    subscriptBlock.setPreviousBlock(operationBlock.getPreviousBlock());
+                    subscriptBlock.setNextBlock(operationBlock.getNextBlock());
+
+                    //add the new block to the instruction queue
+                    sugiliteData.removeInstructionQueueItem();
+                    sugiliteData.addInstruction(subscriptBlock);
+                    return true;
+
+
+                }
+
+                else {
                     return false;
+                }
             }
             else {
                 //the operation has a query, try to use the query to match a node
@@ -426,6 +447,22 @@ public class Automator {
                         }
                     }
                     return retVal;
+
+                }
+
+                else if (operationBlock.getOperation() instanceof SugiliteGetProcedureOperation){
+                    //handle "get" query for procedures
+                    String subscriptName = ((SugiliteGetProcedureOperation) operationBlock.getOperation()).evaluate(sugiliteData);
+                    SugiliteSubscriptSpecialOperationBlock subscriptBlock = new SugiliteSubscriptSpecialOperationBlock(subscriptName);
+                    subscriptBlock.setParentBlock(operationBlock.getParentBlock());
+                    subscriptBlock.setPreviousBlock(operationBlock.getPreviousBlock());
+                    subscriptBlock.setNextBlock(operationBlock.getNextBlock());
+
+                    //add the new block to the instruction queue
+                    sugiliteData.removeInstructionQueueItem();
+                    sugiliteData.addInstruction(subscriptBlock);
+                    return true;
+
 
                 }
 
@@ -674,10 +711,6 @@ public class Automator {
 
 
     private void addNextBlockToQueue(final SugiliteBlock block){
-        if(block == null) {
-            sugiliteData.runDone = true;
-            return;
-        }
         if(block instanceof SugiliteStartingBlock) {
             sugiliteData.addInstruction(block.getNextBlock());
         }
@@ -707,7 +740,7 @@ public class Automator {
                 @Override
                 public void run() {
                     AlertDialog dialog = builder.create();
-                    dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
+                    dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY);
                     dialog.show();
                 }
             });
@@ -716,6 +749,7 @@ public class Automator {
             sugiliteData.addInstruction(block.getNextBlock());
         }
         else if (block instanceof SugiliteConditionBlock) {
+            //process the condition block
             SugiliteBlock b = ((SugiliteConditionBlock) block).getNextBlockToRun(sugiliteData);
             sugiliteData.addInstruction(b);
 
@@ -727,7 +761,6 @@ public class Automator {
         else {
             throw new RuntimeException("Unsupported Block Type!");
         }
-        //TODO: add handling for conditionals
     }
 
 }

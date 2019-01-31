@@ -181,7 +181,7 @@ public class ChooseParsingDialog extends SugiliteDialogManager {
 
     public void show() {
         if(dialog.getWindow() != null) {
-            dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
+            dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY);
         }
         dialog.show();
         if(TO_SKIP){

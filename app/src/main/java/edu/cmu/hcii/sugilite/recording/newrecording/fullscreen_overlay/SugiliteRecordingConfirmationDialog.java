@@ -97,7 +97,7 @@ public class SugiliteRecordingConfirmationDialog extends SugiliteDialogManager {
                 @Override
                 public void onClick(View v) {
                     // speak button
-                    if (isListening() || tts.isSpeaking()) {
+                    if (isListening() || (tts != null && tts.isSpeaking())) {
                         stopASRandTTS();
                     } else {
                         initDialogManager();
@@ -141,7 +141,7 @@ public class SugiliteRecordingConfirmationDialog extends SugiliteDialogManager {
     }
 
     public void show() {
-        dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
+        dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY);
         dialog.show();
         refreshSpeakButtonStyle(speakButton);
 

@@ -348,7 +348,7 @@ public class SugiliteCommunicationController {
                                         editor.putBoolean("recording_in_process", true);
                                         editor.commit();
 
-                                        sugiliteData.initiateScript(scriptName + ".SugiliteScript");
+                                        sugiliteData.initiateScript(scriptName + ".SugiliteScript", null);
                                         sugiliteData.initiatedExternally = true;
 
                                         try {
@@ -371,7 +371,7 @@ public class SugiliteCommunicationController {
                                     }
                                 });
                         AlertDialog dialog = builder.create();
-                        dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
+                        dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY);
                         dialog.show();
                         Log.d(TAG, "Start Recording");
                     }
@@ -398,6 +398,14 @@ public class SugiliteCommunicationController {
                             .scriptToJson(sugiliteData.getScriptHead()), callbackString);
                 }
             }
+
+            if (sugiliteData.getScriptHead() != null && sugiliteData.endRecordingCallback != null){
+                //call the endRecordingCallback
+                Runnable r = sugiliteData.endRecordingCallback;
+                sugiliteData.endRecordingCallback = null;
+                r.run();
+            }
+
             if( shouldUseToast ) {
                 Toast.makeText(context, "end recording", Toast.LENGTH_SHORT).show();
             }
@@ -567,7 +575,7 @@ public class SugiliteCommunicationController {
                                     }
                                 });
                         AlertDialog dialog = builder1.create();
-                        dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
+                        dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY);
                         dialog.show();
                     }
                 });
@@ -589,7 +597,7 @@ public class SugiliteCommunicationController {
                         // do nothing, likely this exception is caused by non-rooted device
                     }
                 }
-                sugiliteData.runScript(script, null, SugiliteData.EXECUTION_STATE);
+                sugiliteData.runScript(script, null, null, SugiliteData.EXECUTION_STATE);
                 try {
                     Thread.sleep( Const.SCRIPT_DELAY);
                 } catch (Exception e) {
@@ -628,7 +636,7 @@ public class SugiliteCommunicationController {
                                 }
                             });
                     AlertDialog dialog = builder1.create();
-                    dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
+                    dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY);
                     dialog.show();
                 }
             });

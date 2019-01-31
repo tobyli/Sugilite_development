@@ -67,7 +67,7 @@ public class SugiliteEventBroadcastingActivity extends AppCompatActivity {
                 .setTitle("Current Registered Listener")
                 .setMessage(sugiliteData.registeredBroadcastingListener.toString())
                 .create();
-        dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
+        dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY);
         dialog.show();
     }
 

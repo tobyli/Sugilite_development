@@ -52,7 +52,7 @@ public class PumiceDialogUIHelper {
         //set the gravity of text based on the sender
         if (sender == PumiceDialogManager.Sender.AGENT) {
             imageView.setPadding(convertDpToPixel(0), convertDpToPixel(0), convertDpToPixel(8), convertDpToPixel(0));
-            imageView.setImageDrawable(context.getResources().getDrawable(R.mipmap.user_avatar));//SHOULD BE R.mipmap.bot_avatar
+            imageView.setImageDrawable(context.getResources().getDrawable(R.mipmap.bot_avatar));//SHOULD BE R.mipmap.bot_avatar
             relativeLayout.addView(imageView, 0);
             relativeLayout.addView(contentView, 1);
             imageView.setId(View.generateViewId());

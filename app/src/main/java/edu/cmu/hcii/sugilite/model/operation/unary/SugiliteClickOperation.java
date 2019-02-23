@@ -44,4 +44,9 @@ public class SugiliteClickOperation extends SugiliteUnaryOperation<SerializableO
     public String toString() {
         return "(" + "call click " + addQuoteToTokenIfNeeded(getParameter0().toString()) + ")";
     }
+
+    @Override
+    public String getPumiceUserReadableDecription() {
+        return String.format("click on %s", targetUIElementDataDescriptionQuery);
+    }
 }

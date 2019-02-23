@@ -39,7 +39,7 @@ import java.util.TimerTask;
 
 import edu.cmu.hcii.sugilite.Const;
 import edu.cmu.hcii.sugilite.R;
-import edu.cmu.hcii.sugilite.SugiliteAccessibilityService;
+import edu.cmu.hcii.sugilite.accessibility_service.SugiliteAccessibilityService;
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.ontology.SerializableUISnapshot;
 import edu.cmu.hcii.sugilite.ontology.UISnapshot;
@@ -50,6 +50,9 @@ import edu.cmu.hcii.sugilite.verbal_instruction_demo.speech.SugiliteVoiceInterfa
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.speech.SugiliteVoiceRecognitionListener;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.study.SugiliteStudyHandler;
 
+import static edu.cmu.hcii.sugilite.Const.INTERVAL_REFRESH_UI_SNAPSHOT;
+import static edu.cmu.hcii.sugilite.Const.OVERLAY_TYPE;
+
 
 /**
  * @author toby
@@ -57,6 +60,8 @@ import edu.cmu.hcii.sugilite.verbal_instruction_demo.study.SugiliteStudyHandler;
  * @time 3:23 PM
  */
 public class VerbalInstructionIconManager implements SugiliteVoiceInterface {
+    private static VerbalInstructionIconManager instance;
+
     private Context context;
     private WindowManager windowManager;
     private LayoutInflater layoutInflater;
@@ -162,7 +167,7 @@ public class VerbalInstructionIconManager implements SugiliteVoiceInterface {
             }
         });
         Dialog dialog = builder.create();
-        dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY);
+        dialog.getWindow().setType(OVERLAY_TYPE);
         dialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_box);
         dialog.show();
     }
@@ -177,7 +182,7 @@ public class VerbalInstructionIconManager implements SugiliteVoiceInterface {
         iconParams = new WindowManager.LayoutParams(
                 WindowManager.LayoutParams.WRAP_CONTENT,
                 WindowManager.LayoutParams.WRAP_CONTENT,
-                WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
+                OVERLAY_TYPE,
                 WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
                 PixelFormat.TRANSLUCENT);
 
@@ -219,7 +224,7 @@ public class VerbalInstructionIconManager implements SugiliteVoiceInterface {
                     }
                 });
             }
-        }, 0, 1000);
+        }, 0, INTERVAL_REFRESH_UI_SNAPSHOT);
         showingIcon = true;
     }
 
@@ -227,7 +232,9 @@ public class VerbalInstructionIconManager implements SugiliteVoiceInterface {
         rotation = (rotation + 20) % 360;
 
         //rotate the duck
-        statusIcon.setRotation(rotation);
+        synchronized (this) {
+            statusIcon.setRotation(rotation);
+        }
     }
 
     /**
@@ -256,16 +263,21 @@ public class VerbalInstructionIconManager implements SugiliteVoiceInterface {
         return showingIcon;
     }
 
-    public synchronized UISnapshot getLatestUISnapshot(){
-        return latestUISnapshot;
+    public UISnapshot getLatestUISnapshot(){
+        synchronized (this) {
+            return latestUISnapshot;
+        }
     }
 
     public void registerFollowUpQuestionDialog(FollowUpQuestionDialog followUpQuestionDialog) {
         this.followUpQuestionDialog = followUpQuestionDialog;
     }
 
-    public synchronized void setLatestUISnapshot(UISnapshot snapshot){
-        this.latestUISnapshot = snapshot;
+    public void setLatestUISnapshot(UISnapshot snapshot){
+        synchronized (this) {
+            this.latestUISnapshot = snapshot;
+        }
+
         //also update the uisnapshot for the testing full screen overlay
         recordingOverlayManager.setUiSnapshot(snapshot);
     }
@@ -392,7 +404,7 @@ public class VerbalInstructionIconManager implements SugiliteVoiceInterface {
 
 
                     dialog = textDialogBuilder.create();
-                    dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY);
+                    dialog.getWindow().setType(OVERLAY_TYPE);
                     dialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_box);
                     dialog.show();
                     return true;

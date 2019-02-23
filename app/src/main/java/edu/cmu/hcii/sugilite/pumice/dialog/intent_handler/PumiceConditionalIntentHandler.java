@@ -6,7 +6,10 @@ import android.content.Context;
 import android.content.Intent;
 import android.widget.Toast;
 
+import com.google.gson.ExclusionStrategy;
+import com.google.gson.FieldAttributes;
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 import java.util.Calendar;
 import java.util.concurrent.ExecutorService;
@@ -14,6 +17,7 @@ import java.util.concurrent.Executors;
 
 import edu.cmu.hcii.sugilite.pumice.communication.PumiceInstructionPacket;
 import edu.cmu.hcii.sugilite.pumice.communication.PumiceSemanticParsingResultPacket;
+import edu.cmu.hcii.sugilite.pumice.communication.SkipPumiceJSONSerialization;
 import edu.cmu.hcii.sugilite.pumice.dialog.PumiceDialogManager;
 import edu.cmu.hcii.sugilite.ui.ScriptDetailActivity;
 import edu.cmu.hcii.sugilite.model.block.SugiliteConditionBlock;
@@ -26,11 +30,11 @@ import static edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.PumiceUtterance
 import static edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.PumiceUtteranceIntentHandler.PumiceIntent.FIX_SCOPE;
 
 public class PumiceConditionalIntentHandler implements PumiceUtteranceIntentHandler, SugiliteVerbalInstructionHTTPQueryInterface {
-    private transient ScriptDetailActivity sourceActivity;
+    private ScriptDetailActivity sourceActivity;
     private PumiceDialogManager dialogManager;
-    private transient Context context;
+    private Context context;
     private ExecutorService es;
-    Calendar calendar;
+    private Calendar calendar;
     private PumiceIntent lastIntent;
     private PumiceDialogManager.PumiceUtterance lastUtterance;
     private String s;
@@ -389,9 +393,24 @@ public class PumiceConditionalIntentHandler implements PumiceUtteranceIntentHand
     }*/
 
     @Override
-    public void resultReceived(int responseCode, String result) {
+    public void resultReceived(int responseCode, String result, String originalQuery) {
         //TODO: handle server response from the semantic parsing server
-        Gson gson = new Gson();
+        Gson gson = new GsonBuilder()
+                .addSerializationExclusionStrategy(new ExclusionStrategy()
+                {
+                    @Override
+                    public boolean shouldSkipField(FieldAttributes f)
+                    {
+                        return f.getAnnotation(SkipPumiceJSONSerialization.class) != null;
+                    }
+
+                    @Override
+                    public boolean shouldSkipClass(Class<?> clazz)
+                    {
+                        return false;
+                    }
+                })
+                .create();
         try {
             System.out.println("HERE");
             PumiceSemanticParsingResultPacket resultPacket = gson.fromJson(result, PumiceSemanticParsingResultPacket.class);
@@ -457,6 +476,11 @@ public class PumiceConditionalIntentHandler implements PumiceUtteranceIntentHand
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    @Override
+    public void sendPromptForTheIntentHandler() {
+        //TODO: implement
     }
 
     @Override

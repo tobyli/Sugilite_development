@@ -24,6 +24,8 @@ import edu.cmu.hcii.sugilite.Const;
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.automation.AutomatorUtil;
 
+import static edu.cmu.hcii.sugilite.Const.OVERLAY_TYPE;
+
 public class SugiliteEventBroadcastingActivity extends AppCompatActivity {
     SharedPreferences sharedPreferences;
     static SugiliteData sugiliteData;
@@ -67,7 +69,7 @@ public class SugiliteEventBroadcastingActivity extends AppCompatActivity {
                 .setTitle("Current Registered Listener")
                 .setMessage(sugiliteData.registeredBroadcastingListener.toString())
                 .create();
-        dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY);
+        dialog.getWindow().setType(OVERLAY_TYPE);
         dialog.show();
     }
 

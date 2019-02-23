@@ -1,6 +1,7 @@
 package edu.cmu.hcii.sugilite.pumice.dialog;
 
 import android.app.Activity;
+import android.content.Context;
 
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
@@ -8,6 +9,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
+import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
+import edu.cmu.hcii.sugilite.dao.SugiliteScriptFileDao;
 import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteConditionBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
@@ -21,8 +24,11 @@ import edu.cmu.hcii.sugilite.model.operation.binary.SugiliteGetValueOperation;
 import edu.cmu.hcii.sugilite.model.operation.unary.SugiliteResolveBoolExpOperation;
 import edu.cmu.hcii.sugilite.model.operation.unary.SugiliteResolveProcedureOperation;
 import edu.cmu.hcii.sugilite.model.operation.unary.SugiliteResolveValueQueryOperation;
+import edu.cmu.hcii.sugilite.model.value.SugiliteSimpleConstant;
+import edu.cmu.hcii.sugilite.model.value.SugiliteValue;
 import edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.PumiceScriptExecutingConfirmationIntentHandler;
 import edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.PumiceUserExplainBoolExpIntentHandler;
+import edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.PumiceUserExplainElseStatementIntentHandler;
 import edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.PumiceUserExplainProcedureIntentHandler;
 import edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.PumiceUserExplainValueIntentHandler;
 import edu.cmu.hcii.sugilite.pumice.kb.PumiceBooleanExpKnowledge;
@@ -44,6 +50,7 @@ public class PumiceInitInstructionParsingHandler {
     private SugiliteScriptParser sugiliteScriptParser;
     private ExecutorService es;
     private PumiceDialogManager pumiceDialogManager;
+    private SugiliteScriptDao sugiliteScriptDao;
 
     private Activity context;
 
@@ -51,6 +58,7 @@ public class PumiceInitInstructionParsingHandler {
         this.context = context;
         this.sugiliteScriptParser = new SugiliteScriptParser();
         this.pumiceDialogManager = pumiceDialogManager;
+        this.sugiliteScriptDao = new SugiliteScriptFileDao(context, pumiceDialogManager.getSugiliteData());
         this.es = Executors.newCachedThreadPool();
     }
 
@@ -83,17 +91,89 @@ public class PumiceInitInstructionParsingHandler {
         //done
         pumiceDialogManager.sendAgentMessage("I've finished resolving all concepts in the script", true, false);
         printScript(script);
+        storeScript(script, userUtterance);
+        pumiceDialogManager.savePumiceKnowledgeToDao();
+
 
         //ask if want to execute
-        pumiceDialogManager.sendAgentMessage("I've understood your instruction: " +  "\"" + userUtterance + "\"." + " Do you want me to execute it now?", true, true);
-        pumiceDialogManager.updateUtteranceIntentHandlerInANewState(new PumiceScriptExecutingConfirmationIntentHandler(context, script));
+        PumiceScriptExecutingConfirmationIntentHandler pumiceScriptExecutingConfirmationIntentHandler = new PumiceScriptExecutingConfirmationIntentHandler(pumiceDialogManager, context, script, userUtterance);
+        pumiceDialogManager.updateUtteranceIntentHandlerInANewState(pumiceScriptExecutingConfirmationIntentHandler);
+        pumiceScriptExecutingConfirmationIntentHandler.sendPromptForTheIntentHandler();
 
+    }
+    private SugiliteOperation resolveSugiliteOperation (SugiliteOperation operation) throws ExecutionException, InterruptedException {
+        if (operation instanceof SugiliteGetProcedureOperation) {
+            //nothing to resolve for constant
+            handleExistingGetFunctionInScript((SugiliteGetProcedureOperation) operation);
+            return operation;
+        }
+
+        else if (operation instanceof SugiliteResolveProcedureOperation) {
+
+            //if the booleanExpression uses a resolve_valueQuery call for arg0
+            ResolveOperationTask task = new ResolveOperationTask(context, pumiceDialogManager, (SugiliteResolveProcedureOperation)operation);
+            Future<SugiliteOperation> result = es.submit(task);
+            SugiliteOperation newOperation = result.get();
+
+            //replace
+            if (newOperation instanceof SugiliteGetProcedureOperation){
+                return newOperation;
+            } else {
+                throw new RuntimeException("wrong type of resolved operation for SugiliteGetValueOperation");
+            }
+        }
+
+        else {
+            throw new RuntimeException("wrong type of SugiliteOperation for resolving");
+        }
 
     }
 
-    private void resolveBoolExpKnowledge (SugiliteBooleanExpressionNew booleanExpressionNew) throws ExecutionException, InterruptedException{
+    private SugiliteValue resolveSugiliteValue (SugiliteValue value) throws ExecutionException, InterruptedException{
+        if (value instanceof SugiliteSimpleConstant) {
+            //nothing to resolve for constant
+            return value;
+        }
+
+        else if (value instanceof SugiliteGetOperation) {
+
+            //nothing to resolve for GetValueOperation
+            handleExistingGetFunctionInScript((SugiliteGetOperation)value);
+            return value;
+        }
+
+        else if (value instanceof SugiliteResolveValueQueryOperation) {
+
+            //if the booleanExpression uses a resolve_valueQuery call for arg0
+            ResolveOperationTask task = new ResolveOperationTask(context, pumiceDialogManager, (SugiliteResolveValueQueryOperation)value);
+            Future<SugiliteOperation> result = es.submit(task);
+            SugiliteOperation newOperation = result.get();
+
+            //replace
+            if (newOperation instanceof SugiliteGetValueOperation){
+                return (SugiliteGetValueOperation)newOperation;
+            } else {
+                throw new RuntimeException("wrong type of resolved operation for SugiliteGetValueOperation");
+            }
+        }
+
+        else {
+            throw new RuntimeException("wrong type of SugiliteValue for resolving");
+        }
+
+    }
+
+
+
+    /**
+     * resolve all the "resolve" operations inside a SugiliteBooleanExpressionNew
+     * @param booleanExpressionNew
+     * @throws ExecutionException
+     * @throws InterruptedException
+     */
+    private SugiliteBooleanExpressionNew resolveBoolExpKnowledge (SugiliteBooleanExpressionNew booleanExpressionNew) throws ExecutionException, InterruptedException{
         if(booleanExpressionNew.getBoolOperation() != null){
-            //this boolean expression is either a SugiliteResolveBoolExpOperation or a SugiliteGetOperation
+            //this boolean expression is either a SugiliteResolveBoolExpOperation or a SugiliteGetBoolExpOperation
             if(booleanExpressionNew.getBoolOperation() instanceof SugiliteResolveBoolExpOperation) {
                 //if the booleanExpression uses a resolve_boolExp call
                 ResolveOperationTask task = new ResolveOperationTask(context, pumiceDialogManager, (SugiliteResolveBoolExpOperation) booleanExpressionNew.getBoolOperation());
@@ -139,7 +219,10 @@ public class PumiceInitInstructionParsingHandler {
                 handleExistingGetFunctionInScript((SugiliteGetOperation)booleanExpressionNew.getArg1());
             }
         }
+        return booleanExpressionNew;
     }
+
+
 
 
     /**
@@ -159,11 +242,19 @@ public class PumiceInitInstructionParsingHandler {
             resolveBoolExpKnowledge(booleanExpressionNew);
 
             resolveBlock(((SugiliteConditionBlock) block).getThenBlock());
-            resolveBlock(((SugiliteConditionBlock) block).getElseBlock());
+            if(((SugiliteConditionBlock) block).getElseBlock() != null) {
+                resolveBlock(((SugiliteConditionBlock) block).getElseBlock());
+            } else {
+                //ask if an else block is needed
+                GetElseBlockTask task = new GetElseBlockTask(context, pumiceDialogManager, (SugiliteConditionBlock) block);
+                Future<SugiliteBlock> result = es.submit(task);
+                SugiliteBlock resultBlock = result.get();
+            }
             resolveBlock(block.getNextBlock());
         } else if (block instanceof SugiliteOperationBlock){
-            if (((SugiliteOperationBlock) block).getOperation() instanceof SugiliteResolveProcedureOperation){
+            // resolve for operation blocks
 
+            if (((SugiliteOperationBlock) block).getOperation() instanceof SugiliteResolveProcedureOperation){
                 //the task used for resolving a SugiliteOperationBlock on a separate thread
                 ResolveOperationTask task = new ResolveOperationTask(context, pumiceDialogManager, ((SugiliteOperationBlock) block).getOperation());
                 Future<SugiliteOperation> result = es.submit(task);
@@ -182,6 +273,47 @@ public class PumiceInitInstructionParsingHandler {
             resolveBlock(block.getNextBlock());
         }
     }
+    private class GetElseBlockTask implements Callable<SugiliteBlock> {
+        private SugiliteConditionBlock originalConditionBlock;
+        private Activity context;
+        private PumiceDialogManager dialogManager;
+        public GetElseBlockTask (Activity context, PumiceDialogManager dialogManager, SugiliteConditionBlock originalConditionBlock) {
+            this.originalConditionBlock = originalConditionBlock;
+            this.context = context;
+            this.dialogManager = dialogManager;
+        }
+        @Override
+        public SugiliteBlock call() throws Exception {
+            SugiliteBooleanExpressionNew booleanExpressionNew = originalConditionBlock.getSugiliteBooleanExpressionNew();
+            String boolExpReadableName = booleanExpressionNew.getReadableDescription();
+
+            //TODO: update with a new intent handler -> this handler should notify() resolveElseStatementLock
+            PumiceUserExplainElseStatementIntentHandler pumiceUserExplainElseStatementIntentHandler = new PumiceUserExplainElseStatementIntentHandler(pumiceDialogManager, context, originalConditionBlock, boolExpReadableName);
+            pumiceDialogManager.updateUtteranceIntentHandlerInANewState(pumiceUserExplainElseStatementIntentHandler);
+            pumiceUserExplainElseStatementIntentHandler.sendPromptForTheIntentHandler();
+
+            synchronized (originalConditionBlock) {
+                try {
+                    System.out.println("waiting for the user to explain the procedure");
+                    originalConditionBlock.wait();
+                } catch (InterruptedException e){
+                    e.printStackTrace();
+                }
+            }
+            if (originalConditionBlock.getElseBlock() != null) {
+                System.out.println("Worker thread got server parsing result for else statement parsing " + originalConditionBlock.getElseBlock());
+            } else {
+                System.out.println("Worker thread got server parsing result for else statement parsing " + "NULL else block");
+            }
+
+            //get the resolved procedure knowledge back
+
+            pumiceDialogManager.sendAgentMessage("OK, I know what to do when " + boolExpReadableName.replace(" is true", "") + " is not true." , true, false);
+            //replace the orignal "resolve" call with a new "get" call
+            return originalConditionBlock;
+        }
+    }
+
 
     private class ResolveOperationTask implements Callable<SugiliteOperation> {
         /**
@@ -200,14 +332,14 @@ public class PumiceInitInstructionParsingHandler {
         public SugiliteOperation call() throws Exception {
             if (operation instanceof SugiliteResolveProcedureOperation){
                 String procedureUtterance = ((SugiliteResolveProcedureOperation) operation).getParameter0();
-                pumiceDialogManager.sendAgentMessage("How do I " + procedureUtterance + "?" + " You can explain, or say \"demonstrate\" to demonstrate", true, true);
-                //TODO: resolve -- user response - actually learn the procedure
 
                 //locks used to notify() when a new intent has been handled by handlers that return a new knowledge object as the result
                 PumiceProceduralKnowledge resolveProcedureLock = new PumiceProceduralKnowledge();
 
                 //update the dialog manager with a new intent handler
-                pumiceDialogManager.updateUtteranceIntentHandlerInANewState(new PumiceUserExplainProcedureIntentHandler(pumiceDialogManager, context, resolveProcedureLock, procedureUtterance));
+                PumiceUserExplainProcedureIntentHandler pumiceUserExplainProcedureIntentHandler = new PumiceUserExplainProcedureIntentHandler(pumiceDialogManager, context, resolveProcedureLock, procedureUtterance);
+                pumiceDialogManager.updateUtteranceIntentHandlerInANewState(pumiceUserExplainProcedureIntentHandler);
+                pumiceUserExplainProcedureIntentHandler.sendPromptForTheIntentHandler();
 
                 //wait for the user to explain the bool exp
                 synchronized (resolveProcedureLock) {
@@ -225,7 +357,8 @@ public class PumiceInitInstructionParsingHandler {
                 PumiceProceduralKnowledge proceduralKnowledge = resolveProcedureLock;
 
                 pumiceDialogManager.getPumiceKnowledgeManager().addPumiceProceduralKnowledge(proceduralKnowledge);
-                pumiceDialogManager.sendAgentMessage("OK, I learned " + proceduralKnowledge.getProcedureDescription().toLowerCase() + ".", true, false);
+                pumiceDialogManager.savePumiceKnowledgeToDao();
+                pumiceDialogManager.sendAgentMessage("OK, I learned " + proceduralKnowledge.getProcedureDescription(pumiceDialogManager.getPumiceKnowledgeManager()).toLowerCase() + ".", true, false);
 
                 //replace the orignal "resolve" call with a new "get" call
                 return new SugiliteGetProcedureOperation(procedureUtterance);
@@ -233,14 +366,14 @@ public class PumiceInitInstructionParsingHandler {
 
             else if (operation instanceof SugiliteResolveValueQueryOperation){
                 String valueUtterance = ((SugiliteResolveValueQueryOperation) operation).getParameter0();
-                pumiceDialogManager.sendAgentMessage("How do I find out the value for " + valueUtterance + "?" + " You can explain, or say \"demonstrate\" to demonstrate", true, true);
 
                 //locks used to notify() when a new intent has been handled by handlers that return a new knowledge object as the result
                 PumiceValueQueryKnowledge resolveValueLock = new PumiceValueQueryKnowledge();
 
                 //update the dialog manager with a new intent handler
-                pumiceDialogManager.updateUtteranceIntentHandlerInANewState(new PumiceUserExplainValueIntentHandler(pumiceDialogManager, context, resolveValueLock, valueUtterance));
-
+                PumiceUserExplainValueIntentHandler pumiceUserExplainValueIntentHandler = new PumiceUserExplainValueIntentHandler(pumiceDialogManager, context, resolveValueLock, valueUtterance);
+                pumiceDialogManager.updateUtteranceIntentHandlerInANewState(pumiceUserExplainValueIntentHandler);
+                pumiceUserExplainValueIntentHandler.sendPromptForTheIntentHandler();
 
                 //wait for the user to explain the bool exp
                 synchronized (resolveValueLock) {
@@ -258,19 +391,24 @@ public class PumiceInitInstructionParsingHandler {
 
                 //PumiceValueQueryKnowledge valueQueryKnowledge = new PumiceValueQueryKnowledge(valueUtterance, PumiceValueQueryKnowledge.ValueType.STRING);
                 pumiceDialogManager.getPumiceKnowledgeManager().addPumiceValueQueryKnowledge(valueQueryKnowledge);
+                pumiceDialogManager.savePumiceKnowledgeToDao();
                 pumiceDialogManager.sendAgentMessage("OK, I learned how to find out the value for " + valueUtterance + ".", true, false);
+
                 return new SugiliteGetValueOperation<Number>(valueUtterance);
             }
 
             else if (operation instanceof SugiliteResolveBoolExpOperation){
                 String boolUtterance = ((SugiliteResolveBoolExpOperation) operation).getParameter0();
-                pumiceDialogManager.sendAgentMessage("How do I tell whether " + boolUtterance + "?", true, true);
                 //TODO: resolve -- user response - actually learn the boolean exp
 
                 //locks used to notify() when a new intent has been handled by handlers that return a new knowledge object as the result
                 PumiceBooleanExpKnowledge resolveBoolExpLock = new PumiceBooleanExpKnowledge();
+
+
                 //update the dialog manager with a new intent handler
-                pumiceDialogManager.updateUtteranceIntentHandlerInANewState(new PumiceUserExplainBoolExpIntentHandler(pumiceDialogManager, context, resolveBoolExpLock, boolUtterance));
+                PumiceUserExplainBoolExpIntentHandler pumiceUserExplainBoolExpIntentHandler = new PumiceUserExplainBoolExpIntentHandler(pumiceDialogManager, context, resolveBoolExpLock, boolUtterance);
+                pumiceDialogManager.updateUtteranceIntentHandlerInANewState(pumiceUserExplainBoolExpIntentHandler);
+                pumiceUserExplainBoolExpIntentHandler.sendPromptForTheIntentHandler();
 
                 //wait for the user to explain the bool exp
                 synchronized (resolveBoolExpLock) {
@@ -289,7 +427,9 @@ public class PumiceInitInstructionParsingHandler {
                 //add the learned knowledge to the knowledge manager
                 //replace the original "resolve" statement with a "get" statement to retrieve the boolean exp from the knowledge manager
                 pumiceDialogManager.getPumiceKnowledgeManager().addPumiceBooleanExpKnowledge(booleanExpKnowledge);
+                pumiceDialogManager.savePumiceKnowledgeToDao();
                 pumiceDialogManager.sendAgentMessage("OK, I learned how to tell whether " + boolUtterance + ".", true, false);
+
                 return new SugiliteGetBoolExpOperation(boolUtterance);
             }
 
@@ -308,7 +448,7 @@ public class PumiceInitInstructionParsingHandler {
             SugiliteBooleanExpressionNew booleanExpression = sugiliteScriptParser.parseBooleanExpressionFromString(serverFormula);
             //resolve the unknown concepts in the boolean expression
             try {
-                resolveBoolExpKnowledge(booleanExpression);
+                booleanExpression = resolveBoolExpKnowledge(booleanExpression);
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -318,11 +458,83 @@ public class PumiceInitInstructionParsingHandler {
         }
     }
 
+    public PumiceProceduralKnowledge parseFromProcedureInstruction (String serverFormula, String userUtterance, String parentKnowledgeName){
+        System.out.println("RECEIVED value instruction formula: " + serverFormula);
+
+        if(serverFormula.length() == 0) {
+            throw new RuntimeException("empty server result!");
+        }
+
+        else {
+            SugiliteBlock sugiliteBlock = sugiliteScriptParser.parseASingleBlockFromString(serverFormula);
+            SugiliteOperation sugiliteOperation = null;
+            if (sugiliteBlock instanceof SugiliteOperationBlock){
+                sugiliteOperation = ((SugiliteOperationBlock) sugiliteBlock).getOperation();
+            }
+
+            //resolve the unknown concepts in the value instruction
+            if (sugiliteOperation != null && sugiliteOperation instanceof SugiliteGetProcedureOperation || sugiliteOperation instanceof SugiliteResolveProcedureOperation) {
+                try {
+                    sugiliteOperation = resolveSugiliteOperation(sugiliteOperation);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                if (sugiliteOperation instanceof SugiliteGetProcedureOperation) {
+                    String targetProcedureName = ((SugiliteGetProcedureOperation) sugiliteOperation).getName();
+                    PumiceProceduralKnowledge proceduralKnowledge = new PumiceProceduralKnowledge(parentKnowledgeName, userUtterance, targetProcedureName, null);
+                    return proceduralKnowledge;
+                } else {
+                    throw new RuntimeException("wrong type of SugiliteValue -- expecting a GetProcedureOperation");
+                }
+
+            } else {
+                throw new RuntimeException("wrong type of SugiliteValue -- expecting a GetProcedureOperation or a ResolveProcedureOperation");
+            }
+        }
+    }
+
+
+    public PumiceValueQueryKnowledge parseFromValueInstruction(String serverFormula, String userUtterance, String parentKnowledgeName){
+        System.out.println("RECEIVED value instruction formula: " + serverFormula);
+
+        if(serverFormula.length() == 0) {
+            throw new RuntimeException("empty server result!");
+        }
+
+        else {
+            SugiliteValue sugiliteValue = sugiliteScriptParser.parseSugiliteValueFromString(serverFormula);
+            if (sugiliteValue instanceof SugiliteSimpleConstant || sugiliteValue instanceof SugiliteGetValueOperation || sugiliteValue instanceof SugiliteResolveValueQueryOperation) {
+                //resolve the unknown concepts in the value instruction
+                try {
+                    sugiliteValue = resolveSugiliteValue(sugiliteValue);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+
+                PumiceValueQueryKnowledge valueQueryKnowledge = new PumiceValueQueryKnowledge(parentKnowledgeName, userUtterance, PumiceValueQueryKnowledge.ValueType.STRING, sugiliteValue);
+                return valueQueryKnowledge;
+            } else {
+                throw new RuntimeException("wrong type of SugiliteValue -- expecting a constant, a GetValueOperation or a ResolveValueOperation");
+            }
+        }
+    }
+
     private void printScript(SugiliteStartingBlock currentScript){
         pumiceDialogManager.sendAgentMessage("Below is the current script after concept resolution: ", true, false);
         pumiceDialogManager.sendAgentMessage(sugiliteScriptParser.scriptToString(currentScript), false, false);
         pumiceDialogManager.sendAgentMessage("Below is the updated list of existing knowledge...", true, false);
         pumiceDialogManager.sendAgentMessage(pumiceDialogManager.getPumiceKnowledgeManager().getKnowledgeInString(), false, false);
+    }
+
+    private void storeScript(SugiliteStartingBlock currentScript, String scriptName){
+        currentScript.setScriptName(scriptName + ".SugiliteScript");
+        try {
+            sugiliteScriptDao.save(currentScript);
+            sugiliteScriptDao.commitSave();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
     }
 
     /**

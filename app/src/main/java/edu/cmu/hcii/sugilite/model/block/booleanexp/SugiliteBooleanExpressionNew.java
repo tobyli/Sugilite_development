@@ -11,6 +11,8 @@ import edu.cmu.hcii.sugilite.model.value.SugiliteSimpleConstant;
 import edu.cmu.hcii.sugilite.model.value.SugiliteValue;
 import edu.cmu.hcii.sugilite.ontology.helper.annotator.SugiliteTextAnnotator;
 import edu.cmu.hcii.sugilite.source_parsing.SugiliteScriptExpression;
+
+import java.io.Serializable;
 import java.util.List;
 
 /**
@@ -18,10 +20,11 @@ import java.util.List;
  * @date 11/14/18
  * @time 1:02 AM
  */
-public class SugiliteBooleanExpressionNew implements SugiliteValue<Boolean> {
+public class SugiliteBooleanExpressionNew implements SugiliteValue<Boolean>, Serializable {
     public enum BoolOperator {NOT, EQUAL, GREATER_THAN, LESS_THAN, GREATER_THAN_OR_EQUAL_TO, LESS_THAN_OR_EQUAL_TO, TEXT_CONTAINS, AND, OR};
     private String booleanExpression;
-    private SugiliteData sugiliteData;
+
+    private transient SugiliteData sugiliteData;
 
     private BoolOperator boolOperator;
     private SugiliteValue arg0;
@@ -169,7 +172,7 @@ public class SugiliteBooleanExpressionNew implements SugiliteValue<Boolean> {
             if(scriptExpression.getConstantValue() instanceof SugiliteSimpleConstant){
                 return (SugiliteSimpleConstant)scriptExpression.getConstantValue();
             } else {
-                return new SugiliteSimpleConstant(scriptExpression.getConstantValue());
+                throw new RuntimeException("unknown type of constant!");
             }
         } else if (scriptExpression.getOperationName() != null){
             if (getBoolOperatorFromString(scriptExpression.getOperationName()) != null){
@@ -256,7 +259,7 @@ public class SugiliteBooleanExpressionNew implements SugiliteValue<Boolean> {
             return boolOperation.getReadableDescription();
         } else {
             //TODO: implement
-            return "placeholder";
+            return arg0.getReadableDescription() + " is " + boolOperator.name().replace("_", " ").toLowerCase() + " " + arg1.getReadableDescription();
         }
     }
 

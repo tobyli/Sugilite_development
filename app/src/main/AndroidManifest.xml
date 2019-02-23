@@ -38,7 +38,7 @@
         </activity>
 
         <service
-            android:name=".SugiliteAccessibilityService"
+            android:name=".accessibility_service.SugiliteAccessibilityService"
             android:label="@string/accessibility_service_name"
             android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE">
             <meta-data
@@ -114,7 +114,10 @@
 
         <activity android:name=".ui.ScriptSourceActivity" />
         <activity android:name=".pumice.ui.PumiceMainActivity" />
-        <activity android:name=".pumice.ui.PumiceDialogActivity"></activity>
+        <activity
+            android:name=".pumice.ui.PumiceDialogActivity"
+            android:windowSoftInputMode="stateHidden">
+        </activity>
     </application>
 
 </manifest>

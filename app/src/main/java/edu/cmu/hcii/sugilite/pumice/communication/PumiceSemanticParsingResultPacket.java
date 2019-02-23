@@ -1,5 +1,6 @@
 package edu.cmu.hcii.sugilite.pumice.communication;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -8,7 +9,7 @@ import java.util.List;
  * @date 11/13/18
  * @time 1:32 PM
  */
-public class PumiceSemanticParsingResultPacket {
+public class PumiceSemanticParsingResultPacket implements Serializable {
     public class QueryGroundingPair {
         public int id;
         public String formula;

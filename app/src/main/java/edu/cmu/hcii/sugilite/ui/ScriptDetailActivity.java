@@ -7,7 +7,6 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.media.Image;
 import android.net.Uri;
 import android.preference.PreferenceManager;
 import android.speech.tts.TextToSpeech;
@@ -23,33 +22,26 @@ import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 
-import android.view.WindowManager;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import android.graphics.drawable.ColorDrawable;
 import android.graphics.Color;
-import android.graphics.PorterDuff.Mode;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 
 import edu.cmu.hcii.sugilite.Const;
 import edu.cmu.hcii.sugilite.R;
-import edu.cmu.hcii.sugilite.SugiliteAccessibilityService;
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.automation.AutomatorUtil;
 import edu.cmu.hcii.sugilite.automation.ServiceStatusManager;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptFileDao;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptSQLDao;
-import edu.cmu.hcii.sugilite.model.operation.SugiliteOperation;
 import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
 import edu.cmu.hcii.sugilite.model.block.booleanexp.SugiliteBooleanExpression;
 import edu.cmu.hcii.sugilite.model.block.booleanexp.SugiliteBooleanExpressionNew;
@@ -59,23 +51,18 @@ import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
 import edu.cmu.hcii.sugilite.model.block.special_operation.SugiliteSpecialOperationBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.pumice.dialog.demonstration.PumiceDemonstrationUtil;
-import edu.cmu.hcii.sugilite.ontology.SugiliteRelation;
 import edu.cmu.hcii.sugilite.pumice.dialog.PumiceDialogManager;
-import edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.PumiceConditionalIntentHandler;
 import edu.cmu.hcii.sugilite.recording.ReadableDescriptionGenerator;
 import edu.cmu.hcii.sugilite.recording.RecordingPopUpDialog;
 import edu.cmu.hcii.sugilite.study.ScriptUsageLogManager;
 import edu.cmu.hcii.sugilite.ui.dialog.VariableSetValueDialog;
 import edu.cmu.hcii.sugilite.ui.main.SugiliteMainActivity;
-import edu.cmu.hcii.sugilite.source_parsing.SugiliteScriptParser;
-import edu.cmu.hcii.sugilite.verbal_instruction_demo.server_comm.VerbalInstructionServerQuery;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.speech.SugiliteVoiceInterface;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.speech.SugiliteVoiceRecognitionListener;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.server_comm.SugiliteVerbalInstructionHTTPQueryManager;
 import edu.cmu.hcii.sugilite.ontology.SerializableUISnapshot;
-import edu.cmu.hcii.sugilite.ontology.UISnapshot;
 
-import static edu.cmu.hcii.sugilite.Const.PACKAGE_NAME;
+import static edu.cmu.hcii.sugilite.Const.OVERLAY_TYPE;
 import static edu.cmu.hcii.sugilite.Const.SCRIPT_DELAY;
 import static edu.cmu.hcii.sugilite.Const.SQL_SCRIPT_DAO;
 
@@ -134,7 +121,7 @@ public class ScriptDetailActivity extends AppCompatActivity implements SugiliteV
 
         //progress dialog for loading the script
         progressDialog = new AlertDialog.Builder(context).setMessage(Const.LOADING_MESSAGE).create();
-        progressDialog.getWindow().setType(WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY);
+        progressDialog.getWindow().setType(OVERLAY_TYPE);
         progressDialog.setCanceledOnTouchOutside(false);
         progressDialog.show();
         new Thread(new Runnable() {
@@ -241,7 +228,7 @@ public class ScriptDetailActivity extends AppCompatActivity implements SugiliteV
             String ifBlockDes = "";
             SugiliteBlock iterBlock = ifBlock;
             while(iterBlock != null) {
-                ifBlockDes = ifBlockDes + " <br/>" + tabs + sc + " " + iterBlock.getDescription();
+                ifBlockDes = ifBlockDes + " <br/>" + sc + tabs + " " + iterBlock.getDescription();
                 if (iterBlock instanceof SugiliteStartingBlock)
                     iterBlock = ((SugiliteStartingBlock) iterBlock).getNextBlock();
                 else if (iterBlock instanceof SugiliteOperationBlock)
@@ -257,18 +244,26 @@ public class ScriptDetailActivity extends AppCompatActivity implements SugiliteV
             String elseBlockDes = "";
             SugiliteBlock iterBlock2 = elseBlock;
             while(iterBlock2 != null) {
-                elseBlockDes = elseBlockDes + " <br/>" + tabs + sc + " " + iterBlock2.getDescription();
-                if (iterBlock2 instanceof SugiliteStartingBlock)
+                if (! (iterBlock2 instanceof SugiliteStartingBlock)) {
+                    elseBlockDes = elseBlockDes + " <br/>" + sc + tabs  + " " + iterBlock2.getDescription();
+                } else {
+                    sc ++;
+                }
+                if (iterBlock2 instanceof SugiliteStartingBlock) {
                     iterBlock2 = ((SugiliteStartingBlock) iterBlock2).getNextBlock();
-                else if (iterBlock2 instanceof SugiliteOperationBlock)
+                }
+                else if (iterBlock2 instanceof SugiliteOperationBlock) {
                     iterBlock2 = ((SugiliteOperationBlock) iterBlock2).getNextBlock();
-                else if (iterBlock2 instanceof SugiliteSpecialOperationBlock)
+                }
+                else if (iterBlock2 instanceof SugiliteSpecialOperationBlock) {
                     iterBlock2 = ((SugiliteSpecialOperationBlock) iterBlock2).getNextBlock();
-                else if (iterBlock2 instanceof SugiliteConditionBlock)
+                }
+                else if (iterBlock2 instanceof SugiliteConditionBlock) {
                     iterBlock2 = ((SugiliteConditionBlock) iterBlock2).getNextBlock();
-                else
+                }
+                else {
                     new Exception("unsupported block type").printStackTrace();
-                sc++;
+                }
             }
             block.setDescription(ReadableDescriptionGenerator.setColor("If ", Const.SCRIPT_CONDITIONAL_COLOR) + boolExp + ReadableDescriptionGenerator.setColor(" then ", Const.SCRIPT_CONDITIONAL_COLOR)  + ifBlockDes + "<br/>" + tabs2 + ReadableDescriptionGenerator.setColor("Otherwise", Const.SCRIPT_CONDITIONAL_COLOR) + elseBlockDes);
             return ReadableDescriptionGenerator.setColor("If ", Const.SCRIPT_CONDITIONAL_COLOR) + boolExp + ReadableDescriptionGenerator.setColor(" then ", Const.SCRIPT_CONDITIONAL_COLOR) + ifBlockDes + "<br/>" + tabs2 + ReadableDescriptionGenerator.setColor("Otherwise", Const.SCRIPT_CONDITIONAL_COLOR) + elseBlockDes;
@@ -282,7 +277,7 @@ public class ScriptDetailActivity extends AppCompatActivity implements SugiliteV
             String ifBlockDes = "";
             SugiliteBlock iterBlock = ifBlock;
             while(iterBlock != null) {
-                ifBlockDes = ifBlockDes + " <br/>" + tabs + sc + " " + iterBlock.getDescription();
+                ifBlockDes = ifBlockDes + " <br/>" + sc + tabs + " " + iterBlock.getDescription();
                 if (iterBlock instanceof SugiliteStartingBlock)
                     iterBlock = ((SugiliteStartingBlock) iterBlock).getNextBlock();
                 else if (iterBlock instanceof SugiliteOperationBlock)
@@ -732,7 +727,7 @@ public class ScriptDetailActivity extends AppCompatActivity implements SugiliteV
                                     }
                                 });
                                 AlertDialog alert2 = builder2.create();
-                                alert2.getWindow().setType(WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY);
+                                alert2.getWindow().setType(OVERLAY_TYPE);
                                 alert2.setCanceledOnTouchOutside(true);
                                 alert2.show();
 
@@ -749,7 +744,7 @@ public class ScriptDetailActivity extends AppCompatActivity implements SugiliteV
                         });
                         AlertDialog alert = builder.create();
                         alert.setView(input);
-                        alert.getWindow().setType(WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY);
+                        alert.getWindow().setType(OVERLAY_TYPE);
                         alert.setCanceledOnTouchOutside(true);
                         alert.show();
                         System.out.println("weird part : " + script.getTail());

@@ -31,4 +31,9 @@ public class SugiliteDelaySpecialOperationBlock extends SugiliteSpecialOperation
     public String toString() {
         return "(" + "call" + " " + "delay" + " " + delayInMilliseconds + ")";
     }
+
+    @Override
+    public String getPumiceUserReadableDecription() {
+        return String.format("Delay the script execution for %f milliseconds", delayInMilliseconds);
+    }
 }

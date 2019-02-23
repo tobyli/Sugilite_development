@@ -1,0 +1,14 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools" tools:context=".ui.main.SugiliteMainActivity">
+    <item android:id="@+id/show_knowledge" android:title="Show Current Knowledge"
+        android:orderInCategory="1" app:showAsAction="never" />
+    <item android:id="@+id/clear_knowledge" android:title="Clear Current Knowledge"
+    android:orderInCategory="2" app:showAsAction="never" />
+    <item android:id="@+id/undo_pumice" android:title="Undo"
+        android:orderInCategory="3" app:showAsAction="never" />
+
+    <!--<item android:id="@+id/start_over_pumice" android:title="Start Over"
+        android:orderInCategory="4" app:showAsAction="never" />-->
+
+</menu>

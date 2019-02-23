@@ -29,6 +29,7 @@ import edu.cmu.hcii.sugilite.recording.newrecording.dialog_management.SugiliteDi
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.VerbalInstructionIconManager;
 
 import static edu.cmu.hcii.sugilite.Const.MUL_ZEROS;
+import static edu.cmu.hcii.sugilite.Const.OVERLAY_TYPE;
 import static edu.cmu.hcii.sugilite.Const.RECORDING_DARK_GRAY_COLOR;
 import static edu.cmu.hcii.sugilite.Const.RECORDING_OFF_BUTTON_COLOR;
 
@@ -157,9 +158,22 @@ public class NewScriptDialog extends SugiliteDialogManager implements AbstractSu
 
         if(dialog.getWindow() != null) {
             if (isSystemAlert) {
-                dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY);
+                dialog.getWindow().setType(OVERLAY_TYPE);
             }
         }
+
+
+        dialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
+            @Override
+            public void onDismiss(DialogInterface dialogInterface) {
+                if(tts != null) {
+                    if (isListening() || tts.isSpeaking()) {
+                        stopASRandTTS();
+                    }
+                }
+            }
+        });
+
 
         scriptNameEditText.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override

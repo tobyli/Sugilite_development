@@ -55,6 +55,11 @@ public class SugiliteResolveBoolExpOperation extends SugiliteUnaryOperation<Stri
 
     @Override
     public String getReadableDescription() {
-        return text;
+        return getPumiceUserReadableDecription();
+    }
+
+    @Override
+    public String getPumiceUserReadableDecription() {
+        return String.format("a new condition named \"%s\" is true", text);
     }
 }

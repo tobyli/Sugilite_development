@@ -21,4 +21,9 @@ public class SugiliteSpecialOperation extends SugiliteOperation {
     public SerializableOntologyQuery getDataDescriptionQueryIfAvailable() {
         return null;
     }
+
+    @Override
+    public String getPumiceUserReadableDecription() {
+        return "special operation";
+    }
 }

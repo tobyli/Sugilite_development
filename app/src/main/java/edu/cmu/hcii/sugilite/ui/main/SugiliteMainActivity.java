@@ -1,7 +1,6 @@
 package edu.cmu.hcii.sugilite.ui.main;
 
 
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -14,7 +13,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.Window;
-import android.view.WindowManager;
 import android.widget.Toast;
 
 
@@ -24,7 +22,6 @@ import java.util.List;
 
 import edu.cmu.hcii.sugilite.Const;
 import edu.cmu.hcii.sugilite.R;
-import edu.cmu.hcii.sugilite.SugiliteAccessibilityService;
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptFileDao;
@@ -38,6 +35,7 @@ import edu.cmu.hcii.sugilite.study.StudyDataUploadManager;
 import edu.cmu.hcii.sugilite.ui.SettingsActivity;
 import edu.cmu.hcii.sugilite.ui.dialog.AddTriggerDialog;
 
+import static edu.cmu.hcii.sugilite.Const.OVERLAY_TYPE;
 import static edu.cmu.hcii.sugilite.Const.SQL_SCRIPT_DAO;
 
 
@@ -234,7 +232,7 @@ public class SugiliteMainActivity extends AppCompatActivity {
         if(id == R.id.upload_scripts){
             //progress dialog for loading the script
             progressDialog = new AlertDialog.Builder(this).setMessage(Const.LOADING_MESSAGE).create();
-            progressDialog.getWindow().setType(WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY);
+            progressDialog.getWindow().setType(OVERLAY_TYPE);
             progressDialog.setCanceledOnTouchOutside(false);
             progressDialog.show();
             new Thread(new Runnable() {

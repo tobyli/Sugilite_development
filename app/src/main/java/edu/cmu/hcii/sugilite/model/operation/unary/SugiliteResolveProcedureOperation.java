@@ -44,4 +44,9 @@ public class SugiliteResolveProcedureOperation extends SugiliteUnaryOperation<St
     public String toString() {
         return "(" + "call resolve_procedure " + addQuoteToTokenIfNeeded(getParameter0().toString()) + ")";
     }
+
+    @Override
+    public String getPumiceUserReadableDecription() {
+        return String.format("perform a new action named \"%s\"", text);
+    }
 }

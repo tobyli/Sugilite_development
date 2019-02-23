@@ -44,4 +44,9 @@ public class SugiliteLongClickOperation extends SugiliteUnaryOperation<Serializa
     public String toString() {
         return "(" + "call long_click " + addQuoteToTokenIfNeeded(getParameter0().toString()) + ")";
     }
+
+    @Override
+    public String getPumiceUserReadableDecription() {
+        return String.format("long click on %s", targetUIElementDataDescriptionQuery);
+    }
 }

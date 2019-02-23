@@ -52,7 +52,7 @@ public class SugiliteSubscriptSpecialOperationBlock extends SugiliteSpecialOpera
 
         //send an agent message through pumiceDialogManager if one is available
         if (sugiliteData.pumiceDialogManager != null){
-            sugiliteData.pumiceDialogManager.sendAgentMessage("Executing the procedure: " + subscriptName.replace(".SugiliteScript", " "), true, false);
+            sugiliteData.pumiceDialogManager.sendAgentMessage("Executing the procedure: " + subscriptName.replace(".SugiliteScript", " ").replace("Procedure_", ""), true, false);
         }
 
         if (script != null) {
@@ -98,5 +98,10 @@ public class SugiliteSubscriptSpecialOperationBlock extends SugiliteSpecialOpera
     @Override
     public String toString() {
         return "(" + "call" + " " + "run_script" + " " + addQuoteToTokenIfNeeded(subscriptName) + ")";
+    }
+
+    @Override
+    public String getPumiceUserReadableDecription() {
+        return String.format("Run the subscript named \"%s\".", subscriptName);
     }
 }

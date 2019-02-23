@@ -23,15 +23,20 @@ import edu.cmu.hcii.sugilite.pumice.dialog.demonstration.PumiceDemonstrationUtil
 public class PumiceScriptExecutingConfirmationIntentHandler implements PumiceUtteranceIntentHandler {
     private SugiliteStartingBlock script;
     private Activity context;
+    private PumiceDialogManager pumiceDialogManager;
+    private String userUtterance;
 
 
-    public PumiceScriptExecutingConfirmationIntentHandler(Activity context, SugiliteStartingBlock script){
+    public PumiceScriptExecutingConfirmationIntentHandler(PumiceDialogManager pumiceDialogManager, Activity context, SugiliteStartingBlock script, String userUtterance){
+        this.pumiceDialogManager = pumiceDialogManager;
         this.context = context;
         this.script = script;
+        this.userUtterance = userUtterance;
     }
 
     @Override
     public void handleIntentWithUtterance(PumiceDialogManager dialogManager, PumiceIntent pumiceIntent, PumiceDialogManager.PumiceUtterance utterance) {
+
         if (pumiceIntent.equals(PumiceIntent.EXECUTION_POSITIVE)) {
             dialogManager.sendAgentMessage("Executing the script...", true, false);
             ServiceStatusManager serviceStatusManager = dialogManager.getServiceStatusManager();
@@ -68,6 +73,11 @@ public class PumiceScriptExecutingConfirmationIntentHandler implements PumiceUtt
             dialogManager.sendAgentMessage("OK", true, false);
             dialogManager.updateUtteranceIntentHandlerInANewState(new PumiceDefaultUtteranceIntentHandler(dialogManager, context));
         }
+    }
+
+    @Override
+    public void sendPromptForTheIntentHandler() {
+        pumiceDialogManager.sendAgentMessage("I've understood your instruction: " +  "\"" + userUtterance + "\"." + " Do you want me to execute it now?", true, true);
     }
 
     @Override

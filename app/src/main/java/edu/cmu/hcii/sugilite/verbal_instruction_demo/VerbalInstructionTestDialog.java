@@ -41,6 +41,8 @@ import edu.cmu.hcii.sugilite.verbal_instruction_demo.server_comm.VerbalInstructi
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.speech.SugiliteVoiceInterface;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.speech.SugiliteVoiceRecognitionListener;
 
+import static edu.cmu.hcii.sugilite.Const.OVERLAY_TYPE;
+
 /**
  * @author toby
  * @date 12/9/17
@@ -115,7 +117,7 @@ public class VerbalInstructionTestDialog implements SugiliteVoiceInterface, Sugi
     }
 
     public void show(){
-        dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY);
+        dialog.getWindow().setType(OVERLAY_TYPE);
         dialog.show();
         speakButton.performClick();
         dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(new View.OnClickListener()
@@ -186,7 +188,7 @@ public class VerbalInstructionTestDialog implements SugiliteVoiceInterface, Sugi
 
     private void showProgressDialog(){
         progressDialog = new AlertDialog.Builder(context).setMessage("Processing the query ...").create();
-        progressDialog.getWindow().setType(WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY);
+        progressDialog.getWindow().setType(OVERLAY_TYPE);
         progressDialog.setCanceledOnTouchOutside(false);
         progressDialog.show();
     }
@@ -195,7 +197,7 @@ public class VerbalInstructionTestDialog implements SugiliteVoiceInterface, Sugi
     /**
      * callback for HTTP query
      */
-    public void resultReceived(int responseCode, String result) {
+    public void resultReceived(int responseCode, String result, String originalQuery) {
         if (progressDialog != null && progressDialog.isShowing()) {
             progressDialog.dismiss();
         }

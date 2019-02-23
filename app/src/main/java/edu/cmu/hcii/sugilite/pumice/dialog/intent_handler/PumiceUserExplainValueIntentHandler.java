@@ -1,15 +1,20 @@
 package edu.cmu.hcii.sugilite.pumice.dialog.intent_handler;
 
 import android.app.Activity;
-import android.app.AlertDialog;
-import android.content.Context;
-import android.content.DialogInterface;
+
+import com.google.gson.ExclusionStrategy;
+import com.google.gson.FieldAttributes;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 import java.util.Calendar;
 
+import edu.cmu.hcii.sugilite.pumice.communication.PumiceInstructionPacket;
+import edu.cmu.hcii.sugilite.pumice.communication.PumiceSemanticParsingResultPacket;
+import edu.cmu.hcii.sugilite.pumice.communication.SkipPumiceJSONSerialization;
 import edu.cmu.hcii.sugilite.pumice.dialog.PumiceDialogManager;
-import edu.cmu.hcii.sugilite.pumice.dialog.demonstration.PumiceProcedureDemonstrationDialog;
 import edu.cmu.hcii.sugilite.pumice.dialog.demonstration.PumiceValueDemonstrationDialog;
+import edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.parsing_confirmation.PumiceParsingConfirmationHandler;
 import edu.cmu.hcii.sugilite.pumice.kb.PumiceValueQueryKnowledge;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.server_comm.SugiliteVerbalInstructionHTTPQueryInterface;
 
@@ -21,9 +26,10 @@ import edu.cmu.hcii.sugilite.verbal_instruction_demo.server_comm.SugiliteVerbalI
 
 //class used for handle utterances when the user explain a PumiceValueQueryKnowledge
 public class PumiceUserExplainValueIntentHandler implements PumiceUtteranceIntentHandler, SugiliteVerbalInstructionHTTPQueryInterface {
-    private transient Activity context;
-    private transient PumiceDialogManager pumiceDialogManager;
+    private Activity context;
+    private PumiceDialogManager pumiceDialogManager;
     private String parentKnowledgeName;
+    private PumiceUserExplainValueIntentHandler pumiceUserExplainValueIntentHandler;
 
     //need to notify this lock when the value is resolved, and return the value through this object
     private PumiceValueQueryKnowledge resolveValueLock;
@@ -35,6 +41,7 @@ public class PumiceUserExplainValueIntentHandler implements PumiceUtteranceInten
         this.calendar = Calendar.getInstance();
         this.resolveValueLock = resolveValueLock;
         this.parentKnowledgeName = parentKnowledgeName;
+        this.pumiceUserExplainValueIntentHandler = this;
     }
 
     @Override
@@ -44,12 +51,21 @@ public class PumiceUserExplainValueIntentHandler implements PumiceUtteranceInten
 
     @Override
     public void handleIntentWithUtterance(PumiceDialogManager dialogManager, PumiceIntent pumiceIntent, PumiceDialogManager.PumiceUtterance utterance) {
-
         if (pumiceIntent.equals(PumiceIntent.DEFINE_VALUE_EXP)){
             //branch for situations such as e.g., redirection
             dialogManager.sendAgentMessage("I have received your explanation: " + utterance.getContent(), true, false);
-            //TODO: send out the server query
-            returnUserExplainValueResult(new PumiceValueQueryKnowledge<String>(parentKnowledgeName, PumiceValueQueryKnowledge.ValueType.STRING));
+            //TODO: send out an VALUE_INSTRUCTION query to resolve the explanation
+            //send out the server query
+            PumiceInstructionPacket pumiceInstructionPacket = new PumiceInstructionPacket(dialogManager.getPumiceKnowledgeManager(), "VALUE_INSTRUCTION", calendar.getTimeInMillis(), utterance.getContent(), parentKnowledgeName);
+            //dialogManager.sendAgentMessage("Sending out the server query below...", true, false);
+            //dialogManager.sendAgentMessage(pumiceInstructionPacket.toString(), false, false);
+            try {
+                dialogManager.getHttpQueryManager().sendPumiceInstructionPacketOnASeparateThread(pumiceInstructionPacket, this);
+            } catch (Exception e){
+                //TODO: error handling
+                e.printStackTrace();
+                pumiceDialogManager.sendAgentMessage("Failed to send the query", true, false);
+            }
         }
 
         else if (pumiceIntent.equals(PumiceIntent.DEFINE_VALUE_DEMONSTRATION)){
@@ -80,11 +96,80 @@ public class PumiceUserExplainValueIntentHandler implements PumiceUtteranceInten
     }
 
     @Override
-    public void resultReceived(int responseCode, String result) {
-        //TODO: handle server response
+    public void resultReceived(int responseCode, String result, String originalQuery) {
+        //handle server response for explaining a value
+
         //notify the thread for resolving unknown bool exp that the intent has been fulfilled
+        //handle server response from the semantic parsing server
+        Gson gson = new GsonBuilder()
+                .addSerializationExclusionStrategy(new ExclusionStrategy()
+                {
+                    @Override
+                    public boolean shouldSkipField(FieldAttributes f)
+                    {
+                        return f.getAnnotation(SkipPumiceJSONSerialization.class) != null;
+                    }
+
+                    @Override
+                    public boolean shouldSkipClass(Class<?> clazz)
+                    {
+                        return false;
+                    }
+                })
+                .create();
+        try {
+            PumiceSemanticParsingResultPacket resultPacket = gson.fromJson(result, PumiceSemanticParsingResultPacket.class);
+            if (resultPacket.utteranceType != null) {
+                switch (resultPacket.utteranceType) {
+                    case "VALUE_INSTRUCTION":
+                        if (resultPacket.queries != null && resultPacket.queries.size() > 0) {
+                            PumiceParsingConfirmationHandler parsingConfirmationHandler = new PumiceParsingConfirmationHandler(context, pumiceDialogManager);
+                            parsingConfirmationHandler.handleParsingResult(resultPacket, new Runnable() {
+                                @Override
+                                public void run() {
+                                    //handle retry
+                                    pumiceDialogManager.updateUtteranceIntentHandlerInANewState(pumiceUserExplainValueIntentHandler);
+                                    sendPromptForTheIntentHandler();
+                                }
+                            }, new PumiceParsingConfirmationHandler.ConfirmedParseRunnable() {
+                                @Override
+                                public void run(String confirmedFormula) {
+                                    //handle confirmed
+                                    pumiceDialogManager.getExecutorService().submit(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            //parse and process the server response
+                                            PumiceValueQueryKnowledge pumiceValueQueryKnowledge = pumiceDialogManager.getPumiceInitInstructionParsingHandler().parseFromValueInstruction(confirmedFormula, resultPacket.userUtterance, parentKnowledgeName);
+                                            //notify the original thread for resolving unknown bool exp that the intent has been fulfilled
+                                            returnUserExplainValueResult(pumiceValueQueryKnowledge);
+                                        }
+                                    });
+                                }
+                            });
+                        } else {
+                            throw new RuntimeException("empty server result");
+                        }
+                        break;
+                    default:
+                        throw new RuntimeException("wrong type of result");
+                }
+            }
+        } catch (Exception e){
+            //TODO: error handling
+            pumiceDialogManager.sendAgentMessage("Can't read from the server response", true, false);
+
+            pumiceDialogManager.sendAgentMessage("OK. Let's try again.", true, false);
+            pumiceDialogManager.updateUtteranceIntentHandlerInANewState(pumiceUserExplainValueIntentHandler);
+            sendPromptForTheIntentHandler();
+            e.printStackTrace();
+        }
 
 
+    }
+
+    @Override
+    public void sendPromptForTheIntentHandler() {
+        pumiceDialogManager.sendAgentMessage("How do I find out the value for " + parentKnowledgeName + "?" + " You can explain, or say \"demonstrate\" to demonstrate", true, true);
     }
 
     @Override

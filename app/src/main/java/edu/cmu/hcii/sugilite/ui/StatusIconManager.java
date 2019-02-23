@@ -12,7 +12,6 @@ import android.graphics.PixelFormat;
 import android.graphics.Rect;
 import android.net.Uri;
 import android.provider.Settings;
-import android.renderscript.Script;
 import android.text.Html;
 import android.util.DisplayMetrics;
 import android.view.GestureDetector;
@@ -37,7 +36,7 @@ import java.util.Random;
 
 import edu.cmu.hcii.sugilite.Const;
 import edu.cmu.hcii.sugilite.R;
-import edu.cmu.hcii.sugilite.SugiliteAccessibilityService;
+import edu.cmu.hcii.sugilite.accessibility_service.SugiliteAccessibilityService;
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.automation.AutomatorUtil;
 import edu.cmu.hcii.sugilite.automation.ServiceStatusManager;
@@ -62,6 +61,7 @@ import edu.cmu.hcii.sugilite.ui.dialog.SelectElementWithTextDialog;
 import edu.cmu.hcii.sugilite.ui.main.SugiliteMainActivity;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.VerbalInstructionIconManager;
 
+import static edu.cmu.hcii.sugilite.Const.OVERLAY_TYPE;
 import static edu.cmu.hcii.sugilite.Const.SQL_SCRIPT_DAO;
 
 /**
@@ -99,6 +99,7 @@ public class StatusIconManager {
     Integer prev_x = null;
     Integer prev_y = null;
 
+
     public StatusIconManager(Context context, SugiliteData sugiliteData, SharedPreferences sharedPreferences, AccessibilityManager accessibilityManager){
         this.context = context;
         windowManager = (WindowManager) context.getSystemService(context.WINDOW_SERVICE);
@@ -116,7 +117,6 @@ public class StatusIconManager {
         jsonProcessor = new SugiliteBlockJSONProcessor(context);
         descriptionGenerator = new ReadableDescriptionGenerator(context);
         random = new Random();
-
     }
 
     /**
@@ -129,7 +129,7 @@ public class StatusIconManager {
         iconParams = new WindowManager.LayoutParams(
                 WindowManager.LayoutParams.WRAP_CONTENT,
                 WindowManager.LayoutParams.WRAP_CONTENT,
-                WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
+                OVERLAY_TYPE,
                 WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
                 PixelFormat.TRANSLUCENT);
 
@@ -146,7 +146,7 @@ public class StatusIconManager {
         textViewParams = new WindowManager.LayoutParams(
                 WindowManager.LayoutParams.WRAP_CONTENT,
                 WindowManager.LayoutParams.WRAP_CONTENT,
-                WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
+                OVERLAY_TYPE,
                 WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
                 PixelFormat.TRANSLUCENT);
         textViewParams.gravity = Gravity.BOTTOM | Gravity.CENTER;
@@ -504,7 +504,7 @@ public class StatusIconManager {
 
                                     progressDialog = new AlertDialog.Builder(context).setMessage(Const.SAVING_MESSAGE).create();
                                     if(progressDialog.getWindow() != null) {
-                                        progressDialog.getWindow().setType(WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY);
+                                        progressDialog.getWindow().setType(OVERLAY_TYPE);
                                     }
                                     progressDialog.setCanceledOnTouchOutside(false);
                                     progressDialog.show();
@@ -580,7 +580,7 @@ public class StatusIconManager {
                                         prefEditor.apply();
                                         progressDialog = new AlertDialog.Builder(context).setMessage(Const.SAVING_MESSAGE).create();
                                         if(progressDialog.getWindow() != null) {
-                                            progressDialog.getWindow().setType(WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY);
+                                            progressDialog.getWindow().setType(OVERLAY_TYPE);
                                         }
                                         progressDialog.setCanceledOnTouchOutside(false);
                                         progressDialog.show();
@@ -739,7 +739,7 @@ public class StatusIconManager {
 
                                     Dialog chooseSubscriptDialog = chooseSubscriptDialogBuilder.create();
                                     if(chooseSubscriptDialog.getWindow() != null) {
-                                        chooseSubscriptDialog.getWindow().setType(WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY);
+                                        chooseSubscriptDialog.getWindow().setType(OVERLAY_TYPE);
                                     }
                                     chooseSubscriptDialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_box);
                                     chooseSubscriptDialog.show();
@@ -826,7 +826,7 @@ public class StatusIconManager {
                         }
                     });
                     if(duckDialog.getWindow() != null) {
-                        duckDialog.getWindow().setType(WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY);
+                        duckDialog.getWindow().setType(OVERLAY_TYPE);
                         duckDialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_box);
                     }
                     duckDialog.show();
@@ -877,7 +877,7 @@ public class StatusIconManager {
         WindowManager.LayoutParams params = new WindowManager.LayoutParams(
                 WindowManager.LayoutParams.WRAP_CONTENT,
                 WindowManager.LayoutParams.WRAP_CONTENT,
-                WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
+                OVERLAY_TYPE,
                 WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
                 PixelFormat.TRANSLUCENT);
         params.gravity = Gravity.TOP | Gravity.LEFT;

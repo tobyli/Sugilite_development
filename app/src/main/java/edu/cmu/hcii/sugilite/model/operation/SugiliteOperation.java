@@ -35,5 +35,6 @@ public abstract class SugiliteOperation implements Serializable {
 
     public abstract boolean containsDataDescriptionQuery();
     public abstract SerializableOntologyQuery getDataDescriptionQueryIfAvailable();
+    public abstract String getPumiceUserReadableDecription();
 }
 

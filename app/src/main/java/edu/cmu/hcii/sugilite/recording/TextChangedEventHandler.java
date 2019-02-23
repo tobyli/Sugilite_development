@@ -45,7 +45,7 @@ public class TextChangedEventHandler {
         this.uiThreadHandler = uiThreadHandler;
     }
 
-    public void handle(SugiliteAvailableFeaturePack featurePack, Set<Map.Entry<String, String>> availableAlternatives, LayoutInflater layoutInflater, android.os.Handler uiThreadHandler){
+    public void handle(SugiliteAvailableFeaturePack featurePack, Set<Map.Entry<String, String>> availableAlternatives, LayoutInflater layoutInflater){
         //handle the VIEW_TEXT_CHANGED event
         if(featurePack == null)
             return;

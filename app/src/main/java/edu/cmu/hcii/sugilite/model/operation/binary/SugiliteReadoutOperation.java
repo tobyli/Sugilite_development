@@ -64,4 +64,9 @@ public class SugiliteReadoutOperation extends SugiliteBinaryOperation<String, Se
     public String toString() {
         return "(" + "call read_out " + addQuoteToTokenIfNeeded(getParameter0().toString()) + " " + addQuoteToTokenIfNeeded(getParameter1().toString()) + ")";
     }
+
+    @Override
+    public String getPumiceUserReadableDecription() {
+        return String.format("read out the %s property of %s", propertyToReadout, targetUIElementDataDescriptionQuery.toString());
+    }
 }

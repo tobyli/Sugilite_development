@@ -55,6 +55,11 @@ public class SugiliteResolveValueQueryOperation extends SugiliteUnaryOperation<S
 
     @Override
     public String getReadableDescription() {
-        return text;
+        return getPumiceUserReadableDecription();
+    }
+
+    @Override
+    public String getPumiceUserReadableDecription() {
+        return String.format("the value of a new concept \"%s\"", text);
     }
 }

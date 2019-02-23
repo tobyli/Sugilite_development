@@ -27,6 +27,7 @@ import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteOperation;
 import edu.cmu.hcii.sugilite.recording.ReadableDescriptionGenerator;
 
+import static edu.cmu.hcii.sugilite.Const.OVERLAY_TYPE;
 import static edu.cmu.hcii.sugilite.Const.SQL_SCRIPT_DAO;
 
 /**
@@ -223,7 +224,7 @@ public class ErrorHandler {
                                     }
                                 });
                         AlertDialog replaceOrParallelDialog = replaceOrParallelDialogBuilder.create();
-                        replaceOrParallelDialog.getWindow().setType(WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY);
+                        replaceOrParallelDialog.getWindow().setType(OVERLAY_TYPE);
                         replaceOrParallelDialog.show();
                     }
                 })
@@ -234,7 +235,7 @@ public class ErrorHandler {
                     }
                 });
         AlertDialog dialog = builder.create();
-        dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY);
+        dialog.getWindow().setType(OVERLAY_TYPE);
         if(showingErrorDialog == false)
             dialog.show();
         showingErrorDialog = true;

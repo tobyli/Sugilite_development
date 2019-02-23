@@ -19,10 +19,6 @@ import android.view.View;
 import android.view.WindowManager;
 import android.widget.Toast;
 
-import com.google.gson.Gson;
-
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -34,11 +30,10 @@ import java.util.Map;
 
 import edu.cmu.hcii.sugilite.Const;
 import edu.cmu.hcii.sugilite.model.Node;
-import edu.cmu.hcii.sugilite.SugiliteAccessibilityService;
+import edu.cmu.hcii.sugilite.accessibility_service.SugiliteAccessibilityService;
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.model.block.util.SugiliteAvailableFeaturePack;
 import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
-import edu.cmu.hcii.sugilite.model.operation.SugiliteOperation;
 import edu.cmu.hcii.sugilite.model.operation.unary.SugiliteClickOperation;
 import edu.cmu.hcii.sugilite.model.operation.unary.SugiliteLongClickOperation;
 import edu.cmu.hcii.sugilite.model.operation.unary.SugiliteUnaryOperation;
@@ -51,6 +46,8 @@ import edu.cmu.hcii.sugilite.recording.ReadableDescriptionGenerator;
 import edu.cmu.hcii.sugilite.recording.SugiliteScreenshotManager;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.study.SugiliteStudyHandler;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.util.NavigationBarUtil;
+
+import static edu.cmu.hcii.sugilite.Const.OVERLAY_TYPE;
 
 /**
  * @author toby
@@ -135,7 +132,7 @@ public class FullScreenRecordingOverlayManager {
         WindowManager.LayoutParams layoutParams = new WindowManager.LayoutParams(
                 WindowManager.LayoutParams.WRAP_CONTENT,
                 WindowManager.LayoutParams.WRAP_CONTENT,
-                WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
+                OVERLAY_TYPE,
                 flag,
                 PixelFormat.TRANSLUCENT);
 
@@ -283,12 +280,16 @@ public class FullScreenRecordingOverlayManager {
         }
     }
 
-    private synchronized UISnapshot getUiSnapshot() {
-        return uiSnapshot;
+    private UISnapshot getUiSnapshot() {
+        synchronized (this) {
+            return uiSnapshot;
+        }
     }
 
     public synchronized void setUiSnapshot(UISnapshot uiSnapshot) {
-        this.uiSnapshot = uiSnapshot;
+        synchronized (this) {
+            this.uiSnapshot = uiSnapshot;
+        }
     }
 
     private void checkDrawOverlayPermission() {

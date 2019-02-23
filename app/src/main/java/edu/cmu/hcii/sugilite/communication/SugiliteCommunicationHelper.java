@@ -28,6 +28,7 @@ package edu.cmu.hcii.sugilite.communication;
         import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
         import edu.cmu.hcii.sugilite.model.variable.StringVariable;
 
+        import static edu.cmu.hcii.sugilite.Const.OVERLAY_TYPE;
         import static edu.cmu.hcii.sugilite.Const.SCRIPT_DELAY;
         import static edu.cmu.hcii.sugilite.Const.SQL_SCRIPT_DAO;
 
@@ -210,7 +211,7 @@ public class SugiliteCommunicationHelper {
                                     }
                                 });
                         AlertDialog dialog = builder.create();
-                        dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY);
+                        dialog.getWindow().setType(OVERLAY_TYPE);
                         dialog.show();
                     }
                 }
@@ -505,7 +506,7 @@ public class SugiliteCommunicationHelper {
                         }
                     });
             AlertDialog dialog = builder1.create();
-            dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY);
+            dialog.getWindow().setType(OVERLAY_TYPE);
             dialog.show();
         }
         else {

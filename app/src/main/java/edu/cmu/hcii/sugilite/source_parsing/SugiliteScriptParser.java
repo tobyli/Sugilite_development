@@ -9,8 +9,11 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
+import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.model.block.booleanexp.SugiliteBooleanExpressionNew;
+import edu.cmu.hcii.sugilite.model.operation.SugiliteOperation;
+import edu.cmu.hcii.sugilite.model.value.SugiliteValue;
 import edu.cmu.hcii.sugilite.ontology.description.OntologyDescriptionGenerator;
 
 /**
@@ -111,6 +114,32 @@ public class SugiliteScriptParser {
         } else {
             throw new RuntimeException("the size of expression needs to be 1!");
         }
+    }
+
+    public SugiliteValue parseSugiliteValueFromString(String input){
+        List<SugiliteScriptExpression> expressionList = runASTParsingPipeline(input);
+        if(expressionList.size() == 1){
+            SugiliteScriptExpression expression = expressionList.get(0);
+            if (expression.isConstant()){
+                //is a constant
+                Object constantValue = expression.getConstantValue();
+                if (constantValue instanceof SugiliteValue) {
+                    return (SugiliteValue) constantValue;
+                } else {
+                    throw new RuntimeException("error in casting constantValue to SugiliteValue");
+                }
+            } else {
+                SugiliteBlock block = expression.toSugiliteBlock(null, ontologyDescriptionGenerator);
+                if (block instanceof SugiliteOperationBlock && ((SugiliteOperationBlock) block).getOperation() instanceof SugiliteValue){
+                    return (SugiliteValue)((SugiliteOperationBlock) block).getOperation();
+                } else {
+                    throw new RuntimeException("error in casting SugiliteOperation to SugiliteValue");
+                }
+            }
+        } else {
+            throw new RuntimeException("the size of expression needs to be 1!");
+        }
+
     }
 
     public SugiliteBlock parseASingleBlockFromString(String input){

@@ -49,4 +49,9 @@ public class SugiliteErrorHandlingForkBlock extends SugiliteBlock implements Ser
     public String toString() {
         return "(ERROR_HANDLING_FORK)";
     }
+
+    @Override
+    public String getPumiceUserReadableDecription() {
+        return "(ERROR_HANDLING_FORK)";
+    }
 }

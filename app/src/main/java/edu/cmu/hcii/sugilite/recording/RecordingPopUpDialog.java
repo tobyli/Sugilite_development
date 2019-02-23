@@ -44,7 +44,7 @@ import java.util.TimeZone;
 
 import edu.cmu.hcii.sugilite.Const;
 import edu.cmu.hcii.sugilite.R;
-import edu.cmu.hcii.sugilite.SugiliteAccessibilityService;
+import edu.cmu.hcii.sugilite.accessibility_service.SugiliteAccessibilityService;
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.communication.SugiliteBlockJSONProcessor;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
@@ -65,7 +65,6 @@ import edu.cmu.hcii.sugilite.model.operation.binary.SugiliteSetTextOperation;
 import edu.cmu.hcii.sugilite.model.operation.unary.SugiliteClickOperation;
 import edu.cmu.hcii.sugilite.model.operation.unary.SugiliteLongClickOperation;
 import edu.cmu.hcii.sugilite.model.operation.unary.SugiliteSelectOperation;
-import edu.cmu.hcii.sugilite.model.operation.unary.SugiliteUnaryOperation;
 import edu.cmu.hcii.sugilite.model.variable.StringVariable;
 import edu.cmu.hcii.sugilite.model.variable.Variable;
 import edu.cmu.hcii.sugilite.ontology.OntologyQuery;
@@ -75,6 +74,7 @@ import edu.cmu.hcii.sugilite.ontology.SugiliteRelation;
 import edu.cmu.hcii.sugilite.ui.dialog.AbstractSugiliteDialog;
 import edu.cmu.hcii.sugilite.ui.dialog.ChooseVariableDialog;
 
+import static edu.cmu.hcii.sugilite.Const.OVERLAY_TYPE;
 import static edu.cmu.hcii.sugilite.Const.SQL_SCRIPT_DAO;
 
 /**
@@ -168,7 +168,7 @@ public class RecordingPopUpDialog implements AbstractSugiliteDialog {
         builder.setView(dialogRootView)
                 .setTitle("Edit SUGILITE Operation");
         dialog = builder.create();
-        dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY);
+        dialog.getWindow().setType(OVERLAY_TYPE);
         dialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_box);
         dialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
             @Override
@@ -219,7 +219,7 @@ public class RecordingPopUpDialog implements AbstractSugiliteDialog {
         builder.setView(dialogRootView)
                 .setTitle("Edit Sugilite Operation");
         dialog = builder.create();
-        dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY);
+        dialog.getWindow().setType(OVERLAY_TYPE);
         dialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_box);
         dialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
             @Override
@@ -385,7 +385,7 @@ public class RecordingPopUpDialog implements AbstractSugiliteDialog {
         prefEditor.apply();
 
         progressDialog = new AlertDialog.Builder(context).setMessage(Const.SAVING_MESSAGE).create();
-        progressDialog.getWindow().setType(WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY);
+        progressDialog.getWindow().setType(OVERLAY_TYPE);
         progressDialog.setCanceledOnTouchOutside(false);
 
         Runnable showProgressDialogRunnable = new Runnable() {
@@ -524,7 +524,7 @@ public class RecordingPopUpDialog implements AbstractSugiliteDialog {
                         }
                     });
             final AlertDialog dialog = builder.create();
-            dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY);
+            dialog.getWindow().setType(OVERLAY_TYPE);
             dialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
                 @Override
                 public void onDismiss(DialogInterface dialog) {
@@ -617,7 +617,7 @@ public class RecordingPopUpDialog implements AbstractSugiliteDialog {
             @Override
             public void run() {
                 AlertDialog dialog = builder.create();
-                dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY);
+                dialog.getWindow().setType(OVERLAY_TYPE);
                 dialog.show();
             }
         };
@@ -1490,7 +1490,7 @@ public class RecordingPopUpDialog implements AbstractSugiliteDialog {
                                     //commit save for triggered_by_edit
 
                                     progressDialog = new AlertDialog.Builder(context).setMessage(Const.SAVING_MESSAGE).create();
-                                    progressDialog.getWindow().setType(WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY);
+                                    progressDialog.getWindow().setType(OVERLAY_TYPE);
                                     progressDialog.setCanceledOnTouchOutside(false);
                                     Runnable showProgressDialogRunnable = new Runnable() {
                                         @Override
@@ -1546,7 +1546,7 @@ public class RecordingPopUpDialog implements AbstractSugiliteDialog {
                                     sugiliteScriptDao.save(originalScript);
                                     //commit save for triggered_by_edit
                                     progressDialog = new AlertDialog.Builder(context).setMessage(Const.SAVING_MESSAGE).create();
-                                    progressDialog.getWindow().setType(WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY);
+                                    progressDialog.getWindow().setType(OVERLAY_TYPE);
                                     progressDialog.setCanceledOnTouchOutside(false);
 
                                     Runnable showProgressDialogRunnable = new Runnable() {

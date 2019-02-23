@@ -54,4 +54,9 @@ public class SugiliteGetValueOperation<T> extends SugiliteGetOperation<T> implem
         throw new RuntimeException("Failed to find the boolean exp knowledge");
     }
 
+    @Override
+    public String getPumiceUserReadableDecription() {
+        return String.format("the value of \"%s\"", getName());
+    }
+
 }

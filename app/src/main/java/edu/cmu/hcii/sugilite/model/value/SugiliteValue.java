@@ -7,7 +7,7 @@ import edu.cmu.hcii.sugilite.SugiliteData;
  * @date 11/14/18
  * @time 12:53 AM
  */
-public interface SugiliteValue<T> {
+public interface SugiliteValue<T>  {
     T evaluate(SugiliteData sugiliteData);
     String getReadableDescription();
 }

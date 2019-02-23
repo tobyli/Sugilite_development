@@ -2,6 +2,7 @@ package edu.cmu.hcii.sugilite.model.value;
 
 import android.support.annotation.Nullable;
 
+import java.io.Serializable;
 import java.text.NumberFormat;
 import java.text.ParseException;
 import java.util.List;
@@ -17,7 +18,7 @@ import static edu.cmu.hcii.sugilite.source_parsing.SugiliteScriptExpression.addQ
  * @date 11/14/18
  * @time 12:54 AM
  */
-public class SugiliteSimpleConstant<T> implements SugiliteValue<T> {
+public class SugiliteSimpleConstant<T> implements SugiliteValue<T>, Serializable {
     private T value;
     private String unit;
 

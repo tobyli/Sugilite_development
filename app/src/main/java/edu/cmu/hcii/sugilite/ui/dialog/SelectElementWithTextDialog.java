@@ -35,6 +35,8 @@ import edu.cmu.hcii.sugilite.R;
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.model.variable.StringVariable;
 
+import static edu.cmu.hcii.sugilite.Const.OVERLAY_TYPE;
+
 /**
  * @author toby
  * @date 10/27/16
@@ -105,7 +107,7 @@ public class SelectElementWithTextDialog implements AbstractSugiliteDialog {
                         });
 
                 dialog = builder.create();
-                dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY);
+                dialog.getWindow().setType(OVERLAY_TYPE);
                 System.out.println("Dialog building finished");
 
                 //
@@ -145,7 +147,7 @@ public class SelectElementWithTextDialog implements AbstractSugiliteDialog {
         WindowManager.LayoutParams params = new WindowManager.LayoutParams(
                 WindowManager.LayoutParams.MATCH_PARENT,
                 WindowManager.LayoutParams.MATCH_PARENT,
-                WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
+                OVERLAY_TYPE,
                 WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
                 PixelFormat.TRANSLUCENT);
         DisplayMetrics displaymetrics = new DisplayMetrics();

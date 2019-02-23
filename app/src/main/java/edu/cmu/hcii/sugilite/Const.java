@@ -1,6 +1,8 @@
 package edu.cmu.hcii.sugilite;
 
 import android.graphics.Color;
+import android.os.Build;
+import android.view.WindowManager;
 
 import java.text.SimpleDateFormat;
 
@@ -10,6 +12,8 @@ import java.text.SimpleDateFormat;
  * @time 3:55 PM
  */
 public class Const {
+    public static final int OVERLAY_TYPE = (Build.VERSION.SDK_INT >= 26) ? WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY : WindowManager.LayoutParams.TYPE_PHONE;
+
     //TRUE to save all the clickable items to the "app vocabulary" when recording
     public static final boolean BUILDING_VOCAB = false;
 
@@ -25,6 +29,16 @@ public class Const {
     //delay before executing each operation block in Automator
     public static final int DELAY = 1000;
     public static final int DEBUG_DELAY = 8000;
+
+    //interval for error checking in accessibility service
+    public static final int INTERVAL_ERROR_CHECKING_ACCESSIBILITY_SERVICE = 2000;
+
+    //interval for refreshing ui snapshot
+    public static final int INTERVAL_REFRESH_UI_SNAPSHOT = 1000;
+
+    //interval for refreshing Sugilite icon
+    public static final int INTERVAL_REFRESH_SUGILITE_ICON = 1000;
+
 
     public static final long THRESHOLD_FOR_START_SENDING_ACCESSIBILITY_EVENT = 500;
 
@@ -53,7 +67,7 @@ public class Const {
 
     //App name to display
     public static final String appName = "Sugilite";
-    public static final String appNameUpperCase = "APPINITE";
+    public static final String appNameUpperCase = "SUGILITE";
 
     public static final int ID_APP_TRACKER = 1001;
     public static final String APP_TRACKER = "APP_TRACKER";

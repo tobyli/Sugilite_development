@@ -14,7 +14,7 @@ import static org.junit.Assert.*;
  */
 public class LengthAnnotatorTest {
 
-    SugiliteTextAnnotator annotator;
+    SugiliteTextParentAnnotator annotator;
 
     @Before
     public void setup() {
@@ -31,7 +31,7 @@ public class LengthAnnotatorTest {
 
     @Test
     public void testBasic() {
-        List<SugiliteTextAnnotator.AnnotatingResult> res = annotator.annotate("Distance to school: 5 miles");
+        List<SugiliteTextParentAnnotator.AnnotatingResult> res = annotator.annotate("Distance to school: 5 miles");
         assertEquals(res.size(), 1);
         assertEquals(res.get(0).getRelation(), SugiliteRelation.CONTAINS_LENGTH);
         assertEquals(res.get(0).getNumericValue().intValue(), 5 * MILE);
@@ -39,34 +39,34 @@ public class LengthAnnotatorTest {
 
     @Test
     public void testBasic1() {
-        List<SugiliteTextAnnotator.AnnotatingResult> res = annotator.annotate("My height is 5 ft 11.5 inch");
+        List<SugiliteTextParentAnnotator.AnnotatingResult> res = annotator.annotate("My height is 5 ft 11.5 inch");
         assertEquals(res.size(), 1);
         assertEquals(res.get(0).getNumericValue().intValue(), (int)(5 * FEET + 11.5 * INCH));
     }
 
     @Test
     public void testBasic2() {
-        List<SugiliteTextAnnotator.AnnotatingResult> res = annotator.annotate("Today I ran 5 km 432.10 m");
+        List<SugiliteTextParentAnnotator.AnnotatingResult> res = annotator.annotate("Today I ran 5 km 432.10 m");
         assertEquals(res.size(), 1);
         assertEquals(res.get(0).getNumericValue().intValue(), (int)(5.4321 * KILOMETER));
     }
 
     @Test
     public void testBasic3() {
-        List<SugiliteTextAnnotator.AnnotatingResult> res = annotator.annotate("I want a 12 inch pizza");
+        List<SugiliteTextParentAnnotator.AnnotatingResult> res = annotator.annotate("I want a 12 inch pizza");
         assertEquals(res.size(), 1);
         assertEquals(res.get(0).getNumericValue().intValue(), (int)(12 * INCH));
     }
 
     @Test
     public void testBadInput() {
-        List<SugiliteTextAnnotator.AnnotatingResult> res = annotator.annotate("6.a km, 3m, 1.2 in");
+        List<SugiliteTextParentAnnotator.AnnotatingResult> res = annotator.annotate("6.a km, 3m, 1.2 in");
         assertEquals(res.size(), 0);
     }
 
     @Test
     public void testGroup() {
-        List<SugiliteTextAnnotator.AnnotatingResult> res = annotator.annotate("To downtown: 5.5 mi, " +
+        List<SugiliteTextParentAnnotator.AnnotatingResult> res = annotator.annotate("To downtown: 5.5 mi, " +
                 "To CMU: 6 km 666 m, To hell: 1 ft 2.34 inch");
         assertEquals(res.size(), 3);
         res.sort((a, b) -> Double.compare(a.getNumericValue(), b.getNumericValue()));

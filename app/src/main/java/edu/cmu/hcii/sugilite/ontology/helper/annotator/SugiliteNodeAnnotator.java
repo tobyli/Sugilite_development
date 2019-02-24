@@ -8,7 +8,6 @@ import edu.cmu.hcii.sugilite.ontology.helper.annotator.util.MyRect;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Set;
 import java.util.List;
 
 /**
@@ -16,7 +15,7 @@ import java.util.List;
  * the UI Snapshot. In particular, two nodes are NEXT_TO each other if they are either LEFT or RIGHT
  * to each other. Two nodes are NEAR each other if their bounding boxes are close to each other but
  * do not overlap.
- *
+ * <p>
  * Created by shi on 3/22/18.
  */
 
@@ -28,60 +27,87 @@ public class SugiliteNodeAnnotator {
     private static final int XMAX = 1080;
     private static final int YMAX = 1920;
 
-    public SugiliteNodeAnnotator() {}
+    private static SugiliteNodeAnnotator instance;
 
-    public static class AnnotatingResult {
+    public static SugiliteNodeAnnotator getInstance(){
+        if (instance == null) {
+            instance = new SugiliteNodeAnnotator();
+            return instance;
+        } else {
+            return instance;
+        }
+    }
+
+    private SugiliteNodeAnnotator() {
+
+
+    }
+
+    public static class NodeAnnotatingResult {
         private SugiliteRelation relation;
         private SugiliteEntity<Node> subject;
         private SugiliteEntity<Node> object;
 
-        public AnnotatingResult(SugiliteRelation relation, SugiliteEntity<Node> subject, SugiliteEntity<Node> object) {
+        public NodeAnnotatingResult(SugiliteRelation relation, SugiliteEntity<Node> subject, SugiliteEntity<Node> object) {
             this.relation = relation;
             this.subject = subject;
             this.object = object;
         }
 
-        public SugiliteRelation getRelation() {return relation;}
+        public SugiliteRelation getRelation() {
+            return relation;
+        }
 
-        public SugiliteEntity<Node> getSubject() {return subject;}
+        public SugiliteEntity<Node> getSubject() {
+            return subject;
+        }
 
         public SugiliteEntity<Node> getObjectEntity() {
             return object;
         }
 
-        public Node getObject() {return object.getEntityValue();}
+        public Node getObject() {
+            return object.getEntityValue();
+        }
     }
 
-    public List<AnnotatingResult> annotate(Collection<SugiliteEntity<Node>> nodes) {
-        List<AnnotatingResult> result = new ArrayList<>();
+    public List<NodeAnnotatingResult> annotate(Collection<SugiliteEntity<Node>> nodes) {
+        List<NodeAnnotatingResult> result = new ArrayList<>();
         nodes.removeIf(n -> !(n.getEntityValue().getClickable()) && n.getEntityValue().getText() == null);
         nodes.removeIf(n -> !onScreen(n));
         for (SugiliteEntity<Node> n1 : nodes) {
             for (SugiliteEntity<Node> n2 : nodes) {
-                if (n1 == n2) continue;
+                if (n1 == n2) {
+                    continue;
+                }
                 MyRect r1 = MyRect.unflattenFromString(n1.getEntityValue().getBoundsInScreen());
                 MyRect r2 = MyRect.unflattenFromString(n2.getEntityValue().getBoundsInScreen());
-                if (r1.intersect(r2)) continue;
-                if (r1.contains(r2))
-                    result.add(new AnnotatingResult(SugiliteRelation.CONTAINS, n1, n2));
-                else if (r2.contains(r1)) continue;
+                if (r1.intersect(r2)) {
+                    continue;
+                }
+                if (r1.contains(r2)) {
+                    result.add(new NodeAnnotatingResult(SugiliteRelation.CONTAINS, n1, n2));
+                }
+                else if (r2.contains(r1)) {
+                    continue;
+                }
                 else {
                     double dist = distance(r1.centerX(), r1.centerY(), r2.centerX(), r2.centerY());
                     if (dist > SEPARATE_THRESHOLD) continue;
                     if (separation(r1, r2) <= NEAR_THRESHOLD && separation(r1, r2) >= 0)
-                        result.add(new AnnotatingResult(SugiliteRelation.NEAR, n1, n2));
+                        result.add(new NodeAnnotatingResult(SugiliteRelation.NEAR, n1, n2));
                     if (isRight(r1.centerX(), r1.centerY(), r2.centerX(), r2.centerY())) {
-                        result.add(new AnnotatingResult(SugiliteRelation.RIGHT, n1, n2));
-                        result.add(new AnnotatingResult(SugiliteRelation.NEXT_TO, n1, n2));
+                        result.add(new NodeAnnotatingResult(SugiliteRelation.RIGHT, n1, n2));
+                        result.add(new NodeAnnotatingResult(SugiliteRelation.NEXT_TO, n1, n2));
                     }
                     if (isRight(r2.centerX(), r2.centerY(), r1.centerX(), r1.centerY())) {
-                        result.add(new AnnotatingResult(SugiliteRelation.LEFT, n1, n2));
-                        result.add(new AnnotatingResult(SugiliteRelation.NEXT_TO, n1, n2));
+                        result.add(new NodeAnnotatingResult(SugiliteRelation.LEFT, n1, n2));
+                        result.add(new NodeAnnotatingResult(SugiliteRelation.NEXT_TO, n1, n2));
                     }
                     if (isAbove(r1.centerX(), r1.centerY(), r2.centerX(), r2.centerY()))
-                        result.add(new AnnotatingResult(SugiliteRelation.ABOVE, n1, n2));
+                        result.add(new NodeAnnotatingResult(SugiliteRelation.ABOVE, n1, n2));
                     if (isAbove(r2.centerX(), r2.centerY(), r1.centerX(), r1.centerY()))
-                        result.add(new AnnotatingResult(SugiliteRelation.BELOW, n1, n2));
+                        result.add(new NodeAnnotatingResult(SugiliteRelation.BELOW, n1, n2));
                 }
             }
         }
@@ -90,18 +116,18 @@ public class SugiliteNodeAnnotator {
 
     private boolean isRight(int x1, int y1, int x2, int y2) {
         if (x1 <= x2) return false;
-        float slope = (float)(y2 - y1)/(float)(x2 - x1);
+        float slope = (float) (y2 - y1) / (float) (x2 - x1);
         return Math.abs(slope) <= ALIGNMENT_THRESHOLD;
     }
 
     private boolean isAbove(int x1, int y1, int x2, int y2) {
         if (y2 <= y1) return false;
-        float slope = (float)(x2 - x1)/(float)(y2 - y1);
+        float slope = (float) (x2 - x1) / (float) (y2 - y1);
         return Math.abs(slope) <= ALIGNMENT_THRESHOLD;
     }
 
     private double distance(int x1, int y1, int x2, int y2) {
-        return Math.sqrt((x1-x2)*(x1-x2) + (y1-y2)*(y1-y2));
+        return Math.sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2));
     }
 
     private int separation(MyRect r1, MyRect r2) {

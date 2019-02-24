@@ -7,7 +7,7 @@ import java.util.List;
 import edu.cmu.hcii.sugilite.Const;
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.model.variable.VariableHelper;
-import edu.cmu.hcii.sugilite.ontology.helper.annotator.SugiliteTextAnnotator;
+import edu.cmu.hcii.sugilite.ontology.helper.annotator.SugiliteTextParentAnnotator;
 import edu.cmu.hcii.sugilite.recording.ReadableDescriptionGenerator;
 import edu.cmu.hcii.sugilite.source_parsing.SugiliteScriptExpression;
 
@@ -150,9 +150,9 @@ public class SugiliteBooleanExpression implements Serializable {
             //need to check if want to annotate b/c if don't, might still be annotatable and mess things up. (ex.: (stringContains 100ml 0ml)
             // if annotated would produce expressions 100 and 0, while the user wants to compare expressions 100ml and 0ml)
             if(annotate) {
-                SugiliteTextAnnotator annotator = new SugiliteTextAnnotator(true);
-                List<SugiliteTextAnnotator.AnnotatingResult> result1 = annotator.annotate(expression1);
-                List<SugiliteTextAnnotator.AnnotatingResult> result2 = annotator.annotate(expression2);
+                SugiliteTextParentAnnotator annotator = SugiliteTextParentAnnotator.getInstance();
+                List<SugiliteTextParentAnnotator.AnnotatingResult> result1 = annotator.annotate(expression1);
+                List<SugiliteTextParentAnnotator.AnnotatingResult> result2 = annotator.annotate(expression2);
                 if (!result1.isEmpty()) {
                     if(operator.contains("string")) {
                         expression1 = result1.get(0).getMatchedString();

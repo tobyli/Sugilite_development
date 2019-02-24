@@ -9,7 +9,7 @@ import edu.cmu.hcii.sugilite.model.operation.unary.SugiliteResolveBoolExpOperati
 import edu.cmu.hcii.sugilite.model.operation.unary.SugiliteResolveValueQueryOperation;
 import edu.cmu.hcii.sugilite.model.value.SugiliteSimpleConstant;
 import edu.cmu.hcii.sugilite.model.value.SugiliteValue;
-import edu.cmu.hcii.sugilite.ontology.helper.annotator.SugiliteTextAnnotator;
+import edu.cmu.hcii.sugilite.ontology.helper.annotator.SugiliteTextParentAnnotator;
 import edu.cmu.hcii.sugilite.source_parsing.SugiliteScriptExpression;
 
 import java.io.Serializable;
@@ -116,18 +116,18 @@ public class SugiliteBooleanExpressionNew implements SugiliteValue<Boolean>, Ser
                 //note: Boolean is also Comparable
 
                 //normalize arg0Value and arg1Value using SugiliteTextAnnotator
-                SugiliteTextAnnotator.AnnotatingResult annotatingResult0 = null;
+                SugiliteTextParentAnnotator.AnnotatingResult annotatingResult0 = null;
                 if (arg0 instanceof SugiliteSimpleConstant) {
                     annotatingResult0 = ((SugiliteSimpleConstant) arg0).toAnnotatingResult();
                 } else if (arg0Value instanceof String) {
-                    annotatingResult0 = SugiliteTextAnnotator.AnnotatingResult.fromString((String)arg0Value);
+                    annotatingResult0 = SugiliteTextParentAnnotator.AnnotatingResult.fromString((String)arg0Value);
                 }
 
-                SugiliteTextAnnotator.AnnotatingResult annotatingResult1 = null;
+                SugiliteTextParentAnnotator.AnnotatingResult annotatingResult1 = null;
                 if (arg1 instanceof SugiliteSimpleConstant) {
                     annotatingResult1 = ((SugiliteSimpleConstant) arg1).toAnnotatingResult();
                 } else if (arg1Value instanceof String) {
-                    annotatingResult1 = SugiliteTextAnnotator.AnnotatingResult.fromString((String)arg1Value);
+                    annotatingResult1 = SugiliteTextParentAnnotator.AnnotatingResult.fromString((String)arg1Value);
                 }
                 //compare using annotatingResults if both are available
                 if (annotatingResult0 != null && annotatingResult1 != null){

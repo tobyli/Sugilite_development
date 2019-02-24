@@ -328,10 +328,11 @@ public class VerbalInstructionIconManager implements SugiliteVoiceInterface {
                     }
                     //collect the ui snapshot when the cat icon has been clicked on
                     SerializableUISnapshot serializedUISnapshot = null;
-                    if(getLatestUISnapshot() != null) {
-                        serializedUISnapshot = new SerializableUISnapshot(getLatestUISnapshot());
+                    if(latestUISnapshot != null) {
+                        latestUISnapshot.annotateStringEntitiesIfNeeded();
+                        serializedUISnapshot = new SerializableUISnapshot(latestUISnapshot);
                     }
-                    final SerializableUISnapshot finalSsrializedUISnapshot = serializedUISnapshot;
+                    final SerializableUISnapshot finalSerializedUISnapshot = serializedUISnapshot;
 
                     //initialize the popup dialog
                     AlertDialog.Builder textDialogBuilder = new AlertDialog.Builder(context);
@@ -355,16 +356,15 @@ public class VerbalInstructionIconManager implements SugiliteVoiceInterface {
                                     switch (operationClone[which]) {
                                         case "Send a verbal instruction":
                                             //send a verbal instruction
-                                            if(getLatestUISnapshot() != null) {
-                                                if(finalSsrializedUISnapshot != null) {
-                                                    VerbalInstructionTestDialog verbalInstructionDialog = new VerbalInstructionTestDialog(finalSsrializedUISnapshot, context, layoutInflater, sugiliteData, sharedPreferences, tts);
-                                                    verbalInstructionDialog.show();
-                                                }
-
-                                                if(dialog != null){
-                                                    dialog.dismiss();
-                                                }
+                                            if(finalSerializedUISnapshot != null) {
+                                                VerbalInstructionTestDialog verbalInstructionDialog = new VerbalInstructionTestDialog(finalSerializedUISnapshot, context, layoutInflater, sugiliteData, sharedPreferences, tts);
+                                                verbalInstructionDialog.show();
                                             }
+
+                                            if(dialog != null){
+                                                dialog.dismiss();
+                                            }
+
                                             else{
                                                 Toast.makeText(context, "UI snapshot is NULL!", Toast.LENGTH_SHORT).show();
                                             }
@@ -382,13 +382,10 @@ public class VerbalInstructionIconManager implements SugiliteVoiceInterface {
                                             if(dialog != null){
                                                 dialog.dismiss();
                                             }
-                                            if(getLatestUISnapshot() != null) {
-                                                Gson gson = new GsonBuilder().excludeFieldsWithModifiers(Modifier.FINAL, Modifier.TRANSIENT, Modifier.STATIC)
-                                                        .serializeNulls()
-                                                        .create();
-                                                int snapshot_size = getLatestUISnapshot().getNodeSugiliteEntityMap().size();
-                                                SerializableUISnapshot serializedUISnapshot2 = new SerializableUISnapshot(getLatestUISnapshot());
-                                                dumpUISnapshot(serializedUISnapshot2);
+
+                                            if(finalSerializedUISnapshot != null) {
+                                                int snapshot_size = finalSerializedUISnapshot.getSugiliteEntityIdSugiliteEntityMap().size();
+                                                dumpUISnapshot(finalSerializedUISnapshot);
                                                 Toast.makeText(context, "dumped a UI snapshot with " + snapshot_size + " nodes", Toast.LENGTH_SHORT).show();
                                             }
                                             break;

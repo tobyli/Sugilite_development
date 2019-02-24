@@ -8,8 +8,7 @@ import java.text.ParseException;
 import java.util.List;
 
 import edu.cmu.hcii.sugilite.SugiliteData;
-import edu.cmu.hcii.sugilite.ontology.helper.annotator.SugiliteNodeAnnotator;
-import edu.cmu.hcii.sugilite.ontology.helper.annotator.SugiliteTextAnnotator;
+import edu.cmu.hcii.sugilite.ontology.helper.annotator.SugiliteTextParentAnnotator;
 
 import static edu.cmu.hcii.sugilite.source_parsing.SugiliteScriptExpression.addQuoteToTokenIfNeeded;
 
@@ -36,9 +35,9 @@ public class SugiliteSimpleConstant<T> implements SugiliteValue<T>, Serializable
     }
 
 
-    public SugiliteTextAnnotator.AnnotatingResult toAnnotatingResult(){
-        SugiliteTextAnnotator annotator = new SugiliteTextAnnotator(true);
-        List<SugiliteTextAnnotator.AnnotatingResult> results;
+    public SugiliteTextParentAnnotator.AnnotatingResult toAnnotatingResult(){
+        SugiliteTextParentAnnotator annotator = SugiliteTextParentAnnotator.getInstance();
+        List<SugiliteTextParentAnnotator.AnnotatingResult> results;
         if (unit != null) {
             results = annotator.annotate(value.toString() + " " + unit);
         } else {

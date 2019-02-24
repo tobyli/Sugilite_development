@@ -1,24 +1,33 @@
 package edu.cmu.hcii.sugilite.ontology.helper.annotator;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import edu.cmu.hcii.sugilite.ontology.SugiliteRelation;
+import edu.cmu.hcii.sugilite.ontology.helper.annotator.SugiliteTextParentAnnotator.AnnotatingResult;
 
 /**
  * @author toby
  * @date 1/17/18
  * @time 11:49 PM
  */
-public class EmailAddressAnnotator extends SugiliteTextAnnotator {
-    public EmailAddressAnnotator(){
-        super();
+public class EmailAddressAnnotator implements SugiliteTextAnnotator {
+    private Map<String, List<AnnotatingResult>> cache;
+
+    EmailAddressAnnotator(){
+        cache = new HashMap<>();
     }
 
     @Override
     public List<AnnotatingResult> annotate(String text) {
+        if (cache.containsKey(text)){
+            return cache.get(text);
+        }
+
         List<AnnotatingResult> results = new ArrayList<>();
         Pattern pattern = Pattern.compile("\\b\\w+([-+.']\\w+)*@\\w+([-.]\\w+)*\\.\\w+([-.]\\w+)*\\b");
         Matcher matcher = pattern.matcher(text);
@@ -26,6 +35,8 @@ public class EmailAddressAnnotator extends SugiliteTextAnnotator {
             AnnotatingResult result = new AnnotatingResult(RELATION, text.substring(matcher.start(), matcher.end()), matcher.start(), matcher.end());
             results.add(result);
         }
+
+        cache.put(text, results);
         return results;
     }
 

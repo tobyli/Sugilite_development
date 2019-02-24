@@ -1,11 +1,14 @@
 package edu.cmu.hcii.sugilite.ontology.helper.annotator;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import edu.cmu.hcii.sugilite.ontology.SugiliteRelation;
+import edu.cmu.hcii.sugilite.ontology.helper.annotator.SugiliteTextParentAnnotator.AnnotatingResult;
 
 /**
  * Given input as a string containing duration (with keywords hr, min, etc.), parse the duration and
@@ -14,8 +17,12 @@ import edu.cmu.hcii.sugilite.ontology.SugiliteRelation;
  * Created by shi on 3/1/18.
  */
 
-public class DurationAnnotator extends SugiliteTextAnnotator {
-    public DurationAnnotator() {super();}
+public class DurationAnnotator implements SugiliteTextAnnotator {
+    private Map<String, List<AnnotatingResult>> cache;
+
+    DurationAnnotator() {
+        cache = new HashMap<>();
+    }
 
     static final int DAY = 86400000;
     static final int HOUR = 3600000;
@@ -24,6 +31,10 @@ public class DurationAnnotator extends SugiliteTextAnnotator {
 
     @Override
     public List<AnnotatingResult> annotate(String text) {
+        if (cache.containsKey(text)){
+            return cache.get(text);
+        }
+
         List<AnnotatingResult> results = new ArrayList<>();
         String regex = "\\b\\d+?(.\\d+?)?( )?(d|h|hr(s)?|hour(s)?|m|min(s)?|minute(s)?|s|sec)\\b";
         Pattern pattern = Pattern.compile(regex);
@@ -60,6 +71,8 @@ public class DurationAnnotator extends SugiliteTextAnnotator {
                 e.printStackTrace();
             }
         }
+
+        cache.put(text, results);
         return results;
     }
 

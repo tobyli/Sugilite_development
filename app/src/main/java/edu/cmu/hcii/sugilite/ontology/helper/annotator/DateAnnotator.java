@@ -1,34 +1,43 @@
 package edu.cmu.hcii.sugilite.ontology.helper.annotator;
 
-import android.util.TimeUtils;
-
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.ArrayList;
 import java.util.GregorianCalendar;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import edu.cmu.hcii.sugilite.ontology.SugiliteRelation;
+import edu.cmu.hcii.sugilite.ontology.helper.annotator.SugiliteTextParentAnnotator.AnnotatingResult;
 
 /**
  * Given the input as a string containing dates of the specified formats, parse it and store the
  * dates as the number of milliseconds passed from 1970-01-01 until 12 am on that date.
- *
+ * <p>
  * Created by shi on 2/8/18.
  */
 
-public class DateAnnotator extends SugiliteTextAnnotator {
-    public DateAnnotator() { super(); }
+public class DateAnnotator implements SugiliteTextAnnotator {
+    private Map<String, List<SugiliteTextParentAnnotator.AnnotatingResult>> cache;
+
+    DateAnnotator() {
+        cache = new HashMap<>();
+    }
 
     @Override
-    public List<AnnotatingResult> annotate(String text) {
-        List<AnnotatingResult> results = new ArrayList<>();
+    public List<SugiliteTextParentAnnotator.AnnotatingResult> annotate(String text) {
+        if (cache.containsKey(text)){
+            return cache.get(text);
+        }
+
+        List<SugiliteTextParentAnnotator.AnnotatingResult> results = new ArrayList<>();
         String mmddyyyy = "\\b(0?[1-9]|1[0-2])[/-](0?[1-9]|[1-2][0-9]|3[0-1])[/-][0-9]{4}\\b";
         String complex = "\\b(Jan(uary)?|Feb(ruary)?|Mar(ch)?|Apr(il)?|May|Jun(e)?|Jul(y)?|Aug(ust)?" +
                 "|Sep(tember)?|Oct(ober)?|Nov(ember)?|Dec(ember)?)[. ](0?[1-9]|[1-2][0-9]|3[0-1])((,)? [0-9]{4})?\\b";
@@ -52,8 +61,8 @@ public class DateAnnotator extends SugiliteTextAnnotator {
             if (year < 1970) continue;
 
             Calendar cal = new GregorianCalendar();
-            cal.set(year, month-1, date, 0, 0, 0);
-            double value = (double)(cal.getTime().getTime());
+            cal.set(year, month - 1, date, 0, 0, 0);
+            double value = (double) (cal.getTime().getTime());
             AnnotatingResult res = new AnnotatingResult(RELATION, text.substring(matcher.start(), matcher.end()),
                     matcher.start(), matcher.end(), value);
             results.add(res);
@@ -71,15 +80,16 @@ public class DateAnnotator extends SugiliteTextAnnotator {
             if (parsed.length == 2)
                 y = String.valueOf(Calendar.getInstance().get(Calendar.YEAR));
             else
-                y = parsed[parsed.length-1];
+                y = parsed[parsed.length - 1];
             String comb = m + " " + d + " " + y;
             try {
                 Date date = new SimpleDateFormat("MMM dd yyyy").parse(comb);
-                double value = (double)(date.getTime());
+                double value = (double) (date.getTime());
                 AnnotatingResult res = new AnnotatingResult(RELATION, text.substring(matcher.start(), matcher.end()),
                         matcher.start(), matcher.end(), value);
                 results.add(res);
-            } catch (java.text.ParseException e) { }
+            } catch (java.text.ParseException e) {
+            }
         }
 
         matcher = pattern3.matcher(text);
@@ -92,8 +102,8 @@ public class DateAnnotator extends SugiliteTextAnnotator {
             if (year < 1970) continue;
 
             Calendar cal = new GregorianCalendar();
-            cal.set(year, month-1, date, 0, 0, 0);
-            double value = (double)(cal.getTime().getTime());
+            cal.set(year, month - 1, date, 0, 0, 0);
+            double value = (double) (cal.getTime().getTime());
             AnnotatingResult res = new AnnotatingResult(RELATION, text.substring(matcher.start(), matcher.end()),
                     matcher.start(), matcher.end(), value);
             results.add(res);
@@ -111,13 +121,14 @@ public class DateAnnotator extends SugiliteTextAnnotator {
             int month = Integer.valueOf(parsed[1]);
             int date = Integer.valueOf(parsed[2]);
 
-            cal.set(year, month-1, date, 0, 0, 0);
-            double value = (double)(cal.getTime().getTime());
+            cal.set(year, month - 1, date, 0, 0, 0);
+            double value = (double) (cal.getTime().getTime());
             AnnotatingResult res = new AnnotatingResult(RELATION, text.substring(matcher.start(), matcher.end()),
                     matcher.start(), matcher.end(), value);
             results.add(res);
         }
 
+        cache.put(text, results);
         return results;
     }
 

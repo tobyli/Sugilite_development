@@ -42,7 +42,7 @@ import edu.cmu.hcii.sugilite.model.variable.VariableHelper;
 import edu.cmu.hcii.sugilite.ontology.OntologyQuery;
 import edu.cmu.hcii.sugilite.ontology.SugiliteEntity;
 import edu.cmu.hcii.sugilite.ontology.UISnapshot;
-import edu.cmu.hcii.sugilite.ontology.helper.annotator.SugiliteTextAnnotator;
+import edu.cmu.hcii.sugilite.ontology.helper.annotator.SugiliteTextParentAnnotator;
 import edu.cmu.hcii.sugilite.recording.SugiliteScreenshotManager;
 import edu.cmu.hcii.sugilite.ui.BoundingBoxManager;
 import edu.cmu.hcii.sugilite.ui.StatusIconManager;
@@ -71,12 +71,12 @@ public class Automator {
     private TextToSpeech tts = null;
     private boolean ttsReady = false;
     private SugiliteScreenshotManager screenshotManager;
-    private SugiliteTextAnnotator sugiliteTextAnnotator;
+    private SugiliteTextParentAnnotator sugiliteTextParentAnnotator;
 
-    public Automator(SugiliteData sugiliteData, SugiliteAccessibilityService context, StatusIconManager statusIconManager, SharedPreferences sharedPreferences, SugiliteTextAnnotator sugiliteTextAnnotator){
+    public Automator(SugiliteData sugiliteData, SugiliteAccessibilityService context, StatusIconManager statusIconManager, SharedPreferences sharedPreferences, SugiliteTextParentAnnotator sugiliteTextParentAnnotator){
         this.sugiliteData = sugiliteData;
         this.serviceContext = context;
-        this.sugiliteTextAnnotator = sugiliteTextAnnotator;
+        this.sugiliteTextParentAnnotator = sugiliteTextParentAnnotator;
         this.boundingBoxManager = new BoundingBoxManager(context);
         if(Const.DAO_TO_USE == SQL_SCRIPT_DAO)
             this.sugiliteScriptDao = new SugiliteScriptSQLDao(context);
@@ -165,7 +165,7 @@ public class Automator {
                 return false;
             }
 
-            if (operationBlock.getOperation().containsDataDescriptionQuery() == false) {
+            if (!operationBlock.getOperation().containsDataDescriptionQuery()) {
                 //there is no query in the operation block
                 if (operationBlock.getOperation().getOperationType() == SugiliteOperation.SPECIAL_GO_HOME) {
                     //perform the go home operation - because the go home operation will have a null filter
@@ -265,12 +265,12 @@ public class Automator {
                     }
                     lastTimeFailed.clear();
                     if(succeeded){
-                        return succeeded;
+                        return true;
                     }
                 }
 
 
-                UISnapshot uiSnapshot = new UISnapshot(rootNode, true, sugiliteTextAnnotator);
+                UISnapshot uiSnapshot = new UISnapshot(rootNode, true, sugiliteTextParentAnnotator, true);
 
                 //de-serialize the OntologyQuery
                 OntologyQuery q = new OntologyQuery(operationBlock.getOperation().getDataDescriptionQueryIfAvailable());

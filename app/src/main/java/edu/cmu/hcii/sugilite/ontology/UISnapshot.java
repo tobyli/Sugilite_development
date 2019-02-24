@@ -14,15 +14,19 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 import edu.cmu.hcii.sugilite.model.Node;
 import edu.cmu.hcii.sugilite.automation.AutomatorUtil;
 import edu.cmu.hcii.sugilite.ontology.helper.ListOrderResolver;
 import edu.cmu.hcii.sugilite.ontology.helper.TextStringParseHelper;
-import edu.cmu.hcii.sugilite.ontology.helper.annotator.SugiliteTextAnnotator;
+import edu.cmu.hcii.sugilite.ontology.helper.annotator.SugiliteTextParentAnnotator;
+
+import static edu.cmu.hcii.sugilite.Const.UI_SNAPSHOT_TEXT_PARSING_THREAD_COUNT;
 
 /**
  * @author toby
@@ -30,14 +34,14 @@ import edu.cmu.hcii.sugilite.ontology.helper.annotator.SugiliteTextAnnotator;
  * @time 5:57 PM
  */
 public class UISnapshot {
-    private Set<SugiliteTriple> triples;
+    private final Set<SugiliteTriple> triples;
 
     //indexes for triples
-    private Map<Integer, Set<SugiliteTriple>> subjectTriplesMap;
-    private Map<Integer, Set<SugiliteTriple>> objectTriplesMap;
-    private Map<Integer, Set<SugiliteTriple>> predicateTriplesMap;
+    private final Map<Integer, Set<SugiliteTriple>> subjectTriplesMap;
+    private final Map<Integer, Set<SugiliteTriple>> objectTriplesMap;
+    private final Map<Integer, Set<SugiliteTriple>> predicateTriplesMap;
 
-    private transient Map<Map.Entry<Integer, Integer>, Set<SugiliteTriple>> subjectPredicateTriplesMap;
+    private final transient Map<Map.Entry<Integer, Integer>, Set<SugiliteTriple>> subjectPredicateTriplesMap;
 
     //indexes for entities and relations
     private Map<Integer, SugiliteEntity> sugiliteEntityIdSugiliteEntityMap;
@@ -45,18 +49,22 @@ public class UISnapshot {
 
 
     private transient int entityIdCounter;
-    private transient Map<Node, SugiliteEntity<Node>> nodeSugiliteEntityMap;
-    private transient Map<String, SugiliteEntity<String>> stringSugiliteEntityMap;
-    private transient Map<Double, SugiliteEntity<Double>> doubleSugiliteEntityMap;
-    private transient Map<Boolean, SugiliteEntity<Boolean>> booleanSugiliteEntityMap;
-    private transient Map<Node, AccessibilityNodeInfo> nodeAccessibilityNodeInfoMap;
-    private transient UISnapshot uiSnapshot;
+    private final transient Map<Node, SugiliteEntity<Node>> nodeSugiliteEntityMap;
+    private final transient Map<String, SugiliteEntity<String>> stringSugiliteEntityMap;
+    private final transient Map<Double, SugiliteEntity<Double>> doubleSugiliteEntityMap;
+    private final transient Map<Boolean, SugiliteEntity<Boolean>> booleanSugiliteEntityMap;
+    private final transient Map<Node, AccessibilityNodeInfo> nodeAccessibilityNodeInfoMap;
+    private final transient UISnapshot uiSnapshot;
+
+    private boolean stringEntitiesAreAnnotated = false;
 
     protected static final String TAG = UISnapshot.class.getSimpleName();
 
 
+    //construct an empty UI snapshot
     public UISnapshot(){
         //empty
+        uiSnapshot = this;
         triples = new HashSet<>();
         subjectTriplesMap = new HashMap<>();
         objectTriplesMap = new HashMap<>();
@@ -72,17 +80,9 @@ public class UISnapshot {
         entityIdCounter = 0;
     }
 
-    @Deprecated
-    public UISnapshot(AccessibilityEvent event){
-        //TODO: contruct a UI snapshot from an event
-        //get the rootNode from event and pass into to the below function
+    //construct a UISnapshot for a list of windows
+    public UISnapshot(List<AccessibilityWindowInfo> windows, boolean toConstructNodeAccessibilityNodeInfoMap, SugiliteTextParentAnnotator sugiliteTextParentAnnotator, boolean toAnnotateStringEntities) {
         this();
-        this.uiSnapshot = this;
-    }
-
-    public UISnapshot(List<AccessibilityWindowInfo> windows, boolean toConstructNodeAccessibilityNodeInfoMap, SugiliteTextAnnotator sugiliteTextAnnotator) {
-        this();
-        this.uiSnapshot = this;
         List<Node> allNodes = new ArrayList<>();
         for(AccessibilityWindowInfo window : windows){
             AccessibilityNodeInfo rootNode = window.getRoot();
@@ -91,14 +91,14 @@ public class UISnapshot {
             }
         }
         long startTime = System.currentTimeMillis();
-        constructFromListOfNodes(allNodes, sugiliteTextAnnotator);
+        constructFromListOfNodes(allNodes, toAnnotateStringEntities);
         long stopTime = System.currentTimeMillis();
         Log.i(TAG, "Constructed from List of Nodes! -- Takes " + String.valueOf(stopTime - startTime) + "ms");
     }
 
-    public UISnapshot(AccessibilityNodeInfo rootNode, boolean toConstructNodeAccessibilityNodeInfoMap, SugiliteTextAnnotator sugiliteTextAnnotator) {
+    //construct a UISnapshot from a rootNode
+    public UISnapshot(AccessibilityNodeInfo rootNode, boolean toConstructNodeAccessibilityNodeInfoMap, SugiliteTextParentAnnotator sugiliteTextParentAnnotator, boolean toAnnotateStringEntities) {
         this();
-        this.uiSnapshot = this;
         List<AccessibilityNodeInfo> allOldNodes = AutomatorUtil.preOrderTraverse(rootNode);
         List<Node> allNodes = new ArrayList<>();
         if(allOldNodes != null) {
@@ -113,17 +113,60 @@ public class UISnapshot {
                 }
             }
         }
-        constructFromListOfNodes(allNodes, sugiliteTextAnnotator);
+        constructFromListOfNodes(allNodes, toAnnotateStringEntities);
+    }
+
+    public void annotateStringEntitiesIfNeeded(){
+        //create a multi-thread executor for parsing strings
+        ExecutorService executor = Executors.newFixedThreadPool(UI_SNAPSHOT_TEXT_PARSING_THREAD_COUNT);
+        SugiliteTextParentAnnotator sugiliteTextParentAnnotator = SugiliteTextParentAnnotator.getInstance();
+
+        if (! stringEntitiesAreAnnotated) {
+            long startTime = System.currentTimeMillis();
+            //parse the string entities
+            TextStringParseHelper textStringParseHelper = new TextStringParseHelper(sugiliteTextParentAnnotator);
+
+            //use the tempEntities to avoid concurrentModification in the map
+            Set<SugiliteEntity<String>> tempEntities = new HashSet<>();
+
+            for(Map.Entry<String, SugiliteEntity<String>> entry : stringSugiliteEntityMap.entrySet()){
+                tempEntities.add(entry.getValue());
+            }
+
+            //use Callable and invokeAll() to wait for the finish of all threads
+            List<Callable<Boolean>> todos = new ArrayList<>();
+
+            for(SugiliteEntity<String> entity : tempEntities){
+                Callable<Boolean> callable = new Callable<Boolean>() {
+                    @Override
+                    public Boolean call() throws Exception {
+                        textStringParseHelper.parseAndAddNewRelations(entity, uiSnapshot);
+                        return true;
+                    }
+                };
+                todos.add(callable);
+            }
+            try {
+                List<Future<Boolean>> results = executor.invokeAll(todos);
+                stringEntitiesAreAnnotated = true;
+                long stopTime = System.currentTimeMillis();
+                Log.i(TAG, String.format("Parsed strings for %d entities! -- Takes %s ms", results.size(), String.valueOf(stopTime - startTime)));
+
+            } catch (InterruptedException e){
+                e.printStackTrace();;
+            } finally {
+                executor.shutdown();
+            }
+
+        }
     }
 
     /**
      * contruct a UI snapshot from a list of all nodes
      * @param allNodes
-     * @param sugiliteTextAnnotator
+     * @param toAnnotateStringEntities
      */
-    private void constructFromListOfNodes(List<Node> allNodes, SugiliteTextAnnotator sugiliteTextAnnotator){
-        //create a multi-thread executor for parsing strings
-        ExecutorService executor = Executors.newFixedThreadPool(10);
+    private void constructFromListOfNodes(List<Node> allNodes, boolean toAnnotateStringEntities){
 
         if(allNodes != null){
             for(Node node : allNodes) {
@@ -145,13 +188,13 @@ public class UISnapshot {
 
                 if (node.getClassName() != null) {
                     //class
-                    String className = node.getClassName().toString();
+                    String className = node.getClassName();
                     addEntityStringTriple(currentEntity, className, SugiliteRelation.HAS_CLASS_NAME);
                 }
 
                 if (node.getText() != null) {
                     //text
-                    String text = node.getText().toString();
+                    String text = node.getText();
                     addEntityStringTriple(currentEntity, text, SugiliteRelation.HAS_TEXT);
                 }
 
@@ -163,13 +206,13 @@ public class UISnapshot {
 
                 if (node.getPackageName() != null) {
                     //package name
-                    String packageName = node.getPackageName().toString();
+                    String packageName = node.getPackageName();
                     addEntityStringTriple(currentEntity, packageName, SugiliteRelation.HAS_PACKAGE_NAME);
                 }
 
                 if (node.getContentDescription() != null) {
                     //content description
-                    String contentDescription = node.getContentDescription().toString();
+                    String contentDescription = node.getContentDescription();
                     addEntityStringTriple(currentEntity, contentDescription, SugiliteRelation.HAS_CONTENT_DESCRIPTION);
                 }
 
@@ -276,36 +319,10 @@ public class UISnapshot {
                     }
                 }
             }
-            long startTime = System.currentTimeMillis();
-            //parse the string entities
-            TextStringParseHelper textStringParseHelper = new TextStringParseHelper(sugiliteTextAnnotator);
 
-            //use the tempEntities to avoid concurrentModification in the map
-            Set<SugiliteEntity<String>> tempEntities = new HashSet<>();
-
-            for(Map.Entry<String, SugiliteEntity<String>> entry : stringSugiliteEntityMap.entrySet()){
-                tempEntities.add(entry.getValue());
+            if (toAnnotateStringEntities) {
+                this.annotateStringEntitiesIfNeeded();
             }
-
-            for(SugiliteEntity<String> entity : tempEntities){
-                Runnable r = new Runnable() {
-                    @Override
-                    public void run() {
-                        textStringParseHelper.parseAndAddNewRelations(entity, uiSnapshot);
-                    }
-                };
-                executor.execute(r);
-            }
-
-            executor.shutdown();
-            try {
-                executor.awaitTermination(15, TimeUnit.SECONDS);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-
-            long stopTime = System.currentTimeMillis();
-            Log.i(TAG, "Parsed Strings! -- Takes " + String.valueOf(stopTime - startTime) + "ms");
             //*** temporarily disable geometric relations ***
 
             //parse node entities
@@ -327,7 +344,7 @@ public class UISnapshot {
 
     }
 
-    public void addOrderForChildren(Iterable<Node> children){
+    private void addOrderForChildren(Iterable<Node> children){
         //add list order for list items
         List<Map.Entry<Node, Integer>> childNodeYValueList = new ArrayList<>();
         for(Node childNode : children){
@@ -377,7 +394,7 @@ public class UISnapshot {
         return results;
     }
 
-    public static String cleanUpString(String string){
+    private static String cleanUpString(String string){
         return string.replace("(", "").replace(")", "").replace("\"", "");
     }
 
@@ -388,7 +405,7 @@ public class UISnapshot {
      * @param string
      * @param relation
      */
-    public synchronized void addEntityStringTriple(SugiliteEntity currentEntity, String string, SugiliteRelation relation){
+    public void addEntityStringTriple(SugiliteEntity currentEntity, String string, SugiliteRelation relation){
         //class
         SugiliteEntity<String> objectEntity = null;
 
@@ -400,13 +417,17 @@ public class UISnapshot {
         } else {
             //create a new entity for the class name
             SugiliteEntity<String> entity = new SugiliteEntity<>(entityIdCounter++, String.class, string);
-            stringSugiliteEntityMap.put(string, entity);
+            synchronized (stringSugiliteEntityMap) {
+                stringSugiliteEntityMap.put(string, entity);
+            }
             objectEntity = entity;
         }
 
         SugiliteTriple triple = new SugiliteTriple(currentEntity, relation, objectEntity);
         triple.setObjectStringValue(string);
-        addTriple(triple);
+        synchronized (this) {
+            addTriple(triple);
+        }
     }
 
     /**
@@ -415,7 +436,7 @@ public class UISnapshot {
      * @param numeric
      * @param relation
      */
-    public void addEntityNumericTriple(SugiliteEntity currentEntity, Double numeric, SugiliteRelation relation){
+    private void addEntityNumericTriple(SugiliteEntity currentEntity, Double numeric, SugiliteRelation relation){
         //class
         SugiliteEntity<Double> objectEntity = null;
 
@@ -439,7 +460,7 @@ public class UISnapshot {
      * @param bool
      * @param relation
      */
-    void addEntityBooleanTriple(SugiliteEntity currentEntity, Boolean bool, SugiliteRelation relation){
+    private void addEntityBooleanTriple(SugiliteEntity currentEntity, Boolean bool, SugiliteRelation relation){
         //class
         SugiliteEntity<Boolean> objectEntity = null;
 
@@ -489,7 +510,7 @@ public class UISnapshot {
     }
 
     //add a triple to the UI snapshot
-    public void addTriple(SugiliteTriple triple){
+    private void addTriple(SugiliteTriple triple){
         triples.add(triple);
 
         //fill in the indexes for triples

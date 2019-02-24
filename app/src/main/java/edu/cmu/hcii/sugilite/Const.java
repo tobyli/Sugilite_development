@@ -54,6 +54,9 @@ public class Const {
     //TRUE to allow simultaneous verbal instruction + demonstration
     public static final boolean ENABLE_SIMULTANEOUS_INSTRUCTION_AND_DEMONSTRATION = false;
 
+    //# of thread for parsing/annotating string entities in UISnapshot
+    public static final int UI_SNAPSHOT_TEXT_PARSING_THREAD_COUNT = 5;
+
 
     //contain package names for launchers so they won't be killed
     public static final String[] HOME_SCREEN_PACKAGE_NAMES = {"com.google.android.googlequicksearchbox", "com.google.android.apps.nexuslauncher"};

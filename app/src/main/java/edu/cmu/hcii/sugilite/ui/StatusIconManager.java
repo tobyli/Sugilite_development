@@ -153,22 +153,17 @@ public class StatusIconManager {
 
         //NEEDED TO BE CONFIGURED AT APPS->SETTINGS-DRAW OVER OTHER APPS on API>=23
         int currentApiVersion = android.os.Build.VERSION.SDK_INT;
-        if(currentApiVersion >= 23){
+        if(currentApiVersion >= 23) {
             checkDrawOverlayPermission();
-            if(Settings.canDrawOverlays(context))
-                try {
-                    windowManager.addView(statusIcon, iconParams);
-                } catch (Exception e){
-                    e.printStackTrace();
-                }
-
+            if (Settings.canDrawOverlays(context)) {
+                windowManager.addView(statusIcon, iconParams);
                 //=== temporarily set the status view to invisible  ===
                 windowManager.addView(statusView, textViewParams);
                 statusView.setVisibility(View.INVISIBLE);
+            }
         }
         else {
             windowManager.addView(statusIcon, iconParams);
-
 
             //=== temporarily set the status view to invisible ===
             windowManager.addView(statusView, textViewParams);
@@ -188,16 +183,17 @@ public class StatusIconManager {
      */
     public void removeStatusIcon(){
         try{
-            if(statusIcon != null) {
+            if(statusIcon != null && statusIcon.getWindowToken() != null) {
                 windowManager.removeView(statusIcon);
             }
-            if(statusView != null) {
+            if(statusView != null && statusView.getWindowToken() != null) {
                 windowManager.removeView(statusView);
             }
-            showingIcon = false;
         }
         catch (Exception e){
             e.printStackTrace();
+        } finally {
+            showingIcon = false;
         }
     }
 

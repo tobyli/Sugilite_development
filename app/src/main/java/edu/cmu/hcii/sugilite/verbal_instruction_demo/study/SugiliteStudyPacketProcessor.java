@@ -89,7 +89,7 @@ public class SugiliteStudyPacketProcessor {
         }
     }
 
-    static private SugiliteStudyPacket reParse(SugiliteStudyPacket packet) {
+    static private SugiliteStudyPacket reParse(SugiliteStudyPacket packet, int screenWidth, int screenHeight) {
         SerializableUISnapshot uiSnapshot = packet.getUiSnapshot();
         //work on triples
 
@@ -117,7 +117,8 @@ public class SugiliteStudyPacketProcessor {
         entityIdEntityMap.putAll(tempNodeEntities);
 
         SugiliteNodeAnnotator nodeAnnotator = SugiliteNodeAnnotator.getInstance();
-        for (SugiliteNodeAnnotator.NodeAnnotatingResult res : nodeAnnotator.annotate(tempNodeEntities.values())) {
+
+        for (SugiliteNodeAnnotator.NodeAnnotatingResult res : nodeAnnotator.annotate(tempNodeEntities.values(), screenWidth, screenHeight)) {
             uiSnapshot.addTriple(new SugiliteSerializableTriple("@" + res.getSubject().getEntityId().toString(), "@" + res.getObjectEntity().getEntityId().toString(), res.getRelation().getRelationName()));
         }
 
@@ -259,7 +260,7 @@ public class SugiliteStudyPacketProcessor {
                     SugiliteStudyPacket packet = readPacket(file);
                     String fileName = "RECONSTRUCTED_" + file.getName();
                     //System.out.println(dir.getAbsolutePath());
-                    writeFile(new File(dir.getAbsolutePath() + "/" + fileName), new Gson().toJson(reParse(packet)));
+                    writeFile(new File(dir.getAbsolutePath() + "/" + fileName), new Gson().toJson(reParse(packet, 1080, 1920)));
                     System.out.println("Wrote " + count++ + " JSON files");
                 }
                 catch (Exception e){

@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Rect;
 import android.os.Handler;
+import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.speech.tts.TextToSpeech;
 import android.util.Log;
@@ -39,6 +40,7 @@ import edu.cmu.hcii.sugilite.communication.SugiliteEventBroadcastingActivity;
 import edu.cmu.hcii.sugilite.dao.SugiliteAppVocabularyDao;
 import edu.cmu.hcii.sugilite.ontology.UISnapshot;
 import edu.cmu.hcii.sugilite.ontology.helper.annotator.SugiliteTextParentAnnotator;
+import edu.cmu.hcii.sugilite.pumice.visualization.PumiceDemoVisualizationManager;
 import edu.cmu.hcii.sugilite.recording.SugiliteScreenshotManager;
 import edu.cmu.hcii.sugilite.automation.*;
 import edu.cmu.hcii.sugilite.model.block.util.SerializableNodeInfo;
@@ -78,6 +80,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
     private SugiliteData sugiliteData;
     private StatusIconManager statusIconManager;
     private VerbalInstructionIconManager verbalInstructionIconManager;
+    private PumiceDemoVisualizationManager pumiceDemoVisualizationManager;
     private SugiliteScreenshotManager screenshotManager;
     private SugiliteStudyHandler sugiliteStudyHandler;
     private Set<Integer> accessibilityEventSetToHandle, accessibilityEventSetToSend, accessibilityEventSetToTrack;
@@ -145,7 +148,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
 
         screenshotManager = new SugiliteScreenshotManager(sharedPreferences, getApplicationContext());
         sugiliteTextParentAnnotator = SugiliteTextParentAnnotator.getInstance();
-        automator = new Automator(sugiliteData, this, statusIconManager, sharedPreferences, sugiliteTextParentAnnotator);
+        automator = new Automator(sugiliteData, this, statusIconManager, sharedPreferences, sugiliteTextParentAnnotator, tts);
         sugilteTrackingHandler = new SugiliteTrackingHandler(sugiliteData, getApplicationContext());
         availableAlternatives = new HashSet<>();
         availableAlternativeNodes = new HashSet<>();
@@ -204,11 +207,12 @@ public class SugiliteAccessibilityService extends AccessibilityService {
         exceptedPackages.addAll(Arrays.asList(Const.INPUT_METHOD_PACKAGE_NAMES));
         trackingExcludedPackages.addAll(Arrays.asList(Const.ACCESSIBILITY_SERVICE_TRACKING_EXCLUDED_PACKAGE_NAMES));
 
+        init();
+
         Toast.makeText(this, "Sugilite Accessibility Service Created", Toast.LENGTH_SHORT).show();
     }
 
-    @Override
-    public int onStartCommand(Intent intent, int flags, int startId) {
+    private void init() {
         sugiliteData.clearInstructionQueue();
 
         if (sugiliteData.errorHandler == null) {
@@ -248,8 +252,8 @@ public class SugiliteAccessibilityService extends AccessibilityService {
             //do nothing
         }
 
+        pumiceDemoVisualizationManager = new PumiceDemoVisualizationManager(context);
         Toast.makeText(this, "Sugilite Accessibility Service Started", Toast.LENGTH_SHORT).show();
-        return super.onStartCommand(intent, flags, startId);
     }
 
     @Override
@@ -348,7 +352,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
         }
 
 
-        if (sugiliteData.getInstructionQueueSize() > 0 && !sharedPreferences.getBoolean("recording_in_process", true) && !exceptedPackages.contains(event.getPackageName().toString()) && sugiliteData.errorHandler != null) {
+        if (sugiliteData.getInstructionQueueSize() > 0 && !sharedPreferences.getBoolean("recording_in_process", true) && !exceptedPackages.contains(event.getPackageName()) && sugiliteData.errorHandler != null) {
             //if the script running is in progress, invoke the error handler
             sugiliteData.errorHandler.checkError(event, sugiliteData.peekInstructionQueue(), Calendar.getInstance().getTimeInMillis());
         }
@@ -371,13 +375,13 @@ public class SugiliteAccessibilityService extends AccessibilityService {
             //if recording is in progress
 
             //add package name to the relevant package set
-            if (sugiliteData.getScriptHead() != null && event.getPackageName() != null && (!exceptedPackages.contains(event.getPackageName().toString()))) {
+            if (sugiliteData.getScriptHead() != null && event.getPackageName() != null && (!exceptedPackages.contains(event.getPackageName()))) {
                 sugiliteData.getScriptHead().relevantPackages.add(event.getPackageName().toString());
             }
 
             //if the event is to be recorded, process it
             if (accessibilityEventSetToSend.contains(event.getEventType()) &&
-                    (!exceptedPackages.contains(event.getPackageName().toString())) &&
+                    (!exceptedPackages.contains(event.getPackageName())) &&
                     (!recordingOverlayManager.isShowingOverlay())) {
                 //ignore events if the recording overlay is on
 
@@ -402,7 +406,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
                 availableAlternativeNodes.addAll(getAvailableAlternativeNodes(sourceNode, rootNodeForRecording, preOrderTracerseRootNodeForRecording, exceptedPackages));
 
                 //refresh the elementsWithTextLabels list
-                if (KEEP_ALL_TEXT_LABEL_LIST && event.getPackageName() != null && (!exceptedPackages.contains(event.getPackageName().toString()))) {
+                if (KEEP_ALL_TEXT_LABEL_LIST && event.getPackageName() != null && (!exceptedPackages.contains(event.getPackageName()))) {
                     List<AccessibilityNodeInfo> nodes = getAllNodesWithText(rootNodeForRecording, preOrderTracerseRootNodeForRecording);
                     boolean toRefresh = true;
                     //hack used to avoid getting items in the duck popup
@@ -526,7 +530,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
                                 }
                             }
 
-                            if (accessibilityEventSetToSend.contains(event.getEventType()) && (!exceptedPackages.contains(event.getPackageName().toString()))) {
+                            if (accessibilityEventSetToSend.contains(event.getEventType()) && (!exceptedPackages.contains(event.getPackageName()))) {
 
                                 if (BUILDING_VOCAB) {
                                     for (Map.Entry<String, String> entry : packageVocabs) {
@@ -635,7 +639,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
                 @Override
                 public void run() {
                     //background tracking in progress
-                    if (accessibilityEventSetToTrack.contains(event.getEventType()) && (!trackingExcludedPackages.contains(event.getPackageName().toString()))) {
+                    if (accessibilityEventSetToTrack.contains(event.getEventType()) && (!trackingExcludedPackages.contains(event.getPackageName()))) {
                         sugilteTrackingHandler.handle(event, sourceNode, generateFeaturePack(event, sourceNode, rootNodeForTracking, null, null, preOrderTraverseSourceNodeForTracking, preOrderTracerseRootNodeForTracking, preOrderTraverseSibNodeForTracking));
                     }
 
@@ -710,7 +714,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
     /**
      * method used for updating the stored UI snapshot in the verbal instruction manager -- called by VerbalInstructionIconManager
      */
-    public void updateUISnapshotInVerbalInstructionManager() {
+    public void updateUISnapshotInVerbalInstructionManager(Runnable runnableOnUpdateFinishesOnUIThread) {
         try {
             //for profiling purpose
             long startTime = System.currentTimeMillis();
@@ -724,6 +728,9 @@ public class SugiliteAccessibilityService extends AccessibilityService {
                         rootNodePackageNames.add(window.getRoot().getPackageName().toString());
                     }
                 }
+                long finishGettingWindowsTime = System.currentTimeMillis();
+                Log.i(TAG, String.format("Finished getting windows -- Takes %s ms.", String.valueOf(finishGettingWindowsTime - startTime)));
+
                 //if(!rootNodePackageNames.contains("edu.cmu.hcii.sugilite")) {
                 if (true) {
                     try {
@@ -734,9 +741,11 @@ public class SugiliteAccessibilityService extends AccessibilityService {
                                 if (uiSnapshot.getNodeAccessibilityNodeInfoMap().size() >= 5) {
                                     //filter out (mostly) empty ui snapshots
                                     verbalInstructionIconManager.setLatestUISnapshot(uiSnapshot);
-                                    System.out.println("updated ui snapshot in verbal instruction manager");
                                     long stopTime = System.currentTimeMillis();
                                     Log.i(TAG, "Updated UI Snapshot! -- Takes " + String.valueOf(stopTime - startTime) + "ms");
+                                    if (runnableOnUpdateFinishesOnUIThread != null){
+                                        runOnUiThread(runnableOnUpdateFinishesOnUIThread);
+                                    }
                                 }
                             }
                         });
@@ -768,6 +777,17 @@ public class SugiliteAccessibilityService extends AccessibilityService {
                     automator.handleLiveEvent(uiSnapshot, getApplicationContext(), allNodes);
                 }
             });
+        }
+    }
+
+    public void updatePumiceOverlay(UISnapshot uiSnapshot) {
+        if (sharedPreferences.getBoolean("recording_in_process", false)) {
+            //if recording is in progress
+            if (sugiliteData.currentPumiceValueDemonstrationType != null) {
+                pumiceDemoVisualizationManager.refreshBasedOnSnapshotAndRelationType(uiSnapshot, sugiliteData.currentPumiceValueDemonstrationType);
+            }
+        } else {
+            sugiliteData.currentPumiceValueDemonstrationType = null;
         }
     }
 
@@ -823,6 +843,9 @@ public class SugiliteAccessibilityService extends AccessibilityService {
         }
         if (refreshIconHandler != null) {
             refreshIconHandler.removeMessages(0);
+        }
+        if (tts != null) {
+            tts.shutdown();
         }
 
     }

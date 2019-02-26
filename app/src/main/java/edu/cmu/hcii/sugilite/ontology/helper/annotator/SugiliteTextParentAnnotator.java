@@ -43,7 +43,8 @@ public class SugiliteTextParentAnnotator implements SugiliteTextAnnotator {
                     new PercentageAnnotator(),
                     new DurationAnnotator(),
                     new TempAnnotator(),
-                    new VolumeAnnotator());
+                    new VolumeAnnotator(),
+                    new NumberAnnotator());
         }
     }
 

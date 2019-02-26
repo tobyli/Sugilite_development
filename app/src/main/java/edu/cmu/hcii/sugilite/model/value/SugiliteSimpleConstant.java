@@ -34,7 +34,7 @@ public class SugiliteSimpleConstant<T> implements SugiliteValue<T>, Serializable
         return unit;
     }
 
-
+    @Nullable
     public SugiliteTextParentAnnotator.AnnotatingResult toAnnotatingResult(){
         SugiliteTextParentAnnotator annotator = SugiliteTextParentAnnotator.getInstance();
         List<SugiliteTextParentAnnotator.AnnotatingResult> results;

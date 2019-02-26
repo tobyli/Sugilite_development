@@ -1,7 +1,9 @@
 package edu.cmu.hcii.sugilite.ontology;
 
+import android.graphics.Point;
 import android.graphics.Rect;
 import android.util.Log;
+import android.view.Display;
 import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityNodeInfo;
 import android.view.accessibility.AccessibilityWindowInfo;
@@ -24,6 +26,7 @@ import edu.cmu.hcii.sugilite.model.Node;
 import edu.cmu.hcii.sugilite.automation.AutomatorUtil;
 import edu.cmu.hcii.sugilite.ontology.helper.ListOrderResolver;
 import edu.cmu.hcii.sugilite.ontology.helper.TextStringParseHelper;
+import edu.cmu.hcii.sugilite.ontology.helper.annotator.SugiliteNodeAnnotator;
 import edu.cmu.hcii.sugilite.ontology.helper.annotator.SugiliteTextParentAnnotator;
 
 import static edu.cmu.hcii.sugilite.Const.UI_SNAPSHOT_TEXT_PARSING_THREAD_COUNT;
@@ -93,7 +96,7 @@ public class UISnapshot {
         long startTime = System.currentTimeMillis();
         constructFromListOfNodes(allNodes, toAnnotateStringEntities);
         long stopTime = System.currentTimeMillis();
-        Log.i(TAG, "Constructed from List of Nodes! -- Takes " + String.valueOf(stopTime - startTime) + "ms");
+        Log.i(TAG, String.format("Constructed from List of %d Nodes! -- Takes %s ms", allNodes.size(), String.valueOf(stopTime - startTime)));
     }
 
     //construct a UISnapshot from a rootNode
@@ -328,17 +331,24 @@ public class UISnapshot {
             //parse node entities
 
             /*
+            Display display = context.getWindowManager().getDefaultDisplay();
+            Point size = new Point();
+            display.getSize(size);
+            int width = size.x;
+            int height = size.y;
+
             Set<SugiliteEntity<Node>> nodeEntities = new HashSet<>();
 
             for(Map.Entry<Node, SugiliteEntity<Node>> entry : nodeSugiliteEntityMap.entrySet()){
                 nodeEntities.add(entry.getValue());
             }
 
-            SugiliteNodeAnnotator annotator = new SugiliteNodeAnnotator();
-            for (SugiliteNodeAnnotator.AnnotatingResult res : annotator.annotate(nodeEntities)) {
+            SugiliteNodeAnnotator annotator = SugiliteNodeAnnotator.getInstance();
+            for (SugiliteNodeAnnotator.NodeAnnotatingResult res : annotator.annotate(nodeEntities)) {
                 this.addEntityNodeTriple(res.getSubject(), res.getObject(), res.getRelation());
             }
             */
+
 
         }
 

@@ -1,6 +1,7 @@
 package edu.cmu.hcii.sugilite.pumice.dialog.intent_handler;
 
 import android.app.Activity;
+import android.support.annotation.Nullable;
 
 import com.google.gson.ExclusionStrategy;
 import com.google.gson.FieldAttributes;
@@ -9,6 +10,7 @@ import com.google.gson.GsonBuilder;
 
 import java.util.Calendar;
 
+import edu.cmu.hcii.sugilite.ontology.SugiliteRelation;
 import edu.cmu.hcii.sugilite.pumice.communication.PumiceInstructionPacket;
 import edu.cmu.hcii.sugilite.pumice.communication.PumiceSemanticParsingResultPacket;
 import edu.cmu.hcii.sugilite.pumice.communication.SkipPumiceJSONSerialization;
@@ -30,17 +32,19 @@ public class PumiceUserExplainValueIntentHandler implements PumiceUtteranceInten
     private PumiceDialogManager pumiceDialogManager;
     private String parentKnowledgeName;
     private PumiceUserExplainValueIntentHandler pumiceUserExplainValueIntentHandler;
+    private SugiliteRelation resolveValueQueryOperationSugiliteRelationType;
 
     //need to notify this lock when the value is resolved, and return the value through this object
     private PumiceValueQueryKnowledge resolveValueLock;
     Calendar calendar;
 
-    public PumiceUserExplainValueIntentHandler(PumiceDialogManager pumiceDialogManager, Activity context, PumiceValueQueryKnowledge resolveValueLock, String parentKnowledgeName){
+    public PumiceUserExplainValueIntentHandler(PumiceDialogManager pumiceDialogManager, Activity context, PumiceValueQueryKnowledge resolveValueLock, String parentKnowledgeName, @Nullable SugiliteRelation resolveValueQueryOperationSugiliteRelationType){
         this.pumiceDialogManager = pumiceDialogManager;
         this.context = context;
         this.calendar = Calendar.getInstance();
         this.resolveValueLock = resolveValueLock;
         this.parentKnowledgeName = parentKnowledgeName;
+        this.resolveValueQueryOperationSugiliteRelationType = resolveValueQueryOperationSugiliteRelationType;
         this.pumiceUserExplainValueIntentHandler = this;
     }
 
@@ -70,7 +74,7 @@ public class PumiceUserExplainValueIntentHandler implements PumiceUtteranceInten
 
         else if (pumiceIntent.equals(PumiceIntent.DEFINE_VALUE_DEMONSTRATION)){
             //branch for when the user wants to DEMONSTRATE how to find out the value
-            PumiceValueDemonstrationDialog valueDemonstrationDialog = new PumiceValueDemonstrationDialog(context, parentKnowledgeName, utterance.getContent(), dialogManager.getSharedPreferences(), dialogManager.getSugiliteData(), dialogManager.getServiceStatusManager(), this);
+            PumiceValueDemonstrationDialog valueDemonstrationDialog = new PumiceValueDemonstrationDialog(context, parentKnowledgeName, utterance.getContent(), dialogManager.getSharedPreferences(), dialogManager.getSugiliteData(), dialogManager.getServiceStatusManager(), resolveValueQueryOperationSugiliteRelationType, this);
             dialogManager.runOnMainThread(new Runnable() {
                 @Override
                 public void run() {
@@ -139,7 +143,7 @@ public class PumiceUserExplainValueIntentHandler implements PumiceUtteranceInten
                                         @Override
                                         public void run() {
                                             //parse and process the server response
-                                            PumiceValueQueryKnowledge pumiceValueQueryKnowledge = pumiceDialogManager.getPumiceInitInstructionParsingHandler().parseFromValueInstruction(confirmedFormula, resultPacket.userUtterance, parentKnowledgeName);
+                                            PumiceValueQueryKnowledge pumiceValueQueryKnowledge = pumiceDialogManager.getPumiceInitInstructionParsingHandler().parseFromValueInstruction(confirmedFormula, resultPacket.userUtterance, parentKnowledgeName, resolveValueQueryOperationSugiliteRelationType);
                                             //notify the original thread for resolving unknown bool exp that the intent has been fulfilled
                                             returnUserExplainValueResult(pumiceValueQueryKnowledge);
                                         }

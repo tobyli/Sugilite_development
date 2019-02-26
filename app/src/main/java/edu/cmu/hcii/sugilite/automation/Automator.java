@@ -73,7 +73,7 @@ public class Automator {
     private SugiliteScreenshotManager screenshotManager;
     private SugiliteTextParentAnnotator sugiliteTextParentAnnotator;
 
-    public Automator(SugiliteData sugiliteData, SugiliteAccessibilityService context, StatusIconManager statusIconManager, SharedPreferences sharedPreferences, SugiliteTextParentAnnotator sugiliteTextParentAnnotator){
+    public Automator(SugiliteData sugiliteData, SugiliteAccessibilityService context, StatusIconManager statusIconManager, SharedPreferences sharedPreferences, SugiliteTextParentAnnotator sugiliteTextParentAnnotator, TextToSpeech tts){
         this.sugiliteData = sugiliteData;
         this.serviceContext = context;
         this.sugiliteTextParentAnnotator = sugiliteTextParentAnnotator;
@@ -85,19 +85,7 @@ public class Automator {
         this.layoutInflater = (LayoutInflater) context.getSystemService( Context.LAYOUT_INFLATER_SERVICE );
         this.sharedPreferences = sharedPreferences;
 
-        //load tts
-        try {
-            tts = new TextToSpeech(context, new TextToSpeech.OnInitListener() {
-                @Override
-                public void onInit(int status) {
-                    ttsReady = true;
-                }
-            });
-        }
-        catch (Exception e){
-            e.printStackTrace();
-        }
-
+        this.tts = tts;
         screenshotManager = new SugiliteScreenshotManager(sharedPreferences, context);
     }
 

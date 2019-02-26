@@ -2,6 +2,7 @@ package edu.cmu.hcii.sugilite.pumice.dialog;
 
 import android.app.Activity;
 import android.content.Context;
+import android.support.annotation.Nullable;
 
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
@@ -26,6 +27,8 @@ import edu.cmu.hcii.sugilite.model.operation.unary.SugiliteResolveProcedureOpera
 import edu.cmu.hcii.sugilite.model.operation.unary.SugiliteResolveValueQueryOperation;
 import edu.cmu.hcii.sugilite.model.value.SugiliteSimpleConstant;
 import edu.cmu.hcii.sugilite.model.value.SugiliteValue;
+import edu.cmu.hcii.sugilite.ontology.SugiliteRelation;
+import edu.cmu.hcii.sugilite.ontology.helper.annotator.SugiliteTextParentAnnotator;
 import edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.PumiceScriptExecutingConfirmationIntentHandler;
 import edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.PumiceUserExplainBoolExpIntentHandler;
 import edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.PumiceUserExplainElseStatementIntentHandler;
@@ -129,7 +132,7 @@ public class PumiceInitInstructionParsingHandler {
 
     }
 
-    private SugiliteValue resolveSugiliteValue (SugiliteValue value) throws ExecutionException, InterruptedException{
+    private SugiliteValue resolveSugiliteValue (SugiliteValue value, @Nullable SugiliteRelation resolveValueQueryOperationSugiliteRelationType) throws ExecutionException, InterruptedException{
         if (value instanceof SugiliteSimpleConstant) {
             //nothing to resolve for constant
             return value;
@@ -145,7 +148,7 @@ public class PumiceInitInstructionParsingHandler {
         else if (value instanceof SugiliteResolveValueQueryOperation) {
 
             //if the booleanExpression uses a resolve_valueQuery call for arg0
-            ResolveOperationTask task = new ResolveOperationTask(context, pumiceDialogManager, (SugiliteResolveValueQueryOperation)value);
+            ResolveOperationTask task = new ResolveOperationTask(context, pumiceDialogManager, (SugiliteResolveValueQueryOperation)value, resolveValueQueryOperationSugiliteRelationType);
             Future<SugiliteOperation> result = es.submit(task);
             SugiliteOperation newOperation = result.get();
 
@@ -192,7 +195,14 @@ public class PumiceInitInstructionParsingHandler {
         } else {
             if (booleanExpressionNew.getArg0() instanceof SugiliteResolveValueQueryOperation){
                 //if the booleanExpression uses a resolve_valueQuery call for arg0
-                ResolveOperationTask task = new ResolveOperationTask(context, pumiceDialogManager, (SugiliteResolveValueQueryOperation)booleanExpressionNew.getArg0());
+
+                //check if arg1 is a constant / with known type
+                SugiliteRelation arg1Type = null;
+                if (booleanExpressionNew.getArg1() instanceof SugiliteSimpleConstant){
+                    arg1Type = getSugiliteRelationForSugiliteConstant((SugiliteSimpleConstant)booleanExpressionNew.getArg1());
+                }
+
+                ResolveOperationTask task = new ResolveOperationTask(context, pumiceDialogManager, (SugiliteResolveValueQueryOperation)booleanExpressionNew.getArg0(), arg1Type);
                 Future<SugiliteOperation> result = es.submit(task);
                 SugiliteOperation newOperation = result.get();
 
@@ -206,7 +216,14 @@ public class PumiceInitInstructionParsingHandler {
             }
             if (booleanExpressionNew.getArg1() instanceof SugiliteResolveValueQueryOperation){
                 //if the booleanExpression uses a resolve_valueQuery call for arg1
-                ResolveOperationTask task = new ResolveOperationTask(context, pumiceDialogManager, (SugiliteResolveValueQueryOperation)booleanExpressionNew.getArg1());
+
+                //check if arg0 is a constant / with known type
+                SugiliteRelation arg0Type = null;
+                if (booleanExpressionNew.getArg0() instanceof SugiliteSimpleConstant){
+                    arg0Type = getSugiliteRelationForSugiliteConstant((SugiliteSimpleConstant)booleanExpressionNew.getArg0());
+                }
+
+                ResolveOperationTask task = new ResolveOperationTask(context, pumiceDialogManager, (SugiliteResolveValueQueryOperation)booleanExpressionNew.getArg1(), arg0Type);
                 Future<SugiliteOperation> result = es.submit(task);
                 SugiliteOperation newOperation = result.get();
 
@@ -222,8 +239,15 @@ public class PumiceInitInstructionParsingHandler {
         return booleanExpressionNew;
     }
 
-
-
+    @Nullable
+    private SugiliteRelation getSugiliteRelationForSugiliteConstant(SugiliteSimpleConstant constant){
+        SugiliteTextParentAnnotator.AnnotatingResult annotatingResult = constant.toAnnotatingResult();
+        if (annotatingResult != null) {
+            return annotatingResult.getRelation();
+        } else {
+            return null;
+        }
+    }
 
     /**
      * go through a block, recursively resolve unknown concepts in that block and ALL subsequent blocks
@@ -274,7 +298,7 @@ public class PumiceInitInstructionParsingHandler {
         }
     }
     private class GetElseBlockTask implements Callable<SugiliteBlock> {
-        private SugiliteConditionBlock originalConditionBlock;
+        private final SugiliteConditionBlock originalConditionBlock;
         private Activity context;
         private PumiceDialogManager dialogManager;
         public GetElseBlockTask (Activity context, PumiceDialogManager dialogManager, SugiliteConditionBlock originalConditionBlock) {
@@ -320,14 +344,24 @@ public class PumiceInitInstructionParsingHandler {
          * async task used for resolving unknown concepts in a "resolve" type of operation
          * @param operation
          */
-        SugiliteOperation operation;
-        PumiceDialogManager pumiceDialogManager;
-        Activity context;
+        private SugiliteOperation operation;
+        private PumiceDialogManager pumiceDialogManager;
+        private Activity context;
+        private SugiliteRelation resolveValueQueryOperationSugiliteRelationType;
+
         ResolveOperationTask(Activity context, PumiceDialogManager pumiceDialogManager, SugiliteOperation operation){
             this.context = context;
             this.pumiceDialogManager = pumiceDialogManager;
             this.operation = operation;
+            this.resolveValueQueryOperationSugiliteRelationType = null;
         }
+
+        //resolveValueQueryOperationSugiliteRelationType is used for resolving SugiliteResolveValueQueryOperation when the system knows the SugiliteRelation type of the target value
+        ResolveOperationTask(Activity context, PumiceDialogManager pumiceDialogManager, SugiliteOperation operation, SugiliteRelation resolveValueQueryOperationSugiliteRelationType) {
+            this(context, pumiceDialogManager, operation);
+            this.resolveValueQueryOperationSugiliteRelationType = resolveValueQueryOperationSugiliteRelationType;
+        }
+
         @Override
         public SugiliteOperation call() throws Exception {
             if (operation instanceof SugiliteResolveProcedureOperation){
@@ -371,7 +405,7 @@ public class PumiceInitInstructionParsingHandler {
                 PumiceValueQueryKnowledge resolveValueLock = new PumiceValueQueryKnowledge();
 
                 //update the dialog manager with a new intent handler
-                PumiceUserExplainValueIntentHandler pumiceUserExplainValueIntentHandler = new PumiceUserExplainValueIntentHandler(pumiceDialogManager, context, resolveValueLock, valueUtterance);
+                PumiceUserExplainValueIntentHandler pumiceUserExplainValueIntentHandler = new PumiceUserExplainValueIntentHandler(pumiceDialogManager, context, resolveValueLock, valueUtterance, resolveValueQueryOperationSugiliteRelationType);
                 pumiceDialogManager.updateUtteranceIntentHandlerInANewState(pumiceUserExplainValueIntentHandler);
                 pumiceUserExplainValueIntentHandler.sendPromptForTheIntentHandler();
 
@@ -494,7 +528,7 @@ public class PumiceInitInstructionParsingHandler {
     }
 
 
-    public PumiceValueQueryKnowledge parseFromValueInstruction(String serverFormula, String userUtterance, String parentKnowledgeName){
+    public PumiceValueQueryKnowledge parseFromValueInstruction(String serverFormula, String userUtterance, String parentKnowledgeName, @Nullable SugiliteRelation resolveValueQueryOperationSugiliteRelationType){
         System.out.println("RECEIVED value instruction formula: " + serverFormula);
 
         if(serverFormula.length() == 0) {
@@ -506,7 +540,7 @@ public class PumiceInitInstructionParsingHandler {
             if (sugiliteValue instanceof SugiliteSimpleConstant || sugiliteValue instanceof SugiliteGetValueOperation || sugiliteValue instanceof SugiliteResolveValueQueryOperation) {
                 //resolve the unknown concepts in the value instruction
                 try {
-                    sugiliteValue = resolveSugiliteValue(sugiliteValue);
+                    sugiliteValue = resolveSugiliteValue(sugiliteValue, resolveValueQueryOperationSugiliteRelationType);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -521,7 +555,7 @@ public class PumiceInitInstructionParsingHandler {
 
     private void printScript(SugiliteStartingBlock currentScript){
         pumiceDialogManager.sendAgentMessage("Below is the current script after concept resolution: ", true, false);
-        pumiceDialogManager.sendAgentMessage(sugiliteScriptParser.scriptToString(currentScript), false, false);
+        pumiceDialogManager.sendAgentMessage(SugiliteScriptParser.scriptToString(currentScript), false, false);
         pumiceDialogManager.sendAgentMessage("Below is the updated list of existing knowledge...", true, false);
         pumiceDialogManager.sendAgentMessage(pumiceDialogManager.getPumiceKnowledgeManager().getKnowledgeInString(), false, false);
     }

@@ -279,7 +279,7 @@ public class RecordingAmbiguousPopupDialog extends SugiliteDialogManager impleme
             }
 
             //send out the ASR result
-            VerbalInstructionServerQuery query = new VerbalInstructionServerQuery(userInput, serializableUISnapshot.triplesToStringWithFilter(SugiliteRelation.HAS_CHILD, SugiliteRelation.HAS_PARENT, SugiliteRelation.HAS_CONTENT_DESCRIPTION), className);
+            VerbalInstructionServerQuery query = new VerbalInstructionServerQuery(userInput, serializableUISnapshot.triplesToStringWithFilter(SugiliteRelation.HAS_CHILD, SugiliteRelation.HAS_PARENT), className);
             //send the query
             try {
                 sugiliteVerbalInstructionHTTPQueryManager.sendQueryRequestOnASeparateThread(query, this);
@@ -456,14 +456,20 @@ public class RecordingAmbiguousPopupDialog extends SugiliteDialogManager impleme
 
             String descriptionForTopQuery = null;
             try {
-                OntologyQuery topQuery = OntologyQuery.deserialize(results.getQueries().get(0).getFormula());
-                SugiliteOperation operation = new SugiliteClickOperation();
-                topQuery = OntologyQueryUtils.getQueryWithClassAndPackageConstraints(topQuery, actualClickedNode.getEntityValue(), false, true, true);
-                descriptionForTopQuery = descriptionGenerator.getDescriptionForOperation(operation, new SerializableOntologyQuery(topQuery));
-                if(descriptionForTopQuery != null){
-                    textPrompt.setText(Html.fromHtml(boldify(context.getString(R.string.disambiguation_result_wont_match)) + "<br><br> Intepretation for your description: " + descriptionForTopQuery));
-
+                SugiliteBlock resultBlock = sugiliteScriptParser.parseASingleBlockFromString(results.getQueries().get(0).getFormula());
+                if(resultBlock instanceof SugiliteOperationBlock && ((SugiliteOperationBlock) resultBlock).getOperation() instanceof SugiliteClickOperation) {
+                    //TODO: handle operations other than clicking
+                    SerializableOntologyQuery topQuerySerializable = ((SugiliteOperationBlock) resultBlock).getOperation().getDataDescriptionQueryIfAvailable();
+                    if (topQuerySerializable != null) {
+                        OntologyQuery topQuery = new OntologyQuery(topQuerySerializable);
+                        topQuery = OntologyQueryUtils.getQueryWithClassAndPackageConstraints(topQuery, actualClickedNode.getEntityValue(), false, true, true);
+                        descriptionForTopQuery = descriptionGenerator.getDescriptionForOperation(((SugiliteOperationBlock) resultBlock).getOperation(), new SerializableOntologyQuery(topQuery));
+                        if(descriptionForTopQuery != null){
+                            textPrompt.setText(Html.fromHtml(boldify(context.getString(R.string.disambiguation_result_wont_match)) + "<br><br> Intepretation for your description: " + descriptionForTopQuery));
+                        }
+                    }
                 }
+
             }
             catch (Exception e){
                 e.printStackTrace();

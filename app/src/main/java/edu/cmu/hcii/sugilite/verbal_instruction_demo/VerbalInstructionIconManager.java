@@ -201,8 +201,9 @@ public class VerbalInstructionIconManager implements SugiliteVoiceInterface {
         int currentApiVersion = android.os.Build.VERSION.SDK_INT;
         if(currentApiVersion >= 23){
             checkDrawOverlayPermission();
-            if(Settings.canDrawOverlays(context))
+            if(Settings.canDrawOverlays(context)) {
                 windowManager.addView(statusIcon, iconParams);
+            }
         }
         else {
             windowManager.addView(statusIcon, iconParams);
@@ -219,8 +220,13 @@ public class VerbalInstructionIconManager implements SugiliteVoiceInterface {
                 sugiliteAccessibilityService.runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        sugiliteAccessibilityService.updateUISnapshotInVerbalInstructionManager();
-                        sugiliteAccessibilityService.checkIfAutomationCanBePerformed();
+                        sugiliteAccessibilityService.updateUISnapshotInVerbalInstructionManager(new Runnable() {
+                            @Override
+                            public void run() {
+                                sugiliteAccessibilityService.updatePumiceOverlay(latestUISnapshot);
+                                sugiliteAccessibilityService.checkIfAutomationCanBePerformed();
+                            }
+                        });
                     }
                 });
             }
@@ -242,17 +248,19 @@ public class VerbalInstructionIconManager implements SugiliteVoiceInterface {
      */
     public void removeStatusIcon(){
         try{
-            if(statusIcon != null) {
+            if(statusIcon != null && statusIcon.getWindowToken() != null) {
                 windowManager.removeView(statusIcon);
             }
+
+        } catch (Exception e){
+            e.printStackTrace();
+        } finally {
             if(timer != null) {
                 timer.cancel();
             }
             showingIcon = false;
         }
-        catch (Exception e){
-            e.printStackTrace();
-        }
+
     }
 
     public ImageView getStatusIcon() {

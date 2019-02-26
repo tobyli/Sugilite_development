@@ -435,7 +435,7 @@ public class OntologyQuery {
     }
 
     public static OntologyQuery deserialize(String queryString) {
-        // example: (and (hasColor red) (isChecked true))
+        // example: (conj (hasColor red) (isChecked true))
         return parseString(queryString);
     }
 

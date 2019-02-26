@@ -49,7 +49,7 @@ public class VerbalInstructionOverlayManager {
 
     public VerbalInstructionOverlayManager(Context context, SugiliteData sugiliteData, SharedPreferences sharedPreferences){
         this.context = context;
-        this.windowManager = (WindowManager) context.getSystemService(context.WINDOW_SERVICE);
+        this.windowManager = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
         this.overlays = new ArrayList<>();
         this.layoutInflater = (LayoutInflater) context.getSystemService( Context.LAYOUT_INFLATER_SERVICE);
         this.navigationBarUtil = new NavigationBarUtil();
@@ -60,7 +60,7 @@ public class VerbalInstructionOverlayManager {
 
     public void addOverlay(Node node, String entityId, VerbalInstructionServerResults.VerbalInstructionResult correspondingResult, List<VerbalInstructionServerResults.VerbalInstructionResult> allResults, SerializableUISnapshot serializableUISnapshot, String utterance){
         Rect boundsInScreen = Rect.unflattenFromString(node.getBoundsInScreen());
-        View overlay = getRectangleOverlay(context, boundsInScreen.width(), boundsInScreen.height());
+        View overlay = getRectangleOverlay(context, 0x80FF0000, boundsInScreen.width(), boundsInScreen.height());
         System.out.println("Creating an overlay with width " + boundsInScreen.width() + " and height " + boundsInScreen.height() +
         " at " + boundsInScreen.left + ", " + boundsInScreen.top);
         WindowManager.LayoutParams iconParams = new WindowManager.LayoutParams(
@@ -96,7 +96,7 @@ public class VerbalInstructionOverlayManager {
         //NEEDED TO BE CONFIGURED AT APPS->SETTINGS-DRAW OVER OTHER APPS on API>=23
         int currentApiVersion = android.os.Build.VERSION.SDK_INT;
         if(currentApiVersion >= 23){
-            checkDrawOverlayPermission();
+            checkDrawOverlayPermission(context);
             if(Settings.canDrawOverlays(context)) {
                 overlays.add(overlay);
                 windowManager.addView(overlay, iconParams);
@@ -128,7 +128,7 @@ public class VerbalInstructionOverlayManager {
         }
     }
 
-    public void checkDrawOverlayPermission() {
+    public static void checkDrawOverlayPermission(Context context) {
         /** check if we already  have permission to draw over other apps */
         int currentApiVersion = android.os.Build.VERSION.SDK_INT;
         if(currentApiVersion >= 23) {
@@ -178,7 +178,7 @@ public class VerbalInstructionOverlayManager {
         });
     }
 
-    private View getRectangleOverlay(Context context, int width, int height){
+    public static View getRectangleOverlay(Context context, int color, int width, int height){
         View overlay = new View(context);
         WindowManager.LayoutParams layoutParams = new WindowManager.LayoutParams(
                 WindowManager.LayoutParams.WRAP_CONTENT,
@@ -189,7 +189,7 @@ public class VerbalInstructionOverlayManager {
         layoutParams.width = width;
         layoutParams.height = height;
         overlay.setLayoutParams(layoutParams);
-        overlay.setBackgroundColor(0x80FF0000);
+        overlay.setBackgroundColor(color);
         return overlay;
     }
 

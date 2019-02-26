@@ -276,7 +276,7 @@ public class FollowUpQuestionDialog extends SugiliteDialogManager implements Sug
                 className = actualClickedNode.getEntityValue().getClassName();
             }
 
-            VerbalInstructionServerQuery query = new VerbalInstructionServerQuery(userInput, serializableUISnapshot.triplesToStringWithFilter(SugiliteRelation.HAS_PARENT, SugiliteRelation.HAS_CHILD, SugiliteRelation.HAS_CONTENT_DESCRIPTION), className);
+            VerbalInstructionServerQuery query = new VerbalInstructionServerQuery(userInput, serializableUISnapshot.triplesToStringWithFilter(SugiliteRelation.HAS_PARENT, SugiliteRelation.HAS_CHILD), className);
             //send the query
 
             try {

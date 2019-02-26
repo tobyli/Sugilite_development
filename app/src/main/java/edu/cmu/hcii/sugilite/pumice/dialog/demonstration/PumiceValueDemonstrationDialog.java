@@ -5,6 +5,7 @@ import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.support.annotation.Nullable;
 import android.widget.Toast;
 
 import edu.cmu.hcii.sugilite.SugiliteData;
@@ -12,6 +13,7 @@ import edu.cmu.hcii.sugilite.automation.ServiceStatusManager;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptFileDao;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
+import edu.cmu.hcii.sugilite.ontology.SugiliteRelation;
 import edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.PumiceUserExplainValueIntentHandler;
 import edu.cmu.hcii.sugilite.pumice.kb.PumiceValueQueryKnowledge;
 import edu.cmu.hcii.sugilite.pumice.ui.PumiceDialogActivity;
@@ -38,7 +40,9 @@ public class PumiceValueDemonstrationDialog {
     private ServiceStatusManager serviceStatusManager;
     private VerbalInstructionIconManager verbalInstructionIconManager;
 
-    public PumiceValueDemonstrationDialog(Activity context, String valueKnowledgeName, String userUtterance, SharedPreferences sharedPreferences, SugiliteData sugiliteData, ServiceStatusManager serviceStatusManager, PumiceUserExplainValueIntentHandler parentIntentHandler){
+    private SugiliteRelation resolveValueQueryOperationSugiliteRelationType;
+
+    public PumiceValueDemonstrationDialog(Activity context, String valueKnowledgeName, String userUtterance, SharedPreferences sharedPreferences, SugiliteData sugiliteData, ServiceStatusManager serviceStatusManager, @Nullable SugiliteRelation resolveValueQueryOperationSugiliteRelationType, PumiceUserExplainValueIntentHandler parentIntentHandler){
         this.context = context;
         this.valueKnowledgeName = valueKnowledgeName;
         this.userUtterance = userUtterance;
@@ -47,6 +51,7 @@ public class PumiceValueDemonstrationDialog {
         this.sugiliteData = sugiliteData;
         this.verbalInstructionIconManager = sugiliteData.verbalInstructionIconManager;
         this.serviceStatusManager = serviceStatusManager;
+        this.resolveValueQueryOperationSugiliteRelationType = resolveValueQueryOperationSugiliteRelationType;
         this.sugiliteScriptDao = new SugiliteScriptFileDao(context, sugiliteData);
         constructDialog();
     }
@@ -64,6 +69,7 @@ public class PumiceValueDemonstrationDialog {
                         Runnable callback = new Runnable() {
                             @Override
                             public void run() {
+                                sugiliteData.currentPumiceValueDemonstrationType = null;
                                 parentIntentHandler.runOnMainThread(new Runnable() {
                                     @Override
                                     public void run() {
@@ -89,6 +95,8 @@ public class PumiceValueDemonstrationDialog {
                             }
                         };
                         sugiliteData.valueDemonstrationVariableName = valueKnowledgeName;
+                        //set sugiliteData.currentPumiceValueDemonstrationType for displaying Pumice overlays
+                        sugiliteData.currentPumiceValueDemonstrationType = resolveValueQueryOperationSugiliteRelationType;
                         PumiceDemonstrationUtil.initiateDemonstration(context, serviceStatusManager, sharedPreferences, scriptName, sugiliteData, callback, sugiliteScriptDao, verbalInstructionIconManager);
                     }
                 });

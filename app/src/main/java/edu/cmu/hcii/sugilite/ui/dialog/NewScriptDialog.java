@@ -55,8 +55,8 @@ public class NewScriptDialog extends SugiliteDialogManager implements AbstractSu
     private VerbalInstructionIconManager verbalInstructionIconManager;
     private View dialogView;
 
-    ImageButton mySpeakButton;
-    EditText scriptNameEditText;
+    private ImageButton mySpeakButton;
+    private EditText scriptNameEditText;
 
     public NewScriptDialog(Context context, LayoutInflater layoutInflater, SugiliteScriptDao sugiliteScriptDao, ServiceStatusManager serviceStatusManager,
                            SharedPreferences sharedPreferences, SugiliteData sugiliteData, boolean isSystemAlert, final Dialog.OnClickListener positiveCallback, final Dialog.OnClickListener negativeCallback){
@@ -226,7 +226,7 @@ public class NewScriptDialog extends SugiliteDialogManager implements AbstractSu
                     dialog.getButton(DialogInterface.BUTTON_POSITIVE).performClick();
                     speak("Please start demonstrating the task.", null);
                     if(verbalInstructionIconManager != null){
-                        verbalInstructionIconManager.switchCatOverlay();
+                        verbalInstructionIconManager.turnOnCatOverlay();
                     }
 
                 }

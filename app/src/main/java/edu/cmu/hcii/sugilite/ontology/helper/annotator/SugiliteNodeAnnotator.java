@@ -1,6 +1,9 @@
 package edu.cmu.hcii.sugilite.ontology.helper.annotator;
 
 
+import android.graphics.Point;
+import android.view.Display;
+
 import edu.cmu.hcii.sugilite.ontology.SugiliteRelation;
 import edu.cmu.hcii.sugilite.model.Node;
 import edu.cmu.hcii.sugilite.ontology.SugiliteEntity;
@@ -24,8 +27,7 @@ public class SugiliteNodeAnnotator {
     private static final float ALIGNMENT_THRESHOLD = 0.1f;
     private static final float SEPARATE_THRESHOLD = 1000f;
     private static final float NEAR_THRESHOLD = 100f;
-    private static final int XMAX = 1080;
-    private static final int YMAX = 1920;
+
 
     private static SugiliteNodeAnnotator instance;
 
@@ -39,7 +41,6 @@ public class SugiliteNodeAnnotator {
     }
 
     private SugiliteNodeAnnotator() {
-
 
     }
 
@@ -71,10 +72,10 @@ public class SugiliteNodeAnnotator {
         }
     }
 
-    public List<NodeAnnotatingResult> annotate(Collection<SugiliteEntity<Node>> nodes) {
+    public List<NodeAnnotatingResult> annotate(Collection<SugiliteEntity<Node>> nodes, int xMax, int yMax) {
         List<NodeAnnotatingResult> result = new ArrayList<>();
         nodes.removeIf(n -> !(n.getEntityValue().getClickable()) && n.getEntityValue().getText() == null);
-        nodes.removeIf(n -> !onScreen(n));
+        nodes.removeIf(n -> !onScreen(n, xMax, yMax));
         for (SugiliteEntity<Node> n1 : nodes) {
             for (SugiliteEntity<Node> n2 : nodes) {
                 if (n1 == n2) {
@@ -141,7 +142,7 @@ public class SugiliteNodeAnnotator {
         return Math.max(dx, dy);
     }
 
-    private boolean onScreen(SugiliteEntity<Node> node) {
+    private boolean onScreen(SugiliteEntity<Node> node, int xMax, int yMax) {
         String pos = node.getEntityValue().getBoundsInScreen();
         String[] splitRes = pos.split(" ");
         int left = Integer.valueOf(splitRes[0]);
@@ -149,7 +150,7 @@ public class SugiliteNodeAnnotator {
         int right = Integer.valueOf(splitRes[2]);
         int bottom = Integer.valueOf(splitRes[3]);
         if (right < left || bottom < top) return false;
-        return right <= XMAX && bottom <= YMAX;
+        return right <= xMax && bottom <= yMax;
     }
 
 }

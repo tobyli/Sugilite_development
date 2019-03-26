@@ -1,6 +1,8 @@
 package edu.cmu.hcii.sugilite;
 
 import android.graphics.Color;
+import android.os.Build;
+import android.view.WindowManager;
 
 import java.text.SimpleDateFormat;
 
@@ -10,6 +12,10 @@ import java.text.SimpleDateFormat;
  * @time 3:55 PM
  */
 public class Const {
+
+    public static final int OVERLAY_TYPE = (Build.VERSION.SDK_INT >= 26) ? WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY : WindowManager.LayoutParams.TYPE_PHONE;
+
+
     //TRUE to save all the clickable items to the "app vocabulary" when recording
     public static final boolean BUILDING_VOCAB = false;
 
@@ -135,5 +141,4 @@ public class Const {
     public static String boldify(String string){
         return "<b>" + string + "</b>";
     }
-
 }

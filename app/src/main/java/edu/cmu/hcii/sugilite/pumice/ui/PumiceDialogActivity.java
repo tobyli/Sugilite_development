@@ -69,6 +69,8 @@ public class PumiceDialogActivity extends AppCompatActivity implements SugiliteV
         this.pumiceDialogManager = pumiceDialogManager;
         //bind to the view produced by the dialog manager
         ScrollView scrollView = (ScrollView) findViewById(R.id.pumice_dialog_scrollLayout);
+        System.out.println("HERE");
+        System.out.println(pumiceDialogManager.getPumiceDialogView());
         if(pumiceDialogManager.getPumiceDialogView() != null) {
             scrollView.addView(pumiceDialogManager.getPumiceDialogView());
         }

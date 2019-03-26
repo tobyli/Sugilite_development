@@ -31,6 +31,7 @@ import edu.cmu.hcii.sugilite.recording.newrecording.SugiliteBlockBuildingHelper;
 import edu.cmu.hcii.sugilite.recording.newrecording.dialog_management.SugiliteDialogManager;
 import edu.cmu.hcii.sugilite.recording.newrecording.dialog_management.SugiliteDialogSimpleState;
 import edu.cmu.hcii.sugilite.recording.newrecording.dialog_management.SugiliteDialogUtteranceFilter;
+import static edu.cmu.hcii.sugilite.Const.OVERLAY_TYPE;
 
 /**
  * @author toby
@@ -141,7 +142,7 @@ public class SugiliteRecordingConfirmationDialog extends SugiliteDialogManager {
     }
 
     public void show() {
-        dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY);
+        dialog.getWindow().setType(OVERLAY_TYPE);
         dialog.show();
         refreshSpeakButtonStyle(speakButton);
 

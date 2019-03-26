@@ -28,6 +28,8 @@ import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.model.variable.StringVariable;
 import edu.cmu.hcii.sugilite.model.variable.Variable;
 
+import static edu.cmu.hcii.sugilite.Const.OVERLAY_TYPE;
+
 /**
  * @author toby
  * @date 7/15/16
@@ -121,7 +123,7 @@ public class ChooseVariableDialog implements AbstractSugiliteDialog {
                 });
 
         dialog = builder.create();
-        dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY);
+        dialog.getWindow().setType(OVERLAY_TYPE);
         dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE);
 
     }

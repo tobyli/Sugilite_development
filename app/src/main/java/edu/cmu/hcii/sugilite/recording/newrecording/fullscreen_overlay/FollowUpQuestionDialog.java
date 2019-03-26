@@ -65,6 +65,7 @@ import edu.cmu.hcii.sugilite.verbal_instruction_demo.server_comm.VerbalInstructi
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.util.NavigationBarUtil;
 
 import static edu.cmu.hcii.sugilite.Const.MUL_ZEROS;
+import static edu.cmu.hcii.sugilite.Const.OVERLAY_TYPE;
 import static edu.cmu.hcii.sugilite.Const.RECORDING_DARK_GRAY_COLOR;
 import static edu.cmu.hcii.sugilite.Const.RECORDING_OFF_BUTTON_COLOR;
 import static edu.cmu.hcii.sugilite.recording.newrecording.fullscreen_overlay.RecordingAmbiguousPopupDialog.CHECK_FOR_GROUNDING_MATCH;
@@ -246,7 +247,7 @@ public class FollowUpQuestionDialog extends SugiliteDialogManager implements Sug
 
     public void show(){
         if(dialog.getWindow() != null) {
-            dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY);
+            dialog.getWindow().setType(OVERLAY_TYPE);
         }
         dialog.show();
 
@@ -300,7 +301,7 @@ public class FollowUpQuestionDialog extends SugiliteDialogManager implements Sug
         WindowManager.LayoutParams layoutParams = new WindowManager.LayoutParams(
                 WindowManager.LayoutParams.WRAP_CONTENT,
                 WindowManager.LayoutParams.WRAP_CONTENT,
-                WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
+                OVERLAY_TYPE,
                 WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
                 PixelFormat.TRANSLUCENT);
 
@@ -352,7 +353,7 @@ public class FollowUpQuestionDialog extends SugiliteDialogManager implements Sug
     private void showProgressDialog() {
         progressDialog = new AlertDialog.Builder(context).setMessage("Processing the query ...").create();
         if(progressDialog.getWindow() != null) {
-            progressDialog.getWindow().setType(WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY);
+            progressDialog.getWindow().setType(OVERLAY_TYPE);
         }
         progressDialog.setCanceledOnTouchOutside(false);
         progressDialog.show();

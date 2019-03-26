@@ -33,6 +33,7 @@ import edu.cmu.hcii.sugilite.ontology.SugiliteRelation;
 import edu.cmu.hcii.sugilite.recording.ReadableDescriptionGenerator;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.server_comm.VerbalInstructionServerResults;
 
+import static edu.cmu.hcii.sugilite.Const.OVERLAY_TYPE;
 import static edu.cmu.hcii.sugilite.Const.SQL_SCRIPT_DAO;
 
 /**
@@ -117,7 +118,7 @@ public class VerbalInstructionRecordingManager {
                     }
                 });
             final AlertDialog confirmationDialog = confirmationDialogBuilder.create();
-            confirmationDialog.getWindow().setType(WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY);
+            confirmationDialog.getWindow().setType(OVERLAY_TYPE);
             confirmationDialog.show();
         }
     }

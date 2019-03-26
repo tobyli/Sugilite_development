@@ -192,7 +192,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Sugilite finds multiple possible features for the object you've just opearted on and can't determine the best feature to use.\n\nCan you choose the best feature to use for identifying this object in future executions of this script?"
+                android:text="Sugilite finds multiple possible features for the object you've just operated on and can't determine the best feature to use.\n\nCan you choose the best feature to use for identifying this object in future executions of this script?"
                 android:textColor="#000000"
                 android:id="@+id/text_ambiguation_prompt"
                 android:visibility="gone"

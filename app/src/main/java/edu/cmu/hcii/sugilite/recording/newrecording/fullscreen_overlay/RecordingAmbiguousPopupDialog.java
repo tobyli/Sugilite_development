@@ -64,6 +64,7 @@ import static edu.cmu.hcii.sugilite.Const.MUL_ZEROS;
 import static edu.cmu.hcii.sugilite.Const.RECORDING_DARK_GRAY_COLOR;
 import static edu.cmu.hcii.sugilite.Const.RECORDING_OFF_BUTTON_COLOR;
 import static edu.cmu.hcii.sugilite.Const.boldify;
+import static edu.cmu.hcii.sugilite.Const.OVERLAY_TYPE;
 
 /**
  * @author toby
@@ -247,7 +248,7 @@ public class RecordingAmbiguousPopupDialog extends SugiliteDialogManager impleme
 
     public void show() {
         if(dialog.getWindow() != null) {
-            dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY);
+            dialog.getWindow().setType(OVERLAY_TYPE);
         }
         dialog.show();
 
@@ -259,7 +260,7 @@ public class RecordingAmbiguousPopupDialog extends SugiliteDialogManager impleme
     private void showProgressDialog() {
         progressDialog = new AlertDialog.Builder(context).setMessage("Processing the query ...").create();
         if(progressDialog.getWindow() != null) {
-            progressDialog.getWindow().setType(WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY);
+            progressDialog.getWindow().setType(OVERLAY_TYPE);
         }
         progressDialog.setCanceledOnTouchOutside(false);
         progressDialog.show();

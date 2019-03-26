@@ -141,6 +141,7 @@ public abstract class SugiliteDialogManager implements SugiliteVoiceInterface {
             }
 
             //play the prompt of the next state
+            System.out.println("getPrompton: " + currentState.getPromptOnPlayingDoneRunnable());
             if (currentState.getPrompt() != null && currentState.getPromptOnPlayingDoneRunnable() != null) {
                 speak(currentState.getPrompt(), currentState.getPromptOnPlayingDoneRunnable());
             }

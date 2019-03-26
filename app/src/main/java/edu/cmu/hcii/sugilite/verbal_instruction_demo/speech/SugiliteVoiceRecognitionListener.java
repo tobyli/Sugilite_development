@@ -79,7 +79,6 @@ public class SugiliteVoiceRecognitionListener implements RecognitionListener {
             speech.destroy();
             sugiliteVoiceInterface.listeningEnded();
         }
-
     }
 
     private void runOnUiThread(Runnable runnable) throws Exception{

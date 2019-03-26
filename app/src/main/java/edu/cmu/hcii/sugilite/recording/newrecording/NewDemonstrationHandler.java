@@ -163,7 +163,13 @@ public class NewDemonstrationHandler {
                 dialog.dismiss();
             }
         });
-        dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY);
+        int LAYOUT_FLAG;
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+            LAYOUT_FLAG = WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY;
+        } else {
+            LAYOUT_FLAG = WindowManager.LayoutParams.TYPE_PHONE;
+        }
+        dialog.getWindow().setType(LAYOUT_FLAG);//TYPE_APPLICATION_OVERLAY
         dialog.show();
     }
 
@@ -192,7 +198,13 @@ public class NewDemonstrationHandler {
                     }
                 });
         final AlertDialog dialog = builder.create();
-        dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY);
+        int LAYOUT_FLAG;
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+            LAYOUT_FLAG = WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY;
+        } else {
+            LAYOUT_FLAG = WindowManager.LayoutParams.TYPE_PHONE;
+        }
+        dialog.getWindow().setType(LAYOUT_FLAG);//TYPE_APPLICATION_OVERLAY
         dialog.show();
     }
 }

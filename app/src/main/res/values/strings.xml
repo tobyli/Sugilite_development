@@ -66,4 +66,9 @@
     <string name="title_activity_communication_interface">CommunicationInterfaceActivity</string>
     <string name="accessibility_service_name">Sugilite - InMind</string>
 
+    <!-- Strings for snackbar for conditional interaction -->
+
+    <string name="cancel_btn">Cancel</string>
+    <string name="voice_btn">Recording</string>
+
 </resources>

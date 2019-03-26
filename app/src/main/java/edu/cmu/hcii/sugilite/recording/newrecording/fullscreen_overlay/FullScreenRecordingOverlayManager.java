@@ -51,6 +51,7 @@ import edu.cmu.hcii.sugilite.recording.ReadableDescriptionGenerator;
 import edu.cmu.hcii.sugilite.recording.SugiliteScreenshotManager;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.study.SugiliteStudyHandler;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.util.NavigationBarUtil;
+import static edu.cmu.hcii.sugilite.Const.OVERLAY_TYPE;
 
 /**
  * @author toby
@@ -135,7 +136,7 @@ public class FullScreenRecordingOverlayManager {
         WindowManager.LayoutParams layoutParams = new WindowManager.LayoutParams(
                 WindowManager.LayoutParams.WRAP_CONTENT,
                 WindowManager.LayoutParams.WRAP_CONTENT,
-                WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
+                OVERLAY_TYPE,
                 flag,
                 PixelFormat.TRANSLUCENT);
 

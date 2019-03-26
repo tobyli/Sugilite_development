@@ -27,6 +27,8 @@ import edu.cmu.hcii.sugilite.ontology.SugiliteEntity;
 import edu.cmu.hcii.sugilite.ontology.UISnapshot;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.util.NavigationBarUtil;
 
+import static edu.cmu.hcii.sugilite.Const.OVERLAY_TYPE;
+
 /**
  * @author toby
  * @date 2/5/18
@@ -83,7 +85,7 @@ public class RecordingOverlayManager {
         WindowManager.LayoutParams iconParams = new WindowManager.LayoutParams(
                 WindowManager.LayoutParams.WRAP_CONTENT,
                 WindowManager.LayoutParams.WRAP_CONTENT,
-                WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
+                OVERLAY_TYPE,
                 WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
                 PixelFormat.TRANSLUCENT);
 
@@ -190,7 +192,7 @@ public class RecordingOverlayManager {
         WindowManager.LayoutParams layoutParams = new WindowManager.LayoutParams(
                 WindowManager.LayoutParams.WRAP_CONTENT,
                 WindowManager.LayoutParams.WRAP_CONTENT,
-                WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
+                OVERLAY_TYPE,
                 WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
                 PixelFormat.TRANSLUCENT);
         layoutParams.width = width;

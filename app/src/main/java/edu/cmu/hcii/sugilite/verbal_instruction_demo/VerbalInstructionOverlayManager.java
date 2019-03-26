@@ -26,6 +26,8 @@ import edu.cmu.hcii.sugilite.verbal_instruction_demo.server_comm.SugiliteVerbalI
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.server_comm.VerbalInstructionServerResults;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.util.NavigationBarUtil;
 
+import static edu.cmu.hcii.sugilite.Const.OVERLAY_TYPE;
+
 /**
  * @author toby
  * @date 12/10/17
@@ -64,7 +66,7 @@ public class VerbalInstructionOverlayManager {
         WindowManager.LayoutParams iconParams = new WindowManager.LayoutParams(
                 WindowManager.LayoutParams.WRAP_CONTENT,
                 WindowManager.LayoutParams.WRAP_CONTENT,
-                WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
+                OVERLAY_TYPE,
                 WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
                 PixelFormat.TRANSLUCENT);
 
@@ -181,7 +183,7 @@ public class VerbalInstructionOverlayManager {
         WindowManager.LayoutParams layoutParams = new WindowManager.LayoutParams(
                 WindowManager.LayoutParams.WRAP_CONTENT,
                 WindowManager.LayoutParams.WRAP_CONTENT,
-                WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
+                OVERLAY_TYPE,
                 WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
                 PixelFormat.TRANSLUCENT);
         layoutParams.width = width;

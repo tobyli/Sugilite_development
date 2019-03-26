@@ -136,11 +136,14 @@ public class SugiliteScriptParser {
                 startingBlock = (SugiliteStartingBlock) block;
             }
             else {
+                System.out.println("block: " + block);
+                System.out.println("currentBlock: " + currentBlock);
                 currentBlock.setNextBlock(block);
                 block.setPreviousBlock(currentBlock);
             }
             currentBlock = block;
         }
+        System.out.println("startingBlock: " + startingBlock);
         return startingBlock;
     }
 

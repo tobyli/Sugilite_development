@@ -184,6 +184,7 @@ public class SugiliteScriptExpression<T> {
      * @return
      */
     public SugiliteBlock toSugiliteBlock(SugiliteStartingBlock startingBlock, OntologyDescriptionGenerator descriptionGenerator){
+        System.out.println("operationName: " + operationName);
         if(operationName == null){
             //not a valid operation
             return null;

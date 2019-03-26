@@ -367,6 +367,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
             if(preOrderTraverseRootNode == null)
                 preOrderTraverseRootNode = AutomatorUtil.preOrderTraverse(rootNode);
 
+            System.out.println(sourceNode);
             if(sourceNode != null && sourceNode.getClassName().toString().contains("EditText")){
                 if(preOrderTraverseSibNode == null) {
                     preOrderTraverseSibNode = AutomatorUtil.preOrderTraverseSiblings(sourceNode);

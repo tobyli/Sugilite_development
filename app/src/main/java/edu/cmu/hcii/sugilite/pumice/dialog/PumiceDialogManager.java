@@ -3,6 +3,7 @@ package edu.cmu.hcii.sugilite.pumice.dialog;
 import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.view.View;
 import android.widget.LinearLayout;
@@ -56,12 +57,9 @@ public class PumiceDialogManager{
     private SugiliteVerbalInstructionHTTPQueryManager httpQueryManager;
     private SharedPreferences sharedPreferences;
     private ExecutorService executorService;
-	//public SugiliteBlock tResult;
-	//public String check;
-	//public boolean addElse = false;
-	//public SugiliteBlock conditionBlock = null;
     private SugiliteData sugiliteData;
     private ServiceStatusManager serviceStatusManager;
+    private Handler handler;
 
     private List<PumiceDialogState> stateHistoryList;
 
@@ -70,24 +68,12 @@ public class PumiceDialogManager{
     //represents the current state of the dialog
     private PumiceDialogState pumiceDialogState;
 
-    //public PumiceDialogManager(AppCompatActivity context, String intentHandler){
     public PumiceDialogManager(Activity context){
         this.context = context;
         this.pumiceDialogView = new PumiceDialogView(context);
         this.pumiceDialogUIHelper = new PumiceDialogUIHelper(context);
         this.pumiceInitInstructionParsingHandler = new PumiceInitInstructionParsingHandler(context, this);
         this.stateHistoryList = new ArrayList<>();
-
-        //set intent handler to be either conditional or default
-        /*PumiceUtteranceIntentHandler pcih = null;
-        if(intentHandler.equals("cond")) {
-            pcih = new PumiceConditionalIntentHandler(this, context);
-        }
-        else {
-            pcih = new PumiceDefaultUtteranceIntentHandler(this, context);
-        }
-
-        this.pumiceDialogState = new PumiceDialogState(pcih, new PumiceKnowledgeManager());*/
         this.pumiceDialogState = new PumiceDialogState(new PumiceDefaultUtteranceIntentHandler(this, context), new PumiceKnowledgeManager());
         this.sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
         this.httpQueryManager = new SugiliteVerbalInstructionHTTPQueryManager(sharedPreferences);
@@ -95,11 +81,23 @@ public class PumiceDialogManager{
         this.serviceStatusManager = ServiceStatusManager.getInstance(context);
         this.sugiliteData = (SugiliteData)(context.getApplication());
         this.sugiliteData.pumiceDialogManager = this;
+        this.handler = new Handler();
 
 
         //** testing **
         this.pumiceDialogState.getPumiceKnowledgeManager().initForTesting();
     }
+
+    public void setPumiceDialogState(PumiceDialogState pds) {
+        this.pumiceDialogState = pds;
+    }
+
+    public PumiceDialogState getPumiceDialogState() {
+        return this.pumiceDialogState;
+    }
+
+    public void setPumiceInitInstructionParsingHandler(PumiceInitInstructionParsingHandler pph) { this.pumiceInitInstructionParsingHandler = pph; }
+
     public void sendUserMessage(String message){
         //send the user message with the current in use intent handler
         sendUserMessage(message, pumiceDialogState.getPumiceUtteranceIntentHandlerInUse());
@@ -160,6 +158,9 @@ public class PumiceDialogManager{
      * @param requireUserResponse
      */
     public void sendAgentMessage(String message, boolean isSpokenMessage, boolean requireUserResponse){
+        System.out.println("sendAgentMessage");
+        System.out.println(this);
+        System.out.println(message);
         runOnMainThread(new Runnable() {
             @Override
             public void run() {
@@ -216,11 +217,14 @@ public class PumiceDialogManager{
             sugiliteVoiceRecognitionListener.speak(utterance, String.valueOf(Calendar.getInstance().getTimeInMillis()), new Runnable() {
                 @Override
                 public void run() {
-                    if(requireUserResponse && speakButtonForCallback != null){
-                        pumiceDialogView.postDelayed(new Runnable() {
+                    if(requireUserResponse && speakButtonForCallback != null) {
+                        System.out.println("1");
+                        System.out.println(pumiceDialogView);
+                        handler.postDelayed(new Runnable() {
                             @Override
                             public void run() {
                                 //replace this line to scroll up or down
+                                System.out.println("2");
                                 speakButtonForCallback.callOnClick();
                             }
                         }, 500L);
@@ -228,8 +232,8 @@ public class PumiceDialogManager{
                 }
             });
         } else {
-            if(requireUserResponse && speakButtonForCallback != null){
-                pumiceDialogView.postDelayed(new Runnable() {
+            if(requireUserResponse && speakButtonForCallback != null) {
+                handler.postDelayed(new Runnable() {
                     @Override
                     public void run() {
                         //replace this line to scroll up or down
@@ -304,7 +308,7 @@ public class PumiceDialogManager{
             this.addView(view);
             ScrollView mScrollView = (ScrollView) context.findViewById(R.id.pumice_dialog_scrollLayout);
             if(mScrollView != null) {
-                mScrollView.postDelayed(new Runnable() {
+                handler.postDelayed(new Runnable() {
                     @Override
                     public void run() {
                         //replace this line to scroll up or down
@@ -319,7 +323,7 @@ public class PumiceDialogManager{
             this.addView(view);
             ScrollView mScrollView = (ScrollView) context.findViewById(R.id.pumice_dialog_scrollLayout);
             if(mScrollView != null) {
-                mScrollView.postDelayed(new Runnable() {
+                handler.postDelayed(new Runnable() {
                     @Override
                     public void run() {
                         //replace this line to scroll up or down
@@ -409,13 +413,6 @@ public class PumiceDialogManager{
     public void runOnMainThread(Runnable r) {
         context.runOnUiThread(r);
     }
-
-    /*
-    store top result from a parser query
-     
-    public void settResult(SugiliteBlock tResult) {
-        this.tResult = tResult;
-	}*/
 
     public SharedPreferences getSharedPreferences() {
         return sharedPreferences;

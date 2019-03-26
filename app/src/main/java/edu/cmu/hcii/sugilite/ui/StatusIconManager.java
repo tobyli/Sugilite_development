@@ -11,6 +11,7 @@ import android.graphics.Color;
 import android.graphics.PixelFormat;
 import android.graphics.Rect;
 import android.net.Uri;
+import android.os.Build;
 import android.provider.Settings;
 import android.renderscript.Script;
 import android.text.Html;
@@ -62,6 +63,7 @@ import edu.cmu.hcii.sugilite.ui.dialog.SelectElementWithTextDialog;
 import edu.cmu.hcii.sugilite.ui.main.SugiliteMainActivity;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.VerbalInstructionIconManager;
 
+import static edu.cmu.hcii.sugilite.Const.OVERLAY_TYPE;
 import static edu.cmu.hcii.sugilite.Const.SQL_SCRIPT_DAO;
 
 /**
@@ -91,6 +93,8 @@ public class StatusIconManager {
     private boolean showingIcon = false;
     private VerbalInstructionIconManager verbalInstructionIconManager = null;
     private Dialog duckDialog = null;
+
+
 
     //rotation degree for the cat
     int rotation = 0;
@@ -123,13 +127,14 @@ public class StatusIconManager {
      * add the status icon using the context specified in the class
      */
     public void addStatusIcon(){
+
         statusIcon = new ImageView(context);
         statusIcon.setImageResource(R.mipmap.ic_launcher);
         statusView = getViewForCurrentState("");
         iconParams = new WindowManager.LayoutParams(
                 WindowManager.LayoutParams.WRAP_CONTENT,
                 WindowManager.LayoutParams.WRAP_CONTENT,
-                WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
+                OVERLAY_TYPE,
                 WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
                 PixelFormat.TRANSLUCENT);
 
@@ -142,13 +147,13 @@ public class StatusIconManager {
         iconParams.y = prev_y == null ? 200 : prev_y;
         addCrumpledPaperOnTouchListener(statusIcon, iconParams, displaymetrics, windowManager);
 
-
         textViewParams = new WindowManager.LayoutParams(
                 WindowManager.LayoutParams.WRAP_CONTENT,
                 WindowManager.LayoutParams.WRAP_CONTENT,
-                WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
+                OVERLAY_TYPE,
                 WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
                 PixelFormat.TRANSLUCENT);
+
         textViewParams.gravity = Gravity.BOTTOM | Gravity.CENTER;
 
         //NEEDED TO BE CONFIGURED AT APPS->SETTINGS-DRAW OVER OTHER APPS on API>=23
@@ -162,9 +167,9 @@ public class StatusIconManager {
                     e.printStackTrace();
                 }
 
-                //=== temporarily set the status view to invisible  ===
-                windowManager.addView(statusView, textViewParams);
-                statusView.setVisibility(View.INVISIBLE);
+            //=== temporarily set the status view to invisible  ===
+            windowManager.addView(statusView, textViewParams);
+            statusView.setVisibility(View.INVISIBLE);
         }
         else {
             windowManager.addView(statusIcon, iconParams);
@@ -504,7 +509,7 @@ public class StatusIconManager {
 
                                     progressDialog = new AlertDialog.Builder(context).setMessage(Const.SAVING_MESSAGE).create();
                                     if(progressDialog.getWindow() != null) {
-                                        progressDialog.getWindow().setType(WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY);
+                                        progressDialog.getWindow().setType(OVERLAY_TYPE);
                                     }
                                     progressDialog.setCanceledOnTouchOutside(false);
                                     progressDialog.show();
@@ -580,7 +585,7 @@ public class StatusIconManager {
                                         prefEditor.apply();
                                         progressDialog = new AlertDialog.Builder(context).setMessage(Const.SAVING_MESSAGE).create();
                                         if(progressDialog.getWindow() != null) {
-                                            progressDialog.getWindow().setType(WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY);
+                                            progressDialog.getWindow().setType(OVERLAY_TYPE);
                                         }
                                         progressDialog.setCanceledOnTouchOutside(false);
                                         progressDialog.show();
@@ -739,7 +744,7 @@ public class StatusIconManager {
 
                                     Dialog chooseSubscriptDialog = chooseSubscriptDialogBuilder.create();
                                     if(chooseSubscriptDialog.getWindow() != null) {
-                                        chooseSubscriptDialog.getWindow().setType(WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY);
+                                        chooseSubscriptDialog.getWindow().setType(OVERLAY_TYPE);
                                     }
                                     chooseSubscriptDialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_box);
                                     chooseSubscriptDialog.show();
@@ -826,7 +831,7 @@ public class StatusIconManager {
                         }
                     });
                     if(duckDialog.getWindow() != null) {
-                        duckDialog.getWindow().setType(WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY);
+                        duckDialog.getWindow().setType(OVERLAY_TYPE);
                         duckDialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_box);
                     }
                     duckDialog.show();
@@ -877,7 +882,7 @@ public class StatusIconManager {
         WindowManager.LayoutParams params = new WindowManager.LayoutParams(
                 WindowManager.LayoutParams.WRAP_CONTENT,
                 WindowManager.LayoutParams.WRAP_CONTENT,
-                WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
+                OVERLAY_TYPE,
                 WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
                 PixelFormat.TRANSLUCENT);
         params.gravity = Gravity.TOP | Gravity.LEFT;
@@ -954,7 +959,7 @@ public class StatusIconManager {
         this.verbalInstructionIconManager = verbalInstructionIconManager;
     }
 
-    public void pauseTestRun(Activity a) {
+    /*public void pauseTestRun(Activity a) {
         SugiliteStartingBlock script = ((ScriptDetailActivity) a).getScript();
         sugiliteData.clearInstructionQueue();
         //sugiliteData.setCurrentSystemState(SugiliteData.DEFAULT_STATE);
@@ -971,5 +976,5 @@ public class StatusIconManager {
         openMainActivity.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
         context.startActivity(openMainActivity);
         //}
-    }
+    }*/
 }

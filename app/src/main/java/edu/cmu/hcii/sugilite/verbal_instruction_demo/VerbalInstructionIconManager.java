@@ -50,6 +50,8 @@ import edu.cmu.hcii.sugilite.verbal_instruction_demo.speech.SugiliteVoiceInterfa
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.speech.SugiliteVoiceRecognitionListener;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.study.SugiliteStudyHandler;
 
+import static edu.cmu.hcii.sugilite.Const.OVERLAY_TYPE;
+
 
 /**
  * @author toby
@@ -162,7 +164,7 @@ public class VerbalInstructionIconManager implements SugiliteVoiceInterface {
             }
         });
         Dialog dialog = builder.create();
-        dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY);
+        dialog.getWindow().setType(OVERLAY_TYPE);
         dialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_box);
         dialog.show();
     }
@@ -177,7 +179,7 @@ public class VerbalInstructionIconManager implements SugiliteVoiceInterface {
         iconParams = new WindowManager.LayoutParams(
                 WindowManager.LayoutParams.WRAP_CONTENT,
                 WindowManager.LayoutParams.WRAP_CONTENT,
-                WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
+                OVERLAY_TYPE,
                 WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
                 PixelFormat.TRANSLUCENT);
 
@@ -392,7 +394,7 @@ public class VerbalInstructionIconManager implements SugiliteVoiceInterface {
 
 
                     dialog = textDialogBuilder.create();
-                    dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY);
+                    dialog.getWindow().setType(OVERLAY_TYPE);
                     dialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_box);
                     dialog.show();
                     return true;

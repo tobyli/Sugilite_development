@@ -23,6 +23,7 @@ import edu.cmu.hcii.sugilite.model.Node;
 import edu.cmu.hcii.sugilite.ontology.SugiliteEntity;
 import edu.cmu.hcii.sugilite.ontology.UISnapshot;
 import edu.cmu.hcii.sugilite.pumice.dialog.demonstration.PumiceValueDemonstrationSelectionDialog;
+import static edu.cmu.hcii.sugilite.Const.OVERLAY_TYPE;
 
 /**
  * @author toby
@@ -126,7 +127,7 @@ public class RecordingOverlayContextClickDialog {
     public void show() {
         if (supportedActions.size() > 0) {
             if (dialog.getWindow() != null) {
-                dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY);
+                dialog.getWindow().setType(OVERLAY_TYPE);
             }
             dialog.show();
         }

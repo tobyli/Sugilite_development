@@ -88,4 +88,9 @@ public class SugiliteStartingBlock extends SugiliteBlock implements Serializable
     public String toString() {
         return "(SUGILITE_START " + addQuoteToTokenIfNeeded(scriptName) + ")";
     }
+
+    @Override
+    public String getPumiceUserReadableDecription() {
+        return String.format("Start the script: \"%s\"", scriptName);
+    }
 }

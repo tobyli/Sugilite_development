@@ -1,25 +1,37 @@
 package edu.cmu.hcii.sugilite.ontology.helper.annotator;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import edu.cmu.hcii.sugilite.ontology.SugiliteRelation;
+import edu.cmu.hcii.sugilite.ontology.helper.annotator.SugiliteTextParentAnnotator.AnnotatingResult;
 
 /**
  * Given the input as a string containing percentage (% or percent), parse the value and store it
  * directly in percentage value (e.g, 3.5 % is stored as 3.5)
- *
+ * <p>
  * Created by shi on 2/22/18.
  */
 
-public class PercentageAnnotator extends SugiliteTextAnnotator {
-    public PercentageAnnotator() { super(); }
+public class PercentageAnnotator implements SugiliteTextAnnotator {
+    private Map<String, List<AnnotatingResult>> cache;
+
+    PercentageAnnotator(){
+        cache = new HashMap<>();
+    }
+
 
     @Override
     public List<AnnotatingResult> annotate(String text) {
+        if (cache.containsKey(text)){
+            return cache.get(text);
+        }
+
         List<AnnotatingResult> results = new ArrayList<>();
         String regex = "\\b\\d+?(.\\d+?)?( )?(%|percent)";
         Pattern pattern = Pattern.compile(regex);
@@ -33,11 +45,12 @@ public class PercentageAnnotator extends SugiliteTextAnnotator {
                 String[] parsed = matchedString.split("[p %]");
                 results.add(new AnnotatingResult(RELATION, text.substring(matcher.start(), matcher.end()),
                         matcher.start(), matcher.end(), Double.valueOf(parsed[0])));
-            }
-            catch (Exception e){
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         }
+
+        cache.put(text, results);
         return results;
     }
 

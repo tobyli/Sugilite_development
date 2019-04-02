@@ -28,7 +28,6 @@ import com.google.gson.Gson;
 
 import java.util.AbstractMap;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -36,7 +35,7 @@ import java.util.Set;
 
 import edu.cmu.hcii.sugilite.model.Node;
 import edu.cmu.hcii.sugilite.R;
-import edu.cmu.hcii.sugilite.SugiliteAccessibilityService;
+import edu.cmu.hcii.sugilite.accessibility_service.SugiliteAccessibilityService;
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
 import edu.cmu.hcii.sugilite.model.block.util.SugiliteAvailableFeaturePack;
@@ -51,7 +50,6 @@ import edu.cmu.hcii.sugilite.ontology.SugiliteEntity;
 import edu.cmu.hcii.sugilite.ontology.SugiliteRelation;
 import edu.cmu.hcii.sugilite.ontology.UISnapshot;
 import edu.cmu.hcii.sugilite.ontology.description.OntologyDescriptionGenerator;
-import edu.cmu.hcii.sugilite.pumice.communication.PumiceInstructionPacket;
 import edu.cmu.hcii.sugilite.recording.newrecording.SugiliteBlockBuildingHelper;
 import edu.cmu.hcii.sugilite.recording.newrecording.dialog_management.SugiliteDialogManager;
 import edu.cmu.hcii.sugilite.recording.newrecording.dialog_management.SugiliteDialogSimpleState;
@@ -278,7 +276,7 @@ public class FollowUpQuestionDialog extends SugiliteDialogManager implements Sug
                 className = actualClickedNode.getEntityValue().getClassName();
             }
 
-            VerbalInstructionServerQuery query = new VerbalInstructionServerQuery(userInput, serializableUISnapshot.triplesToStringWithFilter(SugiliteRelation.HAS_PARENT, SugiliteRelation.HAS_CHILD, SugiliteRelation.HAS_CONTENT_DESCRIPTION), className);
+            VerbalInstructionServerQuery query = new VerbalInstructionServerQuery(userInput, serializableUISnapshot.triplesToStringWithFilter(SugiliteRelation.HAS_PARENT, SugiliteRelation.HAS_CHILD), className);
             //send the query
 
             try {
@@ -673,7 +671,7 @@ public class FollowUpQuestionDialog extends SugiliteDialogManager implements Sug
     }
 
     @Override
-    public void resultReceived(int responseCode, String result) {
+    public void resultReceived(int responseCode, String result, String originalQuery) {
         //dismiss the progress dialog
         if (progressDialog != null && progressDialog.isShowing()) {
             progressDialog.dismiss();

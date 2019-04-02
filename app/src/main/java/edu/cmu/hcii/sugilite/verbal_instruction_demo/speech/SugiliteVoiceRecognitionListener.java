@@ -1,6 +1,5 @@
 package edu.cmu.hcii.sugilite.verbal_instruction_demo.speech;
 
-import android.accessibilityservice.AccessibilityService;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
@@ -11,15 +10,12 @@ import android.speech.SpeechRecognizer;
 import android.speech.tts.TextToSpeech;
 import android.speech.tts.UtteranceProgressListener;
 import android.util.Log;
-import android.view.View;
-import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
-import java.util.Locale;
 
-import edu.cmu.hcii.sugilite.SugiliteAccessibilityService;
+import edu.cmu.hcii.sugilite.accessibility_service.SugiliteAccessibilityService;
 
 /**
  * @author toby

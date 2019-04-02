@@ -2,7 +2,10 @@ package edu.cmu.hcii.sugilite.verbal_instruction_demo.server_comm;
 
 import android.content.SharedPreferences;
 
+import com.google.gson.ExclusionStrategy;
+import com.google.gson.FieldAttributes;
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
@@ -14,6 +17,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 
 import edu.cmu.hcii.sugilite.pumice.communication.PumiceInstructionPacket;
+import edu.cmu.hcii.sugilite.pumice.communication.SkipPumiceJSONSerialization;
 
 /**
  * @author toby
@@ -28,7 +32,22 @@ public class SugiliteVerbalInstructionHTTPQueryManager {
 
     public SugiliteVerbalInstructionHTTPQueryManager(SharedPreferences sharedPreferences){
         this.sharedPreferences = sharedPreferences;
-        this.gson = new Gson();
+        this.gson = new GsonBuilder()
+                .addSerializationExclusionStrategy(new ExclusionStrategy()
+                {
+                    @Override
+                    public boolean shouldSkipField(FieldAttributes f)
+                    {
+                        return f.getAnnotation(SkipPumiceJSONSerialization.class) != null;
+                    }
+
+                    @Override
+                    public boolean shouldSkipClass(Class<?> clazz)
+                    {
+                        return false;
+                    }
+                })
+                .create();
     }
 
     public void sendPumiceInstructionPacketOnASeparateThread(PumiceInstructionPacket packet, SugiliteVerbalInstructionHTTPQueryInterface caller) throws Exception {
@@ -135,7 +154,7 @@ public class SugiliteVerbalInstructionHTTPQueryManager {
             @Override
             public void run() {
                 if(caller != null) {
-                    caller.resultReceived(responseCode, response.toString());
+                    caller.resultReceived(responseCode, response.toString(), content);
                 }
             }
         };

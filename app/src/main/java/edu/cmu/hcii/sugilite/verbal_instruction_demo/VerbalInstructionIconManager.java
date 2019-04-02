@@ -39,7 +39,7 @@ import java.util.TimerTask;
 
 import edu.cmu.hcii.sugilite.Const;
 import edu.cmu.hcii.sugilite.R;
-import edu.cmu.hcii.sugilite.SugiliteAccessibilityService;
+import edu.cmu.hcii.sugilite.accessibility_service.SugiliteAccessibilityService;
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.ontology.SerializableUISnapshot;
 import edu.cmu.hcii.sugilite.ontology.UISnapshot;
@@ -49,7 +49,7 @@ import edu.cmu.hcii.sugilite.ui.StatusIconManager;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.speech.SugiliteVoiceInterface;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.speech.SugiliteVoiceRecognitionListener;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.study.SugiliteStudyHandler;
-
+import static edu.cmu.hcii.sugilite.Const.INTERVAL_REFRESH_UI_SNAPSHOT;
 import static edu.cmu.hcii.sugilite.Const.OVERLAY_TYPE;
 
 
@@ -59,6 +59,8 @@ import static edu.cmu.hcii.sugilite.Const.OVERLAY_TYPE;
  * @time 3:23 PM
  */
 public class VerbalInstructionIconManager implements SugiliteVoiceInterface {
+    private static VerbalInstructionIconManager instance;
+
     private Context context;
     private WindowManager windowManager;
     private LayoutInflater layoutInflater;
@@ -198,8 +200,9 @@ public class VerbalInstructionIconManager implements SugiliteVoiceInterface {
         int currentApiVersion = android.os.Build.VERSION.SDK_INT;
         if(currentApiVersion >= 23){
             checkDrawOverlayPermission();
-            if(Settings.canDrawOverlays(context))
+            if(Settings.canDrawOverlays(context)) {
                 windowManager.addView(statusIcon, iconParams);
+            }
         }
         else {
             windowManager.addView(statusIcon, iconParams);
@@ -216,12 +219,17 @@ public class VerbalInstructionIconManager implements SugiliteVoiceInterface {
                 sugiliteAccessibilityService.runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        sugiliteAccessibilityService.updateUISnapshotInVerbalInstructionManager();
-                        sugiliteAccessibilityService.checkIfAutomationCanBePerformed();
+                        sugiliteAccessibilityService.updateUISnapshotInVerbalInstructionManager(new Runnable() {
+                            @Override
+                            public void run() {
+                                sugiliteAccessibilityService.updatePumiceOverlay(latestUISnapshot);
+                                sugiliteAccessibilityService.checkIfAutomationCanBePerformed();
+                            }
+                        });
                     }
                 });
             }
-        }, 0, 1000);
+        }, 0, INTERVAL_REFRESH_UI_SNAPSHOT);
         showingIcon = true;
     }
 
@@ -229,7 +237,9 @@ public class VerbalInstructionIconManager implements SugiliteVoiceInterface {
         rotation = (rotation + 20) % 360;
 
         //rotate the duck
-        statusIcon.setRotation(rotation);
+        synchronized (this) {
+            statusIcon.setRotation(rotation);
+        }
     }
 
     /**
@@ -237,17 +247,19 @@ public class VerbalInstructionIconManager implements SugiliteVoiceInterface {
      */
     public void removeStatusIcon(){
         try{
-            if(statusIcon != null) {
+            if(statusIcon != null && statusIcon.getWindowToken() != null) {
                 windowManager.removeView(statusIcon);
             }
+
+        } catch (Exception e){
+            e.printStackTrace();
+        } finally {
             if(timer != null) {
                 timer.cancel();
             }
             showingIcon = false;
         }
-        catch (Exception e){
-            e.printStackTrace();
-        }
+
     }
 
     public ImageView getStatusIcon() {
@@ -258,16 +270,21 @@ public class VerbalInstructionIconManager implements SugiliteVoiceInterface {
         return showingIcon;
     }
 
-    public synchronized UISnapshot getLatestUISnapshot(){
-        return latestUISnapshot;
+    public UISnapshot getLatestUISnapshot(){
+        synchronized (this) {
+            return latestUISnapshot;
+        }
     }
 
     public void registerFollowUpQuestionDialog(FollowUpQuestionDialog followUpQuestionDialog) {
         this.followUpQuestionDialog = followUpQuestionDialog;
     }
 
-    public synchronized void setLatestUISnapshot(UISnapshot snapshot){
-        this.latestUISnapshot = snapshot;
+    public void setLatestUISnapshot(UISnapshot snapshot){
+        synchronized (this) {
+            this.latestUISnapshot = snapshot;
+        }
+
         //also update the uisnapshot for the testing full screen overlay
         recordingOverlayManager.setUiSnapshot(snapshot);
     }
@@ -318,10 +335,11 @@ public class VerbalInstructionIconManager implements SugiliteVoiceInterface {
                     }
                     //collect the ui snapshot when the cat icon has been clicked on
                     SerializableUISnapshot serializedUISnapshot = null;
-                    if(getLatestUISnapshot() != null) {
-                        serializedUISnapshot = new SerializableUISnapshot(getLatestUISnapshot());
+                    if(latestUISnapshot != null) {
+                        latestUISnapshot.annotateStringEntitiesIfNeeded();
+                        serializedUISnapshot = new SerializableUISnapshot(latestUISnapshot);
                     }
-                    final SerializableUISnapshot finalSsrializedUISnapshot = serializedUISnapshot;
+                    final SerializableUISnapshot finalSerializedUISnapshot = serializedUISnapshot;
 
                     //initialize the popup dialog
                     AlertDialog.Builder textDialogBuilder = new AlertDialog.Builder(context);
@@ -345,16 +363,15 @@ public class VerbalInstructionIconManager implements SugiliteVoiceInterface {
                                     switch (operationClone[which]) {
                                         case "Send a verbal instruction":
                                             //send a verbal instruction
-                                            if(getLatestUISnapshot() != null) {
-                                                if(finalSsrializedUISnapshot != null) {
-                                                    VerbalInstructionTestDialog verbalInstructionDialog = new VerbalInstructionTestDialog(finalSsrializedUISnapshot, context, layoutInflater, sugiliteData, sharedPreferences, tts);
-                                                    verbalInstructionDialog.show();
-                                                }
-
-                                                if(dialog != null){
-                                                    dialog.dismiss();
-                                                }
+                                            if(finalSerializedUISnapshot != null) {
+                                                VerbalInstructionTestDialog verbalInstructionDialog = new VerbalInstructionTestDialog(finalSerializedUISnapshot, context, layoutInflater, sugiliteData, sharedPreferences, tts);
+                                                verbalInstructionDialog.show();
                                             }
+
+                                            if(dialog != null){
+                                                dialog.dismiss();
+                                            }
+
                                             else{
                                                 Toast.makeText(context, "UI snapshot is NULL!", Toast.LENGTH_SHORT).show();
                                             }
@@ -372,13 +389,10 @@ public class VerbalInstructionIconManager implements SugiliteVoiceInterface {
                                             if(dialog != null){
                                                 dialog.dismiss();
                                             }
-                                            if(getLatestUISnapshot() != null) {
-                                                Gson gson = new GsonBuilder().excludeFieldsWithModifiers(Modifier.FINAL, Modifier.TRANSIENT, Modifier.STATIC)
-                                                        .serializeNulls()
-                                                        .create();
-                                                int snapshot_size = getLatestUISnapshot().getNodeSugiliteEntityMap().size();
-                                                SerializableUISnapshot serializedUISnapshot2 = new SerializableUISnapshot(getLatestUISnapshot());
-                                                dumpUISnapshot(serializedUISnapshot2);
+
+                                            if(finalSerializedUISnapshot != null) {
+                                                int snapshot_size = finalSerializedUISnapshot.getSugiliteEntityIdSugiliteEntityMap().size();
+                                                dumpUISnapshot(finalSerializedUISnapshot);
                                                 Toast.makeText(context, "dumped a UI snapshot with " + snapshot_size + " nodes", Toast.LENGTH_SHORT).show();
                                             }
                                             break;

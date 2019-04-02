@@ -14,7 +14,7 @@ import static org.junit.Assert.*;
  * Created by shi on 3/1/18.
  */
 public class DurationAnnotatorTest {
-    SugiliteTextAnnotator annotator;
+    SugiliteTextParentAnnotator annotator;
 
     @Before
     public void setup() {
@@ -23,7 +23,7 @@ public class DurationAnnotatorTest {
 
     @Test
     public void testBasic() {
-        List<SugiliteTextAnnotator.AnnotatingResult> res = annotator.annotate("5 hrs");
+        List<SugiliteTextParentAnnotator.AnnotatingResult> res = annotator.annotate("5 hrs");
         assertEquals(res.size(), 1);
         assertEquals(res.get(0).getRelation(), SugiliteRelation.CONTAINS_DURATION);
         assertEquals(res.get(0).getNumericValue().intValue(), 5*3600000);
@@ -31,7 +31,7 @@ public class DurationAnnotatorTest {
 
     @Test
     public void testBasic1() {
-        List<SugiliteTextAnnotator.AnnotatingResult> res = annotator.annotate("4 d 33.5 minutes 5 s");
+        List<SugiliteTextParentAnnotator.AnnotatingResult> res = annotator.annotate("4 d 33.5 minutes 5 s");
         assertEquals(res.size(), 1);
         assertEquals(res.get(0).getRelation(), SugiliteRelation.CONTAINS_DURATION);
         assertEquals(res.get(0).getNumericValue().intValue(), (int)(4*86400000+33.5*60000+5*1000));
@@ -39,7 +39,7 @@ public class DurationAnnotatorTest {
 
     @Test
     public void testBasic2() {
-        List<SugiliteTextAnnotator.AnnotatingResult> res = annotator.annotate("flight time: 17hr 16.5mins, " +
+        List<SugiliteTextParentAnnotator.AnnotatingResult> res = annotator.annotate("flight time: 17hr 16.5mins, " +
                 "flight departs at 19:05");
         assertEquals(res.size(), 1);
         assertEquals(res.get(0).getRelation(), SugiliteRelation.CONTAINS_DURATION);
@@ -48,10 +48,10 @@ public class DurationAnnotatorTest {
 
     @Test
     public void testMultiple() {
-        List<SugiliteTextAnnotator.AnnotatingResult> res = annotator.annotate("Flights from Pittsburgh to" +
+        List<SugiliteTextParentAnnotator.AnnotatingResult> res = annotator.annotate("Flights from Pittsburgh to" +
                 "Havana: Delta: 9 hr 36 min, American: 10 hours, United: 9 h 40sec");
         assertEquals(res.size(), 3);
-        res.sort(Comparator.comparingDouble(SugiliteTextAnnotator.AnnotatingResult::getNumericValue));
+        res.sort(Comparator.comparingDouble(SugiliteTextParentAnnotator.AnnotatingResult::getNumericValue));
         assertEquals(res.get(0).getNumericValue().intValue(), 9*3600000+40*1000);
         assertEquals(res.get(1).getNumericValue().intValue(), 9*3600000+36*60000);
         assertEquals(res.get(2).getNumericValue().intValue(), 10*3600000);
@@ -59,7 +59,7 @@ public class DurationAnnotatorTest {
 
     @Test
     public void testMultipleWithBadInput() {
-        List<SugiliteTextAnnotator.AnnotatingResult> res = annotator.annotate("Durations: 5:30, 5 hr 29 min, " +
+        List<SugiliteTextParentAnnotator.AnnotatingResult> res = annotator.annotate("Durations: 5:30, 5 hr 29 min, " +
                 "5:28:00");
         assertEquals(res.size(), 1);
         assertEquals(res.get(0).getNumericValue().intValue(), 5*3600000+29*60000);

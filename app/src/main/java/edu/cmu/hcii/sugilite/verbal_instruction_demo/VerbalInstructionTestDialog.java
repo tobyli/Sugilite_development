@@ -188,7 +188,7 @@ public class VerbalInstructionTestDialog implements SugiliteVoiceInterface, Sugi
 
     private void showProgressDialog(){
         progressDialog = new AlertDialog.Builder(context).setMessage("Processing the query ...").create();
-        progressDialog.getWindow().setType(WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY);
+        progressDialog.getWindow().setType(OVERLAY_TYPE);
         progressDialog.setCanceledOnTouchOutside(false);
         progressDialog.show();
     }
@@ -197,7 +197,7 @@ public class VerbalInstructionTestDialog implements SugiliteVoiceInterface, Sugi
     /**
      * callback for HTTP query
      */
-    public void resultReceived(int responseCode, String result) {
+    public void resultReceived(int responseCode, String result, String originalQuery) {
         if (progressDialog != null && progressDialog.isShowing()) {
             progressDialog.dismiss();
         }

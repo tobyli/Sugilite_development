@@ -1,19 +1,21 @@
 package edu.cmu.hcii.sugilite.pumice.dialog.intent_handler;
 
 import android.app.Activity;
-import android.content.Context;
 import android.widget.ImageView;
 
+import com.google.gson.ExclusionStrategy;
+import com.google.gson.FieldAttributes;
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 import java.util.Calendar;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import edu.cmu.hcii.sugilite.R;
 import edu.cmu.hcii.sugilite.pumice.communication.PumiceInstructionPacket;
 import edu.cmu.hcii.sugilite.pumice.communication.PumiceSemanticParsingResultPacket;
+import edu.cmu.hcii.sugilite.pumice.communication.SkipPumiceJSONSerialization;
 import edu.cmu.hcii.sugilite.pumice.dialog.PumiceDialogManager;
+import edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.parsing_confirmation.PumiceParsingConfirmationHandler;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.server_comm.SugiliteVerbalInstructionHTTPQueryInterface;
 
 /**
@@ -23,14 +25,17 @@ import edu.cmu.hcii.sugilite.verbal_instruction_demo.server_comm.SugiliteVerbalI
  */
 
 public class PumiceDefaultUtteranceIntentHandler implements PumiceUtteranceIntentHandler, SugiliteVerbalInstructionHTTPQueryInterface {
-    private transient Activity context;
-    private transient PumiceDialogManager pumiceDialogManager;
+    private Activity context;
+    private PumiceDialogManager pumiceDialogManager;
     private Calendar calendar;
+
+    private PumiceDefaultUtteranceIntentHandler pumiceDefaultUtteranceIntentHandler;
 
     public PumiceDefaultUtteranceIntentHandler(PumiceDialogManager pumiceDialogManager, Activity context){
         this.pumiceDialogManager = pumiceDialogManager;
         this.context = context;
         this.calendar = Calendar.getInstance();
+        this.pumiceDefaultUtteranceIntentHandler = this;
     }
 
     @Override
@@ -98,8 +103,8 @@ public class PumiceDefaultUtteranceIntentHandler implements PumiceUtteranceInten
             case USER_INIT_INSTRUCTION:
                 dialogManager.sendAgentMessage("I have received your instruction: " + utterance.getContent(), true, false);
                 PumiceInstructionPacket pumiceInstructionPacket = new PumiceInstructionPacket(dialogManager.getPumiceKnowledgeManager(), PumiceIntent.USER_INIT_INSTRUCTION, calendar.getTimeInMillis(), utterance.getContent(), "ROOT");
-                dialogManager.sendAgentMessage("Sending out the server query below...", true, false);
-                dialogManager.sendAgentMessage(pumiceInstructionPacket.toString(), false, false);
+                //dialogManager.sendAgentMessage("Sending out the server query below...", true, false);
+                //dialogManager.sendAgentMessage(pumiceInstructionPacket.toString(), false, false);
                 try {
                     dialogManager.getHttpQueryManager().sendPumiceInstructionPacketOnASeparateThread(pumiceInstructionPacket, this);
                 } catch (Exception e){
@@ -124,31 +129,54 @@ public class PumiceDefaultUtteranceIntentHandler implements PumiceUtteranceInten
     }
 
     @Override
-    public void resultReceived(int responseCode, String result) {
+    public void resultReceived(int responseCode, String result, String originalQuery) {
         //handle server response from the semantic parsing server
-        Gson gson = new Gson();
+        Gson gson = new GsonBuilder()
+                .addSerializationExclusionStrategy(new ExclusionStrategy()
+                {
+                    @Override
+                    public boolean shouldSkipField(FieldAttributes f)
+                    {
+                        return f.getAnnotation(SkipPumiceJSONSerialization.class) != null;
+                    }
+
+                    @Override
+                    public boolean shouldSkipClass(Class<?> clazz)
+                    {
+                        return false;
+                    }
+                })
+                .create();
         try {
             PumiceSemanticParsingResultPacket resultPacket = gson.fromJson(result, PumiceSemanticParsingResultPacket.class);
             if (resultPacket.utteranceType != null) {
                 switch (PumiceUtteranceIntentHandler.PumiceIntent.valueOf(resultPacket.utteranceType)) {
                     case USER_INIT_INSTRUCTION:
                         if (resultPacket.queries != null && resultPacket.queries.size() > 0) {
-                            PumiceSemanticParsingResultPacket.QueryGroundingPair topResult = resultPacket.queries.get(0);
-                            if (topResult.formula != null) {
-                                pumiceDialogManager.sendAgentMessage("Received the parsing result from the server: ", true, false);
-                                pumiceDialogManager.sendAgentMessage(topResult.formula, false, false);
+                            // send the result to a PumiceScriptExecutingConfirmationIntentHandler
+                            PumiceParsingConfirmationHandler parsingConfirmationHandler = new PumiceParsingConfirmationHandler(context, pumiceDialogManager);
+                            parsingConfirmationHandler.handleParsingResult(resultPacket, new Runnable() {
+                                @Override
+                                public void run() {
+                                    //runnable for retry
+                                    pumiceDialogManager.updateUtteranceIntentHandlerInANewState(pumiceDefaultUtteranceIntentHandler);
+                                    sendPromptForTheIntentHandler();
 
-                                //do the parse on a new thread so it doesn't block the conversational I/O
-                                pumiceDialogManager.getExecutorService().submit(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        //parse and process the server response
-                                        pumiceDialogManager.getPumiceInitInstructionParsingHandler().parseFromNewInitInstruction(topResult.formula, resultPacket.userUtterance);
-                                    }
-                                });
-                            } else {
-                                throw new RuntimeException("empty formula");
-                            }
+                                }
+                            }, new PumiceParsingConfirmationHandler.ConfirmedParseRunnable() {
+                                @Override
+                                public void run(String confirmedFormula) {
+                                    //runnable for confirmed parse
+                                    pumiceDialogManager.getExecutorService().submit(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            //parse and process the server response
+                                            pumiceDialogManager.getPumiceInitInstructionParsingHandler().parseFromNewInitInstruction(confirmedFormula, resultPacket.userUtterance);
+                                        }
+                                    });
+                                }
+                            });
+
                         } else {
                             throw new RuntimeException("empty server result");
                         }
@@ -160,8 +188,17 @@ public class PumiceDefaultUtteranceIntentHandler implements PumiceUtteranceInten
         } catch (Exception e){
             //TODO: error handling
             pumiceDialogManager.sendAgentMessage("Can't read from the server response", true, false);
+
+            pumiceDialogManager.sendAgentMessage("OK. Let's try again.", true, false);
+            pumiceDialogManager.updateUtteranceIntentHandlerInANewState(pumiceDefaultUtteranceIntentHandler);
+            sendPromptForTheIntentHandler();
             e.printStackTrace();
         }
+    }
+
+    @Override
+    public void sendPromptForTheIntentHandler() {
+        pumiceDialogManager.sendAgentMessage("Hi I'm Sugilite bot! How can I help you?", true, true);
     }
 
     @Override

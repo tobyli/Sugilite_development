@@ -72,4 +72,9 @@ public class SugiliteOperationBlock extends SugiliteBlock implements Serializabl
     public UIElementMatchingFilter getElementMatchingFilter(){
         return elementMatchingFilter;
     }
+
+    @Override
+    public String getPumiceUserReadableDecription() {
+        return operation.getPumiceUserReadableDecription();
+    }
 }

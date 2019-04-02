@@ -9,8 +9,10 @@ import edu.cmu.hcii.sugilite.model.operation.unary.SugiliteResolveBoolExpOperati
 import edu.cmu.hcii.sugilite.model.operation.unary.SugiliteResolveValueQueryOperation;
 import edu.cmu.hcii.sugilite.model.value.SugiliteSimpleConstant;
 import edu.cmu.hcii.sugilite.model.value.SugiliteValue;
-import edu.cmu.hcii.sugilite.ontology.helper.annotator.SugiliteTextAnnotator;
+import edu.cmu.hcii.sugilite.ontology.helper.annotator.SugiliteTextParentAnnotator;
 import edu.cmu.hcii.sugilite.source_parsing.SugiliteScriptExpression;
+
+import java.io.Serializable;
 import java.util.List;
 
 /**
@@ -18,10 +20,11 @@ import java.util.List;
  * @date 11/14/18
  * @time 1:02 AM
  */
-public class SugiliteBooleanExpressionNew implements SugiliteValue<Boolean> {
+public class SugiliteBooleanExpressionNew implements SugiliteValue<Boolean>, Serializable {
     public enum BoolOperator {NOT, EQUAL, GREATER_THAN, LESS_THAN, GREATER_THAN_OR_EQUAL_TO, LESS_THAN_OR_EQUAL_TO, TEXT_CONTAINS, AND, OR};
     private String booleanExpression;
-    private SugiliteData sugiliteData;
+
+    private transient SugiliteData sugiliteData;
 
     private BoolOperator boolOperator;
     private SugiliteValue arg0;
@@ -113,18 +116,18 @@ public class SugiliteBooleanExpressionNew implements SugiliteValue<Boolean> {
                 //note: Boolean is also Comparable
 
                 //normalize arg0Value and arg1Value using SugiliteTextAnnotator
-                SugiliteTextAnnotator.AnnotatingResult annotatingResult0 = null;
+                SugiliteTextParentAnnotator.AnnotatingResult annotatingResult0 = null;
                 if (arg0 instanceof SugiliteSimpleConstant) {
                     annotatingResult0 = ((SugiliteSimpleConstant) arg0).toAnnotatingResult();
                 } else if (arg0Value instanceof String) {
-                    annotatingResult0 = SugiliteTextAnnotator.AnnotatingResult.fromString((String)arg0Value);
+                    annotatingResult0 = SugiliteTextParentAnnotator.AnnotatingResult.fromString((String)arg0Value);
                 }
 
-                SugiliteTextAnnotator.AnnotatingResult annotatingResult1 = null;
+                SugiliteTextParentAnnotator.AnnotatingResult annotatingResult1 = null;
                 if (arg1 instanceof SugiliteSimpleConstant) {
                     annotatingResult1 = ((SugiliteSimpleConstant) arg1).toAnnotatingResult();
                 } else if (arg1Value instanceof String) {
-                    annotatingResult1 = SugiliteTextAnnotator.AnnotatingResult.fromString((String)arg1Value);
+                    annotatingResult1 = SugiliteTextParentAnnotator.AnnotatingResult.fromString((String)arg1Value);
                 }
                 //compare using annotatingResults if both are available
                 if (annotatingResult0 != null && annotatingResult1 != null){
@@ -169,7 +172,7 @@ public class SugiliteBooleanExpressionNew implements SugiliteValue<Boolean> {
             if(scriptExpression.getConstantValue() instanceof SugiliteSimpleConstant){
                 return (SugiliteSimpleConstant)scriptExpression.getConstantValue();
             } else {
-                return new SugiliteSimpleConstant(scriptExpression.getConstantValue());
+                throw new RuntimeException("unknown type of constant!");
             }
         } else if (scriptExpression.getOperationName() != null){
             if (getBoolOperatorFromString(scriptExpression.getOperationName()) != null){
@@ -256,7 +259,7 @@ public class SugiliteBooleanExpressionNew implements SugiliteValue<Boolean> {
             return boolOperation.getReadableDescription();
         } else {
             //TODO: implement
-            return "placeholder";
+            return arg0.getReadableDescription() + " is " + boolOperator.name().replace("_", " ").toLowerCase() + " " + arg1.getReadableDescription();
         }
     }
 

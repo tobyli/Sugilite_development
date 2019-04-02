@@ -84,4 +84,9 @@ public class SugiliteLoadVariableOperation extends SugiliteTrinaryOperation<Stri
     public String toString() {
         return "(" + "call load_as_variable " + addQuoteToTokenIfNeeded(getParameter0().toString()) + " " + addQuoteToTokenIfNeeded(getParameter1().toString()) + " " + addQuoteToTokenIfNeeded(getParameter2().toString()) + ")";
     }
+
+    @Override
+    public String getPumiceUserReadableDecription() {
+        return String.format("set the value of the variable %s to the %s property of %s", variableName, propertyToSave, targetUIElementDataDescriptionQuery.toString());
+    }
 }

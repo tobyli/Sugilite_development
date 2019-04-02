@@ -8,6 +8,9 @@ import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.model.value.SugiliteValue;
 import edu.cmu.hcii.sugilite.ontology.SerializableOntologyQuery;
+import edu.cmu.hcii.sugilite.pumice.dialog.PumiceDialogManager;
+import edu.cmu.hcii.sugilite.pumice.kb.PumiceKnowledgeManager;
+import edu.cmu.hcii.sugilite.pumice.kb.PumiceProceduralKnowledge;
 
 import static edu.cmu.hcii.sugilite.source_parsing.SugiliteScriptExpression.addQuoteToTokenIfNeeded;
 
@@ -34,7 +37,28 @@ public class SugiliteGetProcedureOperation extends SugiliteGetOperation<String> 
      */
     @Override
     public String evaluate(@Nullable SugiliteData sugiliteData) {
-       return "Procedure_" + getName() + ".SugiliteScript";
+        PumiceDialogManager pumiceDialogManager = sugiliteData.pumiceDialogManager;
+        if (pumiceDialogManager != null) {
+            PumiceKnowledgeManager pumiceKnowledgeManager = pumiceDialogManager.getPumiceKnowledgeManager();
+            if (pumiceKnowledgeManager != null) {
+                for (PumiceProceduralKnowledge proceduralKnowledge : pumiceKnowledgeManager.getPumiceProceduralKnowledges()){
+                    if (getName().equals(proceduralKnowledge.getProcedureName())){
+                        //found;
+                        return proceduralKnowledge.getTargetScriptName(pumiceKnowledgeManager);
+                    }
+                }
+            } else {
+                throw new RuntimeException("null knowledge manager!");
+            }
+        } else {
+            throw new RuntimeException("null dialog manager!");
+        }
+        throw new RuntimeException("can't find the target procedure knowledge!");
+    }
+
+    @Override
+    public String getPumiceUserReadableDecription() {
+        return String.format("perform the action \"%s\"", getName());
     }
 
 }

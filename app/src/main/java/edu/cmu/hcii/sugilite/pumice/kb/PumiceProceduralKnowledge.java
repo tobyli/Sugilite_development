@@ -1,10 +1,16 @@
 package edu.cmu.hcii.sugilite.pumice.kb;
 import android.content.Context;
+import android.support.annotation.Nullable;
 
+import com.google.gson.ExclusionStrategy;
+import com.google.gson.FieldAttributes;
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.annotations.Expose;
 
 import org.apache.commons.lang3.StringUtils;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -17,6 +23,7 @@ import java.util.Set;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.model.variable.Variable;
 import edu.cmu.hcii.sugilite.ontology.description.OntologyDescriptionGenerator;
+import edu.cmu.hcii.sugilite.pumice.communication.SkipPumiceJSONSerialization;
 
 import static edu.cmu.hcii.sugilite.Const.HOME_SCREEN_PACKAGE_NAMES;
 
@@ -25,31 +32,58 @@ import static edu.cmu.hcii.sugilite.Const.HOME_SCREEN_PACKAGE_NAMES;
  * @date 10/29/18
  * @time 11:54 AM
  */
-public class PumiceProceduralKnowledge {
+public class PumiceProceduralKnowledge implements Serializable {
     private String procedureName;
     private String utterance;
-    private List<String> involvedAppNames;
+
     private Map<String, PumiceProceduralKnowledgeParameter> parameterNameParameterMap;
-    transient private SugiliteStartingBlock sugiliteStartingBlock;
+
+    //point to another PumiceProceduralKnowledge by its procedureName
+    private String targetProcedureKnowledgeName;
+
+    //the procedure itself -- not really used -> SHOULD be null if targetProcedureKnowledgeName is non-null
+    //not serialized for GSON
+    @SkipPumiceJSONSerialization
+    private SugiliteStartingBlock sugiliteStartingBlock;
+    //the name of sugiliteStartingBlock -> SHOULD be null if targetProcedureKnowledgeName is non-null
+    private String scriptName;
+    //the list of involvedAppNames -> SHOULD be null if targetProcedureKnowledgeName is non-null
+    private List<String> involvedAppNames;
 
     public PumiceProceduralKnowledge(){
 
     }
 
-    public PumiceProceduralKnowledge(String procedureName, String utterance, Collection<String> involvedAppNames){
+    /**
+     * constructor used to build a "redirecting" procedural knowledge without an actual script attached
+     * @param procedureName
+     * @param utterance
+     * @param targetProcedureKnowledgeName
+     */
+    public PumiceProceduralKnowledge(String procedureName, String utterance, String targetProcedureKnowledgeName, @Nullable List<String> involvedAppNames){
         this.procedureName = procedureName;
         this.utterance = utterance;
-        this.involvedAppNames = new ArrayList<>();
-        this.involvedAppNames.addAll(involvedAppNames);
-        this.parameterNameParameterMap = new HashMap<>();
+        this.involvedAppNames = involvedAppNames;
+        this.parameterNameParameterMap = null;
+        this.sugiliteStartingBlock = null;
+        this.scriptName = null;
+        this.targetProcedureKnowledgeName = targetProcedureKnowledgeName;
     }
 
+    /**
+     * constructor used to build a "terminal" procedural knowledge with an actual script attached
+     * @param context
+     * @param procedureName
+     * @param utterance
+     * @param startingBlock
+     */
     public PumiceProceduralKnowledge(Context context, String procedureName, String utterance, SugiliteStartingBlock startingBlock){
         this.procedureName = procedureName;
         this.utterance = utterance;
         this.involvedAppNames = new ArrayList<>();
         this.parameterNameParameterMap = new HashMap<>();
         this.sugiliteStartingBlock = startingBlock;
+        this.scriptName = sugiliteStartingBlock.getScriptName();
 
         //populate involvedAppNames
         Set<String> involvedAppPackageNames = new HashSet<>();
@@ -60,7 +94,7 @@ public class PumiceProceduralKnowledge {
             }
         }
         for(String packageName : involvedAppPackageNames){
-            //TODO: get app name for package name
+            //get app name for package name
             involvedAppNames.add(OntologyDescriptionGenerator.getAppName(context, packageName));
         }
         //populate parameterNameParameterMap
@@ -85,9 +119,14 @@ public class PumiceProceduralKnowledge {
         this.involvedAppNames = pumiceProceduralKnowledge.involvedAppNames;
         this.parameterNameParameterMap = pumiceProceduralKnowledge.parameterNameParameterMap;
         this.sugiliteStartingBlock = pumiceProceduralKnowledge.sugiliteStartingBlock;
+        this.targetProcedureKnowledgeName = pumiceProceduralKnowledge.targetProcedureKnowledgeName;
+        this.scriptName = pumiceProceduralKnowledge.scriptName;
     }
 
     public void addParameter(PumiceProceduralKnowledgeParameter parameter){
+        if (parameterNameParameterMap == null){
+            parameterNameParameterMap = new HashMap<String, PumiceProceduralKnowledgeParameter>();
+        }
         parameterNameParameterMap.put(parameter.parameterName, parameter);
     }
 
@@ -96,29 +135,100 @@ public class PumiceProceduralKnowledge {
             addParameter(parameter);
         }
     }
-
-    public void execute(){
-        //TODO: implement the execution
+    public String getTargetProcedureKnowledgeName(){
+        return targetProcedureKnowledgeName;
     }
 
-    public String getProcedureDescription(){
+    /**
+     * used for getting the real targetScriptName for execution
+     * @param knowledgeManager
+     * @return
+     */
+    public String getTargetScriptName(PumiceKnowledgeManager knowledgeManager){
+        if (scriptName != null) {
+            return scriptName;
+        } else if (targetProcedureKnowledgeName != null && (!targetProcedureKnowledgeName.equals(procedureName))) {
+            //look up in PumiceKnowledgeManager
+            for(PumiceProceduralKnowledge proceduralKnowledge : knowledgeManager.getPumiceProceduralKnowledges()){
+                if (targetProcedureKnowledgeName.equals(proceduralKnowledge.procedureName)){
+                    return proceduralKnowledge.getTargetScriptName(knowledgeManager);
+                }
+            }
+        } else {
+            throw new RuntimeException("not valid scriptName or targetProcedureKnowledgeName");
+        }
+        throw new RuntimeException("can't find the target procedureKnowledge");
+    }
+
+    /**
+     * used for getting the real involved app names for execution
+     * @param knowledgeManager
+     * @return
+     */
+    public List<String> getInvolvedAppNames(PumiceKnowledgeManager knowledgeManager){
+        if (involvedAppNames != null) {
+            return involvedAppNames;
+        } else if (targetProcedureKnowledgeName != null && (!targetProcedureKnowledgeName.equals(procedureName))) {
+            //look up in PumiceKnowledgeManager
+            for(PumiceProceduralKnowledge proceduralKnowledge : knowledgeManager.getPumiceProceduralKnowledges()){
+                if (targetProcedureKnowledgeName.equals(proceduralKnowledge.procedureName)){
+                    return proceduralKnowledge.getInvolvedAppNames(knowledgeManager);
+                }
+            }
+        } else {
+            throw new RuntimeException("not valid scriptName or targetProcedureKnowledgeName");
+        }
+        throw new RuntimeException("can't find the target procedureKnowledge");
+    }
+
+    /**
+     * used for getting the real parameters for execution
+     * @param knowledgeManager
+     * @return
+     */
+    public Map<String, PumiceProceduralKnowledgeParameter> getParameterNameParameterMap(PumiceKnowledgeManager knowledgeManager){
+        if (parameterNameParameterMap != null) {
+            return parameterNameParameterMap;
+        } else if (targetProcedureKnowledgeName != null && (!targetProcedureKnowledgeName.equals(procedureName))) {
+            //look up in PumiceKnowledgeManager
+            for(PumiceProceduralKnowledge proceduralKnowledge : knowledgeManager.getPumiceProceduralKnowledges()){
+                if (targetProcedureKnowledgeName.equals(proceduralKnowledge.procedureName)){
+                    return proceduralKnowledge.getParameterNameParameterMap(knowledgeManager);
+                }
+            }
+        } else {
+            throw new RuntimeException("not valid scriptName or targetProcedureKnowledgeName");
+        }
+        throw new RuntimeException("can't find the target procedureKnowledge");
+    }
+
+    public String getProcedureDescription(PumiceKnowledgeManager knowledgeManager){
         String parameterizedUtterance = new String(utterance);
-        for(String parameter : parameterNameParameterMap.keySet()){
-            parameterizedUtterance = parameterizedUtterance.replace(parameter, "something");
+        Map<String, PumiceProceduralKnowledgeParameter> parameterNameParameterMap = getParameterNameParameterMap(knowledgeManager);
+        if (parameterNameParameterMap != null) {
+            for (String parameter : parameterNameParameterMap.keySet()) {
+                parameterizedUtterance = parameterizedUtterance.replace(parameter, "something");
+            }
+        }
+        if (targetProcedureKnowledgeName != null)     {
+            parameterizedUtterance = parameterizedUtterance + ", which is to " + targetProcedureKnowledgeName;
+        }
+        else if (involvedAppNames != null && involvedAppNames.size() > 0) {
+            parameterizedUtterance = parameterizedUtterance + " in " + StringUtils.join(involvedAppNames, ",");
         }
 
-        return "How to " + parameterizedUtterance + " in " + StringUtils.join(involvedAppNames, ",");
-    }
-
-    public void setProcedureName(String procedureName) {
-        this.procedureName = procedureName;
+        return "How to " + parameterizedUtterance;
     }
 
     public void setUtterance(String utterance) {
         this.utterance = utterance;
     }
 
-    public static class PumiceProceduralKnowledgeParameter<T> {
+    public String getProcedureName() {
+        return procedureName;
+    }
+
+    public static class PumiceProceduralKnowledgeParameter<T> implements Serializable {
         //T currently supports numerical and String
         private String parameterName;
         private T parameterDefaultValue;
@@ -142,7 +252,23 @@ public class PumiceProceduralKnowledge {
 
     @Override
     public String toString() {
-        return new Gson().toJson(this);
+        Gson gson = new GsonBuilder()
+                .addSerializationExclusionStrategy(new ExclusionStrategy()
+                {
+                    @Override
+                    public boolean shouldSkipField(FieldAttributes f)
+                    {
+                        return f.getAnnotation(SkipPumiceJSONSerialization.class) != null;
+                    }
+
+                    @Override
+                    public boolean shouldSkipClass(Class<?> clazz)
+                    {
+                        return false;
+                    }
+                })
+                .create();
+        return gson.toJson(this);
     }
 
 }

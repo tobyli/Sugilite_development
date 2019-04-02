@@ -25,6 +25,8 @@ import edu.cmu.hcii.sugilite.ontology.UISnapshot;
 import edu.cmu.hcii.sugilite.pumice.dialog.demonstration.PumiceValueDemonstrationSelectionDialog;
 import static edu.cmu.hcii.sugilite.Const.OVERLAY_TYPE;
 
+import static edu.cmu.hcii.sugilite.Const.OVERLAY_TYPE;
+
 /**
  * @author toby
  * @date 1/7/19

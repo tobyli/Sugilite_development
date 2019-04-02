@@ -102,7 +102,7 @@ public class SugiliteScriptExpression<T> {
             } else if (node.getChildren().size() == 3 && node.getChildren().get(0).getValue() != null && node.getChildren().get(1).getValue() != null  && node.getChildren().get(2).getValue() != null && node.getChildren().get(0).getValue().equals("number")){
                 //number constant with unit
                 result = new SugiliteScriptExpression<SugiliteSimpleConstant<Number>>();
-                result.setConstantValue(new SugiliteSimpleConstant<>(node.getChildren().get(1).getValue(), node.getChildren().get(2).getValue()));
+                result.setConstantValue(new SugiliteSimpleConstant<String>(node.getChildren().get(1).getValue(), node.getChildren().get(2).getValue()));
             }
 
             else if(representMultipleSteps(node.getChildren())) {
@@ -163,7 +163,7 @@ public class SugiliteScriptExpression<T> {
         }
         if(query.getSubQueries() != null){
             for(SerializableOntologyQuery serializableOntologyQuery : query.getSubQueries()){
-                if(query != null){
+                if(query != null && serializableOntologyQuery != null && startingBlock != null){
                     extractVariableFromQuery(serializableOntologyQuery, startingBlock);
                 }
             }
@@ -232,8 +232,10 @@ public class SugiliteScriptExpression<T> {
             operationBlock.setOperation(operation);
             SerializableOntologyQuery query = new SerializableOntologyQuery(OntologyQuery.deserialize(arguments.get(0).get(0).getScriptContent()));
 
-            //extract variables from the query
-            extractVariableFromQuery(query, startingBlock);
+            if (query != null && startingBlock != null) {
+                //extract variables from the query
+                extractVariableFromQuery(query, startingBlock);
+            }
 
 
             //set the description

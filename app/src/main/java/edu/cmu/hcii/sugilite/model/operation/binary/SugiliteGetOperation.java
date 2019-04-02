@@ -83,11 +83,11 @@ public abstract class SugiliteGetOperation<T> extends SugiliteBinaryOperation<St
 
     @Override
     public String toString() {
-        return "(" + "call get " + addQuoteToTokenIfNeeded(getParameter0().toString()) + " " + addQuoteToTokenIfNeeded(getParameter1().toString()) + ")";
+        return "(" + "call get " + addQuoteToTokenIfNeeded(getParameter0()) + " " + addQuoteToTokenIfNeeded(getParameter1()) + ")";
     }
 
     @Override
     public String getReadableDescription() {
-        return getParameter0().toString();
+        return getPumiceUserReadableDecription();
     }
 }

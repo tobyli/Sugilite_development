@@ -556,8 +556,11 @@ public class OntologyDescriptionGenerator {
         OntologyQuery ontologyQuery = new OntologyQuery(sq);
         SugiliteRelation r = ontologyQuery.getR();
         OntologyQueryFilter filter = ontologyQuery.getOntologyQueryFilter();
-        if (ontologyQuery.getSubRelation() == OntologyQuery.relationType.nullR) {
 
+        if (ontologyQuery.getSubRelation() == OntologyQuery.relationType.nullR) {
+            if (ontologyQuery.getR().equals(SugiliteRelation.IS)) {
+                return "";
+            }
             if (filter == null) {
                 return descriptionForSingleQuery(ontologyQuery) + postfix;
             }
@@ -590,6 +593,8 @@ public class OntologyDescriptionGenerator {
                 return translationWithRelationshipPrev(arr, r) + postfix;
             }
         }
+
+
 
         return "NULL";
     }

@@ -2,13 +2,13 @@ package edu.cmu.hcii.sugilite.model.value;
 
 import android.support.annotation.Nullable;
 
+import java.io.Serializable;
 import java.text.NumberFormat;
 import java.text.ParseException;
 import java.util.List;
 
 import edu.cmu.hcii.sugilite.SugiliteData;
-import edu.cmu.hcii.sugilite.ontology.helper.annotator.SugiliteNodeAnnotator;
-import edu.cmu.hcii.sugilite.ontology.helper.annotator.SugiliteTextAnnotator;
+import edu.cmu.hcii.sugilite.ontology.helper.annotator.SugiliteTextParentAnnotator;
 
 import static edu.cmu.hcii.sugilite.source_parsing.SugiliteScriptExpression.addQuoteToTokenIfNeeded;
 
@@ -17,7 +17,7 @@ import static edu.cmu.hcii.sugilite.source_parsing.SugiliteScriptExpression.addQ
  * @date 11/14/18
  * @time 12:54 AM
  */
-public class SugiliteSimpleConstant<T> implements SugiliteValue<T> {
+public class SugiliteSimpleConstant<T> implements SugiliteValue<T>, Serializable {
     private T value;
     private String unit;
 
@@ -34,10 +34,10 @@ public class SugiliteSimpleConstant<T> implements SugiliteValue<T> {
         return unit;
     }
 
-
-    public SugiliteTextAnnotator.AnnotatingResult toAnnotatingResult(){
-        SugiliteTextAnnotator annotator = new SugiliteTextAnnotator(true);
-        List<SugiliteTextAnnotator.AnnotatingResult> results;
+    @Nullable
+    public SugiliteTextParentAnnotator.AnnotatingResult toAnnotatingResult(){
+        SugiliteTextParentAnnotator annotator = SugiliteTextParentAnnotator.getInstance();
+        List<SugiliteTextParentAnnotator.AnnotatingResult> results;
         if (unit != null) {
             results = annotator.annotate(value.toString() + " " + unit);
         } else {

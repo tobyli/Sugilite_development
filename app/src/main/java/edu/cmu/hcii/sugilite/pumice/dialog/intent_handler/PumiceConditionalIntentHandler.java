@@ -7,7 +7,10 @@ import android.content.Intent;
 import android.widget.Toast;
 import android.support.design.widget.Snackbar;
 
+import com.google.gson.ExclusionStrategy;
+import com.google.gson.FieldAttributes;
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 import java.util.Calendar;
 import java.util.concurrent.ExecutorService;
@@ -18,6 +21,7 @@ import edu.cmu.hcii.sugilite.model.block.booleanexp.SugiliteBooleanExpressionNew
 import edu.cmu.hcii.sugilite.pumice.communication.PumiceInstructionPacket;
 import edu.cmu.hcii.sugilite.pumice.communication.PumiceSemanticParsingResultPacket;
 import edu.cmu.hcii.sugilite.pumice.dialog.PumiceConditionalInstructionParsingHandler;
+import edu.cmu.hcii.sugilite.pumice.communication.SkipPumiceJSONSerialization;
 import edu.cmu.hcii.sugilite.pumice.dialog.PumiceDialogManager;
 import edu.cmu.hcii.sugilite.pumice.kb.PumiceBooleanExpKnowledge;
 import edu.cmu.hcii.sugilite.source_parsing.SugiliteScriptParser;
@@ -29,11 +33,11 @@ import edu.cmu.hcii.sugilite.verbal_instruction_demo.server_comm.SugiliteVerbalI
 import edu.cmu.hcii.sugilite.pumice.dialog.ConditionalPumiceDialogManager;
 
 public class PumiceConditionalIntentHandler implements PumiceUtteranceIntentHandler, SugiliteVerbalInstructionHTTPQueryInterface {
-    private transient ScriptDetailActivity sourceActivity;
+    private ScriptDetailActivity sourceActivity;
     private ConditionalPumiceDialogManager dialogManager;
-    private transient Context context;
+    private Context context;
     private ExecutorService es;
-    Calendar calendar;
+    private Calendar calendar;
     private PumiceIntent lastIntent; //store last PumiceIntent
     private PumiceDialogManager.PumiceUtterance lastUtterance; //store last utterance
     private String check; //store check String given by user
@@ -519,9 +523,24 @@ public class PumiceConditionalIntentHandler implements PumiceUtteranceIntentHand
     }*/
 
     @Override
-    public void resultReceived(int responseCode, String result) {
+    public void resultReceived(int responseCode, String result, String originalQuery) {
         //TODO: handle server response from the semantic parsing server
-        Gson gson = new Gson();
+        Gson gson = new GsonBuilder()
+                .addSerializationExclusionStrategy(new ExclusionStrategy()
+                {
+                    @Override
+                    public boolean shouldSkipField(FieldAttributes f)
+                    {
+                        return f.getAnnotation(SkipPumiceJSONSerialization.class) != null;
+                    }
+
+                    @Override
+                    public boolean shouldSkipClass(Class<?> clazz)
+                    {
+                        return false;
+                    }
+                })
+                .create();
         try {
             PumiceSemanticParsingResultPacket resultPacket = gson.fromJson(result, PumiceSemanticParsingResultPacket.class);
         //TODO: handle server response from the semantic parsing server
@@ -596,6 +615,11 @@ public class PumiceConditionalIntentHandler implements PumiceUtteranceIntentHand
 
     public PumiceIntent getLastIntent() {
         return lastIntent;
+    }
+
+    @Override
+    public void sendPromptForTheIntentHandler() {
+        //TODO: implement
     }
 
     @Override

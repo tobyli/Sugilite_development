@@ -1,7 +1,5 @@
 package edu.cmu.hcii.sugilite.verbal_instruction_demo.study;
 
-import android.graphics.Rect;
-
 import com.google.gson.Gson;
 
 import java.io.BufferedReader;
@@ -10,7 +8,6 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -26,11 +23,9 @@ import edu.cmu.hcii.sugilite.ontology.SugiliteEntity;
 import edu.cmu.hcii.sugilite.ontology.SugiliteRelation;
 import edu.cmu.hcii.sugilite.ontology.SugiliteSerializableEntity;
 import edu.cmu.hcii.sugilite.ontology.SugiliteSerializableTriple;
-import edu.cmu.hcii.sugilite.ontology.SugiliteTriple;
-import edu.cmu.hcii.sugilite.ontology.UISnapshot;
 import edu.cmu.hcii.sugilite.ontology.helper.ListOrderResolver;
 import edu.cmu.hcii.sugilite.ontology.helper.annotator.SugiliteNodeAnnotator;
-import edu.cmu.hcii.sugilite.ontology.helper.annotator.SugiliteTextAnnotator;
+import edu.cmu.hcii.sugilite.ontology.helper.annotator.SugiliteTextParentAnnotator;
 import edu.cmu.hcii.sugilite.ontology.helper.annotator.util.MyRect;
 
 /**
@@ -56,12 +51,12 @@ public class SugiliteStudyPacketProcessor {
     }
 
     private static void parseAndAddNewTextRelations(SugiliteSerializableEntity<String> stringEntity, SerializableUISnapshot uiSnapshot) {
-        SugiliteTextAnnotator sugiliteTextAnnotator = new SugiliteTextAnnotator(true);
+        SugiliteTextParentAnnotator sugiliteTextParentAnnotator = SugiliteTextParentAnnotator.getInstance();
         if (!(stringEntity.getEntityValue() instanceof String)) {
             return;
         }
-        List<SugiliteTextAnnotator.AnnotatingResult> results = sugiliteTextAnnotator.annotate(stringEntity.getEntityValue());
-        for (SugiliteTextAnnotator.AnnotatingResult result : results) {
+        List<SugiliteTextParentAnnotator.AnnotatingResult> results = sugiliteTextParentAnnotator.annotate(stringEntity.getEntityValue());
+        for (SugiliteTextParentAnnotator.AnnotatingResult result : results) {
 
             //insert the new triples for the relations in the annotating results
             String objectString = result.getMatchedString();
@@ -94,7 +89,7 @@ public class SugiliteStudyPacketProcessor {
         }
     }
 
-    static private SugiliteStudyPacket reParse(SugiliteStudyPacket packet) {
+    static private SugiliteStudyPacket reParse(SugiliteStudyPacket packet, int screenWidth, int screenHeight) {
         SerializableUISnapshot uiSnapshot = packet.getUiSnapshot();
         //work on triples
 
@@ -121,8 +116,9 @@ public class SugiliteStudyPacketProcessor {
         Map<String, SugiliteEntity<Node>> entityIdEntityMap = new HashMap<>();
         entityIdEntityMap.putAll(tempNodeEntities);
 
-        SugiliteNodeAnnotator nodeAnnotator = new SugiliteNodeAnnotator();
-        for (SugiliteNodeAnnotator.AnnotatingResult res : nodeAnnotator.annotate(tempNodeEntities.values())) {
+        SugiliteNodeAnnotator nodeAnnotator = SugiliteNodeAnnotator.getInstance();
+
+        for (SugiliteNodeAnnotator.NodeAnnotatingResult res : nodeAnnotator.annotate(tempNodeEntities.values(), screenWidth, screenHeight)) {
             uiSnapshot.addTriple(new SugiliteSerializableTriple("@" + res.getSubject().getEntityId().toString(), "@" + res.getObjectEntity().getEntityId().toString(), res.getRelation().getRelationName()));
         }
 
@@ -264,7 +260,7 @@ public class SugiliteStudyPacketProcessor {
                     SugiliteStudyPacket packet = readPacket(file);
                     String fileName = "RECONSTRUCTED_" + file.getName();
                     //System.out.println(dir.getAbsolutePath());
-                    writeFile(new File(dir.getAbsolutePath() + "/" + fileName), new Gson().toJson(reParse(packet)));
+                    writeFile(new File(dir.getAbsolutePath() + "/" + fileName), new Gson().toJson(reParse(packet, 1080, 1920)));
                     System.out.println("Wrote " + count++ + " JSON files");
                 }
                 catch (Exception e){

@@ -29,6 +29,7 @@ import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.model.variable.Variable;
+import edu.cmu.hcii.sugilite.ontology.SugiliteRelation;
 import edu.cmu.hcii.sugilite.pumice.dialog.PumiceDialogManager;
 import edu.cmu.hcii.sugilite.pumice.kb.PumiceKnowledgeManager;
 import edu.cmu.hcii.sugilite.recording.RecordingPopUpDialog;
@@ -95,6 +96,8 @@ public class SugiliteData extends Application {
 
 
     public String valueDemonstrationVariableName = "";
+
+    public SugiliteRelation currentPumiceValueDemonstrationType = null;
 
     //used to indicate the state of the sugilite system
     public static final int DEFAULT_STATE = 0, RECORDING_STATE = 1, RECORDING_FOR_ERROR_HANDLING_STATE = 2, EXECUTION_STATE = 3, REGULAR_DEBUG_STATE = 4, PAUSED_FOR_DUCK_MENU_IN_REGULAR_EXECUTION_STATE = 6, PAUSED_FOR_ERROR_HANDLING_STATE = 7, PAUSED_FOR_CRUCIAL_STEP_STATE = 8, PAUSED_FOR_BREAKPOINT_STATE = 9, PAUSED_FOR_DUCK_MENU_IN_DEBUG_MODE = 10;

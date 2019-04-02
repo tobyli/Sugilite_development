@@ -1,22 +1,29 @@
 package edu.cmu.hcii.sugilite.ontology.helper.annotator;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import edu.cmu.hcii.sugilite.ontology.SugiliteRelation;
+import edu.cmu.hcii.sugilite.ontology.helper.annotator.SugiliteTextParentAnnotator.AnnotatingResult;
 
 /**
  * Given input as a string containing length (with units such as ft, km, mile, etc.), parse the length
  * data and store it with the unit millimeter (e.g, 1.5km is stored as 1500000.0)
- *
+ * <p>
  * Created by shi on 2/15/18.
  */
 
-public class LengthAnnotator extends SugiliteTextAnnotator {
-    public LengthAnnotator() { super(); }
+public class LengthAnnotator implements SugiliteTextAnnotator {
+    private Map<String, List<AnnotatingResult>> cache;
+
+    LengthAnnotator(){
+        cache = new HashMap<>();
+    }
 
     private static final int MILE = 1609344;
     private static final int KILOMETER = 1000000;
@@ -28,6 +35,10 @@ public class LengthAnnotator extends SugiliteTextAnnotator {
 
     @Override
     public List<AnnotatingResult> annotate(String text) {
+        if (cache.containsKey(text)){
+            return cache.get(text);
+        }
+
         List<AnnotatingResult> results = new ArrayList<>();
         String regex = "\\b[0-9]+?(.)?[0-9]*?( )?(km|m|ft|feet|mile(s)?|mi|yd|inch|cm)\\b";
         Pattern pattern = Pattern.compile(regex);
@@ -59,8 +70,7 @@ public class LengthAnnotator extends SugiliteTextAnnotator {
                     if (matcher.start() - curEnd == 1 && text.charAt(curEnd) == ' ') {
                         AnnotatingResult last = results.get(results.size() - 1);
                         last.setNumericValue(last.getNumericValue() + value);
-                    }
-                    else {
+                    } else {
                         AnnotatingResult res = new AnnotatingResult(RELATION, text.substring(matcher.start(), matcher.end()),
                                 matcher.start(), matcher.end(), value);
                         results.add(res);
@@ -71,12 +81,14 @@ public class LengthAnnotator extends SugiliteTextAnnotator {
                 e.printStackTrace();
             }
         }
+
+        cache.put(text, results);
         return results;
     }
 
     private static final SugiliteRelation RELATION = SugiliteRelation.CONTAINS_LENGTH;
 
-    public static void main(String[] args ){
+    public static void main(String[] args) {
         LengthAnnotator lengthAnnotator = new LengthAnnotator();
         List<AnnotatingResult> results = lengthAnnotator.annotate("1ft or 0.3048m");
         System.out.println(results.size());

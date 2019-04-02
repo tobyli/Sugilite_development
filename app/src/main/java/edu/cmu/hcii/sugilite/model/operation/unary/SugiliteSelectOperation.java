@@ -44,4 +44,9 @@ public class SugiliteSelectOperation extends SugiliteUnaryOperation<Serializable
     public String toString() {
         return "(" + "call select " + addQuoteToTokenIfNeeded(getParameter0().toString()) + ")";
     }
+
+    @Override
+    public String getPumiceUserReadableDecription() {
+        return String.format("select %s", targetUIElementDataDescriptionQuery);
+    }
 }

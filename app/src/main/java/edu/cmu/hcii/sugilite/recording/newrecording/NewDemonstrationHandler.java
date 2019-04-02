@@ -9,7 +9,6 @@ import android.util.Pair;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
@@ -21,7 +20,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import edu.cmu.hcii.sugilite.SugiliteAccessibilityService;
+import edu.cmu.hcii.sugilite.accessibility_service.SugiliteAccessibilityService;
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.model.block.util.SugiliteAvailableFeaturePack;
 import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
@@ -29,6 +28,8 @@ import edu.cmu.hcii.sugilite.model.operation.SugiliteOperation;
 import edu.cmu.hcii.sugilite.ontology.SerializableOntologyQuery;
 import edu.cmu.hcii.sugilite.ontology.UISnapshot;
 import edu.cmu.hcii.sugilite.recording.ReadableDescriptionGenerator;
+
+import static edu.cmu.hcii.sugilite.Const.OVERLAY_TYPE;
 
 /**
  * @author toby
@@ -163,13 +164,7 @@ public class NewDemonstrationHandler {
                 dialog.dismiss();
             }
         });
-        int LAYOUT_FLAG;
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-            LAYOUT_FLAG = WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY;
-        } else {
-            LAYOUT_FLAG = WindowManager.LayoutParams.TYPE_PHONE;
-        }
-        dialog.getWindow().setType(LAYOUT_FLAG);//TYPE_APPLICATION_OVERLAY
+        dialog.getWindow().setType(OVERLAY_TYPE);
         dialog.show();
     }
 
@@ -198,13 +193,7 @@ public class NewDemonstrationHandler {
                     }
                 });
         final AlertDialog dialog = builder.create();
-        int LAYOUT_FLAG;
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-            LAYOUT_FLAG = WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY;
-        } else {
-            LAYOUT_FLAG = WindowManager.LayoutParams.TYPE_PHONE;
-        }
-        dialog.getWindow().setType(LAYOUT_FLAG);//TYPE_APPLICATION_OVERLAY
+        dialog.getWindow().setType(OVERLAY_TYPE);
         dialog.show();
     }
 }

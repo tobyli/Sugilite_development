@@ -62,5 +62,10 @@ public class SugiliteSetTextOperation extends SugiliteBinaryOperation<String, Se
     public String toString() {
         return "(" + "call set_text " + addQuoteToTokenIfNeeded(getParameter0().toString()) + " " + addQuoteToTokenIfNeeded(getParameter1().toString()) + ")";
     }
+
+    @Override
+    public String getPumiceUserReadableDecription() {
+        return String.format("set the text of %s to %s", targetUIElementDataDescriptionQuery.toString(), text);
+    }
 }
 

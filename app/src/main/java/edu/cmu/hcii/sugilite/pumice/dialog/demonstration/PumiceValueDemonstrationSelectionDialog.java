@@ -30,6 +30,8 @@ import edu.cmu.hcii.sugilite.recording.newrecording.SugiliteBlockBuildingHelper;
 import edu.cmu.hcii.sugilite.recording.newrecording.fullscreen_overlay.FullScreenRecordingOverlayManager;
 import edu.cmu.hcii.sugilite.recording.newrecording.fullscreen_overlay.SugiliteRecordingConfirmationDialog;
 
+import static edu.cmu.hcii.sugilite.Const.OVERLAY_TYPE;
+
 
 /**
  * @author toby
@@ -101,7 +103,7 @@ public class PumiceValueDemonstrationSelectionDialog {
             }
         } else {
             if (dialog.getWindow() != null) {
-                dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY);
+                dialog.getWindow().setType(OVERLAY_TYPE);
             }
             dialog.show();
         }

@@ -33,6 +33,8 @@ import edu.cmu.hcii.sugilite.recording.newrecording.dialog_management.SugiliteDi
 import edu.cmu.hcii.sugilite.recording.newrecording.dialog_management.SugiliteDialogUtteranceFilter;
 import static edu.cmu.hcii.sugilite.Const.OVERLAY_TYPE;
 
+import static edu.cmu.hcii.sugilite.Const.OVERLAY_TYPE;
+
 /**
  * @author toby
  * @date 2/16/18

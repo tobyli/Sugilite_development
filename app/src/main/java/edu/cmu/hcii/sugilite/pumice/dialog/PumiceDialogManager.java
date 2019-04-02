@@ -10,12 +10,16 @@ import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.support.v7.app.AppCompatActivity;
 
+import com.google.gson.ExclusionStrategy;
+import com.google.gson.FieldAttributes;
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -26,6 +30,8 @@ import edu.cmu.hcii.sugilite.automation.ServiceStatusManager;
 import edu.cmu.hcii.sugilite.model.block.SugiliteConditionBlock;
 import edu.cmu.hcii.sugilite.model.block.booleanexp.SugiliteBooleanExpressionNew;
 import edu.cmu.hcii.sugilite.pumice.communication.PumiceSemanticParsingResultPacket;
+import edu.cmu.hcii.sugilite.pumice.communication.SkipPumiceJSONSerialization;
+import edu.cmu.hcii.sugilite.pumice.dao.PumiceKnowledgeDao;
 import edu.cmu.hcii.sugilite.pumice.dialog.PumiceInitInstructionParsingHandler;
 import edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.PumiceConditionalIntentHandler;
 
@@ -59,7 +65,8 @@ public class PumiceDialogManager{
     private ExecutorService executorService;
     private SugiliteData sugiliteData;
     private ServiceStatusManager serviceStatusManager;
-    private Handler handler;
+    //private Handler handler;
+    private PumiceKnowledgeDao pumiceKnowledgeDao;
 
     private List<PumiceDialogState> stateHistoryList;
 
@@ -72,21 +79,32 @@ public class PumiceDialogManager{
         this.context = context;
         this.pumiceDialogView = new PumiceDialogView(context);
         this.pumiceDialogUIHelper = new PumiceDialogUIHelper(context);
+        this.sugiliteData = (SugiliteData)(context.getApplication());
         this.pumiceInitInstructionParsingHandler = new PumiceInitInstructionParsingHandler(context, this);
         this.stateHistoryList = new ArrayList<>();
-        this.pumiceDialogState = new PumiceDialogState(new PumiceDefaultUtteranceIntentHandler(this, context), new PumiceKnowledgeManager());
+        this.pumiceKnowledgeDao = new PumiceKnowledgeDao(context, sugiliteData);
+        try {
+            // set "toAddDefaultContentForNewInstance" to true for testing purpose
+            PumiceKnowledgeManager pumiceKnowledgeManager = pumiceKnowledgeDao.getPumiceKnowledgeOrANewInstanceIfNotAvailable(true);
+            this.pumiceDialogState = new PumiceDialogState(new PumiceDefaultUtteranceIntentHandler(this, context), pumiceKnowledgeManager);
+        } catch (Exception e){
+            e.printStackTrace();
+            throw new RuntimeException("failed to initiate/load the knowledge manager");
+        }
         this.sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
         this.httpQueryManager = new SugiliteVerbalInstructionHTTPQueryManager(sharedPreferences);
         this.executorService = Executors.newCachedThreadPool();
         this.serviceStatusManager = ServiceStatusManager.getInstance(context);
-        this.sugiliteData = (SugiliteData)(context.getApplication());
         this.sugiliteData.pumiceDialogManager = this;
+    
+	/*
         this.handler = new Handler();
 
 
         //** testing **
-        this.pumiceDialogState.getPumiceKnowledgeManager().initForTesting();
+        this.pumiceDialogState.getPumiceKnowledgeManager().initForTesting();*/
     }
+    /*
 
     public void setPumiceDialogState(PumiceDialogState pds) {
         this.pumiceDialogState = pds;
@@ -97,7 +115,8 @@ public class PumiceDialogManager{
     }
 
     public void setPumiceInitInstructionParsingHandler(PumiceInitInstructionParsingHandler pph) { this.pumiceInitInstructionParsingHandler = pph; }
-
+	*/
+    
     public void sendUserMessage(String message){
         //send the user message with the current in use intent handler
         sendUserMessage(message, pumiceDialogState.getPumiceUtteranceIntentHandlerInUse());
@@ -186,9 +205,12 @@ public class PumiceDialogManager{
     public void revertToState(PumiceDialogState state){
         if(pumiceDialogState.getUtteranceHistory().size() >= 1) {
             sendAgentMessage("Going back to a previous state...", true, false);
+
             this.pumiceDialogState = state.getDuplicateWithNewIntentHandler(context, state.getPumiceUtteranceIntentHandlerInUse());
             this.pumiceDialogState.setPreviousState(state.getPreviousState());
-            PumiceUtterance lastUtterance = pumiceDialogState.getUtteranceHistory().get(pumiceDialogState.getUtteranceHistory().size() - 1);
+
+            //the last utterance should be the last one from the agent before the user say something..
+            PumiceUtterance lastUtterance = getLastAgentPromptUtterance(pumiceDialogState.utteranceHistory);
             if (lastUtterance != null && lastUtterance.getSender().equals(Sender.AGENT)) {
                 pumiceDialogState.getUtteranceHistory().remove(pumiceDialogState.getUtteranceHistory().size() - 1);
                 sendAgentMessage(lastUtterance.getContent(), lastUtterance.isSpoken(), lastUtterance.isRequireUserResponse());
@@ -198,8 +220,18 @@ public class PumiceDialogManager{
         }
     }
 
+    private PumiceUtterance getLastAgentPromptUtterance(List<PumiceUtterance> history){
+        for (int i = history.size() - 1; i > 0 ; i --) {
+            if (history.get(i).getSender().equals(Sender.USER) && history.get(i - 1).getSender().equals(Sender.AGENT)) {
+                return history.get(i - 1);
+            }
+        }
+
+        return null;
+    }
+
     public void startOverState(){
-        if(stateHistoryList.get(0) != null){
+        if(stateHistoryList.size() > 0 && stateHistoryList.get(0) != null){
             revertToState(stateHistoryList.get(0));
         }
     }
@@ -361,6 +393,10 @@ public class PumiceDialogManager{
             return pumiceKnowledgeManager;
         }
 
+        public void setPumiceKnowledgeManager(PumiceKnowledgeManager pumiceKnowledgeManager) {
+            this.pumiceKnowledgeManager = pumiceKnowledgeManager;
+        }
+
         public List<PumiceUtterance> getUtteranceHistory() {
             return utteranceHistory;
         }
@@ -382,7 +418,22 @@ public class PumiceDialogManager{
         }
 
         PumiceDialogState getDuplicateWithNewIntentHandler(Context context, PumiceUtteranceIntentHandler intentHandler){
-            Gson gson = new Gson();
+            Gson gson = new GsonBuilder()
+                    .addSerializationExclusionStrategy(new ExclusionStrategy()
+                    {
+                        @Override
+                        public boolean shouldSkipField(FieldAttributes f)
+                        {
+                            return f.getAnnotation(SkipPumiceJSONSerialization.class) != null;
+                        }
+
+                        @Override
+                        public boolean shouldSkipClass(Class<?> clazz)
+                        {
+                            return false;
+                        }
+                    })
+                    .create();
             List<PumiceUtterance> newUtteranceHistory =  new ArrayList<>(utteranceHistory);
             //PumiceKnowledgeManager newPumiceKnowledgeManager = gson.fromJson(gson.toJson(pumiceKnowledgeManager), PumiceKnowledgeManager.class);
             //TODO: duplicate the knowledge manager
@@ -398,13 +449,25 @@ public class PumiceDialogManager{
         return httpQueryManager;
     }
 
-
-    public class GetTheIntentHandlingResultForTheNextUserInput implements Callable<Object> {
-        @Override
-        public Object call() throws Exception {
-            return null;
+    public void clearPumiceKnowledgeAndSaveToDao(){
+        try {
+            PumiceKnowledgeManager pumiceKnowledgeManager = new PumiceKnowledgeManager();
+            pumiceKnowledgeDao.savePumiceKnowledge(pumiceKnowledgeManager);
+            pumiceDialogState.setPumiceKnowledgeManager(pumiceKnowledgeManager);
+        } catch (Exception e){
+            throw new RuntimeException("failed to store the knowledge");
         }
     }
+
+    public void savePumiceKnowledgeToDao(){
+        try {
+            pumiceKnowledgeDao.savePumiceKnowledge(getPumiceKnowledgeManager());
+        } catch (Exception e){
+            throw new RuntimeException("failed to store the knowledge");
+        }
+    }
+
+
 
     public ExecutorService getExecutorService() {
         return executorService;

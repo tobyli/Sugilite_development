@@ -10,7 +10,7 @@ import edu.cmu.hcii.sugilite.ontology.SugiliteEntity;
 import edu.cmu.hcii.sugilite.ontology.SugiliteRelation;
 import edu.cmu.hcii.sugilite.ontology.SugiliteTriple;
 import edu.cmu.hcii.sugilite.ontology.UISnapshot;
-import edu.cmu.hcii.sugilite.ontology.helper.annotator.SugiliteTextAnnotator;
+import edu.cmu.hcii.sugilite.ontology.helper.annotator.SugiliteTextParentAnnotator;
 
 /**
  * @author toby
@@ -18,14 +18,19 @@ import edu.cmu.hcii.sugilite.ontology.helper.annotator.SugiliteTextAnnotator;
  * @time 8:54 PM
  */
 public class TextStringParseHelper {
-    private SugiliteTextAnnotator sugiliteTextAnnotator;
-    public TextStringParseHelper(SugiliteTextAnnotator sugiliteTextAnnotator){
-        this.sugiliteTextAnnotator = sugiliteTextAnnotator;
+    private SugiliteTextParentAnnotator sugiliteTextParentAnnotator;
+    public TextStringParseHelper(SugiliteTextParentAnnotator sugiliteTextParentAnnotator){
+        this.sugiliteTextParentAnnotator = sugiliteTextParentAnnotator;
     }
 
+    /**
+     * parse a SugiliteEntity<String> in the UISnapshot, and add new relations into the UISnapshot
+     * @param stringEntity
+     * @param uiSnapshot
+     */
     public void parseAndAddNewRelations(SugiliteEntity<String> stringEntity, UISnapshot uiSnapshot){
-        List<SugiliteTextAnnotator.AnnotatingResult> results = sugiliteTextAnnotator.annotate(stringEntity.getEntityValue());
-        for(SugiliteTextAnnotator.AnnotatingResult result : results){
+        List<SugiliteTextParentAnnotator.AnnotatingResult> results = sugiliteTextParentAnnotator.annotate(stringEntity.getEntityValue());
+        for(SugiliteTextParentAnnotator.AnnotatingResult result : results){
 
             //insert the new triples for the relations in the annotating results
             String objectString = result.getMatchedString();
@@ -34,7 +39,7 @@ public class TextStringParseHelper {
             }
             SugiliteRelation sugiliteRelation = result.getRelation();
 
-            //TODO: add triples for all parents of the string Entity
+            //add triples for all parents of the string Entity, and the string entity itself
             Set<SugiliteEntity> parentNodeEntities = new HashSet<>();
             Map<Integer, Set<SugiliteTriple>> tripleMap = uiSnapshot.getObjectTriplesMap();
             if(tripleMap != null){

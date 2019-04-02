@@ -129,7 +129,7 @@ public class OverlayClickedDialog {
 
     public void show() {
         /*
-        dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY);
+        dialog.getWindow().setType(OVERLAY_TYPE);
         dialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_box);
         dialog.show();
         */

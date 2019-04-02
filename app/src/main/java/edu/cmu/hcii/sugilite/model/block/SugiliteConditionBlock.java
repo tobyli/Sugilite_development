@@ -146,4 +146,12 @@ public class SugiliteConditionBlock extends SugiliteBlock implements Serializabl
      * 2. in edu.cmu.hcii.sugilite.source_parsing.SugiliteScriptParser: need to be able to parse source codes with conditionals
      */
 
+    @Override
+    public String getPumiceUserReadableDecription() {
+        String description = String.format("If %s, then %s.", sugiliteBooleanExpressionNew.getReadableDescription(), thenBlock.getPumiceUserReadableDecription());
+        if (elseBlock != null) {
+            description += String.format(" Otherwise, %s.", elseBlock.getPumiceUserReadableDecription());
+        }
+        return description;
+    }
 }

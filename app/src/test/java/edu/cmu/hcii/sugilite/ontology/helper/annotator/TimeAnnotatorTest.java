@@ -3,7 +3,6 @@ package edu.cmu.hcii.sugilite.ontology.helper.annotator;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.Comparator;
 import java.util.List;
 
 import edu.cmu.hcii.sugilite.ontology.SugiliteRelation;
@@ -15,7 +14,7 @@ import static org.junit.Assert.*;
  */
 public class TimeAnnotatorTest {
 
-    SugiliteTextAnnotator annotator = null;
+    SugiliteTextParentAnnotator annotator = null;
 
     @Before
     public void setUp() {
@@ -24,7 +23,7 @@ public class TimeAnnotatorTest {
 
     @Test
     public void testBasicInput1() {
-        List<SugiliteTextAnnotator.AnnotatingResult> results =
+        List<SugiliteTextParentAnnotator.AnnotatingResult> results =
                 annotator.annotate("Current time: 11:59 pm");
         assertTrue(results.size() == 1);
         assertEquals(results.get(0).getNumericValue().intValue(), (23*3600)+(59*60));//(23*60+59)*1000);
@@ -33,7 +32,7 @@ public class TimeAnnotatorTest {
 
     @Test
     public void testBasicInput2() {
-        List<SugiliteTextAnnotator.AnnotatingResult> results =
+        List<SugiliteTextParentAnnotator.AnnotatingResult> results =
                 annotator.annotate("Current time: 13:59");
         assertTrue(results.size() == 1);
         assertEquals(results.get(0).getNumericValue().intValue(), (13*3600)+(59*60));//(13*60+59)*1000);
@@ -42,7 +41,7 @@ public class TimeAnnotatorTest {
 
     @Test
     public void testBasicInput3() {
-        List<SugiliteTextAnnotator.AnnotatingResult> results =
+        List<SugiliteTextParentAnnotator.AnnotatingResult> results =
                 annotator.annotate("Current time: 3 PM");
         assertTrue(results.size() == 1);
         assertEquals(results.get(0).getNumericValue().intValue(), 15*3600);//(15*60+0)*1000);
@@ -51,21 +50,21 @@ public class TimeAnnotatorTest {
 
     @Test
     public void testBadInput1() {
-        List<SugiliteTextAnnotator.AnnotatingResult> results =
+        List<SugiliteTextParentAnnotator.AnnotatingResult> results =
                 annotator.annotate("Bad time: 0:60 pm");
         assertTrue(results.size() == 0);
     }
 
     @Test
     public void testBadInput2() {
-        List<SugiliteTextAnnotator.AnnotatingResult> results =
+        List<SugiliteTextParentAnnotator.AnnotatingResult> results =
                 annotator.annotate("Bad time: 24:00");
         assertTrue(results.size() == 0);
     }
 
     @Test
     public void testMultipleInputs1() {
-        List<SugiliteTextAnnotator.AnnotatingResult> results =
+        List<SugiliteTextParentAnnotator.AnnotatingResult> results =
                 annotator.annotate("Current bus: 12:00 pm, next bus: 13:59, next next bus: 4PM");
         assertTrue(results.size() == 3);
         results.sort((a, b) -> Double.compare(a.getNumericValue(), b.getNumericValue()));
@@ -76,7 +75,7 @@ public class TimeAnnotatorTest {
 
     @Test
     public void testMultipleInputs2() {
-        List<SugiliteTextAnnotator.AnnotatingResult> results =
+        List<SugiliteTextParentAnnotator.AnnotatingResult> results =
                 annotator.annotate("Flight takes off at 4PM and boarding stops at 3:45pm." +
                         "The flight takes 32:15 and arrives at 00:00");
         assertTrue(results.size() == 3);

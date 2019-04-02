@@ -2,13 +2,18 @@ package edu.cmu.hcii.sugilite.pumice.dialog.intent_handler;
 
 import android.app.Activity;
 
+import com.google.gson.ExclusionStrategy;
+import com.google.gson.FieldAttributes;
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 import java.util.Calendar;
 
 import edu.cmu.hcii.sugilite.pumice.communication.PumiceInstructionPacket;
 import edu.cmu.hcii.sugilite.pumice.communication.PumiceSemanticParsingResultPacket;
+import edu.cmu.hcii.sugilite.pumice.communication.SkipPumiceJSONSerialization;
 import edu.cmu.hcii.sugilite.pumice.dialog.PumiceDialogManager;
+import edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.parsing_confirmation.PumiceParsingConfirmationHandler;
 import edu.cmu.hcii.sugilite.pumice.kb.PumiceBooleanExpKnowledge;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.server_comm.SugiliteVerbalInstructionHTTPQueryInterface;
 
@@ -20,9 +25,10 @@ import edu.cmu.hcii.sugilite.verbal_instruction_demo.server_comm.SugiliteVerbalI
 
 //class used for handle utterances when the user explain a PumiceBooleanExpKnowledge
 public class PumiceUserExplainBoolExpIntentHandler implements PumiceUtteranceIntentHandler, SugiliteVerbalInstructionHTTPQueryInterface {
-    private transient Activity context;
-    private transient PumiceDialogManager pumiceDialogManager;
+    private Activity context;
+    private PumiceDialogManager pumiceDialogManager;
     private String parentKnowledgeName;
+    private PumiceUserExplainBoolExpIntentHandler pumiceUserExplainBoolExpIntentHandler;
 
     //need to notify this lock when the bool expression is resolved, and return the value through this object
     PumiceBooleanExpKnowledge resolveBoolExpLock;
@@ -34,6 +40,7 @@ public class PumiceUserExplainBoolExpIntentHandler implements PumiceUtteranceInt
         this.calendar = Calendar.getInstance();
         this.resolveBoolExpLock = resolveBoolExpLock;
         this.parentKnowledgeName = parentKnowledgeName;
+        this.pumiceUserExplainBoolExpIntentHandler = this;
     }
 
     @Override
@@ -47,9 +54,9 @@ public class PumiceUserExplainBoolExpIntentHandler implements PumiceUtteranceInt
             dialogManager.sendAgentMessage("I have received your explanation: " + utterance.getContent(), true, false);
 
             //send out the server query
-            PumiceInstructionPacket pumiceInstructionPacket = new PumiceInstructionPacket(dialogManager.getPumiceKnowledgeManager(), "BOOL_EXP_INSTRUCTION", calendar.getTimeInMillis(), utterance.getContent(), parentKnowledgeName);
-            dialogManager.sendAgentMessage("Sending out the server query below...", true, false);
-            dialogManager.sendAgentMessage(pumiceInstructionPacket.toString(), false, false);
+            PumiceInstructionPacket pumiceInstructionPacket = new PumiceInstructionPacket(dialogManager.getPumiceKnowledgeManager(), PumiceIntent.BOOL_EXP_INSTRUCTION.name(), calendar.getTimeInMillis(), utterance.getContent(), parentKnowledgeName);
+            //dialogManager.sendAgentMessage("Sending out the server query below...", true, false);
+            //dialogManager.sendAgentMessage(pumiceInstructionPacket.toString(), false, false);
             try {
                 dialogManager.getHttpQueryManager().sendPumiceInstructionPacketOnASeparateThread(pumiceInstructionPacket, this);
             } catch (Exception e){
@@ -70,34 +77,54 @@ public class PumiceUserExplainBoolExpIntentHandler implements PumiceUtteranceInt
     }
 
     @Override
-    public void resultReceived(int responseCode, String result) {
+    public void resultReceived(int responseCode, String result, String originalQuery) {
         //handle server response from the semantic parsing server
-        Gson gson = new Gson();
+        Gson gson = new GsonBuilder()
+                .addSerializationExclusionStrategy(new ExclusionStrategy()
+                {
+                    @Override
+                    public boolean shouldSkipField(FieldAttributes f)
+                    {
+                        return f.getAnnotation(SkipPumiceJSONSerialization.class) != null;
+                    }
+
+                    @Override
+                    public boolean shouldSkipClass(Class<?> clazz)
+                    {
+                        return false;
+                    }
+                })
+                .create();
         try {
             PumiceSemanticParsingResultPacket resultPacket = gson.fromJson(result, PumiceSemanticParsingResultPacket.class);
             if (resultPacket.utteranceType != null) {
                 switch (resultPacket.utteranceType) {
                     case "BOOL_EXP_INSTRUCTION":
                         if (resultPacket.queries != null && resultPacket.queries.size() > 0) {
-                            PumiceSemanticParsingResultPacket.QueryGroundingPair topResult = resultPacket.queries.get(0);
-                            if (topResult.formula != null) {
-                                //feedback msg
-                                pumiceDialogManager.sendAgentMessage("Received the parsing result from the server: ", true, false);
-                                pumiceDialogManager.sendAgentMessage(topResult.formula, false, false);
+                            PumiceParsingConfirmationHandler parsingConfirmationHandler = new PumiceParsingConfirmationHandler(context, pumiceDialogManager);
+                            parsingConfirmationHandler.handleParsingResult(resultPacket, new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            //handle retry
+                                            pumiceDialogManager.updateUtteranceIntentHandlerInANewState(pumiceUserExplainBoolExpIntentHandler);
+                                            sendPromptForTheIntentHandler();
+                                        }
+                                    }, new PumiceParsingConfirmationHandler.ConfirmedParseRunnable() {
+                                        @Override
+                                        public void run(String confirmedFormula) {
+                                            //handle confirmed
+                                            pumiceDialogManager.getExecutorService().submit(new Runnable() {
+                                                @Override
+                                                public void run() {
+                                                    //parse and process the server response
+                                                    PumiceBooleanExpKnowledge pumiceBooleanExpKnowledge = pumiceDialogManager.getPumiceInitInstructionParsingHandler().parseFromBoolExpInstruction(confirmedFormula, resultPacket.userUtterance, parentKnowledgeName);
 
-                                pumiceDialogManager.getExecutorService().submit(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        //parse and process the server response
-                                        PumiceBooleanExpKnowledge pumiceBooleanExpKnowledge = pumiceDialogManager.getPumiceInitInstructionParsingHandler().parseFromBoolExpInstruction(topResult.formula, resultPacket.userUtterance, parentKnowledgeName);
-
-                                        //notify the original thread for resolving unknown bool exp that the intent has been fulfilled
-                                        returnUserExplainBoolExpResult(pumiceBooleanExpKnowledge);
-                                    }
-                                });
-                            } else {
-                                throw new RuntimeException("empty formula");
-                            }
+                                                    //notify the original thread for resolving unknown bool exp that the intent has been fulfilled
+                                                    returnUserExplainBoolExpResult(pumiceBooleanExpKnowledge);
+                                                }
+                                            });
+                                        }
+                                    });
                         } else {
                             throw new RuntimeException("empty server result");
                         }
@@ -109,8 +136,17 @@ public class PumiceUserExplainBoolExpIntentHandler implements PumiceUtteranceInt
         } catch (Exception e){
             //TODO: error handling
             pumiceDialogManager.sendAgentMessage("Can't read from the server response", true, false);
+
+            pumiceDialogManager.sendAgentMessage("OK. Let's try again.", true, false);
+            pumiceDialogManager.updateUtteranceIntentHandlerInANewState(pumiceUserExplainBoolExpIntentHandler);
+            sendPromptForTheIntentHandler();
             e.printStackTrace();
         }
+    }
+
+    @Override
+    public void sendPromptForTheIntentHandler() {
+        pumiceDialogManager.sendAgentMessage("How do I tell whether " + parentKnowledgeName + "?", true, true);
     }
 
     @Override

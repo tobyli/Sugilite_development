@@ -29,6 +29,7 @@ import edu.cmu.hcii.sugilite.dao.SugiliteScriptSQLDao;
 import edu.cmu.hcii.sugilite.dao.SugiliteTrackingDao;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 
+import static edu.cmu.hcii.sugilite.Const.OVERLAY_TYPE;
 import static edu.cmu.hcii.sugilite.Const.SQL_SCRIPT_DAO;
 
 /**
@@ -371,7 +372,7 @@ public class SugiliteCommunicationController {
                                     }
                                 });
                         AlertDialog dialog = builder.create();
-                        dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY);
+                        dialog.getWindow().setType(OVERLAY_TYPE);
                         dialog.show();
                         Log.d(TAG, "Start Recording");
                     }
@@ -575,7 +576,7 @@ public class SugiliteCommunicationController {
                                     }
                                 });
                         AlertDialog dialog = builder1.create();
-                        dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY);
+                        dialog.getWindow().setType(OVERLAY_TYPE);
                         dialog.show();
                     }
                 });
@@ -636,7 +637,7 @@ public class SugiliteCommunicationController {
                                 }
                             });
                     AlertDialog dialog = builder1.create();
-                    dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY);
+                    dialog.getWindow().setType(OVERLAY_TYPE);
                     dialog.show();
                 }
             });

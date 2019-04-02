@@ -107,6 +107,7 @@ public class VerbalInstructionRecordingManager {
                     Toast.makeText(context, "Added " + queryFormula + " to the current recording", Toast.LENGTH_SHORT).show();
                     Map.Entry<String, Long> boundsInScreenTimeStampPair = new AbstractMap.SimpleEntry<>(node.getBoundsInScreen(), Calendar.getInstance().getTimeInMillis());
                     sugiliteData.NodeToIgnoreRecordingBoundsInScreenTimeStampQueue.add(boundsInScreenTimeStampPair);
+
                     //TODO: add the block to running
                     sugiliteData.addInstruction(operationBlock);
                 }

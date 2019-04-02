@@ -9,7 +9,6 @@ import android.graphics.Rect;
 import android.os.Bundle;
 import android.text.Html;
 import android.view.LayoutInflater;
-import android.view.WindowManager;
 import android.view.accessibility.AccessibilityNodeInfo;
 
 import java.util.ArrayList;
@@ -19,7 +18,7 @@ import java.util.Set;
 
 import edu.cmu.hcii.sugilite.Const;
 import edu.cmu.hcii.sugilite.model.Node;
-import edu.cmu.hcii.sugilite.SugiliteAccessibilityService;
+import edu.cmu.hcii.sugilite.accessibility_service.SugiliteAccessibilityService;
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptFileDao;
@@ -43,7 +42,7 @@ import edu.cmu.hcii.sugilite.model.variable.VariableHelper;
 import edu.cmu.hcii.sugilite.ontology.OntologyQuery;
 import edu.cmu.hcii.sugilite.ontology.SugiliteEntity;
 import edu.cmu.hcii.sugilite.ontology.UISnapshot;
-import edu.cmu.hcii.sugilite.ontology.helper.annotator.SugiliteTextAnnotator;
+import edu.cmu.hcii.sugilite.ontology.helper.annotator.SugiliteTextParentAnnotator;
 import edu.cmu.hcii.sugilite.recording.SugiliteScreenshotManager;
 import edu.cmu.hcii.sugilite.ui.BoundingBoxManager;
 import edu.cmu.hcii.sugilite.ui.StatusIconManager;
@@ -52,6 +51,7 @@ import android.speech.tts.TextToSpeech;
 
 import static edu.cmu.hcii.sugilite.Const.DEBUG_DELAY;
 import static edu.cmu.hcii.sugilite.Const.DELAY;
+import static edu.cmu.hcii.sugilite.Const.OVERLAY_TYPE;
 import static edu.cmu.hcii.sugilite.Const.SQL_SCRIPT_DAO;
 
 
@@ -71,12 +71,12 @@ public class Automator {
     private TextToSpeech tts = null;
     private boolean ttsReady = false;
     private SugiliteScreenshotManager screenshotManager;
-    private SugiliteTextAnnotator sugiliteTextAnnotator;
+    private SugiliteTextParentAnnotator sugiliteTextParentAnnotator;
 
-    public Automator(SugiliteData sugiliteData, SugiliteAccessibilityService context, StatusIconManager statusIconManager, SharedPreferences sharedPreferences, SugiliteTextAnnotator sugiliteTextAnnotator){
+    public Automator(SugiliteData sugiliteData, SugiliteAccessibilityService context, StatusIconManager statusIconManager, SharedPreferences sharedPreferences, SugiliteTextParentAnnotator sugiliteTextParentAnnotator, TextToSpeech tts){
         this.sugiliteData = sugiliteData;
         this.serviceContext = context;
-        this.sugiliteTextAnnotator = sugiliteTextAnnotator;
+        this.sugiliteTextParentAnnotator = sugiliteTextParentAnnotator;
         this.boundingBoxManager = new BoundingBoxManager(context);
         if(Const.DAO_TO_USE == SQL_SCRIPT_DAO)
             this.sugiliteScriptDao = new SugiliteScriptSQLDao(context);
@@ -85,19 +85,7 @@ public class Automator {
         this.layoutInflater = (LayoutInflater) context.getSystemService( Context.LAYOUT_INFLATER_SERVICE );
         this.sharedPreferences = sharedPreferences;
 
-        //load tts
-        try {
-            tts = new TextToSpeech(context, new TextToSpeech.OnInitListener() {
-                @Override
-                public void onInit(int status) {
-                    ttsReady = true;
-                }
-            });
-        }
-        catch (Exception e){
-            e.printStackTrace();
-        }
-
+        this.tts = tts;
         screenshotManager = new SugiliteScreenshotManager(sharedPreferences, context);
     }
 
@@ -165,7 +153,7 @@ public class Automator {
                 return false;
             }
 
-            if (operationBlock.getOperation().containsDataDescriptionQuery() == false) {
+            if (!operationBlock.getOperation().containsDataDescriptionQuery()) {
                 //there is no query in the operation block
                 if (operationBlock.getOperation().getOperationType() == SugiliteOperation.SPECIAL_GO_HOME) {
                     //perform the go home operation - because the go home operation will have a null filter
@@ -265,12 +253,12 @@ public class Automator {
                     }
                     lastTimeFailed.clear();
                     if(succeeded){
-                        return succeeded;
+                        return true;
                     }
                 }
 
 
-                UISnapshot uiSnapshot = new UISnapshot(rootNode, true, sugiliteTextAnnotator);
+                UISnapshot uiSnapshot = new UISnapshot(rootNode, true, sugiliteTextParentAnnotator, true);
 
                 //de-serialize the OntologyQuery
                 OntologyQuery q = new OntologyQuery(operationBlock.getOperation().getDataDescriptionQueryIfAvailable());
@@ -740,7 +728,7 @@ public class Automator {
                 @Override
                 public void run() {
                     AlertDialog dialog = builder.create();
-                    dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY);
+                    dialog.getWindow().setType(OVERLAY_TYPE);
                     dialog.show();
                 }
             });

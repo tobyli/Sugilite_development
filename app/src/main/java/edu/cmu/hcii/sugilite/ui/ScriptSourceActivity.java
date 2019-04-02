@@ -11,12 +11,10 @@ import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
-import android.view.WindowManager;
 import android.widget.EditText;
 
 import edu.cmu.hcii.sugilite.Const;
 import edu.cmu.hcii.sugilite.R;
-import edu.cmu.hcii.sugilite.SugiliteAccessibilityService;
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.automation.ServiceStatusManager;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
@@ -28,6 +26,7 @@ import edu.cmu.hcii.sugilite.source_parsing.SugiliteScriptParser;
 import edu.cmu.hcii.sugilite.ontology.description.OntologyDescriptionGenerator;
 import edu.cmu.hcii.sugilite.ui.main.SugiliteMainActivity;
 
+import static edu.cmu.hcii.sugilite.Const.OVERLAY_TYPE;
 import static edu.cmu.hcii.sugilite.Const.SQL_SCRIPT_DAO;
 
 public class ScriptSourceActivity extends AppCompatActivity {
@@ -72,7 +71,7 @@ public class ScriptSourceActivity extends AppCompatActivity {
 
         //progress dialog for loading the script
         progressDialog = new AlertDialog.Builder(context).setMessage(Const.LOADING_MESSAGE).create();
-        progressDialog.getWindow().setType(WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY);
+        progressDialog.getWindow().setType(OVERLAY_TYPE);
         progressDialog.setCanceledOnTouchOutside(false);
         progressDialog.show();
         new Thread(new Runnable() {

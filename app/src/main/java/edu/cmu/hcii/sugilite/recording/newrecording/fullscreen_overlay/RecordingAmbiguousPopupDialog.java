@@ -13,7 +13,6 @@ import android.util.Pair;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
@@ -33,14 +32,13 @@ import java.util.Set;
 
 import edu.cmu.hcii.sugilite.model.Node;
 import edu.cmu.hcii.sugilite.R;
-import edu.cmu.hcii.sugilite.SugiliteAccessibilityService;
+import edu.cmu.hcii.sugilite.accessibility_service.SugiliteAccessibilityService;
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
 import edu.cmu.hcii.sugilite.model.block.util.SugiliteAvailableFeaturePack;
 import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteOperation;
 import edu.cmu.hcii.sugilite.model.operation.unary.SugiliteClickOperation;
-import edu.cmu.hcii.sugilite.model.operation.unary.SugiliteUnaryOperation;
 import edu.cmu.hcii.sugilite.ontology.OntologyQuery;
 import edu.cmu.hcii.sugilite.ontology.OntologyQueryUtils;
 import edu.cmu.hcii.sugilite.ontology.SerializableOntologyQuery;
@@ -61,6 +59,7 @@ import edu.cmu.hcii.sugilite.verbal_instruction_demo.server_comm.VerbalInstructi
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.server_comm.VerbalInstructionServerResults;
 
 import static edu.cmu.hcii.sugilite.Const.MUL_ZEROS;
+import static edu.cmu.hcii.sugilite.Const.OVERLAY_TYPE;
 import static edu.cmu.hcii.sugilite.Const.RECORDING_DARK_GRAY_COLOR;
 import static edu.cmu.hcii.sugilite.Const.RECORDING_OFF_BUTTON_COLOR;
 import static edu.cmu.hcii.sugilite.Const.boldify;
@@ -281,7 +280,7 @@ public class RecordingAmbiguousPopupDialog extends SugiliteDialogManager impleme
             }
 
             //send out the ASR result
-            VerbalInstructionServerQuery query = new VerbalInstructionServerQuery(userInput, serializableUISnapshot.triplesToStringWithFilter(SugiliteRelation.HAS_CHILD, SugiliteRelation.HAS_PARENT, SugiliteRelation.HAS_CONTENT_DESCRIPTION), className);
+            VerbalInstructionServerQuery query = new VerbalInstructionServerQuery(userInput, serializableUISnapshot.triplesToStringWithFilter(SugiliteRelation.HAS_CHILD, SugiliteRelation.HAS_PARENT), className);
             //send the query
             try {
                 sugiliteVerbalInstructionHTTPQueryManager.sendQueryRequestOnASeparateThread(query, this);
@@ -298,7 +297,7 @@ public class RecordingAmbiguousPopupDialog extends SugiliteDialogManager impleme
      * callback for the HTTP query when the result is available
      */
     @Override
-    public void resultReceived(int responseCode, String result) {
+    public void resultReceived(int responseCode, String result, String originalQuery) {
         final int MAX_QUERY_CANDIDATE_NUMBER = 7;
 
         //dismiss the dialog
@@ -458,14 +457,20 @@ public class RecordingAmbiguousPopupDialog extends SugiliteDialogManager impleme
 
             String descriptionForTopQuery = null;
             try {
-                OntologyQuery topQuery = OntologyQuery.deserialize(results.getQueries().get(0).getFormula());
-                SugiliteOperation operation = new SugiliteClickOperation();
-                topQuery = OntologyQueryUtils.getQueryWithClassAndPackageConstraints(topQuery, actualClickedNode.getEntityValue(), false, true, true);
-                descriptionForTopQuery = descriptionGenerator.getDescriptionForOperation(operation, new SerializableOntologyQuery(topQuery));
-                if(descriptionForTopQuery != null){
-                    textPrompt.setText(Html.fromHtml(boldify(context.getString(R.string.disambiguation_result_wont_match)) + "<br><br> Intepretation for your description: " + descriptionForTopQuery));
-
+                SugiliteBlock resultBlock = sugiliteScriptParser.parseASingleBlockFromString(results.getQueries().get(0).getFormula());
+                if(resultBlock instanceof SugiliteOperationBlock && ((SugiliteOperationBlock) resultBlock).getOperation() instanceof SugiliteClickOperation) {
+                    //TODO: handle operations other than clicking
+                    SerializableOntologyQuery topQuerySerializable = ((SugiliteOperationBlock) resultBlock).getOperation().getDataDescriptionQueryIfAvailable();
+                    if (topQuerySerializable != null) {
+                        OntologyQuery topQuery = new OntologyQuery(topQuerySerializable);
+                        topQuery = OntologyQueryUtils.getQueryWithClassAndPackageConstraints(topQuery, actualClickedNode.getEntityValue(), false, true, true);
+                        descriptionForTopQuery = descriptionGenerator.getDescriptionForOperation(((SugiliteOperationBlock) resultBlock).getOperation(), new SerializableOntologyQuery(topQuery));
+                        if(descriptionForTopQuery != null){
+                            textPrompt.setText(Html.fromHtml(boldify(context.getString(R.string.disambiguation_result_wont_match)) + "<br><br> Intepretation for your description: " + descriptionForTopQuery));
+                        }
+                    }
                 }
+
             }
             catch (Exception e){
                 e.printStackTrace();

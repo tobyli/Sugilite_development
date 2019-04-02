@@ -120,7 +120,7 @@ public class OverlayChosenPopupDialog implements SugiliteVerbalInstructionHTTPQu
     }
 
     @Override
-    public void resultReceived(int responseCode, String result) {
+    public void resultReceived(int responseCode, String result, String originalQuery) {
         //do nothing
     }
 

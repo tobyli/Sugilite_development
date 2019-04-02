@@ -44,6 +44,7 @@ import edu.cmu.hcii.sugilite.ui.ScriptDetailActivity;
 import edu.cmu.hcii.sugilite.ui.ScriptSourceActivity;
 import edu.cmu.hcii.sugilite.ui.dialog.NewScriptDialog;
 
+import static edu.cmu.hcii.sugilite.Const.OVERLAY_TYPE;
 import static edu.cmu.hcii.sugilite.Const.SQL_SCRIPT_DAO;
 
 /**
@@ -284,7 +285,7 @@ public class FragmentScriptListTab extends Fragment {
                     final SugiliteStartingBlock startingBlock1 = sugiliteScriptDao.read(scriptName1);
 
                     progressDialog = new AlertDialog.Builder(activity).setMessage(Const.LOADING_MESSAGE).create();
-                    progressDialog.getWindow().setType(WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY);
+                    progressDialog.getWindow().setType(OVERLAY_TYPE);
                     progressDialog.setCanceledOnTouchOutside(false);
                     progressDialog.show();
                     new Thread(new Runnable() {

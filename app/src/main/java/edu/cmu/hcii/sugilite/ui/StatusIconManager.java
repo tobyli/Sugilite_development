@@ -13,7 +13,6 @@ import android.graphics.Rect;
 import android.net.Uri;
 import android.os.Build;
 import android.provider.Settings;
-import android.renderscript.Script;
 import android.text.Html;
 import android.util.DisplayMetrics;
 import android.view.GestureDetector;
@@ -38,7 +37,7 @@ import java.util.Random;
 
 import edu.cmu.hcii.sugilite.Const;
 import edu.cmu.hcii.sugilite.R;
-import edu.cmu.hcii.sugilite.SugiliteAccessibilityService;
+import edu.cmu.hcii.sugilite.accessibility_service.SugiliteAccessibilityService;
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.automation.AutomatorUtil;
 import edu.cmu.hcii.sugilite.automation.ServiceStatusManager;
@@ -103,6 +102,7 @@ public class StatusIconManager {
     Integer prev_x = null;
     Integer prev_y = null;
 
+
     public StatusIconManager(Context context, SugiliteData sugiliteData, SharedPreferences sharedPreferences, AccessibilityManager accessibilityManager){
         this.context = context;
         windowManager = (WindowManager) context.getSystemService(context.WINDOW_SERVICE);
@@ -120,7 +120,6 @@ public class StatusIconManager {
         jsonProcessor = new SugiliteBlockJSONProcessor(context);
         descriptionGenerator = new ReadableDescriptionGenerator(context);
         random = new Random();
-
     }
 
     /**
@@ -158,22 +157,17 @@ public class StatusIconManager {
 
         //NEEDED TO BE CONFIGURED AT APPS->SETTINGS-DRAW OVER OTHER APPS on API>=23
         int currentApiVersion = android.os.Build.VERSION.SDK_INT;
-        if(currentApiVersion >= 23){
+        if(currentApiVersion >= 23) {
             checkDrawOverlayPermission();
-            if(Settings.canDrawOverlays(context))
-                try {
-                    windowManager.addView(statusIcon, iconParams);
-                } catch (Exception e){
-                    e.printStackTrace();
-                }
-
-            //=== temporarily set the status view to invisible  ===
-            windowManager.addView(statusView, textViewParams);
-            statusView.setVisibility(View.INVISIBLE);
+            if (Settings.canDrawOverlays(context)) {
+                windowManager.addView(statusIcon, iconParams);
+                //=== temporarily set the status view to invisible  ===
+                windowManager.addView(statusView, textViewParams);
+                statusView.setVisibility(View.INVISIBLE);
+            }
         }
         else {
             windowManager.addView(statusIcon, iconParams);
-
 
             //=== temporarily set the status view to invisible ===
             windowManager.addView(statusView, textViewParams);
@@ -193,16 +187,17 @@ public class StatusIconManager {
      */
     public void removeStatusIcon(){
         try{
-            if(statusIcon != null) {
+            if(statusIcon != null && statusIcon.getWindowToken() != null) {
                 windowManager.removeView(statusIcon);
             }
-            if(statusView != null) {
+            if(statusView != null && statusView.getWindowToken() != null) {
                 windowManager.removeView(statusView);
             }
-            showingIcon = false;
         }
         catch (Exception e){
             e.printStackTrace();
+        } finally {
+            showingIcon = false;
         }
     }
 

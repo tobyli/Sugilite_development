@@ -54,4 +54,9 @@ public class SugiliteReadoutConstOperation extends SugiliteUnaryOperation<String
     public String toString() {
         return "(" + "call read_out " + addQuoteToTokenIfNeeded(getParameter0().toString()) + ")";
     }
+
+    @Override
+    public String getPumiceUserReadableDecription() {
+        return String.format("read out \"%s\"", textToReadout);
+    }
 }

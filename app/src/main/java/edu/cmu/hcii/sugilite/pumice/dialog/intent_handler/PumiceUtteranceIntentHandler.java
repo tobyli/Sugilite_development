@@ -21,4 +21,5 @@ public interface PumiceUtteranceIntentHandler {
     PumiceIntent detectIntentFromUtterance(PumiceDialogManager.PumiceUtterance utterance);
     void handleIntentWithUtterance(PumiceDialogManager dialogManager, PumiceIntent pumiceIntent, PumiceDialogManager.PumiceUtterance utterance);
     void setContext(Activity context);
+    void sendPromptForTheIntentHandler();
 }

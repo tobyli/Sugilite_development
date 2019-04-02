@@ -1,16 +1,22 @@
 package edu.cmu.hcii.sugilite.pumice.kb;
+import com.google.gson.ExclusionStrategy;
+import com.google.gson.FieldAttributes;
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+
+import java.io.Serializable;
 
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.model.block.booleanexp.SugiliteBooleanExpressionNew;
 import edu.cmu.hcii.sugilite.model.value.SugiliteValue;
+import edu.cmu.hcii.sugilite.pumice.communication.SkipPumiceJSONSerialization;
 
 /**
  * @author toby
  * @date 10/29/18
  * @time 11:54 AM
  */
-public class PumiceBooleanExpKnowledge {
+public class PumiceBooleanExpKnowledge implements Serializable {
     private String expName;
     private String utterance;
 
@@ -64,12 +70,13 @@ public class PumiceBooleanExpKnowledge {
         return expName;
     }
 
-    public String getProcedureDescription(){
+    public String getBooleanDescription(){
         String description = "How to know whether " + expName;
-        if (arg0 != null) {
-            description = description + " using " + arg0.toString();
+        if (arg0 != null && arg1 != null && boolOperator != null) {
+            String detail = "{" + arg0.getReadableDescription() + "} is " + boolOperator.toString().toLowerCase().replace("_", " ") + " {" + arg1.getReadableDescription() + "}";
+            description = description + " by checking if " + detail;
         }
-        if (utterance != null) {
+        else if (utterance != null) {
             description = description + " by checking if " + utterance;
         }
         return description;
@@ -77,6 +84,22 @@ public class PumiceBooleanExpKnowledge {
 
     @Override
     public String toString() {
-        return new Gson().toJson(this);
+        Gson gson = new GsonBuilder()
+                .addSerializationExclusionStrategy(new ExclusionStrategy()
+                {
+                    @Override
+                    public boolean shouldSkipField(FieldAttributes f)
+                    {
+                        return f.getAnnotation(SkipPumiceJSONSerialization.class) != null;
+                    }
+
+                    @Override
+                    public boolean shouldSkipClass(Class<?> clazz)
+                    {
+                        return false;
+                    }
+                })
+                .create();
+        return gson.toJson(this);
     }
 }

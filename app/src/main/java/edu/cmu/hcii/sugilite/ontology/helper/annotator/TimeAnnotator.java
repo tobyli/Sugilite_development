@@ -1,26 +1,36 @@
 package edu.cmu.hcii.sugilite.ontology.helper.annotator;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import edu.cmu.hcii.sugilite.ontology.SugiliteRelation;
+import edu.cmu.hcii.sugilite.ontology.helper.annotator.SugiliteTextParentAnnotator.AnnotatingResult;
+
 
 /**
  * Given the input as a string containing times of the specified formats, parse it and store the
  * times as the number of second passed from 12 am until the given time.
- *
+ * <p>
  * Created by shi on 1/25/18.
  */
 
-public class TimeAnnotator extends SugiliteTextAnnotator {
-    public TimeAnnotator() {
-        super();
+public class TimeAnnotator implements SugiliteTextAnnotator {
+    private Map<String, List<AnnotatingResult>> cache;
+
+    TimeAnnotator(){
+        cache = new HashMap<>();
     }
 
     @Override
     public List<AnnotatingResult> annotate(String text) {
+        if (cache.containsKey(text)){
+            return cache.get(text);
+        }
+
         List<AnnotatingResult> results = new ArrayList<>();
         String regex12h = "\\b(0?[1-9]|1[0-2]):([0-5][0-9])(\\s)?([apAP][mM]?)\\b";
         String regex24h = "\\b([0-1]?[0-9]|2[0-3]):([0-5][0-9])\\b";
@@ -54,7 +64,7 @@ public class TimeAnnotator extends SugiliteTextAnnotator {
                 if (matchedString.contains("p") || matchedString.contains("P"))
                     hour += 12;
                 int minute = Integer.valueOf(minuteString);
-                value = (double) (hour*60 + minute)*60;
+                value = (double) (hour * 60 + minute) * 60;
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -82,7 +92,7 @@ public class TimeAnnotator extends SugiliteTextAnnotator {
             try {
                 int hour = Integer.valueOf(hourString);
                 int minute = Integer.valueOf(minuteString);
-                value = (double) (hour*60 + minute)*60;
+                value = (double) (hour * 60 + minute) * 60;
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -110,13 +120,15 @@ public class TimeAnnotator extends SugiliteTextAnnotator {
                 int hour = Integer.valueOf(hourString) % 12;
                 if (matchedString.contains("p") || matchedString.contains("P"))
                     hour += 12;
-                value = (double) (hour*60)*60;
+                value = (double) (hour * 60) * 60;
             } catch (Exception e) {
                 e.printStackTrace();
             }
             AnnotatingResult result = new AnnotatingResult(RELATION, text.substring(matcher.start(), matcher.end()), matcher.start(), matcher.end(), value);
             results.add(result);
         }
+
+        cache.put(text, results);
         return results;
     }
 

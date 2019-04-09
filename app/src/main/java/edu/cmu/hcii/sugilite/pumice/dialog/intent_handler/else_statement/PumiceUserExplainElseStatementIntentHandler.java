@@ -1,4 +1,4 @@
-package edu.cmu.hcii.sugilite.pumice.dialog.intent_handler;
+package edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.else_statement;
 
 import android.app.Activity;
 
@@ -9,6 +9,7 @@ import com.google.gson.GsonBuilder;
 
 import java.util.Calendar;
 
+import edu.cmu.hcii.sugilite.Const;
 import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteConditionBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
@@ -19,6 +20,8 @@ import edu.cmu.hcii.sugilite.pumice.communication.PumiceSemanticParsingResultPac
 import edu.cmu.hcii.sugilite.pumice.communication.SkipPumiceJSONSerialization;
 import edu.cmu.hcii.sugilite.pumice.dialog.PumiceDialogManager;
 import edu.cmu.hcii.sugilite.pumice.dialog.demonstration.PumiceElseStatementDemonstrationDialog;
+import edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.PumiceDefaultUtteranceIntentHandler;
+import edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.PumiceUtteranceIntentHandler;
 import edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.parsing_confirmation.PumiceParsingConfirmationHandler;
 import edu.cmu.hcii.sugilite.pumice.kb.PumiceProceduralKnowledge;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.server_comm.SugiliteVerbalInstructionHTTPQueryInterface;
@@ -61,7 +64,7 @@ public class PumiceUserExplainElseStatementIntentHandler implements PumiceUttera
 
         if (pumiceIntent.equals(PumiceIntent.DEFINE_PROCEDURE_EXP)){
             //for situations e.g., redirection
-            dialogManager.sendAgentMessage("I have received your explanation: " + utterance.getContent(), true, false);
+            //dialogManager.sendAgentMessage("I have received your explanation: " + utterance.getContent(), true, false);
             //TODO: send out an OPERATION_INSTRUCTION query to resolve the explanation
             //send out the server query
             PumiceInstructionPacket pumiceInstructionPacket = new PumiceInstructionPacket(dialogManager.getPumiceKnowledgeManager(), "OPERATION_INSTRUCTION", calendar.getTimeInMillis(), utterance.getContent(), utterance.getContent());
@@ -129,11 +132,18 @@ public class PumiceUserExplainElseStatementIntentHandler implements PumiceUttera
                 .create();
         try {
             PumiceSemanticParsingResultPacket resultPacket = gson.fromJson(result, PumiceSemanticParsingResultPacket.class);
+            resultPacket.cleanFormula();
             if (resultPacket.utteranceType != null) {
                 switch (resultPacket.utteranceType) {
                     case "OPERATION_INSTRUCTION":
-                        if (resultPacket.queries != null && resultPacket.queries.size() > 0) {
-                            PumiceParsingConfirmationHandler parsingConfirmationHandler = new PumiceParsingConfirmationHandler(context, pumiceDialogManager);
+                        if (true) {
+                            //TODO: bypass the else statement
+                            returnUserExplainElseStatementResult(null);
+                            break;
+                        }
+                        else {
+                            if (resultPacket.queries != null && resultPacket.queries.size() > 0) {
+                            PumiceParsingConfirmationHandler parsingConfirmationHandler = new PumiceParsingConfirmationHandler(context, pumiceDialogManager, 0);
                             parsingConfirmationHandler.handleParsingResult(resultPacket, new Runnable() {
                                 @Override
                                 public void run() {
@@ -150,7 +160,7 @@ public class PumiceUserExplainElseStatementIntentHandler implements PumiceUttera
                                         @Override
                                         public void run() {
                                             //parse and process the server response
-                                            PumiceProceduralKnowledge pumiceProceduralKnowledge = pumiceDialogManager.getPumiceInitInstructionParsingHandler().parseFromProcedureInstruction(confirmedFormula, resultPacket.userUtterance, resultPacket.userUtterance);
+                                            PumiceProceduralKnowledge pumiceProceduralKnowledge = pumiceDialogManager.getPumiceInitInstructionParsingHandler().parseFromProcedureInstruction(confirmedFormula, resultPacket.userUtterance, resultPacket.userUtterance, 0);
 
                                             //pumiceProceduralKnowledge should have a target procedure;
                                             String targetProcedureName = pumiceProceduralKnowledge.getTargetProcedureKnowledgeName();
@@ -163,13 +173,15 @@ public class PumiceUserExplainElseStatementIntentHandler implements PumiceUttera
                                         }
                                     });
                                 }
-                            });
+                            }, false);
                         } else {
                             throw new RuntimeException("empty server result");
                         }
                         break;
+                    }
                     default:
                         throw new RuntimeException("wrong type of result");
+
                 }
             }
         } catch (Exception e){
@@ -185,7 +197,8 @@ public class PumiceUserExplainElseStatementIntentHandler implements PumiceUttera
 
     @Override
     public void sendPromptForTheIntentHandler() {
-        pumiceDialogManager.sendAgentMessage("What should I do if " + boolExpReadableName.replace(" is true", "") + " is not true? You can explain, or say \"demonstrate\" to demonstrate", true, true);
+        pumiceDialogManager.getSugiliteVoiceRecognitionListener().setContextPhrases(Const.INIT_INSTRUCTION_CONTEXT_WORDS);
+        pumiceDialogManager.sendAgentMessage(String.format("What should I do if %s is not true?", boolExpReadableName.replace(" is true", "")), true, true);
     }
 
     @Override
@@ -198,14 +211,18 @@ public class PumiceUserExplainElseStatementIntentHandler implements PumiceUttera
      * @param newBlock
      */
     public void returnUserExplainElseStatementResult(SugiliteBlock newBlock){
+        pumiceDialogManager.sendAgentMessage(String.format("OK, I know what to do when %s is not true.", boolExpReadableName.replace(" is true", "")), true, false);
         synchronized (originalConditionBlock) {
             //add new block as the else block for the original condition block
-            SugiliteBlock blockToAdd = newBlock;
-            if(blockToAdd instanceof SugiliteStartingBlock){
-                blockToAdd = blockToAdd.getNextBlock();
+            if (newBlock != null) {
+                SugiliteBlock blockToAdd = newBlock;
+                if (blockToAdd instanceof SugiliteStartingBlock) {
+                    blockToAdd = blockToAdd.getNextBlockToRun();
+                }
+                originalConditionBlock.setElseBlock(blockToAdd);
+                blockToAdd.setParentBlock(originalConditionBlock);
+
             }
-            originalConditionBlock.setElseBlock(blockToAdd);
-            blockToAdd.setParentBlock(blockToAdd);
             originalConditionBlock.notify();
         }
     }

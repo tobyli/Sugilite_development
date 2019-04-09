@@ -14,6 +14,7 @@ import com.google.gson.annotations.Expose;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -59,24 +60,23 @@ public class PumiceValueQueryKnowledge<T> implements Serializable {
     private List<String> involvedAppNames;
 
     public PumiceValueQueryKnowledge(){
-
+        this.involvedAppNames = new ArrayList<>();
     }
 
     public PumiceValueQueryKnowledge(String valueName, ValueType valueType){
+        this();
         this.valueName = valueName;
         this.valueType = valueType;
     }
 
     public PumiceValueQueryKnowledge(String valueName, String userUtterance, ValueType valueType, SugiliteValue sugiliteValue){
-        this.valueName = valueName;
-        this.valueType = valueType;
+        this(valueName, valueType);
         this.sugiliteValue = sugiliteValue;
         this.userUtterance = userUtterance;
     }
 
     public PumiceValueQueryKnowledge(Context context, String valueName, ValueType valueType, SugiliteStartingBlock sugiliteStartingBlock){
-        this.valueName = valueName;
-        this.valueType = valueType;
+        this(valueName, valueType);
         this.sugiliteStartingBlock = sugiliteStartingBlock;
         this.userUtterance = "demonstrate";
         //populate involvedAppNames
@@ -114,7 +114,11 @@ public class PumiceValueQueryKnowledge<T> implements Serializable {
         this.valueName = valueName;
     }
 
-    public T getValue(SugiliteData sugiliteData){
+    public SugiliteValue getSugiliteValue() {
+        return sugiliteValue;
+    }
+
+    public T evaluate(SugiliteData sugiliteData){
         //getting the value using the script stored in sugiliteStartingBlock
         PumiceDialogManager pumiceDialogManager = sugiliteData.pumiceDialogManager;
         if (pumiceDialogManager != null) {
@@ -122,6 +126,7 @@ public class PumiceValueQueryKnowledge<T> implements Serializable {
                 //if there is a sugiliteValue, simply return the result of evaluating it;
                 Object result = sugiliteValue.evaluate(sugiliteData);
                 try {
+                    //result SHOULD be type T
                     return (T)result;
                 } catch (Exception e){
                     throw new RuntimeException("error in processing the value query -- can't find the target value knowledge");
@@ -140,21 +145,24 @@ public class PumiceValueQueryKnowledge<T> implements Serializable {
                 Runnable afterExecutionRunnable = new Runnable() {
                     @Override
                     public void run() {
-                        System.out.println(sugiliteData.stringVariableMap);
-                        if (sugiliteData.stringVariableMap.containsKey(valueName)) {
-                            Variable returnVariable = sugiliteData.stringVariableMap.get(valueName);
-                            if (returnVariable instanceof StringVariable) {
-                                synchronized (returnValue) {
-                                    returnValue.append(((StringVariable) returnVariable).getValue());
-                                    returnValue.notify();
+                        try {
+                            System.out.println(sugiliteData.stringVariableMap);
+                            if (sugiliteData.stringVariableMap.containsKey(valueName)) {
+                                Variable returnVariable = sugiliteData.stringVariableMap.get(valueName);
+                                if (returnVariable instanceof StringVariable) {
+                                    synchronized (returnValue) {
+                                        returnValue.append(((StringVariable) returnVariable).getValue());
+                                        returnValue.notify();
+                                    }
+                                } else {
+                                    throw new RuntimeException("error -- wrong type of variable");
                                 }
                             } else {
-                                throw new RuntimeException("error -- wrong type of variable");
+                                throw new RuntimeException("error -- can't find the variable / failure in extracting value");
                             }
-                        } else {
-                            throw new RuntimeException("error -- can't find the variable");
+                        } catch (Exception e) {
+                            e.printStackTrace();
                         }
-
                     }
                 };
                 PumiceDemonstrationUtil.executeScript(context, serviceStatusManager, sugiliteStartingBlock, sugiliteData, layoutInflater, sharedPreferences, pumiceDialogManager, null, afterExecutionRunnable);
@@ -170,15 +178,19 @@ public class PumiceValueQueryKnowledge<T> implements Serializable {
 
                 //return the value
                 pumiceDialogManager.sendAgentMessage("The value of " + valueName + " is " + returnValue.toString(), true, false);
-
-                return (T) (returnValue.toString());
+                try {
+                    return (T) (returnValue.toString());
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    throw new RuntimeException("error in returning the evaluation result!");
+                }
             }
         } else {
             throw new RuntimeException("empty dialog manager!");
         }
     }
 
-    public String getValueDescription(){
+    String getValueDescription(){
         String description = "How to get the value of " + valueName;
         if (sugiliteValue != null && sugiliteValue instanceof SugiliteGetValueOperation){
             description = description + ", which is the value of " + ((SugiliteGetValueOperation) sugiliteValue).getName();

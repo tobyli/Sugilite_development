@@ -14,7 +14,6 @@ import edu.cmu.hcii.sugilite.model.operation.binary.SugiliteReadoutOperation;
 import edu.cmu.hcii.sugilite.model.operation.binary.SugiliteSetTextOperation;
 import edu.cmu.hcii.sugilite.model.operation.unary.SugiliteClickOperation;
 import edu.cmu.hcii.sugilite.model.operation.unary.SugiliteLongClickOperation;
-import edu.cmu.hcii.sugilite.model.operation.unary.SugiliteUnaryOperation;
 import edu.cmu.hcii.sugilite.recording.ReadableDescriptionGenerator;
 
 /**
@@ -49,8 +48,8 @@ public class SugiliteOperationBlockJSON {
                 actionType = "UNDEFINED";
         }
         filter = new SugiliteFilterJSON(block.getElementMatchingFilter());
-        if(block.getNextBlock() != null && block.getNextBlock() instanceof SugiliteOperationBlock)
-            nextBlock = new SugiliteOperationBlockJSON((SugiliteOperationBlock)block.getNextBlock());
+        if(block.getNextBlockToRun() != null && block.getNextBlockToRun() instanceof SugiliteOperationBlock)
+            nextBlock = new SugiliteOperationBlockJSON((SugiliteOperationBlock)block.getNextBlockToRun());
         createdTime = block.getCreatedTime();
 
         if(block.getFeaturePack() != null && Const.KEEP_ALL_NODES_IN_THE_FEATURE_PACK){

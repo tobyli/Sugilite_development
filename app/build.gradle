@@ -1,5 +1,10 @@
 apply plugin: 'com.android.application'
-//apply plugin: 'com.android.library'
+apply plugin: 'com.google.protobuf'
+
+ext {
+    supportLibraryVersion = '26.0.2'
+    grpcVersion = '1.4.0'
+}
 
 android {
     compileSdkVersion 26//25
@@ -50,16 +55,54 @@ dependencies {
     implementation 'com.android.support.constraint:constraint-layout:1.1.3'
     implementation fileTree(include: ['*.jar'], dir: 'libs')
     testCompile 'junit:junit:4.12'
-    implementation 'com.android.support:appcompat-v7:26.0.2'//25.3.1
-    implementation 'com.android.support:design:26.0.2'//25.3.1
-    implementation 'com.android.support:support-v4:26.0.2'//25.3.1
+    implementation "com.android.support:appcompat-v7:$supportLibraryVersion"//25.3.1
+    implementation "com.android.support:design:$supportLibraryVersion"//25.3.1
+    implementation "com.android.support:support-v4:$supportLibraryVersion"//25.3.1
+
     implementation 'com.google.code.gson:gson:2.2.4'
     implementation 'com.opencsv:opencsv:3.9'
     implementation 'org.apache.commons:commons-lang3:3.4'
     //compile 'edu.stanford.nlp:stanford-corenlp:3.8.0'
+
     implementation files('libs/RootTools.jar')
     deployerJars "org.apache.maven.wagon:wagon-ssh:2.9"
     implementation 'com.daasuu:BubbleLayout:1.2.0'
+
+    // gRPC
+    compile "io.grpc:grpc-okhttp:$grpcVersion"
+    compile "io.grpc:grpc-protobuf-lite:$grpcVersion"
+    compile "io.grpc:grpc-stub:$grpcVersion"
+    compile 'javax.annotation:javax.annotation-api:1.2'
+    protobuf 'com.google.protobuf:protobuf-java:3.3.1'
+    // OAuth2 for Google API
+    compile('com.google.auth:google-auth-library-oauth2-http:0.7.0') {
+        exclude module: 'httpclient'
+    }
+}
+
+protobuf {
+    protoc {
+        artifact = 'com.google.protobuf:protoc:3.3.0'
+    }
+    plugins {
+        javalite {
+            artifact = "com.google.protobuf:protoc-gen-javalite:3.0.0"
+        }
+        grpc {
+            artifact = "io.grpc:protoc-gen-grpc-java:${grpcVersion}"
+        }
+    }
+    generateProtoTasks {
+        all().each { task ->
+            task.plugins {
+                javalite {}
+                grpc {
+                    // Options added to --grpc_out
+                    option 'lite'
+                }
+            }
+        }
+    }
 }
 
 //We need this in order to deploy Sugilite as a maven library

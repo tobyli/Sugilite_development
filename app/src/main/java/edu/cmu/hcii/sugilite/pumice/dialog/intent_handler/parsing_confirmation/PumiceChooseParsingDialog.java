@@ -36,6 +36,7 @@ import static edu.cmu.hcii.sugilite.Const.OVERLAY_TYPE;
  * @date 2/18/19
  * @time 7:09 PM
  */
+@Deprecated
 public class PumiceChooseParsingDialog implements AbstractSugiliteDialog {
 
     private Activity context;
@@ -48,7 +49,7 @@ public class PumiceChooseParsingDialog implements AbstractSugiliteDialog {
 
     private AlertDialog dialog;
 
-    final private static int MAX_LIST_SIZE = 7;
+    final private static int MAX_LIST_SIZE = 4;
 
     public PumiceChooseParsingDialog (Activity context, PumiceDialogManager pumiceDialogManager, PumiceSemanticParsingResultPacket resultPacket, Runnable runnableForRetry, PumiceParsingConfirmationHandler.ConfirmedParseRunnable runnableForConfirmedParse) {
         this.context = context;
@@ -62,11 +63,11 @@ public class PumiceChooseParsingDialog implements AbstractSugiliteDialog {
 
 
         List<String> candidateNameList = new ArrayList<>();
-        Map<String, String> candiateNameFormulaMap = new HashMap<>();
+        Map<String, String> candidateNameFormulaMap = new HashMap<>();
         for(PumiceSemanticParsingResultPacket.QueryGroundingPair queryGroundingPair : resultPacket.queries){
             //TODO: use readable descriptions instead
             candidateNameList.add(getDescriptionForFormula(queryGroundingPair.formula, resultPacket.utteranceType));
-            candiateNameFormulaMap.put(getDescriptionForFormula(queryGroundingPair.formula, resultPacket.utteranceType), queryGroundingPair.formula);
+            candidateNameFormulaMap.put(getDescriptionForFormula(queryGroundingPair.formula, resultPacket.utteranceType), queryGroundingPair.formula);
         }
 
         if (candidateNameList.size() > MAX_LIST_SIZE) {
@@ -94,7 +95,7 @@ public class PumiceChooseParsingDialog implements AbstractSugiliteDialog {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 if(view instanceof TextView){
                     String selectedCandidateName = ((TextView) view).getText().toString();
-                    String selectedCandidateFormula = candiateNameFormulaMap.get(selectedCandidateName);
+                    String selectedCandidateFormula = candidateNameFormulaMap.get(selectedCandidateName);
                     runnableForConfirmedParse.run(selectedCandidateFormula);
                     dialog.dismiss();
                 }
@@ -133,7 +134,7 @@ public class PumiceChooseParsingDialog implements AbstractSugiliteDialog {
                 dialog.getButton(AlertDialog.BUTTON_NEGATIVE).setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
-                        pumiceDialogManager.sendAgentMessage("OK. Let's try again.", true, false);
+                        pumiceDialogManager.sendAgentMessage("OK. Let's try again. Please try to explain using information that can be found in mobile apps.", true, false);
                         runnableForRetry.run();
                         dialog.dismiss();
                     }

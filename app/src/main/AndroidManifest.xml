@@ -50,6 +50,9 @@
             </intent-filter>
         </service>
 
+        <service android:name=".verbal_instruction_demo.speech.GoogleCloudSpeechService"/>
+
+
         <activity
             android:name=".ui.SettingsActivity"
             android:label="@string/title_activity_settings"

@@ -436,7 +436,13 @@ public class OntologyQuery {
 
     public static OntologyQuery deserialize(String queryString) {
         // example: (conj (hasColor red) (isChecked true))
-        return parseString(queryString);
+        try {
+            return parseString(queryString);
+        } catch (Exception e){
+            e.printStackTrace();
+            //throw new RuntimeException("Failed to deserialize an ontology query");
+        }
+        return null;
     }
 
     public SugiliteRelation getR() {

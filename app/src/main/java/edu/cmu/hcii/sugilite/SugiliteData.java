@@ -31,7 +31,6 @@ import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.model.variable.Variable;
 import edu.cmu.hcii.sugilite.ontology.SugiliteRelation;
 import edu.cmu.hcii.sugilite.pumice.dialog.PumiceDialogManager;
-import edu.cmu.hcii.sugilite.pumice.kb.PumiceKnowledgeManager;
 import edu.cmu.hcii.sugilite.recording.RecordingPopUpDialog;
 import edu.cmu.hcii.sugilite.study.ScriptUsageLogManager;
 import edu.cmu.hcii.sugilite.ui.StatusIconManager;
@@ -253,10 +252,10 @@ public class SugiliteData extends Application {
         while(currentBlock != null){
             sugiliteBlocks.add(currentBlock);
             if(currentBlock instanceof SugiliteStartingBlock){
-                currentBlock = ((SugiliteStartingBlock)currentBlock).getNextBlock();
+                currentBlock = ((SugiliteStartingBlock)currentBlock).getNextBlockToRun();
             }
             else if (currentBlock instanceof SugiliteOperationBlock){
-                currentBlock = ((SugiliteOperationBlock)currentBlock).getNextBlock();
+                currentBlock = ((SugiliteOperationBlock)currentBlock).getNextBlockToRun();
             }
             else{
                 currentBlock = null;

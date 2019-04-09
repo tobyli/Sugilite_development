@@ -46,6 +46,8 @@ import edu.cmu.hcii.sugilite.ontology.UISnapshot;
 import edu.cmu.hcii.sugilite.recording.newrecording.fullscreen_overlay.FollowUpQuestionDialog;
 import edu.cmu.hcii.sugilite.recording.newrecording.fullscreen_overlay.FullScreenRecordingOverlayManager;
 import edu.cmu.hcii.sugilite.ui.StatusIconManager;
+import edu.cmu.hcii.sugilite.verbal_instruction_demo.speech.SugiliteAndroidAPIVoiceRecognitionListener;
+import edu.cmu.hcii.sugilite.verbal_instruction_demo.speech.SugiliteGoogleCloudVoiceRecognitionListener;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.speech.SugiliteVoiceInterface;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.speech.SugiliteVoiceRecognitionListener;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.study.SugiliteStudyHandler;
@@ -113,7 +115,12 @@ public class VerbalInstructionIconManager implements SugiliteVoiceInterface {
         sugiliteStudyHandler.setIconManager(this);
         windowManager = (WindowManager) context.getSystemService(context.WINDOW_SERVICE);
         this.layoutInflater = (LayoutInflater) context.getSystemService( Context.LAYOUT_INFLATER_SERVICE);
-        this.sugiliteVoiceRecognitionListener = new SugiliteVoiceRecognitionListener(context, this, tts);
+
+        if (Const.SELECTED_SPEECH_RECOGNITION_TYPE == Const.SpeechRecognitionType.ANDROID) {
+            this.sugiliteVoiceRecognitionListener = new SugiliteAndroidAPIVoiceRecognitionListener(context, this, tts);
+        } else if (Const.SELECTED_SPEECH_RECOGNITION_TYPE == Const.SpeechRecognitionType.GOOGLE_CLOUD) {
+            this.sugiliteVoiceRecognitionListener = new SugiliteGoogleCloudVoiceRecognitionListener(context, this, tts);
+        }
         this.recordingOverlayManager = recordingOverlayManager;
 
     }
@@ -122,7 +129,7 @@ public class VerbalInstructionIconManager implements SugiliteVoiceInterface {
      * Callback for SugiliteVoiceRecogitionListener when listening has started
      */
     @Override
-    public void listeningStarted(){
+    public void listeningStartedCallback(){
         isListening = true;
         statusIcon.setImageResource(R.mipmap.cat_talking);
 
@@ -132,18 +139,18 @@ public class VerbalInstructionIconManager implements SugiliteVoiceInterface {
      * Callback for SugiliteVoiceRecogitionListener when listening has ended
      */
     @Override
-    public void listeningEnded(){
+    public void listeningEndedCallback(){
         isListening = false;
         statusIcon.setImageResource(R.mipmap.cat_sleep);
     }
 
     @Override
-    public void speakingStarted() {
+    public void speakingStartedCallback() {
         isSpeaking = true;
     }
 
     @Override
-    public void speakingEnded() {
+    public void speakingEndedCallback() {
         isSpeaking = false;
     }
 
@@ -152,24 +159,26 @@ public class VerbalInstructionIconManager implements SugiliteVoiceInterface {
      * @param matches
      */
     @Override
-    public void resultAvailable(List<String> matches){
-        AlertDialog.Builder builder = new AlertDialog.Builder(context);
-        builder.setTitle("Voice Recognized!");
-        String text = "";
-        for(String match : matches){
-            text += (match + "\n");
-        }
-        builder.setMessage(text);
-        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                //do nothing
+    public void resultAvailableCallback(List<String> matches, boolean isFinal){
+        if (isFinal) {
+            AlertDialog.Builder builder = new AlertDialog.Builder(context);
+            builder.setTitle("Voice Recognized!");
+            String text = "";
+            for (String match : matches) {
+                text += (match + "\n");
             }
-        });
-        Dialog dialog = builder.create();
-        dialog.getWindow().setType(OVERLAY_TYPE);
-        dialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_box);
-        dialog.show();
+            builder.setMessage(text);
+            builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    //do nothing
+                }
+            });
+            Dialog dialog = builder.create();
+            dialog.getWindow().setType(OVERLAY_TYPE);
+            dialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_box);
+            dialog.show();
+        }
     }
 
     // initiate the floating icon
@@ -201,9 +210,7 @@ public class VerbalInstructionIconManager implements SugiliteVoiceInterface {
         int currentApiVersion = android.os.Build.VERSION.SDK_INT;
         if(currentApiVersion >= 23){
             checkDrawOverlayPermission();
-            if(Settings.canDrawOverlays(context)) {
-                windowManager.addView(statusIcon, iconParams);
-            }
+            windowManager.addView(statusIcon, iconParams);
         }
         else {
             windowManager.addView(statusIcon, iconParams);
@@ -232,6 +239,7 @@ public class VerbalInstructionIconManager implements SugiliteVoiceInterface {
             }
         }, 0, INTERVAL_REFRESH_UI_SNAPSHOT);
         showingIcon = true;
+        statusIcon.setVisibility(View.INVISIBLE);
     }
 
     public void rotateStatusIcon(){
@@ -456,8 +464,6 @@ public class VerbalInstructionIconManager implements SugiliteVoiceInterface {
         //remove and re-add the status icon so that it can show on top of the overlay
         removeStatusIcon();
         addStatusIcon();
-
-
         if(duckIconManager != null){
             duckIconManager.removeStatusIcon();
             duckIconManager.addStatusIcon();
@@ -475,18 +481,7 @@ public class VerbalInstructionIconManager implements SugiliteVoiceInterface {
             recordingOverlayManager.removeOverlays();
         }
         else{
-            recordingOverlayManager.enableOverlay();
-            //remove and re-add the status icon so that it can show on top of the overlay
-            removeStatusIcon();
-            addStatusIcon();
-
-
-            if(duckIconManager != null){
-                duckIconManager.removeStatusIcon();
-                duckIconManager.addStatusIcon();
-            }
-
-
+            turnOnCatOverlay();
         }
     }
 

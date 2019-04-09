@@ -5,7 +5,6 @@ import java.io.Serializable;
 import java.util.Calendar;
 import java.util.Random;
 
-import edu.cmu.hcii.sugilite.SugiliteData;///
 /**
  * @author toby
  * @date 6/10/16
@@ -72,11 +71,16 @@ public abstract class SugiliteBlock implements Serializable{
     }
 
     public SugiliteBlock getNextBlock() {
+        return nextBlock;
+    }
+
+    public SugiliteBlock getNextBlockToRun() {
         if(nextBlock == null && parentBlock != null){
             //handle the "merge" of condition blocks
-            return parentBlock.getNextBlock();
+            return parentBlock.getNextBlockToRun();
+        } else {
+            return nextBlock;
         }
-        return nextBlock;
     }
 
     public void setNextBlock(SugiliteBlock nextBlock) {

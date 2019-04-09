@@ -117,28 +117,28 @@ public class SugiliteVerbalInstructionStudyDialog implements SugiliteVoiceInterf
 
 
     @Override
-    public void listeningStarted() {
+    public void listeningStartedCallback() {
         isListening = true;
     }
 
     @Override
-    public void listeningEnded() {
+    public void listeningEndedCallback() {
         isListening = false;
     }
 
     @Override
-    public void speakingStarted() {
+    public void speakingStartedCallback() {
         isSpeaking = true;
     }
 
     @Override
-    public void speakingEnded() {
+    public void speakingEndedCallback() {
         isSpeaking = false;
     }
 
     @Override
-    public void resultAvailable(List<String> matches) {
-        if(matches.size() > 0) {
+    public void resultAvailableCallback(List<String> matches, boolean isFinal) {
+        if(isFinal && matches.size() > 0) {
             instructionTextbox.setText(matches.get(0));
         }
     }

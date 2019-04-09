@@ -9,6 +9,7 @@ import com.google.gson.GsonBuilder;
 
 import java.util.Calendar;
 
+import edu.cmu.hcii.sugilite.Const;
 import edu.cmu.hcii.sugilite.pumice.communication.PumiceInstructionPacket;
 import edu.cmu.hcii.sugilite.pumice.communication.PumiceSemanticParsingResultPacket;
 import edu.cmu.hcii.sugilite.pumice.communication.SkipPumiceJSONSerialization;
@@ -16,6 +17,8 @@ import edu.cmu.hcii.sugilite.pumice.dialog.PumiceDialogManager;
 import edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.parsing_confirmation.PumiceParsingConfirmationHandler;
 import edu.cmu.hcii.sugilite.pumice.kb.PumiceBooleanExpKnowledge;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.server_comm.SugiliteVerbalInstructionHTTPQueryInterface;
+
+import static edu.cmu.hcii.sugilite.pumice.dialog.PumiceInitInstructionParsingHandler.FAILURE_COUNT_THRESHOLD;
 
 /**
  * @author toby
@@ -29,18 +32,20 @@ public class PumiceUserExplainBoolExpIntentHandler implements PumiceUtteranceInt
     private PumiceDialogManager pumiceDialogManager;
     private String parentKnowledgeName;
     private PumiceUserExplainBoolExpIntentHandler pumiceUserExplainBoolExpIntentHandler;
+    private int failureCount = 0;
 
     //need to notify this lock when the bool expression is resolved, and return the value through this object
     PumiceBooleanExpKnowledge resolveBoolExpLock;
     Calendar calendar;
 
-    public PumiceUserExplainBoolExpIntentHandler(PumiceDialogManager pumiceDialogManager, Activity context, PumiceBooleanExpKnowledge resolveBoolExpLock, String parentKnowledgeName){
+    public PumiceUserExplainBoolExpIntentHandler(PumiceDialogManager pumiceDialogManager, Activity context, PumiceBooleanExpKnowledge resolveBoolExpLock, String parentKnowledgeName, int failureCount){
         this.pumiceDialogManager = pumiceDialogManager;
         this.context = context;
         this.calendar = Calendar.getInstance();
         this.resolveBoolExpLock = resolveBoolExpLock;
         this.parentKnowledgeName = parentKnowledgeName;
         this.pumiceUserExplainBoolExpIntentHandler = this;
+        this.failureCount = failureCount;
     }
 
     @Override
@@ -51,7 +56,7 @@ public class PumiceUserExplainBoolExpIntentHandler implements PumiceUtteranceInt
     @Override
     public void handleIntentWithUtterance(PumiceDialogManager dialogManager, PumiceIntent pumiceIntent, PumiceDialogManager.PumiceUtterance utterance) {
         if (pumiceIntent.equals(PumiceIntent.BOOL_EXP_INSTRUCTION)){
-            dialogManager.sendAgentMessage("I have received your explanation: " + utterance.getContent(), true, false);
+            //dialogManager.sendAgentMessage("I have received your explanation: " + utterance.getContent(), true, false);
 
             //send out the server query
             PumiceInstructionPacket pumiceInstructionPacket = new PumiceInstructionPacket(dialogManager.getPumiceKnowledgeManager(), PumiceIntent.BOOL_EXP_INSTRUCTION.name(), calendar.getTimeInMillis(), utterance.getContent(), parentKnowledgeName);
@@ -97,16 +102,20 @@ public class PumiceUserExplainBoolExpIntentHandler implements PumiceUtteranceInt
                 .create();
         try {
             PumiceSemanticParsingResultPacket resultPacket = gson.fromJson(result, PumiceSemanticParsingResultPacket.class);
+            resultPacket.cleanFormula();
             if (resultPacket.utteranceType != null) {
                 switch (resultPacket.utteranceType) {
                     case "BOOL_EXP_INSTRUCTION":
                         if (resultPacket.queries != null && resultPacket.queries.size() > 0) {
-                            PumiceParsingConfirmationHandler parsingConfirmationHandler = new PumiceParsingConfirmationHandler(context, pumiceDialogManager);
+                            PumiceParsingConfirmationHandler parsingConfirmationHandler = new PumiceParsingConfirmationHandler(context, pumiceDialogManager, failureCount);
                             parsingConfirmationHandler.handleParsingResult(resultPacket, new Runnable() {
                                         @Override
                                         public void run() {
                                             //handle retry
+                                            pumiceUserExplainBoolExpIntentHandler.recordFailure();
+
                                             pumiceDialogManager.updateUtteranceIntentHandlerInANewState(pumiceUserExplainBoolExpIntentHandler);
+
                                             sendPromptForTheIntentHandler();
                                         }
                                     }, new PumiceParsingConfirmationHandler.ConfirmedParseRunnable() {
@@ -116,6 +125,10 @@ public class PumiceUserExplainBoolExpIntentHandler implements PumiceUtteranceInt
                                             pumiceDialogManager.getExecutorService().submit(new Runnable() {
                                                 @Override
                                                 public void run() {
+                                                    //got the parse confirmed
+                                                    System.out.println("bool exp parse is confirmed");
+                                                    pumiceUserExplainBoolExpIntentHandler.clearFailure();
+
                                                     //parse and process the server response
                                                     PumiceBooleanExpKnowledge pumiceBooleanExpKnowledge = pumiceDialogManager.getPumiceInitInstructionParsingHandler().parseFromBoolExpInstruction(confirmedFormula, resultPacket.userUtterance, parentKnowledgeName);
 
@@ -124,7 +137,7 @@ public class PumiceUserExplainBoolExpIntentHandler implements PumiceUtteranceInt
                                                 }
                                             });
                                         }
-                                    });
+                                    }, true);
                         } else {
                             throw new RuntimeException("empty server result");
                         }
@@ -144,8 +157,17 @@ public class PumiceUserExplainBoolExpIntentHandler implements PumiceUtteranceInt
         }
     }
 
+    public void recordFailure(){
+        failureCount = failureCount + 1;
+    }
+
+    public void clearFailure(){
+        failureCount = 0;
+    }
+
     @Override
     public void sendPromptForTheIntentHandler() {
+        pumiceDialogManager.getSugiliteVoiceRecognitionListener().setContextPhrases(Const.INIT_INSTRUCTION_CONTEXT_WORDS);
         pumiceDialogManager.sendAgentMessage("How do I tell whether " + parentKnowledgeName + "?", true, true);
     }
 

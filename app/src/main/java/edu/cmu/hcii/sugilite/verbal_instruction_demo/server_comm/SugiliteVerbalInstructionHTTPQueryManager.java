@@ -79,12 +79,12 @@ public class SugiliteVerbalInstructionHTTPQueryManager {
         thread.start();
     }
 
-    public void sendQueryRequest(VerbalInstructionServerQuery query, SugiliteVerbalInstructionHTTPQueryInterface caller) throws Exception {
+    private void sendQueryRequest(VerbalInstructionServerQuery query, SugiliteVerbalInstructionHTTPQueryInterface caller) throws Exception {
         String content = gson.toJson(query);
         sendRequest(content, caller);
     }
 
-    public void sendResponseRequest(VerbalInstructionServerResponse response, SugiliteVerbalInstructionHTTPQueryInterface caller) throws Exception {
+    private void sendResponseRequest(VerbalInstructionServerResponse response, SugiliteVerbalInstructionHTTPQueryInterface caller) throws Exception {
         String content = gson.toJson(response);
         sendRequest(content, caller);
     }

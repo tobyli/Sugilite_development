@@ -97,10 +97,8 @@ public class VerbalInstructionOverlayManager {
         int currentApiVersion = android.os.Build.VERSION.SDK_INT;
         if(currentApiVersion >= 23){
             checkDrawOverlayPermission(context);
-            if(Settings.canDrawOverlays(context)) {
-                overlays.add(overlay);
-                windowManager.addView(overlay, iconParams);
-            }
+            overlays.add(overlay);
+            windowManager.addView(overlay, iconParams);
         }
         else {
             overlays.add(overlay);

@@ -8,7 +8,6 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 import android.util.Log;
-import android.view.WindowManager;
 import android.widget.Toast;
 
 import com.google.gson.Gson;
@@ -487,7 +486,7 @@ public class SugiliteCommunicationController {
             try{
                 SugiliteStartingBlock script = jsonProcessor.jsonToScript(json);
                 Log.d("mtemp",script.toString());
-                Log.d("mtemp",script.getNextBlock().getDescription());
+                Log.d("mtemp",script.getNextBlockToRun().getDescription());
                 if(!script.getScriptName().contains(".SugiliteScript"))
                     script.setScriptName(script.getScriptName() + ".SugiliteScript");
                 sugiliteScriptDao.save(script);

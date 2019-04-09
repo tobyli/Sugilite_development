@@ -232,7 +232,7 @@ public class SugiliteCommunicationActivityBroadcastReciever extends BroadcastRec
 //                    try{
 //                        SugiliteStartingBlock script = jsonProcessor.jsonToScript(arg1);
 //                        Log.d("mtemp",script.toString());
-//                        Log.d("mtemp",script.getNextBlock().getDescription());
+//                        Log.d("mtemp",script.getNextBlockToRun().getDescription());
 //                        sugiliteScriptDao.save(script);
 //                    }
 //                    catch (Exception e){

@@ -60,7 +60,7 @@ public class SugiliteConditionBlock extends SugiliteBlock implements Serializabl
         //send an agent message through pumiceDialogManager if one is available
         if (sugiliteData.pumiceDialogManager != null){
             String stringResult = result ? "true" : "false";
-            sugiliteData.pumiceDialogManager.sendAgentMessage("The conditional: " + "\"" + sugiliteBooleanExpressionNew.getReadableDescription() + "\" is " + stringResult, true, false);
+            sugiliteData.pumiceDialogManager.sendAgentMessage("The condition: " + "\"" + sugiliteBooleanExpressionNew.getReadableDescription().replace("the condition ", "").replace(" is true", "") + "\" is " + stringResult, true, false);
         }
 
         if (result) {///added sugiliteData parameter

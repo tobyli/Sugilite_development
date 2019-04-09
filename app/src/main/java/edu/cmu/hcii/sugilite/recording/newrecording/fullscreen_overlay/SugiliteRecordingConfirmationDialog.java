@@ -1,5 +1,6 @@
 package edu.cmu.hcii.sugilite.recording.newrecording.fullscreen_overlay;
 
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Context;
@@ -11,18 +12,23 @@ import android.text.Html;
 import android.util.Pair;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.WindowManager;
 import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.List;
 
+import edu.cmu.hcii.sugilite.Const;
+import edu.cmu.hcii.sugilite.accessibility_service.SugiliteAccessibilityService;
+import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
+import edu.cmu.hcii.sugilite.dao.SugiliteScriptFileDao;
+import edu.cmu.hcii.sugilite.dao.SugiliteScriptSQLDao;
 import edu.cmu.hcii.sugilite.model.Node;
 import edu.cmu.hcii.sugilite.R;
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.model.block.util.SugiliteAvailableFeaturePack;
 import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
+import edu.cmu.hcii.sugilite.model.operation.trinary.SugiliteLoadVariableOperation;
 import edu.cmu.hcii.sugilite.ontology.SerializableOntologyQuery;
 import edu.cmu.hcii.sugilite.ontology.SugiliteEntity;
 import edu.cmu.hcii.sugilite.ontology.UISnapshot;
@@ -33,6 +39,7 @@ import edu.cmu.hcii.sugilite.recording.newrecording.dialog_management.SugiliteDi
 import edu.cmu.hcii.sugilite.recording.newrecording.dialog_management.SugiliteDialogUtteranceFilter;
 
 import static edu.cmu.hcii.sugilite.Const.OVERLAY_TYPE;
+import static edu.cmu.hcii.sugilite.Const.SQL_SCRIPT_DAO;
 
 /**
  * @author toby
@@ -43,7 +50,7 @@ public class SugiliteRecordingConfirmationDialog extends SugiliteDialogManager {
     private SugiliteOperationBlock block;
     private SugiliteAvailableFeaturePack featurePack;
     private List<Pair<SerializableOntologyQuery, Double>> queryScoreList;
-    private Runnable clickRunnable;
+    private Runnable clickUnderlyingButtonRunnable;
     private SugiliteBlockBuildingHelper blockBuildingHelper;
     private LayoutInflater layoutInflater;
     private UISnapshot uiSnapshot;
@@ -55,6 +62,7 @@ public class SugiliteRecordingConfirmationDialog extends SugiliteDialogManager {
     private View dialogView;
     private TextView confirmationPromptTextView;
     private ImageButton speakButton;
+    private SugiliteScriptDao sugiliteScriptDao;
 
 
     //construct the 2 states
@@ -62,13 +70,13 @@ public class SugiliteRecordingConfirmationDialog extends SugiliteDialogManager {
     private SugiliteDialogSimpleState detailPromptState = new SugiliteDialogSimpleState("DETAIL_PROMPT", this);
 
 
-    public SugiliteRecordingConfirmationDialog(Context context, SugiliteOperationBlock block, SugiliteAvailableFeaturePack featurePack, List<Pair<SerializableOntologyQuery, Double>> queryScoreList, Runnable clickRunnable, SugiliteBlockBuildingHelper blockBuildingHelper, LayoutInflater layoutInflater, UISnapshot uiSnapshot, SugiliteEntity<Node> actualClickedNode, SugiliteData sugiliteData, SharedPreferences sharedPreferences, TextToSpeech tts) {
+    public SugiliteRecordingConfirmationDialog(Context context, SugiliteOperationBlock block, SugiliteAvailableFeaturePack featurePack, List<Pair<SerializableOntologyQuery, Double>> queryScoreList, Runnable clickUnderlyingButtonRunnable, SugiliteBlockBuildingHelper blockBuildingHelper, LayoutInflater layoutInflater, UISnapshot uiSnapshot, SugiliteEntity<Node> actualClickedNode, SugiliteData sugiliteData, SharedPreferences sharedPreferences, TextToSpeech tts) {
         super(context, tts);
         this.context = context;
         this.block = block;
         this.featurePack = featurePack;
         this.queryScoreList = queryScoreList;
-        this.clickRunnable = clickRunnable;
+        this.clickUnderlyingButtonRunnable = clickUnderlyingButtonRunnable;
         this.blockBuildingHelper = blockBuildingHelper;
         this.layoutInflater = layoutInflater;
         this.uiSnapshot = uiSnapshot;
@@ -76,6 +84,13 @@ public class SugiliteRecordingConfirmationDialog extends SugiliteDialogManager {
         this.sugiliteData = sugiliteData;
         this.sharedPreferences = sharedPreferences;
         this.ontologyDescriptionGenerator = new OntologyDescriptionGenerator(context);
+
+        if(Const.DAO_TO_USE == SQL_SCRIPT_DAO) {
+            sugiliteScriptDao = new SugiliteScriptSQLDao(context);
+        }
+        else {
+            sugiliteScriptDao = new SugiliteScriptFileDao(context, sugiliteData);
+        }
 
 
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
@@ -160,12 +175,67 @@ public class SugiliteRecordingConfirmationDialog extends SugiliteDialogManager {
                 e.printStackTrace();
             }
         }
-        clickRunnable.run();
+        clickUnderlyingButtonRunnable.run();
+
+        //
+        if (block != null && block.getOperation() instanceof SugiliteLoadVariableOperation) {
+            if (sugiliteData.currentPumiceValueDemonstrationType != null && sugiliteData.valueDemonstrationVariableName != null) {
+                //Toast.makeText(context, "Ending value demonstration", Toast.LENGTH_SHORT).show();
+
+                SharedPreferences.Editor prefEditor = sharedPreferences.edit();
+                prefEditor.putBoolean("recording_in_process", false);
+                prefEditor.apply();
+
+                AlertDialog progressDialog = new AlertDialog.Builder(context).setMessage(Const.SAVING_MESSAGE).create();
+                if(progressDialog.getWindow() != null) {
+                    progressDialog.getWindow().setType(OVERLAY_TYPE);
+                }
+                progressDialog.setCanceledOnTouchOutside(false);
+                progressDialog.show();
+                new Thread(new Runnable() {
+                    @Override
+                    public void run()
+                    {
+                        //commit the script
+                        try {
+                            sugiliteScriptDao.commitSave();
+                        }
+                        catch (Exception e){
+                            e.printStackTrace();
+                        }
+                        Runnable dismissDialog = new Runnable() {
+                            @Override
+                            public void run() {
+                                progressDialog.dismiss();
+                            }
+                        };
+                        if(context instanceof SugiliteAccessibilityService) {
+                            ((SugiliteAccessibilityService) context).runOnUiThread(dismissDialog);
+                        }
+                        else if(context instanceof Activity){
+                            ((Activity)context).runOnUiThread(dismissDialog);
+                        }
+                    }
+                }).start();
+
+
+                if (sugiliteData.getScriptHead() != null && sugiliteData.endRecordingCallback != null){
+                    //call the endRecordingCallback
+                    Runnable r = sugiliteData.endRecordingCallback;
+                    sugiliteData.endRecordingCallback = null;
+                    r.run();
+                }
+
+
+                sugiliteData.setCurrentSystemState(SugiliteData.DEFAULT_STATE);
+                Toast.makeText(context, "end recording", Toast.LENGTH_SHORT).show();
+            }
+        }
     }
 
     private void skipButtonOnClick() {
         dialog.cancel();
-        clickRunnable.run();
+        clickUnderlyingButtonRunnable.run();
     }
 
     private void editButtonOnClick() {
@@ -174,7 +244,7 @@ public class SugiliteRecordingConfirmationDialog extends SugiliteDialogManager {
         handler.postDelayed(new Runnable() {
             @Override
             public void run() {
-                RecordingAmbiguousPopupDialog recordingAmbiguousPopupDialog = new RecordingAmbiguousPopupDialog(context, queryScoreList, featurePack, blockBuildingHelper, layoutInflater, clickRunnable, uiSnapshot, actualClickedNode, sugiliteData, sharedPreferences, tts, 0);
+                RecordingAmbiguousPopupDialog recordingAmbiguousPopupDialog = new RecordingAmbiguousPopupDialog(context, queryScoreList, featurePack, blockBuildingHelper, layoutInflater, clickUnderlyingButtonRunnable, uiSnapshot, actualClickedNode, sugiliteData, sharedPreferences, tts, 0);
                 recordingAmbiguousPopupDialog.show();
             }
         }, 500);
@@ -182,26 +252,26 @@ public class SugiliteRecordingConfirmationDialog extends SugiliteDialogManager {
     }
 
     @Override
-    public void speakingStarted() {
-        super.speakingStarted();
+    public void speakingStartedCallback() {
+        super.speakingStartedCallback();
         refreshSpeakButtonStyle(speakButton);
     }
 
     @Override
-    public void speakingEnded() {
-        super.speakingEnded();
+    public void speakingEndedCallback() {
+        super.speakingEndedCallback();
         refreshSpeakButtonStyle(speakButton);
     }
 
     @Override
-    public void listeningStarted() {
-        super.listeningStarted();
+    public void listeningStartedCallback() {
+        super.listeningStartedCallback();
         refreshSpeakButtonStyle(speakButton);
     }
 
     @Override
-    public void listeningEnded() {
-        super.listeningEnded();
+    public void listeningEndedCallback() {
+        super.listeningEndedCallback();
         refreshSpeakButtonStyle(speakButton);
     }
 

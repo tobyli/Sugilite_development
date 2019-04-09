@@ -73,16 +73,16 @@ public class Automator {
     private SugiliteScreenshotManager screenshotManager;
     private SugiliteTextParentAnnotator sugiliteTextParentAnnotator;
 
-    public Automator(SugiliteData sugiliteData, SugiliteAccessibilityService context, StatusIconManager statusIconManager, SharedPreferences sharedPreferences, SugiliteTextParentAnnotator sugiliteTextParentAnnotator, TextToSpeech tts){
+    public Automator(SugiliteData sugiliteData, SugiliteAccessibilityService context, StatusIconManager statusIconManager, SharedPreferences sharedPreferences, SugiliteTextParentAnnotator sugiliteTextParentAnnotator, TextToSpeech tts) {
         this.sugiliteData = sugiliteData;
         this.serviceContext = context;
         this.sugiliteTextParentAnnotator = sugiliteTextParentAnnotator;
         this.boundingBoxManager = new BoundingBoxManager(context);
-        if(Const.DAO_TO_USE == SQL_SCRIPT_DAO)
+        if (Const.DAO_TO_USE == SQL_SCRIPT_DAO)
             this.sugiliteScriptDao = new SugiliteScriptSQLDao(context);
         else
             this.sugiliteScriptDao = new SugiliteScriptFileDao(context, sugiliteData);
-        this.layoutInflater = (LayoutInflater) context.getSystemService( Context.LAYOUT_INFLATER_SERVICE );
+        this.layoutInflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         this.sharedPreferences = sharedPreferences;
 
         this.tts = tts;
@@ -93,13 +93,13 @@ public class Automator {
     //the return value is not used?
 
     @Deprecated
-    public boolean handleLiveEvent (AccessibilityNodeInfo rootNode, Context context){
+    public boolean handleLiveEvent(AccessibilityNodeInfo rootNode, Context context) {
         //TODO: fix the highlighting for matched element
-        if(sugiliteData.getInstructionQueueSize() == 0 || rootNode == null)
+        if (sugiliteData.getInstructionQueueSize() == 0 || rootNode == null)
             return false;
         this.context = context;
         final SugiliteBlock blockToMatch = sugiliteData.peekInstructionQueue();
-        if(blockToMatch == null)
+        if (blockToMatch == null)
             return false;
 
         if (!(blockToMatch instanceof SugiliteOperationBlock)) {
@@ -116,7 +116,7 @@ public class Automator {
             /**
              * handle error handling block - "addNextBlockToQueue" will determine which block to add
              */
-            else if (blockToMatch instanceof SugiliteErrorHandlingForkBlock){
+            else if (blockToMatch instanceof SugiliteErrorHandlingForkBlock) {
                 sugiliteData.removeInstructionQueueItem();
                 addNextBlockToQueue(blockToMatch);
                 return true;
@@ -124,28 +124,24 @@ public class Automator {
             /**
              * for subscript operation blocks, the subscript should be executed
              */
-            else if (blockToMatch instanceof SugiliteSpecialOperationBlock){
+            else if (blockToMatch instanceof SugiliteSpecialOperationBlock) {
                 sugiliteData.removeInstructionQueueItem();
                 SugiliteSpecialOperationBlock specialOperationBlock = (SugiliteSpecialOperationBlock) blockToMatch;
-                try{
+                try {
                     specialOperationBlock.run(context, sugiliteData, sugiliteScriptDao, sharedPreferences);
                     return true;
-                }
-                catch (Exception e) {
+                } catch (Exception e) {
                     e.printStackTrace();
                     return false;
                 }
-            }
-            else {
+            } else {
                 throw new RuntimeException("Unsupported Block Type!");
             }
-        }
-
-        else {
+        } else {
             //the blockToMatch is an operation block
             SugiliteOperationBlock operationBlock = (SugiliteOperationBlock) blockToMatch;
 
-            if(operationBlock.isSetAsABreakPoint) {
+            if (operationBlock.isSetAsABreakPoint) {
                 sugiliteData.storedInstructionQueueForPause.clear();
                 sugiliteData.storedInstructionQueueForPause.addAll(sugiliteData.getCopyOfInstructionQueue());
                 sugiliteData.clearInstructionQueue();
@@ -162,19 +158,18 @@ public class Automator {
                         sugiliteData.errorHandler.reportSuccess(Calendar.getInstance().getTimeInMillis());
                         sugiliteData.removeInstructionQueueItem();
                         addNextBlockToQueue(operationBlock);
-                        if(sugiliteData.getCurrentSystemState() == SugiliteData.REGULAR_DEBUG_STATE) {
+                        if (sugiliteData.getCurrentSystemState() == SugiliteData.REGULAR_DEBUG_STATE) {
                             try {
                                 //----not taking screenshot----
                                 //screenshotManager.take(false, SugiliteScreenshotManager.DIRECTORY_PATH, SugiliteScreenshotManager.getDebugScreenshotFileNameWithDate());
-                            }
-                            catch (Exception e){
+                            } catch (Exception e) {
                                 e.printStackTrace();
                             }
                         }
 
                         try {
                             //wait for DELAY/2 after adding the next block to queue
-                            if(sugiliteData.getCurrentSystemState() == SugiliteData.REGULAR_DEBUG_STATE)
+                            if (sugiliteData.getCurrentSystemState() == SugiliteData.REGULAR_DEBUG_STATE)
                                 Thread.sleep(DEBUG_DELAY / 2);
                             else
                                 Thread.sleep(DELAY / 2);
@@ -184,15 +179,13 @@ public class Automator {
                     }
                     return retVal;
 
-                }
-
-                else if (operationBlock.getOperation() instanceof SugiliteGetProcedureOperation){
+                } else if (operationBlock.getOperation() instanceof SugiliteGetProcedureOperation) {
                     //handle "get" query for procedures
                     String subscriptName = ((SugiliteGetProcedureOperation) operationBlock.getOperation()).evaluate(sugiliteData);
                     SugiliteSubscriptSpecialOperationBlock subscriptBlock = new SugiliteSubscriptSpecialOperationBlock(subscriptName);
                     subscriptBlock.setParentBlock(operationBlock.getParentBlock());
                     subscriptBlock.setPreviousBlock(operationBlock.getPreviousBlock());
-                    subscriptBlock.setNextBlock(operationBlock.getNextBlock());
+                    subscriptBlock.setNextBlock(operationBlock.getNextBlockToRun());
 
                     //add the new block to the instruction queue
                     sugiliteData.removeInstructionQueueItem();
@@ -200,30 +193,27 @@ public class Automator {
                     return true;
 
 
-                }
-
-                else {
+                } else {
                     return false;
                 }
-            }
-            else {
+            } else {
                 //the operation has a query, try to use the query to match a node
 
                 variableHelper = new VariableHelper(sugiliteData.stringVariableMap);
                 //if we can match this event, perform the action and remove the head object
 
-                if(true/*has last time failed*/ && lastTimeFailed != null && lastTimeFailed.size() > 0){
+                if (true/*has last time failed*/ && lastTimeFailed != null && lastTimeFailed.size() > 0) {
                     List<AccessibilityNodeInfo> allNodes = AutomatorUtil.preOrderTraverse(rootNode);
                     List<AccessibilityNodeInfo> filteredNode = new ArrayList<>();
                     boolean succeeded = false;
-                    for(AccessibilityNodeInfo node : allNodes){
-                        for(Node lasttimeFailedNode : lastTimeFailed){
+                    for (AccessibilityNodeInfo node : allNodes) {
+                        for (Node lasttimeFailedNode : lastTimeFailed) {
                             Rect rect = new Rect();
                             node.getBoundsInScreen(rect);
-                            if(((lasttimeFailedNode.getPackageName() == null && node.getPackageName() == null) || lasttimeFailedNode.getPackageName().equals(node.getPackageName().toString())) &&
+                            if (((lasttimeFailedNode.getPackageName() == null && node.getPackageName() == null) || lasttimeFailedNode.getPackageName().equals(node.getPackageName().toString())) &&
                                     ((lasttimeFailedNode.getClassName() == null && node.getClassName() == null) || lasttimeFailedNode.getClassName().equals(node.getClassName().toString())) &&
                                     ((lasttimeFailedNode.getBoundsInScreen() == null && rect.flattenToString() == null) || lasttimeFailedNode.getBoundsInScreen().equals(rect.flattenToString())) &&
-                                    ((lasttimeFailedNode.getViewId() == null && node.getViewIdResourceName() == null) || (lasttimeFailedNode.getViewId() != null && lasttimeFailedNode.getViewId().equals(node.getViewIdResourceName())))){
+                                    ((lasttimeFailedNode.getViewId() == null && node.getViewIdResourceName() == null) || (lasttimeFailedNode.getViewId() != null && lasttimeFailedNode.getViewId().equals(node.getViewIdResourceName())))) {
                                 //TODO: execute on node
                                 boolean retVal = performAction(node, operationBlock);
                                 if (retVal) {
@@ -239,7 +229,7 @@ public class Automator {
 
                                     try {
                                         //delay delay/2 length after successfuly performing the action
-                                        if(sugiliteData.getCurrentSystemState() == SugiliteData.DEFAULT_STATE)
+                                        if (sugiliteData.getCurrentSystemState() == SugiliteData.DEFAULT_STATE)
                                             Thread.sleep(DEBUG_DELAY / 2);
                                         else
                                             Thread.sleep(DELAY / 2);
@@ -252,7 +242,7 @@ public class Automator {
                         }
                     }
                     lastTimeFailed.clear();
-                    if(succeeded){
+                    if (succeeded) {
                         return true;
                     }
                 }
@@ -265,8 +255,8 @@ public class Automator {
                 Set<SugiliteEntity> querySet = q.executeOn(uiSnapshot);
 
                 List<AccessibilityNodeInfo> filteredNodes = new ArrayList<AccessibilityNodeInfo>();
-                for(SugiliteEntity e : querySet) {
-                    if(e.getEntityValue() instanceof Node){
+                for (SugiliteEntity e : querySet) {
+                    if (e.getEntityValue() instanceof Node) {
                         filteredNodes.add(uiSnapshot.getNodeAccessibilityNodeInfoMap().get(e.getEntityValue()));
                     }
                 }
@@ -281,10 +271,11 @@ public class Automator {
                     //TODO: scrolling to find more nodes -- not only the ones displayed on the current screen
                     if (operationBlock.getOperation().getOperationType() == SugiliteOperation.CLICK && (!node.isClickable()))
                         //continue;
-                    try {
-                    } catch (Exception e) {
-                        // do nothing
-                    }
+                        try {
+                            //empty
+                        } catch (Exception e) {
+                            // do nothing
+                        }
                     boolean retVal = performAction(node, operationBlock);
                     if (retVal) {
                         //the action is performed successfully
@@ -305,7 +296,7 @@ public class Automator {
 
                         try {
                             //delay delay/2 length after successfuly performing the action
-                            if(sugiliteData.getCurrentSystemState() == SugiliteData.DEFAULT_STATE)
+                            if (sugiliteData.getCurrentSystemState() == SugiliteData.DEFAULT_STATE)
                                 Thread.sleep(DEBUG_DELAY / 2);
                             else
                                 Thread.sleep(DELAY / 2);
@@ -314,13 +305,12 @@ public class Automator {
                         }
                     }
                 }
-                if(! succeeded){
+                if (!succeeded) {
                     lastTimeFailed.clear();
-                    for(AccessibilityNodeInfo node : filteredNodes){
+                    for (AccessibilityNodeInfo node : filteredNodes) {
                         lastTimeFailed.add(new Node(node));
                     }
-                }
-                else{
+                } else {
                     lastTimeFailed.clear();
                 }
                 return succeeded;
@@ -330,18 +320,19 @@ public class Automator {
 
     /**
      * for running the script -- called when a new UI snapshot is available
+     *
      * @param uiSnapshot
      * @param context
      * @param allNodes
      * @return
      */
-    public boolean handleLiveEvent (UISnapshot uiSnapshot, Context context, List<AccessibilityNodeInfo> allNodes){
+    public boolean handleLiveEvent(UISnapshot uiSnapshot, Context context, List<AccessibilityNodeInfo> allNodes) {
         //TODO: fix the highlighting for matched element
-        if(sugiliteData.getInstructionQueueSize() == 0 || uiSnapshot == null)
+        if (sugiliteData.getInstructionQueueSize() == 0 || uiSnapshot == null)
             return false;
         this.context = context;
         final SugiliteBlock blockToMatch = sugiliteData.peekInstructionQueue();
-        if(blockToMatch == null)
+        if (blockToMatch == null)
             return false;
 
         if (!(blockToMatch instanceof SugiliteOperationBlock)) {
@@ -357,7 +348,7 @@ public class Automator {
             /**
              * handle error handling block - "addNextBlockToQueue" will determine which block to add
              */
-            else if (blockToMatch instanceof SugiliteErrorHandlingForkBlock){
+            else if (blockToMatch instanceof SugiliteErrorHandlingForkBlock) {
                 sugiliteData.removeInstructionQueueItem();
                 addNextBlockToQueue(blockToMatch);
                 return true;
@@ -373,29 +364,25 @@ public class Automator {
             /**
              * for special operation blocks, the run() method should be executed
              */
-            else if (blockToMatch instanceof SugiliteSpecialOperationBlock){
+            else if (blockToMatch instanceof SugiliteSpecialOperationBlock) {
                 sugiliteData.removeInstructionQueueItem();
                 SugiliteSpecialOperationBlock specialOperationBlock = (SugiliteSpecialOperationBlock) blockToMatch;
-                try{
+                try {
                     specialOperationBlock.run(context, sugiliteData, sugiliteScriptDao, sharedPreferences);
                     return true;
-                }
-                catch (Exception e) {
+                } catch (Exception e) {
                     e.printStackTrace();
                     return false;
                 }
-            }
-            else {
+            } else {
                 throw new RuntimeException("Unsupported Block Type!");
             }
-        }
-
-        else {
+        } else {
             //the blockToMatch is an operation block
             SugiliteOperationBlock operationBlock = (SugiliteOperationBlock) blockToMatch;
 
             //for the debugging mode - handle the breakpoint
-            if(operationBlock.isSetAsABreakPoint) {
+            if (operationBlock.isSetAsABreakPoint) {
                 sugiliteData.storedInstructionQueueForPause.clear();
                 sugiliteData.storedInstructionQueueForPause.addAll(sugiliteData.getCopyOfInstructionQueue());
                 sugiliteData.clearInstructionQueue();
@@ -414,19 +401,18 @@ public class Automator {
                         sugiliteData.errorHandler.reportSuccess(Calendar.getInstance().getTimeInMillis());
                         sugiliteData.removeInstructionQueueItem();
                         addNextBlockToQueue(operationBlock);
-                        if(sugiliteData.getCurrentSystemState() == SugiliteData.REGULAR_DEBUG_STATE) {
+                        if (sugiliteData.getCurrentSystemState() == SugiliteData.REGULAR_DEBUG_STATE) {
                             try {
                                 //----not taking screenshot----
                                 //screenshotManager.take(false, SugiliteScreenshotManager.DIRECTORY_PATH, SugiliteScreenshotManager.getDebugScreenshotFileNameWithDate());
-                            }
-                            catch (Exception e){
+                            } catch (Exception e) {
                                 e.printStackTrace();
                             }
                         }
 
                         try {
                             //wait for DELAY/2 after adding the next block to queue
-                            if(sugiliteData.getCurrentSystemState() == SugiliteData.REGULAR_DEBUG_STATE)
+                            if (sugiliteData.getCurrentSystemState() == SugiliteData.REGULAR_DEBUG_STATE)
                                 Thread.sleep(DEBUG_DELAY / 2);
                             else
                                 Thread.sleep(DELAY / 2);
@@ -436,15 +422,13 @@ public class Automator {
                     }
                     return retVal;
 
-                }
-
-                else if (operationBlock.getOperation() instanceof SugiliteGetProcedureOperation){
+                } else if (operationBlock.getOperation() instanceof SugiliteGetProcedureOperation) {
                     //handle "get" query for procedures
                     String subscriptName = ((SugiliteGetProcedureOperation) operationBlock.getOperation()).evaluate(sugiliteData);
                     SugiliteSubscriptSpecialOperationBlock subscriptBlock = new SugiliteSubscriptSpecialOperationBlock(subscriptName);
                     subscriptBlock.setParentBlock(operationBlock.getParentBlock());
                     subscriptBlock.setPreviousBlock(operationBlock.getPreviousBlock());
-                    subscriptBlock.setNextBlock(operationBlock.getNextBlock());
+                    subscriptBlock.setNextBlock(operationBlock.getNextBlockToRun());
 
                     //add the new block to the instruction queue
                     sugiliteData.removeInstructionQueueItem();
@@ -452,29 +436,25 @@ public class Automator {
                     return true;
 
 
-                }
-
-                else {
+                } else {
                     //error, because the block contains no query
                     return false;
                 }
-            }
-
-            else {
+            } else {
                 //the operation has a query, try to use the query to match a node
                 variableHelper = new VariableHelper(sugiliteData.stringVariableMap);
 
                 //try to perform operations that have failed last time
-                if(/*has last time failed*/ lastTimeFailed != null && lastTimeFailed.size() > 0){
+                if (/*has last time failed*/ lastTimeFailed != null && lastTimeFailed.size() > 0) {
                     boolean succeeded = false;
-                    for(AccessibilityNodeInfo node : allNodes){
-                        for(Node lasttimeFailedNode : lastTimeFailed){
+                    for (AccessibilityNodeInfo node : allNodes) {
+                        for (Node lasttimeFailedNode : lastTimeFailed) {
                             Rect rect = new Rect();
                             node.getBoundsInScreen(rect);
-                            if(((lasttimeFailedNode.getPackageName() == null && node.getPackageName() == null) || lasttimeFailedNode.getPackageName().equals(node.getPackageName().toString())) &&
+                            if (((lasttimeFailedNode.getPackageName() == null && node.getPackageName() == null) || lasttimeFailedNode.getPackageName().equals(node.getPackageName().toString())) &&
                                     ((lasttimeFailedNode.getClassName() == null && node.getClassName() == null) || lasttimeFailedNode.getClassName().equals(node.getClassName().toString())) &&
                                     ((lasttimeFailedNode.getBoundsInScreen() == null && rect.flattenToString() == null) || lasttimeFailedNode.getBoundsInScreen().equals(rect.flattenToString())) &&
-                                    ((lasttimeFailedNode.getViewId() == null && node.getViewIdResourceName() == null) || (lasttimeFailedNode.getViewId() != null && lasttimeFailedNode.getViewId().equals(node.getViewIdResourceName())))){
+                                    ((lasttimeFailedNode.getViewId() == null && node.getViewIdResourceName() == null) || (lasttimeFailedNode.getViewId() != null && lasttimeFailedNode.getViewId().equals(node.getViewIdResourceName())))) {
 
                                 //!!!execute on node
                                 boolean retVal = performAction(node, operationBlock);
@@ -491,7 +471,7 @@ public class Automator {
 
                                     try {
                                         //delay delay/2 length after successfuly performing the action
-                                        if(sugiliteData.getCurrentSystemState() == SugiliteData.DEFAULT_STATE)
+                                        if (sugiliteData.getCurrentSystemState() == SugiliteData.DEFAULT_STATE)
                                             Thread.sleep(DEBUG_DELAY / 2);
                                         else
                                             Thread.sleep(DELAY / 2);
@@ -504,12 +484,10 @@ public class Automator {
                         }
                     }
                     lastTimeFailed.clear();
-                    if(succeeded){
+                    if (succeeded) {
                         return succeeded;
                     }
                 }
-
-
 
 
                 //de-serialize the OntologyQuery
@@ -522,8 +500,8 @@ public class Automator {
                 Set<SugiliteEntity> querySet = q.executeOn(uiSnapshot);
 
                 List<AccessibilityNodeInfo> filteredNodes = new ArrayList<AccessibilityNodeInfo>();
-                for(SugiliteEntity e : querySet) {
-                    if(e.getEntityValue() instanceof Node){
+                for (SugiliteEntity e : querySet) {
+                    if (e.getEntityValue() instanceof Node) {
                         filteredNodes.add(uiSnapshot.getNodeAccessibilityNodeInfoMap().get(e.getEntityValue()));
                     }
                 }
@@ -551,7 +529,7 @@ public class Automator {
 
                         try {
                             //delay delay/2 length after successfuly performing the action
-                            if(sugiliteData.getCurrentSystemState() == SugiliteData.DEFAULT_STATE)
+                            if (sugiliteData.getCurrentSystemState() == SugiliteData.DEFAULT_STATE)
                                 Thread.sleep(DEBUG_DELAY / 2);
                             else
                                 Thread.sleep(DELAY / 2);
@@ -561,14 +539,12 @@ public class Automator {
                     }
                 }
 
-                if(! succeeded){
+                if (!succeeded) {
                     lastTimeFailed.clear();
-                    for(AccessibilityNodeInfo node : filteredNodes){
+                    for (AccessibilityNodeInfo node : filteredNodes) {
                         lastTimeFailed.add(new Node(node));
                     }
-                }
-
-                else{
+                } else {
                     lastTimeFailed.clear();
                 }
                 return succeeded;
@@ -580,30 +556,30 @@ public class Automator {
 
         AccessibilityNodeInfo nodeToAction = node;
 
-        if(block.getOperation().getOperationType() == SugiliteOperation.CLICK){
+        if (block.getOperation().getOperationType() == SugiliteOperation.CLICK) {
             return nodeToAction.performAction(AccessibilityNodeInfo.ACTION_CLICK);
         }
 
-        if(block.getOperation().getOperationType() == SugiliteOperation.SET_TEXT){
+        if (block.getOperation().getOperationType() == SugiliteOperation.SET_TEXT) {
 
             //variable helper helps parse variables in the argument
             variableHelper = new VariableHelper(sugiliteData.stringVariableMap);
-            String text = variableHelper.parse(((SugiliteSetTextOperation)block.getOperation()).getText());
+            String text = variableHelper.parse(((SugiliteSetTextOperation) block.getOperation()).getText());
             Bundle arguments = new Bundle();
             arguments.putCharSequence(AccessibilityNodeInfo
                     .ACTION_ARGUMENT_SET_TEXT_CHARSEQUENCE, text);
             return nodeToAction.performAction(AccessibilityNodeInfo.ACTION_SET_TEXT, arguments);
         }
 
-        if(block.getOperation().getOperationType() == SugiliteOperation.LONG_CLICK){
+        if (block.getOperation().getOperationType() == SugiliteOperation.LONG_CLICK) {
             return nodeToAction.performAction(AccessibilityNodeInfo.ACTION_LONG_CLICK);
         }
 
-        if(block.getOperation().getOperationType() == SugiliteOperation.SELECT){
+        if (block.getOperation().getOperationType() == SugiliteOperation.SELECT) {
             return nodeToAction.performAction(AccessibilityNodeInfo.ACTION_SELECT);
         }
 
-        if(block.getOperation().getOperationType() == SugiliteOperation.SPECIAL_GO_HOME){
+        if (block.getOperation().getOperationType() == SugiliteOperation.SPECIAL_GO_HOME) {
             //perform the GO_HOME operation
             Intent startMain = new Intent(Intent.ACTION_MAIN);
             startMain.addCategory(Intent.CATEGORY_HOME);
@@ -612,13 +588,13 @@ public class Automator {
             return true;
         }
 
-        if(block.getOperation().getOperationType() == SugiliteOperation.READ_OUT){
-            if(tts != null && ttsReady) {
-                if (((SugiliteReadoutOperation)(block.getOperation())).getPropertyToReadout().contentEquals("hasText")) {
+        if (block.getOperation().getOperationType() == SugiliteOperation.READ_OUT) {
+            if (tts != null && ttsReady) {
+                if (((SugiliteReadoutOperation) (block.getOperation())).getPropertyToReadout().contentEquals("hasText")) {
                     if (node != null && node.getText() != null) {
                         tts.speak(node.getText().toString(), TextToSpeech.QUEUE_ADD, null);
                     }
-                } else if (((SugiliteReadoutOperation)(block.getOperation())).getPropertyToReadout().contentEquals("HAS_CHILD_TEXT")) {
+                } else if (((SugiliteReadoutOperation) (block.getOperation())).getPropertyToReadout().contentEquals("HAS_CHILD_TEXT")) {
                     List<AccessibilityNodeInfo> children = AutomatorUtil.preOrderTraverse(node);
                     if (node != null && children != null && children.size() > 0) {
                         String childText = "";
@@ -630,45 +606,41 @@ public class Automator {
                             tts.speak(childText, TextToSpeech.QUEUE_ADD, null);
                         }
                     }
-                } else if (((SugiliteReadoutOperation)(block.getOperation())).getPropertyToReadout().contentEquals("HAS_CONTENT_DESCRIPTION")) {
+                } else if (((SugiliteReadoutOperation) (block.getOperation())).getPropertyToReadout().contentEquals("HAS_CONTENT_DESCRIPTION")) {
                     if (node != null && node.getContentDescription() != null) {
                         tts.speak(node.getContentDescription().toString(), TextToSpeech.QUEUE_ADD, null);
                     }
                 }
-            }
-
-            else {
+            } else {
                 System.out.println("TTS Failed!");
             }
             return true;
         }
 
-        if(block.getOperation().getOperationType() == SugiliteOperation.READOUT_CONST){
-            if(tts != null && ttsReady && block.getOperation() instanceof SugiliteReadoutConstOperation) {
+        if (block.getOperation().getOperationType() == SugiliteOperation.READOUT_CONST) {
+            if (tts != null && ttsReady && block.getOperation() instanceof SugiliteReadoutConstOperation) {
                 variableHelper = new VariableHelper(sugiliteData.stringVariableMap);
                 String text = variableHelper.parse(((SugiliteReadoutConstOperation) block.getOperation()).getTextToReadout());
                 tts.speak(text, TextToSpeech.QUEUE_ADD, null);
-            }
-
-            else {
+            } else {
                 System.out.println("TTS Failed!");
             }
             return true;
         }
 
         //TODO: LOAD_AS_VARIABLE
-        if(block.getOperation().getOperationType() == SugiliteOperation.LOAD_AS_VARIABLE) {
+        if (block.getOperation().getOperationType() == SugiliteOperation.LOAD_AS_VARIABLE) {
             if (block.getOperation() instanceof SugiliteLoadVariableOperation) {
                 String variableName = ((SugiliteLoadVariableOperation) block.getOperation()).getVariableName();
                 //create a new variable
                 StringVariable stringVariable = new StringVariable(variableName);
                 stringVariable.type = Variable.LOAD_RUNTIME;
 
-                if (((SugiliteLoadVariableOperation)(block.getOperation())).getPropertyToSave().contentEquals("hasText")) {
+                if (((SugiliteLoadVariableOperation) (block.getOperation())).getPropertyToSave().contentEquals("hasText")) {
                     if (node.getText() != null) {
                         stringVariable.setValue(node.getText().toString());
                     }
-                } else if (((SugiliteLoadVariableOperation)(block.getOperation())).getPropertyToSave().contentEquals("HAS_CHILD_TEXT")) {
+                } else if (((SugiliteLoadVariableOperation) (block.getOperation())).getPropertyToSave().contentEquals("HAS_CHILD_TEXT")) {
                     List<AccessibilityNodeInfo> children = AutomatorUtil.preOrderTraverse(node);
                     if (node != null && children != null && children.size() > 0) {
                         String childText = "";
@@ -680,17 +652,16 @@ public class Automator {
                             stringVariable.setValue(childText);
                         }
                     }
-                } else if (((SugiliteLoadVariableOperation)(block.getOperation())).getPropertyToSave().contentEquals("HAS_CONTENT_DESCRIPTION")) {
+                } else if (((SugiliteLoadVariableOperation) (block.getOperation())).getPropertyToSave().contentEquals("HAS_CONTENT_DESCRIPTION")) {
                     if (node.getContentDescription() != null) {
                         stringVariable.setValue(node.getContentDescription().toString());
                     }
                 }
-                if(stringVariable.getValue() != null && stringVariable.getValue().length() > 0){
+                if (stringVariable.getValue() != null && stringVariable.getValue().length() > 0) {
                     //save the string variable to run time symbol table
                     sugiliteData.stringVariableMap.put(stringVariable.getName(), stringVariable);
                     return true;
-                }
-                else
+                } else
                     return false;
             }
         }
@@ -698,15 +669,14 @@ public class Automator {
     }
 
 
-    private void addNextBlockToQueue(final SugiliteBlock block){
-        if(block instanceof SugiliteStartingBlock) {
-            sugiliteData.addInstruction(block.getNextBlock());
-        }
-        else if (block instanceof SugiliteOperationBlock) {
-            sugiliteData.addInstruction(block.getNextBlock());
+    private void addNextBlockToQueue(final SugiliteBlock block) {
+        if (block instanceof SugiliteStartingBlock) {
+            sugiliteData.addInstruction(block.getNextBlockToRun());
+        } else if (block instanceof SugiliteOperationBlock) {
+            sugiliteData.addInstruction(block.getNextBlockToRun());
         }
         //if the current block is a fork, then SUGILITE needs to determine which "next block" to add to the queue
-        else if (block instanceof SugiliteErrorHandlingForkBlock){
+        else if (block instanceof SugiliteErrorHandlingForkBlock) {
             //TODO: add automatic feature if can only find solution for one
             final AlertDialog.Builder builder = new AlertDialog.Builder(context)
                     .setTitle("Choose which branch to execute")
@@ -728,25 +698,24 @@ public class Automator {
                 @Override
                 public void run() {
                     AlertDialog dialog = builder.create();
-                    dialog.getWindow().setType(OVERLAY_TYPE);
+                    if (dialog.getWindow() != null) {
+                        dialog.getWindow().setType(OVERLAY_TYPE);
+                    }
                     dialog.show();
                 }
             });
-        }
-        else if (block instanceof SugiliteSpecialOperationBlock) {
-            sugiliteData.addInstruction(block.getNextBlock());
-        }
-        else if (block instanceof SugiliteConditionBlock) {
+        } else if (block instanceof SugiliteSpecialOperationBlock) {
+            sugiliteData.addInstruction(block.getNextBlockToRun());
+        } else if (block instanceof SugiliteConditionBlock) {
             //process the condition block
             SugiliteBlock b = ((SugiliteConditionBlock) block).getNextBlockToRun(sugiliteData);
             sugiliteData.addInstruction(b);
 
-            SugiliteBlock b2 = block.getNextBlock();
-            if(b != b2 && b2 != null) {
+            SugiliteBlock b2 = block.getNextBlockToRun();
+            if (b != b2 && b2 != null) {
                 sugiliteData.addInstruction(b2);
             }
-        }
-        else {
+        } else {
             throw new RuntimeException("Unsupported Block Type!");
         }
     }

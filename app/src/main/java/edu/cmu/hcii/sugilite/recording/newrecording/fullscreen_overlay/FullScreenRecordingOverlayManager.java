@@ -182,10 +182,8 @@ public class FullScreenRecordingOverlayManager {
         int currentApiVersion = android.os.Build.VERSION.SDK_INT;
         if (currentApiVersion >= 23) {
             checkDrawOverlayPermission();
-            if (Settings.canDrawOverlays(context)) {
-                System.out.println("ADDING OVERLAY TO WINDOW MANAGER");
-                windowManager.addView(overlay, layoutParams);
-            }
+            System.out.println("ADDING OVERLAY TO WINDOW MANAGER");
+            windowManager.addView(overlay, layoutParams);
         } else {
             windowManager.addView(overlay, layoutParams);
         }
@@ -419,13 +417,18 @@ public class FullScreenRecordingOverlayManager {
         UISnapshot uiSnapshot = getUiSnapshotAndAnnotateStringEntitiesIfNeeded();
         if (uiSnapshot != null) {
             SugiliteEntity<Node> topLongClickableNode = null;
+            SugiliteEntity<Node> topClickableNode = null;
             List<SugiliteEntity<Node>> matchedLongClickableNodeEntities = getMatchedNodesFromCoordinate(x, y, uiSnapshot, false, true);
+            List<SugiliteEntity<Node>> matchedClickableNodeEntities = getMatchedNodesFromCoordinate(x, y, uiSnapshot, true, false);
             if (matchedLongClickableNodeEntities != null) {
                 topLongClickableNode = matchedLongClickableNodeEntities.get(0);
             }
+            if (matchedClickableNodeEntities != null) {
+                topClickableNode = matchedClickableNodeEntities.get(0);
+            }
             List<SugiliteEntity<Node>> matchedAllNodeEntities = getMatchedNodesFromCoordinate(x, y, uiSnapshot, false, false);
             if (matchedAllNodeEntities != null) {
-                RecordingOverlayContextClickDialog recordingOverlayContextClickDialog = new RecordingOverlayContextClickDialog(context, this, topLongClickableNode, matchedAllNodeEntities, uiSnapshot, sugiliteData.valueDemonstrationVariableName, sugiliteData, tts, x, y);
+                RecordingOverlayContextClickDialog recordingOverlayContextClickDialog = new RecordingOverlayContextClickDialog(context, this, topLongClickableNode, topClickableNode, matchedAllNodeEntities, uiSnapshot, sugiliteData.valueDemonstrationVariableName, sugiliteData, tts, x, y);
                 recordingOverlayContextClickDialog.show();
             } else {
                 Toast.makeText(context, "No node matched!", Toast.LENGTH_SHORT).show();

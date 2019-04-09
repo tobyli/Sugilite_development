@@ -160,6 +160,8 @@ public class StatusIconManager {
                 //=== temporarily set the status view to invisible  ===
                 windowManager.addView(statusView, textViewParams);
                 statusView.setVisibility(View.INVISIBLE);
+            } else {
+                windowManager.addView(statusIcon, iconParams);
             }
         }
         else {
@@ -243,7 +245,9 @@ public class StatusIconManager {
                     rotation = (rotation + 20) % 360;
 
                     //rotate the duck
-                    statusIcon.setRotation(rotation);
+
+                    //TODO: disabled the rotation
+                    //statusIcon.setRotation(rotation);
 
                     /**
                      *

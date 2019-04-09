@@ -10,6 +10,7 @@ import com.google.gson.GsonBuilder;
 
 import java.util.Calendar;
 
+import edu.cmu.hcii.sugilite.Const;
 import edu.cmu.hcii.sugilite.R;
 import edu.cmu.hcii.sugilite.pumice.communication.PumiceInstructionPacket;
 import edu.cmu.hcii.sugilite.pumice.communication.PumiceSemanticParsingResultPacket;
@@ -53,15 +54,16 @@ public class PumiceDefaultUtteranceIntentHandler implements PumiceUtteranceInten
         String text = utterance.getContent().toLowerCase();
 
         //**test***
+        /*
         if (text.contains("weather")) {
             return PumiceIntent.TEST_WEATHER;
-        }
+        }*/
 
         if (text.contains("start again") || text.contains("start over")) {
             return PumiceIntent.START_OVER;
         }
 
-        if (text.contains("undo") || text.contains("go back to the last") || text.contains("go back to the previous")) {
+        /*if (text.contains("undo") || text.contains("go back to the last") || text.contains("go back to the previous")) {
             return PumiceIntent.UNDO_STEP;
         }
 
@@ -71,7 +73,7 @@ public class PumiceDefaultUtteranceIntentHandler implements PumiceUtteranceInten
 
         if (text.contains("show raw")) {
             return PumiceIntent.SHOW_RAW_KNOWLEDGE;
-        }
+        }*/
 
         else {
             return PumiceIntent.USER_INIT_INSTRUCTION;
@@ -101,7 +103,7 @@ public class PumiceDefaultUtteranceIntentHandler implements PumiceUtteranceInten
                 dialogManager.sendAgentViewMessage(imageView, "Here is the weather", true, false);
                 break;
             case USER_INIT_INSTRUCTION:
-                dialogManager.sendAgentMessage("I have received your instruction: " + utterance.getContent(), true, false);
+                //dialogManager.sendAgentMessage("I have received your instruction: " + utterance.getContent(), true, false);
                 PumiceInstructionPacket pumiceInstructionPacket = new PumiceInstructionPacket(dialogManager.getPumiceKnowledgeManager(), PumiceIntent.USER_INIT_INSTRUCTION, calendar.getTimeInMillis(), utterance.getContent(), "ROOT");
                 //dialogManager.sendAgentMessage("Sending out the server query below...", true, false);
                 //dialogManager.sendAgentMessage(pumiceInstructionPacket.toString(), false, false);
@@ -149,12 +151,13 @@ public class PumiceDefaultUtteranceIntentHandler implements PumiceUtteranceInten
                 .create();
         try {
             PumiceSemanticParsingResultPacket resultPacket = gson.fromJson(result, PumiceSemanticParsingResultPacket.class);
+            resultPacket.cleanFormula();
             if (resultPacket.utteranceType != null) {
                 switch (PumiceUtteranceIntentHandler.PumiceIntent.valueOf(resultPacket.utteranceType)) {
                     case USER_INIT_INSTRUCTION:
                         if (resultPacket.queries != null && resultPacket.queries.size() > 0) {
                             // send the result to a PumiceScriptExecutingConfirmationIntentHandler
-                            PumiceParsingConfirmationHandler parsingConfirmationHandler = new PumiceParsingConfirmationHandler(context, pumiceDialogManager);
+                            PumiceParsingConfirmationHandler parsingConfirmationHandler = new PumiceParsingConfirmationHandler(context, pumiceDialogManager, 0);
                             parsingConfirmationHandler.handleParsingResult(resultPacket, new Runnable() {
                                 @Override
                                 public void run() {
@@ -175,7 +178,7 @@ public class PumiceDefaultUtteranceIntentHandler implements PumiceUtteranceInten
                                         }
                                     });
                                 }
-                            });
+                            }, false);
 
                         } else {
                             throw new RuntimeException("empty server result");
@@ -198,7 +201,8 @@ public class PumiceDefaultUtteranceIntentHandler implements PumiceUtteranceInten
 
     @Override
     public void sendPromptForTheIntentHandler() {
-        pumiceDialogManager.sendAgentMessage("Hi I'm Sugilite bot! How can I help you?", true, true);
+        pumiceDialogManager.getSugiliteVoiceRecognitionListener().setContextPhrases(Const.INIT_INSTRUCTION_CONTEXT_WORDS);
+        pumiceDialogManager.sendAgentMessage(String.format("Hi I'm %s bot! How can I help you?", Const.appName), true, true);
     }
 
     @Override

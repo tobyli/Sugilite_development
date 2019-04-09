@@ -267,7 +267,12 @@ public class VariableSetValueDialog extends SugiliteDialogManager implements Abs
         handler.postDelayed(delayAndRunScript, SCRIPT_DELAY);
 
         //load the pumice knowledge manager
-        sugiliteData.pumiceDialogManager = pumiceDialogManager;
+        if (sugiliteData.pumiceDialogManager == null && pumiceDialogManager != null) {
+            sugiliteData.pumiceDialogManager = pumiceDialogManager;
+        } else {
+            //TODO: need to be able to initiate a dialog manager here
+        }
+
 
 
         System.out.println("start");

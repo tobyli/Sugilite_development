@@ -1,8 +1,6 @@
 package edu.cmu.hcii.sugilite.pumice.ui;
 
-import android.app.AlertDialog;
-import android.content.DialogInterface;
-import android.content.Intent;
+import android.app.Activity;
 import android.graphics.LightingColorFilter;
 import android.graphics.drawable.AnimationDrawable;
 import android.graphics.drawable.Drawable;
@@ -15,31 +13,19 @@ import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ScrollView;
-import android.widget.Toast;
 
-import java.io.File;
-import java.util.Calendar;
 import java.util.List;
 import java.util.Locale;
 
 import edu.cmu.hcii.sugilite.Const;
 import edu.cmu.hcii.sugilite.R;
-import edu.cmu.hcii.sugilite.SugiliteData;
-import edu.cmu.hcii.sugilite.dao.SugiliteScriptFileDao;
-import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.pumice.dialog.PumiceDialogManager;
-import edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.PumiceDefaultUtteranceIntentHandler;
-import edu.cmu.hcii.sugilite.study.ScriptUsageLogManager;
-import edu.cmu.hcii.sugilite.study.StudyConst;
-import edu.cmu.hcii.sugilite.ui.SettingsActivity;
-import edu.cmu.hcii.sugilite.ui.dialog.AddTriggerDialog;
-import edu.cmu.hcii.sugilite.ui.main.FragmentScriptListTab;
-import edu.cmu.hcii.sugilite.ui.main.FragmentTriggerListTab;
+import edu.cmu.hcii.sugilite.verbal_instruction_demo.speech.SugiliteAndroidAPIVoiceRecognitionListener;
+import edu.cmu.hcii.sugilite.verbal_instruction_demo.speech.SugiliteGoogleCloudVoiceRecognitionListener;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.speech.SugiliteVoiceInterface;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.speech.SugiliteVoiceRecognitionListener;
 
 import static edu.cmu.hcii.sugilite.Const.MUL_ZEROS;
-import static edu.cmu.hcii.sugilite.Const.OVERLAY_TYPE;
 import static edu.cmu.hcii.sugilite.Const.RECORDING_DARK_GRAY_COLOR;
 import static edu.cmu.hcii.sugilite.Const.RECORDING_OFF_BUTTON_COLOR;
 import static edu.cmu.hcii.sugilite.Const.RECORDING_ON_BUTTON_COLOR;
@@ -59,28 +45,45 @@ public class PumiceDialogActivity extends AppCompatActivity implements SugiliteV
     private ImageButton speakButton;
     private Runnable speakingEndedRunnable;
     private boolean runSpeakingEndedRunnable = false;
+    private Activity context;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         this.setContentView(R.layout.activity_pumice_dialog);
         this.getSupportActionBar().setTitle("PUMICE");
+        this.context = this;
         this.speakButton = (ImageButton) findViewById(R.id.button3);
         this.userTextBox = (EditText) findViewById(R.id.pumice_user_textbox);
-
 
         //initiate tts
         this.tts = new TextToSpeech(this, new TextToSpeech.OnInitListener() {
             @Override
             public void onInit(int status) {
-                pumiceDialogManager.sendAgentMessage("Hi I'm Sugilite bot! How can I help you?", true, true);
+                //bind the dialog manager
+                bindDialogManager(new PumiceDialogManager(context));
+                //send the first prompt from the default intent handler in the dialog manager
+                pumiceDialogManager.callSendPromptForTheIntentHandlerForCurrentIntentHandler();
             }
         });
         initiateDrawables();
         tts.setLanguage(Locale.US);
+
         //initiate sugiliteVoiceRecognitionListener
-        this.sugiliteVoiceRecognitionListener = new SugiliteVoiceRecognitionListener(this, this, tts);
-        bindDialogManager(new PumiceDialogManager(this));
+        if (Const.SELECTED_SPEECH_RECOGNITION_TYPE == Const.SpeechRecognitionType.ANDROID) {
+            this.sugiliteVoiceRecognitionListener = new SugiliteAndroidAPIVoiceRecognitionListener(this, this, tts);
+        } else if (Const.SELECTED_SPEECH_RECOGNITION_TYPE == Const.SpeechRecognitionType.GOOGLE_CLOUD) {
+            this.sugiliteVoiceRecognitionListener = new SugiliteGoogleCloudVoiceRecognitionListener(this, this, tts);
+        }
+    }
+
+    /**
+     * clear the user's input textbox on the GUI
+     */
+    public void clearUserTextBox(){
+        if (userTextBox != null){
+            userTextBox.setText("");
+        }
     }
 
     /**
@@ -101,9 +104,8 @@ public class PumiceDialogActivity extends AppCompatActivity implements SugiliteV
     public void pumiceSendButtonOnClick (View view) {
         // speak button
         //clear the text
-        if (userTextBox != null){
-            userTextBox.setText("");
-        }
+        clearUserTextBox();
+
         if (isListening) {
             sugiliteVoiceRecognitionListener.stopListening();
         }
@@ -220,7 +222,7 @@ public class PumiceDialogActivity extends AppCompatActivity implements SugiliteV
     public void stopTTSandASR() {
         if (isListening) {
             sugiliteVoiceRecognitionListener.stopListening();
-            listeningEnded();
+            listeningEndedCallback();
         }
         if (tts != null && tts.isSpeaking()) {
             sugiliteVoiceRecognitionListener.stopTTS();
@@ -230,36 +232,38 @@ public class PumiceDialogActivity extends AppCompatActivity implements SugiliteV
 
 
     @Override
-    public void listeningStarted() {
+    public void listeningStartedCallback() {
         isListening = true;
         refreshSpeakButtonStyle(speakButton);
     }
 
     @Override
-    public void listeningEnded() {
+    public void listeningEndedCallback() {
         isListening = false;
         refreshSpeakButtonStyle(speakButton);
     }
 
     @Override
-    public void speakingStarted() {
+    public void speakingStartedCallback() {
         isSpeaking = true;
         refreshSpeakButtonStyle(speakButton);
     }
 
     @Override
-    public void speakingEnded() {
+    public void speakingEndedCallback() {
         isSpeaking = false;
         refreshSpeakButtonStyle(speakButton);
     }
 
     @Override
-    public void resultAvailable(List<String> matches) {
+    public void resultAvailableCallback(List<String> matches, boolean isFinal) {
         if(matches.size() > 0) {
             userTextBox.setText(matches.get(0));
-            String userTextBoxContent = userTextBox.getText().toString();
-            if(pumiceDialogManager != null){
-                pumiceDialogManager.sendUserMessage(userTextBoxContent);
+            if (isFinal) {
+                String userTextBoxContent = userTextBox.getText().toString();
+                if (pumiceDialogManager != null) {
+                    pumiceDialogManager.sendUserMessage(userTextBoxContent);
+                }
             }
         }
     }
@@ -276,6 +280,9 @@ public class PumiceDialogActivity extends AppCompatActivity implements SugiliteV
     protected void onDestroy() {
         if(tts != null) {
             tts.shutdown();
+        }
+        if (sugiliteVoiceRecognitionListener != null) {
+            sugiliteVoiceRecognitionListener.stopAllAndEndASRService();
         }
         super.onDestroy();
     }

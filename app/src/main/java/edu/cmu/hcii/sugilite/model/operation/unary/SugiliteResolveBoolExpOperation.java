@@ -60,6 +60,20 @@ public class SugiliteResolveBoolExpOperation extends SugiliteUnaryOperation<Stri
 
     @Override
     public String getPumiceUserReadableDecription() {
-        return String.format("a new condition named \"%s\" is true", text);
+        return String.format("a condition named \"%s\" is true", text);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj != null && obj instanceof SugiliteValue) {
+            return this.toString().equals(obj.toString());
+        } else {
+            return super.equals(obj);
+        }
+    }
+
+    @Override
+    public int hashCode() {
+        return this.toString().hashCode();
     }
 }

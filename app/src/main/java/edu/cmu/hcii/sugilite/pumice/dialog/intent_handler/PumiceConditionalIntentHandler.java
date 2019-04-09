@@ -414,6 +414,7 @@ public class PumiceConditionalIntentHandler implements PumiceUtteranceIntentHand
         try {
             System.out.println("HERE");
             PumiceSemanticParsingResultPacket resultPacket = gson.fromJson(result, PumiceSemanticParsingResultPacket.class);
+            resultPacket.cleanFormula();
             if (resultPacket.utteranceType != null) {
                 switch (PumiceUtteranceIntentHandler.PumiceIntent.valueOf(resultPacket.utteranceType)) {
                     case USER_INIT_INSTRUCTION:

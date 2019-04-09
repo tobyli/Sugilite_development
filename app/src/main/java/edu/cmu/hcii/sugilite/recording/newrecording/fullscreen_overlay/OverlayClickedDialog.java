@@ -110,6 +110,7 @@ public class OverlayClickedDialog {
         if (queryScoreList.size() > 0) {
             System.out.println("Query Score List: " + queryScoreList);
             //threshold for determine whether the results are ambiguous
+            /*
             if (queryScoreList.size() <= 1 || (queryScoreList.get(1).second.doubleValue() - queryScoreList.get(0).second.doubleValue() >= 2)) {
                 //not ambiguous, show the confirmation popup
                 SugiliteOperationBlock block = blockBuildingHelper.getOperationBlockFromQuery(queryScoreList.get(0).first, SugiliteOperation.CLICK, featurePack);
@@ -120,6 +121,11 @@ public class OverlayClickedDialog {
                 //need to run on ui thread
                 showAmbiguousPopup(queryScoreList, featurePack, node);
             }
+            */
+
+            //TODO: 19/03/11 temporarily disable the ambiguous pop-up for PUMICE study
+            SugiliteOperationBlock block = blockBuildingHelper.getOperationBlockFromQuery(queryScoreList.get(0).first, SugiliteOperation.CLICK, featurePack);
+            showConfirmation(block, featurePack, queryScoreList);
         } else {
             //empty result
             Toast.makeText(context, "Empty Results!", Toast.LENGTH_SHORT).show();

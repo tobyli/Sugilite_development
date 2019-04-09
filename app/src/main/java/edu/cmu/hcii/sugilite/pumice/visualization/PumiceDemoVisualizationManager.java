@@ -188,10 +188,8 @@ public class PumiceDemoVisualizationManager {
         //add the overlay
         if (currentApiVersion >= 23) {
             VerbalInstructionOverlayManager.checkDrawOverlayPermission(context);
-            if (Settings.canDrawOverlays(context)) {
-                currentDisplayedOverlays.add(overlay.first);
-                windowManager.addView(overlay.first, overlay.second);
-            }
+            currentDisplayedOverlays.add(overlay.first);
+            windowManager.addView(overlay.first, overlay.second);
         } else {
             currentDisplayedOverlays.add(overlay.first);
             windowManager.addView(overlay.first, overlay.second);

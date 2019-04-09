@@ -107,11 +107,9 @@ public class RecordingOverlayManager {
         int currentApiVersion = android.os.Build.VERSION.SDK_INT;
         if(currentApiVersion >= 23){
             checkDrawOverlayPermission();
-            if(Settings.canDrawOverlays(context)) {
-                overlays.add(overlay);
-                System.out.println("ADDING OVERLAY TO WINDOW MANAGER");
-                windowManager.addView(overlay, iconParams);
-            }
+            overlays.add(overlay);
+            System.out.println("ADDING OVERLAY TO WINDOW MANAGER");
+            windowManager.addView(overlay, iconParams);
         }
         else {
             overlays.add(overlay);

@@ -1475,7 +1475,7 @@ public class RecordingPopUpDialog implements AbstractSugiliteDialog {
                     }
                     else if(currentBlock instanceof SugiliteStartingBlock) {
                         previousBlock = currentBlock;
-                        currentBlock = ((SugiliteStartingBlock) currentBlock).getNextBlock();
+                        currentBlock = ((SugiliteStartingBlock) currentBlock).getNextBlockToRun();
                     }
                     else if (currentBlock instanceof SugiliteOperationBlock){
                         if(currentBlock.getBlockId() == blockToEdit.getBlockId()){
@@ -1483,7 +1483,7 @@ public class RecordingPopUpDialog implements AbstractSugiliteDialog {
                             if(previousBlock instanceof SugiliteOperationBlock){
                                 ((SugiliteOperationBlock)previousBlock).setNextBlock(operationBlock);
                                 operationBlock.setPreviousBlock(previousBlock);
-                                operationBlock.setNextBlock(((SugiliteOperationBlock) currentBlock).getNextBlock());
+                                operationBlock.setNextBlock(((SugiliteOperationBlock) currentBlock).getNextBlockToRun());
                                 try {
                                     originalScript.relevantPackages.add(featurePack.packageName);
                                     sugiliteScriptDao.save(originalScript);
@@ -1541,7 +1541,7 @@ public class RecordingPopUpDialog implements AbstractSugiliteDialog {
                             else if(currentBlock.getPreviousBlock() instanceof SugiliteStartingBlock){
                                 ((SugiliteStartingBlock)previousBlock).setNextBlock(operationBlock);
                                 operationBlock.setPreviousBlock(previousBlock);
-                                operationBlock.setNextBlock(((SugiliteOperationBlock) currentBlock).getNextBlock());
+                                operationBlock.setNextBlock(((SugiliteOperationBlock) currentBlock).getNextBlockToRun());
                                 try {
                                     sugiliteScriptDao.save(originalScript);
                                     //commit save for triggered_by_edit
@@ -1601,7 +1601,7 @@ public class RecordingPopUpDialog implements AbstractSugiliteDialog {
                         }
                         else{
                             previousBlock = currentBlock;
-                            currentBlock = ((SugiliteOperationBlock) currentBlock).getNextBlock();
+                            currentBlock = ((SugiliteOperationBlock) currentBlock).getNextBlockToRun();
                         }
                     }
                 }

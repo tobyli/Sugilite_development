@@ -9,6 +9,7 @@ import com.google.gson.GsonBuilder;
 
 import java.util.Calendar;
 
+import edu.cmu.hcii.sugilite.Const;
 import edu.cmu.hcii.sugilite.pumice.communication.PumiceInstructionPacket;
 import edu.cmu.hcii.sugilite.pumice.communication.PumiceSemanticParsingResultPacket;
 import edu.cmu.hcii.sugilite.pumice.communication.SkipPumiceJSONSerialization;
@@ -55,7 +56,7 @@ public class PumiceUserExplainProcedureIntentHandler implements PumiceUtteranceI
 
         if (pumiceIntent.equals(PumiceIntent.DEFINE_PROCEDURE_EXP)){
             //for situations e.g., redirection
-            dialogManager.sendAgentMessage("I have received your explanation: " + utterance.getContent(), true, false);
+            //dialogManager.sendAgentMessage("I have received your explanation: " + utterance.getContent(), true, false);
             //TODO: send out an OPERATION_INSTRUCTION query to resolve the explanation
             //send out the server query
             PumiceInstructionPacket pumiceInstructionPacket = new PumiceInstructionPacket(dialogManager.getPumiceKnowledgeManager(), "OPERATION_INSTRUCTION", calendar.getTimeInMillis(), utterance.getContent(), parentKnowledgeName);
@@ -123,11 +124,12 @@ public class PumiceUserExplainProcedureIntentHandler implements PumiceUtteranceI
                 .create();
         try {
             PumiceSemanticParsingResultPacket resultPacket = gson.fromJson(result, PumiceSemanticParsingResultPacket.class);
+            resultPacket.cleanFormula();
             if (resultPacket.utteranceType != null) {
                 switch (resultPacket.utteranceType) {
                     case "OPERATION_INSTRUCTION":
                         if (resultPacket.queries != null && resultPacket.queries.size() > 0) {
-                            PumiceParsingConfirmationHandler parsingConfirmationHandler = new PumiceParsingConfirmationHandler(context, pumiceDialogManager);
+                            PumiceParsingConfirmationHandler parsingConfirmationHandler = new PumiceParsingConfirmationHandler(context, pumiceDialogManager, 0);
                             parsingConfirmationHandler.handleParsingResult(resultPacket, new Runnable() {
                                 @Override
                                 public void run() {
@@ -143,13 +145,13 @@ public class PumiceUserExplainProcedureIntentHandler implements PumiceUtteranceI
                                         @Override
                                         public void run() {
                                             //parse and process the server response
-                                            PumiceProceduralKnowledge pumiceProceduralKnowledge = pumiceDialogManager.getPumiceInitInstructionParsingHandler().parseFromProcedureInstruction(confirmedFormula, resultPacket.userUtterance, parentKnowledgeName);
+                                            PumiceProceduralKnowledge pumiceProceduralKnowledge = pumiceDialogManager.getPumiceInitInstructionParsingHandler().parseFromProcedureInstruction(confirmedFormula, resultPacket.userUtterance, parentKnowledgeName, 0);
                                             //notify the original thread for resolving unknown bool exp that the intent has been fulfilled
                                             returnUserExplainProcedureResult(pumiceProceduralKnowledge);
                                         }
                                     });
                                 }
-                            });
+                            }, false);
 
                         } else {
                             throw new RuntimeException("empty server result");
@@ -172,6 +174,7 @@ public class PumiceUserExplainProcedureIntentHandler implements PumiceUtteranceI
 
     @Override
     public void sendPromptForTheIntentHandler() {
+        pumiceDialogManager.getSugiliteVoiceRecognitionListener().setContextPhrases(Const.DEMONSTRATION_CONTEXT_WORDS);
         pumiceDialogManager.sendAgentMessage("How do I " + parentKnowledgeName + "?" + " You can explain, or say \"demonstrate\" to demonstrate", true, true);
     }
 

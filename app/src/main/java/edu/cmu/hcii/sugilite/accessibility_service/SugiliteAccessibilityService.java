@@ -144,6 +144,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
         recordingOverlayManager = new FullScreenRecordingOverlayManager(context, sugiliteData, sharedPreferences, this, tts);
         verbalInstructionIconManager = new VerbalInstructionIconManager(this, sugiliteStudyHandler, sugiliteData, sharedPreferences, recordingOverlayManager, this, tts);
         statusIconManager.setVerbalInstructionIconManager(verbalInstructionIconManager);
+        sugiliteData.verbalInstructionIconManager = verbalInstructionIconManager;
         newDemonstrationHandler = new NewDemonstrationHandler(sugiliteData, this, LayoutInflater.from(getApplicationContext()), sharedPreferences, this);
 
         screenshotManager = new SugiliteScreenshotManager(sharedPreferences, getApplicationContext());
@@ -749,8 +750,9 @@ public class SugiliteAccessibilityService extends AccessibilityService {
                                 }
                             }
                         });
-                    } catch (RejectedExecutionException e) {
+                    } catch (Exception e) {
                         //do nothing
+                        e.printStackTrace();
                     }
                 }
             }

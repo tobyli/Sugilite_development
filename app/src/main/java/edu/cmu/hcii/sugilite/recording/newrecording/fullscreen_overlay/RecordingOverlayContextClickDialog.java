@@ -18,6 +18,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import edu.cmu.hcii.sugilite.Const;
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.model.Node;
 import edu.cmu.hcii.sugilite.ontology.SugiliteEntity;
@@ -37,28 +38,35 @@ public class RecordingOverlayContextClickDialog {
     private float x, y;
     private FullScreenRecordingOverlayManager parentOverlayManager;
     private SugiliteEntity<Node> topLongClickableNode;
+    private SugiliteEntity<Node> topClickableNode;
     private List<SugiliteEntity<Node>> matchedAllNodeEntities;
     private String variableName;
     private List<String> supportedActions = new ArrayList<>();
 
 
-    public RecordingOverlayContextClickDialog(Context context, FullScreenRecordingOverlayManager parentOverlayManager, SugiliteEntity<Node> topLongClickableNode, List<SugiliteEntity<Node>> matchedAllNodeEntities, UISnapshot uiSnapshot, String variableName, SugiliteData sugiliteData, TextToSpeech tts, float x, float y){
+    public RecordingOverlayContextClickDialog(Context context, FullScreenRecordingOverlayManager parentOverlayManager, SugiliteEntity<Node> topLongClickableNode, SugiliteEntity<Node> topClickableNode, List<SugiliteEntity<Node>> matchedAllNodeEntities, UISnapshot uiSnapshot, String variableName, SugiliteData sugiliteData, TextToSpeech tts, float x, float y){
         this.context = context;
         this.parentOverlayManager = parentOverlayManager;
         this.x = x;
         this.y = y;
         this.topLongClickableNode = topLongClickableNode;
+        this.topClickableNode = topClickableNode;
         this.matchedAllNodeEntities = matchedAllNodeEntities;
         this.variableName = variableName;
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
         ListView mainListView = new ListView(context);
 
         if (topLongClickableNode != null) {
-            supportedActions.add("Long click on the underlying app");
+            supportedActions.add("Long click on this item in the app");
+        }
+
+        if (topClickableNode != null) {
+            supportedActions.add("Click on this item in the app");
         }
 
         if (getTextLabelNodeEntityMap().size() > 0){
-            supportedActions.add("Select this item for its value");
+            supportedActions.add("Select this value for Pumice to learn");
+            //supportedActions.add("Mark this value as \"commute time\"");
         }
 
         String[] stringArray = new String[supportedActions.size()];
@@ -78,7 +86,7 @@ public class RecordingOverlayContextClickDialog {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 final String item = (String) parent.getItemAtPosition(position);
                 switch (item){
-                    case "Select this item for its value":
+                    case "Select this value for Pumice to learn":
                         //present a list of matched items with text labels for the user to select
                         dialog.dismiss();
                         Map<String, SugiliteEntity<Node>> textLabelEntityMap = getTextLabelNodeEntityMap();
@@ -92,10 +100,12 @@ public class RecordingOverlayContextClickDialog {
                         PumiceValueDemonstrationSelectionDialog valueDemonstrationSelectionDialog = new PumiceValueDemonstrationSelectionDialog(context, textLabelEntityMap, uiSnapshot, variableName, parentOverlayManager, sugiliteData, tts, layoutInflater, sharedPreferences, x, y);
                         valueDemonstrationSelectionDialog.show();
                         break;
-                    case "Long click on the underlying app":
+                    case "Long click on this item in the app":
                         //send a long click to the underlying app
                         dialog.dismiss();
-                        parentOverlayManager.addSugiliteOperationBlockBasedOnNode(topLongClickableNode.getEntityValue(), true);
+                        if (topLongClickableNode.getEntityValue() != null) {
+                            parentOverlayManager.addSugiliteOperationBlockBasedOnNode(topLongClickableNode.getEntityValue(), true);
+                        }
                         /*
                         parentOverlayManager.clickWithRootPermission(x, y, new Runnable() {
                             @Override
@@ -105,6 +115,12 @@ public class RecordingOverlayContextClickDialog {
                             }
                         }, topClickableNode.getEntityValue(), true);
                         */
+                        break;
+                    case "Click on this item in the app":
+                        dialog.dismiss();
+                        if (topClickableNode.getEntityValue() != null) {
+                            parentOverlayManager.addSugiliteOperationBlockBasedOnNode(topClickableNode.getEntityValue(), false);
+                        }
                 }
             }
         });

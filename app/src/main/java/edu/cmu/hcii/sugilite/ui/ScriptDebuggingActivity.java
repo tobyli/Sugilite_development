@@ -149,11 +149,11 @@ public class ScriptDebuggingActivity extends AppCompatActivity {
         while(iterBlock != null){
             operationStepList.addView(getViewForBlock(iterBlock));
             if (iterBlock instanceof SugiliteStartingBlock)
-                iterBlock = ((SugiliteStartingBlock) iterBlock).getNextBlock();
+                iterBlock = ((SugiliteStartingBlock) iterBlock).getNextBlockToRun();
             else if (iterBlock instanceof SugiliteOperationBlock)
-                iterBlock = ((SugiliteOperationBlock) iterBlock).getNextBlock();
+                iterBlock = ((SugiliteOperationBlock) iterBlock).getNextBlockToRun();
             else if (iterBlock instanceof SugiliteSpecialOperationBlock)
-                iterBlock = ((SugiliteSpecialOperationBlock) iterBlock).getNextBlock();
+                iterBlock = ((SugiliteSpecialOperationBlock) iterBlock).getNextBlockToRun();
             else if (iterBlock instanceof SugiliteErrorHandlingForkBlock)
                 break;
             else
@@ -203,11 +203,11 @@ public class ScriptDebuggingActivity extends AppCompatActivity {
                 View blockView = getViewForBlock(iterBlock);
                 originalBranch.addView(blockView);
                 if (iterBlock instanceof SugiliteStartingBlock)
-                    iterBlock = ((SugiliteStartingBlock) iterBlock).getNextBlock();
+                    iterBlock = ((SugiliteStartingBlock) iterBlock).getNextBlockToRun();
                 else if (iterBlock instanceof SugiliteOperationBlock)
-                    iterBlock = ((SugiliteOperationBlock) iterBlock).getNextBlock();
+                    iterBlock = ((SugiliteOperationBlock) iterBlock).getNextBlockToRun();
                 else if (iterBlock instanceof  SugiliteSpecialOperationBlock)
-                    iterBlock = ((SugiliteSpecialOperationBlock) iterBlock).getNextBlock();
+                    iterBlock = ((SugiliteSpecialOperationBlock) iterBlock).getNextBlockToRun();
                 else if (iterBlock instanceof SugiliteErrorHandlingForkBlock)
                     break;
                 else
@@ -231,11 +231,11 @@ public class ScriptDebuggingActivity extends AppCompatActivity {
                 View blockView = getViewForBlock(iterBlock);
                 alternativeBranch.addView(blockView);
                 if (iterBlock instanceof SugiliteStartingBlock)
-                    iterBlock = ((SugiliteStartingBlock) iterBlock).getNextBlock();
+                    iterBlock = ((SugiliteStartingBlock) iterBlock).getNextBlockToRun();
                 else if (iterBlock instanceof SugiliteOperationBlock)
-                    iterBlock = ((SugiliteOperationBlock) iterBlock).getNextBlock();
+                    iterBlock = ((SugiliteOperationBlock) iterBlock).getNextBlockToRun();
                 else if (iterBlock instanceof  SugiliteSpecialOperationBlock)
-                    iterBlock = ((SugiliteSpecialOperationBlock) iterBlock).getNextBlock();
+                    iterBlock = ((SugiliteSpecialOperationBlock) iterBlock).getNextBlockToRun();
                 else if (iterBlock instanceof SugiliteErrorHandlingForkBlock)
                     break;
                 else
@@ -315,14 +315,14 @@ public class ScriptDebuggingActivity extends AppCompatActivity {
         if(block == null)
             return;
         if(block instanceof SugiliteStartingBlock){
-            addABreakpointForEveryOperationBlock(((SugiliteStartingBlock) block).getNextBlock());
+            addABreakpointForEveryOperationBlock(((SugiliteStartingBlock) block).getNextBlockToRun());
         }
         else if(block instanceof SugiliteOperationBlock){
             ((SugiliteOperationBlock) block).isSetAsABreakPoint = true;
-            addABreakpointForEveryOperationBlock(((SugiliteOperationBlock) block).getNextBlock());
+            addABreakpointForEveryOperationBlock(((SugiliteOperationBlock) block).getNextBlockToRun());
         }
         else if(block instanceof  SugiliteSpecialOperationBlock){
-            addABreakpointForEveryOperationBlock(((SugiliteSpecialOperationBlock) block).getNextBlock());
+            addABreakpointForEveryOperationBlock(((SugiliteSpecialOperationBlock) block).getNextBlockToRun());
         }
         else if(block instanceof SugiliteErrorHandlingForkBlock){
             addABreakpointForEveryOperationBlock(((SugiliteErrorHandlingForkBlock) block).getAlternativeNextBlock());
@@ -434,16 +434,16 @@ public class ScriptDebuggingActivity extends AppCompatActivity {
         while(currentBlock != null){
             sugiliteBlocks.add(currentBlock);
             if(currentBlock instanceof SugiliteStartingBlock){
-                currentBlock = ((SugiliteStartingBlock)currentBlock).getNextBlock();
+                currentBlock = ((SugiliteStartingBlock)currentBlock).getNextBlockToRun();
             }
             else if (currentBlock instanceof SugiliteOperationBlock){
-                currentBlock = ((SugiliteOperationBlock)currentBlock).getNextBlock();
+                currentBlock = ((SugiliteOperationBlock)currentBlock).getNextBlockToRun();
             }
             else if (currentBlock instanceof SugiliteErrorHandlingForkBlock){
                 currentBlock = ((SugiliteErrorHandlingForkBlock) currentBlock).getOriginalNextBlock();
             }
             else if (currentBlock instanceof SugiliteSpecialOperationBlock)
-                currentBlock = ((SugiliteSpecialOperationBlock) currentBlock).getNextBlock();
+                currentBlock = ((SugiliteSpecialOperationBlock) currentBlock).getNextBlockToRun();
             else{
                 throw new RuntimeException("Unsupported Block Type!");
             }
@@ -520,7 +520,7 @@ public class ScriptDebuggingActivity extends AppCompatActivity {
                     startActivity(intent);
                     break;
                 } else {
-                    currentBlock = ((SugiliteOperationBlock) currentBlock).getNextBlock();
+                    currentBlock = ((SugiliteOperationBlock) currentBlock).getNextBlockToRun();
                 }
             } else if (currentBlock instanceof SugiliteStartingBlock) {
                 if (Html.fromHtml(currentBlock.getDescription()).toString().contentEquals(textView.getText().toString())) {
@@ -528,7 +528,7 @@ public class ScriptDebuggingActivity extends AppCompatActivity {
                     Toast.makeText(this, "Can't view starting block", Toast.LENGTH_SHORT).show();
                     break;
                 } else {
-                    currentBlock = ((SugiliteStartingBlock) currentBlock).getNextBlock();
+                    currentBlock = ((SugiliteStartingBlock) currentBlock).getNextBlockToRun();
                 }
             } else if (currentBlock instanceof SugiliteSpecialOperationBlock) {
                 //TODO: do something
@@ -580,7 +580,7 @@ public class ScriptDebuggingActivity extends AppCompatActivity {
                     //the pop up should save the new script to db
                 }
                 else{
-                    currentBlock = ((SugiliteOperationBlock) currentBlock).getNextBlock();
+                    currentBlock = ((SugiliteOperationBlock) currentBlock).getNextBlockToRun();
                 }
             }
             else if(currentBlock instanceof SugiliteStartingBlock){
@@ -590,7 +590,7 @@ public class ScriptDebuggingActivity extends AppCompatActivity {
                     break;
                 }
                 else {
-                    currentBlock = ((SugiliteStartingBlock) currentBlock).getNextBlock();
+                    currentBlock = ((SugiliteStartingBlock) currentBlock).getNextBlockToRun();
                 }
             }
             else if(currentBlock instanceof SugiliteErrorHandlingForkBlock){
@@ -677,7 +677,7 @@ public class ScriptDebuggingActivity extends AppCompatActivity {
                     break;
                 }
                 else{
-                    currentBlock = ((SugiliteOperationBlock) currentBlock).getNextBlock();
+                    currentBlock = ((SugiliteOperationBlock) currentBlock).getNextBlockToRun();
                 }
             }
             else if(currentBlock instanceof SugiliteStartingBlock){
@@ -687,7 +687,7 @@ public class ScriptDebuggingActivity extends AppCompatActivity {
                     break;
                 }
                 else {
-                    currentBlock = ((SugiliteStartingBlock) currentBlock).getNextBlock();
+                    currentBlock = ((SugiliteStartingBlock) currentBlock).getNextBlockToRun();
                 }
             }
             else if(currentBlock instanceof SugiliteErrorHandlingForkBlock){

@@ -32,7 +32,7 @@ public class TempAnnotator implements SugiliteTextAnnotator {
         }
 
         List<AnnotatingResult> results = new ArrayList<>();
-        Pattern pattern = Pattern.compile("\\b\\d+?(.\\d+?)?( )?(deg(ree(s)?|s)? |°)( )?([fF](ahrenheit)?|[cC](elsius)?)\\b");
+        Pattern pattern = Pattern.compile("\\b\\d+?(.\\d+?)?( )?((((deg(ree(s)?|s)?)|°)( )?([fF](ahrenheit)?|[cC](elsius)?))|((deg(ree(s)?|s)?)|°)|([fF](ahrenheit)?|[cC](elsius)?))(?:(?<![\\w°])(?=[\\w°])|(?<=[\\w°])(?![\\w°]))");
         Matcher matcher = pattern.matcher(text);
 
         while (matcher.find()) {

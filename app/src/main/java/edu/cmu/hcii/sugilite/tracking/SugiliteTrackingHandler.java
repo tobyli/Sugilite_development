@@ -28,6 +28,8 @@ import edu.cmu.hcii.sugilite.model.operation.unary.SugiliteSelectOperation;
 everytime the start tracking switch changes -> name the tracking record to default_ + DATE_TIME
 recording "created_time"
  */
+
+@Deprecated
 public class SugiliteTrackingHandler {
     private SugiliteData sugiliteData;
     private SugiliteTrackingDao sugiliteTrackingDao;

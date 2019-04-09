@@ -47,6 +47,6 @@ public class SugiliteResolveProcedureOperation extends SugiliteUnaryOperation<St
 
     @Override
     public String getPumiceUserReadableDecription() {
-        return String.format("perform a new action named \"%s\"", text);
+        return String.format("perform an action named \"%s\"", text);
     }
 }

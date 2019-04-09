@@ -50,7 +50,7 @@ public class SugiliteResolveValueQueryOperation extends SugiliteUnaryOperation<S
 
     @Override
     public String toString() {
-        return "(" + "call resolve_value " + addQuoteToTokenIfNeeded(getParameter0().toString()) + ")";
+        return "(" + "call resolve_valueQuery " + addQuoteToTokenIfNeeded(getParameter0().toString()) + ")";
     }
 
     @Override
@@ -60,6 +60,20 @@ public class SugiliteResolveValueQueryOperation extends SugiliteUnaryOperation<S
 
     @Override
     public String getPumiceUserReadableDecription() {
-        return String.format("the value of a new concept \"%s\"", text);
+        return String.format("the value of a concept \"%s\"", text);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj != null && obj instanceof SugiliteValue) {
+            return this.toString().equals(obj.toString());
+        } else {
+            return super.equals(obj);
+        }
+    }
+
+    @Override
+    public int hashCode() {
+        return this.toString().hashCode();
     }
 }

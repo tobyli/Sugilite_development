@@ -13,7 +13,7 @@ import edu.cmu.hcii.sugilite.accessibility_service.SugiliteAccessibilityService;
  * @time 5:03 PM
  */
 public class ServiceStatusManager {
-    private static Context context;
+    private Context context;
     private static ServiceStatusManager instance;
     private Class serviceClass;
 
@@ -46,9 +46,11 @@ public class ServiceStatusManager {
     public boolean isRunning() {
         Class clazz = serviceClass == null? SugiliteAccessibilityService.class : serviceClass;
         ActivityManager manager = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
-        for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
-            if (clazz.getName().equals(service.service.getClassName())) {
-                return true;
+        if (manager != null) {
+            for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
+                if (clazz.getName().equals(service.service.getClassName())) {
+                    return true;
+                }
             }
         }
         return false;

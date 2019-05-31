@@ -39,8 +39,8 @@ public class TempAnnotator implements SugiliteTextAnnotator {
             String matchedString = text.substring(matcher.start(), matcher.end());
             String split1 = matchedString.split("[^0-9]")[0];
             double value = Double.parseDouble(split1);
-            if (matchedString.contains("F") || matchedString.contains("f")) {
-                value = (value - 32) / 1.8;
+            if (matchedString.contains("C") || matchedString.contains("c")) {
+                value = value * 1.8 + 32;
             }
             AnnotatingResult result = new AnnotatingResult(RELATION, text.substring(matcher.start(), matcher.end()), matcher.start(), matcher.end(), value);
             results.add(result);

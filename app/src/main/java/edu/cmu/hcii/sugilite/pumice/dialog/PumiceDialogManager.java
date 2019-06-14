@@ -40,8 +40,7 @@ import edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.PumiceConditionalInten
 import edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.PumiceDefaultUtteranceIntentHandler;
 
 import edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.PumiceUtteranceIntentHandler;
-import edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.temp_handler.TempHandler0;
-import edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.temp_handler2.TempHandler0_a;
+
 import edu.cmu.hcii.sugilite.pumice.kb.PumiceKnowledgeManager;
 import edu.cmu.hcii.sugilite.pumice.ui.PumiceDialogActivity;
 import edu.cmu.hcii.sugilite.pumice.ui.util.PumiceDialogUIHelper;

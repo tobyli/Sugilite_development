@@ -109,6 +109,7 @@ public class OverlayClickedDialog {
         List<Pair<SerializableOntologyQuery, Double>> queryScoreList = SugiliteBlockBuildingHelper.generateDefaultQueries(featurePack, uiSnapshot, false);
         if (queryScoreList.size() > 0) {
             System.out.println("Query Score List: " + queryScoreList);
+
             //threshold for determine whether the results are ambiguous
             /*
             if (queryScoreList.size() <= 1 || (queryScoreList.get(1).second.doubleValue() - queryScoreList.get(0).second.doubleValue() >= 2)) {

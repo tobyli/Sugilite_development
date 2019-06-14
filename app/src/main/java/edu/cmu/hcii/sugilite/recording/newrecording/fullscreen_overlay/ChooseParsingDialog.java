@@ -173,9 +173,9 @@ public class ChooseParsingDialog extends SugiliteDialogManager {
         });
 
         dialog = builder.create();
-        dialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
+        dialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
             @Override
-            public void onCancel(DialogInterface dialog) {
+            public void onDismiss(DialogInterface dialogInterface) {
                 stopASRandTTS();
             }
         });

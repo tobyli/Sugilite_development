@@ -50,6 +50,11 @@ import static edu.cmu.hcii.sugilite.Const.OVERLAY_TYPE;
  * @date 12/9/17
  * @time 11:11 PM
  */
+
+
+/**
+ * the dialog used for testing the semantic parser
+ */
 public class VerbalInstructionTestDialog implements SugiliteVoiceInterface, SugiliteVerbalInstructionHTTPQueryInterface {
     private SerializableUISnapshot serializableUISnapshot;
     private Context context;

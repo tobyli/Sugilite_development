@@ -7,6 +7,7 @@ import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.model.block.booleanexp.SugiliteBooleanExpression;
 import edu.cmu.hcii.sugilite.model.block.booleanexp.SugiliteBooleanExpressionNew;
 import edu.cmu.hcii.sugilite.model.block.special_operation.SugiliteSpecialOperationBlock;
+import edu.cmu.hcii.sugilite.pumice.dialog.ConditionalPumiceDialogManager;
 
 /**
  * Created by toby on 8/11/16.
@@ -58,7 +59,7 @@ public class SugiliteConditionBlock extends SugiliteBlock implements Serializabl
         }
 
         //send an agent message through pumiceDialogManager if one is available
-        if (sugiliteData.pumiceDialogManager != null){
+        if (sugiliteData.pumiceDialogManager != null && !(sugiliteData.pumiceDialogManager instanceof ConditionalPumiceDialogManager)){
             String stringResult = result ? "true" : "false";
             sugiliteData.pumiceDialogManager.sendAgentMessage("The conditional: " + "\"" + sugiliteBooleanExpressionNew.getReadableDescription() + "\" is " + stringResult, true, false);
         }
@@ -148,7 +149,13 @@ public class SugiliteConditionBlock extends SugiliteBlock implements Serializabl
 
     @Override
     public String getPumiceUserReadableDecription() {
-        String description = String.format("If %s, then %s.", sugiliteBooleanExpressionNew.getReadableDescription(), thenBlock.getPumiceUserReadableDecription());
+        String description;
+        if(thenBlock != null) {
+            description = String.format("If %s, then %s.", sugiliteBooleanExpressionNew.getReadableDescription(), thenBlock.getPumiceUserReadableDecription());
+        }
+        else {
+            description = String.format("If %s,", sugiliteBooleanExpressionNew.getReadableDescription());
+        }
         if (elseBlock != null) {
             description += String.format(" Otherwise, %s.", elseBlock.getPumiceUserReadableDecription());
         }

@@ -61,12 +61,12 @@ public class PumiceDialogManager{
     private PumiceInitInstructionParsingHandler pumiceInitInstructionParsingHandler;
     private SugiliteVoiceRecognitionListener sugiliteVoiceRecognitionListener;
     private SugiliteVerbalInstructionHTTPQueryManager httpQueryManager;
-    private SharedPreferences sharedPreferences;
+    protected SharedPreferences sharedPreferences;
     private ExecutorService executorService;
-    private SugiliteData sugiliteData;
-    private ServiceStatusManager serviceStatusManager;
-    //private Handler handler;
+    protected SugiliteData sugiliteData;
+    protected ServiceStatusManager serviceStatusManager;
     private PumiceKnowledgeDao pumiceKnowledgeDao;
+    private Handler handler;
 
     private List<PumiceDialogState> stateHistoryList;
 
@@ -96,7 +96,7 @@ public class PumiceDialogManager{
         this.executorService = Executors.newCachedThreadPool();
         this.serviceStatusManager = ServiceStatusManager.getInstance(context);
         this.sugiliteData.pumiceDialogManager = this;
-    
+        this.handler = new Handler();
 	/*
         this.handler = new Handler();
 
@@ -104,7 +104,7 @@ public class PumiceDialogManager{
         //** testing **
         this.pumiceDialogState.getPumiceKnowledgeManager().initForTesting();*/
     }
-    /*
+
 
     public void setPumiceDialogState(PumiceDialogState pds) {
         this.pumiceDialogState = pds;
@@ -115,7 +115,6 @@ public class PumiceDialogManager{
     }
 
     public void setPumiceInitInstructionParsingHandler(PumiceInitInstructionParsingHandler pph) { this.pumiceInitInstructionParsingHandler = pph; }
-	*/
     
     public void sendUserMessage(String message){
         //send the user message with the current in use intent handler
@@ -178,7 +177,6 @@ public class PumiceDialogManager{
      */
     public void sendAgentMessage(String message, boolean isSpokenMessage, boolean requireUserResponse){
         System.out.println("sendAgentMessage");
-        System.out.println(this);
         System.out.println(message);
         runOnMainThread(new Runnable() {
             @Override
@@ -250,16 +248,13 @@ public class PumiceDialogManager{
                 @Override
                 public void run() {
                     if(requireUserResponse && speakButtonForCallback != null) {
-                        System.out.println("1");
-                        System.out.println(pumiceDialogView);
                         handler.postDelayed(new Runnable() {
                             @Override
                             public void run() {
                                 //replace this line to scroll up or down
-                                System.out.println("2");
                                 speakButtonForCallback.callOnClick();
                             }
-                        }, 500L);
+                        }, 1000L);
                     }
                 }
             });
@@ -271,7 +266,7 @@ public class PumiceDialogManager{
                         //replace this line to scroll up or down
                         speakButtonForCallback.callOnClick();
                     }
-                }, 500L);
+                }, 1000L);
             }
         }
 

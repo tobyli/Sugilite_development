@@ -259,7 +259,12 @@ public class SugiliteBooleanExpressionNew implements SugiliteValue<Boolean>, Ser
             return boolOperation.getReadableDescription();
         } else {
             //TODO: implement
-            return arg0.getReadableDescription() + " is " + boolOperator.name().replace("_", " ").toLowerCase() + " " + arg1.getReadableDescription();
+            String arg1String = arg1.getReadableDescription();
+            String[] split = arg1.getReadableDescription().split(" ");
+            if(split[split.length-1].equals("null")) {
+                arg1String = arg1String.substring(0,arg1String.length()-5);
+            }
+            return arg0.getReadableDescription() + " is " + boolOperator.name().replace("_", " ").toLowerCase() + " " + arg1String + "";
         }
     }
 

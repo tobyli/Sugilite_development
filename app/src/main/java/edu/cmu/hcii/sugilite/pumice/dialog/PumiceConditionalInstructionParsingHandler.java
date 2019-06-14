@@ -60,6 +60,7 @@ public class PumiceConditionalInstructionParsingHandler extends PumiceInitInstru
         pumiceDialogManager.updateUtteranceIntentHandlerInANewState(new PumiceConditionalIntentHandler(pumiceDialogManager,(ScriptDetailActivity) context,null));
     }
 
+
     public PumiceBooleanExpKnowledge parseFromBoolExpInstruction(String serverFormula, String userUtterance, String parentKnowledgeName){
         System.out.println("RECEIVED bool exp formula: " + serverFormula);
 
@@ -78,8 +79,9 @@ public class PumiceConditionalInstructionParsingHandler extends PumiceInitInstru
 
             PumiceBooleanExpKnowledge booleanExpKnowledge = new PumiceBooleanExpKnowledge(parentKnowledgeName, userUtterance, booleanExpression);
             boolExp = booleanExpression;
-            ((ScriptDetailActivity) pumiceDialogManager.getContext()).addSnackbar("Ok, should I add the check " + booleanExpression.toString() + " to the script?");
-            pumiceDialogManager.sendAgentMessage("Ok, should I add the check " + booleanExpression.toString() + " to the script?",true,true);
+            System.out.println("boolExp: " + boolExp.getReadableDescription());
+            ((ScriptDetailActivity) pumiceDialogManager.getContext()).addSnackbar("Ok, should I add the check for whether or not " + boolExp.getReadableDescription() + " to the script?");
+            pumiceDialogManager.sendAgentMessage("Ok, should I add the check for whether or not " + booleanExpression.getReadableDescription() + " to the script?",true,true);
             pumiceDialogManager.updateUtteranceIntentHandlerInANewState(new PumiceConditionalIntentHandler(pumiceDialogManager,(ScriptDetailActivity) context, PumiceUtteranceIntentHandler.PumiceIntent.ADD_CONDITIONAL_Y));
 
             return booleanExpKnowledge;

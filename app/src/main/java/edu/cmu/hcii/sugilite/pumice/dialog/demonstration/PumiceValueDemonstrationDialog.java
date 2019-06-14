@@ -5,6 +5,7 @@ import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.renderscript.Script;
 import android.support.annotation.Nullable;
 import android.widget.Toast;
 
@@ -17,6 +18,7 @@ import edu.cmu.hcii.sugilite.ontology.SugiliteRelation;
 import edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.PumiceUserExplainValueIntentHandler;
 import edu.cmu.hcii.sugilite.pumice.kb.PumiceValueQueryKnowledge;
 import edu.cmu.hcii.sugilite.pumice.ui.PumiceDialogActivity;
+import edu.cmu.hcii.sugilite.ui.ScriptDetailActivity;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.VerbalInstructionIconManager;
 
 /**
@@ -106,9 +108,19 @@ public class PumiceValueDemonstrationDialog {
     //called when the demonstration is ready
     public void onDemonstrationReady(SugiliteStartingBlock script){
         //resume the Sugilite agent activity
-        Intent resumeActivity = new Intent(context, PumiceDialogActivity.class);
-        resumeActivity.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
-        context.startActivityIfNeeded(resumeActivity, 0);
+        Intent resumeActivity;
+        if(context instanceof ScriptDetailActivity) {
+            resumeActivity = new Intent(context, ScriptDetailActivity.class);
+            resumeActivity.putExtra("scriptName", script.getScriptName());
+            resumeActivity.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            resumeActivity.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+            context.startActivity(resumeActivity);
+        }
+        else {
+            resumeActivity = new Intent(context, PumiceDialogActivity.class);
+            resumeActivity.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+            context.startActivityIfNeeded(resumeActivity, 0);
+        }
 
         Toast.makeText(context, "Demonstration Ready!", Toast.LENGTH_SHORT).show();
 

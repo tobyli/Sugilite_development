@@ -21,16 +21,21 @@ import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
+import java.util.concurrent.locks.Condition;
 
 import edu.cmu.hcii.sugilite.automation.ErrorHandler;
 import edu.cmu.hcii.sugilite.communication.SugiliteCommunicationController;
 import edu.cmu.hcii.sugilite.communication.SugiliteEventBroadcastingActivity;
 import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
+import edu.cmu.hcii.sugilite.model.block.SugiliteConditionBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
+import edu.cmu.hcii.sugilite.model.block.booleanexp.SugiliteBooleanExpressionNew;
 import edu.cmu.hcii.sugilite.model.variable.Variable;
 import edu.cmu.hcii.sugilite.ontology.SugiliteRelation;
+import edu.cmu.hcii.sugilite.pumice.dialog.ConditionalPumiceDialogManager;
 import edu.cmu.hcii.sugilite.pumice.dialog.PumiceDialogManager;
+import edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.PumiceConditionalIntentHandler;
 import edu.cmu.hcii.sugilite.pumice.kb.PumiceKnowledgeManager;
 import edu.cmu.hcii.sugilite.recording.RecordingPopUpDialog;
 import edu.cmu.hcii.sugilite.study.ScriptUsageLogManager;
@@ -49,6 +54,9 @@ public class SugiliteData extends Application {
     private SugiliteStartingBlock scriptHead, trackingHead;
     private SugiliteBlock currentScriptBlock, currentTrackingBlock;
     private ScriptUsageLogManager usageLogManager;
+
+    private boolean check1 = true; //if adding conditional, true if checking then block, false if checking else block
+    public boolean last = false; //if adding conditional, true if checking task with condition
 
     //the queue used for execution. the system should be in the execution mode whenever the queue is non-empty
     private Queue<SugiliteBlock> instructionQueue = new ArrayDeque<>();
@@ -171,6 +179,7 @@ public class SugiliteData extends Application {
 
         //set the system state to the execution state
         setCurrentSystemState(state);
+
     }
 
     public void runScript(SugiliteStartingBlock startingBlock, boolean isForResuming, int state){
@@ -197,13 +206,29 @@ public class SugiliteData extends Application {
                     afterExecutionRunnable = null;
                 }
                 setCurrentSystemState(DEFAULT_STATE);
+                if(pumiceDialogManager instanceof ConditionalPumiceDialogManager && ((ConditionalPumiceDialogManager) pumiceDialogManager).addCheck) {
+                    pumiceDialogManager.sendAgentMessage("Were there any problems with the task?",true,true);
+                }
             }
             return;
         }
         if(errorHandler != null) {
             errorHandler.reportSuccess();
         }
-        instructionQueue.add(block);
+        boolean isConditionBlock = block instanceof SugiliteConditionBlock;
+        boolean conditionalTask = pumiceDialogManager instanceof ConditionalPumiceDialogManager && ((ConditionalPumiceDialogManager) pumiceDialogManager).addCheck;
+        if((conditionalTask && isConditionBlock && last) || !isConditionBlock) {
+            System.out.println("next step");
+            instructionQueue.add(block);
+        }
+        else if(check1 && conditionalTask) {
+            instructionQueue.add(((SugiliteConditionBlock) block).getThenBlock());
+            check1 = false;
+        }
+        else {
+            instructionQueue.add(((SugiliteConditionBlock) block).getElseBlock());
+            check1 = true;
+        }
     }
     public void addInstructions(Queue<SugiliteBlock> blocks){
         if(blocks == null)

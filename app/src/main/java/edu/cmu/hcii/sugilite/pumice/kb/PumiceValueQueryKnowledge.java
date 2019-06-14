@@ -14,6 +14,7 @@ import com.google.gson.annotations.Expose;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -86,6 +87,9 @@ public class PumiceValueQueryKnowledge<T> implements Serializable {
             if (! homeScreenPackageNameSet.contains(packageName)){
                 involvedAppPackageNames.add(packageName);
             }
+        }
+        if(sugiliteStartingBlock != null) {
+            involvedAppNames = new ArrayList<>();
         }
         for(String packageName : involvedAppPackageNames){
             //get app name for package name

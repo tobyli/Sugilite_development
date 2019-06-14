@@ -16,19 +16,13 @@ import java.util.Calendar;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import edu.cmu.hcii.sugilite.R;
 import edu.cmu.hcii.sugilite.model.block.booleanexp.SugiliteBooleanExpressionNew;
 import edu.cmu.hcii.sugilite.pumice.communication.PumiceInstructionPacket;
 import edu.cmu.hcii.sugilite.pumice.communication.PumiceSemanticParsingResultPacket;
 import edu.cmu.hcii.sugilite.pumice.dialog.PumiceConditionalInstructionParsingHandler;
 import edu.cmu.hcii.sugilite.pumice.communication.SkipPumiceJSONSerialization;
 import edu.cmu.hcii.sugilite.pumice.dialog.PumiceDialogManager;
-import edu.cmu.hcii.sugilite.pumice.kb.PumiceBooleanExpKnowledge;
-import edu.cmu.hcii.sugilite.source_parsing.SugiliteScriptParser;
 import edu.cmu.hcii.sugilite.ui.ScriptDetailActivity;
-import edu.cmu.hcii.sugilite.model.block.SugiliteConditionBlock;
-import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
-import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.server_comm.SugiliteVerbalInstructionHTTPQueryInterface;
 import edu.cmu.hcii.sugilite.pumice.dialog.ConditionalPumiceDialogManager;
 
@@ -39,17 +33,10 @@ public class PumiceConditionalIntentHandler implements PumiceUtteranceIntentHand
     private ExecutorService es;
     private Calendar calendar;
     private PumiceIntent lastIntent; //store last PumiceIntent
-    private PumiceDialogManager.PumiceUtterance lastUtterance; //store last utterance
     private String check; //store check String given by user
-    private SugiliteBlock newBlock; //store condition block to add to script
-    private int newBlockIndex; //store number of step at which condition block is
-
-    /*private String s; //string to hold "true" or "false" for message to user
-    private boolean moving; //true if currently moving a step around in the script
-    private SugiliteBlock storedBlock;
-    private SugiliteConditionBlock originalBlock;
-    private boolean justAddElse = false; //remember to add else statement to script
-    */
+    private boolean then; //whether or not initial condition given is for then block or else block
+    private String boolExp; //store boolean expression
+    private boolean changeCheck; //whether or not changing check as opposed to creating one for first time
 
     public PumiceConditionalIntentHandler(ConditionalPumiceDialogManager dialogManager, ScriptDetailActivity sourceActivity, PumiceIntent lastIntent){
         this.dialogManager = dialogManager;
@@ -70,62 +57,102 @@ public class PumiceConditionalIntentHandler implements PumiceUtteranceIntentHand
         String text = utterance.getContent().toLowerCase();
         System.out.println("lastIntent: " + lastIntent);
         System.out.println("text: " + text);
-        /*if(lastIntent == PumiceIntent.TELL_ELSE) {
-            return PumiceIntent.ADD_TELL_ELSE;
+        boolean yes = text.contains("yes") || text.contains("yeah") || text.contains("yep") || text.contains("yup");
+        boolean no = text.contains("no") || text.contains("nope") || text.contains("nah");
+        boolean idk = text.contains("don't know") || text.contains("not sure") || text.contains("do not know");
+        if(lastIntent == PumiceIntent.PROBLEM_3 && yes) {
+            changeCheck = true;
+            return PumiceIntent.ADD_CONDITIONAL_N;
         }
-        if((lastIntent == PumiceIntent.ADD_TELL_ELSE || justAddElse) && text.contains("yes")) {
-            return PumiceIntent.SCRIPT_ADD_TELL_ELSE;
+        if(lastIntent == PumiceIntent.CHECK_CONDITION && yes) {
+            return PumiceIntent.PROBLEM_3;
         }
-        if(lastIntent == PumiceIntent.ADD_TELL_IF && text.contains("yes")) {
-            return PumiceIntent.SCRIPT_ADD_TELL_IF;
+        if(lastIntent == PumiceIntent.CHECK_CONDITION && no) {
+            return PumiceIntent.DONE_2;
         }
-        if(text.contains("explain") && lastIntent == PumiceIntent.TELL_IF) {
-            return PumiceIntent.ADD_TELL_IF;
+        if(lastIntent == PumiceIntent.CHECK_CONDITION) {
+            return PumiceIntent.PROBLEM_3_X;
         }
-        if(lastIntent == PumiceIntent.CHECKING_LOC && lastUtterance.getContent().contains("no")) {
-            return PumiceIntent.TELL_IF;
+        if(lastIntent == PumiceIntent.WANT_CHECK_CONDITION && yes) {
+            return PumiceIntent.CHECK_CONDITION;
         }
-        if(lastIntent == PumiceIntent.CHECKING_LOC0 && lastUtterance.getContent().contains("yes")) {
-            return PumiceIntent.CHECKING_LOC;
+        if(lastIntent == PumiceIntent.WANT_CHECK_CONDITION && no) {
+            return PumiceIntent.DONE_2;
         }
-        if((lastIntent == PumiceIntent.FIX_SCRIPT2 && !moving)) {
-            return PumiceIntent.FIX_SCOPE;
+        if(lastIntent == PumiceIntent.WANT_CHECK_CONDITION) {
+            return PumiceIntent.CHECK_CONDITION_X;
         }
-        if(lastIntent == PumiceIntent.FIX_SCRIPT || (moving && text.contains("yes") && lastIntent == PumiceIntent.MOVE_STEP)) {
-            return PumiceIntent.FIX_SCRIPT2;
+        if(lastIntent == PumiceIntent.CHECKING_ELSE && no) {
+            return PumiceIntent.WANT_CHECK_CONDITION;
         }
-        if(lastIntent == PumiceIntent.RUN_THROUGH2 && (utterance.getContent().contains("pause") || utterance.getContent().contains("no"))) {
-            return PumiceIntent.FIX_SCRIPT;
+        if(lastIntent == PumiceIntent.CHECKING_ELSE && yes) {
+            return PumiceIntent.GET_ELSE_BLOCK_Y;
         }
-        if(lastIntent == PumiceIntent.RUN_THROUGH && lastUtterance.getContent().contains("yes")) {
-            return PumiceIntent.RUN_THROUGH2;
+        if(lastIntent == PumiceIntent.CHECKING_ELSE) {
+            return PumiceIntent.PROBLEM_2_X;
         }
-        if(lastIntent == PumiceIntent.ADD_CONDITIONAL_2 && text.contains("yes")) {
-            return PumiceIntent.CHECKING_LOC0;
+        if((lastIntent == PumiceIntent.GET_ELSE_BLOCK_Y || lastIntent == PumiceIntent.CHECKING_ELSE_X) && (yes || idk)) {
+            return PumiceIntent.CHECKING_ELSE;
         }
-        if(text.contains("explain") && lastIntent == PumiceIntent.ADD_ELSE) {
-            return PumiceIntent.TELL_ELSE;
+        if((lastIntent == PumiceIntent.GET_ELSE_BLOCK_Y || lastIntent == PumiceIntent.CHECKING_ELSE_X) && no) {
+            return PumiceIntent.GET_ELSE_BLOCK_Y;
         }
-        if(lastIntent == PumiceIntent.GET_SCOPE) {
-            return PumiceIntent.ADD_ELSE;
+        if(lastIntent == PumiceIntent.GET_ELSE_BLOCK_Y || lastIntent == PumiceIntent.CHECKING_ELSE_X) {
+            return PumiceIntent.CHECKING_ELSE_X;
         }
-        if(lastUtterance != null && lastUtterance.getContent().contains("yes") && lastIntent == PumiceIntent.CHECKING_LOC) {
-            return PumiceIntent.GET_SCOPE;
+        if(((lastIntent == PumiceIntent.WANT_ELSE_BLOCK) || (lastIntent == PumiceIntent.GET_ELSE_BLOCK_X)) && yes) {
+            return PumiceIntent.GET_ELSE_BLOCK_Y;
         }
-        if((text.contains("before") || text.contains("after")) && lastIntent == PumiceIntent.ADD_TO_SCRIPT) {
-            return PumiceIntent.ADD_CONDITIONAL_2;
+        if(((lastIntent == PumiceIntent.WANT_ELSE_BLOCK) || (lastIntent == PumiceIntent.GET_ELSE_BLOCK_X)) && idk) {
+            return PumiceIntent.GET_ELSE_BLOCK_X;
         }
-        if(((text.contains("yes") || text.contains("no")) && (lastIntent == PumiceIntent.SCRIPT_ADD_TELL_IF || lastIntent == PumiceIntent.SCRIPT_ADD_TELL_ELSE)) || (lastIntent == PumiceIntent.ADD_ELSE && lastUtterance.getContent().contains("no"))) {
-            return PumiceIntent.RUN_THROUGH;
+        if(lastIntent == PumiceIntent.WANT_ELSE_BLOCK && no) {
+            return PumiceIntent.DONE_1;
         }
-        if(((text.contains("yes") || text.contains("no")) && (lastIntent == PumiceIntent.ADD_TO_SCRIPT) || (lastIntent == PumiceIntent.MOVE_STEP) && text.contains("yes"))) {
-            return PumiceIntent.CHECKING_LOC0;
+        if((lastIntent == PumiceIntent.GET_THEN_BLOCK || lastIntent == PumiceIntent.PROBLEM_1_X || lastIntent == PumiceIntent.GET_THEN_BLOCK_IDK) && no) {
+            return PumiceIntent.WANT_ELSE_BLOCK;
         }
-        if(lastIntent == PumiceIntent.CHECKING_LOC0 || moving || ((text.contains("no") && lastIntent == PumiceIntent.ADD_CONDITIONAL_2) || ((lastIntent == PumiceIntent.CHECKING_LOC2) && lastUtterance.getContent().contains("no"))) || (lastIntent == PumiceIntent.MOVE_STEP && !lastUtterance.getContent().matches(".*\\d+.*")) || (lastIntent == PumiceIntent.MOVE_STEP && text.contains("no"))) {
-            return PumiceIntent.MOVE_STEP;
-        }*/
-        if((lastIntent == PumiceIntent.CHECKING_LOC_Y || lastIntent == PumiceIntent.GET_THEN_BLOCK_X) && (text.contains("true") || text.contains("false"))) {
+        if((lastIntent == PumiceIntent.SOLUTION_2_Y || lastIntent == PumiceIntent.MOVE_STEP_2_X) && text.matches(".*\\d+.*")) {
+            return PumiceIntent.MOVE_STEP_2;
+        }
+        if(lastIntent == PumiceIntent.SOLUTION_2_Y || lastIntent == PumiceIntent.MOVE_STEP_2_X) {
+            return PumiceIntent.MOVE_STEP_2_X;
+        }
+        if((lastIntent == PumiceIntent.SOLUTION_1_N || lastIntent == PumiceIntent.SOLUTION_2_X) && yes) {
+            return PumiceIntent.SOLUTION_2_Y;
+        }
+        if((lastIntent == PumiceIntent.SOLUTION_1_N || lastIntent == PumiceIntent.SOLUTION_2_X) && (no || idk)) {
+            return PumiceIntent.SOLUTION_2_N;
+        }
+        if(lastIntent == PumiceIntent.SOLUTION_1_N || lastIntent == PumiceIntent.SOLUTION_2_X) {
+            return PumiceIntent.SOLUTION_2_X;
+        }
+        if(lastIntent == PumiceIntent.SOLUTION_1_IDK) {
+            return PumiceIntent.PROBLEM_1;
+        }
+        if((lastIntent == PumiceIntent.PROBLEM_1 || lastIntent == PumiceIntent.SOLUTION_1_X || lastIntent == PumiceIntent.SOLUTION_1_Y || lastIntent == PumiceIntent.SOLUTION_2_N) && idk) {
+            return PumiceIntent.SOLUTION_1_IDK;
+        }
+        if((lastIntent == PumiceIntent.PROBLEM_1 || lastIntent == PumiceIntent.SOLUTION_1_X || lastIntent == PumiceIntent.SOLUTION_1_Y || lastIntent == PumiceIntent.SOLUTION_2_N) && no) {
+            return PumiceIntent.SOLUTION_1_N;
+        }
+        if((lastIntent == PumiceIntent.PROBLEM_1 || lastIntent == PumiceIntent.SOLUTION_1_X || lastIntent == PumiceIntent.SOLUTION_1_Y || lastIntent == PumiceIntent.SOLUTION_2_N) && yes) {
+            return PumiceIntent.SOLUTION_1_Y;
+        }
+        if(lastIntent == PumiceIntent.PROBLEM_1 || lastIntent == PumiceIntent.SOLUTION_1_X || lastIntent == PumiceIntent.SOLUTION_1_Y || lastIntent == PumiceIntent.SOLUTION_2_N) {
+            return PumiceIntent.SOLUTION_1_X;
+        }
+        if((lastIntent == PumiceIntent.GET_THEN_BLOCK || lastIntent == PumiceIntent.PROBLEM_1_X) && yes) {
+            return PumiceIntent.PROBLEM_1;
+        }
+        if(lastIntent == PumiceIntent.GET_THEN_BLOCK) {
+            return PumiceIntent.PROBLEM_1_X;
+        }
+        if((lastIntent == PumiceIntent.CHECKING_LOC_Y || lastIntent == PumiceIntent.CHECKING_LOC_IDK || lastIntent == PumiceIntent.GET_THEN_BLOCK_X) && (text.contains("true") || text.contains("false"))) {
             return PumiceIntent.GET_THEN_BLOCK;
+        }
+        if((lastIntent == PumiceIntent.CHECKING_LOC_Y || lastIntent == PumiceIntent.CHECKING_LOC_IDK || lastIntent == PumiceIntent.GET_THEN_BLOCK_X || lastIntent == PumiceIntent.GET_THEN_BLOCK_IDK) && idk) {
+            return PumiceIntent.GET_THEN_BLOCK_IDK;
         }
         if(lastIntent == PumiceIntent.CHECKING_LOC_Y) {
             return PumiceIntent.GET_THEN_BLOCK_X;
@@ -136,35 +163,38 @@ public class PumiceConditionalIntentHandler implements PumiceUtteranceIntentHand
         if(lastIntent == PumiceIntent.CHECKING_LOC_N) {
             return PumiceIntent.MOVE_STEP_X;
         }
-        if((lastIntent == PumiceIntent.ADD_TO_SCRIPT_Y || lastIntent == PumiceIntent.CHECKING_LOC_X || lastIntent == PumiceIntent.MOVE_STEP) && (text.contains("yes") || text.contains("yeah") || text.contains("yep") || text.contains("yup"))) {
-            return PumiceIntent.CHECKING_LOC_Y;
+        if((lastIntent == PumiceIntent.ADD_TO_SCRIPT_Y || lastIntent == PumiceIntent.CHECKING_LOC_X || lastIntent == PumiceIntent.MOVE_STEP || lastIntent == PumiceIntent.CHECKING_LOC_IDK) && idk) {
+            return PumiceIntent.CHECKING_LOC_IDK;
         }
-        if((lastIntent == PumiceIntent.ADD_TO_SCRIPT_Y || lastIntent == PumiceIntent.CHECKING_LOC_X || lastIntent == PumiceIntent.MOVE_STEP) && !text.contains("don't know") && (text.contains("no") || text.contains("nope") || text.contains("nah"))) {
+        if((lastIntent == PumiceIntent.ADD_TO_SCRIPT_Y || lastIntent == PumiceIntent.CHECKING_LOC_X || lastIntent == PumiceIntent.MOVE_STEP) && no) {
             return PumiceIntent.CHECKING_LOC_N;
+        }
+        if((lastIntent == PumiceIntent.ADD_TO_SCRIPT_Y || lastIntent == PumiceIntent.CHECKING_LOC_X || lastIntent == PumiceIntent.MOVE_STEP) && yes) {
+            return PumiceIntent.CHECKING_LOC_Y;
         }
         if((lastIntent == PumiceIntent.ADD_TO_SCRIPT_Y || lastIntent == PumiceIntent.CHECKING_LOC_X)) {
             return PumiceIntent.CHECKING_LOC_X;
         }
-        if(lastIntent == PumiceIntent.ADD_CONDITIONAL_Y && (text.contains("yes") || text.contains("yeah") || text.contains("yep") || text.contains("yup"))) {
-            return PumiceIntent.ADD_TO_SCRIPT_Y;
-        }
-        if((lastIntent == PumiceIntent.ADD_CONDITIONAL_Y || lastIntent == PumiceIntent.ADD_CONDITIONAL_X) && (text.contains("no") || text.contains("nope") || text.contains("nah"))) {
+        if((lastIntent == PumiceIntent.ADD_CONDITIONAL_Y || lastIntent == PumiceIntent.ADD_CONDITIONAL_X) && no) {
             return PumiceIntent.ADD_TO_SCRIPT_N;
+        }
+        if(lastIntent == PumiceIntent.ADD_CONDITIONAL_Y && yes) {
+            return PumiceIntent.ADD_TO_SCRIPT_Y;
         }
         if(lastIntent == PumiceIntent.ADD_CONDITIONAL_Y) {
             return PumiceIntent.ADD_TO_SCRIPT_X;
         }
-        if((lastIntent == PumiceIntent.ADD_CONDITIONAL0 || lastIntent == PumiceIntent.ADD_CONDITIONAL_X) && (text.contains("yes") || text.contains("yeah") || text.contains("yep") || text.contains("yup"))) {
-            return PumiceIntent.ADD_CONDITIONAL_Y;
-        }
-        if((lastIntent == PumiceIntent.ADD_CONDITIONAL0 || lastIntent == PumiceIntent.ADD_CONDITIONAL_X) && (text.contains("no") || text.contains("nope") || text.contains("nah"))) {
+        if((lastIntent == PumiceIntent.ADD_CONDITIONAL_0 || lastIntent == PumiceIntent.ADD_CONDITIONAL_X) && no) {
             return PumiceIntent.ADD_CONDITIONAL_N;
         }
-        if(lastIntent == PumiceIntent.ADD_CONDITIONAL0 || lastIntent == PumiceIntent.ADD_CONDITIONAL_X) {
+        if((lastIntent == PumiceIntent.ADD_CONDITIONAL_0 || lastIntent == PumiceIntent.ADD_CONDITIONAL_X) && yes) {
+            return PumiceIntent.ADD_CONDITIONAL_Y;
+        }
+        if(lastIntent == PumiceIntent.ADD_CONDITIONAL_0 || lastIntent == PumiceIntent.ADD_CONDITIONAL_X) {
             return PumiceIntent.ADD_CONDITIONAL_X;
         }
         if(lastIntent == null || lastIntent == PumiceIntent.ADD_CONDITIONAL_N || lastIntent == PumiceIntent.ADD_TO_SCRIPT_N) {
-            return PumiceIntent.ADD_CONDITIONAL0;
+            return PumiceIntent.ADD_CONDITIONAL_0;
         }
         else {
             return PumiceIntent.USER_INIT_INSTRUCTION;
@@ -174,298 +204,238 @@ public class PumiceConditionalIntentHandler implements PumiceUtteranceIntentHand
     @Override
     public void handleIntentWithUtterance(PumiceDialogManager dialogManager, PumiceIntent pumiceIntent, PumiceDialogManager.PumiceUtterance utterance) {
         switch(pumiceIntent) {
-            /*case FIX_SCOPE:
-                lastIntent = PumiceIntent.FIX_SCOPE;
-                lastUtterance = utterance;
-                sourceActivity.fixScope(utterance.getContent(),s);
-                if(s.equals("true")) {
-                    originalBlock.setElseBlock(storedBlock);
-                }
-                else {
-                    originalBlock.setThenBlock(storedBlock);
-                }
-                sourceActivity.loadOperationList();
+            case DONE_2:
+                ((ConditionalPumiceDialogManager) dialogManager).addCheck = false;
+                lastIntent = PumiceIntent.DONE_2;
+                ((ConditionalPumiceDialogManager) dialogManager).endTestRun();
+                ((ConditionalPumiceDialogManager) dialogManager).endInteraction();
+                sourceActivity.addSnackbar("Ok great, you're all set.");
+                dialogManager.sendAgentMessage("Ok great, you're all set.",true,false);
                 break;
-            case FIX_SCRIPT2:
-                lastIntent = PumiceIntent.FIX_SCRIPT2;
-                lastUtterance = utterance;
-                if((utterance.getContent().contains(s) || utterance.getContent().contains("step"))) {
-                    moving = false;
-                    if(s.equals("true")) {
-                        storedBlock = ((ConditionalPumiceDialogManager) dialogManager).getConditionBlock().getThenBlock();
-                        originalBlock.setElseBlock(null);
-                    }
-                    else {
-                        storedBlock = ((ConditionalPumiceDialogManager) dialogManager).getConditionBlock().getElseBlock();
-                        originalBlock.setThenBlock(null);
-                    }
-                    sourceActivity.loadOperationList();
-                    dialogManager.sendAgentMessage("Ok, please tell me the last step shown that should happen only if the check is " + s, true, true);
-                }
-                /else if(utterance.getContent().contains("happens") || utterance.getContent().contains("true") || utterance.getContent().contains("false")) {
-                    if(s.equals("true") && ((SugiliteConditionBlock) dialogManager.tResult).getIfBlock().getNextBlockCond() == null) {
-                        dialogManager.sendAgentMessage("Ok, please tell me what I should actually do if " + dialogManager.check + "is true.", true, true);
-                    }
-                    else if(s.equals("false") && ((SugiliteConditionBlock) dialogManager.tResult).getElseBlock().getNextBlockCond() == null) {
-                        dialogManager.sendAgentMessage("Ok, please tell me what I should actually do if " + dialogManager.check + "is false.", true, true);
-                    }
-                    else {
-                        dialogManager.sendAgentMessage("Ok, please tell me which step went wrong.", true, true);
-                    }
-                }
-                else {
-                    moving = true;
-                    dialogManager.sendAgentMessage("Ok, please tell me after what step the check should happen.", true, true);
-                }
+            case CHANGE_CHECK:
+                lastIntent = PumiceIntent.CHANGE_CHECK;
+                ((ConditionalPumiceDialogManager) dialogManager).changeCheck();
                 break;
-            case RUN_THROUGH2:
-                lastIntent = PumiceIntent.RUN_THROUGH2;
-                lastUtterance = utterance;
-                SugiliteData sugiliteData2 = sourceActivity.getSugiliteData();
-                sugiliteData2.testRun = true;
-                if(utterance.getContent().contains("true")) {
-                    sugiliteData2.testing = true;
-                }
-                sourceActivity.testRun();
+            case PROBLEM_3:
+                lastIntent = PumiceIntent.PROBLEM_3;
+                ((ConditionalPumiceDialogManager) dialogManager).endTestRun();
+                boolExp = ((PumiceConditionalInstructionParsingHandler) dialogManager.getPumiceInitInstructionParsingHandler()).getBoolExp().getReadableDescription();
+                sourceActivity.addSnackbar("I understand there is a problem with the check. Would you like to change what you are checking?");
+                dialogManager.sendAgentMessage("I understand there is a problem with the check. Would you like to change what you are checking?",true,true);
                 break;
-            case FIX_SCRIPT:
-                lastIntent = PumiceIntent.FIX_SCRIPT;
-                s = "false";
-                if(lastUtterance.getContent().contains("true")) {
-                    s = "true";
-                }
-                lastUtterance = utterance;
-		
-                //SugiliteData sugiliteData = ((ScriptDetailActivity) dialogManager.context).getSugiliteData();
-                //sugiliteData.statusIconManager.pauseTestRun(((ScriptDetailActivity) dialogManager.context));
-                //dialogManager.sendAgentMessage("I understand there is a problem. Is there a problem with when the check happens or with what happens when the check is " + s + "?", true, true);
-                SugiliteData sugiliteData = sourceActivity.getSugiliteData();
-                //sugiliteData.statusIconManager.pauseTestRun(sourceActivity);
-                dialogManager.sendAgentMessage("I understand there is a problem. Is there a problem with when the check happens or with what happens when the check is" + s + "?", true, true);
+            case PROBLEM_3_X:
+                lastIntent = PumiceIntent.PROBLEM_3_X;
+                ((ConditionalPumiceDialogManager) dialogManager).endTestRun();
+                sourceActivity.addSnackbar("I’m sorry, I didn’t understand what you said. Please say 'yes' if there was a problem with the task or 'no' if there was no problem with the task.");
+                dialogManager.sendAgentMessage("I’m sorry, I didn’t understand what you said. Please say 'yes' if there was a problem with the task or 'no' if there was no problem with the task.",true,true);
                 break;
-            case SCRIPT_ADD_TELL_ELSE:
-                justAddElse = false;
-                lastIntent = PumiceIntent.SCRIPT_ADD_TELL_ELSE;
-                lastUtterance = utterance;
-                SugiliteBlock block = (((ConditionalPumiceDialogManager) dialogManager).getTResult()).getThenBlock();
-                ((ConditionalPumiceDialogManager) dialogManager).getConditionBlock().setElseBlock(block);
-                block.setPreviousBlock(null);
-                block.setParentBlock(((ConditionalPumiceDialogManager) dialogManager).getConditionBlock());
-                block.setNextBlock(null);
-                sourceActivity.loadOperationList();
-                dialogManager.sendAgentMessage("Would you like to run through the task to make sure the check works correctly?", true, true);
-                ((ConditionalPumiceDialogManager) dialogManager).setAddElse(false);
+            case CHECK_CONDITION:
+                lastIntent = PumiceIntent.CHECK_CONDITION;
+                sourceActivity.addSnackbar("Ok, let’s run through the task to make sure the steps happen correctly for the current situation. Let me know if anything goes wrong by saying 'pause.'");
+                dialogManager.sendAgentMessage("Ok, let’s run through the task to make sure the steps happen correctly for the current situation. Let me know if anything goes wrong by saying 'pause.'",true,true);
+                ((ConditionalPumiceDialogManager) dialogManager).testRun(true);
                 break;
-            case ADD_TELL_ELSE:
-                lastIntent = PumiceIntent.ADD_TELL_ELSE;
-                justAddElse = true;
-                lastUtterance = utterance;
-                ((ConditionalPumiceDialogManager) dialogManager).setAddElse(true);
-                ((ConditionalPumiceDialogManager) dialogManager).setConditionBlock(((ConditionalPumiceDialogManager) dialogManager).getTResult());
-                PumiceInstructionPacket pumiceInstructionPacket4 = new PumiceInstructionPacket(dialogManager.getPumiceKnowledgeManager(), PumiceIntent.BOOL_EXP_INSTRUCTION, calendar.getTimeInMillis(), utterance.getContent(), "");//"if it is hot" +
-                dialogManager.sendAgentMessage("Let's make sure I understood what you said...", true, false);
-                dialogManager.sendAgentMessage(pumiceInstructionPacket4.toString(), false, false);
-                try {
-                    dialogManager.getHttpQueryManager().sendPumiceInstructionPacketOnASeparateThread(pumiceInstructionPacket4, this);
-                } catch (Exception e){
-                    e.printStackTrace();
-                }
-                System.out.println(pumiceInstructionPacket4.toString());
+            case CHECK_CONDITION_X:
+                lastIntent = PumiceIntent.CHECK_CONDITION_X;
+                sourceActivity.addSnackbar("I’m sorry, I didn’t understand what you said. Please say 'yes' if you would like to run through the task for the current situation or 'no' if you would not like to run through the task for the current situation.");
+                dialogManager.sendAgentMessage("I’m sorry, I didn’t understand what you said. Please say 'yes' if you would like to run through the task for the current situation or 'no' if you would not like to run through the task for the current situation.",true,true);
                 break;
-            case TELL_ELSE:
-                lastIntent = PumiceIntent.TELL_ELSE;
-                lastUtterance = utterance;
-                dialogManager.sendAgentMessage("Ok, what should I do if" + ((ConditionalPumiceDialogManager) dialogManager).getCheck() + "is false?",true,true);
+            case WANT_CHECK_CONDITION:
+                lastIntent = PumiceIntent.WANT_CHECK_CONDITION;
+                ((ConditionalPumiceDialogManager) dialogManager).endTestRun();
+                sourceActivity.addSnackbar("Ok great, would you like to run through the task to test the check for the current situation?");
+                dialogManager.sendAgentMessage("Ok great, would you like to run through the task to test the check for the current situation?",true,true);
                 break;
-            case ADD_ELSE:
-                lastIntent = PumiceIntent.ADD_ELSE;
-                lastUtterance = utterance;
-                if(utterance.getContent().contains("yes")) {
-                    dialogManager.sendAgentMessage("Ok, I need you to tell me what to do if" + ((ConditionalPumiceDialogManager) dialogManager).getCheck() + "is false. Would you like to explain or demonstrate what to do?", true, true);
-                }
-                else {
-                    dialogManager.sendAgentMessage("Ok, would you like to run through the task to make sure the check and steps happen correctly?", true, true);
-                }
+            case PROBLEM_2_X:
+                lastIntent = PumiceIntent.PROBLEM_2_X;
+                ((ConditionalPumiceDialogManager) dialogManager).endTestRun();
+                sourceActivity.addSnackbar("I’m sorry, I didn’t understand what you said. Please say 'yes' if there was a problem with the task or 'no' if there was no problem with the task.");
+                dialogManager.sendAgentMessage("I’m sorry, I didn’t understand what you said. Please say 'yes' if there was a problem with the task or 'no' if there was no problem with the task.",true,true);
                 break;
-            case GET_SCOPE:
-                lastIntent = PumiceIntent.GET_SCOPE;
-                lastUtterance = utterance;
-                sourceActivity.getScope(utterance.getContent());
-                dialogManager.sendAgentMessage("Ok, would you like to do something if " + ((ConditionalPumiceDialogManager) dialogManager).getCheck() + "is false?",true,true);
+            case CHECKING_ELSE:
+                lastIntent = PumiceIntent.CHECKING_ELSE;
+                then = ((ConditionalPumiceDialogManager) dialogManager).getIsThen();
+                boolExp = ((PumiceConditionalInstructionParsingHandler) dialogManager.getPumiceInitInstructionParsingHandler()).getBoolExp().getReadableDescription();
+                sourceActivity.addSnackbar("Ok, let’s run through the task to make sure the steps happen correctly when " + boolExp + " is " + !then + ". Let me know if anything goes wrong by saying 'pause.'");
+                dialogManager.sendAgentMessage("Ok, let’s run through the task to make sure the steps happen correctly when " + boolExp + " is " + !then + ". Let me know if anything goes wrong by saying 'pause.'",true,true);
+                ((ConditionalPumiceDialogManager) dialogManager).testRun(false);
                 break;
-            case ADD_CONDITIONAL_2:
-                lastIntent = PumiceIntent.ADD_CONDITIONAL_2;
-                lastUtterance = utterance;
-                boolean after = false;
-                if(utterance.getContent().contains("after")) {
-                    after = true;
-                }
-                sourceActivity.determineConditionalLoc2(after);
+            case CHECKING_ELSE_X:
+                lastIntent = PumiceIntent.CHECKING_ELSE_X;
+                then = ((ConditionalPumiceDialogManager) dialogManager).getIsThen();
+                boolExp = ((PumiceConditionalInstructionParsingHandler) dialogManager.getPumiceInitInstructionParsingHandler()).getBoolExp().getReadableDescription();
+                sourceActivity.addSnackbar("I’m sorry, I didn’t understand what you said. Please say 'yes' if the steps that happen when " + boolExp + " is " + !then + " seem correct or 'no' if the steps that happen when " + boolExp + " is " + !then + " do not seem correct.");
+                dialogManager.sendAgentMessage("I’m sorry, I didn’t understand what you said. Please say 'yes' if it looks like the check happens at the right time or 'no' if it does not.", true, true);
                 break;
-            case CHECKING_LOC0:
-                lastIntent = PumiceIntent.CHECKING_LOC0;
-                lastUtterance = utterance;
-                originalBlock = (((ConditionalPumiceDialogManager) dialogManager).getTResult());
-                if(utterance.getContent().contains("yes")) {
-                    dialogManager.sendAgentMessage("Ok, are the steps that you want to happen if the check is true already part of the script?", true, true);
-                }
-                else {
-                    dialogManager.sendAgentMessage("Ok, after which step should I perform the check?",true,true);
-                }
+            case DONE_1:
+                ((ConditionalPumiceDialogManager) dialogManager).addCheck = false;
+                lastIntent = PumiceIntent.DONE_1;
+                ((ConditionalPumiceDialogManager) dialogManager).endInteraction();
+                sourceActivity.addSnackbar("Ok great, you're all set.");
+                dialogManager.sendAgentMessage("Ok great, you're all set.",true,false);
                 break;
-            case CHECKING_LOC:
-                lastIntent = PumiceIntent.CHECKING_LOC;
-                lastUtterance = utterance;
-                if(utterance.getContent().contains("yes")) {
-                    dialogManager.sendAgentMessage("Ok, please tell me the last step that should happen only if" + ((ConditionalPumiceDialogManager) dialogManager).getCheck() + "is true.", true,true);
-                }
-                else {
-                    dialogManager.sendAgentMessage("Ok, I need you to tell me what to do if" + ((ConditionalPumiceDialogManager) dialogManager).getCheck() + "is true. Would you like to explain or demonstrate what to do?", true, true);
-                }
+            case GET_ELSE_BLOCK_Y:
+                lastIntent = PumiceIntent.GET_ELSE_BLOCK_Y;
+                sourceActivity.addSnackbar("Ok, I need you to tell me what to do when " + boolExp + " is " + !then + ". You can explain, or say 'demonstrate' to demonstrate.");
+                dialogManager.sendAgentMessage("Ok, I need you to tell me what to do when " + boolExp + " is " + !then + ". You can explain, or say 'demonstrate' to demonstrate.",true,true);
+                dialogManager.updateUtteranceIntentHandlerInANewState(new PumiceUserExplainElseStatementIntentHandler(dialogManager,sourceActivity,((ConditionalPumiceDialogManager) dialogManager).getNewBlock(),((PumiceConditionalInstructionParsingHandler) dialogManager.getPumiceInitInstructionParsingHandler()).getBoolExp().getReadableDescription()));
                 break;
-            case TELL_IF:
-                lastIntent = PumiceIntent.TELL_IF;
-                lastUtterance = utterance;
-                dialogManager.sendAgentMessage("Ok, what should I do if" + ((ConditionalPumiceDialogManager) dialogManager).getCheck() + "is true?",true,true);
+            case GET_ELSE_BLOCK_X:
+                lastIntent = PumiceIntent.GET_ELSE_BLOCK_X;
+                sourceActivity.addSnackbar("I’m sorry, I didn’t understand what you said. Please say 'yes' if you would like to do something when " + boolExp + " is false or 'no' if you do not want to do something when " + boolExp + " is false.");
+                dialogManager.sendAgentMessage("I’m sorry, I didn’t understand what you said. Please say 'yes' if you would like to do something when " + boolExp + " is false or 'no' if you do not want to do something when " + boolExp + " is false.",true,true);
                 break;
-            case ADD_TELL_IF:
-                lastIntent = PumiceIntent.ADD_TELL_IF;
-                lastUtterance = utterance;
-                ((ConditionalPumiceDialogManager) dialogManager).setAddElse(true);
-                ((ConditionalPumiceDialogManager) dialogManager).setConditionBlock(((ConditionalPumiceDialogManager) dialogManager).getTResult());
-                //PumiceInstructionPacket pumiceInstructionPacket5 = new PumiceInstructionPacket(dialogManager.getPumiceKnowledgeManager(), PumiceIntent.USER_INIT_INSTRUCTION, calendar.getTimeInMillis(), "if it is hot" + utterance.getContent(), "ROOT");
-                PumiceInstructionPacket pumiceInstructionPacket5 = new PumiceInstructionPacket(dialogManager.getPumiceKnowledgeManager(), PumiceIntent.BOOL_EXP_INSTRUCTION, calendar.getTimeInMillis(), utterance.getContent(), "");//"if it is hot" +
-                    dialogManager.sendAgentMessage("Let's make sure I understood what you said...", true, false);
-                dialogManager.sendAgentMessage(pumiceInstructionPacket5.toString(), false, false);
-                try {
-                    dialogManager.getHttpQueryManager().sendPumiceInstructionPacketOnASeparateThread(pumiceInstructionPacket5, this);
-                } catch (Exception e){
-                    e.printStackTrace();
-                }
-                System.out.println(pumiceInstructionPacket5.toString());
+            case MOVE_STEP_2:
+                lastIntent = PumiceIntent.MOVE_STEP_2;
+                ((ConditionalPumiceDialogManager) dialogManager).moveStep(utterance.getContent());
+                sourceActivity.addSnackbar("Ok, does it look like the check happens at the right time?");
+                dialogManager.sendAgentMessage("Ok, does it look like the check happens at the right time?",true,true);
                 break;
-            case SCRIPT_ADD_TELL_IF:
-                lastIntent = PumiceIntent.SCRIPT_ADD_TELL_IF;
-                lastUtterance = utterance;
-                SugiliteBlock block2 = ((ConditionalPumiceDialogManager) dialogManager).getTResult().getThenBlock();
-                ((ConditionalPumiceDialogManager) dialogManager).getConditionBlock().setThenBlock(block2);
-                block2.setPreviousBlock(null);
-                block2.setParentBlock(((ConditionalPumiceDialogManager) dialogManager).getConditionBlock());
-                block2.setNextBlock(null);
-                sourceActivity.loadOperationList();
-                dialogManager.sendAgentMessage("Would you like to run through the task to make sure the check works correctly?", true, true);
-                ((ConditionalPumiceDialogManager) dialogManager).setAddElse(false);
+            case MOVE_STEP_2_X:
+                lastIntent = PumiceIntent.MOVE_STEP_2_X;
+                sourceActivity.addSnackbar("Please say the number of the step after which the check should happen.");
+                dialogManager.sendAgentMessage("Please say the number of the step after which the check should happen.",true,true);
                 break;
-            case RUN_THROUGH:
-                lastIntent = PumiceIntent.RUN_THROUGH;
-                lastUtterance = utterance;
-                if(utterance.getContent().contains("yes")) {
-                    dialogManager.sendAgentMessage("Ok, would you like to test when the check is true or when it's false?",true,true);
-                }
-                else {
-                    dialogManager.sendAgentMessage("Ok, you're all set.",true,false);
-                    ((ScriptDetailActivity) dialogManager.getContext()).getRidOfScope();
-                }
+            case SOLUTION_2_N:
+                lastIntent = PumiceIntent.SOLUTION_2_N;
+                sourceActivity.addSnackbar("Ok, let’s run through the task again so you can see if the problem has to do with what happens when " + boolExp + " is " + then + " or with when the check happens.");
+                dialogManager.sendAgentMessage("Ok, let’s run through the task again so you can see if the problem has to do with what happens when " + boolExp + " is " + then + " or with when the check happens.",true,true);
+                ((ConditionalPumiceDialogManager) dialogManager).testRun(false);
                 break;
-            case MOVE_STEP:
-                lastIntent = PumiceIntent.MOVE_STEP;
-                lastUtterance = utterance;
-                if(!utterance.getContent().matches(".*\\d+.*")) {//need to account for if say number that isn't step so check if says "step" or just a number should mean step # was given.
-                    dialogManager.sendAgentMessage("Please say the number of the step after which the check should happen.",true,true);
-                }
-                else {
-                    sourceActivity.moveStep(utterance.getContent());
-                    dialogManager.sendAgentMessage("Ok, does it look like the check happens at the right time?",true,true);
-                }
-                break;*/
+            case SOLUTION_2_X:
+                lastIntent = PumiceIntent.SOLUTION_2_X;
+                sourceActivity.addSnackbar("I’m sorry, I didn’t understand what you said. Please say 'yes' if the check happens at the wrong time or 'no' if the check happens at the right time.");
+                dialogManager.sendAgentMessage("I’m sorry, I didn’t understand what you said. Please say 'yes' if the check happens at the wrong time or 'no' if the check happens at the right time.",true,true);
+                break;
+            case SOLUTION_2_Y:
+                lastIntent = PumiceIntent.SOLUTION_2_Y;
+                sourceActivity.addSnackbar("Ok, after which step should I perform the check?");
+                dialogManager.sendAgentMessage("Ok, after which step should I perform the check?",true,true);
+                break;
+            case SOLUTION_1_IDK:
+                lastIntent = PumiceIntent.SOLUTION_1_IDK;
+                sourceActivity.addSnackbar("Ok, let’s run through the task again so you can see if what happens when " + boolExp + " is " + then + " should actually happen when " + boolExp + " is " + !then + " instead.");
+                dialogManager.sendAgentMessage("Ok, let’s run through the task again so you can see if what happens when " + boolExp + " is " + then + " should actually happen when " + boolExp + " is " + !then + " instead.",true,true);
+                ((ConditionalPumiceDialogManager) dialogManager).testRun(false);
+                break;
+            case SOLUTION_1_X:
+                lastIntent = PumiceIntent.SOLUTION_1_X;
+                sourceActivity.addSnackbar("I’m sorry, I didn’t understand what you said. Please say 'yes' if what happened when" + boolExp + " was" + then + " should have happened when" + boolExp + " was " + !then + " instead or 'no' if not.");
+                dialogManager.sendAgentMessage("I’m sorry, I didn’t understand what you said. Please say 'yes' if what happened when" + boolExp + " was" + then + " should have happened when" + boolExp + " was " + !then + " instead or 'no' if not.",true,true);
+                break;
+            case SOLUTION_1_N:
+                lastIntent = PumiceIntent.SOLUTION_1_N;
+                sourceActivity.addSnackbar("Ok, does the check happen at the wrong time?");
+                dialogManager.sendAgentMessage("Ok, does the check happen at the wrong time?",true,true);
+                break;
+            case SOLUTION_1_Y:
+                lastIntent = PumiceIntent.SOLUTION_1_Y;
+                ((ConditionalPumiceDialogManager) dialogManager).switchThenElse();
+                sourceActivity.addSnackbar("Ok, I've switched what happens when " + boolExp + " is " + then + " and when " + boolExp + " is " + !then + ". Let's run through the task to make sure the check happens correctly. Let me know if anything goes wrong by saying 'pause.'");
+                dialogManager.sendAgentMessage("Ok, I've switched what happens when " + boolExp + " is " + then + " and when " + boolExp + " is " + !then + ". Let's run through the task to make sure the check happens correctly. Let me know if anything goes wrong by saying 'pause.'",true,true);
+                ((ConditionalPumiceDialogManager) dialogManager).testRun(false);
+                break;
+            case PROBLEM_1:
+                lastIntent = PumiceIntent.PROBLEM_1;
+                ((ConditionalPumiceDialogManager) dialogManager).endTestRun();
+                boolExp = ((PumiceConditionalInstructionParsingHandler) dialogManager.getPumiceInitInstructionParsingHandler()).getBoolExp().getReadableDescription();
+                sourceActivity.addSnackbar("I understand there is a problem. Should what happened when " + boolExp + " was " + then + " have happened when " + boolExp + " was " + !then + " instead?");
+                dialogManager.sendAgentMessage("I understand there is a problem. Should what happened when " + boolExp + " was " + then + " have happened when " + boolExp + " was " + !then + " instead?",true,true);
+                break;
+            case PROBLEM_1_X:
+                lastIntent = PumiceIntent.PROBLEM_1_X;
+                sourceActivity.addSnackbar("I’m sorry, I didn’t understand what you said. Please say 'yes' if there was a problem with the task or 'no' if there was no problem with the task.");
+                dialogManager.sendAgentMessage("I’m sorry, I didn’t understand what you said. Please say 'yes' if there was a problem with the task or 'no' if there was no problem with the task.",true,true);
+                break;
+            case WANT_ELSE_BLOCK:
+                lastIntent = PumiceIntent.WANT_ELSE_BLOCK;
+                boolExp = ((PumiceConditionalInstructionParsingHandler) dialogManager.getPumiceInitInstructionParsingHandler()).getBoolExp().getReadableDescription();
+                ((ConditionalPumiceDialogManager) dialogManager).endTestRun();
+                sourceActivity.addSnackbar("Ok, would you like to do something when " + boolExp + " is " + !then + "?");
+                dialogManager.sendAgentMessage("Ok, would you like to do something when " + boolExp + " is " + !then + "?",true,true);
+                break;
             case GET_THEN_BLOCK:
                 lastIntent = PumiceIntent.GET_THEN_BLOCK;
-                lastUtterance = utterance;
-                boolean then = false;
+                then = false;
                 if(utterance.getContent().contains("true")) {
                     then = true;
                 }
                 ((ConditionalPumiceDialogManager) dialogManager).chooseThenBlock(then);
-                sourceActivity.addSnackbar("Ok, let’s run through the task to make sure the check happens correctly. Let me know if anything goes wrong by saying 'pause.'");
+                sourceActivity.addSnackbar("Ok, let's run through the task to make sure the check happens correctly. Let me know if anything goes wrong by saying 'pause.'");
                 dialogManager.sendAgentMessage("Ok, let’s run through the task to make sure the check happens correctly. Let me know if anything goes wrong by saying 'pause.'",true,true);
+                ((ConditionalPumiceDialogManager) dialogManager).testRun(false);
                 break;
             case GET_THEN_BLOCK_X:
                 lastIntent = PumiceIntent.GET_THEN_BLOCK_X;
-                int stepNum = ((ConditionalPumiceDialogManager) dialogManager).getNewBlockIndex()+1;
-                SugiliteBooleanExpressionNew boolExp2 = ((PumiceConditionalInstructionParsingHandler) dialogManager.getPumiceInitInstructionParsingHandler()).getBoolExp();
-                lastUtterance = utterance;sourceActivity.addSnackbar("I’m sorry, I didn’t understand what you said. Please say 'true' if you want step " + stepNum + " to happen when the check is true or 'false' if you want step " + stepNum + " to happen when the check is false.");
-                dialogManager.sendAgentMessage("I’m sorry, I didn’t understand what you said. Please say 'true' if you want step " + stepNum + " to happen when the check is true or 'false' if you want step " + stepNum + " to happen when the check is false.",true,true);
+                int stepNum1 = ((ConditionalPumiceDialogManager) dialogManager).getNewBlockIndex()+1;
+                sourceActivity.addSnackbar("I’m sorry, I didn’t understand what you said. Please say 'true' if you want step " + stepNum1 + " to happen when " + boolExp + " is true or 'false' if you want step " + stepNum1 + " to happen when " + boolExp + " is false.");
+                dialogManager.sendAgentMessage("I’m sorry, I didn’t understand what you said. Please say 'true' if you want step " + stepNum1 + "to happen when " + boolExp + " is true or 'false' if you want step " + stepNum1 + " to happen when " + boolExp + " is false.",true,true);
+                break;
+            case GET_THEN_BLOCK_IDK:
+                lastIntent = PumiceIntent.GET_THEN_BLOCK_IDK;
+                ((ConditionalPumiceDialogManager) dialogManager).chooseThenBlock(true);
+                int stepNum4 = ((ConditionalPumiceDialogManager) dialogManager).getNewBlockIndex()+1;
+                sourceActivity.addSnackbar("That's ok, we'll figure it out. For now, I will assume that you want step " + stepNum4 + " to happen when " + boolExp + " is true.");
+                dialogManager.sendAgentMessage("That's ok, we'll figure it out. For now, I will assume that you want step " + stepNum4 + " to happen when " + boolExp + " is true.",true,true);
                 break;
             case MOVE_STEP:
                 lastIntent = PumiceIntent.MOVE_STEP;
-                lastUtterance = utterance;
                 ((ConditionalPumiceDialogManager) dialogManager).moveStep(utterance.getContent());
                 sourceActivity.addSnackbar("Ok, does it look like the check happens at the right time?");
                 dialogManager.sendAgentMessage("Ok, does it look like the check happens at the right time?",true,true);
                 break;
             case MOVE_STEP_X:
                 lastIntent = PumiceIntent.MOVE_STEP_X;
-                lastUtterance = utterance;
                 sourceActivity.addSnackbar("Please say the number of the step after which the check should happen.");
                 dialogManager.sendAgentMessage("Please say the number of the step after which the check should happen.",true,true);
                 break;
+            case CHECKING_LOC_IDK:
+                lastIntent = PumiceIntent.CHECKING_LOC_IDK;
+                int stepNum3 = ((ConditionalPumiceDialogManager) dialogManager).getNewBlockIndex()+1;
+                boolExp = ((PumiceConditionalInstructionParsingHandler) dialogManager.getPumiceInitInstructionParsingHandler()).getBoolExp().getReadableDescription();
+                sourceActivity.addSnackbar("That's ok, we'll figure it out. For now, I will assume that the check happens at the right time. Do you think you want step " + stepNum3 + "to happen when " + boolExp + " is true or when " + boolExp + " is false?");
+                dialogManager.sendAgentMessage("That's ok, we'll figure it out. For now, I will assume that the check happens at the right time. Do you think you want step " + stepNum3 + "to happen when " + boolExp + " is true or when " + boolExp + " is false?",true,true);
+                break;
             case CHECKING_LOC_N:
                 lastIntent = PumiceIntent.CHECKING_LOC_N;
-                lastUtterance = utterance;
                 sourceActivity.addSnackbar("Ok, after which step should I perform the check?");
                 dialogManager.sendAgentMessage("Ok, after which step should I perform the check?",true,true);
                 break;
             case CHECKING_LOC_Y:
                 lastIntent = PumiceIntent.CHECKING_LOC_Y;
-                lastUtterance = utterance;
                 int stepNum2 = ((ConditionalPumiceDialogManager) dialogManager).getNewBlockIndex()+1;
-                SugiliteBooleanExpressionNew boolExp = ((PumiceConditionalInstructionParsingHandler) dialogManager.getPumiceInitInstructionParsingHandler()).getBoolExp();
-                sourceActivity.addSnackbar("Ok, do you want step " + stepNum2 + " to happen when the check is true or when the check is false.");
-                dialogManager.sendAgentMessage("Ok, do you want step " + stepNum2 + " to happen when the check is true or when the check is false.",true,true);
+                boolExp = ((PumiceConditionalInstructionParsingHandler) dialogManager.getPumiceInitInstructionParsingHandler()).getBoolExp().getReadableDescription();
+                sourceActivity.addSnackbar("Ok, do you want step " + stepNum2 + " to happen when it's true that " + boolExp + " or when it's false that " + boolExp + "?");
+                dialogManager.sendAgentMessage("Ok, do you want step " + stepNum2 + " to happen when it's true that " + boolExp + " or when it's false that " + boolExp + "?",true,true);
                 break;
             case CHECKING_LOC_X:
                 lastIntent = PumiceIntent.CHECKING_LOC_X;
-                lastUtterance = utterance;
-                if(utterance.getContent().contains("don't know") || utterance.getContent().contains("not sure")) {
-                    sourceActivity.addSnackbar("That's ok, I'll help you figure it out. For now, please guess and say 'yes' if it looks like the check happens at the right time or 'no' if it does not.");
-                    dialogManager.sendAgentMessage("That's ok, I'll help you figure it out. For now, please guess and say 'yes' if it looks like the check happens at the right time or 'no' if it does not.",true,true);
-                }
-                else {
-                    sourceActivity.addSnackbar("I’m sorry, I didn’t understand what you said. Please say 'yes' if it looks like the check happens at the right time or 'no' if it does not.");
-                    dialogManager.sendAgentMessage("I’m sorry, I didn’t understand what you said. Please say 'yes' if it looks like the check happens at the right time or 'no' if it does not.", true, true);
-                }
+                sourceActivity.addSnackbar("I’m sorry, I didn’t understand what you said. Please say 'yes' if it looks like the check happens at the right time or 'no' if it does not.");
+                dialogManager.sendAgentMessage("I’m sorry, I didn’t understand what you said. Please say 'yes' if it looks like the check happens at the right time or 'no' if it does not.", true, true);
                 break;
             case ADD_TO_SCRIPT_N:
-                lastIntent = PumiceIntent.ADD_TO_SCRIPT_X;
-                lastUtterance = utterance;
+                lastIntent = PumiceIntent.ADD_TO_SCRIPT_N;
                 dialogManager.sendAgentMessage("Ok, let's try this again. Please try explaining your check in a different way.", true, true);
-                sourceActivity.addCheck();
+                sourceActivity.addSnackbar("You are adding a check to do different steps in different cases. Please say something like 'check if it's cold' or 'check if the current time is before 5pm.'");
+                dialogManager.sendAgentMessage("You are adding a check to do different steps in different cases. Please say something like 'check if it's cold' or 'check if the current time is before 5pm.'", true, true);
                 break;
             case ADD_TO_SCRIPT_Y:
                 lastIntent = PumiceIntent.ADD_TO_SCRIPT_Y;
-                lastUtterance = utterance;
-                SugiliteBooleanExpressionNew sben = ((PumiceConditionalInstructionParsingHandler) dialogManager.getPumiceInitInstructionParsingHandler()).getBoolExp();
-                SugiliteConditionBlock scb = new SugiliteConditionBlock(null, null, null);
-                scb.setSugiliteBooleanExpressionNew(sben);
-                ((ConditionalPumiceDialogManager) dialogManager).determineConditionalLoc(scb);
+                ((ConditionalPumiceDialogManager) dialogManager).determineConditionalLoc();
                 sourceActivity.addSnackbar("Ok, does it look like the check happens at the right time?");
                 dialogManager.sendAgentMessage("Ok, does it look like the check happens at the right time?",true,true);
                 break;
             case ADD_TO_SCRIPT_X:
                 lastIntent = PumiceIntent.ADD_TO_SCRIPT_X;
-                lastUtterance = utterance;
                 sourceActivity.addSnackbar("I’m sorry, I didn’t understand what you said. Please say 'yes' if you want me to add the check to the script or 'no' if you do not.");
                 dialogManager.sendAgentMessage("I’m sorry, I didn’t understand what you said. Please say 'yes' if you want me to add the check to the script or 'no' if you do not.",true,true);
                 break;
             case ADD_CONDITIONAL_N:
                 lastIntent = PumiceIntent.ADD_CONDITIONAL_N;
-                lastUtterance = utterance;
-                sourceActivity.addSnackbar("Ok, please tell me what I should check. Please say something like 'check if it's cold' or 'check if the current time is before 5pm.'");
-                dialogManager.sendAgentMessage("Ok, please tell me what I should check. Please say something like 'check if it's cold' or 'check if the current time is before 5pm.'",true,true);
+                sourceActivity.addCheck();
                 break;
             case ADD_CONDITIONAL_Y:
                 lastIntent = PumiceIntent.ADD_CONDITIONAL_Y;
-                lastUtterance = utterance;
                 PumiceInstructionPacket pumiceInstructionPacket2 = new PumiceInstructionPacket(dialogManager.getPumiceKnowledgeManager(), PumiceIntent.BOOL_EXP_INSTRUCTION, calendar.getTimeInMillis(), check, "");
                 dialogManager.sendAgentMessage("Let's make sure I understand what you want to do...", true, false);
                 dialogManager.sendAgentMessage(pumiceInstructionPacket2.toString(), false, false);
@@ -478,13 +448,11 @@ public class PumiceConditionalIntentHandler implements PumiceUtteranceIntentHand
                 break;
             case ADD_CONDITIONAL_X:
                 lastIntent = PumiceIntent.ADD_CONDITIONAL_X;
-                lastUtterance = utterance;
                 sourceActivity.addSnackbar("I’m sorry, I didn’t understand what you said. Please say 'yes' if you want to check if " + check + "or 'no' if you do not.");
                 dialogManager.sendAgentMessage("I’m sorry, I didn’t understand what you said. Please say 'yes' if you want to check if " + check + "or 'no' if you do not.", true, true);
                 break;
-            case ADD_CONDITIONAL0:
-                lastIntent = PumiceIntent.ADD_CONDITIONAL0;
-                lastUtterance = utterance;
+            case ADD_CONDITIONAL_0:
+                lastIntent = PumiceIntent.ADD_CONDITIONAL_0;
                 String[] removeIf2 = utterance.getContent().split(" ",3);
                 check = removeIf2[2];
                 sourceActivity.addSnackbar("You want to check if " + check + ". Is that correct?");
@@ -492,10 +460,8 @@ public class PumiceConditionalIntentHandler implements PumiceUtteranceIntentHand
                 break;
             case USER_INIT_INSTRUCTION:
                 lastIntent = PumiceIntent.USER_INIT_INSTRUCTION;
-                lastUtterance = utterance;
                 sourceActivity.addSnackbar("I have received your instruction: " + utterance.getContent());
                 dialogManager.sendAgentMessage("I have received your instruction: " + utterance.getContent(), true, false);
-                //PumiceInstructionPacket pumiceInstructionPacket = new PumiceInstructionPacket(dialogManager.getPumiceKnowledgeManager(), PumiceIntent.USER_INIT_INSTRUCTION, calendar.getTimeInMillis(), utterance.getContent(), "ROOT");
                 PumiceInstructionPacket pumiceInstructionPacket = new PumiceInstructionPacket(dialogManager.getPumiceKnowledgeManager(), PumiceIntent.USER_INIT_INSTRUCTION, calendar.getTimeInMillis(), utterance.getContent(), "");
                 sourceActivity.addSnackbar("Sending out the server query...");
                 dialogManager.sendAgentMessage("Sending out the server query...", true, false);
@@ -586,6 +552,44 @@ public class PumiceConditionalIntentHandler implements PumiceUtteranceIntentHand
                     case DEFINE_VALUE_EXP:
                         if (resultPacket.queries != null && resultPacket.queries.size() > 0) {
                             PumiceSemanticParsingResultPacket.QueryGroundingPair topResult = resultPacket.queries.get(0);
+                            if (topResult.formula != null) {
+                                //dialogManager.sendAgentMessage("Received the parsing result from the server: ", true, false);
+                                dialogManager.sendAgentMessage(topResult.formula, false, false);
+                                Runnable r = new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        dialogManager.getPumiceInitInstructionParsingHandler().parseFromNewInitInstruction(topResult.formula, resultPacket.userUtterance);
+                                    }
+                                };
+                                //do the parse on a new thread so it doesn't block the conversational I/O
+                                es.submit(r);
+                            }
+                        }
+                        break;
+                    case DEFINE_PROCEDURE_DEMONSTATION:
+                        if (resultPacket.queries != null && resultPacket.queries.size() > 0) {
+                            PumiceSemanticParsingResultPacket.QueryGroundingPair topResult = resultPacket.queries.get(0);
+                            System.out.println("top: " + topResult.formula);
+                            System.out.println("utter: " + resultPacket.userUtterance);
+                            if (topResult.formula != null) {
+                                //dialogManager.sendAgentMessage("Received the parsing result from the server: ", true, false);
+                                dialogManager.sendAgentMessage(topResult.formula, false, false);
+                                Runnable r = new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        dialogManager.getPumiceInitInstructionParsingHandler().parseFromNewInitInstruction(topResult.formula, resultPacket.userUtterance);
+                                    }
+                                };
+                                //do the parse on a new thread so it doesn't block the conversational I/O
+                                es.submit(r);
+                            }
+                        }
+                        break;
+                    case DEFINE_PROCEDURE_EXP:
+                        if (resultPacket.queries != null && resultPacket.queries.size() > 0) {
+                            PumiceSemanticParsingResultPacket.QueryGroundingPair topResult = resultPacket.queries.get(0);
+                            System.out.println("top: " + topResult.formula);
+                            System.out.println("utter: " + resultPacket.userUtterance);
                             if (topResult.formula != null) {
                                 //dialogManager.sendAgentMessage("Received the parsing result from the server: ", true, false);
                                 dialogManager.sendAgentMessage(topResult.formula, false, false);

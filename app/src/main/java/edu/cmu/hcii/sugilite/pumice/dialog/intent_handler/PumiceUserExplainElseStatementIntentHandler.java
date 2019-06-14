@@ -13,15 +13,20 @@ import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteConditionBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
+import edu.cmu.hcii.sugilite.model.block.booleanexp.SugiliteBooleanExpressionNew;
 import edu.cmu.hcii.sugilite.model.operation.binary.SugiliteGetProcedureOperation;
 import edu.cmu.hcii.sugilite.pumice.communication.PumiceInstructionPacket;
 import edu.cmu.hcii.sugilite.pumice.communication.PumiceSemanticParsingResultPacket;
 import edu.cmu.hcii.sugilite.pumice.communication.SkipPumiceJSONSerialization;
+import edu.cmu.hcii.sugilite.pumice.dialog.PumiceConditionalInstructionParsingHandler;
 import edu.cmu.hcii.sugilite.pumice.dialog.PumiceDialogManager;
 import edu.cmu.hcii.sugilite.pumice.dialog.demonstration.PumiceElseStatementDemonstrationDialog;
 import edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.parsing_confirmation.PumiceParsingConfirmationHandler;
 import edu.cmu.hcii.sugilite.pumice.kb.PumiceProceduralKnowledge;
+import edu.cmu.hcii.sugilite.ui.ScriptDetailActivity;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.server_comm.SugiliteVerbalInstructionHTTPQueryInterface;
+import edu.cmu.hcii.sugilite.pumice.dialog.ConditionalPumiceDialogManager;
+
 
 /**
  * @author toby
@@ -77,7 +82,7 @@ public class PumiceUserExplainElseStatementIntentHandler implements PumiceUttera
         }
 
         else if (pumiceIntent.equals(PumiceIntent.DEFINE_PROCEDURE_DEMONSTATION)){
-            PumiceElseStatementDemonstrationDialog elseStatementDemonstrationDialog = new PumiceElseStatementDemonstrationDialog(context, boolExpReadableName, utterance.getContent(), dialogManager.getSharedPreferences(), dialogManager.getSugiliteData(), dialogManager.getServiceStatusManager(), this);
+            PumiceElseStatementDemonstrationDialog elseStatementDemonstrationDialog = new PumiceElseStatementDemonstrationDialog(originalConditionBlock.getPreviousBlock(), context, boolExpReadableName, utterance.getContent(), dialogManager.getSharedPreferences(), dialogManager.getSugiliteData(), dialogManager.getServiceStatusManager(), this);
             dialogManager.runOnMainThread(new Runnable() {
                 @Override
                 public void run() {
@@ -89,7 +94,13 @@ public class PumiceUserExplainElseStatementIntentHandler implements PumiceUttera
             dialogManager.sendAgentMessage("Please start demonstrating what to do when " + boolExpReadableName +  " is not true. " + "Click OK to continue.",true, false);
         }
         //set the intent handler back to the default one
-        dialogManager.updateUtteranceIntentHandlerInANewState(new PumiceDefaultUtteranceIntentHandler(pumiceDialogManager, context));
+        if(pumiceDialogManager instanceof ConditionalPumiceDialogManager && ((ConditionalPumiceDialogManager) pumiceDialogManager).addCheck) {
+            ConditionalPumiceDialogManager cpdm = (ConditionalPumiceDialogManager) dialogManager;
+            cpdm.updateUtteranceIntentHandlerInANewState(new PumiceConditionalIntentHandler(cpdm, ((ScriptDetailActivity) context), PumiceIntent.GET_ELSE_BLOCK_Y));
+        }
+        else {
+            dialogManager.updateUtteranceIntentHandlerInANewState(new PumiceDefaultUtteranceIntentHandler(pumiceDialogManager, context));
+        }
     }
 
     @Override
@@ -185,7 +196,7 @@ public class PumiceUserExplainElseStatementIntentHandler implements PumiceUttera
 
     @Override
     public void sendPromptForTheIntentHandler() {
-        pumiceDialogManager.sendAgentMessage("What should I do if " + boolExpReadableName.replace(" is true", "") + " is not true? You can explain, or say \"demonstrate\" to demonstrate", true, true);
+        pumiceDialogManager.sendAgentMessage("What should I do if " + boolExpReadableName.replace(" is true", "") + " is not true? You can explain, or say \"demonstrate\" to demonstrate.", true, true);
     }
 
     @Override

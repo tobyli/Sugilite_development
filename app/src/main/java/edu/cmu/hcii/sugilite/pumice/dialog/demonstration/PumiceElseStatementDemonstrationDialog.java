@@ -12,11 +12,16 @@ import edu.cmu.hcii.sugilite.automation.ServiceStatusManager;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptFileDao;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
+import edu.cmu.hcii.sugilite.model.block.booleanexp.SugiliteBooleanExpressionNew;
+import edu.cmu.hcii.sugilite.pumice.dialog.ConditionalPumiceDialogManager;
+import edu.cmu.hcii.sugilite.pumice.dialog.PumiceConditionalInstructionParsingHandler;
 import edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.PumiceUserExplainElseStatementIntentHandler;
 import edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.PumiceUserExplainProcedureIntentHandler;
 import edu.cmu.hcii.sugilite.pumice.kb.PumiceProceduralKnowledge;
 import edu.cmu.hcii.sugilite.pumice.ui.PumiceDialogActivity;
+import edu.cmu.hcii.sugilite.ui.ScriptDetailActivity;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.VerbalInstructionIconManager;
+import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
 
 /**
  * @author toby
@@ -38,8 +43,9 @@ public class PumiceElseStatementDemonstrationDialog {
     private SugiliteData sugiliteData;
     private ServiceStatusManager serviceStatusManager;
     private VerbalInstructionIconManager verbalInstructionIconManager;
+    private SugiliteBlock startBlock;
 
-    public PumiceElseStatementDemonstrationDialog(Activity context, String boolExpReadableName, String userUtterance, SharedPreferences sharedPreferences, SugiliteData sugiliteData, ServiceStatusManager serviceStatusManager, PumiceUserExplainElseStatementIntentHandler parentIntentHandler){
+    public PumiceElseStatementDemonstrationDialog(SugiliteBlock startBlock, Activity context, String boolExpReadableName, String userUtterance, SharedPreferences sharedPreferences, SugiliteData sugiliteData, ServiceStatusManager serviceStatusManager, PumiceUserExplainElseStatementIntentHandler parentIntentHandler){
         this.context = context;
         this.boolExpReadableName = boolExpReadableName;
         this.userUtterance = userUtterance;
@@ -49,12 +55,13 @@ public class PumiceElseStatementDemonstrationDialog {
         this.verbalInstructionIconManager = sugiliteData.verbalInstructionIconManager;
         this.serviceStatusManager = serviceStatusManager;
         this.sugiliteScriptDao = new SugiliteScriptFileDao(context, sugiliteData);
+        this.startBlock = startBlock;
         constructDialog();
     }
 
     private void constructDialog(){
         AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(context);
-        dialogBuilder.setMessage("Please start demonstrating what to do when " + boolExpReadableName +  " is not true. " + "Click OK to continue.")
+        dialogBuilder.setMessage("Please start demonstrating what to do when " + boolExpReadableName +  " is not true. " + "When you are done, click the duck followed by 'End Recording.' Click OK to continue.")
                 .setIcon(android.R.drawable.ic_dialog_alert)
                 .setPositiveButton("OK", new DialogInterface.OnClickListener() {
                     @Override
@@ -89,6 +96,7 @@ public class PumiceElseStatementDemonstrationDialog {
                                 });
                             }
                         };
+                        ((ScriptDetailActivity) context).resumeRecording();
                         PumiceDemonstrationUtil.initiateDemonstration(context, serviceStatusManager, sharedPreferences, scriptName, sugiliteData, onFinishDemonstrationCallback, sugiliteScriptDao, verbalInstructionIconManager);
                     }
                 });
@@ -98,16 +106,30 @@ public class PumiceElseStatementDemonstrationDialog {
     //called when the demonstration is ready
     public void onDemonstrationReady(SugiliteStartingBlock script){
         //resume the Sugilite agent activity
-        Intent resumeActivity = new Intent(context, PumiceDialogActivity.class);
-        resumeActivity.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
-        context.startActivityIfNeeded(resumeActivity, 0);
-
-        Toast.makeText(context, "Demonstration Ready!", Toast.LENGTH_SHORT).show();
+        Intent resumeActivity;
+        if(context instanceof ScriptDetailActivity) {
+            resumeActivity = new Intent(context, ScriptDetailActivity.class);
+            resumeActivity.putExtra("scriptName", script.getScriptName());
+            resumeActivity.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            resumeActivity.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+            context.startActivity(resumeActivity);
+            ConditionalPumiceDialogManager cpdm = ((ScriptDetailActivity) context).getConditionalPumiceDialogManager();
+            SugiliteBooleanExpressionNew boolExp = ((PumiceConditionalInstructionParsingHandler) cpdm.getPumiceInitInstructionParsingHandler()).getBoolExp();
+            cpdm.sendAgentMessage("Ok, do the steps that happen when " + boolExp.getReadableDescription() + " is "+ !(cpdm.getIsThen()) + " look right?",true,true);
+            ((ScriptDetailActivity) context).addSnackbar("Ok, do the steps that happen when " + boolExp.getReadableDescription() + " is "+ !(cpdm.getIsThen()) + " look right?");
+        }
+        else {
+            resumeActivity = new Intent(context, PumiceDialogActivity.class);
+            resumeActivity.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+            context.startActivityIfNeeded(resumeActivity, 0);
+            Toast.makeText(context, "Demonstration Ready!", Toast.LENGTH_SHORT).show();
+        }
 
         //construct the procedure knowledge
 
         //run the returnResultCallback when the result if ready
         parentIntentHandler.returnUserExplainElseStatementResult(script);
+        ((ScriptDetailActivity) context).loadOperationList();
     }
 
     //show the dialog

@@ -269,8 +269,6 @@ public class VariableSetValueDialog extends SugiliteDialogManager implements Abs
         //load the pumice knowledge manager
         sugiliteData.pumiceDialogManager = pumiceDialogManager;
 
-
-        System.out.println("start");
         //go to home screen for running the automation
         Intent startMain = new Intent(Intent.ACTION_MAIN);
         startMain.addCategory(Intent.CATEGORY_HOME);

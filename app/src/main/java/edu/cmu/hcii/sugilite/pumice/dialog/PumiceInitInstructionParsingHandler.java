@@ -71,6 +71,7 @@ public class PumiceInitInstructionParsingHandler {
      * @param serverResultFormula
      */
     public void parseFromNewInitInstruction(String serverResultFormula, String userUtterance){
+        System.out.println("UNOFFICIAL");
         SugiliteStartingBlock script = null;
         try {
             if(serverResultFormula.length() > 0) {
@@ -176,7 +177,7 @@ public class PumiceInitInstructionParsingHandler {
      * @throws ExecutionException
      * @throws InterruptedException
      */
-    private SugiliteBooleanExpressionNew resolveBoolExpKnowledge (SugiliteBooleanExpressionNew booleanExpressionNew) throws ExecutionException, InterruptedException{
+    protected SugiliteBooleanExpressionNew resolveBoolExpKnowledge(SugiliteBooleanExpressionNew booleanExpressionNew) throws ExecutionException, InterruptedException{
         if(booleanExpressionNew.getBoolOperation() != null){
             //this boolean expression is either a SugiliteResolveBoolExpOperation or a SugiliteGetBoolExpOperation
             if(booleanExpressionNew.getBoolOperation() instanceof SugiliteResolveBoolExpOperation) {
@@ -439,7 +440,7 @@ public class PumiceInitInstructionParsingHandler {
                 //PumiceValueQueryKnowledge valueQueryKnowledge = new PumiceValueQueryKnowledge(valueUtterance, PumiceValueQueryKnowledge.ValueType.STRING);
                 pumiceDialogManager.getPumiceKnowledgeManager().addPumiceValueQueryKnowledge(valueQueryKnowledge);
                 pumiceDialogManager.savePumiceKnowledgeToDao();
-	        if(pumiceDialogManager.getContext() instanceof ScriptDetailActivity) {
+	            if(pumiceDialogManager.getContext() instanceof ScriptDetailActivity) {
                     ((ScriptDetailActivity) pumiceDialogManager.getContext()).addSnackbar("OK, I learned how to find out the value for " + valueUtterance + ".");
                 }
                 pumiceDialogManager.sendAgentMessage("OK, I learned how to find out the value for " + valueUtterance + ".", true, false);

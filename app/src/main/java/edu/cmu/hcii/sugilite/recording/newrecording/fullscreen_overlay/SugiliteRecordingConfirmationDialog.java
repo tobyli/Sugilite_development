@@ -152,6 +152,7 @@ public class SugiliteRecordingConfirmationDialog extends SugiliteDialogManager {
             public void onDismiss(DialogInterface dialog) {
                 //stop ASR and TTS when the dialog is dismissed
                 stopASRandTTS();
+                onDestroy();
             }
         });
 

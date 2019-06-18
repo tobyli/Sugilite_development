@@ -485,7 +485,7 @@ public class Automator {
                     }
                     lastTimeFailed.clear();
                     if (succeeded) {
-                        return succeeded;
+                        return true;
                     }
                 }
 

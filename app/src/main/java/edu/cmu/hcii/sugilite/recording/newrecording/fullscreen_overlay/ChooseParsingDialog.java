@@ -177,6 +177,7 @@ public class ChooseParsingDialog extends SugiliteDialogManager {
             @Override
             public void onDismiss(DialogInterface dialogInterface) {
                 stopASRandTTS();
+                onDestroy();
             }
         });
     }

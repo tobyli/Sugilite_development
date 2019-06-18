@@ -170,6 +170,14 @@ public class VariableSetValueDialog extends SugiliteDialogManager implements Abs
                 });
 
         dialog = builder.create();
+        dialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
+            @Override
+            public void onDismiss(DialogInterface dialog) {
+                //stop ASR and TTS when the dialog is dismissed
+                stopASRandTTS();
+                onDestroy();
+            }
+        });
     }
 
     @Override

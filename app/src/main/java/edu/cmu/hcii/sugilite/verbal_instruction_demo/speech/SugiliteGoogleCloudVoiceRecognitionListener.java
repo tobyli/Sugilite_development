@@ -6,7 +6,6 @@ import android.app.AlertDialog;
 import android.content.ComponentName;
 
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
@@ -16,21 +15,17 @@ import android.speech.tts.TextToSpeech;
 import android.speech.tts.UtteranceProgressListener;
 import android.support.v4.app.ActivityCompat;
 import android.text.TextUtils;
-import android.view.View;
 import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 
-import edu.cmu.hcii.sugilite.Const;
 import edu.cmu.hcii.sugilite.R;
 import edu.cmu.hcii.sugilite.accessibility_service.SugiliteAccessibilityService;
 
 import static android.content.Context.BIND_AUTO_CREATE;
-import static edu.cmu.hcii.sugilite.Const.OVERLAY_TYPE;
 
 /**
  * @author toby
@@ -43,8 +38,6 @@ public class SugiliteGoogleCloudVoiceRecognitionListener implements SugiliteVoic
     private long lastStartListening = -1;
     private TextToSpeech tts;
     private static final int REQUEST_RECORD_AUDIO_PERMISSION = 1;
-    private final MediaPlayer startListeningSoundMediaPlayer;
-    private final MediaPlayer doneListeningSoundMediaPlayer;
     private List<String> contextPhrases = new ArrayList<>();
     private AlertDialog progressDialog;
 
@@ -56,8 +49,14 @@ public class SugiliteGoogleCloudVoiceRecognitionListener implements SugiliteVoic
 
         @Override
         public void onServiceConnected(ComponentName componentName, IBinder binder) {
+            // use a service ready callback to ensure that the service is ready
             mSpeechService = GoogleCloudSpeechService.from(binder);
-            //mStatus.setVisibility(View.VISIBLE);
+
+            //notify the wait for the service to be ready
+            synchronized (this) {
+                this.notifyAll();
+            }
+            // mStatus.setVisibility(View.VISIBLE);
         }
 
         @Override
@@ -115,10 +114,6 @@ public class SugiliteGoogleCloudVoiceRecognitionListener implements SugiliteVoic
                         if (mSpeechService != null && mSpeechServiceListener != null){
                             mSpeechService.removeListener(mSpeechServiceListener);
                         }
-
-                        if (doneListeningSoundMediaPlayer != null) {
-                            doneListeningSoundMediaPlayer.start();
-                        }
                     }
                     if (!TextUtils.isEmpty(text)) {
                         runOnUiThread(new Runnable() {
@@ -146,13 +141,12 @@ public class SugiliteGoogleCloudVoiceRecognitionListener implements SugiliteVoic
         this.context = context;
         this.sugiliteVoiceInterface = voiceInterface;
         this.tts = tts;
-        this.startListeningSoundMediaPlayer = MediaPlayer.create(context, R.raw.openended);
-        this.doneListeningSoundMediaPlayer = MediaPlayer.create(context, R.raw.notbad);
 
         // Prepare Cloud Speech API
+        ComponentName googleCloudSpeechService = context.startService(new Intent(context, GoogleCloudSpeechService.class));
         context.bindService(new Intent(context, GoogleCloudSpeechService.class), mServiceConnection, BIND_AUTO_CREATE);
 
-        // Start listening to voices
+        // Check the permission for recording voices
         if (ActivityCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO)
                 == PackageManager.PERMISSION_GRANTED) {
             //good to go!
@@ -166,6 +160,7 @@ public class SugiliteGoogleCloudVoiceRecognitionListener implements SugiliteVoic
         }
     }
 
+
     @Override
     public void setSugiliteVoiceInterface(SugiliteVoiceInterface sugiliteVoiceInterface) {
         this.sugiliteVoiceInterface = sugiliteVoiceInterface;
@@ -177,14 +172,22 @@ public class SugiliteGoogleCloudVoiceRecognitionListener implements SugiliteVoic
     @Override
     public void startListening() {
         if (mVoiceRecorder != null) {
-            mVoiceRecorder.stop();
+            mVoiceRecorder.stop(null);
+        }
+        synchronized (this) {
+            while (mSpeechService == null) {
+                try {
+                    this.wait();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
         }
         mSpeechService.addListener(mSpeechServiceListener);
-        mVoiceRecorder = new GoogleVoiceRecorder(mVoiceCallback);
+        mVoiceRecorder = new GoogleVoiceRecorder(context, mVoiceCallback);
         mVoiceRecorder.start(new Runnable() {
             @Override
             public void run() {
-                startListeningSoundMediaPlayer.start();
                 showStatus(true);
             }
         });
@@ -198,9 +201,12 @@ public class SugiliteGoogleCloudVoiceRecognitionListener implements SugiliteVoic
     @Override
     public void stopListening(){
         if (mVoiceRecorder != null) {
-            showStatus(false);
-
-            mVoiceRecorder.stop();
+            mVoiceRecorder.stop(new Runnable() {
+                @Override
+                public void run() {
+                    showStatus(false);
+                }
+            });
         }
     }
 

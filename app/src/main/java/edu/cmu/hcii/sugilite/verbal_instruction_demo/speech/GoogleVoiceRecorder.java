@@ -16,10 +16,14 @@
 
 package edu.cmu.hcii.sugilite.verbal_instruction_demo.speech;
 
+import android.content.Context;
 import android.media.AudioFormat;
 import android.media.AudioRecord;
+import android.media.MediaPlayer;
 import android.media.MediaRecorder;
 import android.support.annotation.NonNull;
+
+import edu.cmu.hcii.sugilite.R;
 
 
 /**
@@ -40,6 +44,10 @@ public class GoogleVoiceRecorder {
     private static final int AMPLITUDE_THRESHOLD = 500;
     private static final int SPEECH_TIMEOUT_MILLIS = 1500;
     private static final int MAX_SPEECH_LENGTH_MILLIS = 60 * 1000;
+
+    private final MediaPlayer startListeningSoundMediaPlayer;
+    private final MediaPlayer doneListeningSoundMediaPlayer;
+
 
     public static abstract class Callback {
 
@@ -81,18 +89,20 @@ public class GoogleVoiceRecorder {
     /** The timestamp when the current voice is started. */
     private long mVoiceStartedMillis;
 
-    public GoogleVoiceRecorder(@NonNull Callback callback) {
+    public GoogleVoiceRecorder(Context context, @NonNull Callback callback) {
         mCallback = callback;
+        this.startListeningSoundMediaPlayer = MediaPlayer.create(context, R.raw.start_listening);
+        this.doneListeningSoundMediaPlayer = MediaPlayer.create(context, R.raw.done_listening);
     }
 
     /**
      * Starts recording audio.
      *
-     * <p>The caller is responsible for calling {@link #stop()} later.</p>
+     * <p>The caller is responsible for calling {@link #stop(Runnable onStopFinished)} later.</p>
      */
     public void start(Runnable onStartFinished) {
         // Stop recording if it is currently ongoing.
-        stop();
+        stop(null);
         // Try to create a new recording session.
         mAudioRecord = createAudioRecord();
         if (mAudioRecord == null) {
@@ -100,17 +110,20 @@ public class GoogleVoiceRecorder {
         }
         // Start recording.
         mAudioRecord.startRecording();
+        startListeningSoundMediaPlayer.start();
 
         // Start processing the captured audio.
         mThread = new Thread(new ProcessVoice());
         mThread.start();
-        onStartFinished.run();
+        if (onStartFinished != null) {
+            onStartFinished.run();
+        }
     }
 
     /**
      * Stops recording audio.
      */
-    public void stop() {
+    public void stop(Runnable onStopFinished) {
         synchronized (mLock) {
             dismiss();
             if (mThread != null) {
@@ -121,8 +134,12 @@ public class GoogleVoiceRecorder {
                 mAudioRecord.stop();
                 mAudioRecord.release();
                 mAudioRecord = null;
+                doneListeningSoundMediaPlayer.start();
             }
             mBuffer = null;
+            if (onStopFinished != null) {
+                onStopFinished.run();
+            }
         }
     }
 

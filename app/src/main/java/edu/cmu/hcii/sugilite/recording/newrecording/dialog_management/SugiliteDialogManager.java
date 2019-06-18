@@ -212,4 +212,8 @@ public abstract class SugiliteDialogManager implements SugiliteVoiceInterface {
     public void setSpeakButton(ImageButton speakButton) {
         this.speakButton = speakButton;
     }
+
+    public void onDestroy(){
+        sugiliteVoiceRecognitionListener.stopAllAndEndASRService();
+    }
 }

@@ -135,8 +135,11 @@ public class NewScriptDialog extends SugiliteDialogManager implements AbstractSu
                         stopASRandTTS();
                     }
                 }
+                onDestroy();
             }
         });
+
+
 
 
         scriptNameEditText.setOnEditorActionListener(new TextView.OnEditorActionListener() {

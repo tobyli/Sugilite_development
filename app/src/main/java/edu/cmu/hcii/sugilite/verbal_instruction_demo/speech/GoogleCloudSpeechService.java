@@ -11,6 +11,7 @@ import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.media.MediaPlayer;
 import android.os.AsyncTask;
 import android.os.Binder;
 import android.os.Handler;
@@ -106,7 +107,7 @@ public class GoogleCloudSpeechService extends Service {
     private static Handler mHandler;
 
     private AlertDialog progressDialog;
-
+    private MediaPlayer speechRecognizedSoundMediaPlayer;
 
     private List<String> contextPhrases = new ArrayList<>();
 
@@ -141,6 +142,11 @@ public class GoogleCloudSpeechService extends Service {
                         }
                     });
                     listener.onSpeechRecognized(text, isFinal);
+                    if (isFinal) {
+                        if (speechRecognizedSoundMediaPlayer != null) {
+                            //play the "speech recognized" sound when getting the final result
+                            speechRecognizedSoundMediaPlayer.start();
+                        }                    }
                 }
             }
         }
@@ -172,7 +178,10 @@ public class GoogleCloudSpeechService extends Service {
             if (text != null) {
                 for (Listener listener : mListeners) {
                     listener.onSpeechRecognized(text, true);
-                }
+                    if (speechRecognizedSoundMediaPlayer != null) {
+                        //play the "speech recognized" sound when getting the final result
+                        speechRecognizedSoundMediaPlayer.start();
+                    }                }
             }
         }
 
@@ -199,6 +208,7 @@ public class GoogleCloudSpeechService extends Service {
         super.onCreate();
         mHandler = new Handler();
         fetchAccessToken();
+        this.speechRecognizedSoundMediaPlayer = MediaPlayer.create(getApplicationContext(), R.raw.speech_recognized);
 
         //disable progress dialog for now
         /*

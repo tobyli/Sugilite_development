@@ -226,6 +226,7 @@ public class FollowUpQuestionDialog extends SugiliteDialogManager implements Sug
             @Override
             public void onDismiss(DialogInterface dialog) {
                 stopASRandTTS();
+                onDestroy();
                 if(!flagDismissedByCollapsing){
                     if(handler != null) {
                         handler.removeCallbacksAndMessages(null);

@@ -39,11 +39,11 @@ public class PumiceDemonstrationUtil {
      * @param sharedPreferences
      * @param scriptName
      * @param sugiliteData
-     * @param callback
+     * @param afterRecordingCallback
      * @param sugiliteScriptDao
      * @param verbalInstructionIconManager
      */
-    public static void initiateDemonstration(Context context, ServiceStatusManager serviceStatusManager, SharedPreferences sharedPreferences, String scriptName, SugiliteData sugiliteData, Runnable callback, SugiliteScriptDao sugiliteScriptDao, VerbalInstructionIconManager verbalInstructionIconManager){
+    public static void initiateDemonstration(Context context, ServiceStatusManager serviceStatusManager, SharedPreferences sharedPreferences, String scriptName, SugiliteData sugiliteData, Runnable afterRecordingCallback, SugiliteScriptDao sugiliteScriptDao, VerbalInstructionIconManager verbalInstructionIconManager){
         if(!serviceStatusManager.isRunning()){
             //prompt the user if the accessibility service is not active
             AlertDialog.Builder builder1 = new AlertDialog.Builder(context);
@@ -68,7 +68,7 @@ public class PumiceDemonstrationUtil {
 
 
             //set the active script to the newly created script
-            sugiliteData.initiateScript(scriptName + ".SugiliteScript", callback); //add the end recording callback
+            sugiliteData.initiateScript(scriptName + ".SugiliteScript", afterRecordingCallback); //add the end recording callback
             sugiliteData.initiatedExternally = false;
 
             //save the newly created script to DB

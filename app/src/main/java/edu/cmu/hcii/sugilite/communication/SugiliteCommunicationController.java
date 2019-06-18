@@ -399,11 +399,16 @@ public class SugiliteCommunicationController {
                 }
             }
 
-            if (sugiliteData.getScriptHead() != null && sugiliteData.endRecordingCallback != null){
-                //call the endRecordingCallback
-                Runnable r = sugiliteData.endRecordingCallback;
-                sugiliteData.endRecordingCallback = null;
+            if (sugiliteData.getScriptHead() != null && sugiliteData.afterRecordingCallback != null){
+                //call the afterRecordingCallback
+                Runnable r = sugiliteData.afterRecordingCallback;
+                sugiliteData.afterRecordingCallback = null;
                 r.run();
+            }
+
+            //turn off the recording overlay if any
+            if(sugiliteData.verbalInstructionIconManager != null){
+                sugiliteData.verbalInstructionIconManager.turnOffCatOverlay();
             }
 
             if( shouldUseToast ) {

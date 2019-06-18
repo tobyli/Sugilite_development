@@ -1282,47 +1282,10 @@ public class ScriptDetailActivity extends AppCompatActivity implements SugiliteV
 
     //TODO: rewrite resume recording
     private void resumeRecording(){
-        if(!serviceStatusManager.isRunning()){
-            //prompt the user if the accessibility service is not active
-            AlertDialog.Builder builder1 = new AlertDialog.Builder(this);
-            builder1.setTitle("Service not running")
-                    .setMessage("The " + Const.appNameUpperCase + " accessiblity service is not enabled. Please enable the service in the phone settings before recording.")
-                    .setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            serviceStatusManager.promptEnabling();
-                            //do nothing
-                        }
-                    }).show();
-        }
-        else {
-            SharedPreferences.Editor prefEditor = sharedPreferences.edit();
-            //turn off the recording before executing
-            prefEditor.putBoolean("recording_in_process", false);
-            prefEditor.putString("scriptName", script.getScriptName().replace(".SugiliteScript", ""));
-            prefEditor.commit();
-            sugiliteData.initiatedExternally = false;
-            sugiliteData.setScriptHead(script);
-            sugiliteData.setCurrentScriptBlock(script.getTail());
-            //force stop all the relevant packages
-            for (String packageName : script.relevantPackages) {
-                AutomatorUtil.killPackage(packageName);
-            }
-            sugiliteData.runScript(script, true, SugiliteData.EXECUTION_STATE);
-            //need to have this delay to ensure that the killing has finished before we start executing
-            try {
-                Thread.sleep(SCRIPT_DELAY);
-            } catch (Exception e) {
-                // do nothing
-            }
-            Intent startMain = new Intent(Intent.ACTION_MAIN);
-            startMain.addCategory(Intent.CATEGORY_HOME);
-            startMain.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            startActivity(startMain);
-        }
+        resumeRecording(script.getTail());
     }
 
-    private void resumeRecording(SugiliteBlock s){
+    private void resumeRecording(SugiliteBlock blockToResumeRecordingFrom){
         if(!serviceStatusManager.isRunning()){
             //prompt the user if the accessiblity service is not active
             AlertDialog.Builder builder1 = new AlertDialog.Builder(this);
@@ -1344,12 +1307,18 @@ public class ScriptDetailActivity extends AppCompatActivity implements SugiliteV
             prefEditor.commit();
             sugiliteData.initiatedExternally = false;
             sugiliteData.setScriptHead(script);
-            sugiliteData.setCurrentScriptBlock(s);
+            sugiliteData.setCurrentScriptBlock(blockToResumeRecordingFrom);
             //force stop all the relevant packages
             for (String packageName : script.relevantPackages) {
                 AutomatorUtil.killPackage(packageName);
             }
             sugiliteData.runScript(script, true, SugiliteData.EXECUTION_STATE);
+
+            //turn on the cat overlay to prepare for demonstration
+            if(sugiliteData.verbalInstructionIconManager != null){
+                sugiliteData.verbalInstructionIconManager.turnOnCatOverlay();
+            }
+
             //need to have this delay to ensure that the killing has finished before we start executing
             try {
                 Thread.sleep(SCRIPT_DELAY);

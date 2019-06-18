@@ -541,11 +541,16 @@ public class StatusIconManager {
                                         sugiliteData.sendCallbackMsg(Const.FINISHED_RECORDING, jsonProcessor.scriptToJson(sugiliteData.getScriptHead()), sugiliteData.callbackString);
                                     }
 
-                                    if (sugiliteData.getScriptHead() != null && sugiliteData.endRecordingCallback != null){
+                                    if (sugiliteData.getScriptHead() != null && sugiliteData.afterRecordingCallback != null){
                                         //call the endRecordingCallback
-                                        Runnable r = sugiliteData.endRecordingCallback;
-                                        sugiliteData.endRecordingCallback = null;
+                                        Runnable r = sugiliteData.afterRecordingCallback;
+                                        sugiliteData.afterRecordingCallback = null;
                                         r.run();
+                                    }
+
+                                    //turn off the recording overlay if any
+                                    if(verbalInstructionIconManager != null){
+                                        verbalInstructionIconManager.turnOffCatOverlay();
                                     }
 
 

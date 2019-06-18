@@ -23,6 +23,7 @@ import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.automation.ServiceStatusManager;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptSQLDao;
+import edu.cmu.hcii.sugilite.pumice.dialog.demonstration.PumiceDemonstrationUtil;
 import edu.cmu.hcii.sugilite.recording.newrecording.dialog_management.SugiliteDialogManager;
 import edu.cmu.hcii.sugilite.recording.newrecording.dialog_management.SugiliteDialogSimpleState;
 import edu.cmu.hcii.sugilite.recording.newrecording.dialog_management.SugiliteDialogUtteranceFilter;
@@ -101,46 +102,12 @@ public class NewScriptDialog extends SugiliteDialogManager implements AbstractSu
                 .setPositiveButton("Start Recording", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        if(!serviceStatusManager.isRunning()){
-                            //prompt the user if the accessiblity service is not active
-                            AlertDialog.Builder builder1 = new AlertDialog.Builder(context);
-                            builder1.setTitle("Service not running")
-                                    .setMessage("The " + Const.appNameUpperCase + " accessiblity service is not enabled. Please enable the service in the phone settings before recording.")
-                                    .setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                                        @Override
-                                        public void onClick(DialogInterface dialog, int which) {
-                                            serviceStatusManager.promptEnabling();
-                                            //do nothing
-                                        }
-                                    }).show();
-                        }
-                        else if (scriptNameEditText != null && scriptNameEditText.getText().toString().length() > 0) {
-                            SharedPreferences.Editor editor = sharedPreferences.edit();
-                            editor.putString("scriptName", scriptNameEditText.getText().toString());
-                            editor.putBoolean("recording_in_process", true);
-                            editor.commit();
+                        String scriptName = scriptNameEditText.getText().toString() + ".SugiliteScript";
+                        PumiceDemonstrationUtil.initiateDemonstration(context, serviceStatusManager, sharedPreferences, scriptName, sugiliteData, null, sugiliteScriptDao, verbalInstructionIconManager);
 
-                            //set the system state
-                            sugiliteData.setCurrentSystemState(SugiliteData.RECORDING_STATE);
-
-                            //set the active script to the newly created script
-                            sugiliteData.initiateScript(scriptNameEditText.getText().toString() + ".SugiliteScript", null);
-                            sugiliteData.initiatedExternally = false;
-                            //save the newly created script to DB
-                            try {
-                                sugiliteScriptDao.save(sugiliteData.getScriptHead());
-                                sugiliteScriptDao.commitSave();
-                            }
-                            catch (Exception e){
-                                e.printStackTrace();
-                            }
-                            //Toast.makeText(v.getContext(), "Changed script name to " + sharedPreferences.getString("scriptName", "NULL"), Toast.LENGTH_SHORT).show();
-                            if(positiveCallback != null)
-                                positiveCallback.onClick(dialog, 0);
-                            Intent startMain = new Intent(Intent.ACTION_MAIN);
-                            startMain.addCategory(Intent.CATEGORY_HOME);
-                            startMain.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                            context.startActivity(startMain);
+                        //Toast.makeText(v.getContext(), "Changed script name to " + sharedPreferences.getString("scriptName", "NULL"), Toast.LENGTH_SHORT).show();
+                        if(positiveCallback != null) {
+                            positiveCallback.onClick(dialog, 0);
                         }
                     }
                 })

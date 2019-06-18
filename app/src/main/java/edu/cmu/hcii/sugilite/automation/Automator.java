@@ -109,24 +109,24 @@ public class Automator {
              */
             if (blockToMatch instanceof SugiliteStartingBlock) {
                 //Toast.makeText(context, "Start running script " + ((SugiliteStartingBlock)blockToMatch).getScriptName(), Toast.LENGTH_SHORT).show();
-                sugiliteData.removeInstructionQueueItem();
                 addNextBlockToQueue(blockToMatch);
+                sugiliteData.removeInstructionQueueItem();
                 return true;
             }
             /**
              * handle error handling block - "addNextBlockToQueue" will determine which block to add
              */
             else if (blockToMatch instanceof SugiliteErrorHandlingForkBlock) {
-                sugiliteData.removeInstructionQueueItem();
                 addNextBlockToQueue(blockToMatch);
+                sugiliteData.removeInstructionQueueItem();
                 return true;
             }
             /**
              * for subscript operation blocks, the subscript should be executed
              */
             else if (blockToMatch instanceof SugiliteSpecialOperationBlock) {
-                sugiliteData.removeInstructionQueueItem();
                 SugiliteSpecialOperationBlock specialOperationBlock = (SugiliteSpecialOperationBlock) blockToMatch;
+                sugiliteData.removeInstructionQueueItem();
                 try {
                     specialOperationBlock.run(context, sugiliteData, sugiliteScriptDao, sharedPreferences);
                     return true;
@@ -156,8 +156,8 @@ public class Automator {
                     boolean retVal = performAction(null, operationBlock);
                     if (retVal) {
                         sugiliteData.errorHandler.reportSuccess(Calendar.getInstance().getTimeInMillis());
-                        sugiliteData.removeInstructionQueueItem();
                         addNextBlockToQueue(operationBlock);
+                        sugiliteData.removeInstructionQueueItem();
                         if (sugiliteData.getCurrentSystemState() == SugiliteData.REGULAR_DEBUG_STATE) {
                             try {
                                 //----not taking screenshot----
@@ -188,8 +188,8 @@ public class Automator {
                     subscriptBlock.setNextBlock(operationBlock.getNextBlockToRun());
 
                     //add the new block to the instruction queue
-                    sugiliteData.removeInstructionQueueItem();
                     sugiliteData.addInstruction(subscriptBlock);
+                    sugiliteData.removeInstructionQueueItem();
                     return true;
 
 
@@ -220,10 +220,10 @@ public class Automator {
                                     //the action is performed successfully
                                     if (!succeeded) {
                                         sugiliteData.errorHandler.reportSuccess(Calendar.getInstance().getTimeInMillis());
+                                        addNextBlockToQueue(operationBlock);
                                         if (sugiliteData.getInstructionQueueSize() > 0) {
                                             sugiliteData.removeInstructionQueueItem();
                                         }
-                                        addNextBlockToQueue(operationBlock);
                                     }
                                     succeeded = true;
 
@@ -287,10 +287,10 @@ public class Automator {
                         */
                         if (!succeeded) {
                             sugiliteData.errorHandler.reportSuccess(Calendar.getInstance().getTimeInMillis());
+                            addNextBlockToQueue(operationBlock);
                             if (sugiliteData.getInstructionQueueSize() > 0) {
                                 sugiliteData.removeInstructionQueueItem();
                             }
-                            addNextBlockToQueue(operationBlock);
                         }
                         succeeded = true;
 
@@ -341,32 +341,32 @@ public class Automator {
              * nothing really special needed for starting blocks, just add the next block to the queue
              */
             if (blockToMatch instanceof SugiliteStartingBlock) {
-                sugiliteData.removeInstructionQueueItem();
                 addNextBlockToQueue(blockToMatch);
+                sugiliteData.removeInstructionQueueItem();
                 return true;
             }
             /**
              * handle error handling block - "addNextBlockToQueue" will determine which block to add
              */
             else if (blockToMatch instanceof SugiliteErrorHandlingForkBlock) {
-                sugiliteData.removeInstructionQueueItem();
                 addNextBlockToQueue(blockToMatch);
+                sugiliteData.removeInstructionQueueItem();
                 return true;
             }
             /**
              * nothing special needed for conditional blocks, just add next block to queue
              */
             else if (blockToMatch instanceof SugiliteConditionBlock) {///
-                sugiliteData.removeInstructionQueueItem();///
                 addNextBlockToQueue(blockToMatch);///
+                sugiliteData.removeInstructionQueueItem();///
                 return true;///
             }///
             /**
              * for special operation blocks, the run() method should be executed
              */
             else if (blockToMatch instanceof SugiliteSpecialOperationBlock) {
-                sugiliteData.removeInstructionQueueItem();
                 SugiliteSpecialOperationBlock specialOperationBlock = (SugiliteSpecialOperationBlock) blockToMatch;
+                sugiliteData.removeInstructionQueueItem();
                 try {
                     specialOperationBlock.run(context, sugiliteData, sugiliteScriptDao, sharedPreferences);
                     return true;
@@ -399,8 +399,8 @@ public class Automator {
                     boolean retVal = performAction(null, operationBlock);
                     if (retVal) {
                         sugiliteData.errorHandler.reportSuccess(Calendar.getInstance().getTimeInMillis());
-                        sugiliteData.removeInstructionQueueItem();
                         addNextBlockToQueue(operationBlock);
+                        sugiliteData.removeInstructionQueueItem();
                         if (sugiliteData.getCurrentSystemState() == SugiliteData.REGULAR_DEBUG_STATE) {
                             try {
                                 //----not taking screenshot----
@@ -431,8 +431,8 @@ public class Automator {
                     subscriptBlock.setNextBlock(operationBlock.getNextBlockToRun());
 
                     //add the new block to the instruction queue
-                    sugiliteData.removeInstructionQueueItem();
                     sugiliteData.addInstruction(subscriptBlock);
+                    sugiliteData.removeInstructionQueueItem();
                     return true;
 
 
@@ -462,10 +462,10 @@ public class Automator {
                                     //the action is performed successfully
                                     if (!succeeded) {
                                         sugiliteData.errorHandler.reportSuccess(Calendar.getInstance().getTimeInMillis());
+                                        addNextBlockToQueue(operationBlock);
                                         if (sugiliteData.getInstructionQueueSize() > 0) {
                                             sugiliteData.removeInstructionQueueItem();
                                         }
-                                        addNextBlockToQueue(operationBlock);
                                     }
                                     succeeded = true;
 
@@ -520,10 +520,10 @@ public class Automator {
                         if (!succeeded) {
                             //report success
                             sugiliteData.errorHandler.reportSuccess(Calendar.getInstance().getTimeInMillis());
+                            addNextBlockToQueue(operationBlock);
                             if (sugiliteData.getInstructionQueueSize() > 0) {
                                 sugiliteData.removeInstructionQueueItem();
                             }
-                            addNextBlockToQueue(operationBlock);
                         }
                         succeeded = true;
 

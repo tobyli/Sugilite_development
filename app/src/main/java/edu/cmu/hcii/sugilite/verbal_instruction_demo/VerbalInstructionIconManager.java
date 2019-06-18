@@ -239,7 +239,10 @@ public class VerbalInstructionIconManager implements SugiliteVoiceInterface {
             }
         }, 0, INTERVAL_REFRESH_UI_SNAPSHOT);
         showingIcon = true;
-        statusIcon.setVisibility(View.INVISIBLE);
+
+        //hide the verbal instruction icon
+
+        //statusIcon.setVisibility(View.INVISIBLE);
     }
 
     public void rotateStatusIcon(){

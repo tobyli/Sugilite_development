@@ -273,6 +273,10 @@ public class GoogleCloudSpeechService extends Service {
         return mBinder;
     }
 
+    public void clearListener() {
+        mListeners.clear();
+    }
+
     public void addListener(@NonNull Listener listener) {
         mListeners.add(listener);
     }

@@ -191,6 +191,9 @@ public class SugiliteGoogleCloudVoiceRecognitionListener implements SugiliteVoic
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
+                        //only allow ONE listener at a time
+                        mSpeechService.clearListener();
+
                         mSpeechService.addListener(mSpeechServiceListener);
                         mVoiceRecorder = new GoogleVoiceRecorder(context, mVoiceCallback);
                         mVoiceRecorder.start(new Runnable() {

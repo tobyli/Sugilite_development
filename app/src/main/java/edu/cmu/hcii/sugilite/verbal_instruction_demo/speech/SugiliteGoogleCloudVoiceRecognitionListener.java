@@ -40,7 +40,7 @@ public class SugiliteGoogleCloudVoiceRecognitionListener implements SugiliteVoic
     private static final int REQUEST_RECORD_AUDIO_PERMISSION = 1;
     private List<String> contextPhrases = new ArrayList<>();
     private AlertDialog progressDialog;
-
+    private SugiliteGoogleCloudVoiceRecognitionListener sugiliteGoogleCloudVoiceRecognitionListener;
 
     //initiate voice recorder
     private GoogleVoiceRecorder mVoiceRecorder;
@@ -53,8 +53,8 @@ public class SugiliteGoogleCloudVoiceRecognitionListener implements SugiliteVoic
             mSpeechService = GoogleCloudSpeechService.from(binder);
 
             //notify the wait for the service to be ready
-            synchronized (this) {
-                this.notifyAll();
+            synchronized (sugiliteGoogleCloudVoiceRecognitionListener) {
+                sugiliteGoogleCloudVoiceRecognitionListener.notifyAll();
             }
             // mStatus.setVisibility(View.VISIBLE);
         }
@@ -126,6 +126,7 @@ public class SugiliteGoogleCloudVoiceRecognitionListener implements SugiliteVoic
                                         runOnUiThread(new Runnable() {
                                             @Override
                                             public void run() {
+                                                //this callback is ran on the UI thread because it often involves UI actions
                                                 sugiliteVoiceInterface.resultAvailableCallback(results, isFinal);
                                             }
                                         });
@@ -141,9 +142,10 @@ public class SugiliteGoogleCloudVoiceRecognitionListener implements SugiliteVoic
         this.context = context;
         this.sugiliteVoiceInterface = voiceInterface;
         this.tts = tts;
+        this.sugiliteGoogleCloudVoiceRecognitionListener = this;
 
         // Prepare Cloud Speech API
-        ComponentName googleCloudSpeechService = context.startService(new Intent(context, GoogleCloudSpeechService.class));
+        ComponentName service = context.startService(new Intent(context, GoogleCloudSpeechService.class));
         context.bindService(new Intent(context, GoogleCloudSpeechService.class), mServiceConnection, BIND_AUTO_CREATE);
 
         // Check the permission for recording voices
@@ -174,23 +176,35 @@ public class SugiliteGoogleCloudVoiceRecognitionListener implements SugiliteVoic
         if (mVoiceRecorder != null) {
             mVoiceRecorder.stop(null);
         }
-        synchronized (this) {
-            while (mSpeechService == null) {
-                try {
-                    this.wait();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-        mSpeechService.addListener(mSpeechServiceListener);
-        mVoiceRecorder = new GoogleVoiceRecorder(context, mVoiceCallback);
-        mVoiceRecorder.start(new Runnable() {
+        Thread t = new Thread(new Runnable() {
             @Override
             public void run() {
-                showStatus(true);
+                synchronized (this) {
+                    while (mSpeechService == null) {
+                        try {
+                            this.wait();
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        mSpeechService.addListener(mSpeechServiceListener);
+                        mVoiceRecorder = new GoogleVoiceRecorder(context, mVoiceCallback);
+                        mVoiceRecorder.start(new Runnable() {
+                            @Override
+                            public void run() {
+                                showStatus(true);
+                            }
+                        });
+                    }
+                });
+
             }
         });
+        t.start();
     }
 
 

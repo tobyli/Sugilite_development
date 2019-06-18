@@ -1,4 +1,4 @@
-package edu.cmu.hcii.sugilite.pumice.dialog.demonstration;
+package edu.cmu.hcii.sugilite.pumice;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -9,12 +9,15 @@ import android.content.SharedPreferences;
 import android.speech.tts.TextToSpeech;
 import android.support.annotation.Nullable;
 import android.view.LayoutInflater;
+import android.widget.Toast;
 
 import java.util.Map;
 
 import edu.cmu.hcii.sugilite.Const;
 import edu.cmu.hcii.sugilite.SugiliteData;
+import edu.cmu.hcii.sugilite.accessibility_service.SugiliteAccessibilityService;
 import edu.cmu.hcii.sugilite.automation.ServiceStatusManager;
+import edu.cmu.hcii.sugilite.communication.SugiliteBlockJSONProcessor;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
 import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
@@ -25,6 +28,8 @@ import edu.cmu.hcii.sugilite.verbal_instruction_demo.VerbalInstructionIconManage
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.speech.SugiliteAndroidAPIVoiceRecognitionListener;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.speech.SugiliteGoogleCloudVoiceRecognitionListener;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.speech.SugiliteVoiceRecognitionListener;
+
+import static edu.cmu.hcii.sugilite.Const.OVERLAY_TYPE;
 
 /**
  * @author toby
@@ -168,5 +173,70 @@ public class PumiceDemonstrationUtil {
                 }
             });
         }
+    }
+
+    public static void endRecording(Context context, SugiliteData sugiliteData, SharedPreferences sharedPreferences, SugiliteScriptDao sugiliteScriptDao) {
+        SharedPreferences.Editor prefEditor = sharedPreferences.edit();
+        SugiliteBlockJSONProcessor jsonProcessor = new SugiliteBlockJSONProcessor(context);
+
+
+        //end recording
+        prefEditor.putBoolean("recording_in_process", false);
+        prefEditor.apply();
+
+        //save the script
+        if (sugiliteScriptDao != null) {
+            AlertDialog progressDialog = new AlertDialog.Builder(context).setMessage(Const.SAVING_MESSAGE).create();
+            if (progressDialog.getWindow() != null) {
+                progressDialog.getWindow().setType(OVERLAY_TYPE);
+            }
+            progressDialog.setCanceledOnTouchOutside(false);
+            progressDialog.show();
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    //commit the script
+                    try {
+                        sugiliteScriptDao.commitSave();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                    Runnable dismissDialog = new Runnable() {
+                        @Override
+                        public void run() {
+                            progressDialog.dismiss();
+                        }
+                    };
+                    if (context instanceof SugiliteAccessibilityService) {
+                        ((SugiliteAccessibilityService) context).runOnUiThread(dismissDialog);
+                    } else if (context instanceof Activity) {
+                        ((Activity) context).runOnUiThread(dismissDialog);
+                    }
+                }
+            }).start();
+        }
+
+
+        if (sugiliteData.initiatedExternally && sugiliteData.getScriptHead() != null) {
+            //return the recording to the external caller
+            sugiliteData.communicationController.sendRecordingFinishedSignal(sugiliteData.getScriptHead().getScriptName());
+            sugiliteData.sendCallbackMsg(Const.FINISHED_RECORDING, jsonProcessor.scriptToJson(sugiliteData.getScriptHead()), sugiliteData.callbackString);
+        }
+
+        if (sugiliteData.getScriptHead() != null && sugiliteData.afterRecordingCallback != null){
+            //call the endRecordingCallback
+            Runnable r = sugiliteData.afterRecordingCallback;
+            sugiliteData.afterRecordingCallback = null;
+            r.run();
+        }
+
+        //turn off the recording overlay if any
+        if(sugiliteData.verbalInstructionIconManager != null){
+            sugiliteData.verbalInstructionIconManager.turnOffCatOverlay();
+        }
+
+
+        sugiliteData.setCurrentSystemState(SugiliteData.DEFAULT_STATE);
+        Toast.makeText(context, "end recording", Toast.LENGTH_SHORT).show();
     }
 }

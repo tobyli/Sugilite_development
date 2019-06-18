@@ -27,6 +27,7 @@ package edu.cmu.hcii.sugilite.communication;
         import edu.cmu.hcii.sugilite.dao.SugiliteTrackingDao;
         import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
         import edu.cmu.hcii.sugilite.model.variable.StringVariable;
+        import edu.cmu.hcii.sugilite.pumice.PumiceDemonstrationUtil;
 
         import static edu.cmu.hcii.sugilite.Const.OVERLAY_TYPE;
         import static edu.cmu.hcii.sugilite.Const.SCRIPT_DELAY;
@@ -219,18 +220,12 @@ public class SugiliteCommunicationHelper {
 
             case Const.STOP_RECORDING:
                 //arg1 = "NULL", arg2 = callbackString
-                if(arg2 != null)
+                if(arg2 != null) {
                     sugiliteData.callbackString = new String(arg2);
+                }
                 if(recordingInProcess) {
-
-                    SharedPreferences.Editor prefEditor = sharedPreferences.edit();
-                    prefEditor.putBoolean("recording_in_process", false);
-                    prefEditor.commit();
-                    if(sugiliteData.initiatedExternally == true && sugiliteData.getScriptHead() != null)
-                        sugiliteData.sendCallbackMsg(Const.FINISHED_RECORDING, jsonProcessor.scriptToJson(sugiliteData.getScriptHead()), arg2);
-
+                    PumiceDemonstrationUtil.endRecording(receivedContext, sugiliteData, sharedPreferences, null);
                     Toast.makeText(receivedContext, "recording ended", Toast.LENGTH_SHORT).show();
-                    sugiliteData.setCurrentSystemState(SugiliteData.DEFAULT_STATE);
                     setReturnValue("");
                 }
                 else {

@@ -71,6 +71,7 @@ import edu.cmu.hcii.sugilite.ontology.OntologyQuery;
 import edu.cmu.hcii.sugilite.ontology.SerializableOntologyQuery;
 import edu.cmu.hcii.sugilite.ontology.SugiliteEntity;
 import edu.cmu.hcii.sugilite.ontology.SugiliteRelation;
+import edu.cmu.hcii.sugilite.pumice.PumiceDemonstrationUtil;
 import edu.cmu.hcii.sugilite.ui.dialog.AbstractSugiliteDialog;
 import edu.cmu.hcii.sugilite.ui.dialog.ChooseVariableDialog;
 
@@ -378,59 +379,8 @@ public class RecordingPopUpDialog implements AbstractSugiliteDialog {
     public void finishActivity(View view){
         dialog.dismiss();
     }
-    public void turnOffRecording(View view)
-    {
-        SharedPreferences.Editor prefEditor = sharedPreferences.edit();
-        prefEditor.putBoolean("recording_in_process", false);
-        prefEditor.apply();
-
-        progressDialog = new AlertDialog.Builder(context).setMessage(Const.SAVING_MESSAGE).create();
-        progressDialog.getWindow().setType(OVERLAY_TYPE);
-        progressDialog.setCanceledOnTouchOutside(false);
-
-        Runnable showProgressDialogRunnable = new Runnable() {
-            @Override
-            public void run() {
-                progressDialog.show();
-            }
-        };
-        if(context instanceof SugiliteAccessibilityService) {
-            ((SugiliteAccessibilityService)context).runOnUiThread(showProgressDialogRunnable);
-        }
-        else if(context instanceof Activity){
-            ((Activity) context).runOnUiThread(showProgressDialogRunnable);
-        }
-
-
-        new Thread(new Runnable() {
-            @Override
-            public void run()
-            {
-                try {
-                    sugiliteScriptDao.commitSave();
-                }
-                catch (Exception e){
-                    e.printStackTrace();
-                }
-                Runnable dismissDialog = new Runnable() {
-                    @Override
-                    public void run() {
-                        progressDialog.dismiss();
-                    }
-                };
-                if(context instanceof SugiliteAccessibilityService) {
-                    ((SugiliteAccessibilityService) context).runOnUiThread(dismissDialog);
-                }
-                else if (context instanceof Activity){
-                    ((Activity) context).runOnUiThread(dismissDialog);
-                }
-            }
-        }).start();
-
-        if(sugiliteData.initiatedExternally == true && sugiliteData.getScriptHead() != null)
-            sugiliteData.communicationController.sendRecordingFinishedSignal(sugiliteData.getScriptHead().getScriptName());
-            sugiliteData.sendCallbackMsg(Const.FINISHED_RECORDING, jsonProcessor.scriptToJson(sugiliteData.getScriptHead()), sugiliteData.callbackString);
-        sugiliteData.setCurrentSystemState(SugiliteData.DEFAULT_STATE);
+    public void turnOffRecording(View view) {
+        PumiceDemonstrationUtil.endRecording(context, sugiliteData, sharedPreferences, sugiliteScriptDao);
         dialog.dismiss();
     }
 

@@ -27,6 +27,7 @@ import edu.cmu.hcii.sugilite.dao.SugiliteScriptFileDao;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptSQLDao;
 import edu.cmu.hcii.sugilite.dao.SugiliteTrackingDao;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
+import edu.cmu.hcii.sugilite.pumice.PumiceDemonstrationUtil;
 
 import static edu.cmu.hcii.sugilite.Const.OVERLAY_TYPE;
 import static edu.cmu.hcii.sugilite.Const.SQL_SCRIPT_DAO;
@@ -388,32 +389,9 @@ public class SugiliteCommunicationController {
         Log.d(TAG, "Request received: stopRecording");
         boolean recordingInProcess = isRecordingInProcess();
         if(recordingInProcess) {
-            SharedPreferences.Editor prefEditor = sharedPreferences.edit();
-            prefEditor.putBoolean("recording_in_process", false);
-            prefEditor.commit();
-            if(sugiliteData.initiatedExternally == true && sugiliteData.getScriptHead() != null) {
-                sendRecordingFinishedSignal(sugiliteData.getScriptHead().getScriptName());
-                if (sendCallback) {
-                    sugiliteData.sendCallbackMsg(Const.FINISHED_RECORDING, jsonProcessor
-                            .scriptToJson(sugiliteData.getScriptHead()), callbackString);
-                }
-            }
+            PumiceDemonstrationUtil.endRecording(context, sugiliteData, sharedPreferences, null);
 
-            if (sugiliteData.getScriptHead() != null && sugiliteData.afterRecordingCallback != null){
-                //call the afterRecordingCallback
-                Runnable r = sugiliteData.afterRecordingCallback;
-                sugiliteData.afterRecordingCallback = null;
-                r.run();
-            }
 
-            //turn off the recording overlay if any
-            if(sugiliteData.verbalInstructionIconManager != null){
-                sugiliteData.verbalInstructionIconManager.turnOffCatOverlay();
-            }
-
-            if( shouldUseToast ) {
-                Toast.makeText(context, "end recording", Toast.LENGTH_SHORT).show();
-            }
             if (sendTracking == 1) {
                 // send back tracking log (script)? false == 0, true == 1.
                 SugiliteStartingBlock script = sugiliteData.getScriptHead();

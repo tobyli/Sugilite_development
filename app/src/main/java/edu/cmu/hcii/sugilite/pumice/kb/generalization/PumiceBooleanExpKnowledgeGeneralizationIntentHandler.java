@@ -1,19 +1,12 @@
 package edu.cmu.hcii.sugilite.pumice.kb.generalization;
 
 import android.app.Activity;
-import android.app.AlertDialog;
-import android.content.DialogInterface;
-import android.content.SharedPreferences;
 
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 
-import edu.cmu.hcii.sugilite.SugiliteData;
-import edu.cmu.hcii.sugilite.automation.ServiceStatusManager;
-import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.model.value.SugiliteValue;
 import edu.cmu.hcii.sugilite.pumice.dialog.PumiceDialogManager;
-import edu.cmu.hcii.sugilite.pumice.dialog.demonstration.PumiceDemonstrationUtil;
 import edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.PumiceDefaultUtteranceIntentHandler;
 import edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.PumiceUtteranceIntentHandler;
 import edu.cmu.hcii.sugilite.pumice.kb.PumiceBooleanExpKnowledge;

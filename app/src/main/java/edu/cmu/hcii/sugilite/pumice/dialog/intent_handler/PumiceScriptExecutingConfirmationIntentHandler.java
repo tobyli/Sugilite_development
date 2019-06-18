@@ -11,7 +11,7 @@ import edu.cmu.hcii.sugilite.automation.ServiceStatusManager;
 import edu.cmu.hcii.sugilite.model.block.SugiliteConditionBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.pumice.dialog.PumiceDialogManager;
-import edu.cmu.hcii.sugilite.pumice.dialog.demonstration.PumiceDemonstrationUtil;
+import edu.cmu.hcii.sugilite.pumice.PumiceDemonstrationUtil;
 
 /**
  * @author toby

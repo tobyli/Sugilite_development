@@ -45,6 +45,7 @@ import edu.cmu.hcii.sugilite.dao.SugiliteScriptFileDao;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptSQLDao;
 import edu.cmu.hcii.sugilite.dao.SugiliteTrackingDao;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
+import edu.cmu.hcii.sugilite.pumice.PumiceDemonstrationUtil;
 import edu.cmu.hcii.sugilite.tracking.SugiliteTrackingHandler;
 
 import static edu.cmu.hcii.sugilite.Const.SQL_SCRIPT_DAO;
@@ -216,29 +217,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
 
                     }
                     else{
-                        sugiliteData.setCurrentSystemState(SugiliteData.DEFAULT_STATE);
-                        try {
-                            sugiliteScriptDao.commitSave();
-                        }
-                        catch (Exception e){
-                            e.printStackTrace();
-                        }
-                        if(sugiliteData.initiatedExternally == true && sugiliteData.getScriptHead() != null) {
-                            sugiliteData.communicationController.sendRecordingFinishedSignal(sugiliteData.getScriptHead().getScriptName());
-                            sugiliteData.sendCallbackMsg(Const.FINISHED_RECORDING, jsonProcessor.scriptToJson(sugiliteData.getScriptHead()), sugiliteData.callbackString);
-                        }
-
-                        if (sugiliteData.getScriptHead() != null && sugiliteData.afterRecordingCallback != null){
-                            //call the endRecordingCallback
-                            Runnable r = sugiliteData.afterRecordingCallback;
-                            sugiliteData.afterRecordingCallback = null;
-                            r.run();
-                        }
-
-                        //turn off the recording overlay if any
-                        if(sugiliteData.verbalInstructionIconManager != null){
-                            sugiliteData.verbalInstructionIconManager.turnOffCatOverlay();
-                        }
+                        PumiceDemonstrationUtil.endRecording(context, sugiliteData, sharedPreferences, sugiliteScriptDao);
                     }
                     break;
 

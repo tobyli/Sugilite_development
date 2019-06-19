@@ -2,11 +2,24 @@ package edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.parsing_confirmation;
 
 import android.app.Activity;
 
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.HashSet;
+import java.util.Set;
+
+import edu.cmu.hcii.sugilite.model.block.SugiliteConditionBlock;
+import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
+import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
+import edu.cmu.hcii.sugilite.model.block.booleanexp.SugiliteBooleanExpressionNew;
+import edu.cmu.hcii.sugilite.model.operation.binary.SugiliteGetProcedureOperation;
+import edu.cmu.hcii.sugilite.model.operation.unary.SugiliteResolveProcedureOperation;
+import edu.cmu.hcii.sugilite.model.value.SugiliteValue;
 import edu.cmu.hcii.sugilite.pumice.communication.PumiceInstructionPacket;
 import edu.cmu.hcii.sugilite.pumice.communication.PumiceSemanticParsingResultPacket;
 import edu.cmu.hcii.sugilite.pumice.dialog.PumiceDialogManager;
 import edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.PumiceDefaultUtteranceIntentHandler;
 import edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.PumiceUtteranceIntentHandler;
+import edu.cmu.hcii.sugilite.source_parsing.SugiliteScriptParser;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.server_comm.SugiliteVerbalInstructionHTTPQueryInterface;
 
 /**
@@ -19,15 +32,22 @@ public class PumiceParsingConfirmationHandler implements PumiceUtteranceIntentHa
     private Activity context;
     private PumiceDialogManager pumiceDialogManager;
     private PumiceParsingResultDescriptionGenerator pumiceParsingResultDescriptionGenerator;
+    private SugiliteScriptParser sugiliteScriptParser;
 
     private HandleParsingResultPacket parsingResultsToHandle;
+    private int failureCount = 0;
 
-    public PumiceParsingConfirmationHandler(Activity context, PumiceDialogManager pumiceDialogManager) {
+
+    public PumiceParsingConfirmationHandler(Activity context, PumiceDialogManager pumiceDialogManager, int failureCount) {
         this.context = context;
         this.pumiceDialogManager = pumiceDialogManager;
         this.pumiceParsingResultDescriptionGenerator = new PumiceParsingResultDescriptionGenerator();
+        this.sugiliteScriptParser = new SugiliteScriptParser();
+        this.failureCount = failureCount;
+
         //this.parsingResultsToHandle = new Stack<>();
     }
+
 
     /**
      * should support:
@@ -35,15 +55,19 @@ public class PumiceParsingConfirmationHandler implements PumiceUtteranceIntentHa
      * 2. view the candidates and choose from one
      * 3. "retry" to try giving a different instruction
      */
-    public void handleParsingResult(PumiceSemanticParsingResultPacket resultPacket, Runnable runnableForRetry, ConfirmedParseRunnable runnableForConfirmedParse){
+    public void handleParsingResult(PumiceSemanticParsingResultPacket resultPacket, Runnable runnableForRetry, ConfirmedParseRunnable runnableForConfirmedParse, boolean toAskForConfirmation){
         if (resultPacket.queries != null && resultPacket.queries.size() > 0) {
             //set the parsingResultsToHandle
             parsingResultsToHandle = new HandleParsingResultPacket(resultPacket, runnableForRetry, runnableForConfirmedParse);
 
-
-            //ask about the top formula -- need to switch the intent handler out
-            pumiceDialogManager.updateUtteranceIntentHandlerInANewState(this);
-            sendPromptForTheIntentHandler();
+            if (toAskForConfirmation) {
+                // ask about the top formula -- need to switch the intent handler out
+                pumiceDialogManager.updateUtteranceIntentHandlerInANewState(this);
+                sendPromptForTheIntentHandler();
+            } else {
+                // choose the top parse without asking
+                runnableForConfirmedParse.run(getTopParsing(resultPacket).formula);
+            }
         }
 
         else {
@@ -56,6 +80,39 @@ public class PumiceParsingConfirmationHandler implements PumiceUtteranceIntentHa
     }
 
     /**
+     * temporary method that prioritize results with more usage of "call get" functions
+     * @param resultPacket
+     * @return
+     */
+    private PumiceSemanticParsingResultPacket.QueryGroundingPair getTopParsing(PumiceSemanticParsingResultPacket resultPacket){
+        if (resultPacket != null && resultPacket.queries != null && resultPacket.queries.size() > 0) {
+            //default
+            Set<String> allAvailableFormula = new HashSet<>();
+            PumiceSemanticParsingResultPacket.QueryGroundingPair topScoredQueryGroundingPair = resultPacket.queries.get(0);
+
+
+            int topGetUsageCount = 0;
+
+            for (PumiceSemanticParsingResultPacket.QueryGroundingPair queryGroundingPair : resultPacket.queries) {
+                int numMatches = StringUtils.countMatches(queryGroundingPair.formula, "call get");
+                if (numMatches > topGetUsageCount){
+                    topGetUsageCount = numMatches;
+                }
+            }
+
+            for (PumiceSemanticParsingResultPacket.QueryGroundingPair queryGroundingPair : resultPacket.queries) {
+                if (StringUtils.countMatches(queryGroundingPair.formula, "call get") == topGetUsageCount){
+                    return queryGroundingPair;
+                }
+            }
+
+            return topScoredQueryGroundingPair;
+        } else {
+            throw new RuntimeException("failed to get top parsing -- empty result packet?");
+        }
+    }
+
+    /**
      * detect the intent from the user utterance -> whether the user confirms the parse or not
      * @param utterance
      * @return
@@ -65,8 +122,10 @@ public class PumiceParsingConfirmationHandler implements PumiceUtteranceIntentHa
         String utteranceContent = utterance.getContent();
         if (utteranceContent != null && (utteranceContent.toLowerCase().contains("yes") || utteranceContent.toLowerCase().toLowerCase().contains("ok") || utteranceContent.toLowerCase().contains("yeah"))){
             return PumiceIntent.PARSE_CONFIRM_POSITIVE;
-        } else {
+        } else if (utteranceContent != null && (utteranceContent.toLowerCase().contains("no"))) {
             return PumiceIntent.PARSE_CONFIRM_NEGATIVE;
+        } else {
+            return PumiceIntent.UNRECOGNIZED;
         }
     }
 
@@ -89,15 +148,16 @@ public class PumiceParsingConfirmationHandler implements PumiceUtteranceIntentHa
 
         else if (pumiceIntent.equals(PumiceIntent.PARSE_CONFIRM_NEGATIVE)) {
             // parse is incorrect
-            try {
-                HandleParsingResultPacket parsingResultPacket = parsingResultsToHandle;
+            HandleParsingResultPacket parsingResultPacket = parsingResultsToHandle;
 
-                //show a popup to ask the user to choose from parsing results
-                PumiceChooseParsingDialog pumiceChooseParsingDialog = new PumiceChooseParsingDialog(context, dialogManager, parsingResultPacket.resultPacket, parsingResultPacket.runnableForRetry, parsingResultPacket.runnableForConfirmedParse);
-                pumiceChooseParsingDialog.show();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+            //show a popup to ask the user to choose from parsing results
+            PumiceChooseParsingDialogNew pumiceChooseParsingDialog = new PumiceChooseParsingDialogNew(context, dialogManager, parsingResultPacket.resultPacket, parsingResultPacket.runnableForRetry, parsingResultPacket.runnableForConfirmedParse, failureCount);
+            pumiceChooseParsingDialog.show();
+        }
+
+        else if (pumiceIntent.equals(PumiceIntent.UNRECOGNIZED)) {
+            pumiceDialogManager.sendAgentMessage("Can't recognize your response. Please respond with \"Yes\" or \"No\".", true, false);
+            sendPromptForTheIntentHandler();
         }
 
         //set the intent handler back to the default one

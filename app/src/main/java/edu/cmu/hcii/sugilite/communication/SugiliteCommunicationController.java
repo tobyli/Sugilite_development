@@ -8,7 +8,6 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 import android.util.Log;
-import android.view.WindowManager;
 import android.widget.Toast;
 
 import com.google.gson.Gson;
@@ -28,6 +27,7 @@ import edu.cmu.hcii.sugilite.dao.SugiliteScriptFileDao;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptSQLDao;
 import edu.cmu.hcii.sugilite.dao.SugiliteTrackingDao;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
+import edu.cmu.hcii.sugilite.pumice.PumiceDemonstrationUtil;
 
 import static edu.cmu.hcii.sugilite.Const.OVERLAY_TYPE;
 import static edu.cmu.hcii.sugilite.Const.SQL_SCRIPT_DAO;
@@ -389,27 +389,9 @@ public class SugiliteCommunicationController {
         Log.d(TAG, "Request received: stopRecording");
         boolean recordingInProcess = isRecordingInProcess();
         if(recordingInProcess) {
-            SharedPreferences.Editor prefEditor = sharedPreferences.edit();
-            prefEditor.putBoolean("recording_in_process", false);
-            prefEditor.commit();
-            if(sugiliteData.initiatedExternally == true && sugiliteData.getScriptHead() != null) {
-                sendRecordingFinishedSignal(sugiliteData.getScriptHead().getScriptName());
-                if (sendCallback) {
-                    sugiliteData.sendCallbackMsg(Const.FINISHED_RECORDING, jsonProcessor
-                            .scriptToJson(sugiliteData.getScriptHead()), callbackString);
-                }
-            }
+            PumiceDemonstrationUtil.endRecording(context, sugiliteData, sharedPreferences, null);
 
-            if (sugiliteData.getScriptHead() != null && sugiliteData.endRecordingCallback != null){
-                //call the endRecordingCallback
-                Runnable r = sugiliteData.endRecordingCallback;
-                sugiliteData.endRecordingCallback = null;
-                r.run();
-            }
 
-            if( shouldUseToast ) {
-                Toast.makeText(context, "end recording", Toast.LENGTH_SHORT).show();
-            }
             if (sendTracking == 1) {
                 // send back tracking log (script)? false == 0, true == 1.
                 SugiliteStartingBlock script = sugiliteData.getScriptHead();
@@ -487,7 +469,7 @@ public class SugiliteCommunicationController {
             try{
                 SugiliteStartingBlock script = jsonProcessor.jsonToScript(json);
                 Log.d("mtemp",script.toString());
-                Log.d("mtemp",script.getNextBlock().getDescription());
+                Log.d("mtemp",script.getNextBlockToRun().getDescription());
                 if(!script.getScriptName().contains(".SugiliteScript"))
                     script.setScriptName(script.getScriptName() + ".SugiliteScript");
                 sugiliteScriptDao.save(script);

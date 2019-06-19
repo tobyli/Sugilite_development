@@ -6,9 +6,11 @@ import android.content.SharedPreferences;
 import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.view.View;
+import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.support.v7.app.AppCompatActivity;
+import android.widget.TextView;
 
 import com.google.gson.ExclusionStrategy;
 import com.google.gson.FieldAttributes;
@@ -23,6 +25,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import edu.cmu.hcii.sugilite.Const;
 import edu.cmu.hcii.sugilite.R;
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.automation.ServiceStatusManager;
@@ -38,6 +41,7 @@ import edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.PumiceConditionalInten
 import edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.PumiceDefaultUtteranceIntentHandler;
 
 import edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.PumiceUtteranceIntentHandler;
+
 import edu.cmu.hcii.sugilite.pumice.kb.PumiceKnowledgeManager;
 import edu.cmu.hcii.sugilite.pumice.ui.PumiceDialogActivity;
 import edu.cmu.hcii.sugilite.pumice.ui.util.PumiceDialogUIHelper;
@@ -70,6 +74,7 @@ public class PumiceDialogManager{
 
     private List<PumiceDialogState> stateHistoryList;
 
+
     //TODO: need to add a structure to represent undo
 
     //represents the current state of the dialog
@@ -80,20 +85,21 @@ public class PumiceDialogManager{
         this.pumiceDialogView = new PumiceDialogView(context);
         this.pumiceDialogUIHelper = new PumiceDialogUIHelper(context);
         this.sugiliteData = (SugiliteData)(context.getApplication());
-        this.pumiceInitInstructionParsingHandler = new PumiceInitInstructionParsingHandler(context, this);
+        this.pumiceInitInstructionParsingHandler = new PumiceInitInstructionParsingHandler(context, this, sugiliteData);
         this.stateHistoryList = new ArrayList<>();
         this.pumiceKnowledgeDao = new PumiceKnowledgeDao(context, sugiliteData);
         try {
             // set "toAddDefaultContentForNewInstance" to true for testing purpose
             PumiceKnowledgeManager pumiceKnowledgeManager = pumiceKnowledgeDao.getPumiceKnowledgeOrANewInstanceIfNotAvailable(true);
             this.pumiceDialogState = new PumiceDialogState(new PumiceDefaultUtteranceIntentHandler(this, context), pumiceKnowledgeManager);
+
         } catch (Exception e){
             e.printStackTrace();
             throw new RuntimeException("failed to initiate/load the knowledge manager");
         }
         this.sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
         this.httpQueryManager = new SugiliteVerbalInstructionHTTPQueryManager(sharedPreferences);
-        this.executorService = Executors.newCachedThreadPool();
+        this.executorService = Executors.newFixedThreadPool(Const.UI_SNAPSHOT_TEXT_PARSING_THREAD_COUNT);
         this.serviceStatusManager = ServiceStatusManager.getInstance(context);
         this.sugiliteData.pumiceDialogManager = this;
         this.handler = new Handler();
@@ -161,6 +167,9 @@ public class PumiceDialogManager{
         runOnMainThread(new Runnable() {
             @Override
             public void run() {
+                if (context instanceof PumiceDialogActivity) {
+                    ((PumiceDialogActivity) context).clearUserTextBox();
+                }
                 PumiceUtterance utterance = new PumiceUtterance(Sender.AGENT, "[CARD]" + altText, Calendar.getInstance().getTimeInMillis(), isSpokenMessage, requireUserResponse);
                 pumiceDialogState.getUtteranceHistory().add(utterance);
                 pumiceDialogView.addMessage(viewContent, Sender.AGENT);
@@ -181,6 +190,9 @@ public class PumiceDialogManager{
         runOnMainThread(new Runnable() {
             @Override
             public void run() {
+                if (context instanceof PumiceDialogActivity) {
+                    ((PumiceDialogActivity) context).clearUserTextBox();
+                }
                 PumiceUtterance utterance = new PumiceUtterance(Sender.AGENT, message, Calendar.getInstance().getTimeInMillis(), isSpokenMessage, requireUserResponse);
                 pumiceDialogState.getUtteranceHistory().add(utterance);
                 pumiceDialogView.addMessage(utterance);
@@ -252,7 +264,11 @@ public class PumiceDialogManager{
                             @Override
                             public void run() {
                                 //replace this line to scroll up or down
-                                speakButtonForCallback.callOnClick();
+                                try {
+                                    speakButtonForCallback.callOnClick();
+                                } catch (Exception e){
+                                    e.printStackTrace();
+                                }
                             }
                         }, 1000L);
                     }
@@ -365,6 +381,12 @@ public class PumiceDialogManager{
         }
     }
 
+    public void callSendPromptForTheIntentHandlerForCurrentIntentHandler(){
+        if (pumiceDialogState != null && pumiceDialogState.getPumiceUtteranceIntentHandlerInUse() != null) {
+            pumiceDialogState.getPumiceUtteranceIntentHandlerInUse().sendPromptForTheIntentHandler();
+        }
+    }
+
     public class PumiceDialogState {
         private List<PumiceUtterance> utteranceHistory;
         private transient PumiceUtteranceIntentHandler pumiceUtteranceIntentHandlerInUse;
@@ -462,6 +484,17 @@ public class PumiceDialogManager{
         }
     }
 
+    public SugiliteVoiceRecognitionListener getSugiliteVoiceRecognitionListener() {
+        return sugiliteVoiceRecognitionListener;
+    }
+
+    public void stopTalking(){
+        sugiliteVoiceRecognitionListener.stopTTS();
+    }
+
+    public void stopListening(){
+        sugiliteVoiceRecognitionListener.stopListening();
+    }
 
 
     public ExecutorService getExecutorService() {

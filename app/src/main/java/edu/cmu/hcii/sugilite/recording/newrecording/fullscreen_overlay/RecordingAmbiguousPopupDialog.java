@@ -239,6 +239,7 @@ public class RecordingAmbiguousPopupDialog extends SugiliteDialogManager impleme
             @Override
             public void onDismiss(DialogInterface dialog) {
                 stopASRandTTS();
+                onDestroy();
             }
         });
     }

@@ -170,6 +170,14 @@ public class VariableSetValueDialog extends SugiliteDialogManager implements Abs
                 });
 
         dialog = builder.create();
+        dialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
+            @Override
+            public void onDismiss(DialogInterface dialog) {
+                //stop ASR and TTS when the dialog is dismissed
+                stopASRandTTS();
+                onDestroy();
+            }
+        });
     }
 
     @Override
@@ -267,7 +275,12 @@ public class VariableSetValueDialog extends SugiliteDialogManager implements Abs
         handler.postDelayed(delayAndRunScript, SCRIPT_DELAY);
 
         //load the pumice knowledge manager
-        sugiliteData.pumiceDialogManager = pumiceDialogManager;
+        if (sugiliteData.pumiceDialogManager == null && pumiceDialogManager != null) {
+            sugiliteData.pumiceDialogManager = pumiceDialogManager;
+        } else {
+            //TODO: need to be able to initiate a dialog manager here
+        }
+
 
         //go to home screen for running the automation
         Intent startMain = new Intent(Intent.ACTION_MAIN);

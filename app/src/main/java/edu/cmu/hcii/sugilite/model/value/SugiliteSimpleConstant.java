@@ -8,6 +8,7 @@ import java.text.ParseException;
 import java.util.List;
 
 import edu.cmu.hcii.sugilite.SugiliteData;
+import edu.cmu.hcii.sugilite.model.block.booleanexp.SugiliteBooleanExpressionNew;
 import edu.cmu.hcii.sugilite.ontology.helper.annotator.SugiliteTextParentAnnotator;
 
 import static edu.cmu.hcii.sugilite.source_parsing.SugiliteScriptExpression.addQuoteToTokenIfNeeded;
@@ -35,7 +36,7 @@ public class SugiliteSimpleConstant<T> implements SugiliteValue<T>, Serializable
     }
 
     @Nullable
-    public SugiliteTextParentAnnotator.AnnotatingResult toAnnotatingResult(){
+    public SugiliteTextParentAnnotator.AnnotatingResult toAnnotatingResult() {
         SugiliteTextParentAnnotator annotator = SugiliteTextParentAnnotator.getInstance();
         List<SugiliteTextParentAnnotator.AnnotatingResult> results;
         if (unit != null) {
@@ -43,7 +44,7 @@ public class SugiliteSimpleConstant<T> implements SugiliteValue<T>, Serializable
         } else {
             results = annotator.annotate(value.toString());
         }
-        if (results.size() > 0){
+        if (results.size() > 0) {
             return results.get(0);
         }
         return null;
@@ -90,5 +91,19 @@ public class SugiliteSimpleConstant<T> implements SugiliteValue<T>, Serializable
     @Override
     public String getReadableDescription() {
         return value.toString() + " " + unit;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj != null && obj instanceof SugiliteValue) {
+            return this.toString().equals(obj.toString());
+        } else {
+            return super.equals(obj);
+        }
+    }
+
+    @Override
+    public int hashCode() {
+        return this.toString().hashCode();
     }
 }

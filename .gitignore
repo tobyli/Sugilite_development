@@ -47,3 +47,6 @@ captures/
 
 .DS_Store
 _config.yml
+
+#key
+credential.json

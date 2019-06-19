@@ -43,6 +43,7 @@ import edu.cmu.hcii.sugilite.automation.AutomatorUtil;
 import edu.cmu.hcii.sugilite.automation.ServiceStatusManager;
 import edu.cmu.hcii.sugilite.communication.SugiliteBlockJSONProcessor;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteSpecialOperation;
+import edu.cmu.hcii.sugilite.pumice.PumiceDemonstrationUtil;
 import edu.cmu.hcii.sugilite.recording.SugiliteScreenshotManager;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptFileDao;
@@ -164,6 +165,8 @@ public class StatusIconManager {
                 //=== temporarily set the status view to invisible  ===
                 windowManager.addView(statusView, textViewParams);
                 statusView.setVisibility(View.INVISIBLE);
+            } else {
+                windowManager.addView(statusIcon, iconParams);
             }
         }
         else {
@@ -247,7 +250,9 @@ public class StatusIconManager {
                     rotation = (rotation + 20) % 360;
 
                     //rotate the duck
-                    statusIcon.setRotation(rotation);
+
+                    //TODO: disabled the rotation
+                    //statusIcon.setRotation(rotation);
 
                     /**
                      *
@@ -499,58 +504,7 @@ public class StatusIconManager {
                                     break;
                                 case "End Recording":
                                     //end recording
-                                    prefEditor.putBoolean("recording_in_process", false);
-                                    prefEditor.apply();
-
-                                    progressDialog = new AlertDialog.Builder(context).setMessage(Const.SAVING_MESSAGE).create();
-                                    if(progressDialog.getWindow() != null) {
-                                        progressDialog.getWindow().setType(OVERLAY_TYPE);
-                                    }
-                                    progressDialog.setCanceledOnTouchOutside(false);
-                                    progressDialog.show();
-                                    new Thread(new Runnable() {
-                                        @Override
-                                        public void run()
-                                        {
-                                            //commit the script
-                                            try {
-                                                sugiliteScriptDao.commitSave();
-                                            }
-                                            catch (Exception e){
-                                                e.printStackTrace();
-                                            }
-                                            Runnable dismissDialog = new Runnable() {
-                                                @Override
-                                                public void run() {
-                                                    progressDialog.dismiss();
-                                                }
-                                            };
-                                            if(context instanceof SugiliteAccessibilityService) {
-                                                ((SugiliteAccessibilityService) context).runOnUiThread(dismissDialog);
-                                            }
-                                            else if(context instanceof Activity){
-                                                ((Activity)context).runOnUiThread(dismissDialog);
-                                            }
-                                        }
-                                    }).start();
-
-
-                                    if (sugiliteData.initiatedExternally && sugiliteData.getScriptHead() != null) {
-                                        //return the recording to the external caller
-                                        sugiliteData.communicationController.sendRecordingFinishedSignal(sugiliteData.getScriptHead().getScriptName());
-                                        sugiliteData.sendCallbackMsg(Const.FINISHED_RECORDING, jsonProcessor.scriptToJson(sugiliteData.getScriptHead()), sugiliteData.callbackString);
-                                    }
-
-                                    if (sugiliteData.getScriptHead() != null && sugiliteData.endRecordingCallback != null){
-                                        //call the endRecordingCallback
-                                        Runnable r = sugiliteData.endRecordingCallback;
-                                        sugiliteData.endRecordingCallback = null;
-                                        r.run();
-                                    }
-
-
-                                    sugiliteData.setCurrentSystemState(SugiliteData.DEFAULT_STATE);
-                                    Toast.makeText(context, "end recording", Toast.LENGTH_SHORT).show();
+                                    PumiceDemonstrationUtil.endRecording(context, sugiliteData, sharedPreferences, sugiliteScriptDao);
                                     break;
                                 case "New Recording":
                                     //create a new script

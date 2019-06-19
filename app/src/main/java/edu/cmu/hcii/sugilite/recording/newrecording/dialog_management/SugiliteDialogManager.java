@@ -3,16 +3,17 @@ package edu.cmu.hcii.sugilite.recording.newrecording.dialog_management;
 import android.content.Context;
 import android.graphics.LightingColorFilter;
 import android.graphics.drawable.AnimationDrawable;
-import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.speech.tts.TextToSpeech;
-import android.speech.tts.UtteranceProgressListener;
 import android.widget.ImageButton;
 
 import java.util.Calendar;
 import java.util.List;
 
+import edu.cmu.hcii.sugilite.Const;
 import edu.cmu.hcii.sugilite.R;
+import edu.cmu.hcii.sugilite.verbal_instruction_demo.speech.SugiliteAndroidAPIVoiceRecognitionListener;
+import edu.cmu.hcii.sugilite.verbal_instruction_demo.speech.SugiliteGoogleCloudVoiceRecognitionListener;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.speech.SugiliteVoiceInterface;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.speech.SugiliteVoiceRecognitionListener;
 
@@ -43,7 +44,11 @@ public abstract class SugiliteDialogManager implements SugiliteVoiceInterface {
     public SugiliteDialogManager(Context context, TextToSpeech tts) {
         this.context = context;
         this.tts = tts;
-        this.sugiliteVoiceRecognitionListener = new SugiliteVoiceRecognitionListener(context, this, tts);
+        if (Const.SELECTED_SPEECH_RECOGNITION_TYPE == Const.SpeechRecognitionType.ANDROID) {
+            this.sugiliteVoiceRecognitionListener = new SugiliteAndroidAPIVoiceRecognitionListener(context, this, tts);
+        } else if (Const.SELECTED_SPEECH_RECOGNITION_TYPE == Const.SpeechRecognitionType.GOOGLE_CLOUD) {
+            this.sugiliteVoiceRecognitionListener = new SugiliteGoogleCloudVoiceRecognitionListener(context, this, tts);
+        }
 
         //initiate the drawables for the icons on the speak button
         speakingDrawable = new AnimationDrawable();
@@ -122,52 +127,53 @@ public abstract class SugiliteDialogManager implements SugiliteVoiceInterface {
      * @param matches
      */
     @Override
-    public void resultAvailable(List<String> matches) {
-        //fill in the ASR results for the current state
-        currentState.setASRResult(matches);
+    public void resultAvailableCallback(List<String> matches, boolean isFinal) {
+        if (isFinal) {
+            //fill in the ASR results for the current state
+            currentState.setASRResult(matches);
 
-        //invoke the on switched away runnable of the current state
-        if (currentState.getOnSwitchedAwayRunnable() != null) {
-            currentState.getOnSwitchedAwayRunnable().run();
-        }
-
-        //switch state
-        currentState = currentState.getNextState(matches);
-
-        if (currentState != null) {
-            //invoke the on initiated runnable of the next state
-            if (currentState.getOnInitiatedRunnable() != null) {
-                currentState.getOnInitiatedRunnable().run();
+            //invoke the on switched away runnable of the current state
+            if (currentState.getOnSwitchedAwayRunnable() != null) {
+                currentState.getOnSwitchedAwayRunnable().run();
             }
 
-            //play the prompt of the next state
-            System.out.println("getPrompton: " + currentState.getPromptOnPlayingDoneRunnable());
-            if (currentState.getPrompt() != null && currentState.getPromptOnPlayingDoneRunnable() != null) {
-                speak(currentState.getPrompt(), currentState.getPromptOnPlayingDoneRunnable());
+            //switch state
+            currentState = currentState.getNextState(matches);
+
+            if (currentState != null) {
+                //invoke the on initiated runnable of the next state
+                if (currentState.getOnInitiatedRunnable() != null) {
+                    currentState.getOnInitiatedRunnable().run();
+                }
+
+                //play the prompt of the next state
+                if (currentState.getPrompt() != null && currentState.getPromptOnPlayingDoneRunnable() != null) {
+                    speak(currentState.getPrompt(), currentState.getPromptOnPlayingDoneRunnable());
+                }
             }
         }
     }
 
     @Override
-    public void listeningStarted() {
+    public void listeningStartedCallback() {
         isListening = true;
         refreshSpeakButtonStyle(speakButton);
     }
 
     @Override
-    public void listeningEnded() {
+    public void listeningEndedCallback() {
         isListening = false;
         refreshSpeakButtonStyle(speakButton);
     }
 
     @Override
-    public void speakingStarted() {
+    public void speakingStartedCallback() {
         isSpeaking = true;
         refreshSpeakButtonStyle(speakButton);
     }
 
     @Override
-    public void speakingEnded() {
+    public void speakingEndedCallback() {
         isSpeaking = false;
         refreshSpeakButtonStyle(speakButton);
     }
@@ -186,7 +192,7 @@ public abstract class SugiliteDialogManager implements SugiliteVoiceInterface {
 
     public void stopListening() {
         sugiliteVoiceRecognitionListener.stopListening();
-        listeningEnded();
+        listeningEndedCallback();
     }
 
     public void speak(String utterance, Runnable runnableOnDone) {
@@ -205,5 +211,9 @@ public abstract class SugiliteDialogManager implements SugiliteVoiceInterface {
 
     public void setSpeakButton(ImageButton speakButton) {
         this.speakButton = speakButton;
+    }
+
+    public void onDestroy(){
+        sugiliteVoiceRecognitionListener.stopAllAndEndASRService();
     }
 }

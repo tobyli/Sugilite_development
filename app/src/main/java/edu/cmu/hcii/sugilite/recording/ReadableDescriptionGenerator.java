@@ -109,95 +109,101 @@ public class ReadableDescriptionGenerator {
             }
 
             //print the object type
-            if(((SugiliteOperationBlock) block).getElementMatchingFilter().getClassName() != null){
-                String className =  ((SugiliteOperationBlock) block).getElementMatchingFilter().getClassName();
-                int lastIndex = className.lastIndexOf('.');
-                if(lastIndex > -1)
-                    message += setColor("the " + className.substring(lastIndex + 1) + " object ", Const.SCRIPT_TARGET_TYPE_COLOR);
-                else
-                    message += setColor("the object ", Const.SCRIPT_TARGET_TYPE_COLOR);
-            }
-            boolean thatPrinted = false;
+            if (((SugiliteOperationBlock) block).getElementMatchingFilter() != null) {
+                if (((SugiliteOperationBlock) block).getElementMatchingFilter().getClassName() != null) {
+                    String className = ((SugiliteOperationBlock) block).getElementMatchingFilter().getClassName();
+                    int lastIndex = className.lastIndexOf('.');
+                    if (lastIndex > -1)
+                        message += setColor("the " + className.substring(lastIndex + 1) + " object ", Const.SCRIPT_TARGET_TYPE_COLOR);
+                    else
+                        message += setColor("the object ", Const.SCRIPT_TARGET_TYPE_COLOR);
+                }
 
-            Map<String, String> labels = new HashMap<>();
+                boolean thatPrinted = false;
 
-            if(((SugiliteOperationBlock) block).getElementMatchingFilter().getText() != null){
-                labels.put("text", ((SugiliteOperationBlock) block).getElementMatchingFilter().getText());
-            }
-            if (((SugiliteOperationBlock) block).getElementMatchingFilter().getContentDescription() != null){
-                labels.put("content description", ((SugiliteOperationBlock)block).getElementMatchingFilter().getContentDescription());
-            }
+                Map<String, String> labels = new HashMap<>();
 
-            Set<UIElementMatchingFilter> childFilters = ((SugiliteOperationBlock) block).getElementMatchingFilter().getChildFilter();
-            if(childFilters != null && childFilters.size() != 0){
-                for (UIElementMatchingFilter cf : childFilters) {
-                    String sText = cf.getText();
-                    String sContent = cf.getContentDescription();
-                    String sViewId = cf.getViewId();
+                if (((SugiliteOperationBlock) block).getElementMatchingFilter().getText() != null) {
+                    labels.put("text", ((SugiliteOperationBlock) block).getElementMatchingFilter().getText());
+                }
+                if (((SugiliteOperationBlock) block).getElementMatchingFilter().getContentDescription() != null) {
+                    labels.put("content description", ((SugiliteOperationBlock) block).getElementMatchingFilter().getContentDescription());
+                }
 
-                    if(sText != null) {
-                        labels.put("child text", sText);
+                Set<UIElementMatchingFilter> childFilters = ((SugiliteOperationBlock) block).getElementMatchingFilter().getChildFilter();
+                if (childFilters != null && childFilters.size() != 0) {
+                    for (UIElementMatchingFilter cf : childFilters) {
+                        String sText = cf.getText();
+                        String sContent = cf.getContentDescription();
+                        String sViewId = cf.getViewId();
+
+                        if (sText != null) {
+                            labels.put("child text", sText);
+                        }
+                        if (sContent != null) {
+                            labels.put("child content description", sContent);
+                        }
+                        if (sViewId != null) {
+                            message += (thatPrinted ? "" : "that ") + "has child Object ID \"" + setColor(sViewId, Const.SCRIPT_VIEW_ID_COLOR) + "\" ";
+                            thatPrinted = true;
+                        }
                     }
-                    if(sContent != null) {
-                        labels.put("child content description", sContent);
+                }
+
+                Set<UIElementMatchingFilter> siblingFilters = ((SugiliteOperationBlock) block).getElementMatchingFilter().getSiblingFilter();
+                if (siblingFilters != null && siblingFilters.size() != 0) {
+                    for (UIElementMatchingFilter sf : siblingFilters) {
+                        String sText = sf.getText();
+                        String sContent = sf.getContentDescription();
+                        String sViewId = sf.getViewId();
+
+                        if (sText != null) {
+                            labels.put("sibling text", sText);
+                        }
+                        if (sContent != null) {
+                            labels.put("sibling content description", sContent);
+                        }
+                        if (sViewId != null) {
+                            message += (thatPrinted ? "" : "that ") + "has sibling Object ID \"" + setColor(sViewId, Const.SCRIPT_VIEW_ID_COLOR) + "\" ";
+                            thatPrinted = true;
+                        }
                     }
-                    if(sViewId != null){
-                        message += (thatPrinted ? "" : "that ") + "has child Object ID \"" + setColor(sViewId, Const.SCRIPT_VIEW_ID_COLOR) + "\" ";
+                }
+
+
+                if (labels.size() == 1) {
+                    for (Map.Entry<String, String> entry : labels.entrySet()) {
+                        message += "\"" + setColor(entry.getValue(), Const.SCRIPT_IDENTIFYING_FEATURE_COLOR) + "\" ";
+                    }
+                } else if (labels.size() > 1) {
+                    int count = 0;
+                    for (Map.Entry<String, String> entry : labels.entrySet()) {
+                        message += (thatPrinted ? "" : "that ") + "has " + entry.getKey() + " \"" + setColor(entry.getValue(), Const.SCRIPT_IDENTIFYING_FEATURE_COLOR) + "\" " + (count == labels.size() - 2 ? "and " : (count == labels.size() - 1 ? ", " : " "));
                         thatPrinted = true;
+                        count++;
                     }
                 }
-            }
 
-            Set<UIElementMatchingFilter> siblingFilters = ((SugiliteOperationBlock) block).getElementMatchingFilter().getSiblingFilter();
-            if(siblingFilters != null && siblingFilters.size() != 0){
-                for (UIElementMatchingFilter sf : siblingFilters) {
-                    String sText = sf.getText();
-                    String sContent = sf.getContentDescription();
-                    String sViewId = sf.getViewId();
-
-                    if(sText != null) {
-                        labels.put("sibling text", sText);
-                    }
-                    if(sContent != null) {
-                        labels.put("sibling content description", sContent);
-                    }
-                    if(sViewId != null){
-                        message += (thatPrinted ? "" : "that ") + "has sibling Object ID \"" + setColor(sViewId, Const.SCRIPT_VIEW_ID_COLOR) + "\" ";
-                        thatPrinted = true;
-                    }
-                }
-            }
-
-            if(labels.size() == 1){
-                for(Map.Entry<String, String> entry : labels.entrySet()){
-                    message += "\"" + setColor(entry.getValue(), Const.SCRIPT_IDENTIFYING_FEATURE_COLOR) + "\" ";
-                }
-            }
-            else if(labels.size() > 1){
-                int count = 0;
-                for(Map.Entry<String, String> entry : labels.entrySet()){
-                    message += (thatPrinted ? "" : "that ") + "has " + entry.getKey() + " \"" + setColor(entry.getValue(), Const.SCRIPT_IDENTIFYING_FEATURE_COLOR) + "\" " + (count == labels.size() - 2 ? "and " :(count == labels.size() - 1 ? ", " : " "));
+                if (((SugiliteOperationBlock) block).getElementMatchingFilter().getViewId() != null) {
+                    message += (thatPrinted ? "" : "that ") + "has the Object ID \"" + setColor(((SugiliteOperationBlock) block).getElementMatchingFilter().getViewId(), Const.SCRIPT_VIEW_ID_COLOR) + "\" ";
                     thatPrinted = true;
-                    count ++;
                 }
-            }
 
-            if(((SugiliteOperationBlock) block).getElementMatchingFilter().getViewId() != null){
-                message += (thatPrinted ? "" : "that ") + "has the Object ID \"" + setColor(((SugiliteOperationBlock) block).getElementMatchingFilter().getViewId(), Const.SCRIPT_VIEW_ID_COLOR) + "\" ";
-                thatPrinted = true;
-            }
+                if (((SugiliteOperationBlock) block).getElementMatchingFilter().getBoundsInScreen() != null) {
+                    message += "at the screen location (" + setColor(((SugiliteOperationBlock) block).getElementMatchingFilter().getBoundsInScreen(), Const.SCRIPT_IDENTIFYING_FEATURE_COLOR) + ") ";
+                }
 
-            if(((SugiliteOperationBlock) block).getElementMatchingFilter().getBoundsInScreen() != null){
-                message += "at the screen location (" + setColor(((SugiliteOperationBlock) block).getElementMatchingFilter().getBoundsInScreen(), Const.SCRIPT_IDENTIFYING_FEATURE_COLOR) + ") ";
-            }
+                if (((SugiliteOperationBlock) block).getElementMatchingFilter().getBoundsInParent() != null) {
+                    message += "at the parent location (" + setColor(((SugiliteOperationBlock) block).getElementMatchingFilter().getBoundsInParent(), Const.SCRIPT_IDENTIFYING_FEATURE_COLOR) + ") ";
+                }
 
-            if(((SugiliteOperationBlock) block).getElementMatchingFilter().getBoundsInParent() != null){
-                message += "at the parent location (" + setColor(((SugiliteOperationBlock) block).getElementMatchingFilter().getBoundsInParent(), Const.SCRIPT_IDENTIFYING_FEATURE_COLOR) + ") ";
+                if (((SugiliteOperationBlock) block).getElementMatchingFilter().getPackageName() != null) {
+                    message += "in " + setColor(getReadableName(((SugiliteOperationBlock) block).getElementMatchingFilter().getPackageName()), Const.SCRIPT_WITHIN_APP_COLOR) + " ";
+                }
+                return message;
+            } else {
+                return block.toString();
             }
-
-            if(((SugiliteOperationBlock) block).getElementMatchingFilter().getPackageName() != null)
-                message += "in " + setColor(getReadableName(((SugiliteOperationBlock) block).getElementMatchingFilter().getPackageName()), Const.SCRIPT_WITHIN_APP_COLOR) + " ";
-            return message;
         }
         else if (block instanceof SugiliteSpecialOperationBlock){
             return "<b> SPECIAL OPERATION " + setColor(((SugiliteSpecialOperationBlock) block).getDescription(), Const.SCRIPT_ACTION_PARAMETER_COLOR) + "</b>";

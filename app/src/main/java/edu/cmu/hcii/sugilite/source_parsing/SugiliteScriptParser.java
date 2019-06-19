@@ -12,7 +12,6 @@ import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.model.block.booleanexp.SugiliteBooleanExpressionNew;
-import edu.cmu.hcii.sugilite.model.operation.SugiliteOperation;
 import edu.cmu.hcii.sugilite.model.value.SugiliteValue;
 import edu.cmu.hcii.sugilite.ontology.description.OntologyDescriptionGenerator;
 
@@ -179,9 +178,9 @@ public class SugiliteScriptParser {
     public static String scriptToString(SugiliteBlock block){
         if(block != null) {
             String result = block.toString();
-            if (block.getNextBlock() != null) {
+            if (block.getNextBlockToRun() != null) {
                 result += "\n";
-                result += scriptToString(block.getNextBlock());
+                result += scriptToString(block.getNextBlockToRun());
             }
             return result;
         }

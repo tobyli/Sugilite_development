@@ -139,13 +139,13 @@ public class Generalizer {
                         modified = true;
                     }
                 }
-                block = ((SugiliteOperationBlock) block).getNextBlock();
+                block = ((SugiliteOperationBlock) block).getNextBlockToRun();
             }
             else if (block instanceof SugiliteStartingBlock)
-                block = ((SugiliteStartingBlock) block).getNextBlock();
+                block = ((SugiliteStartingBlock) block).getNextBlockToRun();
             else if (block instanceof SugiliteConditionBlock) {///
                 block.setDescription(descriptionGenerator.generateReadableDescription(block));
-                block = ((SugiliteConditionBlock) block).getNextBlock();
+                block = ((SugiliteConditionBlock) block).getNextBlockToRun();
             }
             else if (block instanceof SugiliteErrorHandlingForkBlock)
                 block = ((SugiliteErrorHandlingForkBlock) block).getOriginalNextBlock();

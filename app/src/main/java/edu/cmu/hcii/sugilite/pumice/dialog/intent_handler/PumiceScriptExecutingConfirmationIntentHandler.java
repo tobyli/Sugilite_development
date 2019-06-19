@@ -5,11 +5,13 @@ import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
 
+import edu.cmu.hcii.sugilite.Const;
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.automation.ServiceStatusManager;
+import edu.cmu.hcii.sugilite.model.block.SugiliteConditionBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.pumice.dialog.PumiceDialogManager;
-import edu.cmu.hcii.sugilite.pumice.dialog.demonstration.PumiceDemonstrationUtil;
+import edu.cmu.hcii.sugilite.pumice.PumiceDemonstrationUtil;
 
 /**
  * @author toby
@@ -53,8 +55,13 @@ public class PumiceScriptExecutingConfirmationIntentHandler implements PumiceUtt
                     .setPositiveButton("Run", new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int which) {
                             //execute the script
-                            PumiceDemonstrationUtil.executeScript(context, serviceStatusManager, script, sugiliteData, context.getLayoutInflater(), sharedPreferences, dialogManager, null, null);
-
+                            PumiceDemonstrationUtil.executeScript(context, serviceStatusManager, script, sugiliteData, context.getLayoutInflater(), sharedPreferences, dialogManager, null, new Runnable() {
+                                @Override
+                                public void run() {
+                                    //after execution runnable - notify the user that the script execution is completed
+                                    dialogManager.sendAgentMessage("The execution is completed!", true, false);
+                                }
+                            });
                         }
                     })
                     .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
@@ -69,15 +76,31 @@ public class PumiceScriptExecutingConfirmationIntentHandler implements PumiceUtt
             //go back to the default intent handler
             dialogManager.updateUtteranceIntentHandlerInANewState(new PumiceDefaultUtteranceIntentHandler(dialogManager, context));
 
-        } else {
+        }
+
+        else if (pumiceIntent.equals(PumiceIntent.EXECUTION_NEGATIVE)) {
             dialogManager.sendAgentMessage("OK", true, false);
             dialogManager.updateUtteranceIntentHandlerInANewState(new PumiceDefaultUtteranceIntentHandler(dialogManager, context));
+        }
+
+        else if (pumiceIntent.equals(PumiceIntent.UNRECOGNIZED)) {
+            pumiceDialogManager.sendAgentMessage("Can't recognize your response. Please respond with \"Yes\" or \"No\".", true, false);
+            sendPromptForTheIntentHandler();
         }
     }
 
     @Override
     public void sendPromptForTheIntentHandler() {
-        pumiceDialogManager.sendAgentMessage("I've understood your instruction: " +  "\"" + userUtterance + "\"." + " Do you want me to execute it now?", true, true);
+        //pumiceDialogManager.sendAgentMessage("I've understood your instruction: " +  "\"" + userUtterance + "\"." + " Do you want me to execute it now?", true, true);
+        String currentScriptDescription = "";
+        if (script.getNextBlock() != null && script.getNextBlock() instanceof SugiliteConditionBlock){
+            currentScriptDescription = script.getNextBlock().getPumiceUserReadableDecription();
+        } else {
+            currentScriptDescription = script.getPumiceUserReadableDecription();
+        }
+        pumiceDialogManager.getSugiliteVoiceRecognitionListener().setContextPhrases(Const.CONFIRM_CONTEXT_WORDS);
+        pumiceDialogManager.sendAgentMessage(String.format("I've understood your instruction: %s Do you want me to execute it now?", currentScriptDescription), true, true);
+
     }
 
     @Override
@@ -90,8 +113,10 @@ public class PumiceScriptExecutingConfirmationIntentHandler implements PumiceUtt
         String utteranceContent = utterance.getContent();
         if (utteranceContent != null && (utteranceContent.toLowerCase().contains("yes") || utteranceContent.toLowerCase().toLowerCase().contains("ok") || utteranceContent.toLowerCase().contains("yeah"))){
             return PumiceIntent.EXECUTION_POSITIVE;
-        } else {
+        } else if (utteranceContent != null && (utteranceContent.toLowerCase().contains("no"))) {
             return PumiceIntent.EXECUTION_NEGATIVE;
+        } else {
+            return PumiceIntent.UNRECOGNIZED;
         }
     }
 

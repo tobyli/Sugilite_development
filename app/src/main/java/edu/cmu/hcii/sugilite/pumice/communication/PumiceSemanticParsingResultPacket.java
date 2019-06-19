@@ -3,6 +3,10 @@ package edu.cmu.hcii.sugilite.pumice.communication;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import edu.cmu.hcii.sugilite.ontology.helper.annotator.SugiliteTextParentAnnotator;
 
 /**
  * @author toby
@@ -21,6 +25,24 @@ public class PumiceSemanticParsingResultPacket implements Serializable {
             this.grounding = grounding;
         }
     }
+
+    public void cleanFormula(){
+        for (QueryGroundingPair queryGroundingPair : queries) {
+            Pattern pattern = Pattern.compile("\"[\\S\\s]+ +'[\\S\\s]+\"");
+            Matcher matcher = pattern.matcher(queryGroundingPair.formula);
+            while (matcher.find()) {
+                try {
+                    String matchedString = queryGroundingPair.formula.substring(matcher.start(), matcher.end());
+                    String newString = matchedString.replace(" '", "'");
+                    queryGroundingPair.formula = queryGroundingPair.formula.replace(matchedString, newString);
+                    matcher = pattern.matcher(queryGroundingPair.formula);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
 
     public String utteranceType;
     public String userUtterance;

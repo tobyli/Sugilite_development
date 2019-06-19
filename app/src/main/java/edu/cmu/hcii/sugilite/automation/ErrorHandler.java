@@ -5,7 +5,6 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.text.Html;
-import android.view.WindowManager;
 import android.view.accessibility.AccessibilityEvent;
 import android.widget.Toast;
 
@@ -281,11 +280,11 @@ public class ErrorHandler {
 
         SugiliteErrorHandlingForkBlock forkBlock = new SugiliteErrorHandlingForkBlock();
         if(currentBlock instanceof SugiliteStartingBlock){
-            forkBlock.setOriginalNextBlock(((SugiliteStartingBlock) currentBlock).getNextBlock());
+            forkBlock.setOriginalNextBlock(((SugiliteStartingBlock) currentBlock).getNextBlockToRun());
             ((SugiliteStartingBlock) currentBlock).setNextBlock(forkBlock);
         }
         else if(currentBlock instanceof SugiliteOperationBlock){
-            forkBlock.setOriginalNextBlock(((SugiliteOperationBlock) currentBlock).getNextBlock());
+            forkBlock.setOriginalNextBlock(((SugiliteOperationBlock) currentBlock).getNextBlockToRun());
             ((SugiliteOperationBlock) currentBlock).setNextBlock(forkBlock);
         }
         else if(currentBlock instanceof SugiliteErrorHandlingForkBlock) {

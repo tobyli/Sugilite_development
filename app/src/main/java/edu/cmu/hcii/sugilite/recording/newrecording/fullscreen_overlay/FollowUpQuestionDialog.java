@@ -226,6 +226,7 @@ public class FollowUpQuestionDialog extends SugiliteDialogManager implements Sug
             @Override
             public void onDismiss(DialogInterface dialog) {
                 stopASRandTTS();
+                onDestroy();
                 if(!flagDismissedByCollapsing){
                     if(handler != null) {
                         handler.removeCallbacksAndMessages(null);
@@ -530,26 +531,26 @@ public class FollowUpQuestionDialog extends SugiliteDialogManager implements Sug
     }
 
     @Override
-    public void listeningStarted() {
-        super.listeningStarted();
+    public void listeningStartedCallback() {
+        super.listeningStartedCallback();
         refreshSpeakButtonStyle(speakButton);
     }
 
     @Override
-    public void listeningEnded() {
-        super.listeningEnded();
+    public void listeningEndedCallback() {
+        super.listeningEndedCallback();
         refreshSpeakButtonStyle(speakButton);
     }
 
     @Override
-    public void speakingStarted() {
-        super.speakingStarted();
+    public void speakingStartedCallback() {
+        super.speakingStartedCallback();
         refreshSpeakButtonStyle(speakButton);
     }
 
     @Override
-    public void speakingEnded() {
-        super.speakingEnded();
+    public void speakingEndedCallback() {
+        super.speakingEndedCallback();
         refreshSpeakButtonStyle(speakButton);
     }
 

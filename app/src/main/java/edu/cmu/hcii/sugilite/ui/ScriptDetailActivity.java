@@ -60,6 +60,8 @@ import edu.cmu.hcii.sugilite.recording.RecordingPopUpDialog;
 import edu.cmu.hcii.sugilite.study.ScriptUsageLogManager;
 import edu.cmu.hcii.sugilite.ui.dialog.VariableSetValueDialog;
 import edu.cmu.hcii.sugilite.ui.main.SugiliteMainActivity;
+import edu.cmu.hcii.sugilite.verbal_instruction_demo.speech.SugiliteAndroidAPIVoiceRecognitionListener;
+import edu.cmu.hcii.sugilite.verbal_instruction_demo.speech.SugiliteGoogleCloudVoiceRecognitionListener;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.speech.SugiliteVoiceInterface;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.speech.SugiliteVoiceRecognitionListener;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.server_comm.SugiliteVerbalInstructionHTTPQueryManager;
@@ -185,15 +187,15 @@ public class ScriptDetailActivity extends AppCompatActivity implements SugiliteV
         while (iterBlock != null) {
             operationStepList.addView(getViewForBlock(iterBlock));
             if (iterBlock instanceof SugiliteStartingBlock)
-                iterBlock = ((SugiliteStartingBlock) iterBlock).getNextBlock();
+                iterBlock = ((SugiliteStartingBlock) iterBlock).getNextBlockToRun();
             else if (iterBlock instanceof SugiliteOperationBlock)
-                iterBlock = ((SugiliteOperationBlock) iterBlock).getNextBlock();
+                iterBlock = ((SugiliteOperationBlock) iterBlock).getNextBlockToRun();
             else if (iterBlock instanceof SugiliteSpecialOperationBlock)
-                iterBlock = ((SugiliteSpecialOperationBlock) iterBlock).getNextBlock();
+                iterBlock = ((SugiliteSpecialOperationBlock) iterBlock).getNextBlockToRun();
             else if (iterBlock instanceof SugiliteErrorHandlingForkBlock)
                 break;
             else if (iterBlock instanceof SugiliteConditionBlock)
-                iterBlock = ((SugiliteConditionBlock) iterBlock).getNextBlock();
+                iterBlock = ((SugiliteConditionBlock) iterBlock).getNextBlockToRun();
             else
                 new Exception("unsupported block type").printStackTrace();
             stepCounter++;
@@ -244,13 +246,13 @@ public class ScriptDetailActivity extends AppCompatActivity implements SugiliteV
             while(iterBlock != null) {
                 ifBlockDes = ifBlockDes + " <br/>" + sc + tabs + " " + iterBlock.getDescription();
                 if (iterBlock instanceof SugiliteStartingBlock)
-                    iterBlock = ((SugiliteStartingBlock) iterBlock).getNextBlock();
+                    iterBlock = ((SugiliteStartingBlock) iterBlock).getNextBlockToRun();
                 else if (iterBlock instanceof SugiliteOperationBlock)
-                    iterBlock = ((SugiliteOperationBlock) iterBlock).getNextBlock();
+                    iterBlock = ((SugiliteOperationBlock) iterBlock).getNextBlockToRun();
                 else if (iterBlock instanceof SugiliteSpecialOperationBlock)
-                    iterBlock = ((SugiliteSpecialOperationBlock) iterBlock).getNextBlock();
+                    iterBlock = ((SugiliteSpecialOperationBlock) iterBlock).getNextBlockToRun();
                 else if (iterBlock instanceof SugiliteConditionBlock)
-                    iterBlock = ((SugiliteConditionBlock) iterBlock).getNextBlock();
+                    iterBlock = ((SugiliteConditionBlock) iterBlock).getNextBlockToRun();
                 else
                     new Exception("unsupported block type").printStackTrace();
                 sc++;
@@ -259,19 +261,22 @@ public class ScriptDetailActivity extends AppCompatActivity implements SugiliteV
             SugiliteBlock iterBlock2 = elseBlock;
             while(iterBlock2 != null) {
                 if (! (iterBlock2 instanceof SugiliteStartingBlock)) {
+                    if (iterBlock2.getDescription() == null || iterBlock2.getDescription().length() == 0) {
+                        iterBlock2.setDescription(iterBlock2.toString());
+                    }
                     elseBlockDes = elseBlockDes + " <br/>" + sc + tabs  + " " + iterBlock2.getDescription();
                 }
                 if (iterBlock2 instanceof SugiliteStartingBlock) {
-                    iterBlock2 = ((SugiliteStartingBlock) iterBlock2).getNextBlock();
+                    iterBlock2 = ((SugiliteStartingBlock) iterBlock2).getNextBlockToRun();
                 }
                 else if (iterBlock2 instanceof SugiliteOperationBlock) {
-                    iterBlock2 = ((SugiliteOperationBlock) iterBlock2).getNextBlock();
+                    iterBlock2 = ((SugiliteOperationBlock) iterBlock2).getNextBlockToRun();
                 }
                 else if (iterBlock2 instanceof SugiliteSpecialOperationBlock) {
-                    iterBlock2 = ((SugiliteSpecialOperationBlock) iterBlock2).getNextBlock();
+                    iterBlock2 = ((SugiliteSpecialOperationBlock) iterBlock2).getNextBlockToRun();
                 }
                 else if (iterBlock2 instanceof SugiliteConditionBlock) {
-                    iterBlock2 = ((SugiliteConditionBlock) iterBlock2).getNextBlock();
+                    iterBlock2 = ((SugiliteConditionBlock) iterBlock2).getNextBlockToRun();
                 }
                 else {
                     new Exception("unsupported block type").printStackTrace();
@@ -292,13 +297,13 @@ public class ScriptDetailActivity extends AppCompatActivity implements SugiliteV
             while(iterBlock != null) {
                 ifBlockDes = ifBlockDes + " <br/>" + sc + tabs + " " + iterBlock.getDescription();
                 if (iterBlock instanceof SugiliteStartingBlock)
-                    iterBlock = ((SugiliteStartingBlock) iterBlock).getNextBlock();
+                    iterBlock = ((SugiliteStartingBlock) iterBlock).getNextBlockToRun();
                 else if (iterBlock instanceof SugiliteOperationBlock)
-                    iterBlock = ((SugiliteOperationBlock) iterBlock).getNextBlock();
+                    iterBlock = ((SugiliteOperationBlock) iterBlock).getNextBlockToRun();
                 else if (iterBlock instanceof SugiliteSpecialOperationBlock)
-                    iterBlock = ((SugiliteSpecialOperationBlock) iterBlock).getNextBlock();
+                    iterBlock = ((SugiliteSpecialOperationBlock) iterBlock).getNextBlockToRun();
                 else if (iterBlock instanceof SugiliteConditionBlock)
-                    iterBlock = ((SugiliteConditionBlock) iterBlock).getNextBlock();
+                    iterBlock = ((SugiliteConditionBlock) iterBlock).getNextBlockToRun();
                 else
                     new Exception("unsupported block type").printStackTrace();
                 sc++;
@@ -369,13 +374,13 @@ public class ScriptDetailActivity extends AppCompatActivity implements SugiliteV
                 View blockView = getViewForBlock(iterBlock);
                 originalBranch.addView(blockView);
                 if (iterBlock instanceof SugiliteStartingBlock)
-                    iterBlock = ((SugiliteStartingBlock) iterBlock).getNextBlock();
+                    iterBlock = ((SugiliteStartingBlock) iterBlock).getNextBlockToRun();
                 else if (iterBlock instanceof SugiliteOperationBlock)
-                    iterBlock = ((SugiliteOperationBlock) iterBlock).getNextBlock();
-                else if (iterBlock instanceof SugiliteSpecialOperationBlock)
-                    iterBlock = ((SugiliteSpecialOperationBlock) iterBlock).getNextBlock();
+                    iterBlock = ((SugiliteOperationBlock) iterBlock).getNextBlockToRun();
+                else if (iterBlock instanceof  SugiliteSpecialOperationBlock)
+                    iterBlock = ((SugiliteSpecialOperationBlock) iterBlock).getNextBlockToRun();
                 else if (iterBlock instanceof SugiliteConditionBlock)
-                    iterBlock = ((SugiliteConditionBlock) iterBlock).getNextBlock();
+                    iterBlock = ((SugiliteConditionBlock) iterBlock).getNextBlockToRun();
                 else if (iterBlock instanceof SugiliteErrorHandlingForkBlock)
                     break;
                 else
@@ -399,13 +404,13 @@ public class ScriptDetailActivity extends AppCompatActivity implements SugiliteV
                 View blockView = getViewForBlock(iterBlock);
                 alternativeBranch.addView(blockView);
                 if (iterBlock instanceof SugiliteStartingBlock)
-                    iterBlock = ((SugiliteStartingBlock) iterBlock).getNextBlock();
+                    iterBlock = ((SugiliteStartingBlock) iterBlock).getNextBlockToRun();
                 else if (iterBlock instanceof SugiliteOperationBlock)
-                    iterBlock = ((SugiliteOperationBlock) iterBlock).getNextBlock();
-                else if (iterBlock instanceof SugiliteSpecialOperationBlock)
-                    iterBlock = ((SugiliteSpecialOperationBlock) iterBlock).getNextBlock();
+                    iterBlock = ((SugiliteOperationBlock) iterBlock).getNextBlockToRun();
+                else if (iterBlock instanceof  SugiliteSpecialOperationBlock)
+                    iterBlock = ((SugiliteSpecialOperationBlock) iterBlock).getNextBlockToRun();
                 else if (iterBlock instanceof SugiliteConditionBlock)
-                    iterBlock = ((SugiliteConditionBlock) iterBlock).getNextBlock();
+                    iterBlock = ((SugiliteConditionBlock) iterBlock).getNextBlockToRun();
                 else if (iterBlock instanceof SugiliteErrorHandlingForkBlock)
                     break;
                 else
@@ -561,7 +566,7 @@ public class ScriptDetailActivity extends AppCompatActivity implements SugiliteV
                     startActivity(intent);
                     break;
                 } else {
-                    currentBlock = ((SugiliteOperationBlock) currentBlock).getNextBlock();
+                    currentBlock = ((SugiliteOperationBlock) currentBlock).getNextBlockToRun();
                 }
             } else if (currentBlock instanceof SugiliteStartingBlock) {
                 if (Html.fromHtml(currentBlock.getDescription()).toString().contentEquals(textView.getText().toString())) {
@@ -569,7 +574,7 @@ public class ScriptDetailActivity extends AppCompatActivity implements SugiliteV
                     Toast.makeText(this, "Can't view starting block", Toast.LENGTH_SHORT).show();
                     break;
                 } else {
-                    currentBlock = ((SugiliteStartingBlock) currentBlock).getNextBlock();
+                    currentBlock = ((SugiliteStartingBlock) currentBlock).getNextBlockToRun();
                 }
             } else if (currentBlock instanceof SugiliteSpecialOperationBlock) {
                 //TODO: do something
@@ -635,16 +640,18 @@ public class ScriptDetailActivity extends AppCompatActivity implements SugiliteV
                     break;
                     //match, pop up the edit
                     //the pop up should save the new script to db
-                } else {
-                    currentBlock = ((SugiliteOperationBlock) currentBlock).getNextBlock();
+                }
+                else{
+                    currentBlock = ((SugiliteOperationBlock) currentBlock).getNextBlockToRun();
                 }
             } else if (currentBlock instanceof SugiliteStartingBlock) {
                 if (Html.fromHtml(currentBlock.getDescription()).toString().contentEquals(textView.getText().toString())) {
                     //match, can't edit starting block
                     Toast.makeText(this, "Can't edit starting block", Toast.LENGTH_SHORT).show();
                     break;
-                } else {
-                    currentBlock = ((SugiliteStartingBlock) currentBlock).getNextBlock();
+                }
+                else {
+                    currentBlock = ((SugiliteStartingBlock) currentBlock).getNextBlockToRun();
                 }
             } else if (currentBlock instanceof SugiliteErrorHandlingForkBlock) {
                 attemptToEdit(((SugiliteErrorHandlingForkBlock) currentBlock).getOriginalNextBlock(), textView);
@@ -760,16 +767,18 @@ public class ScriptDetailActivity extends AppCompatActivity implements SugiliteV
                         e.printStackTrace();
                     }
                     break;
-                } else {
-                    currentBlock = ((SugiliteOperationBlock) currentBlock).getNextBlock();
+                }
+                else{
+                    currentBlock = ((SugiliteOperationBlock) currentBlock).getNextBlockToRun();
                 }
             } else if (currentBlock instanceof SugiliteStartingBlock) {
                 if (Html.fromHtml(currentBlock.getDescription()).toString().contentEquals(textView.getText().toString())) {
                     //match, can't delete starting block
                     Toast.makeText(this, "Can't fork starting block", Toast.LENGTH_SHORT).show();
                     break;
-                } else {
-                    currentBlock = ((SugiliteStartingBlock) currentBlock).getNextBlock();
+                }
+                else {
+                    currentBlock = ((SugiliteStartingBlock) currentBlock).getNextBlockToRun();
                 }
             } else if (currentBlock instanceof SugiliteConditionBlock) {
                 if (Html.fromHtml(currentBlock.getDescription()).toString().contentEquals(textView.getText().toString())) {
@@ -843,16 +852,18 @@ public class ScriptDetailActivity extends AppCompatActivity implements SugiliteV
                         e.printStackTrace();
                     }
                     break;
-                } else {
-                    currentBlock = ((SugiliteOperationBlock) currentBlock).getNextBlock();
+                }
+                else{
+                    currentBlock = ((SugiliteOperationBlock) currentBlock).getNextBlockToRun();
                 }
             } else if (currentBlock instanceof SugiliteStartingBlock) {
                 if (Html.fromHtml(currentBlock.getDescription()).toString().contentEquals(textView.getText().toString())) {
                     //match, can't delete starting block
                     Toast.makeText(this, "Can't delete starting block", Toast.LENGTH_SHORT).show();
                     break;
-                } else {
-                    currentBlock = ((SugiliteStartingBlock) currentBlock).getNextBlock();
+                }
+                else {
+                    currentBlock = ((SugiliteStartingBlock) currentBlock).getNextBlockToRun();
                 }
             } else if (currentBlock instanceof SugiliteErrorHandlingForkBlock) {
                 attemptToDelete(((SugiliteErrorHandlingForkBlock) currentBlock).getAlternativeNextBlock(), textView);
@@ -873,8 +884,9 @@ public class ScriptDetailActivity extends AppCompatActivity implements SugiliteV
                         e.printStackTrace();
                     }
                     break;
-                } else {
-                    currentBlock = ((SugiliteConditionBlock) currentBlock).getNextBlock();
+                }
+                else{
+                    currentBlock = ((SugiliteConditionBlock) currentBlock).getNextBlockToRun();
                 }
             } else {
                 throw new RuntimeException("Unsupported Block Type!");
@@ -969,6 +981,7 @@ public class ScriptDetailActivity extends AppCompatActivity implements SugiliteV
         return true;
     }
 
+
     private void editScript() {
         //TO DO
     }
@@ -983,6 +996,7 @@ public class ScriptDetailActivity extends AppCompatActivity implements SugiliteV
             isListening = false;
             isSpeaking = false;
             ((PumiceConditionalIntentHandler) conditionalPumiceDialogManager.getPumiceDialogState().getPumiceUtteranceIntentHandlerInUse()).setLastIntent(null);
+
         }
     }
 
@@ -995,6 +1009,7 @@ public class ScriptDetailActivity extends AppCompatActivity implements SugiliteV
             speakButton.callOnClick();
         }
     }
+
 
     public void addSnackbar(String s) {
         Snackbar mySnackbar = Snackbar.make(cancelButton, s, BaseTransientBottomBar.LENGTH_INDEFINITE);
@@ -1031,48 +1046,12 @@ public class ScriptDetailActivity extends AppCompatActivity implements SugiliteV
     }
 
     //TODO: rewrite resume recording
-    public void resumeRecording(){
-        if(!serviceStatusManager.isRunning()){
-            //prompt the user if the accessibility service is not active
-            AlertDialog.Builder builder1 = new AlertDialog.Builder(this);
-            builder1.setTitle("Service not running")
-                    .setMessage("The " + Const.appNameUpperCase + " accessiblity service is not enabled. Please enable the service in the phone settings before recording.")
-                    .setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            serviceStatusManager.promptEnabling();
-                            //do nothing
-                        }
-                    }).show();
-        }
-        else {
-            SharedPreferences.Editor prefEditor = sharedPreferences.edit();
-            //turn off the recording before executing
-            prefEditor.putBoolean("recording_in_process", false);
-            prefEditor.putString("scriptName", script.getScriptName().replace(".SugiliteScript", ""));
-            prefEditor.commit();
-            sugiliteData.initiatedExternally = false;
-            sugiliteData.setScriptHead(script);
-            sugiliteData.setCurrentScriptBlock(script.getTail());
-            //force stop all the relevant packages
-            for (String packageName : script.relevantPackages) {
-                AutomatorUtil.killPackage(packageName);
-            }
-            sugiliteData.runScript(script, true, SugiliteData.EXECUTION_STATE);
-            //need to have this delay to ensure that the killing has finished before we start executing
-            try {
-                Thread.sleep(SCRIPT_DELAY);
-            } catch (Exception e) {
-                // do nothing
-            }
-            Intent startMain = new Intent(Intent.ACTION_MAIN);
-            startMain.addCategory(Intent.CATEGORY_HOME);
-            startMain.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            startActivity(startMain);
-        }
+
+    private void resumeRecording(){
+        resumeRecording(script.getTail());
     }
 
-    private void resumeRecording(SugiliteBlock s){
+    private void resumeRecording(SugiliteBlock blockToResumeRecordingFrom){
         if(!serviceStatusManager.isRunning()){
             //prompt the user if the accessiblity service is not active
             AlertDialog.Builder builder1 = new AlertDialog.Builder(this);
@@ -1094,12 +1073,18 @@ public class ScriptDetailActivity extends AppCompatActivity implements SugiliteV
             prefEditor.commit();
             sugiliteData.initiatedExternally = false;
             sugiliteData.setScriptHead(script);
-            sugiliteData.setCurrentScriptBlock(s);
+            sugiliteData.setCurrentScriptBlock(blockToResumeRecordingFrom);
             //force stop all the relevant packages
             for (String packageName : script.relevantPackages) {
                 AutomatorUtil.killPackage(packageName);
             }
             sugiliteData.runScript(script, true, SugiliteData.EXECUTION_STATE);
+
+            //turn on the cat overlay to prepare for demonstration
+            if(sugiliteData.verbalInstructionIconManager != null){
+                sugiliteData.verbalInstructionIconManager.turnOnCatOverlay();
+            }
+
             //need to have this delay to ensure that the killing has finished before we start executing
             try {
                 Thread.sleep(SCRIPT_DELAY);
@@ -1149,8 +1134,8 @@ public class ScriptDetailActivity extends AppCompatActivity implements SugiliteV
     };
 
     @Override
-    public void resultAvailable(List<String> matches) {
-        if(matches.size() > 0) {
+    public void resultAvailableCallback(List<String> matches, boolean isFinal) {
+        if(isFinal && matches.size() > 0) {
             System.out.println(matches.get(0));
             if(conditionalPumiceDialogManager.addCheck) {
                 conditionalPumiceDialogManager.sendUserMessage(matches.get(0));
@@ -1159,25 +1144,25 @@ public class ScriptDetailActivity extends AppCompatActivity implements SugiliteV
     }
 
     @Override
-    public void speakingStarted() {
+    public void speakingStartedCallback() {
         System.out.println("speakingS");
         isSpeaking = true;
     }
 
     @Override
-    public void speakingEnded() {
+    public void speakingEndedCallback() {
         System.out.println("speakingE");
         isSpeaking = false;
     }
 
     @Override
-    public void listeningStarted() {
+    public void listeningStartedCallback() {
         System.out.println("listeningS");
         isListening = true;
     }
 
     @Override
-    public void listeningEnded() {
+    public void listeningEndedCallback() {
         System.out.println("listeningE");
         isListening = false;
     }

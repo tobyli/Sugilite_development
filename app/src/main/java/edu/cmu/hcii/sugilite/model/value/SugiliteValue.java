@@ -10,4 +10,5 @@ import edu.cmu.hcii.sugilite.SugiliteData;
 public interface SugiliteValue<T>  {
     T evaluate(SugiliteData sugiliteData);
     String getReadableDescription();
+
 }

@@ -75,7 +75,7 @@ public class SugiliteData extends Application {
     public Map<String, SugiliteStartingBlock> sugiliteFileScriptDaoSavingCache = new HashMap<>();
     public Map<String, SugiliteStartingBlock> sugiliteFileScriptDaoReadingCache = new HashMap<>();
 
-    public Runnable endRecordingCallback;
+    public Runnable afterRecordingCallback;
 
 
     private Gson gson = new Gson();
@@ -148,12 +148,12 @@ public class SugiliteData extends Application {
      * set the script head to a new SugiliteStartingBlock with name = scriptName, and set the current script block to that block
      * @param scriptName
      */
-    public synchronized void initiateScript(String scriptName, Runnable endRecordingCallback){
+    public synchronized void initiateScript(String scriptName, Runnable afterRecordingCallback){
         this.instructionQueue.clear();
         this.stringVariableMap.clear();
         this.setScriptHead(new SugiliteStartingBlock(scriptName));
         this.setCurrentScriptBlock(scriptHead);
-        this.endRecordingCallback = endRecordingCallback;
+        this.afterRecordingCallback = afterRecordingCallback;
 
         logUsageData(ScriptUsageLogManager.CREATE_SCRIPT, scriptName);
     }
@@ -278,10 +278,10 @@ public class SugiliteData extends Application {
         while(currentBlock != null){
             sugiliteBlocks.add(currentBlock);
             if(currentBlock instanceof SugiliteStartingBlock){
-                currentBlock = ((SugiliteStartingBlock)currentBlock).getNextBlock();
+                currentBlock = ((SugiliteStartingBlock)currentBlock).getNextBlockToRun();
             }
             else if (currentBlock instanceof SugiliteOperationBlock){
-                currentBlock = ((SugiliteOperationBlock)currentBlock).getNextBlock();
+                currentBlock = ((SugiliteOperationBlock)currentBlock).getNextBlockToRun();
             }
             else{
                 currentBlock = null;

@@ -509,7 +509,7 @@ public class PumiceConditionalIntentHandler implements PumiceUtteranceIntentHand
                 .create();
         try {
             PumiceSemanticParsingResultPacket resultPacket = gson.fromJson(result, PumiceSemanticParsingResultPacket.class);
-        //TODO: handle server response from the semantic parsing server
+            resultPacket.cleanFormula();
             if (resultPacket.utteranceType != null) {
                 switch (PumiceUtteranceIntentHandler.PumiceIntent.valueOf(resultPacket.utteranceType)) {
                     case USER_INIT_INSTRUCTION:

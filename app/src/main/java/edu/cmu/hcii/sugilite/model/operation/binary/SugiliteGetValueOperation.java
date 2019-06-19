@@ -5,13 +5,9 @@ import java.util.List;
 
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.model.value.SugiliteValue;
-import edu.cmu.hcii.sugilite.ontology.SerializableOntologyQuery;
 import edu.cmu.hcii.sugilite.pumice.dialog.PumiceDialogManager;
-import edu.cmu.hcii.sugilite.pumice.kb.PumiceBooleanExpKnowledge;
 import edu.cmu.hcii.sugilite.pumice.kb.PumiceKnowledgeManager;
 import edu.cmu.hcii.sugilite.pumice.kb.PumiceValueQueryKnowledge;
-
-import static edu.cmu.hcii.sugilite.source_parsing.SugiliteScriptExpression.addQuoteToTokenIfNeeded;
 
 /**
  * @author toby
@@ -46,7 +42,7 @@ public class SugiliteGetValueOperation<T> extends SugiliteGetOperation<T> implem
                 for (PumiceValueQueryKnowledge valueQueryKnowledge : valueQueryKnowledges){
                     //TODO: use a hashmap for faster retrieval
                     if(valueQueryKnowledge.getValueName() != null && valueQueryKnowledge.getValueName().equals(getName())){
-                        return (T)valueQueryKnowledge.getValue(sugiliteData);
+                        return (T)valueQueryKnowledge.evaluate(sugiliteData);
                     }
                 }
             }
@@ -57,6 +53,20 @@ public class SugiliteGetValueOperation<T> extends SugiliteGetOperation<T> implem
     @Override
     public String getPumiceUserReadableDecription() {
         return String.format("the value of \"%s\"", getName());
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj != null && obj instanceof SugiliteValue) {
+            return this.toString().equals(obj.toString());
+        } else {
+            return super.equals(obj);
+        }
+    }
+
+    @Override
+    public int hashCode() {
+        return this.toString().hashCode();
     }
 
 }

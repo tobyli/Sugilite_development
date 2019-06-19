@@ -10,6 +10,7 @@ import com.google.gson.GsonBuilder;
 
 import java.util.Calendar;
 
+import edu.cmu.hcii.sugilite.Const;
 import edu.cmu.hcii.sugilite.ontology.SugiliteRelation;
 import edu.cmu.hcii.sugilite.pumice.communication.PumiceInstructionPacket;
 import edu.cmu.hcii.sugilite.pumice.communication.PumiceSemanticParsingResultPacket;
@@ -57,7 +58,7 @@ public class PumiceUserExplainValueIntentHandler implements PumiceUtteranceInten
     public void handleIntentWithUtterance(PumiceDialogManager dialogManager, PumiceIntent pumiceIntent, PumiceDialogManager.PumiceUtterance utterance) {
         if (pumiceIntent.equals(PumiceIntent.DEFINE_VALUE_EXP)){
             //branch for situations such as e.g., redirection
-            dialogManager.sendAgentMessage("I have received your explanation: " + utterance.getContent(), true, false);
+            //dialogManager.sendAgentMessage("I have received your explanation: " + utterance.getContent(), true, false);
             //TODO: send out an VALUE_INSTRUCTION query to resolve the explanation
             //send out the server query
             PumiceInstructionPacket pumiceInstructionPacket = new PumiceInstructionPacket(dialogManager.getPumiceKnowledgeManager(), "VALUE_INSTRUCTION", calendar.getTimeInMillis(), utterance.getContent(), parentKnowledgeName);
@@ -123,11 +124,12 @@ public class PumiceUserExplainValueIntentHandler implements PumiceUtteranceInten
                 .create();
         try {
             PumiceSemanticParsingResultPacket resultPacket = gson.fromJson(result, PumiceSemanticParsingResultPacket.class);
+            resultPacket.cleanFormula();
             if (resultPacket.utteranceType != null) {
                 switch (resultPacket.utteranceType) {
                     case "VALUE_INSTRUCTION":
                         if (resultPacket.queries != null && resultPacket.queries.size() > 0) {
-                            PumiceParsingConfirmationHandler parsingConfirmationHandler = new PumiceParsingConfirmationHandler(context, pumiceDialogManager);
+                            PumiceParsingConfirmationHandler parsingConfirmationHandler = new PumiceParsingConfirmationHandler(context, pumiceDialogManager, 0);
                             parsingConfirmationHandler.handleParsingResult(resultPacket, new Runnable() {
                                 @Override
                                 public void run() {
@@ -143,13 +145,13 @@ public class PumiceUserExplainValueIntentHandler implements PumiceUtteranceInten
                                         @Override
                                         public void run() {
                                             //parse and process the server response
-                                            PumiceValueQueryKnowledge pumiceValueQueryKnowledge = pumiceDialogManager.getPumiceInitInstructionParsingHandler().parseFromValueInstruction(confirmedFormula, resultPacket.userUtterance, parentKnowledgeName, resolveValueQueryOperationSugiliteRelationType);
+                                            PumiceValueQueryKnowledge pumiceValueQueryKnowledge = pumiceDialogManager.getPumiceInitInstructionParsingHandler().parseFromValueInstruction(confirmedFormula, resultPacket.userUtterance, parentKnowledgeName, resolveValueQueryOperationSugiliteRelationType, 0);
                                             //notify the original thread for resolving unknown bool exp that the intent has been fulfilled
                                             returnUserExplainValueResult(pumiceValueQueryKnowledge);
                                         }
                                     });
                                 }
-                            });
+                            }, false);
                         } else {
                             throw new RuntimeException("empty server result");
                         }
@@ -173,6 +175,7 @@ public class PumiceUserExplainValueIntentHandler implements PumiceUtteranceInten
 
     @Override
     public void sendPromptForTheIntentHandler() {
+        pumiceDialogManager.getSugiliteVoiceRecognitionListener().setContextPhrases(Const.DEMONSTRATION_CONTEXT_WORDS);
         pumiceDialogManager.sendAgentMessage("How do I find out the value for " + parentKnowledgeName + "?" + " You can explain, or say \"demonstrate\" to demonstrate", true, true);
     }
 

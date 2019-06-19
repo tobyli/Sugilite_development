@@ -32,15 +32,15 @@ public class TempAnnotator implements SugiliteTextAnnotator {
         }
 
         List<AnnotatingResult> results = new ArrayList<>();
-        Pattern pattern = Pattern.compile("\\b\\d+?(.\\d+?)?( )?(deg(ree(s)?|s)? |°)( )?([fF](ahrenheit)?|[cC](elsius)?)\\b");
+        Pattern pattern = Pattern.compile("\\b\\d+?(.\\d+?)?( )?((((deg(ree(s)?|s)?)|°)( )?([fF](ahrenheit)?|[cC](elsius)?))|((deg(ree(s)?|s)?)|°)|([fF](ahrenheit)?|[cC](elsius)?))(?:(?<![\\w°])(?=[\\w°])|(?<=[\\w°])(?![\\w°]))");
         Matcher matcher = pattern.matcher(text);
 
         while (matcher.find()) {
             String matchedString = text.substring(matcher.start(), matcher.end());
             String split1 = matchedString.split("[^0-9]")[0];
             double value = Double.parseDouble(split1);
-            if (matchedString.contains("F") || matchedString.contains("f")) {
-                value = (value - 32) / 1.8;
+            if (matchedString.contains("C") || matchedString.contains("c")) {
+                value = value * 1.8 + 32;
             }
             AnnotatingResult result = new AnnotatingResult(RELATION, text.substring(matcher.start(), matcher.end()), matcher.start(), matcher.end(), value);
             results.add(result);

@@ -6,6 +6,9 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+import edu.cmu.hcii.sugilite.model.block.booleanexp.SugiliteBooleanExpressionNew;
+import edu.cmu.hcii.sugilite.model.value.SugiliteSimpleConstant;
+
 /**
  * @author toby
  * @date 10/29/18
@@ -56,8 +59,10 @@ public class PumiceKnowledgeManager implements Serializable {
         PumiceValueQueryKnowledge<Double> testValueQueryKnowledge = new PumiceValueQueryKnowledge<>("price", PumiceValueQueryKnowledge.ValueType.STRING);
         addPumiceValueQueryKnowledge(testValueQueryKnowledge);
 
-        //PumiceBooleanExpKnowledge testBooleanExpKnowledge = new PumiceBooleanExpKnowledge("it is hot", "the temperature is above 90 degrees", testValueQueryKnowledge.getSugiliteOperation(), SugiliteBooleanExpressionNew.BoolOperator.GREATER_THAN, new SugiliteSimpleConstant<>(90, "Fahrenheit"));
-        //addPumiceBooleanExpKnowledge(testBooleanExpKnowledge);
+        PumiceBooleanExpKnowledge testBooleanExpKnowledge = new PumiceBooleanExpKnowledge("it is hot", "the temperature is above 90 degrees", testValueQueryKnowledge.getSugiliteOperation(), SugiliteBooleanExpressionNew.BoolOperator.GREATER_THAN, new SugiliteSimpleConstant<>(90, "Fahrenheit"));
+        testBooleanExpKnowledge.getScenarioArg1Map().put(testProceduralKnowledge.getProcedureName(), testBooleanExpKnowledge.getArg1());
+
+        addPumiceBooleanExpKnowledge(testBooleanExpKnowledge);
     }
 
     public String getKnowledgeInString(){
@@ -65,19 +70,19 @@ public class PumiceKnowledgeManager implements Serializable {
         result.append("Here are the procedures I know: " + "\n");
 
         for(PumiceProceduralKnowledge proceduralKnowledge : pumiceProceduralKnowledges) {
-            result.append(proceduralKnowledge.getProcedureDescription(this) + "\n");
+            result.append("- " + proceduralKnowledge.getProcedureDescription(this) + "\n\n");
         }
-        result.append("\n");
+        result.append("\n========\n");
 
         result.append("Here are the boolean concepts I know: " + "\n");
         for(PumiceBooleanExpKnowledge booleanExpKnowledge : pumiceBooleanExpKnowledges) {
-            result.append(booleanExpKnowledge.getBooleanDescription() + "\n");
+            result.append("- " + booleanExpKnowledge.getBooleanDescription() + "\n\n");
         }
-        result.append("\n");
+        result.append("\n========\n");
 
         result.append("Here are the value concepts I know: " + "\n");
         for(PumiceValueQueryKnowledge valueQueryKnowledge : pumiceValueQueryKnowledges) {
-            result.append(valueQueryKnowledge.getValueDescription() + "\n");
+            result.append("- " + valueQueryKnowledge.getValueDescription() + "\n\n");
         }
 
         return result.toString();

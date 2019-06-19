@@ -21,16 +21,16 @@ public class ScriptPrinter {
             return results + "(SUGILITE_END)";
         }
         if(block instanceof SugiliteStartingBlock){
-            return results + getStringScript(((SugiliteStartingBlock) block).getNextBlock());
+            return results + getStringScript(((SugiliteStartingBlock) block).getNextBlockToRun());
         }
         if(block instanceof SugiliteOperationBlock){
-            return results + getStringScript(((SugiliteOperationBlock) block).getNextBlock());
+            return results + getStringScript(((SugiliteOperationBlock) block).getNextBlockToRun());
         }
         if(block instanceof SugiliteSpecialOperationBlock){
-            return results + getStringScript(((SugiliteSpecialOperationBlock) block).getNextBlock());
+            return results + getStringScript(((SugiliteSpecialOperationBlock) block).getNextBlockToRun());
         }
         if(block instanceof SugiliteConditionBlock){
-            return results + getStringScript(((SugiliteConditionBlock) block).getNextBlock());
+            return results + getStringScript(((SugiliteConditionBlock) block).getNextBlockToRun());
         }
         return "ERROR";
     }

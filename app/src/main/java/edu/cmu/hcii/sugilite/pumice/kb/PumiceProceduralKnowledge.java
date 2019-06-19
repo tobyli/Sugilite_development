@@ -36,18 +36,26 @@ public class PumiceProceduralKnowledge implements Serializable {
     private String procedureName;
     private String utterance;
 
+    //this map is null for "redirecting" procedure knowledge
+    @Nullable
     private Map<String, PumiceProceduralKnowledgeParameter> parameterNameParameterMap;
 
     //point to another PumiceProceduralKnowledge by its procedureName
     private String targetProcedureKnowledgeName;
 
+    //this is null for "redirecting" procedure knowledge
     //the procedure itself -- not really used -> SHOULD be null if targetProcedureKnowledgeName is non-null
     //not serialized for GSON
+    @Nullable
     @SkipPumiceJSONSerialization
     private SugiliteStartingBlock sugiliteStartingBlock;
-    //the name of sugiliteStartingBlock -> SHOULD be null if targetProcedureKnowledgeName is non-null
+
+    //the name of sugiliteStartingBlock -> SHOULD be null if targetProcedureKnowledgeName is non-null for "redirecting" procedure knowledge
+    @Nullable
     private String scriptName;
-    //the list of involvedAppNames -> SHOULD be null if targetProcedureKnowledgeName is non-null
+
+    //the list of involvedAppNames -> SHOULD be null if targetProcedureKnowledgeName is non-null for "redirecting" procedure knowledge
+    @Nullable
     private List<String> involvedAppNames;
 
     public PumiceProceduralKnowledge(){

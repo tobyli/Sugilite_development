@@ -12,6 +12,12 @@ import java.text.SimpleDateFormat;
  * @time 3:55 PM
  */
 public class Const {
+
+    public enum SpeechRecognitionType  {ANDROID, GOOGLE_CLOUD};
+    //public static final SpeechRecognitionType SELECTED_SPEECH_RECOGNITION_TYPE = SpeechRecognitionType.ANDROID;
+    public static final SpeechRecognitionType SELECTED_SPEECH_RECOGNITION_TYPE = SpeechRecognitionType.GOOGLE_CLOUD;
+
+    //OVERLAY_TYPE should be either TYPE_APPLICATION_OVERLAY (sdk level >= 26) or TYPE_PHONE for maximized compatibility
     public static final int OVERLAY_TYPE = (Build.VERSION.SDK_INT >= 26) ? WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY : WindowManager.LayoutParams.TYPE_PHONE;
     
     //TRUE to save all the clickable items to the "app vocabulary" when recording
@@ -69,8 +75,8 @@ public class Const {
 
 
     //App name to display
-    public static final String appName = "Sugilite";
-    public static final String appNameUpperCase = "SUGILITE";
+    public static final String appName = "Pumice";
+    public static final String appNameUpperCase = "PUMICE";
 
     public static final int ID_APP_TRACKER = 1001;
     public static final String APP_TRACKER = "APP_TRACKER";
@@ -134,7 +140,7 @@ public class Const {
     public static final int SEMI_TRANSPARENT_GRAY_BACKGROUND = Color.parseColor("#80000000");
 
 
-    public static final String LOADING_MESSAGE = "Loading the script...\n", SAVING_MESSAGE = "Saving the script... \n";
+    public static final String LOADING_MESSAGE = "Loading the script...\n", SAVING_MESSAGE = "Saving the script... \n", PROCESSING_MESSAGE = "Processing... \n";
 
     public static final String GET_CONDITION = "Please give your condition for the new fork. \n";
     public static final String CHECK_FOR_ELSE = "Would you like to do something if the condition is not fulfilled? \n";
@@ -152,4 +158,10 @@ public class Const {
     public static String boldify(String string){
         return "<b>" + string + "</b>";
     }
+
+    public static final String[] INIT_INSTRUCTION_CONTEXT_WORDS = {"if", "when", "whenever", "order", "cold", "check", "bus", "schedule", "hotel", "room", "at least", "greater", "less", "below", "above", "cheaper", "colder", "cooler", "price", "temperature", "order"};
+    public static final String[] DEMONSTRATION_CONTEXT_WORDS = {"demonstrate"};
+    public static final String[] CONFIRM_CONTEXT_WORDS = {"yes", "no", "correct", "incorrect", "wrong"};
+    public static final String[] COMPARISON_CONTEXT_WORDS = {"at least", "greater", "less", "below", "above", "cheaper", "colder", "cooler", "price", "temperature"};
+
 }

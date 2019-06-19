@@ -52,28 +52,28 @@ public class SugiliteStartingBlock extends SugiliteBlock implements Serializable
         SugiliteBlock currentBlock = this;
         while(true){
             if(currentBlock instanceof SugiliteStartingBlock){
-                if(((SugiliteStartingBlock) currentBlock).getNextBlock() == null)
+                if(((SugiliteStartingBlock) currentBlock).getNextBlockToRun() == null)
                     return currentBlock;
                 else
-                    currentBlock = ((SugiliteStartingBlock) currentBlock).getNextBlock();
+                    currentBlock = ((SugiliteStartingBlock) currentBlock).getNextBlockToRun();
             }
             else if(currentBlock instanceof SugiliteOperationBlock){
-                if(((SugiliteOperationBlock) currentBlock).getNextBlock() == null)
+                if(((SugiliteOperationBlock) currentBlock).getNextBlockToRun() == null)
                     return currentBlock;
                 else
-                    currentBlock = ((SugiliteOperationBlock) currentBlock).getNextBlock();
+                    currentBlock = ((SugiliteOperationBlock) currentBlock).getNextBlockToRun();
             }
             else if(currentBlock instanceof SugiliteSpecialOperationBlock){
-                if(((SugiliteSpecialOperationBlock) currentBlock).getNextBlock() == null)
+                if(((SugiliteSpecialOperationBlock) currentBlock).getNextBlockToRun() == null)
                     return currentBlock;
                 else
-                    currentBlock = ((SugiliteSpecialOperationBlock) currentBlock).getNextBlock();
+                    currentBlock = ((SugiliteSpecialOperationBlock) currentBlock).getNextBlockToRun();
             }
             else if(currentBlock instanceof SugiliteConditionBlock){
-                if(((SugiliteConditionBlock) currentBlock).getNextBlock() == null)
+                if(((SugiliteConditionBlock) currentBlock).getNextBlockToRun() == null)
                     return currentBlock;
                 else
-                    currentBlock = ((SugiliteConditionBlock) currentBlock).getNextBlock();
+                    currentBlock = ((SugiliteConditionBlock) currentBlock).getNextBlockToRun();
             }
             else if(currentBlock instanceof SugiliteErrorHandlingForkBlock){
                 if(((SugiliteErrorHandlingForkBlock) currentBlock).getOriginalNextBlock() == null)

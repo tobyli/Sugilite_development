@@ -38,6 +38,8 @@ import edu.cmu.hcii.sugilite.verbal_instruction_demo.server_comm.SugiliteVerbalI
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.server_comm.SugiliteVerbalInstructionHTTPQueryManager;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.server_comm.VerbalInstructionServerResults;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.server_comm.VerbalInstructionServerQuery;
+import edu.cmu.hcii.sugilite.verbal_instruction_demo.speech.SugiliteAndroidAPIVoiceRecognitionListener;
+import edu.cmu.hcii.sugilite.verbal_instruction_demo.speech.SugiliteGoogleCloudVoiceRecognitionListener;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.speech.SugiliteVoiceInterface;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.speech.SugiliteVoiceRecognitionListener;
 
@@ -47,6 +49,11 @@ import static edu.cmu.hcii.sugilite.Const.OVERLAY_TYPE;
  * @author toby
  * @date 12/9/17
  * @time 11:11 PM
+ */
+
+
+/**
+ * the dialog used for testing the semantic parser
  */
 public class VerbalInstructionTestDialog implements SugiliteVoiceInterface, SugiliteVerbalInstructionHTTPQueryInterface {
     private SerializableUISnapshot serializableUISnapshot;
@@ -67,7 +74,11 @@ public class VerbalInstructionTestDialog implements SugiliteVoiceInterface, Sugi
     public VerbalInstructionTestDialog(SerializableUISnapshot serializableUISnapshot, Context context, LayoutInflater inflater, SugiliteData sugiliteData, SharedPreferences sharedPreferences, TextToSpeech tts){
         this.serializableUISnapshot = serializableUISnapshot;
         this.context = context;
-        this.sugiliteVoiceRecognitionListener = new SugiliteVoiceRecognitionListener(context, this, tts);
+        if (Const.SELECTED_SPEECH_RECOGNITION_TYPE == Const.SpeechRecognitionType.ANDROID) {
+            this.sugiliteVoiceRecognitionListener = new SugiliteAndroidAPIVoiceRecognitionListener(context, this, tts);
+        } else if (Const.SELECTED_SPEECH_RECOGNITION_TYPE == Const.SpeechRecognitionType.GOOGLE_CLOUD) {
+            this.sugiliteVoiceRecognitionListener = new SugiliteGoogleCloudVoiceRecognitionListener(context, this, tts);
+        }
         this.sugiliteVerbalInstructionHTTPQueryManager = new SugiliteVerbalInstructionHTTPQueryManager(sharedPreferences);
         this.overlayManager = new VerbalInstructionOverlayManager(context, sugiliteData, sharedPreferences);
         this.gson = new Gson();
@@ -258,28 +269,28 @@ public class VerbalInstructionTestDialog implements SugiliteVoiceInterface, Sugi
     }
 
     @Override
-    public void listeningStarted() {
+    public void listeningStartedCallback() {
         isListening = true;
     }
 
     @Override
-    public void listeningEnded() {
+    public void listeningEndedCallback() {
         isListening = false;
     }
 
     @Override
-    public void speakingStarted() {
+    public void speakingStartedCallback() {
 
     }
 
     @Override
-    public void speakingEnded() {
+    public void speakingEndedCallback() {
 
     }
 
     @Override
-    public void resultAvailable(List<String> matches) {
-        if(matches.size() > 0) {
+    public void resultAvailableCallback(List<String> matches, boolean isFinal) {
+        if(isFinal && matches.size() > 0) {
             instructionTextbox.setText(matches.get(0));
         }
     }

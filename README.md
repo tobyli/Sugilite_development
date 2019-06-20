@@ -5,15 +5,17 @@ SUGILITE is a new programming-by-demonstration (PBD) system that enables users t
 
 ## Installation:
 
-1. Install the app using the APK (app-release.apk)
+1. Build and Install the app
 
-2. Grant the storage access permission (Go to Settings -> Apps -> Sugilite -> Permissions)
+2. Grant the storage access and network permissions (Go to Phone Settings -> Apps -> Sugilite -> Permissions)
 
-3. (For phones with Android 6.0+ (API >= 23)) Grant the overlay permission (Go to Settings -> Apps -> Settings icon on the upper right corner -> Draw over other apps -> Sugilite
+3. (For phones with Android 6.0+ (API >= 23)) Grant the overlay permission (Go to Phone Settings -> Apps -> Settings icon on the upper right corner -> Draw over other apps -> Sugilite
 
-4. Enable the accessibility service (Go to Settings -> Accessibility -> Sugilite)
+4. Enable the accessibility service (Go to Phone Settings -> Accessibility -> Sugilite)
 
 5. Make sure that you can see a duck icon on the screen
+
+6. Set the address of the semantic parsing server  (Launch Sugilite -> open the top right menu -> Settings -> General -> Semantic Parsing Server Address) (a demo parsing server is running at http://35.211.149.88:4567/semparse)
 
 
 ## Reference:

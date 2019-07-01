@@ -17,7 +17,10 @@ import static edu.cmu.hcii.sugilite.source_parsing.SugiliteScriptExpression.addQ
  * @time 1:48 PM
  */
 public class SugiliteStartingBlock extends SugiliteBlock implements Serializable {
+    //the name of the script
     private String scriptName;
+
+    //the name of packages (apps) involved in this script -- used for terminating all relevant apps before the execution
     public Set<String> relevantPackages;
 
     //persistent across launches, used to store the list of names for variables
@@ -48,6 +51,11 @@ public class SugiliteStartingBlock extends SugiliteBlock implements Serializable
     public void setScriptName(String scriptName) {this.scriptName = scriptName;}
 
 
+    /**
+     * get the last block in the script
+     * @return
+     */
+    //TODO: need to refactor to work better with conditionals
     public SugiliteBlock getTail(){
         SugiliteBlock currentBlock = this;
         while(true){

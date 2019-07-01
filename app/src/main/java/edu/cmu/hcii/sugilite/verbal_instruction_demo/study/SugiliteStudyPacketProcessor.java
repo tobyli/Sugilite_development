@@ -34,7 +34,7 @@ import edu.cmu.hcii.sugilite.ontology.helper.annotator.util.MyRect;
  * @time 5:24 PM
  */
 public class SugiliteStudyPacketProcessor {
-    static private SugiliteStudyPacket readPacket(File sourceFile) {
+    static public SugiliteStudyPacket readPacket(File sourceFile) {
         StringBuilder contentBuilder = new StringBuilder();
         try (BufferedReader br = new BufferedReader(new FileReader(sourceFile))) {
             String sCurrentLine;

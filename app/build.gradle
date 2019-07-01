@@ -1,4 +1,6 @@
-apply plugin: 'com.android.application'
+//apply plugin: 'com.android.application'
+apply plugin: 'com.android.library'
+
 apply plugin: 'com.google.protobuf'
 
 ext {
@@ -10,7 +12,7 @@ android {
     compileSdkVersion 26//25
     buildToolsVersion '28.0.3'
     defaultConfig {
-        applicationId "edu.cmu.hcii.sugilite"
+        //applicationId "edu.cmu.hcii.sugilite"
         minSdkVersion 24
         targetSdkVersion 26//25
         versionCode 2
@@ -35,6 +37,16 @@ android {
     }
     productFlavors {
     }
+
+    task makeJar(type: Copy) {
+        delete 'build/sugilite.jar'
+        from('build/intermediates/packaged-classes/debug/')
+        into('build/')
+        include('classes.jar')
+        rename ('classes.jar', 'sugilite.jar')
+    }
+
+    makeJar.dependsOn(build)
 }
 
 configurations.all {

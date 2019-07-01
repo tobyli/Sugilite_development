@@ -14,7 +14,7 @@ import static org.junit.Assert.*;
  * Created by shi on 3/6/18.
  */
 public class VolumeAnnotatorTest {
-    SugiliteTextParentAnnotator annotator;
+    SugiliteTextAnnotator annotator;
 
     static final double MILLILITER = 1.0;
     static final double LITER = 1000.0;

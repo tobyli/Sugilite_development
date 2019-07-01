@@ -64,7 +64,7 @@ public class OverlayClickedDialog {
         this.blockBuildingHelper = new SugiliteBlockBuildingHelper(context, sugiliteData);
         this.sugiliteData = sugiliteData;
         this.sharedPreferences = sharedPreferences;
-        featurePack = new SugiliteAvailableFeaturePack(node.getEntityValue(), uiSnapshot);
+        featurePack = new SugiliteAvailableFeaturePack(node, uiSnapshot);
 
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
         builder.setTitle(Const.appNameUpperCase + " Demonstration");

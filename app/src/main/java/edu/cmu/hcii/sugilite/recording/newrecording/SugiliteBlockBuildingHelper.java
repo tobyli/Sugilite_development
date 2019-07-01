@@ -3,11 +3,20 @@ package edu.cmu.hcii.sugilite.recording.newrecording;
 import android.content.Context;
 import android.util.Pair;
 
+import com.google.gson.Gson;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -20,6 +29,7 @@ import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptFileDao;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptSQLDao;
+import edu.cmu.hcii.sugilite.model.block.SugiliteBlockMetaInfo;
 import edu.cmu.hcii.sugilite.model.block.SugiliteConditionBlock;
 import edu.cmu.hcii.sugilite.model.block.util.SugiliteAvailableFeaturePack;
 import edu.cmu.hcii.sugilite.model.block.SugiliteErrorHandlingForkBlock;
@@ -277,6 +287,11 @@ public class SugiliteBlockBuildingHelper {
         return queries;
     }
 
+    /**
+     * save the block and the corresponding feature pack
+     * @param block
+     * @param featurePack
+     */
     public void saveBlock(SugiliteOperationBlock block, SugiliteAvailableFeaturePack featurePack){
         block.setPreviousBlock(sugiliteData.getCurrentScriptBlock());
         if (sugiliteData.getCurrentScriptBlock() instanceof SugiliteOperationBlock) {
@@ -298,14 +313,63 @@ public class SugiliteBlockBuildingHelper {
             throw new RuntimeException("Unsupported Block Type!");
         }
         sugiliteData.setCurrentScriptBlock(block);
+
         try {
             sugiliteData.getScriptHead().relevantPackages.add(featurePack.packageName);
             sugiliteScriptDao.save(sugiliteData.getScriptHead());
         } catch (Exception e) {
             e.printStackTrace();
         }
+
+        //construct a SugiliteBlockMetaInfo
+        SugiliteBlockMetaInfo metaInfo = new SugiliteBlockMetaInfo(block, featurePack.serializableUISnapshot, featurePack.targetNodeEntity);
+
+        //save the meta info into a file to check if the metaInfo is constructed correctly
+        saveMetaInfoToFile(metaInfo);
+
         System.out.println("saved block");
     }
+
+
+    private void saveMetaInfoToFile(SugiliteBlockMetaInfo metaInfo){
+        Gson gson = new Gson();
+        String metaInfoJson = gson.toJson(metaInfo);
+
+        PrintWriter out1 = null;
+        try {
+            File f = new File("/sdcard/Download/sugilite_metainfo");
+            if (!f.exists() || !f.isDirectory()) {
+                f.mkdirs();
+                System.out.println("dir created");
+            }
+            System.out.println(f.getAbsolutePath());
+
+
+            Date time = Calendar.getInstance().getTime();
+            String timeString = Const.dateFormat.format(time);
+
+            File metaInfoFile = new File(f.getPath() + "/metainfo_" + timeString + ".json");
+
+            if (!metaInfoFile.exists()) {
+                metaInfoFile.getParentFile().mkdirs();
+                metaInfoFile.createNewFile();
+                System.out.println("file created");
+            }
+
+
+
+            out1 = new PrintWriter(new FileOutputStream(metaInfoFile), true);
+            out1.println(metaInfoJson);
+
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            if (out1 != null) out1.close();
+        }
+    }
+
 
     public Map<SugiliteOperationBlock, String> getDescriptionsInDifferences(SugiliteOperationBlock[] blocks){
         Map<SugiliteOperationBlock, String> results = new HashMap<>();

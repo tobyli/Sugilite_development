@@ -38,7 +38,7 @@ import static edu.cmu.hcii.sugilite.Const.OVERLAY_TYPE;
  */
 public class PumiceDemonstrationUtil {
     /**
-     * initiate a demonstration recording from a pumice intent handler
+     * initiate a demonstration recording -> need to call endRecording() when the recording ends
      * @param context
      * @param serviceStatusManager
      * @param sharedPreferences
@@ -99,7 +99,7 @@ public class PumiceDemonstrationUtil {
     }
 
     /**
-     * execute a script from a pumice intent handler --> check the service status and the variable values before doing so
+     * execute a script  --> check the service status and the variable values before doing so
      * @param activityContext
      * @param serviceStatusManager
      * @param script
@@ -175,6 +175,13 @@ public class PumiceDemonstrationUtil {
         }
     }
 
+    /**
+     * end the current recording
+     * @param context
+     * @param sugiliteData
+     * @param sharedPreferences
+     * @param sugiliteScriptDao
+     */
     public static void endRecording(Context context, SugiliteData sugiliteData, SharedPreferences sharedPreferences, SugiliteScriptDao sugiliteScriptDao) {
         SharedPreferences.Editor prefEditor = sharedPreferences.edit();
         SugiliteBlockJSONProcessor jsonProcessor = new SugiliteBlockJSONProcessor(context);
@@ -195,7 +202,7 @@ public class PumiceDemonstrationUtil {
             new Thread(new Runnable() {
                 @Override
                 public void run() {
-                    //commit the script
+                    //commit the script through the sugiliteScriptDao
                     try {
                         sugiliteScriptDao.commitSave();
                     } catch (Exception e) {

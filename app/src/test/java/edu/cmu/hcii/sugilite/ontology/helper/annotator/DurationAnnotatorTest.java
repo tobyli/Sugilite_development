@@ -14,7 +14,7 @@ import static org.junit.Assert.*;
  * Created by shi on 3/1/18.
  */
 public class DurationAnnotatorTest {
-    SugiliteTextParentAnnotator annotator;
+    SugiliteTextAnnotator annotator;
 
     @Before
     public void setup() {

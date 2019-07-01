@@ -402,7 +402,7 @@ public class FullScreenRecordingOverlayManager {
                     e.printStackTrace();
                 }
                 SugiliteStudyHandler studyHandler = sugiliteAccessibilityService.getSugiliteStudyHandler();
-                studyHandler.handleEvent(new SugiliteAvailableFeaturePack(node.getEntityValue(), uiSnapshot), uiSnapshot, path, fileName);
+                studyHandler.handleEvent(new SugiliteAvailableFeaturePack(node, uiSnapshot), uiSnapshot, path, fileName);
             } else {
                 OverlayClickedDialog overlayClickedDialog = new OverlayClickedDialog(context, node, uiSnapshot, x, y, this, overlay, sugiliteData, layoutInflater, sharedPreferences, tts);
                 overlayClickedDialog.show();

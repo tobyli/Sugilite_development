@@ -113,7 +113,7 @@ public class PumiceValueDemonstrationSelectionDialog {
         //TODO: implement
 
         //generate the feature pack
-        SugiliteAvailableFeaturePack featurePack = new SugiliteAvailableFeaturePack(nodeEntity.getEntityValue(), uiSnapshot);
+        SugiliteAvailableFeaturePack featurePack = new SugiliteAvailableFeaturePack(nodeEntity, uiSnapshot);
         List<Pair<SerializableOntologyQuery, Double>> queryScoreList = SugiliteBlockBuildingHelper.generateDefaultQueries(featurePack, uiSnapshot, true);
 
         //TODO: determine if the data description is ambiguous

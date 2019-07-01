@@ -181,7 +181,7 @@ public class SugiliteRecordingConfirmationDialog extends SugiliteDialogManager {
         //
         if (block != null && block.getOperation() instanceof SugiliteLoadVariableOperation) {
             if (sugiliteData.currentPumiceValueDemonstrationType != null && sugiliteData.valueDemonstrationVariableName != null) {
-                //Toast.makeText(context, "Ending value demonstration", Toast.LENGTH_SHORT).show();
+                //value demonstration
 
                 SharedPreferences.Editor prefEditor = sharedPreferences.edit();
                 prefEditor.putBoolean("recording_in_process", false);

@@ -187,6 +187,7 @@ public class VerbalInstructionIconManager implements SugiliteVoiceInterface {
         if (statusIcon == null) {
             statusIcon = new ImageView(context);
         }
+
         statusIcon.setImageResource(R.mipmap.cat_sleep);
         iconParams = new WindowManager.LayoutParams(
                 WindowManager.LayoutParams.WRAP_CONTENT,
@@ -260,16 +261,14 @@ public class VerbalInstructionIconManager implements SugiliteVoiceInterface {
         try{
             if(statusIcon != null && statusIcon.getWindowToken() != null) {
                 windowManager.removeView(statusIcon);
+                if(timer != null) {
+                    timer.cancel();
+                }
             }
 
         } catch (Exception e){
             e.printStackTrace();
-        } finally {
-            if(timer != null) {
-                timer.cancel();
-            }
         }
-
     }
 
     public ImageView getStatusIcon() {

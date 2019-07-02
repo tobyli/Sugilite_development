@@ -57,7 +57,7 @@ public class DifferentParseChooseDialog {
                     VerbalInstructionServerResults.VerbalInstructionResult chosenResult = allResults.get(which);
 
                     //refresh the overlay manager
-                    Map<String, SugiliteSerializableEntity> idEntityMap = serializableUISnapshot.getSugiliteEntityIdSugiliteEntityMap();
+                    Map<String, SugiliteSerializableEntity<Node>> idEntityMap = serializableUISnapshot.getSugiliteEntityIdSugiliteEntityMap();
                     List<Node> filteredNodes = new ArrayList<>();
                     Map<Node, String> filteredNodeNodeIdMap = new HashMap<>();
                     for (String nodeId : chosenResult.getGrounding()){

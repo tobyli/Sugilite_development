@@ -2,6 +2,7 @@ package edu.cmu.hcii.sugilite.model.block;
 
 import java.io.Serializable;
 
+import edu.cmu.hcii.sugilite.model.Node;
 import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
 import edu.cmu.hcii.sugilite.ontology.SerializableUISnapshot;
 import edu.cmu.hcii.sugilite.ontology.SugiliteSerializableEntity;
@@ -15,13 +16,17 @@ import edu.cmu.hcii.sugilite.ontology.SugiliteSerializableEntity;
 //this class can be used for storing meta information about a block
 public class SugiliteBlockMetaInfo implements Serializable {
 
+    //link to the parent block that the SugiliteBlockMetaInfo belongs to
     private SugiliteBlock parentBlock;
+
     //the UI snapshot from the screen at the time of the block recording
     private SerializableUISnapshot uiSnapshot;
-    private SugiliteSerializableEntity targetEntity;
+
+    //the targetEntity of the operation in the uiSnapshot
+    private SugiliteSerializableEntity<Node> targetEntity;
 
 
-    public SugiliteBlockMetaInfo(SugiliteBlock parentBlock, SerializableUISnapshot uiSnapshot, SugiliteSerializableEntity targetEntity) {
+    public SugiliteBlockMetaInfo(SugiliteBlock parentBlock, SerializableUISnapshot uiSnapshot, SugiliteSerializableEntity<Node> targetEntity) {
         this.parentBlock = parentBlock;
         this.uiSnapshot = uiSnapshot;
         this.targetEntity = targetEntity;
@@ -35,7 +40,7 @@ public class SugiliteBlockMetaInfo implements Serializable {
         return parentBlock;
     }
 
-    public SugiliteSerializableEntity getTargetEntity() {
+    public SugiliteSerializableEntity<Node> getTargetEntity() {
         return targetEntity;
     }
 }

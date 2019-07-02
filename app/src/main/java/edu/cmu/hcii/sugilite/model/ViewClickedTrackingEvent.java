@@ -10,6 +10,7 @@ import java.util.List;
 /**
  * Created by toby on 11/3/15.
  */
+@Deprecated
 public class ViewClickedTrackingEvent extends AbstractTrackingEvent {
     //a "clickable" often has "text" if it's text based, or has a content description if it is an icon
     private String contentDescription;

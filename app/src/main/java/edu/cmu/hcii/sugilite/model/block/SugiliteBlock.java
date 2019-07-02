@@ -78,9 +78,13 @@ public abstract class SugiliteBlock implements Serializable{
 
 
     public SugiliteBlock getNextBlockToRun() {
-        if(nextBlock == null && parentBlock != null){
-            //handle the "merge" of condition blocks
-            return parentBlock.getNextBlockToRun();
+        if(nextBlock == null){
+            if (parentBlock != null) {
+                //handle the "merge" of condition blocks - if the currentBlock has no nextBlock, and has a parentBlock, should return the nextBlock of parentBlock
+                return parentBlock.getNextBlockToRun();
+            } else {
+                return null;
+            }
         } else {
             return nextBlock;
         }

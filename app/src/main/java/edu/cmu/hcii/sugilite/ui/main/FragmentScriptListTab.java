@@ -34,6 +34,7 @@ import edu.cmu.hcii.sugilite.communication.SugiliteBlockJSONProcessor;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptFileDao;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptSQLDao;
+import edu.cmu.hcii.sugilite.model.NewScriptGeneralizer;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.model.block.util.ScriptPrinter;
 import edu.cmu.hcii.sugilite.pumice.PumiceDemonstrationUtil;
@@ -148,6 +149,7 @@ public class FragmentScriptListTab extends Fragment {
     private static final int ITEM_7 = Menu.FIRST + 6;
     private static final int ITEM_8 = Menu.FIRST + 7;
     private static final int ITEM_9 = Menu.FIRST + 8;
+    private static final int ITEM_10 = Menu.FIRST + 9;
 
 
 
@@ -170,6 +172,9 @@ public class FragmentScriptListTab extends Fragment {
         menu.add(0, ITEM_7, 0, "Print Debug Info");
         menu.add(0, ITEM_8, 0, "Edit Source");
         menu.add(0, ITEM_9, 0, "Delete");
+
+        //for debug purpose
+        menu.add(0, ITEM_10, 0, "Test New Generalize");
     }
 
     @Override
@@ -179,6 +184,7 @@ public class FragmentScriptListTab extends Fragment {
             return super.onContextItemSelected(item);
         try {
             final String scriptName = ((TextView) info.targetView).getText().toString() + ".SugiliteScript";
+            final SugiliteStartingBlock script = sugiliteScriptDao.read(scriptName);
             switch (item.getItemId()) {
                 case ITEM_1:
                     //open the view script activity
@@ -191,7 +197,6 @@ public class FragmentScriptListTab extends Fragment {
                     break;
                 case ITEM_2:
                     //run the script
-                    SugiliteStartingBlock script = sugiliteScriptDao.read(scriptName);
                     new AlertDialog.Builder(activity)
                             .setTitle("Run Script")
                             .setMessage("Are you sure you want to run this script?")
@@ -237,16 +242,18 @@ public class FragmentScriptListTab extends Fragment {
                                         catch (Exception e){
                                             e.printStackTrace();
                                         }
-                                        startingBlock.setScriptName(newName.getText().toString() + ".SugiliteScript");
-                                        try {
-                                            sugiliteScriptDao.save(startingBlock);
-                                            sugiliteScriptDao.commitSave();
-                                            setUpScriptList();
-                                            sugiliteScriptDao.delete(scriptName);
-                                            setUpScriptList();
-                                            sugiliteData.logUsageData(ScriptUsageLogManager.REMOVE_SCRIPT, scriptName);
-                                        } catch (Exception e) {
-                                            e.printStackTrace();
+                                        if (startingBlock != null) {
+                                            startingBlock.setScriptName(newName.getText().toString() + ".SugiliteScript");
+                                            try {
+                                                sugiliteScriptDao.save(startingBlock);
+                                                sugiliteScriptDao.commitSave();
+                                                setUpScriptList();
+                                                sugiliteScriptDao.delete(scriptName);
+                                                setUpScriptList();
+                                                sugiliteData.logUsageData(ScriptUsageLogManager.REMOVE_SCRIPT, scriptName);
+                                            } catch (Exception e) {
+                                                e.printStackTrace();
+                                            }
                                         }
                                     }
                                 })
@@ -261,10 +268,9 @@ public class FragmentScriptListTab extends Fragment {
                     break;
                 case ITEM_5:
                     //share
-                    SugiliteStartingBlock startingBlock = sugiliteScriptDao.read(scriptName);
                     SugiliteBlockJSONProcessor processor = new SugiliteBlockJSONProcessor(activity);
                     try {
-                        String json = processor.scriptToJson(startingBlock);
+                        String json = processor.scriptToJson(script);
                         System.out.println(json);
                         SugiliteStartingBlock recoveredFromJSON = processor.jsonToScript(json);
                         recoveredFromJSON.setScriptName("recovered_" + recoveredFromJSON.getScriptName());
@@ -280,9 +286,6 @@ public class FragmentScriptListTab extends Fragment {
                     break;
                 case ITEM_6:
                     //generalize
-                    final String scriptName1 = ((TextView) info.targetView).getText().toString() + ".SugiliteScript";
-                    final SugiliteStartingBlock startingBlock1 = sugiliteScriptDao.read(scriptName1);
-
                     progressDialog = new AlertDialog.Builder(activity).setMessage(Const.LOADING_MESSAGE).create();
                     progressDialog.getWindow().setType(OVERLAY_TYPE);
                     progressDialog.setCanceledOnTouchOutside(false);
@@ -292,7 +295,7 @@ public class FragmentScriptListTab extends Fragment {
                         public void run()
                         {
                             try {
-                                generalizer.generalize(startingBlock1);
+                                generalizer.generalize(script);
                                 setUpScriptList();
                             }
                             catch (Exception e){
@@ -310,7 +313,7 @@ public class FragmentScriptListTab extends Fragment {
                                     }
                                 }
                             };
-                            if(activity instanceof Activity){
+                            if(activity != null){
                                 activity.runOnUiThread(dismissDialog);
                             }
                         }
@@ -319,16 +322,13 @@ public class FragmentScriptListTab extends Fragment {
                     break;
                 case ITEM_7:
                     //view debug info
-                    String scriptName2 = ((TextView) info.targetView).getText().toString() + ".SugiliteScript";
-                    SugiliteStartingBlock startingBlock2 = sugiliteScriptDao.read(scriptName2);
-                    System.out.println(ScriptPrinter.getStringScript(startingBlock2));
+                    System.out.println(ScriptPrinter.getStringScript(script));
                     break;
                 case ITEM_8:
                     //view and edit script source
-                    String scriptName3 = ((TextView) info.targetView).getText().toString() + ".SugiliteScript";
                     final Intent scriptSourceIntent = new Intent(getContext(), ScriptSourceActivity.class);
                     scriptSourceIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                    scriptSourceIntent.putExtra("scriptName", scriptName3);
+                    scriptSourceIntent.putExtra("scriptName", scriptName);
                     startActivity(scriptSourceIntent);
                     break;
                 case ITEM_9:
@@ -337,6 +337,44 @@ public class FragmentScriptListTab extends Fragment {
                         sugiliteScriptDao.delete(((TextView) info.targetView).getText().toString() + ".SugiliteScript");
                         setUpScriptList();
                     }
+                    break;
+                case ITEM_10:
+                    //generalize
+                    NewScriptGeneralizer newScriptGeneralizer = new NewScriptGeneralizer();
+
+                    progressDialog = new AlertDialog.Builder(activity).setMessage(Const.LOADING_MESSAGE).create();
+                    progressDialog.getWindow().setType(OVERLAY_TYPE);
+                    progressDialog.setCanceledOnTouchOutside(false);
+                    progressDialog.show();
+                    new Thread(new Runnable() {
+                        @Override
+                        public void run()
+                        {
+                            try {
+                                newScriptGeneralizer.extractParameters(script, scriptName.replace(".SugiliteScript", ""));
+                                setUpScriptList();
+                            }
+                            catch (Exception e){
+                                e.printStackTrace();
+                            }
+                            Runnable dismissDialog = new Runnable() {
+                                @Override
+                                public void run() {
+                                    progressDialog.dismiss();
+                                    try {
+                                        setUpScriptList();
+                                    }
+                                    catch (Exception e){
+                                        e.printStackTrace();
+                                    }
+                                }
+                            };
+                            if(activity != null){
+                                activity.runOnUiThread(dismissDialog);
+                            }
+                        }
+                    }).start();
+
                     break;
             }
         }

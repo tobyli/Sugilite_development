@@ -11,6 +11,7 @@ import edu.cmu.hcii.sugilite.BuildConfig;
  * Created by nancyli on 9/27/17.
  */
 
+@Deprecated
 public class SerializableOntologyQuery implements Serializable {
     private OntologyQuery.relationType SubRelation;
     private Set<SerializableOntologyQuery> SubQueries = null;

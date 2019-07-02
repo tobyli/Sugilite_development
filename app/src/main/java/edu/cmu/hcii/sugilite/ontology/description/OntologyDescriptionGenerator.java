@@ -129,7 +129,7 @@ public class OntologyDescriptionGenerator {
     }
 
 
-    public String getDescriptionForOperation(SugiliteOperation operation, SerializableOntologyQuery sq){
+    public String getDescriptionForOperation(SugiliteOperation operation, OntologyQuery sq){
         //TODO: temporily disable because of crashes due to unable to handle filters
         //return sq.toString();
         String prefix = "";
@@ -175,8 +175,8 @@ public class OntologyDescriptionGenerator {
         return false;
     }
 
-    private String getDescriptionForOperation(String verb, SerializableOntologyQuery sq){
-        return verb + getDescriptionForOntologyQuery(sq);
+    private String getDescriptionForOperation(String verb, OntologyQuery q){
+        return verb + getDescriptionForOntologyQuery(q);
     }
 
     // translates the filters
@@ -547,13 +547,12 @@ public class OntologyDescriptionGenerator {
 
     /**
      * Get the natural language description for a SerializableOntologyQuery
-     * @param sq
+     * @param ontologyQuery
      * @return
      */
-    public String getDescriptionForOntologyQuery(SerializableOntologyQuery sq) {
+    public String getDescriptionForOntologyQuery(OntologyQuery ontologyQuery) {
         String postfix = "";
 
-        OntologyQuery ontologyQuery = new OntologyQuery(sq);
         SugiliteRelation r = ontologyQuery.getR();
         OntologyQueryFilter filter = ontologyQuery.getOntologyQueryFilter();
 
@@ -577,7 +576,7 @@ public class OntologyDescriptionGenerator {
             int size = subQueryArray.length;
             String[] arr = new String[size];
             for (int i = 0; i < size; i++) {
-                arr[i] = getDescriptionForOntologyQuery(new SerializableOntologyQuery(subQueryArray[i]));
+                arr[i] = getDescriptionForOntologyQuery(subQueryArray[i]);
             }
 
             if (ontologyQuery.getSubRelation() == OntologyQuery.relationType.AND) {
@@ -613,7 +612,7 @@ public class OntologyDescriptionGenerator {
                 e.printStackTrace();
             }
             try {
-                SerializableOntologyQuery query = new SerializableOntologyQuery(OntologyQuery.deserialize(input));
+                OntologyQuery query = OntologyQuery.deserialize(input);
                 String description = generator.getDescriptionForOperation("Click on ", query);
                 //clean up the html tags
                 description = description.replaceAll("\\<.*?\\>", "");

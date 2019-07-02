@@ -29,7 +29,7 @@ import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.model.block.util.SugiliteAvailableFeaturePack;
 import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
 import edu.cmu.hcii.sugilite.model.operation.trinary.SugiliteLoadVariableOperation;
-import edu.cmu.hcii.sugilite.ontology.SerializableOntologyQuery;
+import edu.cmu.hcii.sugilite.ontology.OntologyQuery;
 import edu.cmu.hcii.sugilite.ontology.SugiliteEntity;
 import edu.cmu.hcii.sugilite.ontology.UISnapshot;
 import edu.cmu.hcii.sugilite.ontology.description.OntologyDescriptionGenerator;
@@ -49,7 +49,7 @@ import static edu.cmu.hcii.sugilite.Const.SQL_SCRIPT_DAO;
 public class SugiliteRecordingConfirmationDialog extends SugiliteDialogManager {
     private SugiliteOperationBlock block;
     private SugiliteAvailableFeaturePack featurePack;
-    private List<Pair<SerializableOntologyQuery, Double>> queryScoreList;
+    private List<Pair<OntologyQuery, Double>> queryScoreList;
     private Runnable clickUnderlyingButtonRunnable;
     private SugiliteBlockBuildingHelper blockBuildingHelper;
     private LayoutInflater layoutInflater;
@@ -70,7 +70,7 @@ public class SugiliteRecordingConfirmationDialog extends SugiliteDialogManager {
     private SugiliteDialogSimpleState detailPromptState = new SugiliteDialogSimpleState("DETAIL_PROMPT", this);
 
 
-    public SugiliteRecordingConfirmationDialog(Context context, SugiliteOperationBlock block, SugiliteAvailableFeaturePack featurePack, List<Pair<SerializableOntologyQuery, Double>> queryScoreList, Runnable clickUnderlyingButtonRunnable, SugiliteBlockBuildingHelper blockBuildingHelper, LayoutInflater layoutInflater, UISnapshot uiSnapshot, SugiliteEntity<Node> actualClickedNode, SugiliteData sugiliteData, SharedPreferences sharedPreferences, TextToSpeech tts) {
+    public SugiliteRecordingConfirmationDialog(Context context, SugiliteOperationBlock block, SugiliteAvailableFeaturePack featurePack, List<Pair<OntologyQuery, Double>> queryScoreList, Runnable clickUnderlyingButtonRunnable, SugiliteBlockBuildingHelper blockBuildingHelper, LayoutInflater layoutInflater, UISnapshot uiSnapshot, SugiliteEntity<Node> actualClickedNode, SugiliteData sugiliteData, SharedPreferences sharedPreferences, TextToSpeech tts) {
         super(context, tts);
         this.context = context;
         this.block = block;

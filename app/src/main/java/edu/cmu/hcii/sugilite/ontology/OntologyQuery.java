@@ -194,6 +194,12 @@ public class OntologyQuery {
         return ontologyQueryFilter;
     }
 
+    public OntologyQuery clone() {
+        // TODO cleanup and NOT do this
+        // this is gory but used elsewhere
+        return new OntologyQuery(new SerializableOntologyQuery(this));
+    }
+
     /**
      * the query function used for determine whether a node matches the query
      * @param query

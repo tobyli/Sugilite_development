@@ -93,8 +93,6 @@ public class VerbalInstructionIconManager implements SugiliteVoiceInterface {
     private WindowManager.LayoutParams iconParams;
     private Timer timer;
 
-    //whether the icon is currently shown
-    private boolean showingIcon = false;
     private final int REQ_CODE_SPEECH_INPUT = 100;
 
 
@@ -186,7 +184,9 @@ public class VerbalInstructionIconManager implements SugiliteVoiceInterface {
      * add the status icon using the context specified in the class
      */
     public void addStatusIcon(){
-        statusIcon = new ImageView(context);
+        if (statusIcon == null) {
+            statusIcon = new ImageView(context);
+        }
         statusIcon.setImageResource(R.mipmap.cat_sleep);
         iconParams = new WindowManager.LayoutParams(
                 WindowManager.LayoutParams.WRAP_CONTENT,
@@ -238,7 +238,6 @@ public class VerbalInstructionIconManager implements SugiliteVoiceInterface {
                 });
             }
         }, 0, INTERVAL_REFRESH_UI_SNAPSHOT);
-        showingIcon = true;
 
         //hide the verbal instruction icon
 
@@ -269,7 +268,6 @@ public class VerbalInstructionIconManager implements SugiliteVoiceInterface {
             if(timer != null) {
                 timer.cancel();
             }
-            showingIcon = false;
         }
 
     }
@@ -279,7 +277,10 @@ public class VerbalInstructionIconManager implements SugiliteVoiceInterface {
     }
 
     public boolean isShowingIcon() {
-        return showingIcon;
+        if (statusIcon == null) {
+            return false;
+        }
+        return statusIcon.isShown();
     }
 
     public UISnapshot getLatestUISnapshot(){
@@ -463,13 +464,19 @@ public class VerbalInstructionIconManager implements SugiliteVoiceInterface {
     }
 
     public void turnOnCatOverlay() {
-        recordingOverlayManager.enableOverlay();
+        if (!recordingOverlayManager.isShowingOverlay()) {
+            recordingOverlayManager.enableOverlay();
+        }
         //remove and re-add the status icon so that it can show on top of the overlay
         removeStatusIcon();
-        addStatusIcon();
+        if (!isShowingIcon()) {
+            addStatusIcon();
+        }
         if(duckIconManager != null){
             duckIconManager.removeStatusIcon();
-            duckIconManager.addStatusIcon();
+            if (!duckIconManager.isShowingIcon()) {
+                duckIconManager.addStatusIcon();
+            }
         }
     }
 

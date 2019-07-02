@@ -106,7 +106,7 @@ public class FragmentScriptListTab extends Fragment {
 
         //add back the duck icon
         if(sugiliteData != null && sugiliteData.statusIconManager != null && serviceStatusManager != null){
-            if(! sugiliteData.statusIconManager.isShowingIcon() && serviceStatusManager.isRunning()){
+            if(!sugiliteData.statusIconManager.isShowingIcon() && serviceStatusManager.isRunning()){
                 sugiliteData.statusIconManager.addStatusIcon();
             }
         }
@@ -296,7 +296,6 @@ public class FragmentScriptListTab extends Fragment {
                         {
                             try {
                                 generalizer.generalize(script);
-                                setUpScriptList();
                             }
                             catch (Exception e){
                                 e.printStackTrace();
@@ -352,7 +351,6 @@ public class FragmentScriptListTab extends Fragment {
                         {
                             try {
                                 newScriptGeneralizer.extractParameters(script, scriptName.replace(".SugiliteScript", ""));
-                                setUpScriptList();
                             }
                             catch (Exception e){
                                 e.printStackTrace();

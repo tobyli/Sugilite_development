@@ -393,6 +393,7 @@ public class GoogleCloudSpeechService extends Service {
 
         @Override
         protected AccessToken doInBackground(Void... voids) {
+
             final SharedPreferences prefs =
                     getSharedPreferences(PREFS, Context.MODE_PRIVATE);
             String tokenValue = prefs.getString(PREF_ACCESS_TOKEN_VALUE, null);
@@ -441,10 +442,14 @@ public class GoogleCloudSpeechService extends Service {
 
             // Schedule access token refresh before it expires
             if (mHandler != null) {
-                mHandler.postDelayed(mFetchAccessTokenRunnable,
-                        Math.max(accessToken.getExpirationTime().getTime()
-                                - System.currentTimeMillis()
-                                - ACCESS_TOKEN_FETCH_MARGIN, ACCESS_TOKEN_EXPIRATION_TOLERANCE));
+                try {
+                    mHandler.postDelayed(mFetchAccessTokenRunnable,
+                            Math.max(accessToken.getExpirationTime().getTime()
+                                    - System.currentTimeMillis()
+                                    - ACCESS_TOKEN_FETCH_MARGIN, ACCESS_TOKEN_EXPIRATION_TOLERANCE));
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
         }
     }

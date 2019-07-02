@@ -46,7 +46,7 @@ public class NewScriptGeneralizer {
                     //TODO: support more complex matching method than exact string matching
                     if (userUtterance.contains(textLabel.toLowerCase())) {
                         //matched
-                        System.out.printf("Found parameter: %s in the utterance was found in the operation %s", textLabel, operationBlock.toString());
+                        System.out.printf("Found parameter: \"%s\" in the utterance was found in the operation %s\n", textLabel, operationBlock.toString());
                         //TODO: extract possible values from uiSnapshot
 
                         //TODO: add the parameter back to SugiliteStartingBlock

@@ -17,8 +17,8 @@ import edu.cmu.hcii.sugilite.ontology.SugiliteSerializableEntity;
 public class SugiliteBlockMetaInfo implements Serializable {
 
     //link to the parent block that the SugiliteBlockMetaInfo belongs to
-    private SugiliteBlock parentBlock;
-
+    private transient SugiliteBlock parentBlock;
+    private int parentBlockId;
     //the UI snapshot from the screen at the time of the block recording
     private SerializableUISnapshot uiSnapshot;
 
@@ -28,6 +28,7 @@ public class SugiliteBlockMetaInfo implements Serializable {
 
     public SugiliteBlockMetaInfo(SugiliteBlock parentBlock, SerializableUISnapshot uiSnapshot, SugiliteSerializableEntity<Node> targetEntity) {
         this.parentBlock = parentBlock;
+        this.parentBlockId = parentBlock.getBlockId();
         this.uiSnapshot = uiSnapshot;
         this.targetEntity = targetEntity;
     }

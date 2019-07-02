@@ -83,6 +83,19 @@ public class SugiliteScriptExpression<T> {
             }
             returnList.add(result);
             return returnList;
+        } else if (node.getChildren().size() == 2 && node.getChildren().get(0).getValue() != null && node.getChildren().get(0).getValue().equals("SUGILITE_START")) {
+            //starting block
+            SugiliteScriptExpression<String> result = new SugiliteScriptExpression<>();
+            result.setConstant(false);
+            result.setOperationName(node.getChildren().get(0).getValue());
+            //set the String content of the script
+            result.setScriptContent(node.getScriptContent());
+            for (int i = 1; i < node.getChildren().size(); i++) {
+                //parse the args
+                result.addArgument(parse(node.getChildren().get(i)));
+            }
+            returnList.add(result);
+            return returnList;
         } else if (node.getChildren().size() > 1) {
             //check if it's a typed constant?
             SugiliteScriptExpression result = null;

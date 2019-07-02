@@ -323,7 +323,9 @@ public class FollowUpQuestionDialog extends SugiliteDialogManager implements Sug
 
         //refresh the cat icon so it stays on top of the overlay
         verbalInstructionIconManager.removeStatusIcon();
-        verbalInstructionIconManager.addStatusIcon();
+        if (!verbalInstructionIconManager.isShowingIcon()) {
+            verbalInstructionIconManager.addStatusIcon();
+        }
 
         //set the exit animation
     }

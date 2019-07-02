@@ -312,7 +312,15 @@ public class SugiliteBlockBuildingHelper {
         else{
             throw new RuntimeException("Unsupported Block Type!");
         }
+
+        //construct a SugiliteBlockMetaInfo for the operation block
+        SugiliteBlockMetaInfo metaInfo = new SugiliteBlockMetaInfo(block, featurePack.serializableUISnapshot, featurePack.targetNodeEntity);
+
+        //add the SugiliteBlockMetaInfo to the operation block
+        block.setSugiliteBlockMetaInfo(metaInfo);
+
         sugiliteData.setCurrentScriptBlock(block);
+
 
         try {
             sugiliteData.getScriptHead().relevantPackages.add(featurePack.packageName);
@@ -321,8 +329,7 @@ public class SugiliteBlockBuildingHelper {
             e.printStackTrace();
         }
 
-        //construct a SugiliteBlockMetaInfo
-        SugiliteBlockMetaInfo metaInfo = new SugiliteBlockMetaInfo(block, featurePack.serializableUISnapshot, featurePack.targetNodeEntity);
+
 
         //save the meta info into a file to check if the metaInfo is constructed correctly
         saveMetaInfoToFile(metaInfo);

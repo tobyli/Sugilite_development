@@ -246,7 +246,9 @@ public class SugiliteAccessibilityService extends AccessibilityService {
         }, INTERVAL_REFRESH_SUGILITE_ICON);
 
         try {
-            statusIconManager.addStatusIcon();
+            if (!statusIconManager.isShowingIcon()) {
+                statusIconManager.addStatusIcon();
+            }
 
         } catch (Exception e) {
             e.printStackTrace();

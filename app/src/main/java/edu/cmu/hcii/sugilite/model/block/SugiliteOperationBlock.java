@@ -20,6 +20,7 @@ import static edu.cmu.hcii.sugilite.source_parsing.SugiliteScriptExpression.addQ
 public class SugiliteOperationBlock extends SugiliteBlock implements Serializable{
     private SugiliteOperation operation;
     private SugiliteAvailableFeaturePack featurePack;
+    private SugiliteBlockMetaInfo sugiliteBlockMetaInfo;
 
     @Deprecated
     private UIElementMatchingFilter elementMatchingFilter;
@@ -62,6 +63,14 @@ public class SugiliteOperationBlock extends SugiliteBlock implements Serializabl
     @Override
     public String toString() {
         return operation.toString();
+    }
+
+    public void setSugiliteBlockMetaInfo(SugiliteBlockMetaInfo sugiliteBlockMetaInfo) {
+        this.sugiliteBlockMetaInfo = sugiliteBlockMetaInfo;
+    }
+
+    public SugiliteBlockMetaInfo getSugiliteBlockMetaInfo() {
+        return sugiliteBlockMetaInfo;
     }
 
     @Deprecated

@@ -222,7 +222,7 @@ public class VerbalInstructionTestDialog implements SugiliteVoiceInterface, Sugi
         }
 
         //find matches
-        Map<String, SugiliteSerializableEntity> idEntityMap = serializableUISnapshot.getSugiliteEntityIdSugiliteEntityMap();
+        Map<String, SugiliteSerializableEntity<Node>> idEntityMap = serializableUISnapshot.getSugiliteEntityIdSugiliteEntityMap();
         for (VerbalInstructionServerResults.VerbalInstructionResult verbalInstructionResult : results.getQueries()) {
             List<Node> filteredNodes = new ArrayList<>();
             Map<Node, String> filteredNodeNodeIdMap = new HashMap<>();

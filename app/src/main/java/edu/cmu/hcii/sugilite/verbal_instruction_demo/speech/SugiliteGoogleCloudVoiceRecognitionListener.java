@@ -192,6 +192,7 @@ public class SugiliteGoogleCloudVoiceRecognitionListener implements SugiliteVoic
                     @Override
                     public void run() {
                         //only allow ONE listener at a time
+                        try {
                         mSpeechService.clearListener();
 
                         mSpeechService.addListener(mSpeechServiceListener);
@@ -202,6 +203,9 @@ public class SugiliteGoogleCloudVoiceRecognitionListener implements SugiliteVoic
                                 showStatus(true);
                             }
                         });
+                        } catch (Exception e){
+                            e.printStackTrace();
+                        }
                     }
                 });
 

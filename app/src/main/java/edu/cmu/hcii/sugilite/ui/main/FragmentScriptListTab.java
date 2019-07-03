@@ -339,7 +339,7 @@ public class FragmentScriptListTab extends Fragment {
                     break;
                 case ITEM_10:
                     //generalize
-                    NewScriptGeneralizer newScriptGeneralizer = new NewScriptGeneralizer();
+                    NewScriptGeneralizer newScriptGeneralizer = new NewScriptGeneralizer(activity);
 
                     progressDialog = new AlertDialog.Builder(activity).setMessage(Const.LOADING_MESSAGE).create();
                     progressDialog.getWindow().setType(OVERLAY_TYPE);

@@ -1,6 +1,6 @@
 package edu.cmu.hcii.sugilite.model.operation.unary;
 
-import edu.cmu.hcii.sugilite.ontology.SerializableOntologyQuery;
+import edu.cmu.hcii.sugilite.ontology.OntologyQuery;
 
 import static edu.cmu.hcii.sugilite.source_parsing.SugiliteScriptExpression.addQuoteToTokenIfNeeded;
 
@@ -36,7 +36,7 @@ public class SugiliteResolveProcedureOperation extends SugiliteUnaryOperation<St
     }
 
     @Override
-    public SerializableOntologyQuery getDataDescriptionQueryIfAvailable() {
+    public OntologyQuery getDataDescriptionQueryIfAvailable() {
         return null;
     }
 

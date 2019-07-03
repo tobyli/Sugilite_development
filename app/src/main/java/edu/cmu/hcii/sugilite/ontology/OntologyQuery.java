@@ -1,5 +1,6 @@
 package edu.cmu.hcii.sugilite.ontology;
 
+import java.io.Serializable;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
@@ -14,20 +15,20 @@ import static edu.cmu.hcii.sugilite.source_parsing.SugiliteScriptExpression.addQ
  * Created by nancyli on 9/27/17.
  */
 
-public class OntologyQuery {
+public class OntologyQuery implements Serializable {
     public enum relationType {
         nullR, AND, OR, PREV
     }
     private relationType SubRelation;
     private Set<OntologyQuery> SubQueries = null;
-    private BiFunction<SubjectEntityObjectEntityPair, UISnapshot, Boolean> QueryFunction = null;
+    private transient BiFunction<SubjectEntityObjectEntityPair, UISnapshot, Boolean> QueryFunction = null;
     private Set<SugiliteEntity> object = null;
     private Set<SugiliteEntity> subject = null;
     private SugiliteRelation r = null;
 
     private OntologyQueryFilter ontologyQueryFilter = null;
 
-    public OntologyQuery(){
+    private OntologyQuery(){
 
     }
 
@@ -36,7 +37,7 @@ public class OntologyQuery {
         ontologyQueryFilter = sq.getOntologyQueryFilter();
         r = sq.getR();
         if(r != null){
-            setQueryFunction(sq.getR());
+            setQueryFunction(r);
         }
         if(SubRelation != relationType.nullR) {
             SubQueries = new HashSet<>();
@@ -63,6 +64,7 @@ public class OntologyQuery {
             // there are sub-queries
             this.SubQueries = new HashSet<OntologyQuery>();
         }
+        // NOTE this constructor might cause bugs with QueryFuction
     }
 
     public void addSubQuery(OntologyQuery sub){
@@ -192,6 +194,12 @@ public class OntologyQuery {
 
     public OntologyQueryFilter getOntologyQueryFilter() {
         return ontologyQueryFilter;
+    }
+
+    public OntologyQuery clone() {
+        // TODO cleanup and NOT do this
+        // this is gory but used elsewhere
+        return new OntologyQuery(new SerializableOntologyQuery(this));
     }
 
     /**

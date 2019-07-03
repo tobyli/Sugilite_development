@@ -2,7 +2,7 @@ package edu.cmu.hcii.sugilite.model.operation;
 
 import java.io.Serializable;
 
-import edu.cmu.hcii.sugilite.ontology.SerializableOntologyQuery;
+import edu.cmu.hcii.sugilite.ontology.OntologyQuery;
 
 /**
  * @author toby
@@ -34,7 +34,7 @@ public abstract class SugiliteOperation implements Serializable {
     }
 
     public abstract boolean containsDataDescriptionQuery();
-    public abstract SerializableOntologyQuery getDataDescriptionQueryIfAvailable();
+    public abstract OntologyQuery getDataDescriptionQueryIfAvailable();
     public abstract String getPumiceUserReadableDecription();
 }
 

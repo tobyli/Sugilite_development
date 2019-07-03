@@ -251,7 +251,7 @@ public class Automator {
                 UISnapshot uiSnapshot = new UISnapshot(rootNode, true, sugiliteTextParentAnnotator, true);
 
                 //de-serialize the OntologyQuery
-                OntologyQuery q = new OntologyQuery(operationBlock.getOperation().getDataDescriptionQueryIfAvailable());
+                OntologyQuery q = operationBlock.getOperation().getDataDescriptionQueryIfAvailable().clone();
                 Set<SugiliteEntity> querySet = q.executeOn(uiSnapshot);
 
                 List<AccessibilityNodeInfo> filteredNodes = new ArrayList<AccessibilityNodeInfo>();
@@ -491,7 +491,7 @@ public class Automator {
 
 
                 //de-serialize the OntologyQuery
-                OntologyQuery q = new OntologyQuery(operationBlock.getOperation().getDataDescriptionQueryIfAvailable());
+                OntologyQuery q = operationBlock.getOperation().getDataDescriptionQueryIfAvailable().clone();
 
                 //replace variables in the query
                 q = OntologyQuery.deserialize(variableHelper.parse(q.toString()));

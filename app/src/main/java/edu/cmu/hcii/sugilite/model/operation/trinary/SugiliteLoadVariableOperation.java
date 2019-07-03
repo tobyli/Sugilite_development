@@ -3,7 +3,7 @@ package edu.cmu.hcii.sugilite.model.operation.trinary;
 import java.io.Serializable;
 
 import edu.cmu.hcii.sugilite.model.operation.trinary.SugiliteTrinaryOperation;
-import edu.cmu.hcii.sugilite.ontology.SerializableOntologyQuery;
+import edu.cmu.hcii.sugilite.ontology.OntologyQuery;
 
 import static edu.cmu.hcii.sugilite.source_parsing.SugiliteScriptExpression.addQuoteToTokenIfNeeded;
 
@@ -12,10 +12,10 @@ import static edu.cmu.hcii.sugilite.source_parsing.SugiliteScriptExpression.addQ
  * @date 8/6/16
  * @time 11:42 PM
  */
-public class SugiliteLoadVariableOperation extends SugiliteTrinaryOperation<String, String, SerializableOntologyQuery> implements Serializable{
+public class SugiliteLoadVariableOperation extends SugiliteTrinaryOperation<String, String, OntologyQuery> implements Serializable{
     private String variableName;
     private String propertyToSave;
-    private SerializableOntologyQuery targetUIElementDataDescriptionQuery;
+    private OntologyQuery targetUIElementDataDescriptionQuery;
     public SugiliteLoadVariableOperation(){
         super();
         this.setOperationType(LOAD_AS_VARIABLE);
@@ -36,7 +36,7 @@ public class SugiliteLoadVariableOperation extends SugiliteTrinaryOperation<Stri
         this.propertyToSave = propertyToSave;
     }
 
-    public void setQuery(SerializableOntologyQuery targetUIElementDataDescriptionQuery) {
+    public void setQuery(OntologyQuery targetUIElementDataDescriptionQuery) {
         setParameter2(targetUIElementDataDescriptionQuery);
     }
 
@@ -51,7 +51,7 @@ public class SugiliteLoadVariableOperation extends SugiliteTrinaryOperation<Stri
     }
 
     @Override
-    public SerializableOntologyQuery getParameter2() {
+    public OntologyQuery getParameter2() {
         return targetUIElementDataDescriptionQuery;
     }
 
@@ -66,7 +66,7 @@ public class SugiliteLoadVariableOperation extends SugiliteTrinaryOperation<Stri
     }
 
     @Override
-    public void setParameter2(SerializableOntologyQuery value) {
+    public void setParameter2(OntologyQuery value) {
         this.targetUIElementDataDescriptionQuery = value;
     }
 
@@ -76,7 +76,7 @@ public class SugiliteLoadVariableOperation extends SugiliteTrinaryOperation<Stri
     }
 
     @Override
-    public SerializableOntologyQuery getDataDescriptionQueryIfAvailable() {
+    public OntologyQuery getDataDescriptionQueryIfAvailable() {
         return targetUIElementDataDescriptionQuery;
     }
 

@@ -2,7 +2,7 @@ package edu.cmu.hcii.sugilite.model.operation.unary;
 
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.model.value.SugiliteValue;
-import edu.cmu.hcii.sugilite.ontology.SerializableOntologyQuery;
+import edu.cmu.hcii.sugilite.ontology.OntologyQuery;
 
 import static edu.cmu.hcii.sugilite.source_parsing.SugiliteScriptExpression.addQuoteToTokenIfNeeded;
 
@@ -38,7 +38,7 @@ public class SugiliteResolveBoolExpOperation extends SugiliteUnaryOperation<Stri
     }
 
     @Override
-    public SerializableOntologyQuery getDataDescriptionQueryIfAvailable() {
+    public OntologyQuery getDataDescriptionQueryIfAvailable() {
         return null;
     }
 

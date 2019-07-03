@@ -5,7 +5,7 @@ import java.io.Serializable;
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.model.operation.binary.SugiliteBinaryOperation;
 import edu.cmu.hcii.sugilite.model.value.SugiliteValue;
-import edu.cmu.hcii.sugilite.ontology.SerializableOntologyQuery;
+import edu.cmu.hcii.sugilite.ontology.OntologyQuery;
 
 import static edu.cmu.hcii.sugilite.source_parsing.SugiliteScriptExpression.addQuoteToTokenIfNeeded;
 
@@ -73,7 +73,7 @@ public abstract class SugiliteGetOperation<T> extends SugiliteBinaryOperation<St
     }
 
     @Override
-    public SerializableOntologyQuery getDataDescriptionQueryIfAvailable() {
+    public OntologyQuery getDataDescriptionQueryIfAvailable() {
         return null;
     }
 

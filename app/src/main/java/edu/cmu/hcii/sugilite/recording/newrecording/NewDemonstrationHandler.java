@@ -25,7 +25,7 @@ import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.model.block.util.SugiliteAvailableFeaturePack;
 import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteOperation;
-import edu.cmu.hcii.sugilite.ontology.SerializableOntologyQuery;
+import edu.cmu.hcii.sugilite.ontology.OntologyQuery;
 import edu.cmu.hcii.sugilite.ontology.UISnapshot;
 import edu.cmu.hcii.sugilite.recording.ReadableDescriptionGenerator;
 
@@ -70,7 +70,7 @@ public class NewDemonstrationHandler {
         //determine if disambiguation is needed
 
         //show the confirmation popup if not ambiguous
-        List<Pair<SerializableOntologyQuery, Double>> queryScoreList = SugiliteBlockBuildingHelper.generateDefaultQueries(featurePack, uiSnapshot, false);
+        List<Pair<OntologyQuery, Double>> queryScoreList = SugiliteBlockBuildingHelper.generateDefaultQueries(featurePack, uiSnapshot, false);
         if(queryScoreList.size() > 0) {
             //threshold for determine whether the results are ambiguous
             if (queryScoreList.size() <= 1 || (queryScoreList.get(1).second.intValue() - queryScoreList.get(0).second.intValue() > 2)) {
@@ -111,7 +111,7 @@ public class NewDemonstrationHandler {
     }
 
 
-    private void showAmbiguousPopup(List<Pair<SerializableOntologyQuery, Double>> queryScoreList, SugiliteAvailableFeaturePack featurePack){
+    private void showAmbiguousPopup(List<Pair<OntologyQuery, Double>> queryScoreList, SugiliteAvailableFeaturePack featurePack){
         //the temporary popup to show for when the demonstration is ambiguous
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
         builder.setTitle("Select from disambiguation results");
@@ -121,7 +121,7 @@ public class NewDemonstrationHandler {
         SugiliteOperationBlock[] sugiliteOperationBlockArray = new SugiliteOperationBlock[queryScoreList.size()];
 
         int i = 0;
-        for(Pair<SerializableOntologyQuery, Double> entry : queryScoreList){
+        for(Pair<OntologyQuery, Double> entry : queryScoreList){
             SugiliteOperationBlock block = blockBuildingHelper.getOperationBlockFromQuery(entry.first, SugiliteOperation.CLICK, featurePack);
             sugiliteOperationBlockArray[i++] = block;
         }
@@ -168,9 +168,9 @@ public class NewDemonstrationHandler {
         dialog.show();
     }
 
-    private void showConfirmation(SugiliteOperationBlock block, SugiliteAvailableFeaturePack featurePack, List<Pair<SerializableOntologyQuery, Double>> queryScoreList){
+    private void showConfirmation(SugiliteOperationBlock block, SugiliteAvailableFeaturePack featurePack, List<Pair<OntologyQuery, Double>> queryScoreList){
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
-        String newDescription = readableDescriptionGenerator.generateDescriptionForVerbalBlock(block, blockBuildingHelper.stripSerializableOntologyQuery(block.getOperation().getDataDescriptionQueryIfAvailable()).toString(), "UTTERANCE");
+        String newDescription = readableDescriptionGenerator.generateDescriptionForVerbalBlock(block, blockBuildingHelper.stripOntologyQuery(block.getOperation().getDataDescriptionQueryIfAvailable()).toString(), "UTTERANCE");
         builder.setTitle("Save Operation Confirmation").setMessage(Html.fromHtml("Are you sure you want to record the operation: " + newDescription));
         builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                     @Override

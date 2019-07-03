@@ -22,7 +22,7 @@ import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
 import edu.cmu.hcii.sugilite.model.block.util.SugiliteAvailableFeaturePack;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteOperation;
 import edu.cmu.hcii.sugilite.model.operation.trinary.SugiliteLoadVariableOperation;
-import edu.cmu.hcii.sugilite.ontology.SerializableOntologyQuery;
+import edu.cmu.hcii.sugilite.ontology.OntologyQuery;
 import edu.cmu.hcii.sugilite.ontology.SugiliteEntity;
 import edu.cmu.hcii.sugilite.ontology.UISnapshot;
 import edu.cmu.hcii.sugilite.ontology.description.OntologyDescriptionGenerator;
@@ -114,11 +114,11 @@ public class PumiceValueDemonstrationSelectionDialog {
 
         //generate the feature pack
         SugiliteAvailableFeaturePack featurePack = new SugiliteAvailableFeaturePack(nodeEntity, uiSnapshot);
-        List<Pair<SerializableOntologyQuery, Double>> queryScoreList = SugiliteBlockBuildingHelper.generateDefaultQueries(featurePack, uiSnapshot, true);
+        List<Pair<OntologyQuery, Double>> queryScoreList = SugiliteBlockBuildingHelper.generateDefaultQueries(featurePack, uiSnapshot, true);
 
         //TODO: determine if the data description is ambiguous
         if (queryScoreList.size() > 0){
-            SerializableOntologyQuery selectedQuery = queryScoreList.get(0).first;
+            OntologyQuery selectedQuery = queryScoreList.get(0).first;
 
             //create a extract operation
             SugiliteLoadVariableOperation loadVariableOperation = new SugiliteLoadVariableOperation();
@@ -155,7 +155,7 @@ public class PumiceValueDemonstrationSelectionDialog {
      * @param featurePack
      * @param queryScoreList
      */
-    private void showConfirmation(SugiliteOperationBlock block, SugiliteAvailableFeaturePack featurePack, List<Pair<SerializableOntologyQuery, Double>> queryScoreList, SugiliteEntity<Node> nodeEntity) {
+    private void showConfirmation(SugiliteOperationBlock block, SugiliteAvailableFeaturePack featurePack, List<Pair<OntologyQuery, Double>> queryScoreList, SugiliteEntity<Node> nodeEntity) {
         Runnable clickRunnable = new Runnable() {
             @Override
             public void run() {

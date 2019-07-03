@@ -64,10 +64,10 @@ public class ChooseParsingDialog extends SugiliteDialogManager {
     private List<OntologyQuery> resultQueries;
     private Dialog dialog;
     private SugiliteDialogSimpleState askingForChoosingParsingState = new SugiliteDialogSimpleState("ASKING_FOR_CHOOSING_PARSING", this);
-    List<Pair<SerializableOntologyQuery, Double>> queryScoreList;
+    List<Pair<OntologyQuery, Double>> queryScoreList;
     SugiliteAvailableFeaturePack featurePack;
 
-    public ChooseParsingDialog(Context context, List<Pair<OntologyQuery, List<Node>>> matchingQueriesMatchedNodesList, SugiliteBlockBuildingHelper blockBuildingHelper, LayoutInflater layoutInflater, Runnable clickRunnable, UISnapshot uiSnapshot, SugiliteEntity<Node> actualClickedNode, SugiliteData sugiliteData, SharedPreferences sharedPreferences, TextToSpeech tts, SugiliteAvailableFeaturePack featurePack, List<Pair<SerializableOntologyQuery, Double>> queryScoreList){
+    public ChooseParsingDialog(Context context, List<Pair<OntologyQuery, List<Node>>> matchingQueriesMatchedNodesList, SugiliteBlockBuildingHelper blockBuildingHelper, LayoutInflater layoutInflater, Runnable clickRunnable, UISnapshot uiSnapshot, SugiliteEntity<Node> actualClickedNode, SugiliteData sugiliteData, SharedPreferences sharedPreferences, TextToSpeech tts, SugiliteAvailableFeaturePack featurePack, List<Pair<OntologyQuery, Double>> queryScoreList){
         super(context, tts);
         this.context = context;
         this.blockBuildingHelper = blockBuildingHelper;
@@ -103,7 +103,7 @@ public class ChooseParsingDialog extends SugiliteDialogManager {
 
         i = 0;
         for (OntologyQuery query : resultQueries) {
-            stringArray[i++] = ontologyDescriptionGenerator.getDescriptionForOntologyQuery(new SerializableOntologyQuery(query));
+            stringArray[i++] = ontologyDescriptionGenerator.getDescriptionForOntologyQuery(query);
         }
 
 
@@ -155,8 +155,7 @@ public class ChooseParsingDialog extends SugiliteDialogManager {
                         System.out.println("Result Query: " + query.toString());
 
                         //construct a block from the query formula
-                        SerializableOntologyQuery serializableOntologyQuery = new SerializableOntologyQuery(query);
-                        SugiliteOperationBlock block = blockBuildingHelper.getOperationBlockFromQuery(serializableOntologyQuery, SugiliteOperation.CLICK, featurePack);
+                        SugiliteOperationBlock block = blockBuildingHelper.getOperationBlockFromQuery(query.clone(), SugiliteOperation.CLICK, featurePack);
 
                         //construct a confirmation dialog from the block
                         SugiliteRecordingConfirmationDialog sugiliteRecordingConfirmationDialog = new SugiliteRecordingConfirmationDialog(context, block, featurePack, queryScoreList, clickRunnable, blockBuildingHelper, layoutInflater, uiSnapshot, actualClickedNode, sugiliteData, sharedPreferences, tts);

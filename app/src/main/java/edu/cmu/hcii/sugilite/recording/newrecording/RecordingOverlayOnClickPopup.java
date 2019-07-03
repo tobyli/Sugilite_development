@@ -124,14 +124,13 @@ public class RecordingOverlayOnClickPopup {
         SugiliteClickOperation sugiliteOperation = new SugiliteClickOperation();
         //assume it's click for now -- need to expand to more types of operations
         sugiliteOperation.setOperationType(SugiliteOperation.CLICK);
-        SerializableOntologyQuery serializedQuery = new SerializableOntologyQuery(query);
 
         SugiliteOperationBlock operationBlock = new SugiliteOperationBlock();
         operationBlock.setOperation(sugiliteOperation);
         operationBlock.setFeaturePack(null);
         operationBlock.setElementMatchingFilter(null);
         operationBlock.setScreenshot(null);
-        sugiliteOperation.setQuery(serializedQuery);
+        sugiliteOperation.setQuery(query.clone());
 
         operationBlock.setDescription(readableDescriptionGenerator.generateDescriptionForVerbalBlock(operationBlock, formula, "UTTERANCE"));
         return operationBlock;

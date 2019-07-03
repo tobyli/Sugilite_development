@@ -1673,7 +1673,7 @@ public class RecordingPopUpDialog implements AbstractSugiliteDialog {
      *
      * @return the result SearializableOntologyQuery
      */
-    public SerializableOntologyQuery generateQuery(){
+    public OntologyQuery generateQuery(){
         OntologyQuery q = new OntologyQuery(OntologyQuery.relationType.AND);
 
         if(withInAppSpinner.getSelectedItem().toString().contentEquals(readableDescriptionGenerator.getReadableName(featurePack.packageName))){
@@ -1758,8 +1758,7 @@ public class RecordingPopUpDialog implements AbstractSugiliteDialog {
             }
         }
 
-        // serialize the query
-        return new SerializableOntologyQuery(q);
+        return q;
     }
 
     private SugiliteOperationBlock generateBlock(){

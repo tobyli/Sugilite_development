@@ -12,6 +12,8 @@ import java.util.List;
  * @date 11/3/15
  * @time 10:32 AM
  */
+
+@Deprecated
 public abstract class AbstractTrackingEvent {
 
     protected String eventType;

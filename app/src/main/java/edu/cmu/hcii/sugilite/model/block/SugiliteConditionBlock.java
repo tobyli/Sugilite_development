@@ -51,6 +51,7 @@ public class SugiliteConditionBlock extends SugiliteBlock implements Serializabl
     }
 
 
+
     public SugiliteBlock getNextBlockToRun(SugiliteData sugiliteData) {///added sugiliteData parameter
         //TODO: evaluate sugiliteBooleanExpression at runtime, and then return either thenBlock, nextBlock or elseBlock
         Boolean result = null;

@@ -12,7 +12,10 @@ import java.util.Set;
 
 import edu.cmu.hcii.sugilite.Const;
 import edu.cmu.hcii.sugilite.model.Node;
+import edu.cmu.hcii.sugilite.ontology.SerializableUISnapshot;
+import edu.cmu.hcii.sugilite.ontology.SugiliteEntity;
 import edu.cmu.hcii.sugilite.ontology.SugiliteRelation;
+import edu.cmu.hcii.sugilite.ontology.SugiliteSerializableEntity;
 import edu.cmu.hcii.sugilite.ontology.SugiliteTriple;
 import edu.cmu.hcii.sugilite.ontology.UISnapshot;
 
@@ -29,7 +32,8 @@ public class SugiliteAvailableFeaturePack implements Serializable{
         //do nothing
     }
 
-    public SugiliteAvailableFeaturePack(Node node, UISnapshot uiSnapshot){
+    public SugiliteAvailableFeaturePack(SugiliteEntity<Node> nodeEntity, UISnapshot uiSnapshot){
+        Node node = nodeEntity.getEntityValue();
         if(node.getPackageName() != null) {
             this.packageName = new String(node.getPackageName());
         }
@@ -63,6 +67,9 @@ public class SugiliteAvailableFeaturePack implements Serializable{
         this.alternativeChildTextList = new HashSet<>();
         this.alternativeTextList = new HashSet<>();
 
+        this.serializableUISnapshot = new SerializableUISnapshot(uiSnapshot);
+        this.targetNodeEntity = new SugiliteSerializableEntity<>(nodeEntity);
+
         this.childTexts = new ArrayList<>();
         if(uiSnapshot.getNodeSugiliteEntityMap().containsKey(node)) {
             Integer subjectId = uiSnapshot.getNodeSugiliteEntityMap().get(node).getEntityId();
@@ -90,6 +97,8 @@ public class SugiliteAvailableFeaturePack implements Serializable{
         this.time = featurePack.time;
         this.eventType = featurePack.eventType;
         this.screenshot = featurePack.screenshot;
+        this.serializableUISnapshot = featurePack.serializableUISnapshot;
+        this.targetNodeEntity = featurePack.targetNodeEntity;
 
         if(Const.KEEP_ALL_NODES_IN_THE_FEATURE_PACK) {
             this.parentNode = featurePack.parentNode;
@@ -144,4 +153,6 @@ public class SugiliteAvailableFeaturePack implements Serializable{
     //for VIEW_TEXT_CHANGED events only
     public String beforeText, afterText;
 
+    public SerializableUISnapshot serializableUISnapshot;
+    public SugiliteSerializableEntity<Node> targetNodeEntity;
 }

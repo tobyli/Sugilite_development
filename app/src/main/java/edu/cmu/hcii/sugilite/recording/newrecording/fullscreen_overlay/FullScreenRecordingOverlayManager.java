@@ -403,7 +403,7 @@ public class FullScreenRecordingOverlayManager {
                     e.printStackTrace();
                 }
                 SugiliteStudyHandler studyHandler = sugiliteAccessibilityService.getSugiliteStudyHandler();
-                studyHandler.handleEvent(new SugiliteAvailableFeaturePack(node.getEntityValue(), uiSnapshot), uiSnapshot, path, fileName);
+                studyHandler.handleEvent(new SugiliteAvailableFeaturePack(node, uiSnapshot), uiSnapshot, path, fileName);
             } else {
                 OverlayClickedDialog overlayClickedDialog = new OverlayClickedDialog(context, node, uiSnapshot, x, y, this, overlay, sugiliteData, layoutInflater, sharedPreferences, tts);
                 overlayClickedDialog.show();
@@ -609,7 +609,6 @@ public class FullScreenRecordingOverlayManager {
         //generate the sugilite operation
         SugiliteUnaryOperation sugiliteOperation = isLongClick ? new SugiliteLongClickOperation() : new SugiliteClickOperation();
         //assume it's click for now -- need to expand to more types of operations
-        SerializableOntologyQuery serializedQuery = new SerializableOntologyQuery(query);
 
         SugiliteOperationBlock operationBlock = new SugiliteOperationBlock();
         operationBlock.setOperation(sugiliteOperation);
@@ -617,10 +616,10 @@ public class FullScreenRecordingOverlayManager {
         operationBlock.setElementMatchingFilter(null);
         operationBlock.setScreenshot(null);
         if (sugiliteOperation instanceof SugiliteClickOperation) {
-            ((SugiliteClickOperation) sugiliteOperation).setQuery(serializedQuery);
+            ((SugiliteClickOperation) sugiliteOperation).setQuery(query.clone());
         }
         if (sugiliteOperation instanceof SugiliteLongClickOperation) {
-            ((SugiliteLongClickOperation) sugiliteOperation).setQuery(serializedQuery);
+            ((SugiliteLongClickOperation) sugiliteOperation).setQuery(query.clone());
         }
         operationBlock.setDescription(readableDescriptionGenerator.generateDescriptionForVerbalBlock(operationBlock, formula, "UTTERANCE"));
         return operationBlock;

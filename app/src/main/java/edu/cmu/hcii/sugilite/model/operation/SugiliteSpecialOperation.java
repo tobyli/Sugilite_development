@@ -1,6 +1,6 @@
 package edu.cmu.hcii.sugilite.model.operation;
 
-import edu.cmu.hcii.sugilite.ontology.SerializableOntologyQuery;
+import edu.cmu.hcii.sugilite.ontology.OntologyQuery;
 
 /**
  * @author toby
@@ -18,7 +18,7 @@ public class SugiliteSpecialOperation extends SugiliteOperation {
     }
 
     @Override
-    public SerializableOntologyQuery getDataDescriptionQueryIfAvailable() {
+    public OntologyQuery getDataDescriptionQueryIfAvailable() {
         return null;
     }
 

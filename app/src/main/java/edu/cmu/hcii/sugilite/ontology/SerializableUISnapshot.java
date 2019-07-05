@@ -24,7 +24,7 @@ public class SerializableUISnapshot implements Serializable {
     private Map<String, Set<SugiliteSerializableTriple>> predicateTriplesMap;
 
     //indexes for entities and relations
-    private Map<String, SugiliteSerializableEntity> sugiliteEntityIdSugiliteEntityMap;
+    private Map<String, SugiliteSerializableEntity<Node>> sugiliteEntityIdSugiliteEntityMap;
     private Map<Integer, SugiliteRelation> sugiliteRelationIdSugiliteRelationMap;
 
     private transient int entityIdCounter;
@@ -102,7 +102,7 @@ public class SerializableUISnapshot implements Serializable {
         }
     }
 
-    public Map<String, SugiliteSerializableEntity> getSugiliteEntityIdSugiliteEntityMap() {
+    public Map<String, SugiliteSerializableEntity<Node>> getSugiliteEntityIdSugiliteEntityMap() {
         return sugiliteEntityIdSugiliteEntityMap;
     }
 

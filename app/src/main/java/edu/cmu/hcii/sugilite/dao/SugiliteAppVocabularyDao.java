@@ -19,6 +19,8 @@ import edu.cmu.hcii.sugilite.dao.db.SugiliteScriptDbContract;
 /**
  * Created by toby on 8/15/16.
  */
+
+
 public class SugiliteAppVocabularyDao {
     private static SugiliteAppVocabularyDBHelper sugiliteAppVocabularyDBHelper;
     private static SQLiteDatabase db;

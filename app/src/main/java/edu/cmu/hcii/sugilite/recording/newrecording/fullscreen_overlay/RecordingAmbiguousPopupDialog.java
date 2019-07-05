@@ -71,7 +71,7 @@ import static edu.cmu.hcii.sugilite.Const.OVERLAY_TYPE;
  * @time 11:55 PM
  */
 public class RecordingAmbiguousPopupDialog extends SugiliteDialogManager implements SugiliteVerbalInstructionHTTPQueryInterface {
-    private List<Pair<SerializableOntologyQuery, Double>> queryScoreList;
+    private List<Pair<OntologyQuery, Double>> queryScoreList;
     private SugiliteAvailableFeaturePack featurePack;
     private EditText verbalInstructionEditText;
     private SugiliteVerbalInstructionHTTPQueryManager sugiliteVerbalInstructionHTTPQueryManager;
@@ -103,7 +103,7 @@ public class RecordingAmbiguousPopupDialog extends SugiliteDialogManager impleme
     private SugiliteDialogSimpleState resultWontMatchState = new SugiliteDialogSimpleState("RESULT_WONT_MATCH_STATE", this);
 
 
-    public RecordingAmbiguousPopupDialog(Context context, List<Pair<SerializableOntologyQuery, Double>> queryScoreList, SugiliteAvailableFeaturePack featurePack, SugiliteBlockBuildingHelper blockBuildingHelper, LayoutInflater layoutInflater, Runnable clickRunnable, UISnapshot uiSnapshot, SugiliteEntity<Node> actualClickedNode, SugiliteData sugiliteData, SharedPreferences sharedPreferences, TextToSpeech tts, int errorCount) {
+    public RecordingAmbiguousPopupDialog(Context context, List<Pair<OntologyQuery, Double>> queryScoreList, SugiliteAvailableFeaturePack featurePack, SugiliteBlockBuildingHelper blockBuildingHelper, LayoutInflater layoutInflater, Runnable clickRunnable, UISnapshot uiSnapshot, SugiliteEntity<Node> actualClickedNode, SugiliteData sugiliteData, SharedPreferences sharedPreferences, TextToSpeech tts, int errorCount) {
         super(context, tts);
         this.queryScoreList = queryScoreList;
         this.featurePack = featurePack;
@@ -141,7 +141,7 @@ public class RecordingAmbiguousPopupDialog extends SugiliteDialogManager impleme
         SugiliteOperationBlock[] sugiliteOperationBlockArray = new SugiliteOperationBlock[queryScoreList.size()];
 
         int i = 0;
-        for (Pair<SerializableOntologyQuery, Double> entry : queryScoreList) {
+        for (Pair<OntologyQuery, Double> entry : queryScoreList) {
             SugiliteOperationBlock block = blockBuildingHelper.getOperationBlockFromQuery(entry.first, SugiliteOperation.CLICK, featurePack);
             sugiliteOperationBlockArray[i++] = block;
         }
@@ -352,8 +352,8 @@ public class RecordingAmbiguousPopupDialog extends SugiliteDialogManager impleme
 
             if(block instanceof SugiliteOperationBlock && ((SugiliteOperationBlock) block).getOperation() instanceof SugiliteClickOperation) {
                 //TODO: handle operations other than clicking
-                SerializableOntologyQuery serializableOntologyQuery = ((SugiliteClickOperation) ((SugiliteOperationBlock) block).getOperation()).getParameter0();
-                OntologyQuery query = OntologyQueryUtils.getQueryWithClassAndPackageConstraints(new OntologyQuery(serializableOntologyQuery), actualClickedNode.getEntityValue(), false, true, true);
+                OntologyQuery ontologyQuery = ((SugiliteClickOperation) ((SugiliteOperationBlock) block).getOperation()).getParameter0();
+                OntologyQuery query = OntologyQueryUtils.getQueryWithClassAndPackageConstraints(ontologyQuery.clone(), actualClickedNode.getEntityValue(), false, true, true);
 
 
                 try {
@@ -435,8 +435,7 @@ public class RecordingAmbiguousPopupDialog extends SugiliteDialogManager impleme
                 System.out.println("Result Query: " + query.toString());
 
                 //construct a block from the query formula
-                SerializableOntologyQuery serializableOntologyQuery = new SerializableOntologyQuery(query);
-                SugiliteOperationBlock block = blockBuildingHelper.getOperationBlockFromQuery(serializableOntologyQuery, SugiliteOperation.CLICK, featurePack);
+                SugiliteOperationBlock block = blockBuildingHelper.getOperationBlockFromQuery(query, SugiliteOperation.CLICK, featurePack);
 
                 //construct a confirmation dialog from the block
                 showConfirmationDialog(block, featurePack, queryScoreList, clickRunnable);
@@ -461,11 +460,11 @@ public class RecordingAmbiguousPopupDialog extends SugiliteDialogManager impleme
                 SugiliteBlock resultBlock = sugiliteScriptParser.parseASingleBlockFromString(results.getQueries().get(0).getFormula());
                 if(resultBlock instanceof SugiliteOperationBlock && ((SugiliteOperationBlock) resultBlock).getOperation() instanceof SugiliteClickOperation) {
                     //TODO: handle operations other than clicking
-                    SerializableOntologyQuery topQuerySerializable = ((SugiliteOperationBlock) resultBlock).getOperation().getDataDescriptionQueryIfAvailable();
-                    if (topQuerySerializable != null) {
-                        OntologyQuery topQuery = new OntologyQuery(topQuerySerializable);
+                    OntologyQuery topQueryA = ((SugiliteOperationBlock) resultBlock).getOperation().getDataDescriptionQueryIfAvailable();
+                    if (topQueryA != null) {
+                        OntologyQuery topQuery = topQueryA.clone();
                         topQuery = OntologyQueryUtils.getQueryWithClassAndPackageConstraints(topQuery, actualClickedNode.getEntityValue(), false, true, true);
-                        descriptionForTopQuery = descriptionGenerator.getDescriptionForOperation(((SugiliteOperationBlock) resultBlock).getOperation(), new SerializableOntologyQuery(topQuery));
+                        descriptionForTopQuery = descriptionGenerator.getDescriptionForOperation(((SugiliteOperationBlock) resultBlock).getOperation(), topQuery.clone());
                         if(descriptionForTopQuery != null){
                             textPrompt.setText(Html.fromHtml(boldify(context.getString(R.string.disambiguation_result_wont_match)) + "<br><br> Intepretation for your description: " + descriptionForTopQuery));
                         }
@@ -481,7 +480,7 @@ public class RecordingAmbiguousPopupDialog extends SugiliteDialogManager impleme
         }
     }
 
-    private void showConfirmationDialog(SugiliteOperationBlock block, SugiliteAvailableFeaturePack featurePack, List<Pair<SerializableOntologyQuery, Double>> queryScoreList, Runnable clickRunnable) {
+    private void showConfirmationDialog(SugiliteOperationBlock block, SugiliteAvailableFeaturePack featurePack, List<Pair<OntologyQuery, Double>> queryScoreList, Runnable clickRunnable) {
         SugiliteRecordingConfirmationDialog sugiliteRecordingConfirmationDialog = new SugiliteRecordingConfirmationDialog(context, block, featurePack, queryScoreList, clickRunnable, blockBuildingHelper, layoutInflater, uiSnapshot, actualClickedNode, sugiliteData, sharedPreferences, tts);
         sugiliteRecordingConfirmationDialog.show();
     }

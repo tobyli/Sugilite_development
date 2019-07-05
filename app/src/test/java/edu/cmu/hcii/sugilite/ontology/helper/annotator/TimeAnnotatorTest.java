@@ -14,7 +14,7 @@ import static org.junit.Assert.*;
  */
 public class TimeAnnotatorTest {
 
-    SugiliteTextParentAnnotator annotator = null;
+    SugiliteTextAnnotator annotator = null;
 
     @Before
     public void setUp() {

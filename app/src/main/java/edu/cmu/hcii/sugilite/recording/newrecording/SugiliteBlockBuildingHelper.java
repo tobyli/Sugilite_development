@@ -3,11 +3,20 @@ package edu.cmu.hcii.sugilite.recording.newrecording;
 import android.content.Context;
 import android.util.Pair;
 
+import com.google.gson.Gson;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -20,6 +29,7 @@ import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptFileDao;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptSQLDao;
+import edu.cmu.hcii.sugilite.model.block.SugiliteBlockMetaInfo;
 import edu.cmu.hcii.sugilite.model.block.SugiliteConditionBlock;
 import edu.cmu.hcii.sugilite.model.block.util.SugiliteAvailableFeaturePack;
 import edu.cmu.hcii.sugilite.model.block.SugiliteErrorHandlingForkBlock;
@@ -68,7 +78,7 @@ public class SugiliteBlockBuildingHelper {
         readableDescriptionGenerator = new ReadableDescriptionGenerator(context);
     }
 
-    public SugiliteOperationBlock getOperationBlockFromQuery(SerializableOntologyQuery query, int opeartionType, SugiliteAvailableFeaturePack featurePack){
+    public SugiliteOperationBlock getOperationBlockFromQuery(OntologyQuery query, int opeartionType, SugiliteAvailableFeaturePack featurePack){
         if(opeartionType == SugiliteOperation.CLICK) {
             SugiliteClickOperation sugiliteOperation = new SugiliteClickOperation();
             sugiliteOperation.setOperationType(opeartionType);
@@ -88,9 +98,9 @@ public class SugiliteBlockBuildingHelper {
         }
     }
 
-    public static List<Pair<SerializableOntologyQuery, Double>> generateDefaultQueries(SugiliteAvailableFeaturePack featurePack, UISnapshot uiSnapshot, boolean excludeHasTextRelation){
+    public static List<Pair<OntologyQuery, Double>> generateDefaultQueries(SugiliteAvailableFeaturePack featurePack, UISnapshot uiSnapshot, boolean excludeHasTextRelation){
         //generate parent query
-        List<Pair<SerializableOntologyQuery, Double>> queries = new ArrayList<>();
+        List<Pair<OntologyQuery, Double>> queries = new ArrayList<>();
         OntologyQuery q = new OntologyQuery(OntologyQuery.relationType.AND);
         boolean hasNonBoundingBoxFeature = false;
         boolean hasNonChildFeature = false;
@@ -133,7 +143,7 @@ public class SugiliteBlockBuildingHelper {
         if (!excludeHasTextRelation) {
             if (featurePack.text != null && (!featurePack.text.equals("NULL"))) {
                 //add a text query
-                OntologyQuery clonedQuery = new OntologyQuery(new SerializableOntologyQuery(q));
+                OntologyQuery clonedQuery = q.clone();
                 OntologyQuery subQuery = new OntologyQuery(OntologyQuery.relationType.nullR);
                 Set<SugiliteEntity> object = new HashSet<>();
                 object.add(new SugiliteEntity(-1, String.class, featurePack.text));
@@ -142,13 +152,13 @@ public class SugiliteBlockBuildingHelper {
                 clonedQuery.addSubQuery(subQuery);
                 hasNonBoundingBoxFeature = true;
                 hasNonChildFeature = true;
-                queries.add(Pair.create(new SerializableOntologyQuery(clonedQuery), 1.1));
+                queries.add(Pair.create(clonedQuery, 1.1));
             }
         }
 
         if(featurePack.contentDescription != null && (!featurePack.contentDescription.equals("NULL")) && (!featurePack.contentDescription.equals(featurePack.text))){
             //add content description
-            OntologyQuery clonedQuery = new OntologyQuery(new SerializableOntologyQuery(q));
+            OntologyQuery clonedQuery = q.clone();
             OntologyQuery subQuery = new OntologyQuery(OntologyQuery.relationType.nullR);
             Set<SugiliteEntity> object = new HashSet<>();
             object.add(new SugiliteEntity(-1, String.class, featurePack.contentDescription));
@@ -157,12 +167,12 @@ public class SugiliteBlockBuildingHelper {
             clonedQuery.addSubQuery(subQuery);
             hasNonBoundingBoxFeature = true;
             hasNonChildFeature = true;
-            queries.add(Pair.create(new SerializableOntologyQuery(clonedQuery), 1.2));
+            queries.add(Pair.create(clonedQuery, 1.2));
         }
 
         if(featurePack.viewId != null && (!featurePack.viewId.equals("NULL"))){
             //add view id
-            OntologyQuery clonedQuery = new OntologyQuery(new SerializableOntologyQuery(q));
+            OntologyQuery clonedQuery = q.clone();
             OntologyQuery subQuery = new OntologyQuery(OntologyQuery.relationType.nullR);
             Set<SugiliteEntity> object = new HashSet<>();
             object.add(new SugiliteEntity(-1, String.class, featurePack.viewId));
@@ -171,7 +181,7 @@ public class SugiliteBlockBuildingHelper {
             clonedQuery.addSubQuery(subQuery);
             hasNonBoundingBoxFeature = true;
             hasNonChildFeature = true;
-            queries.add(Pair.create(new SerializableOntologyQuery(clonedQuery), 3.2));
+            queries.add(Pair.create(clonedQuery, 3.2));
         }
 
 
@@ -183,7 +193,7 @@ public class SugiliteBlockBuildingHelper {
                 for(SugiliteTriple triple : triples){
                     String order = triple.getObject().getEntityValue().toString();
 
-                    OntologyQuery clonedQuery = new OntologyQuery(new SerializableOntologyQuery(q));
+                    OntologyQuery clonedQuery = q.clone();
                     OntologyQuery subQuery = new OntologyQuery(OntologyQuery.relationType.nullR);
                     Set<SugiliteEntity> object = new HashSet<>();
                     object.add(new SugiliteEntity(-1, String.class, order));
@@ -192,7 +202,7 @@ public class SugiliteBlockBuildingHelper {
                     clonedQuery.addSubQuery(subQuery);
                     hasNonBoundingBoxFeature = true;
                     hasNonChildFeature = true;
-                    queries.add(Pair.create(new SerializableOntologyQuery(clonedQuery), 3.0));
+                    queries.add(Pair.create(clonedQuery, 3.0));
                 }
             }
 
@@ -201,7 +211,7 @@ public class SugiliteBlockBuildingHelper {
                 for(SugiliteTriple triple : triples2){
                     String order = triple.getObject().getEntityValue().toString();
 
-                    OntologyQuery clonedQuery = new OntologyQuery(new SerializableOntologyQuery(q));
+                    OntologyQuery clonedQuery = q.clone();
                     OntologyQuery subQuery = new OntologyQuery(OntologyQuery.relationType.nullR);
                     Set<SugiliteEntity> object = new HashSet<>();
                     object.add(new SugiliteEntity(-1, String.class, order));
@@ -210,7 +220,7 @@ public class SugiliteBlockBuildingHelper {
                     clonedQuery.addSubQuery(subQuery);
                     hasNonBoundingBoxFeature = true;
                     hasNonChildFeature = true;
-                    queries.add(Pair.create(new SerializableOntologyQuery(clonedQuery), 3.1));
+                    queries.add(Pair.create(clonedQuery, 3.1));
                 }
             }
         }
@@ -222,7 +232,7 @@ public class SugiliteBlockBuildingHelper {
             int count = 0;
             double score = 2.01 + (((double)(count++)) / (double) childTexts.size());
             Set<String> homeScreenPackageNames = new HashSet<>(Arrays.asList(Const.HOME_SCREEN_PACKAGE_NAMES));
-            OntologyQuery clonedQuery = new OntologyQuery(new SerializableOntologyQuery(q));
+            OntologyQuery clonedQuery = q.clone();
             for(String childText : childTexts){
                 if(childText != null && !childText.equals(featurePack.text)) {
                     OntologyQuery subQuery = new OntologyQuery(OntologyQuery.relationType.nullR);
@@ -235,39 +245,39 @@ public class SugiliteBlockBuildingHelper {
                     if(featurePack.packageName != null && homeScreenPackageNames.contains(featurePack.packageName)){
                         newScore = score - 1;
                     }
-                    queries.add(Pair.create(new SerializableOntologyQuery(clonedQuery), newScore));
+                    queries.add(Pair.create(clonedQuery, newScore));
                     hasNonBoundingBoxFeature = true;
                 }
             }
-            queries.add(Pair.create(new SerializableOntologyQuery(clonedQuery), 2.0));
+            queries.add(Pair.create(clonedQuery, 2.0));
         }
 
         if(featurePack.boundsInScreen != null && (!featurePack.boundsInScreen.equals("NULL"))){
-            OntologyQuery clonedQuery = new OntologyQuery(new SerializableOntologyQuery(q));
+            OntologyQuery clonedQuery = q.clone();
             OntologyQuery subQuery = new OntologyQuery(OntologyQuery.relationType.nullR);
             Set<SugiliteEntity> object = new HashSet<>();
             object.add(new SugiliteEntity(-1, String.class, featurePack.boundsInScreen));
             subQuery.setObject(object);
             subQuery.setQueryFunction(SugiliteRelation.HAS_SCREEN_LOCATION);
             clonedQuery.addSubQuery(subQuery);
-            queries.add(Pair.create(new SerializableOntologyQuery(clonedQuery), 5.1));
+            queries.add(Pair.create(clonedQuery, 5.1));
         }
 
         if(featurePack.boundsInParent != null && (!featurePack.boundsInParent.equals("NULL"))){
-            OntologyQuery clonedQuery = new OntologyQuery(new SerializableOntologyQuery(q));
+            OntologyQuery clonedQuery = q.clone();
             OntologyQuery subQuery = new OntologyQuery(OntologyQuery.relationType.nullR);
             Set<SugiliteEntity> object = new HashSet<>();
             object.add(new SugiliteEntity(-1, String.class, featurePack.boundsInParent));
             subQuery.setObject(object);
             subQuery.setQueryFunction(SugiliteRelation.HAS_PARENT_LOCATION);
             clonedQuery.addSubQuery(subQuery);
-            queries.add(Pair.create(new SerializableOntologyQuery(clonedQuery), 8.2));
+            queries.add(Pair.create(clonedQuery, 8.2));
         }
 
 
-        Collections.sort(queries, new Comparator<Pair<SerializableOntologyQuery, Double>>() {
+        Collections.sort(queries, new Comparator<Pair<OntologyQuery, Double>>() {
             @Override
-            public int compare(Pair<SerializableOntologyQuery, Double> o1, Pair<SerializableOntologyQuery, Double> o2) {
+            public int compare(Pair<OntologyQuery, Double> o1, Pair<OntologyQuery, Double> o2) {
                 if(o1.second > o2.second) return 1;
                 else if (o1.second.equals(o2.second)) return 0;
                 else return -1;
@@ -277,6 +287,11 @@ public class SugiliteBlockBuildingHelper {
         return queries;
     }
 
+    /**
+     * save the block and the corresponding feature pack
+     * @param block
+     * @param featurePack
+     */
     public void saveBlock(SugiliteOperationBlock block, SugiliteAvailableFeaturePack featurePack){
         block.setPreviousBlock(sugiliteData.getCurrentScriptBlock());
         if (sugiliteData.getCurrentScriptBlock() instanceof SugiliteOperationBlock) {
@@ -297,22 +312,78 @@ public class SugiliteBlockBuildingHelper {
         else{
             throw new RuntimeException("Unsupported Block Type!");
         }
+
+        //construct a SugiliteBlockMetaInfo for the operation block
+        SugiliteBlockMetaInfo metaInfo = new SugiliteBlockMetaInfo(block, featurePack.serializableUISnapshot, featurePack.targetNodeEntity);
+
+        //add the SugiliteBlockMetaInfo to the operation block
+        block.setSugiliteBlockMetaInfo(metaInfo);
+
         sugiliteData.setCurrentScriptBlock(block);
+
+
         try {
             sugiliteData.getScriptHead().relevantPackages.add(featurePack.packageName);
             sugiliteScriptDao.save(sugiliteData.getScriptHead());
         } catch (Exception e) {
             e.printStackTrace();
         }
+
+
+
+        //save the meta info into a file to check if the metaInfo is constructed correctly
+        saveMetaInfoToFile(metaInfo);
+
         System.out.println("saved block");
     }
+
+
+    private void saveMetaInfoToFile(SugiliteBlockMetaInfo metaInfo){
+        Gson gson = new Gson();
+        String metaInfoJson = gson.toJson(metaInfo);
+
+        PrintWriter out1 = null;
+        try {
+            File f = new File("/sdcard/Download/sugilite_metainfo");
+            if (!f.exists() || !f.isDirectory()) {
+                f.mkdirs();
+                System.out.println("dir created");
+            }
+            System.out.println(f.getAbsolutePath());
+
+
+            Date time = Calendar.getInstance().getTime();
+            String timeString = Const.dateFormat.format(time);
+
+            File metaInfoFile = new File(f.getPath() + "/metainfo_" + timeString + ".json");
+
+            if (!metaInfoFile.exists()) {
+                metaInfoFile.getParentFile().mkdirs();
+                metaInfoFile.createNewFile();
+                System.out.println("file created");
+            }
+
+
+
+            out1 = new PrintWriter(new FileOutputStream(metaInfoFile), true);
+            out1.println(metaInfoJson);
+
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            if (out1 != null) out1.close();
+        }
+    }
+
 
     public Map<SugiliteOperationBlock, String> getDescriptionsInDifferences(SugiliteOperationBlock[] blocks){
         Map<SugiliteOperationBlock, String> results = new HashMap<>();
         for(SugiliteOperationBlock operationBlock : blocks){
-            SerializableOntologyQuery query = operationBlock.getOperation().getDataDescriptionQueryIfAvailable();
+            OntologyQuery query = operationBlock.getOperation().getDataDescriptionQueryIfAvailable();
             if(query != null) {
-                results.put(operationBlock, ontologyDescriptionGenerator.getDescriptionForOperation(operationBlock.getOperation(), stripSerializableOntologyQuery(query)));
+                results.put(operationBlock, ontologyDescriptionGenerator.getDescriptionForOperation(operationBlock.getOperation(), stripOntologyQuery(query)));
             }
         }
         return results;
@@ -331,10 +402,10 @@ public class SugiliteBlockBuildingHelper {
      * @param query
      * @return
      */
-    public static SerializableOntologyQuery stripSerializableOntologyQuery(SerializableOntologyQuery query){
-        SerializableOntologyQuery queryCloned = new SerializableOntologyQuery(new OntologyQuery(query));
-        List<SerializableOntologyQuery> queriesToRemove = new ArrayList<>();
-        for(SerializableOntologyQuery subQuery : queryCloned.getSubQueries()){
+    public static OntologyQuery stripOntologyQuery(OntologyQuery query){
+        OntologyQuery queryCloned = query.clone();
+        List<OntologyQuery> queriesToRemove = new ArrayList<>();
+        for(OntologyQuery subQuery : queryCloned.getSubQueries()){
             if(subQuery != null && subQuery.getR() != null) {
                 /*
                 if (subQuery.getR().equals(SugiliteRelation.HAS_CLASS_NAME)) {
@@ -346,14 +417,15 @@ public class SugiliteBlockBuildingHelper {
                 }
             }
         }
-        for(SerializableOntologyQuery queryToRemove : queriesToRemove){
+        for(OntologyQuery queryToRemove : queriesToRemove){
             queryCloned.getSubQueries().remove(queryToRemove);
         }
         if(queryCloned.getSubQueries().size() == 1){
-            for(SerializableOntologyQuery query1 : queryCloned.getSubQueries()){
+            for(OntologyQuery query1 : queryCloned.getSubQueries()){
                 return query1;
             }
         }
         return queryCloned;
     }
+
 }

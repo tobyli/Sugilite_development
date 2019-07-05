@@ -14,7 +14,7 @@ import static org.junit.Assert.*;
  */
 public class NumberAnnotatorTest {
 
-    SugiliteTextParentAnnotator annotator;
+    SugiliteTextAnnotator annotator;
 
     @Before
     public void setup() {

@@ -14,7 +14,7 @@ import static org.junit.Assert.*;
  * Created by shi on 2/22/18.
  */
 public class PercentageAnnotatorTest {
-    SugiliteTextParentAnnotator annotator;
+    SugiliteTextAnnotator annotator;
 
     @Before
     public void setup() {

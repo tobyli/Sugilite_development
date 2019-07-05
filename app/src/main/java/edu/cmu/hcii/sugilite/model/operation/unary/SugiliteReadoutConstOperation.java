@@ -3,7 +3,7 @@ package edu.cmu.hcii.sugilite.model.operation.unary;
 import java.io.Serializable;
 
 import edu.cmu.hcii.sugilite.model.operation.binary.SugiliteBinaryOperation;
-import edu.cmu.hcii.sugilite.ontology.SerializableOntologyQuery;
+import edu.cmu.hcii.sugilite.ontology.OntologyQuery;
 
 import static edu.cmu.hcii.sugilite.source_parsing.SugiliteScriptExpression.addQuoteToTokenIfNeeded;
 
@@ -46,7 +46,7 @@ public class SugiliteReadoutConstOperation extends SugiliteUnaryOperation<String
     }
 
     @Override
-    public SerializableOntologyQuery getDataDescriptionQueryIfAvailable() {
+    public OntologyQuery getDataDescriptionQueryIfAvailable() {
         return null;
     }
 

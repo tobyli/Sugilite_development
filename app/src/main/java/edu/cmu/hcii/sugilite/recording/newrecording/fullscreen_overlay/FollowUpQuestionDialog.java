@@ -44,7 +44,6 @@ import edu.cmu.hcii.sugilite.model.operation.SugiliteOperation;
 import edu.cmu.hcii.sugilite.model.operation.unary.SugiliteClickOperation;
 import edu.cmu.hcii.sugilite.ontology.OntologyQuery;
 import edu.cmu.hcii.sugilite.ontology.OntologyQueryUtils;
-import edu.cmu.hcii.sugilite.ontology.SerializableOntologyQuery;
 import edu.cmu.hcii.sugilite.ontology.SerializableUISnapshot;
 import edu.cmu.hcii.sugilite.ontology.SugiliteEntity;
 import edu.cmu.hcii.sugilite.ontology.SugiliteRelation;
@@ -93,7 +92,7 @@ public class FollowUpQuestionDialog extends SugiliteDialogManager implements Sug
     private List<Node> matchedNodes;
     private List<Node> previousMatchedNodes;
     private SugiliteAvailableFeaturePack featurePack;
-    private List<Pair<SerializableOntologyQuery, Double>> queryScoreList;
+    private List<Pair<OntologyQuery, Double>> queryScoreList;
     private SugiliteBlockBuildingHelper blockBuildingHelper;
     private SugiliteData sugiliteData;
     private OntologyDescriptionGenerator ontologyDescriptionGenerator;
@@ -132,7 +131,7 @@ public class FollowUpQuestionDialog extends SugiliteDialogManager implements Sug
     private AlertDialog dialog;
     private Dialog progressDialog;
 
-    public FollowUpQuestionDialog(Context context, TextToSpeech tts, OntologyQuery initialQuery, UISnapshot uiSnapshot, SugiliteEntity<Node> actualClickedNode, List<Node> matchedNodes, SugiliteAvailableFeaturePack featurePack, List<Pair<SerializableOntologyQuery, Double>> queryScoreList, SugiliteBlockBuildingHelper blockBuildingHelper, LayoutInflater layoutInflater, Runnable clickRunnable, SugiliteData sugiliteData, SharedPreferences sharedPreferences, int errorCount){
+    public FollowUpQuestionDialog(Context context, TextToSpeech tts, OntologyQuery initialQuery, UISnapshot uiSnapshot, SugiliteEntity<Node> actualClickedNode, List<Node> matchedNodes, SugiliteAvailableFeaturePack featurePack, List<Pair<OntologyQuery, Double>> queryScoreList, SugiliteBlockBuildingHelper blockBuildingHelper, LayoutInflater layoutInflater, Runnable clickRunnable, SugiliteData sugiliteData, SharedPreferences sharedPreferences, int errorCount){
         super(context, tts);
         this.previousQuery = null;
         this.currentQuery = initialQuery;
@@ -324,7 +323,9 @@ public class FollowUpQuestionDialog extends SugiliteDialogManager implements Sug
 
         //refresh the cat icon so it stays on top of the overlay
         verbalInstructionIconManager.removeStatusIcon();
-        verbalInstructionIconManager.addStatusIcon();
+        if (!verbalInstructionIconManager.isShowingIcon()) {
+            verbalInstructionIconManager.addStatusIcon();
+        }
 
         //set the exit animation
     }
@@ -363,7 +364,7 @@ public class FollowUpQuestionDialog extends SugiliteDialogManager implements Sug
      */
     private void refreshPreviewTextView(){
         //TODO: show the source code temporarily
-        String html = ontologyDescriptionGenerator.getDescriptionForOntologyQuery(new SerializableOntologyQuery(currentQuery));
+        String html = ontologyDescriptionGenerator.getDescriptionForOntologyQuery(currentQuery.clone());
         Toast.makeText(context, currentQuery.toString(), Toast.LENGTH_SHORT).show();
         //String html = SugiliteBlockBuildingHelper.stripSerializableOntologyQuery(new SerializableOntologyQuery(currentQuery)).toString();
         currentQueryTextView.setText(Html.fromHtml(html));
@@ -708,8 +709,8 @@ public class FollowUpQuestionDialog extends SugiliteDialogManager implements Sug
             SugiliteBlock block = sugiliteScriptParser.parseASingleBlockFromString(queryFormula);
 
             if (block instanceof SugiliteOperationBlock && ((SugiliteOperationBlock) block).getOperation() instanceof SugiliteClickOperation) {
-                SerializableOntologyQuery serializableOntologyQuery = ((SugiliteClickOperation) ((SugiliteOperationBlock) block).getOperation()).getParameter0();
-                OntologyQuery resolvedQuery = OntologyQueryUtils.getQueryWithClassAndPackageConstraints(new OntologyQuery(serializableOntologyQuery), actualClickedNode.getEntityValue(), false, true, true);
+                OntologyQuery ontologyQuery = ((SugiliteClickOperation) ((SugiliteOperationBlock) block).getOperation()).getParameter0();
+                OntologyQuery resolvedQuery = OntologyQueryUtils.getQueryWithClassAndPackageConstraints(ontologyQuery.clone(), actualClickedNode.getEntityValue(), false, true, true);
                 OntologyQuery combinedQuery = OntologyQueryUtils.combineTwoQueries(currentQuery, resolvedQuery);
                 OntologyQuery queryClone = OntologyQuery.deserialize(combinedQuery.toString());
 
@@ -785,9 +786,7 @@ public class FollowUpQuestionDialog extends SugiliteDialogManager implements Sug
                 System.out.println("Result Query: " + query.toString());
                 //construct the block from the query formula
 
-                SerializableOntologyQuery serializableOntologyQuery = new SerializableOntologyQuery(query);
-
-                SugiliteOperationBlock block = blockBuildingHelper.getOperationBlockFromQuery(serializableOntologyQuery, SugiliteOperation.CLICK, featurePack);
+                SugiliteOperationBlock block = blockBuildingHelper.getOperationBlockFromQuery(query.clone(), SugiliteOperation.CLICK, featurePack);
                 showConfirmationDialog(block, featurePack, queryScoreList, clickRunnable);
                 dialog.dismiss();
             }
@@ -800,7 +799,7 @@ public class FollowUpQuestionDialog extends SugiliteDialogManager implements Sug
         }
     }
 
-    private void showConfirmationDialog(SugiliteOperationBlock block, SugiliteAvailableFeaturePack featurePack, List<Pair<SerializableOntologyQuery, Double>> queryScoreList, Runnable clickRunnable) {
+    private void showConfirmationDialog(SugiliteOperationBlock block, SugiliteAvailableFeaturePack featurePack, List<Pair<OntologyQuery, Double>> queryScoreList, Runnable clickRunnable) {
         SugiliteRecordingConfirmationDialog sugiliteRecordingConfirmationDialog = new SugiliteRecordingConfirmationDialog(context, block, featurePack, queryScoreList, clickRunnable, blockBuildingHelper, layoutInflater, uiSnapshot, actualClickedNode, sugiliteData, sharedPreferences, tts);
         sugiliteRecordingConfirmationDialog.show();
     }

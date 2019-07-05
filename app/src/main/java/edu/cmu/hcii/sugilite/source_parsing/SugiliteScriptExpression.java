@@ -1,5 +1,6 @@
 package edu.cmu.hcii.sugilite.source_parsing;
 
+import edu.cmu.hcii.sugilite.ontology.SugiliteEntity;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
@@ -37,7 +38,6 @@ import edu.cmu.hcii.sugilite.model.variable.StringVariable;
 import edu.cmu.hcii.sugilite.model.variable.Variable;
 import edu.cmu.hcii.sugilite.ontology.OntologyQuery;
 import edu.cmu.hcii.sugilite.ontology.SerializableOntologyQuery;
-import edu.cmu.hcii.sugilite.ontology.SugiliteSerializableEntity;
 import edu.cmu.hcii.sugilite.ontology.description.OntologyDescriptionGenerator;
 
 /**
@@ -78,6 +78,19 @@ public class SugiliteScriptExpression<T> {
             //set the String content of the script
             result.setScriptContent(node.getScriptContent());
             for (int i = 2; i < node.getChildren().size(); i++) {
+                //parse the args
+                result.addArgument(parse(node.getChildren().get(i)));
+            }
+            returnList.add(result);
+            return returnList;
+        } else if (node.getChildren().size() == 2 && node.getChildren().get(0).getValue() != null && node.getChildren().get(0).getValue().equals("SUGILITE_START")) {
+            //starting block
+            SugiliteScriptExpression<String> result = new SugiliteScriptExpression<>();
+            result.setConstant(false);
+            result.setOperationName(node.getChildren().get(0).getValue());
+            //set the String content of the script
+            result.setScriptContent(node.getScriptContent());
+            for (int i = 1; i < node.getChildren().size(); i++) {
                 //parse the args
                 result.addArgument(parse(node.getChildren().get(i)));
             }
@@ -195,12 +208,12 @@ public class SugiliteScriptExpression<T> {
         return true;
     }
 
-    private void extractVariableFromQuery(SerializableOntologyQuery query, SugiliteStartingBlock startingBlock) {
+    private void extractVariableFromQuery(OntologyQuery query, SugiliteStartingBlock startingBlock) {
         if (query.getObject() != null) {
-            for (SugiliteSerializableEntity sugiliteSerializableEntity : query.getObject()) {
-                if (sugiliteSerializableEntity.getEntityValue() instanceof String) {
-                    if (((String) sugiliteSerializableEntity.getEntityValue()).startsWith("@")) {
-                        String variableName = sugiliteSerializableEntity.getEntityValue().toString().substring(1);
+            for (SugiliteEntity sugiliteEntity : query.getObject()) {
+                if (sugiliteEntity.getEntityValue() instanceof String) {
+                    if (((String) sugiliteEntity.getEntityValue()).startsWith("@")) {
+                        String variableName = sugiliteEntity.getEntityValue().toString().substring(1);
                         if (!startingBlock.variableNameDefaultValueMap.containsKey(variableName)) {
                             //need to add to the variable map
                             startingBlock.variableNameDefaultValueMap.put(variableName, new StringVariable(Variable.USER_INPUT, variableName, ""));
@@ -210,9 +223,9 @@ public class SugiliteScriptExpression<T> {
             }
         }
         if (query.getSubQueries() != null) {
-            for (SerializableOntologyQuery serializableOntologyQuery : query.getSubQueries()) {
-                if (serializableOntologyQuery != null && startingBlock != null) {
-                    extractVariableFromQuery(serializableOntologyQuery, startingBlock);
+            for (OntologyQuery ontologyQuery : query.getSubQueries()) {
+                if (ontologyQuery != null && startingBlock != null) {
+                    extractVariableFromQuery(ontologyQuery, startingBlock);
                 }
             }
         }
@@ -241,15 +254,15 @@ public class SugiliteScriptExpression<T> {
             switch (operationName) {
                 case "click":
                     operation = new SugiliteClickOperation();
-                    ((SugiliteClickOperation) operation).setQuery(new SerializableOntologyQuery(OntologyQuery.deserialize(arguments.get(0).get(0).getScriptContent())));
+                    ((SugiliteClickOperation) operation).setQuery(OntologyQuery.deserialize(arguments.get(0).get(0).getScriptContent()));
                     break;
                 case "long_click":
                     operation = new SugiliteLongClickOperation();
-                    ((SugiliteLongClickOperation) operation).setQuery(new SerializableOntologyQuery(OntologyQuery.deserialize(arguments.get(0).get(0).getScriptContent())));
+                    ((SugiliteLongClickOperation) operation).setQuery(OntologyQuery.deserialize(arguments.get(0).get(0).getScriptContent()));
                     break;
                 case "select":
                     operation = new SugiliteSelectOperation();
-                    ((SugiliteSelectOperation) operation).setQuery(new SerializableOntologyQuery(OntologyQuery.deserialize(arguments.get(0).get(0).getScriptContent())));
+                    ((SugiliteSelectOperation) operation).setQuery(OntologyQuery.deserialize(arguments.get(0).get(0).getScriptContent()));
                     break;
                 case "readout_const":
                     operation = new SugiliteReadoutConstOperation();
@@ -269,7 +282,7 @@ public class SugiliteScriptExpression<T> {
                     break;
             }
             operationBlock.setOperation(operation);
-            SerializableOntologyQuery query = new SerializableOntologyQuery(OntologyQuery.deserialize(arguments.get(0).get(0).getScriptContent()));
+            OntologyQuery query = OntologyQuery.deserialize(arguments.get(0).get(0).getScriptContent());
 
             if (startingBlock != null) {
                 //extract variables from the query
@@ -300,7 +313,7 @@ public class SugiliteScriptExpression<T> {
                         parameter0 = stripQuote(((SugiliteSimpleConstant) arguments.get(0).get(0).getConstantValue()).evaluate(null).toString());
                     }
                     operation.setParameter0(parameter0);
-                    ((SugiliteReadoutOperation) operation).setQuery(new SerializableOntologyQuery(OntologyQuery.deserialize(arguments.get(1).get(0).getScriptContent())));
+                    ((SugiliteReadoutOperation) operation).setQuery(OntologyQuery.deserialize(arguments.get(1).get(0).getScriptContent()));
                     break;
                 case "set_text":
                     operation = new SugiliteSetTextOperation();
@@ -309,7 +322,7 @@ public class SugiliteScriptExpression<T> {
                         text = stripQuote(((SugiliteSimpleConstant) arguments.get(0).get(0).getConstantValue()).evaluate(null).toString());
                     }
                     operation.setParameter0(text);
-                    ((SugiliteSetTextOperation) operation).setQuery(new SerializableOntologyQuery(OntologyQuery.deserialize(arguments.get(1).get(0).getScriptContent())));
+                    ((SugiliteSetTextOperation) operation).setQuery(OntologyQuery.deserialize(arguments.get(1).get(0).getScriptContent()));
                     if (text.startsWith("@") && text.length() > 1) {
                         //is a variable
                         String variableName = text.substring(1);
@@ -376,7 +389,7 @@ public class SugiliteScriptExpression<T> {
                     operation.setParameter0(parameter0);
                     operation.setParameter1(parameter1);
                     //the query is the parameter 2
-                    ((SugiliteLoadVariableOperation) operation).setQuery(new SerializableOntologyQuery(OntologyQuery.deserialize(arguments.get(2).get(0).getScriptContent())));
+                    ((SugiliteLoadVariableOperation) operation).setQuery(OntologyQuery.deserialize(arguments.get(2).get(0).getScriptContent()));
                     //add the variable to the variable map in the starting block
                     startingBlock.variableNameDefaultValueMap.put(parameter0, new StringVariable(Variable.LOAD_RUNTIME, parameter0, ""));
                     break;

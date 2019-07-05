@@ -22,12 +22,14 @@ public abstract class SugiliteBlock implements Serializable{
     public int blockType;
     public boolean inScope = false;
     public static int REGULAR_OPERATION = 1, CONDITION = 2, FOR_EACH_LOOP = 3, RETURN_VALUE = 4, END_BLOCK = 5, STARTING_BLOCK = 6, SPECIAL_OPERATION = 8;
-    //each block can only have 1 previous block
 
+    //each block can only have 1 previous block
     protected SugiliteBlock previousBlock;
 
     //for storing e.g., the parent condition block
     protected SugiliteBlock parentBlock;
+
+    //not used for e.g. SugiliteConditionBlock
     protected SugiliteBlock nextBlock;
 
 
@@ -74,10 +76,15 @@ public abstract class SugiliteBlock implements Serializable{
         return nextBlock;
     }
 
+
     public SugiliteBlock getNextBlockToRun() {
-        if(nextBlock == null && parentBlock != null){
-            //handle the "merge" of condition blocks
-            return parentBlock.getNextBlockToRun();
+        if(nextBlock == null){
+            if (parentBlock != null) {
+                //handle the "merge" of condition blocks - if the currentBlock has no nextBlock, and has a parentBlock, should return the nextBlock of parentBlock
+                return parentBlock.getNextBlockToRun();
+            } else {
+                return null;
+            }
         } else {
             return nextBlock;
         }

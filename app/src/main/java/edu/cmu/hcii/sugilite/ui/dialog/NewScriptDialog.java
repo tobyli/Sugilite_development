@@ -99,7 +99,8 @@ public class NewScriptDialog extends SugiliteDialogManager implements AbstractSu
                 .setPositiveButton("Start Recording", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        String scriptName = scriptNameEditText.getText().toString() + ".SugiliteScript";
+
+                        String scriptName = scriptNameEditText.getText().toString();
                         PumiceDemonstrationUtil.initiateDemonstration(context, serviceStatusManager, sharedPreferences, scriptName, sugiliteData, null, sugiliteScriptDao, verbalInstructionIconManager, null);
 
                         //Toast.makeText(v.getContext(), "Changed script name to " + sharedPreferences.getString("scriptName", "NULL"), Toast.LENGTH_SHORT).show();

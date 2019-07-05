@@ -20,7 +20,7 @@ import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.model.block.util.SugiliteAvailableFeaturePack;
 import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteOperation;
-import edu.cmu.hcii.sugilite.ontology.SerializableOntologyQuery;
+import edu.cmu.hcii.sugilite.ontology.OntologyQuery;
 import edu.cmu.hcii.sugilite.ontology.SugiliteEntity;
 import edu.cmu.hcii.sugilite.ontology.UISnapshot;
 import edu.cmu.hcii.sugilite.recording.newrecording.SugiliteBlockBuildingHelper;
@@ -64,7 +64,7 @@ public class OverlayClickedDialog {
         this.blockBuildingHelper = new SugiliteBlockBuildingHelper(context, sugiliteData);
         this.sugiliteData = sugiliteData;
         this.sharedPreferences = sharedPreferences;
-        featurePack = new SugiliteAvailableFeaturePack(node.getEntityValue(), uiSnapshot);
+        featurePack = new SugiliteAvailableFeaturePack(node, uiSnapshot);
 
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
         builder.setTitle(Const.appNameUpperCase + " Demonstration");
@@ -106,7 +106,7 @@ public class OverlayClickedDialog {
      * handle when the operation is to be recorded
      */
     private void handleRecording() {
-        List<Pair<SerializableOntologyQuery, Double>> queryScoreList = SugiliteBlockBuildingHelper.generateDefaultQueries(featurePack, uiSnapshot, false);
+        List<Pair<OntologyQuery, Double>> queryScoreList = SugiliteBlockBuildingHelper.generateDefaultQueries(featurePack, uiSnapshot, false);
         if (queryScoreList.size() > 0) {
             System.out.println("Query Score List: " + queryScoreList);
 
@@ -153,7 +153,7 @@ public class OverlayClickedDialog {
      * @param featurePack
      */
     //TODO: add support for verbal instruction here
-    private void showAmbiguousPopup(List<Pair<SerializableOntologyQuery, Double>> queryScoreList, SugiliteAvailableFeaturePack featurePack, SugiliteEntity<Node> actualClickedNode) {
+    private void showAmbiguousPopup(List<Pair<OntologyQuery, Double>> queryScoreList, SugiliteAvailableFeaturePack featurePack, SugiliteEntity<Node> actualClickedNode) {
         RecordingAmbiguousPopupDialog recordingAmbiguousPopupDialog = new RecordingAmbiguousPopupDialog(context, queryScoreList, featurePack, blockBuildingHelper, layoutInflater, new Runnable() {
             @Override
             public void run() {
@@ -171,7 +171,7 @@ public class OverlayClickedDialog {
      * @param featurePack
      * @param queryScoreList
      */
-    private void showConfirmation(SugiliteOperationBlock block, SugiliteAvailableFeaturePack featurePack, List<Pair<SerializableOntologyQuery, Double>> queryScoreList) {
+    private void showConfirmation(SugiliteOperationBlock block, SugiliteAvailableFeaturePack featurePack, List<Pair<OntologyQuery, Double>> queryScoreList) {
         Runnable clickRunnable = new Runnable() {
             @Override
             public void run() {

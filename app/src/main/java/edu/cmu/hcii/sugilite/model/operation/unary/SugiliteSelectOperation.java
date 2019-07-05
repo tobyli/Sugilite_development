@@ -1,6 +1,6 @@
 package edu.cmu.hcii.sugilite.model.operation.unary;
 
-import edu.cmu.hcii.sugilite.ontology.SerializableOntologyQuery;
+import edu.cmu.hcii.sugilite.ontology.OntologyQuery;
 
 import static edu.cmu.hcii.sugilite.source_parsing.SugiliteScriptExpression.addQuoteToTokenIfNeeded;
 
@@ -9,24 +9,24 @@ import static edu.cmu.hcii.sugilite.source_parsing.SugiliteScriptExpression.addQ
  * @date 11/13/18
  * @time 11:46 PM
  */
-public class SugiliteSelectOperation extends SugiliteUnaryOperation<SerializableOntologyQuery> {
-    private SerializableOntologyQuery targetUIElementDataDescriptionQuery;
+public class SugiliteSelectOperation extends SugiliteUnaryOperation<OntologyQuery> {
+    private OntologyQuery targetUIElementDataDescriptionQuery;
     public SugiliteSelectOperation(){
         super();
         this.setOperationType(SELECT);
     }
 
-    public void setQuery(SerializableOntologyQuery targetUIElementDataDescriptionQuery) {
+    public void setQuery(OntologyQuery targetUIElementDataDescriptionQuery) {
         setParameter0(targetUIElementDataDescriptionQuery);
     }
 
     @Override
-    public SerializableOntologyQuery getParameter0() {
+    public OntologyQuery getParameter0() {
         return targetUIElementDataDescriptionQuery;
     }
 
     @Override
-    public void setParameter0(SerializableOntologyQuery value) {
+    public void setParameter0(OntologyQuery value) {
         this.targetUIElementDataDescriptionQuery = value;
     }
 
@@ -36,7 +36,7 @@ public class SugiliteSelectOperation extends SugiliteUnaryOperation<Serializable
     }
 
     @Override
-    public SerializableOntologyQuery getDataDescriptionQueryIfAvailable() {
+    public OntologyQuery getDataDescriptionQueryIfAvailable() {
         return targetUIElementDataDescriptionQuery;
     }
 

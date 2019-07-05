@@ -90,7 +90,6 @@ public class StatusIconManager {
     private CurrentStateView statusView;
     private Queue<SugiliteBlock> storedQueue;
     private AlertDialog progressDialog;
-    private boolean showingIcon = false;
     private VerbalInstructionIconManager verbalInstructionIconManager = null;
     private Dialog duckDialog = null;
 
@@ -127,8 +126,9 @@ public class StatusIconManager {
      * add the status icon using the context specified in the class
      */
     public void addStatusIcon(){
-
-        statusIcon = new ImageView(context);
+        if (statusIcon == null) {
+            statusIcon = new ImageView(context);
+        }
         statusIcon.setImageResource(R.mipmap.ic_launcher);
         statusView = getViewForCurrentState("");
         iconParams = new WindowManager.LayoutParams(
@@ -181,8 +181,6 @@ public class StatusIconManager {
         if(!verbalInstructionIconManager.isShowingIcon()) {
             verbalInstructionIconManager.addStatusIcon();
         }
-
-        showingIcon = true;
     }
 
     /**
@@ -199,14 +197,14 @@ public class StatusIconManager {
         }
         catch (Exception e){
             e.printStackTrace();
-        } finally {
-            showingIcon = false;
         }
     }
 
     public boolean isShowingIcon() {
+        if (statusIcon == null) {
+            return false;
+        }
         return statusIcon.isShown();
-        //return showingIcon;
     }
 
     /**
@@ -296,30 +294,29 @@ public class StatusIconManager {
                 }
 
             }
-            //refresh the status view based on the current state
-            if(nextBlock != null && sugiliteData.getCurrentSystemState() == SugiliteData.REGULAR_DEBUG_STATE){
-                statusView.setCurrentStateView(sugiliteData.getCurrentSystemState(), nextBlock.getDescription());
-            }
-            else if(sugiliteData.getCurrentSystemState() == SugiliteData.PAUSED_FOR_DUCK_MENU_IN_DEBUG_MODE || sugiliteData.getCurrentSystemState() == SugiliteData.PAUSED_FOR_DUCK_MENU_IN_REGULAR_EXECUTION_STATE){
-                if(storedQueue != null && storedQueue.size() > 0) {
-                    SugiliteBlock block = storedQueue.peek();
-                    if(block != null) {
-                        statusView.setCurrentStateView(sugiliteData.getCurrentSystemState(), storedQueue.peek().getDescription());
-                        System.out.print("show paused_for_duck_menu status view for " + storedQueue.peek().getDescription());
+            if (statusView != null) {
+                //refresh the status view based on the current state
+                if (nextBlock != null && sugiliteData.getCurrentSystemState() == SugiliteData.REGULAR_DEBUG_STATE) {
+                    statusView.setCurrentStateView(sugiliteData.getCurrentSystemState(), nextBlock.getDescription());
+                } else if (sugiliteData.getCurrentSystemState() == SugiliteData.PAUSED_FOR_DUCK_MENU_IN_DEBUG_MODE || sugiliteData.getCurrentSystemState() == SugiliteData.PAUSED_FOR_DUCK_MENU_IN_REGULAR_EXECUTION_STATE) {
+                    if (storedQueue != null && storedQueue.size() > 0) {
+                        SugiliteBlock block = storedQueue.peek();
+                        if (block != null) {
+                            statusView.setCurrentStateView(sugiliteData.getCurrentSystemState(), storedQueue.peek().getDescription());
+                            System.out.print("show paused_for_duck_menu status view for " + storedQueue.peek().getDescription());
+                        }
                     }
-                }
-            }
-            else if(sugiliteData.getCurrentSystemState() == SugiliteData.PAUSED_FOR_BREAKPOINT_STATE){
-                if(sugiliteData.storedInstructionQueueForPause != null && sugiliteData.storedInstructionQueueForPause.size() > 0) {
-                    SugiliteBlock block = sugiliteData.storedInstructionQueueForPause.peek();
-                    if(block != null) {
-                        statusView.setCurrentStateView(sugiliteData.getCurrentSystemState(), block.getDescription());
-                        System.out.print("show paused_for_breakpoint_state status view for " + block.getDescription());
+                } else if (sugiliteData.getCurrentSystemState() == SugiliteData.PAUSED_FOR_BREAKPOINT_STATE) {
+                    if (sugiliteData.storedInstructionQueueForPause != null && sugiliteData.storedInstructionQueueForPause.size() > 0) {
+                        SugiliteBlock block = sugiliteData.storedInstructionQueueForPause.peek();
+                        if (block != null) {
+                            statusView.setCurrentStateView(sugiliteData.getCurrentSystemState(), block.getDescription());
+                            System.out.print("show paused_for_breakpoint_state status view for " + block.getDescription());
+                        }
                     }
+                } else {
+                    statusView.setCurrentStateView(sugiliteData.getCurrentSystemState(), "");
                 }
-            }
-            else {
-                statusView.setCurrentStateView(sugiliteData.getCurrentSystemState(), "");
             }
 
 

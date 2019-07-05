@@ -10,6 +10,7 @@ import java.util.Set;
  * @date 6/9/16
  * @time 3:19 PM
  */
+@Deprecated
 public class SetMapEntrySerializableWrapper implements Serializable {
     public Set<Map.Entry<String, String>> set;
     public SetMapEntrySerializableWrapper(Set<Map.Entry<String, String>> set){

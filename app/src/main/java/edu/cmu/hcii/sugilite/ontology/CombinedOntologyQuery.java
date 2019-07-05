@@ -17,7 +17,6 @@ public class CombinedOntologyQuery extends OntologyQuery {
     }
     private RelationType subRelation;
     private Set<OntologyQuery> subQueries = null;
-    private transient BiFunction<SubjectEntityObjectEntityPair, UISnapshot, Boolean> QueryFunction = null;
 
     public CombinedOntologyQuery(){
         subQueries = new HashSet<OntologyQuery>();
@@ -63,38 +62,8 @@ public class CombinedOntologyQuery extends OntologyQuery {
         subQueries.add(sub);
     }
 
-    public void setQueryFunction(BiFunction<SubjectEntityObjectEntityPair, UISnapshot, Boolean> f, SugiliteRelation r){
-        /*
-        if(BuildConfig.DEBUG && !(subRelation == RelationType.nullR)){
-            throw new AssertionError();
-        }
-        */
-        QueryFunction = f;
-        this.r = r;
-    }
-
     public void setQueryFunction(SugiliteRelation relation){
         r = relation;
-        QueryFunction = new BiFunction<SubjectEntityObjectEntityPair, UISnapshot, Boolean>() {
-            @Override
-            public Boolean apply(SubjectEntityObjectEntityPair pair, UISnapshot graph) {
-                SugiliteEntity s = pair.getSubject();
-                SugiliteEntity o = pair.getObject();
-                SugiliteTriple newTriple = new SugiliteTriple(s, relation, o);
-                Integer sID = s.getEntityId();
-                Integer oID = o.getEntityId();
-                if(sID != -1) {
-                    Set<SugiliteTriple> subjectTriples = graph.getSubjectTriplesMap().get(sID);
-                    if (subjectTriples == null) return false;
-                    return subjectTriples.contains(newTriple);
-                }
-                else{
-                    Set<SugiliteTriple> objectTriples = graph.getObjectTriplesMap().get(oID);
-                    if (objectTriples == null) return false;
-                    return objectTriples.contains(newTriple);
-                }
-            }
-        };
     }
 
     public void setSubRelation(RelationType subRelation) {
@@ -113,8 +82,6 @@ public class CombinedOntologyQuery extends OntologyQuery {
     public RelationType getSubRelation() {return this.subRelation;}
 
     public Set<OntologyQuery> getSubQueries() {return this.subQueries;}
-
-    public BiFunction<SubjectEntityObjectEntityPair, UISnapshot, Boolean> getQueryFunction() {return this.QueryFunction;}
 
     @Override
     public CombinedOntologyQuery clone() {

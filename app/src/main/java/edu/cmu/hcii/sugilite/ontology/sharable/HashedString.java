@@ -6,9 +6,9 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
-public class HashedString implements Serializable {
+public final class HashedString implements Serializable {
 
-    private byte[] hash;
+    private final byte[] hash;
 
     public HashedString(String string) {
         this.hash = hash(string);

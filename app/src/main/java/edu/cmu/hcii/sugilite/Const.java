@@ -14,8 +14,8 @@ import java.text.SimpleDateFormat;
 public class Const {
 
     public enum SpeechRecognitionType  {ANDROID, GOOGLE_CLOUD};
-    //public static final SpeechRecognitionType SELECTED_SPEECH_RECOGNITION_TYPE = SpeechRecognitionType.ANDROID;
-    public static final SpeechRecognitionType SELECTED_SPEECH_RECOGNITION_TYPE = SpeechRecognitionType.GOOGLE_CLOUD;
+    public static final SpeechRecognitionType SELECTED_SPEECH_RECOGNITION_TYPE = SpeechRecognitionType.ANDROID;
+    //public static final SpeechRecognitionType SELECTED_SPEECH_RECOGNITION_TYPE = SpeechRecognitionType.GOOGLE_CLOUD;
 
     //OVERLAY_TYPE should be either TYPE_APPLICATION_OVERLAY (sdk level >= 26) or TYPE_PHONE for maximized compatibility
     public static final int OVERLAY_TYPE = (Build.VERSION.SDK_INT >= 26) ? WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY : WindowManager.LayoutParams.TYPE_PHONE;

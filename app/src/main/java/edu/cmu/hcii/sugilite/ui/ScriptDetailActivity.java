@@ -53,7 +53,7 @@ import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
 import edu.cmu.hcii.sugilite.model.block.special_operation.SugiliteSpecialOperationBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.pumice.dialog.ConditionalPumiceDialogManager;
-import edu.cmu.hcii.sugilite.pumice.dialog.demonstration.PumiceDemonstrationUtil;
+import edu.cmu.hcii.sugilite.pumice.PumiceDemonstrationUtil;
 import edu.cmu.hcii.sugilite.pumice.dialog.PumiceDialogManager;
 import edu.cmu.hcii.sugilite.recording.ReadableDescriptionGenerator;
 import edu.cmu.hcii.sugilite.recording.RecordingPopUpDialog;
@@ -169,7 +169,7 @@ public class ScriptDetailActivity extends AppCompatActivity implements SugiliteV
             }
         });
         tts.setLanguage(Locale.US);
-        sugiliteVoiceRecognitionListener = new SugiliteVoiceRecognitionListener(this, this, tts);
+        sugiliteVoiceRecognitionListener = new SugiliteGoogleCloudVoiceRecognitionListener(this,this, tts);//new SugiliteAndroidAPIVoiceRecognitionListener(this, this, tts);
         speakButton = findViewById(R.id.button5);
         cancelButton = findViewById(R.id.button5);
         conditionalPumiceDialogManager = new ConditionalPumiceDialogManager(this);
@@ -1043,6 +1043,13 @@ public class ScriptDetailActivity extends AppCompatActivity implements SugiliteV
             }
         }
         */
+    }
+
+    public void runScript() {
+        SharedPreferences.Editor prefEditor = sharedPreferences.edit();
+        prefEditor.putBoolean("recording_in_process", false);
+        prefEditor.commit();
+        sugiliteData.runScript(script, true, SugiliteData.EXECUTION_STATE);
     }
 
     //TODO: rewrite resume recording

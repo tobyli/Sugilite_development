@@ -14,6 +14,7 @@ import edu.cmu.hcii.sugilite.pumice.kb.PumiceBooleanExpKnowledge;
 import edu.cmu.hcii.sugilite.source_parsing.SugiliteScriptParser;
 import edu.cmu.hcii.sugilite.model.block.SugiliteConditionBlock;
 import edu.cmu.hcii.sugilite.ui.ScriptDetailActivity;
+import edu.cmu.hcii.sugilite.SugiliteData;
 
 public class PumiceConditionalInstructionParsingHandler extends PumiceInitInstructionParsingHandler {
     private SugiliteScriptParser sugiliteScriptParser;
@@ -22,8 +23,8 @@ public class PumiceConditionalInstructionParsingHandler extends PumiceInitInstru
     private SugiliteBooleanExpressionNew boolExp;
     private Activity context;
 
-    public PumiceConditionalInstructionParsingHandler(Activity context, ConditionalPumiceDialogManager pumiceDialogManager){
-        super(context,pumiceDialogManager);
+    public PumiceConditionalInstructionParsingHandler(Activity context, ConditionalPumiceDialogManager pumiceDialogManager, SugiliteData sugilitedata){
+        super(context,pumiceDialogManager, sugilitedata);
         this.context = context;
         this.pumiceDialogManager = pumiceDialogManager;
         this.sugiliteScriptParser = new SugiliteScriptParser();

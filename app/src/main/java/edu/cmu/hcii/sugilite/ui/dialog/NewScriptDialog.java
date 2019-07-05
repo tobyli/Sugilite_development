@@ -100,7 +100,7 @@ public class NewScriptDialog extends SugiliteDialogManager implements AbstractSu
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         String scriptName = scriptNameEditText.getText().toString() + ".SugiliteScript";
-                        PumiceDemonstrationUtil.initiateDemonstration(context, serviceStatusManager, sharedPreferences, scriptName, sugiliteData, null, sugiliteScriptDao, verbalInstructionIconManager);
+                        PumiceDemonstrationUtil.initiateDemonstration(context, serviceStatusManager, sharedPreferences, scriptName, sugiliteData, null, sugiliteScriptDao, verbalInstructionIconManager, null);
 
                         //Toast.makeText(v.getContext(), "Changed script name to " + sharedPreferences.getString("scriptName", "NULL"), Toast.LENGTH_SHORT).show();
                         if(positiveCallback != null) {

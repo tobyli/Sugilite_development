@@ -19,18 +19,20 @@ import edu.cmu.hcii.sugilite.ui.dialog.VariableSetValueDialog;
 import android.content.Intent;
 
 public class ConditionalPumiceDialogManager extends PumiceDialogManager {
-    private SugiliteConditionBlock newBlock;
+    public SugiliteConditionBlock newBlock;
     private int newBlockIndex;
     private ScriptDetailActivity context;
     private boolean isThen;
-    public boolean addCheck; //whether or not a check is being added to the script (i.e., whether or not this dialog manager is getting used)
-
+    public boolean addCheck = false; //whether or not a check is being added to the script (i.e., whether or not this dialog manager is getting used)
+    public boolean checkingTask = false; //whether or not testing versus demonstrating
+    public boolean elseStatementDem = false; //whether or not performing else statement demonstration
+    public boolean lastCheck = false; //whether or not running last test of conditional
 
     public ConditionalPumiceDialogManager(ScriptDetailActivity context) {
         super(context);
         this.context = context;
         setPumiceDialogState(new PumiceDialogState(new PumiceConditionalIntentHandler(this, context,null), new PumiceKnowledgeManager()));
-        setPumiceInitInstructionParsingHandler(new PumiceConditionalInstructionParsingHandler(context, this));
+        setPumiceInitInstructionParsingHandler(new PumiceConditionalInstructionParsingHandler(context, this, sugiliteData));
     }
 
     public void determineConditionalLoc() {

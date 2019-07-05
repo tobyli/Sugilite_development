@@ -25,6 +25,8 @@ import edu.cmu.hcii.sugilite.pumice.dialog.PumiceDialogManager;
 import edu.cmu.hcii.sugilite.ui.ScriptDetailActivity;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.server_comm.SugiliteVerbalInstructionHTTPQueryInterface;
 import edu.cmu.hcii.sugilite.pumice.dialog.ConditionalPumiceDialogManager;
+import edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.else_statement.PumiceUserExplainElseStatementIntentHandler;
+
 
 public class PumiceConditionalIntentHandler implements PumiceUtteranceIntentHandler, SugiliteVerbalInstructionHTTPQueryInterface {
     private ScriptDetailActivity sourceActivity;
@@ -107,7 +109,7 @@ public class PumiceConditionalIntentHandler implements PumiceUtteranceIntentHand
             return PumiceIntent.GET_ELSE_BLOCK_X;
         }
         if(lastIntent == PumiceIntent.WANT_ELSE_BLOCK && no) {
-            return PumiceIntent.DONE_1;
+            return PumiceIntent.WANT_CHECK_CONDITION;
         }
         if((lastIntent == PumiceIntent.GET_THEN_BLOCK || lastIntent == PumiceIntent.PROBLEM_1_X || lastIntent == PumiceIntent.GET_THEN_BLOCK_IDK) && no) {
             return PumiceIntent.WANT_ELSE_BLOCK;
@@ -206,6 +208,7 @@ public class PumiceConditionalIntentHandler implements PumiceUtteranceIntentHand
         switch(pumiceIntent) {
             case DONE_2:
                 ((ConditionalPumiceDialogManager) dialogManager).addCheck = false;
+                ((ConditionalPumiceDialogManager) dialogManager).checkingTask = false;
                 lastIntent = PumiceIntent.DONE_2;
                 ((ConditionalPumiceDialogManager) dialogManager).endTestRun();
                 ((ConditionalPumiceDialogManager) dialogManager).endInteraction();
@@ -231,6 +234,9 @@ public class PumiceConditionalIntentHandler implements PumiceUtteranceIntentHand
                 break;
             case CHECK_CONDITION:
                 lastIntent = PumiceIntent.CHECK_CONDITION;
+                ((ConditionalPumiceDialogManager) dialogManager).checkingTask = true;
+                ((ConditionalPumiceDialogManager) dialogManager).lastCheck = true;
+                dialogManager.waitingForPause = true;
                 sourceActivity.addSnackbar("Ok, let’s run through the task to make sure the steps happen correctly for the current situation. Let me know if anything goes wrong by saying 'pause.'");
                 dialogManager.sendAgentMessage("Ok, let’s run through the task to make sure the steps happen correctly for the current situation. Let me know if anything goes wrong by saying 'pause.'",true,true);
                 ((ConditionalPumiceDialogManager) dialogManager).testRun(true);
@@ -256,6 +262,8 @@ public class PumiceConditionalIntentHandler implements PumiceUtteranceIntentHand
                 lastIntent = PumiceIntent.CHECKING_ELSE;
                 then = ((ConditionalPumiceDialogManager) dialogManager).getIsThen();
                 boolExp = ((PumiceConditionalInstructionParsingHandler) dialogManager.getPumiceInitInstructionParsingHandler()).getBoolExp().getReadableDescription();
+                ((ConditionalPumiceDialogManager) dialogManager).checkingTask = true;
+                dialogManager.waitingForPause = true;
                 sourceActivity.addSnackbar("Ok, let’s run through the task to make sure the steps happen correctly when " + boolExp + " is " + !then + ". Let me know if anything goes wrong by saying 'pause.'");
                 dialogManager.sendAgentMessage("Ok, let’s run through the task to make sure the steps happen correctly when " + boolExp + " is " + !then + ". Let me know if anything goes wrong by saying 'pause.'",true,true);
                 ((ConditionalPumiceDialogManager) dialogManager).testRun(false);
@@ -269,6 +277,7 @@ public class PumiceConditionalIntentHandler implements PumiceUtteranceIntentHand
                 break;
             case DONE_1:
                 ((ConditionalPumiceDialogManager) dialogManager).addCheck = false;
+                ((ConditionalPumiceDialogManager) dialogManager).checkingTask = false;
                 lastIntent = PumiceIntent.DONE_1;
                 ((ConditionalPumiceDialogManager) dialogManager).endInteraction();
                 sourceActivity.addSnackbar("Ok great, you're all set.");
@@ -276,6 +285,7 @@ public class PumiceConditionalIntentHandler implements PumiceUtteranceIntentHand
                 break;
             case GET_ELSE_BLOCK_Y:
                 lastIntent = PumiceIntent.GET_ELSE_BLOCK_Y;
+                ((ConditionalPumiceDialogManager) dialogManager).checkingTask = false;
                 sourceActivity.addSnackbar("Ok, I need you to tell me what to do when " + boolExp + " is " + !then + ". You can explain, or say 'demonstrate' to demonstrate.");
                 dialogManager.sendAgentMessage("Ok, I need you to tell me what to do when " + boolExp + " is " + !then + ". You can explain, or say 'demonstrate' to demonstrate.",true,true);
                 dialogManager.updateUtteranceIntentHandlerInANewState(new PumiceUserExplainElseStatementIntentHandler(dialogManager,sourceActivity,((ConditionalPumiceDialogManager) dialogManager).getNewBlock(),((PumiceConditionalInstructionParsingHandler) dialogManager.getPumiceInitInstructionParsingHandler()).getBoolExp().getReadableDescription()));
@@ -331,6 +341,7 @@ public class PumiceConditionalIntentHandler implements PumiceUtteranceIntentHand
             case SOLUTION_1_Y:
                 lastIntent = PumiceIntent.SOLUTION_1_Y;
                 ((ConditionalPumiceDialogManager) dialogManager).switchThenElse();
+                dialogManager.waitingForPause = true;
                 sourceActivity.addSnackbar("Ok, I've switched what happens when " + boolExp + " is " + then + " and when " + boolExp + " is " + !then + ". Let's run through the task to make sure the check happens correctly. Let me know if anything goes wrong by saying 'pause.'");
                 dialogManager.sendAgentMessage("Ok, I've switched what happens when " + boolExp + " is " + then + " and when " + boolExp + " is " + !then + ". Let's run through the task to make sure the check happens correctly. Let me know if anything goes wrong by saying 'pause.'",true,true);
                 ((ConditionalPumiceDialogManager) dialogManager).testRun(false);
@@ -361,6 +372,8 @@ public class PumiceConditionalIntentHandler implements PumiceUtteranceIntentHand
                     then = true;
                 }
                 ((ConditionalPumiceDialogManager) dialogManager).chooseThenBlock(then);
+                ((ConditionalPumiceDialogManager) dialogManager).checkingTask = true;
+                dialogManager.waitingForPause = true;
                 sourceActivity.addSnackbar("Ok, let's run through the task to make sure the check happens correctly. Let me know if anything goes wrong by saying 'pause.'");
                 dialogManager.sendAgentMessage("Ok, let’s run through the task to make sure the check happens correctly. Let me know if anything goes wrong by saying 'pause.'",true,true);
                 ((ConditionalPumiceDialogManager) dialogManager).testRun(false);

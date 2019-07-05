@@ -23,6 +23,8 @@ import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.model.variable.Variable;
 import edu.cmu.hcii.sugilite.pumice.dialog.PumiceDialogManager;
+import edu.cmu.hcii.sugilite.pumice.dialog.ConditionalPumiceDialogManager;
+import edu.cmu.hcii.sugilite.ui.ScriptDetailActivity;
 import edu.cmu.hcii.sugilite.ui.dialog.VariableSetValueDialog;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.VerbalInstructionIconManager;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.speech.SugiliteAndroidAPIVoiceRecognitionListener;
@@ -48,7 +50,8 @@ public class PumiceDemonstrationUtil {
      * @param sugiliteScriptDao
      * @param verbalInstructionIconManager
      */
-    public static void initiateDemonstration(Context context, ServiceStatusManager serviceStatusManager, SharedPreferences sharedPreferences, String scriptName, SugiliteData sugiliteData, Runnable afterRecordingCallback, SugiliteScriptDao sugiliteScriptDao, VerbalInstructionIconManager verbalInstructionIconManager){
+
+    public static void initiateDemonstration(Context context, ServiceStatusManager serviceStatusManager, SharedPreferences sharedPreferences, String scriptName, SugiliteData sugiliteData, Runnable afterRecordingCallback, SugiliteScriptDao sugiliteScriptDao, VerbalInstructionIconManager verbalInstructionIconManager, @Nullable ConditionalPumiceDialogManager dialogManager){
         if(!serviceStatusManager.isRunning()){
             //prompt the user if the accessibility service is not active
             AlertDialog.Builder builder1 = new AlertDialog.Builder(context);
@@ -94,6 +97,11 @@ public class PumiceDemonstrationUtil {
             //turn on the cat overlay to prepare for demonstration
             if(verbalInstructionIconManager != null){
                 verbalInstructionIconManager.turnOnCatOverlay();
+            }
+
+            //if adding else statement, run script to get to step where else statement demonstration should be inserted
+            if(dialogManager != null && dialogManager.elseStatementDem) {
+                ((ScriptDetailActivity) context).runScript();
             }
         }
     }
@@ -239,4 +247,5 @@ public class PumiceDemonstrationUtil {
         sugiliteData.setCurrentSystemState(SugiliteData.DEFAULT_STATE);
         Toast.makeText(context, "end recording", Toast.LENGTH_SHORT).show();
     }
+
 }

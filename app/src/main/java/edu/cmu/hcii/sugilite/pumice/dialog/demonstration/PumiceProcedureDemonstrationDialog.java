@@ -89,7 +89,7 @@ public class PumiceProcedureDemonstrationDialog {
                                 });
                             }
                         };
-                        PumiceDemonstrationUtil.initiateDemonstration(context, serviceStatusManager, sharedPreferences, scriptName, sugiliteData, onFinishDemonstrationCallback, sugiliteScriptDao, verbalInstructionIconManager);
+                        PumiceDemonstrationUtil.initiateDemonstration(context, serviceStatusManager, sharedPreferences, scriptName, sugiliteData, onFinishDemonstrationCallback, sugiliteScriptDao, verbalInstructionIconManager, null);
                     }
                 });
         dialog = dialogBuilder.create();

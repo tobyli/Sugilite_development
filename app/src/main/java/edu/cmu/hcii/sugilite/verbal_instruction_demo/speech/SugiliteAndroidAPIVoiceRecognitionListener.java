@@ -306,6 +306,7 @@ public class SugiliteAndroidAPIVoiceRecognitionListener implements SugiliteVoice
         stopTTS();
 
         // destroy the speech recognizer
-        speech.destroy();
+        if(speech != null)
+            speech.destroy();
     }
 }

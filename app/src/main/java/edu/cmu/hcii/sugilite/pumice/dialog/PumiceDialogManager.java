@@ -50,6 +50,7 @@ import edu.cmu.hcii.sugilite.verbal_instruction_demo.server_comm.SugiliteVerbalI
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.server_comm.SugiliteVerbalInstructionHTTPQueryManager;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.speech.SugiliteVoiceRecognitionListener;
 import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
+import edu.cmu.hcii.sugilite.verbal_instruction_demo.speech.SugiliteGoogleCloudVoiceRecognitionListener;
 
 /**
  * @author toby
@@ -71,6 +72,7 @@ public class PumiceDialogManager{
     protected ServiceStatusManager serviceStatusManager;
     private PumiceKnowledgeDao pumiceKnowledgeDao;
     private Handler handler;
+    public boolean waitingForPause = false;
 
     private List<PumiceDialogState> stateHistoryList;
 
@@ -123,6 +125,7 @@ public class PumiceDialogManager{
     public void setPumiceInitInstructionParsingHandler(PumiceInitInstructionParsingHandler pph) { this.pumiceInitInstructionParsingHandler = pph; }
     
     public void sendUserMessage(String message){
+        System.out.println("sendUserMessage: " + message);
         //send the user message with the current in use intent handler
         sendUserMessage(message, pumiceDialogState.getPumiceUtteranceIntentHandlerInUse());
     }
@@ -133,6 +136,7 @@ public class PumiceDialogManager{
      * @param pumiceUtteranceIntentHandler
      */
     private void sendUserMessage(String message, PumiceUtteranceIntentHandler pumiceUtteranceIntentHandler){
+        System.out.println("sendUserMessage: " + message);
         updateUtteranceIntentHandlerInANewState(pumiceUtteranceIntentHandler);
         // ** finished saving the current PumiceDialogState **
 
@@ -140,6 +144,7 @@ public class PumiceDialogManager{
         pumiceDialogState.getUtteranceHistory().add(utterance);
         pumiceDialogView.addMessage(utterance);
 
+        System.out.println("utterance: " + utterance);
         //classify the intent of user message
         PumiceUtteranceIntentHandler.PumiceIntent intent = pumiceUtteranceIntentHandler.detectIntentFromUtterance(utterance);
 

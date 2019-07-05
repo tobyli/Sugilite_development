@@ -56,7 +56,7 @@ public class SugiliteData extends Application {
     private ScriptUsageLogManager usageLogManager;
 
     private boolean check1 = true; //if adding conditional, true if checking then block, false if checking else block
-    public boolean last = false; //if adding conditional, true if checking task with condition
+    public boolean last = false; //if adding conditional, true if checking task including its condition
 
     //the queue used for execution. the system should be in the execution mode whenever the queue is non-empty
     private Queue<SugiliteBlock> instructionQueue = new ArrayDeque<>();
@@ -194,7 +194,14 @@ public class SugiliteData extends Application {
         this.currentTrackingBlock = currentTrackingBlock;
     }
     public synchronized void addInstruction(SugiliteBlock block){
-        if(block == null) {
+        System.out.println("HERE");
+        System.out.println(block);
+        System.out.println(((ConditionalPumiceDialogManager) pumiceDialogManager).lastCheck);
+        System.out.println(((ConditionalPumiceDialogManager) pumiceDialogManager).elseStatementDem);
+        if(block == null || (pumiceDialogManager instanceof ConditionalPumiceDialogManager && block instanceof SugiliteConditionBlock && ((ConditionalPumiceDialogManager) pumiceDialogManager).elseStatementDem && !((ConditionalPumiceDialogManager) pumiceDialogManager).lastCheck)) {
+            if(block instanceof SugiliteConditionBlock)
+                ((ConditionalPumiceDialogManager) pumiceDialogManager).elseStatementDem = false;
+
             //note: nullable -> see Automator.addNextBlockToQueue
             if(afterExecutionOperation != null) {
                 instructionQueue.add(afterExecutionOperation);
@@ -206,7 +213,7 @@ public class SugiliteData extends Application {
                     afterExecutionRunnable = null;
                 }
                 setCurrentSystemState(DEFAULT_STATE);
-                if(pumiceDialogManager instanceof ConditionalPumiceDialogManager && ((ConditionalPumiceDialogManager) pumiceDialogManager).addCheck) {
+                if(pumiceDialogManager instanceof ConditionalPumiceDialogManager && ((ConditionalPumiceDialogManager) pumiceDialogManager).checkingTask) {
                     pumiceDialogManager.sendAgentMessage("Were there any problems with the task?",true,true);
                 }
             }
@@ -215,10 +222,11 @@ public class SugiliteData extends Application {
         if(errorHandler != null) {
             errorHandler.reportSuccess();
         }
+
         boolean isConditionBlock = block instanceof SugiliteConditionBlock;
         boolean conditionalTask = pumiceDialogManager instanceof ConditionalPumiceDialogManager && ((ConditionalPumiceDialogManager) pumiceDialogManager).addCheck;
         if((conditionalTask && isConditionBlock && last) || !isConditionBlock) {
-            System.out.println("next step");
+            System.out.println("add block");
             instructionQueue.add(block);
         }
         else if(check1 && conditionalTask) {

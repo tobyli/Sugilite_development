@@ -1,6 +1,7 @@
 package edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.else_statement;
 
 import android.app.Activity;
+import android.service.notification.Condition;
 
 import com.google.gson.ExclusionStrategy;
 import com.google.gson.FieldAttributes;
@@ -29,6 +30,8 @@ import edu.cmu.hcii.sugilite.pumice.kb.PumiceProceduralKnowledge;
 import edu.cmu.hcii.sugilite.ui.ScriptDetailActivity;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.server_comm.SugiliteVerbalInstructionHTTPQueryInterface;
 import edu.cmu.hcii.sugilite.pumice.dialog.ConditionalPumiceDialogManager;
+import edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.PumiceConditionalIntentHandler;
+
 
 
 /**
@@ -235,6 +238,12 @@ public class PumiceUserExplainElseStatementIntentHandler implements PumiceUttera
 
             }
             originalConditionBlock.notify();
+        }
+        if(pumiceDialogManager instanceof ConditionalPumiceDialogManager) {
+            ConditionalPumiceDialogManager cpdm = (ConditionalPumiceDialogManager) pumiceDialogManager;
+            SugiliteBooleanExpressionNew boolExp = ((PumiceConditionalInstructionParsingHandler) cpdm.getPumiceInitInstructionParsingHandler()).getBoolExp();
+            cpdm.sendAgentMessage("Ok, do the steps that happen when " + boolExp.getReadableDescription() + " is " + !(cpdm.getIsThen()) + " look right?", true, true);
+            ((ScriptDetailActivity) context).addSnackbar("Ok, do the steps that happen when " + boolExp.getReadableDescription() + " is " + !(cpdm.getIsThen()) + " look right?");
         }
     }
 

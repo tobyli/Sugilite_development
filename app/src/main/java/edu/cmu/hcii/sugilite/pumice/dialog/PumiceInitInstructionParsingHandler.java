@@ -307,7 +307,7 @@ public class PumiceInitInstructionParsingHandler {
      *
      * @param block
      */
-    private void resolveBlock(SugiliteBlock block) throws ExecutionException, InterruptedException {
+    protected void resolveBlock(SugiliteBlock block) throws ExecutionException, InterruptedException {
         if (block == null) {
             //at the end of the script
             return;

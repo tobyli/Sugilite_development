@@ -15,7 +15,7 @@ import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.model.block.booleanexp.SugiliteBooleanExpressionNew;
 import edu.cmu.hcii.sugilite.pumice.dialog.ConditionalPumiceDialogManager;
 import edu.cmu.hcii.sugilite.pumice.dialog.PumiceConditionalInstructionParsingHandler;
-import edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.PumiceUserExplainElseStatementIntentHandler;
+import edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.else_statement.PumiceUserExplainElseStatementIntentHandler;
 import edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.PumiceUserExplainProcedureIntentHandler;
 import edu.cmu.hcii.sugilite.pumice.kb.PumiceProceduralKnowledge;
 import edu.cmu.hcii.sugilite.pumice.PumiceDemonstrationUtil;
@@ -86,6 +86,7 @@ public class PumiceElseStatementDemonstrationDialog {
                                         //get the result script
                                         try {
                                             SugiliteStartingBlock script = sugiliteScriptDao.read(scriptName + ".SugiliteScript");
+                                            System.out.println("script: " + script);
                                             if (script != null) {
                                                 onDemonstrationReady(script);
                                             } else {
@@ -98,8 +99,9 @@ public class PumiceElseStatementDemonstrationDialog {
                                 });
                             }
                         };
-                        ((ScriptDetailActivity) context).resumeRecording();
-                        PumiceDemonstrationUtil.initiateDemonstration(context, serviceStatusManager, sharedPreferences, scriptName, sugiliteData, onFinishDemonstrationCallback, sugiliteScriptDao, verbalInstructionIconManager);
+                        ConditionalPumiceDialogManager cpdm = ((ScriptDetailActivity) context).getConditionalPumiceDialogManager();
+                        cpdm.elseStatementDem = true;
+                        PumiceDemonstrationUtil.initiateDemonstration(context, serviceStatusManager, sharedPreferences, scriptName, sugiliteData, onFinishDemonstrationCallback, sugiliteScriptDao, verbalInstructionIconManager, cpdm);
                     }
                 });
         dialog = dialogBuilder.create();
@@ -115,10 +117,6 @@ public class PumiceElseStatementDemonstrationDialog {
             resumeActivity.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
             resumeActivity.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
             context.startActivity(resumeActivity);
-            ConditionalPumiceDialogManager cpdm = ((ScriptDetailActivity) context).getConditionalPumiceDialogManager();
-            SugiliteBooleanExpressionNew boolExp = ((PumiceConditionalInstructionParsingHandler) cpdm.getPumiceInitInstructionParsingHandler()).getBoolExp();
-            cpdm.sendAgentMessage("Ok, do the steps that happen when " + boolExp.getReadableDescription() + " is "+ !(cpdm.getIsThen()) + " look right?",true,true);
-            ((ScriptDetailActivity) context).addSnackbar("Ok, do the steps that happen when " + boolExp.getReadableDescription() + " is "+ !(cpdm.getIsThen()) + " look right?");
         }
         else {
             resumeActivity = new Intent(context, PumiceDialogActivity.class);

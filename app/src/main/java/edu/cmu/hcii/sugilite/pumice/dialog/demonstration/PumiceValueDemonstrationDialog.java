@@ -100,7 +100,7 @@ public class PumiceValueDemonstrationDialog {
                         sugiliteData.valueDemonstrationVariableName = valueKnowledgeName;
                         //set sugiliteData.currentPumiceValueDemonstrationType for displaying Pumice overlays
                         sugiliteData.currentPumiceValueDemonstrationType = resolveValueQueryOperationSugiliteRelationType;
-                        PumiceDemonstrationUtil.initiateDemonstration(context, serviceStatusManager, sharedPreferences, scriptName, sugiliteData, callback, sugiliteScriptDao, verbalInstructionIconManager);
+                        PumiceDemonstrationUtil.initiateDemonstration(context, serviceStatusManager, sharedPreferences, scriptName, sugiliteData, callback, sugiliteScriptDao, verbalInstructionIconManager, null);
                     }
                 });
         dialog = dialogBuilder.create();

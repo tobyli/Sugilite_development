@@ -1,10 +1,11 @@
 package edu.cmu.hcii.sugilite.ontology.sharable;
 
+import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
-public class HashedString {
+public class HashedString implements Serializable {
 
     private byte[] hash;
 

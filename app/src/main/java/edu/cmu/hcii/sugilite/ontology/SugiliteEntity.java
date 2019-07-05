@@ -106,6 +106,10 @@ public class SugiliteEntity<T> {
         }
     }
 
+    public SugiliteEntity<T> clone() {
+        return new SugiliteEntity<>(new SugiliteSerializableEntity(this));
+    }
+
     @Override
     public int hashCode() {
         return Objects.hash(this.entityValue);

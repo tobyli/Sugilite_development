@@ -37,11 +37,7 @@ import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
 import edu.cmu.hcii.sugilite.model.operation.unary.SugiliteClickOperation;
 import edu.cmu.hcii.sugilite.model.operation.unary.SugiliteLongClickOperation;
 import edu.cmu.hcii.sugilite.model.operation.unary.SugiliteUnaryOperation;
-import edu.cmu.hcii.sugilite.ontology.OntologyQuery;
-import edu.cmu.hcii.sugilite.ontology.SerializableOntologyQuery;
-import edu.cmu.hcii.sugilite.ontology.SugiliteEntity;
-import edu.cmu.hcii.sugilite.ontology.SugiliteRelation;
-import edu.cmu.hcii.sugilite.ontology.UISnapshot;
+import edu.cmu.hcii.sugilite.ontology.*;
 import edu.cmu.hcii.sugilite.recording.ReadableDescriptionGenerator;
 import edu.cmu.hcii.sugilite.recording.SugiliteScreenshotManager;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.study.SugiliteStudyHandler;
@@ -575,21 +571,21 @@ public class FullScreenRecordingOverlayManager {
 
     void addSugiliteOperationBlockBasedOnNode(Node node, boolean isLongClick) {
         if (node.getBoundsInScreen() != null) {
-            OntologyQuery parentQuery = new OntologyQuery(OntologyQuery.relationType.AND);
-            OntologyQuery screenBoundsQuery = new OntologyQuery(OntologyQuery.relationType.nullR);
+            CombinedOntologyQuery parentQuery = new CombinedOntologyQuery(CombinedOntologyQuery.RelationType.AND);
+            LeafOntologyQuery screenBoundsQuery = new LeafOntologyQuery();
             screenBoundsQuery.addObject(new SugiliteEntity<>(-1, String.class, node.getBoundsInScreen()));
             screenBoundsQuery.setQueryFunction(SugiliteRelation.HAS_SCREEN_LOCATION);
             parentQuery.addSubQuery(screenBoundsQuery);
 
             if (node.getClassName() != null) {
-                OntologyQuery classQuery = new OntologyQuery(OntologyQuery.relationType.nullR);
+                LeafOntologyQuery classQuery = new LeafOntologyQuery();
                 classQuery.addObject(new SugiliteEntity<>(-1, String.class, node.getClassName()));
                 classQuery.setQueryFunction(SugiliteRelation.HAS_CLASS_NAME);
                 parentQuery.addSubQuery(classQuery);
             }
 
             if (node.getPackageName() != null) {
-                OntologyQuery packageQuery = new OntologyQuery(OntologyQuery.relationType.nullR);
+                LeafOntologyQuery packageQuery = new LeafOntologyQuery();
                 packageQuery.addObject(new SugiliteEntity<>(-1, String.class, node.getPackageName()));
                 packageQuery.setQueryFunction(SugiliteRelation.HAS_PACKAGE_NAME);
                 parentQuery.addSubQuery(packageQuery);

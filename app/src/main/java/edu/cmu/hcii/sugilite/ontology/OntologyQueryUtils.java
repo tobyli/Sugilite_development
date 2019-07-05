@@ -25,64 +25,42 @@ public class OntologyQueryUtils {
      * @return
      */
     public static OntologyQuery consolidateNestedConj(OntologyQuery query){
-        if(query != null && query.getSubRelation().equals(OntologyQuery.relationType.AND)  && query.getSubQueries() != null) {
-            Iterator<OntologyQuery> iterator = query.getSubQueries().iterator();
-            Set<OntologyQuery> setToRemove = new HashSet<>();
-            Set<OntologyQuery> setToAdd = new HashSet<>();
-            while (iterator.hasNext()) {
-                OntologyQuery subQuery = iterator.next();
-                if(subQuery != null && subQuery.getSubRelation().equals(OntologyQuery.relationType.AND) && subQuery.getSubQueries() != null){
-                    setToAdd.addAll(getBreakdownForNestedConj(subQuery));
-                    setToRemove.add(subQuery);
-                }
-            }
-            query.getSubQueries().removeAll(setToRemove);
-            query.getSubQueries().addAll(setToAdd);
+        if (query instanceof CombinedOntologyQuery) {
+            ((CombinedOntologyQuery) query).flattenConj();
         }
         return query;
     }
 
-    private static Set<OntologyQuery> getBreakdownForNestedConj(OntologyQuery query) {
-        Set<OntologyQuery> results = new HashSet<>();
-        if (query != null && query.getSubRelation().equals(OntologyQuery.relationType.AND) && query.getSubQueries() != null) {
-            for(OntologyQuery subQuery : query.getSubQueries()){
-                results.addAll(getBreakdownForNestedConj(subQuery));
-            }
-            return results;
-        }
-
-        else{
-            results.add(query);
-            return results;
-        }
-    }
-
     public static OntologyQuery removeIsAllRelation(OntologyQuery query){
-        if(query != null && query.getSubRelation().equals(OntologyQuery.relationType.AND)  && query.getSubQueries() != null) {
-            Iterator<OntologyQuery> iterator = query.getSubQueries().iterator();
-            while (iterator.hasNext()) {
-                OntologyQuery subQuery = iterator.next();
-                if(subQuery != null && subQuery.getSubRelation().equals(OntologyQuery.relationType.nullR) && subQuery.getR() != null && subQuery.getR().equals(SugiliteRelation.IS)){
-                    iterator.remove();
-                    break;
+        if (query != null && query instanceof CombinedOntologyQuery) {
+            CombinedOntologyQuery coq = (CombinedOntologyQuery)query;
+            if(coq.getSubRelation().equals(CombinedOntologyQuery.RelationType.AND)  && coq.getSubQueries() != null) {
+                Iterator<OntologyQuery> iterator = coq.getSubQueries().iterator();
+                while (iterator.hasNext()) {
+                    OntologyQuery subQuery = iterator.next();
+                    if(subQuery != null && subQuery instanceof LeafOntologyQuery && subQuery.getR() != null && subQuery.getR().equals(SugiliteRelation.IS)){
+                        iterator.remove();
+                        break;
+                    }
+                    else{
+                        //coq.addSubQuery(removeIsAllRelation(subQuery));
+                        //iterator.remove();
+                    }
                 }
-                else{
-                    //query.addSubQuery(removeIsAllRelation(subQuery));
-                    //iterator.remove();
+
+                if(coq.getSubQueries().size() == 1){
+                    OntologyQuery subQuery = new ArrayList<>(coq.getSubQueries()).get(0);
+
+                    // coq.setSubjectSet(subQuery.getSubject());
+                    // coq.setObjectSet(subQuery.getObject());
+                    // coq.setSubRelation(subQuery.getSubRelation());
+                    // coq.setQueryFunction(subQuery.getR());
+                    // coq.setSubQueries(subQuery.getSubQueries());
+                    return subQuery.clone();
                 }
             }
 
-            if(query.getSubQueries().size() == 1){
-                OntologyQuery subQuery = new ArrayList<>(query.getSubQueries()).get(0);
-
-                query.setSubject(subQuery.getSubject());
-                query.setObject(subQuery.getObject());
-                query.setSubRelation(subQuery.getSubRelation());
-                query.setQueryFunction(subQuery.getR());
-                query.setSubQueries(subQuery.getSubQueries());
-            }
         }
-
 
         return query;
     }
@@ -92,9 +70,9 @@ public class OntologyQueryUtils {
         toAddClickableQuery = false;
 
         //de-serialize the query
-        OntologyQuery classQuery = null;
-        OntologyQuery packageQuery = null;
-        OntologyQuery clickableQuery = null;
+        LeafOntologyQuery classQuery = null;
+        LeafOntologyQuery packageQuery = null;
+        LeafOntologyQuery clickableQuery = null;
 
         //TODO: consolidate nested conj
         query = consolidateNestedConj(query);
@@ -102,76 +80,78 @@ public class OntologyQueryUtils {
 
         //construct classQuery and packageQuery
         if (clickedNode.getClassName() != null) {
-            classQuery = new OntologyQuery(OntologyQuery.relationType.nullR);
+            classQuery = new LeafOntologyQuery();
             classQuery.addObject(new SugiliteEntity<>(-1, String.class, clickedNode.getClassName()));
             classQuery.setQueryFunction(SugiliteRelation.HAS_CLASS_NAME);
         }
 
         if (clickedNode.getPackageName() != null) {
-            packageQuery = new OntologyQuery(OntologyQuery.relationType.nullR);
+            packageQuery = new LeafOntologyQuery();
             packageQuery.addObject(new SugiliteEntity<>(-1, String.class, clickedNode.getPackageName()));
             packageQuery.setQueryFunction(SugiliteRelation.HAS_PACKAGE_NAME);
         }
 
         if (clickedNode.getClickable() == true) {
-            clickableQuery = new OntologyQuery(OntologyQuery.relationType.nullR);
+            clickableQuery = new LeafOntologyQuery();
             clickableQuery.addObject(new SugiliteEntity<>(-1, Boolean.class, true));
             clickableQuery.setQueryFunction(SugiliteRelation.IS_CLICKABLE);
         }
 
-        if(query != null && query.getSubRelation().equals(OntologyQuery.relationType.AND)  && query.getSubQueries() != null){
+        if(query != null && query instanceof CombinedOntologyQuery) {
+            CombinedOntologyQuery coq = (CombinedOntologyQuery)query;
+            if (coq.getSubRelation().equals(CombinedOntologyQuery.RelationType.AND)  && coq.getSubQueries() != null) {
 
-            for(OntologyQuery query1 : query.getSubQueries()){
-                if(query1 != null && query1.getR() != null){
-                    if(query1.getR().equals(SugiliteRelation.HAS_CLASS_NAME)){
-                        toAddClassQuery = false;
-                    }
-                    if(query1.getR().equals(SugiliteRelation.HAS_PACKAGE_NAME)){
-                        toAddPackageQuery = false;
-                    }
-                    if(query1.getR().equals(SugiliteRelation.IS_CLICKABLE)){
-                        toAddClickableQuery = false;
+                for (OntologyQuery query1 : coq.getSubQueries()) {
+                    if (query1 != null && query1.getR() != null) {
+                        if (query1.getR().equals(SugiliteRelation.HAS_CLASS_NAME)) {
+                            toAddClassQuery = false;
+                        }
+                        if (query1.getR().equals(SugiliteRelation.HAS_PACKAGE_NAME)) {
+                            toAddPackageQuery = false;
+                        }
+                        if (query1.getR().equals(SugiliteRelation.IS_CLICKABLE)) {
+                            toAddClickableQuery = false;
+                        }
                     }
                 }
-            }
 
-            //add classQuery and packageQuery directly to query if query is of AND type
-            if(classQuery != null && toAddClassQuery) {
-                query.addSubQuery(classQuery);
-            }
-            if(packageQuery != null && toAddPackageQuery) {
-                query.addSubQuery(packageQuery);
-            }
-            if(clickableQuery != null && toAddClickableQuery) {
-                query.addSubQuery(clickableQuery);
-            }
+                //add classQuery and packageQuery directly to query if query is of AND type
+                if (classQuery != null && toAddClassQuery) {
+                    coq.addSubQuery(classQuery);
+                }
+                if (packageQuery != null && toAddPackageQuery) {
+                    coq.addSubQuery(packageQuery);
+                }
+                if (clickableQuery != null && toAddClickableQuery) {
+                    coq.addSubQuery(clickableQuery);
+                }
 
-            return query;
+                return coq;
+            }
         }
 
-        else {
-            //create a parent query of AND type
-            OntologyQuery parentQuery = new OntologyQuery(OntologyQuery.relationType.AND);
+        // ELSE
+        //create a parent query of AND type
+        CombinedOntologyQuery parentQuery = new CombinedOntologyQuery(CombinedOntologyQuery.RelationType.AND);
 
-            if (query.getOntologyQueryFilter() != null) {
-                parentQuery.setOntologyQueryFilter(query.getOntologyQueryFilter());
-                query.setOntologyQueryFilter(null);
-            }
-            if(query != null) {
-                parentQuery.addSubQuery(query);
-            }
-            if(classQuery != null && toAddClassQuery) {
-                parentQuery.addSubQuery(classQuery);
-            }
-            if(packageQuery != null && toAddPackageQuery) {
-                parentQuery.addSubQuery(packageQuery);
-            }
-            if(clickableQuery != null && toAddClickableQuery) {
-                parentQuery.addSubQuery(clickableQuery);
-            }
-
-            return parentQuery;
+        if (query.getOntologyQueryFilter() != null) {
+            parentQuery.setOntologyQueryFilter(query.getOntologyQueryFilter());
+            query.setOntologyQueryFilter(null);
         }
+        if(query != null) {
+            parentQuery.addSubQuery(query);
+        }
+        if(classQuery != null && toAddClassQuery) {
+            parentQuery.addSubQuery(classQuery);
+        }
+        if(packageQuery != null && toAddPackageQuery) {
+            parentQuery.addSubQuery(packageQuery);
+        }
+        if(clickableQuery != null && toAddClickableQuery) {
+            parentQuery.addSubQuery(clickableQuery);
+        }
+
+        return parentQuery;
     }
 
     public static boolean isSameNode(Node a, Node b) {
@@ -192,42 +172,45 @@ public class OntologyQueryUtils {
         if(query1.toString().equals(query2.toString())){
             return query1;
         }
-        OntologyQuery result = new OntologyQuery(OntologyQuery.relationType.AND);
+        CombinedOntologyQuery result = new CombinedOntologyQuery(CombinedOntologyQuery.RelationType.AND);
+        result.addSubQuery(query1.clone());
+        result.addSubQuery(query2.clone());
+        result.flattenConj();
 
-        if(query1.getSubRelation().equals(OntologyQuery.relationType.AND)){
-            for(OntologyQuery subQuery : query1.getSubQueries()){
-                if(! addedQueryString.contains(subQuery.toString())){
-                    result.addSubQuery(OntologyQuery.deserialize(subQuery.toString()));
-                    addedQueryString.add(subQuery.toString());
-                }
-            }
-        }
-        else{
-            result.addSubQuery(OntologyQuery.deserialize(query1.toString()));
-            addedQueryString.add(query1.toString());
-        }
-
-        if(query2.getSubRelation().equals(OntologyQuery.relationType.AND)){
-            for(OntologyQuery subQuery : query2.getSubQueries()){
-                if(! addedQueryString.contains(subQuery.toString())){
-                    result.addSubQuery(OntologyQuery.deserialize(subQuery.toString()));
-                    addedQueryString.add(subQuery.toString());
-                }
-            }
-        }
-        else{
-            result.addSubQuery(OntologyQuery.deserialize(query2.toString()));
-            addedQueryString.add(query2.toString());
-        }
-
-        //TODO: fix the combination of ontology query
-        if(query1.getOntologyQueryFilter() != null){
-            result.setOntologyQueryFilter(query1.getOntologyQueryFilter());
-        }
-
-        if(query2.getOntologyQueryFilter() != null){
-            result.setOntologyQueryFilter(query2.getOntologyQueryFilter());
-        }
+//        if(query1.getSubRelation().equals(CombinedOntologyQuery.RelationType.AND)){
+//            for(OntologyQuery subQuery : query1.getSubQueries()){
+//                if(! addedQueryString.contains(subQuery.toString())){
+//                    result.addSubQuery(OntologyQuery.deserialize(subQuery.toString()));
+//                    addedQueryString.add(subQuery.toString());
+//                }
+//            }
+//        }
+//        else{
+//            result.addSubQuery(OntologyQuery.deserialize(query1.toString()));
+//            addedQueryString.add(query1.toString());
+//        }
+//
+//        if(query2.getSubRelation().equals(CombinedOntologyQuery.RelationType.AND)){
+//            for(OntologyQuery subQuery : query2.getSubQueries()){
+//                if(! addedQueryString.contains(subQuery.toString())){
+//                    result.addSubQuery(OntologyQuery.deserialize(subQuery.toString()));
+//                    addedQueryString.add(subQuery.toString());
+//                }
+//            }
+//        }
+//        else{
+//            result.addSubQuery(OntologyQuery.deserialize(query2.toString()));
+//            addedQueryString.add(query2.toString());
+//        }
+//
+//        //TODO: fix the combination of ontology query
+//        if(query1.getOntologyQueryFilter() != null){
+//            result.setOntologyQueryFilter(query1.getOntologyQueryFilter());
+//        }
+//
+//        if(query2.getOntologyQueryFilter() != null){
+//            result.setOntologyQueryFilter(query2.getOntologyQueryFilter());
+//        }
 
         return result;
     }

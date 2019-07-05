@@ -11,11 +11,7 @@ import java.util.Arrays;
 import edu.cmu.hcii.sugilite.Const;
 import edu.cmu.hcii.sugilite.model.operation.trinary.SugiliteLoadVariableOperation;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteOperation;
-import edu.cmu.hcii.sugilite.ontology.OntologyQuery;
-import edu.cmu.hcii.sugilite.ontology.OntologyQueryFilter;
-import edu.cmu.hcii.sugilite.ontology.SerializableOntologyQuery;
-import edu.cmu.hcii.sugilite.ontology.SugiliteEntity;
-import edu.cmu.hcii.sugilite.ontology.SugiliteRelation;
+import edu.cmu.hcii.sugilite.ontology.*;
 
 /**
  * Created by Wanling Ding on 22/02/2018.
@@ -460,17 +456,18 @@ public class OntologyDescriptionGenerator {
     private String descriptionForSingleQuery(OntologyQuery ontologyQuery) {
         String[] objectString = new String[1];
         SugiliteRelation sugiliteRelation = ontologyQuery.getR();
-        if(ontologyQuery.getObject() != null) {
-            SugiliteEntity[] objectArr = ontologyQuery.getObject().toArray(new SugiliteEntity[ontologyQuery.getObject().size()]);
-            if(sugiliteRelation.equals(SugiliteRelation.HAS_CLASS_NAME)) {
-                objectString[0] = ObjectTranslation.getTranslation(objectArr[0].toString());
-            }
-            else {
-                if (sugiliteRelation.equals(SugiliteRelation.HAS_PACKAGE_NAME)) {
-                    objectString[0] = getAppName(objectArr[0].toString());
-                }
-                else {
-                    objectString[0] = objectArr[0].toString();
+        if (ontologyQuery instanceof LeafOntologyQuery) {
+            LeafOntologyQuery loq = (LeafOntologyQuery)ontologyQuery;
+            if (loq.getObject() != null) {
+                SugiliteEntity[] objectArr = loq.getObject().toArray(new SugiliteEntity[loq.getObject().size()]);
+                if (sugiliteRelation.equals(SugiliteRelation.HAS_CLASS_NAME)) {
+                    objectString[0] = ObjectTranslation.getTranslation(objectArr[0].toString());
+                } else {
+                    if (sugiliteRelation.equals(SugiliteRelation.HAS_PACKAGE_NAME)) {
+                        objectString[0] = getAppName(objectArr[0].toString());
+                    } else {
+                        objectString[0] = objectArr[0].toString();
+                    }
                 }
             }
         }
@@ -546,18 +543,18 @@ public class OntologyDescriptionGenerator {
     }
 
     /**
-     * Get the natural language description for a SerializableOntologyQuery
+     * Get the natural language description for an OntologyQuery
      * @param ontologyQuery
      * @return
      */
     public String getDescriptionForOntologyQuery(OntologyQuery ontologyQuery) {
-        String postfix = "";
+        String postfix = ""; // pretty sure this isn't used
 
-        SugiliteRelation r = ontologyQuery.getR();
         OntologyQueryFilter filter = ontologyQuery.getOntologyQueryFilter();
 
-        if (ontologyQuery.getSubRelation() == OntologyQuery.relationType.nullR) {
-            if (ontologyQuery.getR().equals(SugiliteRelation.IS)) {
+        if (ontologyQuery instanceof LeafOntologyQuery) {
+            LeafOntologyQuery loq = (LeafOntologyQuery)ontologyQuery;
+            if (loq.getR().equals(SugiliteRelation.IS)) {
                 return "";
             }
             if (filter == null) {
@@ -566,34 +563,34 @@ public class OntologyDescriptionGenerator {
             else {
                 return descriptionForSingleQueryWithFilter(ontologyQuery) + postfix;
             }
+        } else if (ontologyQuery instanceof CombinedOntologyQuery) {
+            CombinedOntologyQuery coq = (CombinedOntologyQuery)ontologyQuery;
+            OntologyQuery[] subQueryArray = coq.getSubQueries().toArray(new OntologyQuery[coq.getSubQueries().size()]);
+            Arrays.sort(subQueryArray, RelationWeight.ontologyQueryComparator);
 
+            if (coq.getSubRelation() == CombinedOntologyQuery.RelationType.AND || coq.getSubRelation() == CombinedOntologyQuery.RelationType.OR || coq.getSubRelation() == CombinedOntologyQuery.RelationType.PREV) {
+                int size = subQueryArray.length;
+                String[] arr = new String[size];
+                for (int i = 0; i < size; i++) {
+                    arr[i] = getDescriptionForOntologyQuery(subQueryArray[i]);
+                }
+
+                if (coq.getSubRelation() == CombinedOntologyQuery.RelationType.AND) {
+                    System.out.println(translationWithRelationshipAnd(arr,subQueryArray, filter));
+                    System.out.println(postfix);
+                    return translationWithRelationshipAnd(arr,subQueryArray, filter) + postfix;
+                }
+                else if (coq.getSubRelation() == CombinedOntologyQuery.RelationType.OR) {
+                    return translationWithRelationshipOr(arr, subQueryArray, filter) + postfix;
+                }
+
+                else if (coq.getSubRelation() == CombinedOntologyQuery.RelationType.PREV) {
+                    return translationWithRelationshipPrev(arr, coq.getR()) + postfix;
+                }
+            }
+        } else {
+            // oh boy
         }
-
-        OntologyQuery[] subQueryArray = ontologyQuery.getSubQueries().toArray(new OntologyQuery[ontologyQuery.getSubQueries().size()]);
-        Arrays.sort(subQueryArray, RelationWeight.ontologyQueryComparator);
-
-        if (ontologyQuery.getSubRelation() == OntologyQuery.relationType.AND || ontologyQuery.getSubRelation() == OntologyQuery.relationType.OR || ontologyQuery.getSubRelation() == OntologyQuery.relationType.PREV) {
-            int size = subQueryArray.length;
-            String[] arr = new String[size];
-            for (int i = 0; i < size; i++) {
-                arr[i] = getDescriptionForOntologyQuery(subQueryArray[i]);
-            }
-
-            if (ontologyQuery.getSubRelation() == OntologyQuery.relationType.AND) {
-                System.out.println(translationWithRelationshipAnd(arr,subQueryArray, filter));
-                System.out.println(postfix);
-                return translationWithRelationshipAnd(arr,subQueryArray, filter) + postfix;
-            }
-            else if (ontologyQuery.getSubRelation() == OntologyQuery.relationType.OR) {
-                return translationWithRelationshipOr(arr, subQueryArray, filter) + postfix;
-            }
-
-            else if (ontologyQuery.getSubRelation() == OntologyQuery.relationType.PREV) {
-                return translationWithRelationshipPrev(arr, r) + postfix;
-            }
-        }
-
-
 
         return "NULL";
     }

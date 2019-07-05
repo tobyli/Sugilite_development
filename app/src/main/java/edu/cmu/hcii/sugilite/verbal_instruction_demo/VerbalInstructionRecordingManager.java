@@ -5,7 +5,6 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.text.Html;
-import android.view.WindowManager;
 import android.widget.Toast;
 
 import java.util.AbstractMap;
@@ -24,12 +23,8 @@ import edu.cmu.hcii.sugilite.model.block.special_operation.SugiliteSpecialOperat
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteOperation;
 import edu.cmu.hcii.sugilite.model.operation.unary.SugiliteClickOperation;
-import edu.cmu.hcii.sugilite.model.operation.unary.SugiliteUnaryOperation;
-import edu.cmu.hcii.sugilite.ontology.OntologyQuery;
-import edu.cmu.hcii.sugilite.ontology.SerializableOntologyQuery;
-import edu.cmu.hcii.sugilite.ontology.SerializableUISnapshot;
-import edu.cmu.hcii.sugilite.ontology.SugiliteEntity;
-import edu.cmu.hcii.sugilite.ontology.SugiliteRelation;
+import edu.cmu.hcii.sugilite.ontology.*;
+import edu.cmu.hcii.sugilite.ontology.CombinedOntologyQuery;
 import edu.cmu.hcii.sugilite.recording.ReadableDescriptionGenerator;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.server_comm.VerbalInstructionServerResults;
 
@@ -69,21 +64,21 @@ public class VerbalInstructionRecordingManager {
             //if recording is in process
 
             //de-serialize the query
-            OntologyQuery parentQuery = new OntologyQuery(OntologyQuery.relationType.AND);
+            CombinedOntologyQuery parentQuery = new CombinedOntologyQuery(CombinedOntologyQuery.RelationType.AND);
 
             String queryFormula = result.getFormula();
             OntologyQuery query = OntologyQuery.deserialize(queryFormula);
             parentQuery.addSubQuery(query);
 
             if(node.getClassName() != null) {
-                OntologyQuery classQuery = new OntologyQuery(OntologyQuery.relationType.nullR);
+                LeafOntologyQuery classQuery = new LeafOntologyQuery();
                 classQuery.addObject(new SugiliteEntity<>(-1, String.class, node.getClassName()));
                 classQuery.setQueryFunction(SugiliteRelation.HAS_CLASS_NAME);
                 parentQuery.addSubQuery(classQuery);
             }
 
             if(node.getPackageName() != null) {
-                OntologyQuery packageQuery = new OntologyQuery(OntologyQuery.relationType.nullR);
+                LeafOntologyQuery packageQuery = new LeafOntologyQuery();
                 packageQuery.addObject(new SugiliteEntity<>(-1, String.class, node.getPackageName()));
                 packageQuery.setQueryFunction(SugiliteRelation.HAS_PACKAGE_NAME);
                 parentQuery.addSubQuery(packageQuery);
@@ -125,7 +120,7 @@ public class VerbalInstructionRecordingManager {
     }
 
     /**
-     * generate a SugiliteOperation block based on an OntologyQuery
+     * generate a SugiliteOperation block based on an CombinedOntologyQuery
      * @param query
      * @param formula
      * @return

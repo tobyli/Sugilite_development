@@ -465,8 +465,8 @@ public class OntologyDescriptionGenerator {
         SugiliteRelation sugiliteRelation = getRForQuery(ontologyQuery);
         if (ontologyQuery instanceof LeafOntologyQuery) {
             LeafOntologyQuery loq = (LeafOntologyQuery)ontologyQuery;
-            if (loq.getObject() != null) {
-                SugiliteEntity[] objectArr = loq.getObject().toArray(new SugiliteEntity[loq.getObject().size()]);
+            if (loq.getObjectSet() != null) {
+                SugiliteEntity[] objectArr = loq.getObjectSet().toArray(new SugiliteEntity[loq.getObjectSet().size()]);
                 if (sugiliteRelation.equals(SugiliteRelation.HAS_CLASS_NAME)) {
                     objectString[0] = ObjectTranslation.getTranslation(objectArr[0].toString());
                 } else {

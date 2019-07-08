@@ -10,7 +10,7 @@ import java.util.stream.Collectors;
  * Created by nancyli on 9/27/17.
  */
 
-public class CombinedOntologyQuery extends OntologyQuery {
+public class CombinedOntologyQuery extends OntologyQueryWithSubQueries {
     protected SugiliteRelation r = null;
 
     public SugiliteRelation getR() {
@@ -40,8 +40,8 @@ public class CombinedOntologyQuery extends OntologyQuery {
             subQueries.add(new CombinedOntologyQuery(s));
         }
 //        else{
-//            Set<SugiliteSerializableEntity> so = sq.getObject();
-//            Set<SugiliteSerializableEntity> ss = sq.getSubject();
+//            Set<SugiliteSerializableEntity> so = sq.getObjectSet();
+//            Set<SugiliteSerializableEntity> ss = sq.getSubjectSet();
 //            if(so != null){
 //                object = new HashSet<>();
 //                for(SugiliteSerializableEntity se : so){
@@ -86,6 +86,7 @@ public class CombinedOntologyQuery extends OntologyQuery {
 
     public RelationType getSubRelation() {return this.subRelation;}
 
+    @Override
     public Set<OntologyQuery> getSubQueries() {return this.subQueries;}
 
     @Override

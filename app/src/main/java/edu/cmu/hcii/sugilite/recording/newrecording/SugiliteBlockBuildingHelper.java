@@ -40,7 +40,7 @@ import edu.cmu.hcii.sugilite.model.operation.SugiliteOperation;
 import edu.cmu.hcii.sugilite.model.operation.unary.SugiliteClickOperation;
 import edu.cmu.hcii.sugilite.ontology.*;
 import edu.cmu.hcii.sugilite.ontology.description.OntologyDescriptionGenerator;
-import edu.cmu.hcii.sugilite.ontology.CombinedOntologyQuery;
+import edu.cmu.hcii.sugilite.ontology.OntologyQueryWithSubQueries;
 import edu.cmu.hcii.sugilite.recording.ReadableDescriptionGenerator;
 
 import static edu.cmu.hcii.sugilite.Const.SQL_SCRIPT_DAO;
@@ -400,7 +400,7 @@ public class SugiliteBlockBuildingHelper {
     public static OntologyQuery stripOntologyQuery(OntologyQuery query){
         // TODO make this work recursively?
         if (query instanceof CombinedOntologyQuery) {
-            CombinedOntologyQuery queryCloned = ((CombinedOntologyQuery)query).clone();
+            OntologyQueryWithSubQueries queryCloned = ((CombinedOntologyQuery)query).clone();
 
             List<OntologyQuery> queriesToRemove = new ArrayList<>();
             for (OntologyQuery subQuery : queryCloned.getSubQueries()) {
@@ -427,7 +427,7 @@ public class SugiliteBlockBuildingHelper {
             }
             return queryCloned;
         } else {
-            // TODO what if its not CombinedOntologyQuery?
+            // TODO what if its not OntologyQueryWithSubQueries?
             return query.clone();
         }
     }

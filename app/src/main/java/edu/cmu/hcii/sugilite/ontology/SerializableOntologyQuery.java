@@ -16,11 +16,11 @@ public class SerializableOntologyQuery implements Serializable {
     private Set<SugiliteSerializableEntity> subject = null;
     private OntologyQueryFilter ontologyQueryFilter = null;
 
-//    public SerializableOntologyQuery(CombinedOntologyQuery q){
+//    public SerializableOntologyQuery(OntologyQueryWithSubQueries q){
 //        r = q.getR();
 //        SubRelation = q.getSubRelation();
 //        ontologyQueryFilter = q.getOntologyQueryFilter();
-//        if(SubRelation != CombinedOntologyQuery.RelationType.nullR) {
+//        if(SubRelation != OntologyQueryWithSubQueries.RelationType.nullR) {
 //            // for nested query, recursively construct SerializableOntologyQuery
 //            SubQueries = new HashSet<SerializableOntologyQuery>();
 //            Set<OntologyQuery> pSubQueries = q.getSubQueries();
@@ -30,8 +30,8 @@ public class SerializableOntologyQuery implements Serializable {
 //        }
 //        else{
 //            // otherwise, transform SugiliteEntity to SugiliteSerializableEntity
-//            Set<SugiliteEntity> po = q.getObject();
-//            Set<SugiliteEntity> ps = q.getSubject();
+//            Set<SugiliteEntity> po = q.getObjectSet();
+//            Set<SugiliteEntity> ps = q.getSubjectSet();
 //            if(po != null){
 //                object = new HashSet<SugiliteSerializableEntity>();
 //                for(SugiliteEntity o : po) {

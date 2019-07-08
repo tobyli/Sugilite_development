@@ -55,8 +55,8 @@ public class OntologyQueryUtils {
                 if(coq.getSubQueries().size() == 1){
                     OntologyQuery subQuery = new ArrayList<>(coq.getSubQueries()).get(0);
 
-                    // coq.setSubjectSet(subQuery.getSubject());
-                    // coq.setObjectSet(subQuery.getObject());
+                    // coq.setSubjectSet(subQuery.getSubjectSet());
+                    // coq.setObjectSet(subQuery.getObjectSet());
                     // coq.setSubRelation(subQuery.getSubRelation());
                     // coq.setQueryFunction(subQuery.getR());
                     // coq.setSubQueries(subQuery.getSubQueries());
@@ -184,7 +184,7 @@ public class OntologyQueryUtils {
         result.addSubQuery(query2.clone());
         result.flattenConj();
 
-//        if(query1.getSubRelation().equals(CombinedOntologyQuery.RelationType.AND)){
+//        if(query1.getSubRelation().equals(OntologyQueryWithSubQueries.RelationType.AND)){
 //            for(OntologyQuery subQuery : query1.getSubQueries()){
 //                if(! addedQueryString.contains(subQuery.toString())){
 //                    result.addSubQuery(OntologyQuery.deserialize(subQuery.toString()));
@@ -197,7 +197,7 @@ public class OntologyQueryUtils {
 //            addedQueryString.add(query1.toString());
 //        }
 //
-//        if(query2.getSubRelation().equals(CombinedOntologyQuery.RelationType.AND)){
+//        if(query2.getSubRelation().equals(OntologyQueryWithSubQueries.RelationType.AND)){
 //            for(OntologyQuery subQuery : query2.getSubQueries()){
 //                if(! addedQueryString.contains(subQuery.toString())){
 //                    result.addSubQuery(OntologyQuery.deserialize(subQuery.toString()));

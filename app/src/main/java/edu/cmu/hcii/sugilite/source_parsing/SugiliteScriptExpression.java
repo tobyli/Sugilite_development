@@ -1,9 +1,6 @@
 package edu.cmu.hcii.sugilite.source_parsing;
 
-import edu.cmu.hcii.sugilite.ontology.CombinedOntologyQuery;
-import edu.cmu.hcii.sugilite.ontology.LeafOntologyQuery;
-import edu.cmu.hcii.sugilite.ontology.OntologyQuery;
-import edu.cmu.hcii.sugilite.ontology.SugiliteEntity;
+import edu.cmu.hcii.sugilite.ontology.*;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
@@ -212,8 +209,8 @@ public class SugiliteScriptExpression<T> {
     private void extractVariableFromQuery(OntologyQuery query, SugiliteStartingBlock startingBlock) {
         if (query instanceof LeafOntologyQuery) {
             LeafOntologyQuery loq = (LeafOntologyQuery)query;
-            if (loq.getObject() != null) {
-                for (SugiliteEntity sugiliteEntity : loq.getObject()) {
+            if (loq.getObjectSet() != null) {
+                for (SugiliteEntity sugiliteEntity : loq.getObjectSet()) {
                     if (sugiliteEntity.getEntityValue() instanceof String) {
                         if (((String) sugiliteEntity.getEntityValue()).startsWith("@")) {
                             String variableName = sugiliteEntity.getEntityValue().toString().substring(1);
@@ -227,7 +224,7 @@ public class SugiliteScriptExpression<T> {
             }
         }
         if (query instanceof CombinedOntologyQuery) {
-            CombinedOntologyQuery coq = (CombinedOntologyQuery)query;
+            OntologyQueryWithSubQueries coq = (OntologyQueryWithSubQueries)query;
             if (coq.getSubQueries() != null) {
                 for (OntologyQuery ontologyQuery : coq.getSubQueries()) {
                     if (ontologyQuery != null && startingBlock != null) {

@@ -24,7 +24,6 @@ import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteOperation;
 import edu.cmu.hcii.sugilite.model.operation.unary.SugiliteClickOperation;
 import edu.cmu.hcii.sugilite.ontology.*;
-import edu.cmu.hcii.sugilite.ontology.CombinedOntologyQuery;
 import edu.cmu.hcii.sugilite.recording.ReadableDescriptionGenerator;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.server_comm.VerbalInstructionServerResults;
 
@@ -120,7 +119,7 @@ public class VerbalInstructionRecordingManager {
     }
 
     /**
-     * generate a SugiliteOperation block based on an CombinedOntologyQuery
+     * generate a SugiliteOperation block based on an OntologyQueryWithSubQueries
      * @param query
      * @param formula
      * @return

@@ -147,7 +147,15 @@ public class LeafOntologyQuery extends OntologyQuery {
 
     public BiFunction<SubjectEntityObjectEntityPair, UISnapshot, Boolean> getQueryFunction() {return this.QueryFunction;}
 
-    public Set<SugiliteEntity> getObject() {
+    public Set<SugiliteSerializableEntity> getObject() {
+        return object;
+    }
+
+    public Set<SugiliteSerializableEntity> getSubject() {
+        return subject;
+    }
+
+    public Set<SugiliteEntity> getObjectSet() {
         Set<SugiliteEntity> result = new HashSet<>();
         for (SugiliteSerializableEntity se : object) {
             result.add(new SugiliteEntity(se));
@@ -155,7 +163,7 @@ public class LeafOntologyQuery extends OntologyQuery {
         return result;
     }
 
-    public Set<SugiliteEntity> getSubject() {
+    public Set<SugiliteEntity> getSubjectSet() {
         Set<SugiliteEntity> result = new HashSet<>();
         for (SugiliteSerializableEntity se : subject) {
             result.add(new SugiliteEntity(se));

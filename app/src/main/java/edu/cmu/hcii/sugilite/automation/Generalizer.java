@@ -31,6 +31,7 @@ import static edu.cmu.hcii.sugilite.Const.SQL_SCRIPT_DAO;
  * @date 8/24/16
  * @time 10:18 AM
  */
+@Deprecated
 public class Generalizer {
 
     private SugiliteScriptDao sugiliteScriptDao;

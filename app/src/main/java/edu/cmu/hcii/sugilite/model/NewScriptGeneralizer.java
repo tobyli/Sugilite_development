@@ -7,6 +7,7 @@ import android.util.Pair;
 import android.widget.Toast;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -18,12 +19,16 @@ import edu.cmu.hcii.sugilite.model.block.SugiliteBlockMetaInfo;
 import edu.cmu.hcii.sugilite.model.block.SugiliteConditionBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
+import edu.cmu.hcii.sugilite.model.variable.StringVariable;
 import edu.cmu.hcii.sugilite.model.variable.Variable;
+import edu.cmu.hcii.sugilite.ontology.OntologyQuery;
 import edu.cmu.hcii.sugilite.ontology.SerializableOntologyQuery;
 import edu.cmu.hcii.sugilite.ontology.SerializableUISnapshot;
+import edu.cmu.hcii.sugilite.ontology.SugiliteEntity;
 import edu.cmu.hcii.sugilite.ontology.SugiliteRelation;
 import edu.cmu.hcii.sugilite.ontology.SugiliteSerializableEntity;
 import edu.cmu.hcii.sugilite.ontology.SugiliteSerializableTriple;
+import edu.cmu.hcii.sugilite.ontology.description.OntologyDescriptionGenerator;
 
 import static edu.cmu.hcii.sugilite.ontology.SugiliteRelation.HAS_CHILD;
 import static edu.cmu.hcii.sugilite.ontology.SugiliteRelation.HAS_CLASS_NAME;
@@ -36,9 +41,12 @@ import static edu.cmu.hcii.sugilite.ontology.SugiliteRelation.IS_CLICKABLE;
  * @time 4:29 PM
  */
 public class NewScriptGeneralizer {
-    Activity context;
+    private Activity context;
+    private OntologyDescriptionGenerator ontologyDescriptionGenerator;
+
     public NewScriptGeneralizer(Activity context) {
         this.context = context;
+        this.ontologyDescriptionGenerator = new OntologyDescriptionGenerator(context);
     }
 
     /**
@@ -47,8 +55,8 @@ public class NewScriptGeneralizer {
      * @param userUtterance
      */
     public void extractParameters (SugiliteStartingBlock sugiliteStartingBlock, String userUtterance) {
-        //go through all operation blocks to check if any clicked entity matches the user utterance
-        List<SugiliteOperationBlock> allOperationBlocksInTheScript = getAllOperationBlocks(sugiliteStartingBlock);
+
+        //clear the existing variable maps
         if (sugiliteStartingBlock.variableNameDefaultValueMap == null) {
             sugiliteStartingBlock.variableNameDefaultValueMap = new HashMap<>();
         }
@@ -59,37 +67,35 @@ public class NewScriptGeneralizer {
         sugiliteStartingBlock.variableNameDefaultValueMap.clear();
         sugiliteStartingBlock.variableNameAlternativeValueMap.clear();
 
+        //go through all operation blocks to check if * the selected data description * of any clicked entity matches the user utterance
+        for (SugiliteOperationBlock operationBlock : getAllOperationBlocks(sugiliteStartingBlock)) {
 
-        for (SugiliteOperationBlock operationBlock : allOperationBlocksInTheScript) {
-
-            SerializableOntologyQuery ontologyQuery = operationBlock.getOperation().getDataDescriptionQueryIfAvailable();
+            OntologyQuery ontologyQuery = operationBlock.getOperation().getDataDescriptionQueryIfAvailable();
             if ((!operationBlock.getOperation().containsDataDescriptionQuery()) || ontologyQuery == null) {
                 // skip operation blocks without a data description query
                 continue;
             }
 
-            List<Pair<SugiliteRelation, String>> allStringsUsedInTheDataDescriptionQuery = new ArrayList<>();
-
-
-
-
+            List<Pair<SugiliteRelation, String>> allStringsUsedInTheDataDescriptionQuery = getAllStringsUsedInTheDataDescriptionQuery(ontologyQuery);
             SugiliteBlockMetaInfo blockMetaInfo = operationBlock.getSugiliteBlockMetaInfo();
 
             if (blockMetaInfo.getUiSnapshot() != null && blockMetaInfo.getTargetEntity() != null) {
-                List<String> allTextAndChildTextLabels = getAllTextAndChildTextLabels(blockMetaInfo.getTargetEntity(), blockMetaInfo.getUiSnapshot());
-                for (String textLabel : allTextAndChildTextLabels) {
+                for (Pair<SugiliteRelation, String> sugiliteRelationTextLabelPair : allStringsUsedInTheDataDescriptionQuery) {
                     //TODO: support more complex matching method than exact string matching
+
+                    SugiliteRelation relation = sugiliteRelationTextLabelPair.first;
+                    String textLabel = sugiliteRelationTextLabelPair.second;
+
                     if (userUtterance.contains(textLabel.toLowerCase())) {
                         //matched
                         System.out.printf("Found parameter: \"%s\" in the utterance was found in the operation %s\n", textLabel, operationBlock.toString());
 
-                        //TODO: extract possible values from uiSnapshot
-                        Map<SugiliteSerializableEntity<Node>, List<String>> alternativeNodeTextLabelsMap = getPossibleValueForParameter(blockMetaInfo.getTargetEntity(), blockMetaInfo.getUiSnapshot());
-
+                        //extract possible values from uiSnapshot
+                        Map<SugiliteSerializableEntity<Node>, List<String>> alternativeNodeTextLabelsMap = getPossibleValueForParameter(blockMetaInfo.getTargetEntity(), blockMetaInfo.getUiSnapshot(), relation);
 
                         //construct the Variable object
-                        String variableName = textLabel.toLowerCase();
-                        Variable variable = new Variable(Variable.USER_INPUT, variableName);
+                        String variableName = textLabel;
+                        Variable variable = new StringVariable(variableName, variableName);
                         Set<String> alternativeValue = new HashSet<>();
                         alternativeNodeTextLabelsMap.forEach((x, y) -> alternativeValue.addAll(y));
 
@@ -97,6 +103,10 @@ public class NewScriptGeneralizer {
                         //fill the results back to the SugiliteStartingBlock
                         sugiliteStartingBlock.variableNameDefaultValueMap.put(variableName, variable);
                         sugiliteStartingBlock.variableNameAlternativeValueMap.put(variableName, alternativeValue);
+
+                        //edit the original data description query to reflect the new parameters
+                        replaceParametersInOntologyQuery (ontologyQuery, variableName);
+                        operationBlock.setDescription(ontologyDescriptionGenerator.getDescriptionForOperation(operationBlock.getOperation(), operationBlock.getOperation().getDataDescriptionQueryIfAvailable()));
 
 
                         //print out the found parameters and alternative values
@@ -117,7 +127,47 @@ public class NewScriptGeneralizer {
             }
         }
     }
-    private Map<SugiliteSerializableEntity<Node>, List<String>> getPossibleValueForParameter(SugiliteSerializableEntity<Node> nodeEntity, SerializableUISnapshot uiSnapshot) {
+
+    private void replaceParametersInOntologyQuery (OntologyQuery ontologyQuery, String parameter) {
+        if (ontologyQuery.getObject() != null) {
+            for (SugiliteEntity objectEntity : ontologyQuery.getObject()) {
+                if (objectEntity.getEntityValue() instanceof String && parameter.equals(objectEntity.getEntityValue())) {
+                    objectEntity.setEntityValue("@" + objectEntity.getEntityValue());
+                }
+            }
+        }
+
+        if (ontologyQuery.getSubQueries() != null) {
+            for (OntologyQuery subQuery : ontologyQuery.getSubQueries()) {
+                replaceParametersInOntologyQuery(subQuery, parameter);
+            }
+        }
+    }
+
+
+
+    private List<Pair<SugiliteRelation, String>> getAllStringsUsedInTheDataDescriptionQuery (OntologyQuery ontologyQuery) {
+        List<Pair<SugiliteRelation, String>> allStringsUsedInTheDataDescriptionQuery = new ArrayList<>();
+
+        if (ontologyQuery.getObject() != null && ontologyQuery.getR() != null) {
+            for (SugiliteEntity objectEntity : ontologyQuery.getObject()) {
+                if (objectEntity.getEntityValue() instanceof String) {
+                    allStringsUsedInTheDataDescriptionQuery.add(new Pair<>(ontologyQuery.getR(), (String) objectEntity.getEntityValue()));
+                }
+            }
+        }
+
+        if (ontologyQuery.getSubQueries() != null) {
+            for (OntologyQuery subQuery : ontologyQuery.getSubQueries()) {
+                allStringsUsedInTheDataDescriptionQuery.addAll(getAllStringsUsedInTheDataDescriptionQuery(subQuery));
+            }
+        }
+
+        return allStringsUsedInTheDataDescriptionQuery;
+    }
+
+
+    private Map<SugiliteSerializableEntity<Node>, List<String>> getPossibleValueForParameter(SugiliteSerializableEntity<Node> nodeEntity, SerializableUISnapshot uiSnapshot, SugiliteRelation relation) {
         Map<SugiliteSerializableEntity<Node>, List<String>> alternativeNodeTextLabelsMap = new HashMap<>();
         SugiliteSerializableEntity<Node> currentEntity = nodeEntity;
         String nodeEntityClassName = getUISnapshotRelationValue(nodeEntity, HAS_CLASS_NAME, uiSnapshot);
@@ -129,11 +179,15 @@ public class NewScriptGeneralizer {
                 for (SugiliteSerializableEntity<Node> sibling : immediateChildNodeEntities) {
                     String siblingIsClickable = getUISnapshotRelationValue(sibling, IS_CLICKABLE, uiSnapshot);
                     String siblingClassName = getUISnapshotRelationValue(sibling, HAS_CLASS_NAME, uiSnapshot);
-                    List<String> siblingTextLabels = getAllTextAndChildTextLabels(sibling, uiSnapshot);
+
+                    //TODO: expand this to support relations other than text labels
+                    //List<String> siblingTextLabels = getAllTextAndChildTextLabels(sibling, uiSnapshot);
+                    List<String> siblingValues = getAllObjectValues(sibling, uiSnapshot, relation);
+
                     if (siblingIsClickable != null && siblingIsClickable.equals("true") &&
                             siblingClassName != null && siblingClassName.equals(nodeEntityClassName) &&
-                            siblingTextLabels != null && siblingTextLabels.size() > 0)  {
-                        alternativeNodeTextLabelsMap.put(sibling, siblingTextLabels);
+                            siblingValues != null && siblingValues.size() > 0)  {
+                        alternativeNodeTextLabelsMap.put(sibling, siblingValues);
                     }
                 }
                 if (alternativeNodeTextLabelsMap.size() > 0) {
@@ -192,6 +246,21 @@ public class NewScriptGeneralizer {
     }
 
 
+    private List<String> getAllObjectValues(SugiliteSerializableEntity<Node> nodeEntity, SerializableUISnapshot uiSnapshot, SugiliteRelation sugiliteRelation) {
+        List<String> result = new ArrayList<>();
+        Set<SugiliteSerializableTriple> triples = uiSnapshot.getSubjectTriplesMap().get("@" + String.valueOf(nodeEntity.getEntityId()));
+        if (triples != null) {
+            for (SugiliteSerializableTriple triple : triples) {
+                if (triple.getPredicateStringValue().equals(sugiliteRelation.getRelationName())) {
+                    String objectStringValue = triple.getObjectStringValue();
+                    if (objectStringValue != null) {
+                        result.add(objectStringValue);
+                    }
+                }
+            }
+        }
+        return result;
+    }
 
     /**
      * get all text and child text labels for a nodeEntity in a uiSnapshot
@@ -211,11 +280,13 @@ public class NewScriptGeneralizer {
             }
             //add the text labels of its children
             Set<SugiliteSerializableTriple> triples = uiSnapshot.getSubjectTriplesMap().get("@" + String.valueOf(nodeEntity.getEntityId()));
-            for (SugiliteSerializableTriple triple : triples) {
-                if (triple.getPredicateStringValue().equals(HAS_CHILD.getRelationName())){
-                    String targetEntityId = triple.getObjectStringValue();
-                    if (uiSnapshot.getSugiliteEntityIdSugiliteEntityMap().containsKey(targetEntityId)){
-                        allTextAndChildTextLabels.addAll(getAllTextAndChildTextLabels(uiSnapshot.getSugiliteEntityIdSugiliteEntityMap().get(targetEntityId), uiSnapshot));
+            if (triples != null) {
+                for (SugiliteSerializableTriple triple : triples) {
+                    if (triple.getPredicateStringValue().equals(HAS_CHILD.getRelationName())) {
+                        String targetEntityId = triple.getObjectStringValue();
+                        if (uiSnapshot.getSugiliteEntityIdSugiliteEntityMap().containsKey(targetEntityId)) {
+                            allTextAndChildTextLabels.addAll(getAllTextAndChildTextLabels(uiSnapshot.getSugiliteEntityIdSugiliteEntityMap().get(targetEntityId), uiSnapshot));
+                        }
                     }
                 }
             }

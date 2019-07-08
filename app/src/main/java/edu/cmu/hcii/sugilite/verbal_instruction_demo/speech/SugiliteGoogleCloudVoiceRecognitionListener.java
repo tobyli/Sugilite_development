@@ -25,6 +25,7 @@ import java.util.List;
 import edu.cmu.hcii.sugilite.R;
 import edu.cmu.hcii.sugilite.accessibility_service.SugiliteAccessibilityService;
 
+import static android.app.Service.START_STICKY;
 import static android.content.Context.BIND_AUTO_CREATE;
 
 /**
@@ -146,7 +147,8 @@ public class SugiliteGoogleCloudVoiceRecognitionListener implements SugiliteVoic
 
         // Prepare Cloud Speech API
         ComponentName service = context.startService(new Intent(context, GoogleCloudSpeechService.class));
-        context.bindService(new Intent(context, GoogleCloudSpeechService.class), mServiceConnection, BIND_AUTO_CREATE);
+
+        context.bindService(new Intent(context, GoogleCloudSpeechService.class), mServiceConnection, START_STICKY);
 
         // Check the permission for recording voices
         if (ActivityCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO)

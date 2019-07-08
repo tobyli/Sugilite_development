@@ -41,6 +41,10 @@ public class SugiliteBlockMetaInfo implements Serializable {
         return parentBlock;
     }
 
+    public int getParentBlockId() {
+        return parentBlockId;
+    }
+
     public SugiliteSerializableEntity<Node> getTargetEntity() {
         return targetEntity;
     }

@@ -3,6 +3,7 @@ package edu.cmu.hcii.sugilite.ontology;
 import android.view.accessibility.AccessibilityNodeInfo;
 import android.graphics.Rect;
 
+import java.io.Serializable;
 import java.util.Objects;
 
 /**
@@ -10,7 +11,7 @@ import java.util.Objects;
  * @date 9/25/17
  * @time 5:57 PM
  */
-public class SugiliteEntity<T> {
+public class SugiliteEntity<T> implements Serializable {
     private Integer entityId;
     private T entityValue;
 

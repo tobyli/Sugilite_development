@@ -56,30 +56,31 @@ public class FragmentScriptListTab extends Fragment {
     private SharedPreferences sharedPreferences;
     private SugiliteScriptDao sugiliteScriptDao;
     private ServiceStatusManager serviceStatusManager;
-    private Generalizer generalizer;
     private View rootView;
     private Activity activity;
     private AlertDialog progressDialog;
+    private NewScriptGeneralizer newScriptGeneralizer;
 
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        activity = getActivity();
-        Intent intent = activity.getIntent();
+        this.activity = getActivity();
         super.onCreate(savedInstanceState);
-        rootView = inflater.inflate(R.layout.fragment_script_list, container, false);
-        View addButton = rootView.findViewById(R.id.addButton);
-        serviceStatusManager = ServiceStatusManager.getInstance(activity);
-        sharedPreferences = PreferenceManager.getDefaultSharedPreferences(activity);
-        sugiliteData = activity.getApplication() instanceof SugiliteData? (SugiliteData)activity.getApplication() : new SugiliteData();
+        this.rootView = inflater.inflate(R.layout.fragment_script_list, container, false);
+        this.serviceStatusManager = ServiceStatusManager.getInstance(activity);
+        this.sharedPreferences = PreferenceManager.getDefaultSharedPreferences(activity);
+        this.sugiliteData = activity.getApplication() instanceof SugiliteData? (SugiliteData)activity.getApplication() : new SugiliteData();
+        this.newScriptGeneralizer = new NewScriptGeneralizer(activity);
+
         if(Const.DAO_TO_USE == SQL_SCRIPT_DAO)
             this.sugiliteScriptDao = new SugiliteScriptSQLDao(activity);
         else
             this.sugiliteScriptDao = new SugiliteScriptFileDao(activity, sugiliteData);
-        generalizer = new Generalizer(activity, sugiliteData);
-        activity.setTitle("Sugilite Script List");
+        this.activity.setTitle("Sugilite Script List");
         //TODO: confirm overwrite when duplicated name
         //TODO: combine the two instances of script creation
+
+        View addButton = rootView.findViewById(R.id.addButton);
         addButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(final View v) {
@@ -173,8 +174,6 @@ public class FragmentScriptListTab extends Fragment {
         menu.add(0, ITEM_8, 0, "Edit Source");
         menu.add(0, ITEM_9, 0, "Delete");
 
-        //for debug purpose
-        menu.add(0, ITEM_10, 0, "Test New Generalize");
     }
 
     @Override
@@ -295,7 +294,9 @@ public class FragmentScriptListTab extends Fragment {
                         public void run()
                         {
                             try {
-                                generalizer.generalize(script);
+                                newScriptGeneralizer.extractParameters(script, scriptName.replace(".SugiliteScript", ""));
+                                sugiliteScriptDao.save(script);
+                                sugiliteScriptDao.commitSave();
                             }
                             catch (Exception e){
                                 e.printStackTrace();
@@ -336,43 +337,6 @@ public class FragmentScriptListTab extends Fragment {
                         sugiliteScriptDao.delete(((TextView) info.targetView).getText().toString() + ".SugiliteScript");
                         setUpScriptList();
                     }
-                    break;
-                case ITEM_10:
-                    //generalize
-                    NewScriptGeneralizer newScriptGeneralizer = new NewScriptGeneralizer();
-
-                    progressDialog = new AlertDialog.Builder(activity).setMessage(Const.LOADING_MESSAGE).create();
-                    progressDialog.getWindow().setType(OVERLAY_TYPE);
-                    progressDialog.setCanceledOnTouchOutside(false);
-                    progressDialog.show();
-                    new Thread(new Runnable() {
-                        @Override
-                        public void run()
-                        {
-                            try {
-                                newScriptGeneralizer.extractParameters(script, scriptName.replace(".SugiliteScript", ""));
-                            }
-                            catch (Exception e){
-                                e.printStackTrace();
-                            }
-                            Runnable dismissDialog = new Runnable() {
-                                @Override
-                                public void run() {
-                                    progressDialog.dismiss();
-                                    try {
-                                        setUpScriptList();
-                                    }
-                                    catch (Exception e){
-                                        e.printStackTrace();
-                                    }
-                                }
-                            };
-                            if(activity != null){
-                                activity.runOnUiThread(dismissDialog);
-                            }
-                        }
-                    }).start();
-
                     break;
             }
         }

@@ -107,6 +107,14 @@ public class ScriptDetailActivity extends AppCompatActivity implements SugiliteV
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         activityManager = (ActivityManager)getSystemService(Context.ACTIVITY_SERVICE);
         serviceStatusManager = ServiceStatusManager.getInstance(this);
+        this.context = this;
+
+        if (Const.SELECTED_SPEECH_RECOGNITION_TYPE == Const.SpeechRecognitionType.ANDROID) {
+            this.sugiliteVoiceRecognitionListener = new SugiliteAndroidAPIVoiceRecognitionListener(this, this, tts);
+        } else if (Const.SELECTED_SPEECH_RECOGNITION_TYPE == Const.SpeechRecognitionType.GOOGLE_CLOUD) {
+            this.sugiliteVoiceRecognitionListener = new SugiliteGoogleCloudVoiceRecognitionListener(this, this, tts);
+        }
+
         if (savedInstanceState == null) {
             scriptName = this.getIntent().getStringExtra("scriptName");
         } else {
@@ -117,7 +125,6 @@ public class ScriptDetailActivity extends AppCompatActivity implements SugiliteV
             sugiliteScriptDao = new SugiliteScriptSQLDao(this);
         else
             sugiliteScriptDao = new SugiliteScriptFileDao(this, sugiliteData);
-        this.context = this;
         if(scriptName != null)
             setTitle("View Script: " + scriptName.replace(".SugiliteScript", ""));
 
@@ -985,11 +992,7 @@ public class ScriptDetailActivity extends AppCompatActivity implements SugiliteV
             }
         });
         tts.setLanguage(Locale.US);
-        if (Const.SELECTED_SPEECH_RECOGNITION_TYPE == Const.SpeechRecognitionType.ANDROID) {
-            sugiliteVoiceRecognitionListener = new SugiliteAndroidAPIVoiceRecognitionListener(this, this, tts);
-        } else if (Const.SELECTED_SPEECH_RECOGNITION_TYPE == Const.SpeechRecognitionType.GOOGLE_CLOUD) {
-            this.sugiliteVoiceRecognitionListener = new SugiliteGoogleCloudVoiceRecognitionListener(context, this, tts);
-        }
+
         //PumiceConditionalIntentHandler ih = new PumiceConditionalIntentHandler(context);
         //pumiceDialogManager = new PumiceDialogManager(this, new PumiceConditionalIntentHandler(pumiceDialogManager, this));
         pumiceDialogManager = new PumiceDialogManager(this);
@@ -1407,5 +1410,13 @@ public class ScriptDetailActivity extends AppCompatActivity implements SugiliteV
 
     public SugiliteStartingBlock getScript() {
         return script;
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (sugiliteVoiceRecognitionListener != null) {
+            sugiliteVoiceRecognitionListener.stopAllAndEndASRService();
+        }
     }
 }

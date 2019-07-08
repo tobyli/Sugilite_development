@@ -1,12 +1,14 @@
 package edu.cmu.hcii.sugilite.ontology.sharable;
 
+import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
-public class HashedString {
+public final class HashedString implements Serializable {
 
-    private byte[] hash;
+    private final byte[] hash;
 
     public HashedString(String string) {
         this.hash = hash(string);
@@ -36,8 +38,8 @@ public class HashedString {
     public static byte[] hash(String input) {
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
-            return digest.digest(input.getBytes("UTF-8"));
-        } catch (NoSuchAlgorithmException | UnsupportedEncodingException e) {
+            return digest.digest(input.getBytes(StandardCharsets.UTF_8));
+        } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
         }
         return null;

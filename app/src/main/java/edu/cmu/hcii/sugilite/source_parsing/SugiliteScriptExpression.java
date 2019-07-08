@@ -1,6 +1,6 @@
 package edu.cmu.hcii.sugilite.source_parsing;
 
-import edu.cmu.hcii.sugilite.ontology.SugiliteEntity;
+import edu.cmu.hcii.sugilite.ontology.*;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
@@ -36,8 +36,6 @@ import edu.cmu.hcii.sugilite.model.operation.unary.SugiliteUnaryOperation;
 import edu.cmu.hcii.sugilite.model.value.SugiliteSimpleConstant;
 import edu.cmu.hcii.sugilite.model.variable.StringVariable;
 import edu.cmu.hcii.sugilite.model.variable.Variable;
-import edu.cmu.hcii.sugilite.ontology.OntologyQuery;
-import edu.cmu.hcii.sugilite.ontology.SerializableOntologyQuery;
 import edu.cmu.hcii.sugilite.ontology.description.OntologyDescriptionGenerator;
 
 /**
@@ -209,23 +207,29 @@ public class SugiliteScriptExpression<T> {
     }
 
     private void extractVariableFromQuery(OntologyQuery query, SugiliteStartingBlock startingBlock) {
-        if (query.getObject() != null) {
-            for (SugiliteEntity sugiliteEntity : query.getObject()) {
-                if (sugiliteEntity.getEntityValue() instanceof String) {
-                    if (((String) sugiliteEntity.getEntityValue()).startsWith("@")) {
-                        String variableName = sugiliteEntity.getEntityValue().toString().substring(1);
-                        if (!startingBlock.variableNameDefaultValueMap.containsKey(variableName)) {
-                            //need to add to the variable map
-                            startingBlock.variableNameDefaultValueMap.put(variableName, new StringVariable(Variable.USER_INPUT, variableName, ""));
+        if (query instanceof LeafOntologyQuery) {
+            LeafOntologyQuery loq = (LeafOntologyQuery)query;
+            if (loq.getObjectSet() != null) {
+                for (SugiliteEntity sugiliteEntity : loq.getObjectSet()) {
+                    if (sugiliteEntity.getEntityValue() instanceof String) {
+                        if (((String) sugiliteEntity.getEntityValue()).startsWith("@")) {
+                            String variableName = sugiliteEntity.getEntityValue().toString().substring(1);
+                            if (!startingBlock.variableNameDefaultValueMap.containsKey(variableName)) {
+                                //need to add to the variable map
+                                startingBlock.variableNameDefaultValueMap.put(variableName, new StringVariable(Variable.USER_INPUT, variableName, ""));
+                            }
                         }
                     }
                 }
             }
         }
-        if (query.getSubQueries() != null) {
-            for (OntologyQuery ontologyQuery : query.getSubQueries()) {
-                if (ontologyQuery != null && startingBlock != null) {
-                    extractVariableFromQuery(ontologyQuery, startingBlock);
+        if (query instanceof CombinedOntologyQuery) {
+            OntologyQueryWithSubQueries coq = (OntologyQueryWithSubQueries)query;
+            if (coq.getSubQueries() != null) {
+                for (OntologyQuery ontologyQuery : coq.getSubQueries()) {
+                    if (ontologyQuery != null && startingBlock != null) {
+                        extractVariableFromQuery(ontologyQuery, startingBlock);
+                    }
                 }
             }
         }

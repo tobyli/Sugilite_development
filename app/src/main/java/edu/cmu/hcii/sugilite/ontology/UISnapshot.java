@@ -345,7 +345,7 @@ public class UISnapshot {
 
             SugiliteNodeAnnotator annotator = SugiliteNodeAnnotator.getInstance();
             for (SugiliteNodeAnnotator.NodeAnnotatingResult res : annotator.annotate(nodeEntities)) {
-                this.addEntityNodeTriple(res.getSubject(), res.getObject(), res.getRelation());
+                this.addEntityNodeTriple(res.getSubjectSet(), res.getObjectSet(), res.getRelation());
             }
             */
 

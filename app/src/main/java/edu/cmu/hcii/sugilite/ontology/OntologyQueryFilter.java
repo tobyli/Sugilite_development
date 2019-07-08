@@ -206,7 +206,7 @@ public class OntologyQueryFilter implements Serializable {
                     Set<SugiliteTriple> filteredTriples = uiSnapshot.getSubjectPredicateTriplesMap().get(new AbstractMap.SimpleEntry<>(stringEntity.getEntityId(), relation.getRelationId()));
                     if (filteredTriples != null) {
                         for (SugiliteTriple filteredTriple : filteredTriples) {
-                            SugiliteEntity object = filteredTriple.getObject();
+                            SugiliteEntity object = filteredTriple.getObjectSet();
                             if (object.getEntityValue() instanceof Comparable) {
                                 entityWithObjectValues.add(new Pair<>(entity, (Comparable) object.getEntityValue()));
                             }

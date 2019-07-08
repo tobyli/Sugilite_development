@@ -48,4 +48,17 @@ public class SugiliteSerializableEntity<T extends Serializable> implements Seria
     public T getEntityValue() {
         return entityValue;
     }
+
+    public SugiliteSerializableEntity<T> clone() {
+        // TODO not do this
+        return new SugiliteSerializableEntity<>(new SugiliteEntity(this));
+    }
+
+    public String toString() {
+        return new SugiliteEntity(this).toString();
+    }
+
+    public void setEntityValue(T entityValue) {
+        this.entityValue = entityValue;
+    }
 }

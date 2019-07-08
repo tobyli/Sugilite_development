@@ -3,6 +3,7 @@ package edu.cmu.hcii.sugilite.ontology.description;
 import java.util.*;
 
 import edu.cmu.hcii.sugilite.model.operation.SugiliteOperation;
+import edu.cmu.hcii.sugilite.ontology.LeafOntologyQuery;
 import edu.cmu.hcii.sugilite.ontology.OntologyQuery;
 import edu.cmu.hcii.sugilite.ontology.SugiliteRelation;
 
@@ -96,9 +97,16 @@ public class RelationWeight {
     static Comparator<OntologyQuery> ontologyQueryComparator = new Comparator<OntologyQuery>() {
         @Override
         public int compare(OntologyQuery q1, OntologyQuery q2) {
-            SugiliteRelation qr1 = q1.getR();
-            SugiliteRelation qr2 = q2.getR();
-            return sugiliteRelationComparator.compare(qr1,qr2);
+            if (q1 instanceof LeafOntologyQuery && q2 instanceof LeafOntologyQuery) {
+                SugiliteRelation qr1 = ((LeafOntologyQuery)q1).getR();
+                SugiliteRelation qr2 = ((LeafOntologyQuery)q2).getR();
+                return sugiliteRelationComparator.compare(qr1, qr2);
+            } else if (q1 instanceof LeafOntologyQuery) {
+                return -1;
+            } else if (q2 instanceof LeafOntologyQuery) {
+                return 1;
+            }
+            return 0;
         }
     };
 

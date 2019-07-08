@@ -1,11 +1,7 @@
 package edu.cmu.hcii.sugilite.ontology;
 
 import java.io.Serializable;
-import java.util.HashSet;
 import java.util.Set;
-import java.util.function.BiFunction;
-
-import edu.cmu.hcii.sugilite.BuildConfig;
 
 /**
  * Created by nancyli on 9/27/17.
@@ -13,44 +9,44 @@ import edu.cmu.hcii.sugilite.BuildConfig;
 
 @Deprecated
 public class SerializableOntologyQuery implements Serializable {
-    private OntologyQuery.relationType SubRelation;
+    private CombinedOntologyQuery.RelationType SubRelation;
     private Set<SerializableOntologyQuery> SubQueries = null;
     private SugiliteRelation r = null;
     private Set<SugiliteSerializableEntity> object = null;
     private Set<SugiliteSerializableEntity> subject = null;
     private OntologyQueryFilter ontologyQueryFilter = null;
 
-    public SerializableOntologyQuery(OntologyQuery q){
-        r = q.getR();
-        SubRelation = q.getSubRelation();
-        ontologyQueryFilter = q.getOntologyQueryFilter();
-        if(SubRelation != OntologyQuery.relationType.nullR) {
-            // for nested query, recursively construct SerializableOntologyQuery
-            SubQueries = new HashSet<SerializableOntologyQuery>();
-            Set<OntologyQuery> pSubQueries = q.getSubQueries();
-            for (OntologyQuery pq : pSubQueries) {
-                SubQueries.add(new SerializableOntologyQuery(pq));
-            }
-        }
-        else{
-            // otherwise, transform SugiliteEntity to SugiliteSerializableEntity
-            Set<SugiliteEntity> po = q.getObject();
-            Set<SugiliteEntity> ps = q.getSubject();
-            if(po != null){
-                object = new HashSet<SugiliteSerializableEntity>();
-                for(SugiliteEntity o : po) {
-                    object.add(new SugiliteSerializableEntity(o));
-                }
-            }
-
-            if(ps != null){
-                subject = new HashSet<SugiliteSerializableEntity>();
-                for(SugiliteEntity s: ps){
-                    subject.add(new SugiliteSerializableEntity(s));
-                }
-            }
-        }
-    }
+//    public SerializableOntologyQuery(OntologyQueryWithSubQueries q){
+//        r = q.getR();
+//        SubRelation = q.getSubRelation();
+//        ontologyQueryFilter = q.getOntologyQueryFilter();
+//        if(SubRelation != OntologyQueryWithSubQueries.RelationType.nullR) {
+//            // for nested query, recursively construct SerializableOntologyQuery
+//            SubQueries = new HashSet<SerializableOntologyQuery>();
+//            Set<OntologyQuery> pSubQueries = q.getSubQueries();
+//            for (OntologyQuery pq : pSubQueries) {
+//                SubQueries.add(new SerializableOntologyQuery(pq));
+//            }
+//        }
+//        else{
+//            // otherwise, transform SugiliteEntity to SugiliteSerializableEntity
+//            Set<SugiliteEntity> po = q.getObjectSet();
+//            Set<SugiliteEntity> ps = q.getSubjectSet();
+//            if(po != null){
+//                object = new HashSet<SugiliteSerializableEntity>();
+//                for(SugiliteEntity o : po) {
+//                    object.add(new SugiliteSerializableEntity(o));
+//                }
+//            }
+//
+//            if(ps != null){
+//                subject = new HashSet<SugiliteSerializableEntity>();
+//                for(SugiliteEntity s: ps){
+//                    subject.add(new SugiliteSerializableEntity(s));
+//                }
+//            }
+//        }
+//    }
 
     class SerializableSubjectEntityObjectEntityPair{
         private SugiliteSerializableEntity subject = null;
@@ -62,11 +58,11 @@ public class SerializableOntologyQuery implements Serializable {
         }
     }
 
-    public OntologyQuery.relationType getSubRelation() {
+    public CombinedOntologyQuery.RelationType getSubRelation() {
         return SubRelation;
     }
 
-    public void setSubRelation(OntologyQuery.relationType subRelation) {
+    public void setSubRelation(CombinedOntologyQuery.RelationType subRelation) {
         SubRelation = subRelation;
     }
 
@@ -92,6 +88,6 @@ public class SerializableOntologyQuery implements Serializable {
 
     @Override
     public String toString() {
-        return new OntologyQuery(this).toString();
+        return new CombinedOntologyQuery(this).toString();
     }
 }

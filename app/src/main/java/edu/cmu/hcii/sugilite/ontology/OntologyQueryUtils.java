@@ -32,15 +32,19 @@ public class OntologyQueryUtils {
     }
 
     public static OntologyQuery removeIsAllRelation(OntologyQuery query){
+        // TODO this might not work recursively
         if (query != null && query instanceof CombinedOntologyQuery) {
             CombinedOntologyQuery coq = (CombinedOntologyQuery)query;
             if(coq.getSubRelation().equals(CombinedOntologyQuery.RelationType.AND)  && coq.getSubQueries() != null) {
                 Iterator<OntologyQuery> iterator = coq.getSubQueries().iterator();
                 while (iterator.hasNext()) {
                     OntologyQuery subQuery = iterator.next();
-                    if(subQuery != null && subQuery instanceof LeafOntologyQuery && subQuery.getR() != null && subQuery.getR().equals(SugiliteRelation.IS)){
-                        iterator.remove();
-                        break;
+                    if(subQuery != null && subQuery instanceof LeafOntologyQuery) {
+                        LeafOntologyQuery loq = (LeafOntologyQuery)subQuery;
+                        if (loq.getR() != null && loq.getR().equals(SugiliteRelation.IS)) {
+                            iterator.remove();
+                            break;
+                        }
                     }
                     else{
                         //coq.addSubQuery(removeIsAllRelation(subQuery));
@@ -102,15 +106,18 @@ public class OntologyQueryUtils {
             if (coq.getSubRelation().equals(CombinedOntologyQuery.RelationType.AND)  && coq.getSubQueries() != null) {
 
                 for (OntologyQuery query1 : coq.getSubQueries()) {
-                    if (query1 != null && query1.getR() != null) {
-                        if (query1.getR().equals(SugiliteRelation.HAS_CLASS_NAME)) {
-                            toAddClassQuery = false;
-                        }
-                        if (query1.getR().equals(SugiliteRelation.HAS_PACKAGE_NAME)) {
-                            toAddPackageQuery = false;
-                        }
-                        if (query1.getR().equals(SugiliteRelation.IS_CLICKABLE)) {
-                            toAddClickableQuery = false;
+                    if (query1 != null && query1 instanceof LeafOntologyQuery) {
+                        LeafOntologyQuery loq = (LeafOntologyQuery)query1;
+                        if (loq.getR() != null) {
+                            if (loq.getR().equals(SugiliteRelation.HAS_CLASS_NAME)) {
+                                toAddClassQuery = false;
+                            }
+                            if (loq.getR().equals(SugiliteRelation.HAS_PACKAGE_NAME)) {
+                                toAddPackageQuery = false;
+                            }
+                            if (loq.getR().equals(SugiliteRelation.IS_CLICKABLE)) {
+                                toAddClickableQuery = false;
+                            }
                         }
                     }
                 }

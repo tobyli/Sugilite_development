@@ -1,10 +1,8 @@
 package edu.cmu.hcii.sugilite.ontology;
 
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.function.BiFunction;
-import java.util.stream.Collectors;
 
 import static edu.cmu.hcii.sugilite.source_parsing.SugiliteScriptExpression.addQuoteToTokenIfNeeded;
 
@@ -13,6 +11,7 @@ import static edu.cmu.hcii.sugilite.source_parsing.SugiliteScriptExpression.addQ
  */
 
 public class LeafOntologyQuery extends OntologyQuery {
+    protected SugiliteRelation r = null;
     private transient BiFunction<SubjectEntityObjectEntityPair, UISnapshot, Boolean> QueryFunction = null;
     private Set<SugiliteSerializableEntity> object = null;
     private Set<SugiliteSerializableEntity> subject = null;
@@ -190,7 +189,7 @@ public class LeafOntologyQuery extends OntologyQuery {
      * @return
      */
     @Override
-    protected boolean OverallQueryFunction(SugiliteEntity currNode, UISnapshot graph) {
+    protected boolean overallQueryFunction(SugiliteEntity currNode, UISnapshot graph) {
         // base case, leaf node
         if(subject == null && object == null){
             // currNode can act as either subject or object
@@ -280,4 +279,7 @@ public class LeafOntologyQuery extends OntologyQuery {
         }
     }
 
+    public SugiliteRelation getR() {
+        return r;
+    }
 }

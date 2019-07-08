@@ -7,7 +7,6 @@ import java.util.Set;
 public abstract class OntologyQuery implements Serializable {
 
     protected OntologyQueryFilter ontologyQueryFilter = null;
-    protected SugiliteRelation r = null;
 
     private static OntologyQuery parseString(String s) {
         // example: (conj (IS_CLICKABLE true) (HAS_TEXT coffee))
@@ -116,14 +115,14 @@ public abstract class OntologyQuery implements Serializable {
         return ontologyQueryFilter;
     }
 
-    protected abstract boolean OverallQueryFunction(SugiliteEntity currNode, UISnapshot graph);
+    protected abstract boolean overallQueryFunction(SugiliteEntity currNode, UISnapshot graph);
 
     public Set<SugiliteEntity> executeOn(UISnapshot graph){
         Set<SugiliteEntity> results = new HashSet<SugiliteEntity>();
         // for each node in the graph, follow the if statements in notes
         // if it matches query, then add to results set
         for(SugiliteEntity s : graph.getSugiliteEntityIdSugiliteEntityMap().values()) {
-            if(OverallQueryFunction(s, graph)){
+            if(overallQueryFunction(s, graph)){
                 results.add(s);
             }
         }
@@ -133,10 +132,6 @@ public abstract class OntologyQuery implements Serializable {
         } else {
             return results;
         }
-    }
-
-    public SugiliteRelation getR() {
-        return r;
     }
 
     @Override

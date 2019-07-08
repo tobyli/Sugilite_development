@@ -398,18 +398,21 @@ public class SugiliteBlockBuildingHelper {
      * @return
      */
     public static OntologyQuery stripOntologyQuery(OntologyQuery query){
+        // TODO make this work recursively?
         if (query instanceof CombinedOntologyQuery) {
             CombinedOntologyQuery queryCloned = ((CombinedOntologyQuery)query).clone();
 
             List<OntologyQuery> queriesToRemove = new ArrayList<>();
             for (OntologyQuery subQuery : queryCloned.getSubQueries()) {
-                if (subQuery != null && subQuery.getR() != null) {
-                /*
-                if (subQuery.getR().equals(SugiliteRelation.HAS_CLASS_NAME)) {
-                    queriesToRemove.add(subQuery);
-                }
-                */
-                    if (subQuery.getR().equals(SugiliteRelation.HAS_PACKAGE_NAME)) {
+                if (subQuery != null && subQuery instanceof LeafOntologyQuery) {
+                    LeafOntologyQuery loq = (LeafOntologyQuery)subQuery;
+                    SugiliteRelation r = loq.getR();
+                    /*
+                    if (r.equals(SugiliteRelation.HAS_CLASS_NAME)) {
+                        queriesToRemove.add(subQuery);
+                    }
+                    */
+                    if (r.equals(SugiliteRelation.HAS_PACKAGE_NAME)) {
                         queriesToRemove.add(subQuery);
                     }
                 }

@@ -210,7 +210,7 @@ public class OntologyDescriptionGenerator {
             result = "the item that ";
 
         for (int i = 0; i < descriptionArrayLength-1; i++) {
-            if (queries[i].getR().equals(SugiliteRelation.HAS_CLASS_NAME)||isListOrderRelation(queries[i].getR())) {
+            if (getRForQuery(queries[i]).equals(SugiliteRelation.HAS_CLASS_NAME)||isListOrderRelation(getRForQuery(queries[i]))) {
                 // e.g. is button / is the first item
                 conjunction = "is ";
             }
@@ -220,7 +220,7 @@ public class OntologyDescriptionGenerator {
             }
             result += conjunction + descriptions[i] + " or ";
         }
-        if (queries[descriptionArrayLength-1].getR().equals(SugiliteRelation.HAS_PACKAGE_NAME)) {
+        if (getRForQuery(queries[descriptionArrayLength-1]).equals(SugiliteRelation.HAS_PACKAGE_NAME)) {
             // e.g. is in homescreen
             conjunction = "is ";
         }
@@ -304,12 +304,19 @@ public class OntologyDescriptionGenerator {
         return result;
     }
 
+    private static SugiliteRelation getRForQuery(OntologyQuery query) {
+        if (query instanceof LeafOntologyQuery) {
+            return ((LeafOntologyQuery)query).getR();
+        }
+        return null;
+    }
+
     private String translationWithRelationshipAnd(String[] descriptions, OntologyQuery[] queries, OntologyQueryFilter filter) {
         String result = "";
         int descriptionArrayLength = descriptions.length;
         int queryLength = queries.length;
-        SugiliteRelation firstRelation = queries[0].getR(); // first relation
-        SugiliteRelation lastRelation = queries[queryLength-1].getR(); // last relation
+        SugiliteRelation firstRelation = getRForQuery(queries[0]); // first relation
+        SugiliteRelation lastRelation = getRForQuery(queries[queryLength-1]); // last relation
         SugiliteRelation filterRelation = null; // filter relation
         String translatedFilter = "";
         boolean isListOrder = false;
@@ -322,7 +329,7 @@ public class OntologyDescriptionGenerator {
         // if there is class name, it should be the first
         if (firstRelation != null && firstRelation.equals(SugiliteRelation.HAS_CLASS_NAME)) {
             // if there is list order, it should be the second
-            SugiliteRelation secondRelation = queries[1].getR();
+            SugiliteRelation secondRelation = getRForQuery(queries[1]);
             // special case: class + list order
             if (secondRelation != null && isListOrderRelation(secondRelation)) {
                 // e.g. the 1st item --> the 1st button
@@ -455,7 +462,7 @@ public class OntologyDescriptionGenerator {
 
     private String descriptionForSingleQuery(OntologyQuery ontologyQuery) {
         String[] objectString = new String[1];
-        SugiliteRelation sugiliteRelation = ontologyQuery.getR();
+        SugiliteRelation sugiliteRelation = getRForQuery(ontologyQuery);
         if (ontologyQuery instanceof LeafOntologyQuery) {
             LeafOntologyQuery loq = (LeafOntologyQuery)ontologyQuery;
             if (loq.getObject() != null) {
@@ -478,7 +485,7 @@ public class OntologyDescriptionGenerator {
         OntologyQueryFilter filter = ontologyQuery.getOntologyQueryFilter();
         SugiliteRelation filterRelation = filter.getRelation();
         String result = "";
-        SugiliteRelation sugiliteRelation = ontologyQuery.getR();
+        SugiliteRelation sugiliteRelation = getRForQuery(ontologyQuery);
         String translatedFilter = translateFilter(filter);
         if (isListOrderRelation(filterRelation))  {
             result += translatedFilter;

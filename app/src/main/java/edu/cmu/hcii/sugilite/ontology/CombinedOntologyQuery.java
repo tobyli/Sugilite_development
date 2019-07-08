@@ -4,7 +4,6 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
-import java.util.function.*;
 import java.util.stream.Collectors;
 
 /**
@@ -12,6 +11,12 @@ import java.util.stream.Collectors;
  */
 
 public class CombinedOntologyQuery extends OntologyQuery {
+    protected SugiliteRelation r = null;
+
+    public SugiliteRelation getR() {
+        return r;
+    }
+
     public enum RelationType {
         AND, OR, PREV
     }
@@ -104,10 +109,10 @@ public class CombinedOntologyQuery extends OntologyQuery {
      * @return
      */
     @Override
-    protected boolean OverallQueryFunction(SugiliteEntity currNode, UISnapshot graph) {
+    protected boolean overallQueryFunction(SugiliteEntity currNode, UISnapshot graph) {
         if(subRelation == RelationType.AND){
             for(OntologyQuery q : subQueries){
-                if(!q.OverallQueryFunction(currNode, graph)){
+                if(!q.overallQueryFunction(currNode, graph)){
                     return false;
                 }
             }
@@ -115,7 +120,7 @@ public class CombinedOntologyQuery extends OntologyQuery {
         }
         else if(subRelation == RelationType.OR){
             for(OntologyQuery q : subQueries){
-                if(q.OverallQueryFunction(currNode, graph)){
+                if(q.overallQueryFunction(currNode, graph)){
                     return true;
                 }
             }
@@ -130,7 +135,7 @@ public class CombinedOntologyQuery extends OntologyQuery {
             // setSubQueries(null);
             // setSubRelation(RelationType.nullR);
             // setObjectSet(prevResult);
-            return prevQ.OverallQueryFunction(currNode, graph);
+            return prevQ.overallQueryFunction(currNode, graph);
         }
     }
 

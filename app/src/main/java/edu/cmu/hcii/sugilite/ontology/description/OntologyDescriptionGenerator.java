@@ -12,6 +12,8 @@ import edu.cmu.hcii.sugilite.Const;
 import edu.cmu.hcii.sugilite.model.operation.trinary.SugiliteLoadVariableOperation;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteOperation;
 import edu.cmu.hcii.sugilite.ontology.*;
+import edu.cmu.hcii.sugilite.ontology.sharable.HashedString;
+import edu.cmu.hcii.sugilite.ontology.sharable.HashedStringOntologyQuery;
 
 /**
  * Created by Wanling Ding on 22/02/2018.
@@ -307,6 +309,8 @@ public class OntologyDescriptionGenerator {
     private static SugiliteRelation getRForQuery(OntologyQuery query) {
         if (query instanceof LeafOntologyQuery) {
             return ((LeafOntologyQuery)query).getR();
+        } else if (query instanceof HashedStringOntologyQuery) {
+            return ((HashedStringOntologyQuery)query).getR();
         }
         return null;
     }
@@ -461,9 +465,9 @@ public class OntologyDescriptionGenerator {
     }
 
     private String descriptionForSingleQuery(OntologyQuery ontologyQuery) {
-        String[] objectString = new String[1];
-        SugiliteRelation sugiliteRelation = getRForQuery(ontologyQuery);
         if (ontologyQuery instanceof LeafOntologyQuery) {
+            String[] objectString = new String[1];
+            SugiliteRelation sugiliteRelation = getRForQuery(ontologyQuery);
             LeafOntologyQuery loq = (LeafOntologyQuery)ontologyQuery;
             if (loq.getObjectSet() != null) {
                 SugiliteEntity[] objectArr = loq.getObjectSet().toArray(new SugiliteEntity[loq.getObjectSet().size()]);
@@ -477,8 +481,9 @@ public class OntologyDescriptionGenerator {
                     }
                 }
             }
+            return formatting(sugiliteRelation, objectString);
         }
-        return formatting(sugiliteRelation, objectString);
+        return "AAAAH";
     }
 
     private String descriptionForSingleQueryWithFilter(OntologyQuery ontologyQuery) {
@@ -595,6 +600,9 @@ public class OntologyDescriptionGenerator {
                     return translationWithRelationshipPrev(arr, coq.getR()) + postfix;
                 }
             }
+        } else if (ontologyQuery instanceof HashedStringOntologyQuery) {
+            // TODO not very convincing
+            return setColor("secret text ", Const.SCRIPT_VIEW_ID_COLOR);
         } else {
             // oh boy
         }

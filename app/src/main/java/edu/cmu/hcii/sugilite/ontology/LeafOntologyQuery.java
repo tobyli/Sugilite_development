@@ -155,17 +155,10 @@ public class LeafOntologyQuery extends OntologyQuery {
         return subject;
     }
 
+    @Deprecated
     public Set<SugiliteEntity> getObjectSet() {
         Set<SugiliteEntity> result = new HashSet<>();
         for (SugiliteSerializableEntity se : object) {
-            result.add(new SugiliteEntity(se));
-        }
-        return result;
-    }
-
-    public Set<SugiliteEntity> getSubjectSet() {
-        Set<SugiliteEntity> result = new HashSet<>();
-        for (SugiliteSerializableEntity se : subject) {
             result.add(new SugiliteEntity(se));
         }
         return result;

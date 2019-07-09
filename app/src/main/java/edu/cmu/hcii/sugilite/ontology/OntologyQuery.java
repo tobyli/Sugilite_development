@@ -1,5 +1,8 @@
 package edu.cmu.hcii.sugilite.ontology;
 
+import edu.cmu.hcii.sugilite.ontology.sharable.HashedString;
+import edu.cmu.hcii.sugilite.ontology.sharable.HashedStringOntologyQuery;
+
 import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
@@ -65,26 +68,31 @@ public abstract class OntologyQuery implements Serializable {
             }
 
             else {
-                // base case: simple relation
-                // note: the object will never be an accessbility node info (since this is directly from user)
-                String predicateString = firstWord;
-                String objectString = s.substring(spaceIndex + 1, s.length());
-                LeafOntologyQuery q = new LeafOntologyQuery();
-
-                q.setQueryFunction(SugiliteRelation.stringRelationMap.get(predicateString));
-                Set<SugiliteEntity> oSet = new HashSet<SugiliteEntity>();
-                if (objectString.equalsIgnoreCase("true")) {
-                    SugiliteEntity<Boolean> o = new SugiliteEntity<Boolean>(-1, Boolean.class, true);
-                    oSet.add(o);
-                } else if (objectString.equalsIgnoreCase("false")) {
-                    SugiliteEntity<Boolean> o = new SugiliteEntity<Boolean>(-1, Boolean.class, false);
-                    oSet.add(o);
+                if (firstWord.equals("privateMatch")) {
+                    String[] parts = s.split(" ");
+                    query = new HashedStringOntologyQuery(SugiliteRelation.stringRelationMap.get(parts[1]), HashedString.fromEncodedString(parts[2]));
                 } else {
-                    SugiliteEntity<String> o = new SugiliteEntity<String>(-1, String.class, OntologyQueryUtils.removeQuoteSigns(objectString));
-                    oSet.add(o);
+                    // base case: simple relation
+                    // note: the object will never be an accessbility node info (since this is directly from user)
+                    String predicateString = firstWord;
+                    String objectString = s.substring(spaceIndex + 1, s.length());
+                    LeafOntologyQuery q = new LeafOntologyQuery();
+
+                    q.setQueryFunction(SugiliteRelation.stringRelationMap.get(predicateString));
+                    Set<SugiliteEntity> oSet = new HashSet<SugiliteEntity>();
+                    if (objectString.equalsIgnoreCase("true")) {
+                        SugiliteEntity<Boolean> o = new SugiliteEntity<Boolean>(-1, Boolean.class, true);
+                        oSet.add(o);
+                    } else if (objectString.equalsIgnoreCase("false")) {
+                        SugiliteEntity<Boolean> o = new SugiliteEntity<Boolean>(-1, Boolean.class, false);
+                        oSet.add(o);
+                    } else {
+                        SugiliteEntity<String> o = new SugiliteEntity<String>(-1, String.class, OntologyQueryUtils.removeQuoteSigns(objectString));
+                        oSet.add(o);
+                    }
+                    q.setObjectSet(oSet);
+                    query = q;
                 }
-                q.setObjectSet(oSet);
-                query = q;
             }
             return query;
         }

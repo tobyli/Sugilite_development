@@ -35,12 +35,14 @@ public class LengthAnnotator implements SugiliteTextAnnotator {
 
     @Override
     public List<AnnotatingResult> annotate(String text) {
+        text = text.replaceAll("[\\u00A0\\u2007\\u202F]+", " ");
+
         if (cache.containsKey(text)){
             return cache.get(text);
         }
 
         List<AnnotatingResult> results = new ArrayList<>();
-        String regex = "\\b[0-9]+?(.)?[0-9]*?( )?(km|m|ft|feet|mile(s)?|mi|yd|inch|cm)\\b";
+        String regex = "\\b[0-9]+?(.)?[0-9]*?(\\s)?(km|m|ft|feet|mile(s)?|mi|yd|inch|cm)\\b";
         Pattern pattern = Pattern.compile(regex);
 
         int curEnd = -3;

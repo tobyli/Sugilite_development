@@ -34,12 +34,14 @@ public class VolumeAnnotator implements SugiliteTextAnnotator {
 
     @Override
     public List<AnnotatingResult> annotate(String text) {
+        text = text.replaceAll("[\\u00A0\\u2007\\u202F]+", " ");
+
         if (cache.containsKey(text)){
             return cache.get(text);
         }
 
         List<AnnotatingResult> results = new ArrayList<>();
-        String regex = "\\b\\d+?(.\\d+?)?( )?(m[Ll]?|L|(fl )?oz|ounce(s)?|tsp|cp|pt|qt|gal)\\b";
+        String regex = "\\b\\d+?(.\\d+?)?(\\s)?(m[Ll]?|L|(fl )?oz|ounce(s)?|tsp|cp|pt|qt|gal)\\b";
         Pattern pattern = Pattern.compile(regex);
 
         int curEnd = -3;

@@ -274,10 +274,14 @@ public class SugiliteAccessibilityService extends AccessibilityService {
     private String previousClickText = "NULL", previousClickContentDescription = "NULL", previousClickChildText = "NULL", previousClickChildContentDescription = "NULL", previousClickPackageName = "NULL";
 
     @Override
-    public void onAccessibilityEvent(final AccessibilityEvent event) {
+    public void onAccessibilityEvent(AccessibilityEvent event) {
         //TODO problem: the status of "right after click" (try getParent()?)
         //TODO new rootNode method
         final AccessibilityNodeInfo sourceNode = event.getSource();
+        final String eventPackageName = String.valueOf(event.getPackageName());
+        final int eventType = event.getEventType();
+
+
         AccessibilityNodeInfo rootNode = null;
         List<AccessibilityNodeInfo> preOrderTraverseSourceNode = null;
         List<AccessibilityNodeInfo> preOrderTraverseRootNode = null;
@@ -286,16 +290,16 @@ public class SugiliteAccessibilityService extends AccessibilityService {
 
         //Type of accessibility events to handle in this function
         //return if the event is not among the accessibilityEventArrayToHandle
-        if (!accessibilityEventSetToHandle.contains(event.getEventType())) {
+        if (!accessibilityEventSetToHandle.contains(eventType)) {
             return;
         }
 
         //check for the trigger, see if an app launch trigger should be triggered
-        if (event.getEventType() == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) {
-            if (event.getSource() != null && event.getSource().getPackageName() != null && (!lastPackageName.contentEquals(event.getSource().getPackageName()))) {
-                triggerHandler.checkForAppLaunchTrigger(event.getPackageName().toString());
+        if (eventType == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) {
+            if (sourceNode != null && sourceNode.getPackageName() != null && (!lastPackageName.contentEquals(sourceNode.getPackageName()))) {
+                triggerHandler.checkForAppLaunchTrigger(eventPackageName);
                 //lastPackageName used to avoid sync issue between threads
-                lastPackageName = event.getSource().getPackageName().toString();
+                lastPackageName = sourceNode.getPackageName().toString();
             }
         }
 
@@ -309,7 +313,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
         */
 
         //add previous click information for building UI hierachy from vocabs
-        if (BUILDING_VOCAB && (!trackingExcludedPackages.contains(event.getPackageName().toString())) && event.getEventType() == AccessibilityEvent.TYPE_VIEW_CLICKED && sourceNode != null) {
+        if (BUILDING_VOCAB && (!trackingExcludedPackages.contains(eventPackageName)) && eventType == AccessibilityEvent.TYPE_VIEW_CLICKED && sourceNode != null) {
             if (sourceNode.getText() != null) {
                 previousClickText = sourceNode.getText().toString();
             } else {
@@ -378,13 +382,13 @@ public class SugiliteAccessibilityService extends AccessibilityService {
             //if recording is in progress
 
             //add package name to the relevant package set
-            if (sugiliteData.getScriptHead() != null && event.getPackageName() != null && (!exceptedPackages.contains(event.getPackageName()))) {
-                sugiliteData.getScriptHead().relevantPackages.add(event.getPackageName().toString());
+            if (sugiliteData.getScriptHead() != null && eventPackageName != null && (!exceptedPackages.contains(eventPackageName))) {
+                sugiliteData.getScriptHead().relevantPackages.add(eventPackageName);
             }
 
             //if the event is to be recorded, process it
-            if (accessibilityEventSetToSend.contains(event.getEventType()) &&
-                    (!exceptedPackages.contains(event.getPackageName())) &&
+            if (accessibilityEventSetToSend.contains(eventType) &&
+                    (!exceptedPackages.contains(eventPackageName)) &&
                     (!recordingOverlayManager.isShowingOverlay())) {
                 //ignore events if the recording overlay is on
 
@@ -409,7 +413,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
                 availableAlternativeNodes.addAll(getAvailableAlternativeNodes(sourceNode, rootNodeForRecording, preOrderTracerseRootNodeForRecording, exceptedPackages));
 
                 //refresh the elementsWithTextLabels list
-                if (KEEP_ALL_TEXT_LABEL_LIST && event.getPackageName() != null && (!exceptedPackages.contains(event.getPackageName()))) {
+                if (KEEP_ALL_TEXT_LABEL_LIST && eventPackageName != null && (!exceptedPackages.contains(eventPackageName))) {
                     List<AccessibilityNodeInfo> nodes = getAllNodesWithText(rootNodeForRecording, preOrderTracerseRootNodeForRecording);
                     boolean toRefresh = true;
                     //hack used to avoid getting items in the duck popup
@@ -429,7 +433,6 @@ public class SugiliteAccessibilityService extends AccessibilityService {
                         sugiliteData.elementsWithTextLabels.clear();
                         sugiliteData.elementsWithTextLabels.addAll(nodes);
                     }
-                    //System.out.println(event.getPackageName() + " " + sugiliteData.elementsWithTextLabels.size());
                 }
 
                 //ignore automatically generated events from the recording overlay
@@ -473,7 +476,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
                         public void run() {
                             Log.i(TAG, "Entering handle recording thread");
                             UISnapshot uiSnapshot = new UISnapshot(final_root, true, sugiliteTextParentAnnotator, true);
-
+                            System.out.printf("UI Snapshot Constructed for Recording!");
                             //temp hack for ViewGroup in Google Now Launcher
                             if (sourceNode != null && sourceNode.getClassName() != null && sourceNode.getPackageName() != null && sourceNode.getClassName().toString().contentEquals("android.view.ViewGroup") && homeScreenPackageNameSet.contains(sourceNode.getPackageName().toString())) {
                                 /*do nothing (don't show popup for ViewGroup in home screen)*/
@@ -498,14 +501,19 @@ public class SugiliteAccessibilityService extends AccessibilityService {
 
                                 if (featurePack.isEditable) {
                                     //3. handle text entry
-                                    if (event.getEventType() == AccessibilityEvent.TYPE_VIEW_TEXT_CHANGED) {
+                                    if (eventType == AccessibilityEvent.TYPE_VIEW_TEXT_CHANGED) {
                                         //TODO: add TextChangedEventHandlerHere
                                         textChangedEventHandler.handle(featurePack, availableAlternatives, layoutInflater);
                                     }
                                 } else {
                                     System.out.println("flush from service");
                                     //flush the text changed event handler
-                                    textChangedEventHandler.flush();
+                                    runOnUiThread(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            textChangedEventHandler.flush();
+                                        }
+                                    });
 
                                     newDemonstrationHandler.handleEvent(featurePack, availableAlternatives, uiSnapshot);
                                     /*
@@ -533,7 +541,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
                                 }
                             }
 
-                            if (accessibilityEventSetToSend.contains(event.getEventType()) && (!exceptedPackages.contains(event.getPackageName()))) {
+                            if (accessibilityEventSetToSend.contains(eventType) && (!exceptedPackages.contains(eventPackageName))) {
 
                                 if (BUILDING_VOCAB) {
                                     for (Map.Entry<String, String> entry : packageVocabs) {
@@ -576,7 +584,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
         }
 
         if (sharedPreferences.getBoolean("broadcasting_enabled", false)) {
-            if (accessibilityEventSetToTrack.contains(event.getEventType()) && (!trackingExcludedPackages.contains(event.getPackageName()))) {
+            if (accessibilityEventSetToTrack.contains(eventType) && (!trackingExcludedPackages.contains(eventPackageName))) {
                 sugiliteData.handleBroadcastingEvent(event);
             }
         }
@@ -585,7 +593,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
 
         if (BROADCASTING_ACCESSIBILITY_EVENT) { // if broadcasting is enabled
             try {
-                if (accessibilityEventSetToTrack.contains(event.getEventType()) && (!trackingExcludedPackages.contains(event.getPackageName()))) {
+                if (accessibilityEventSetToTrack.contains(eventType) && (!trackingExcludedPackages.contains(eventPackageName))) {
                     SugiliteEventBroadcastingActivity.BroadcastingEvent broadcastingEvent = new SugiliteEventBroadcastingActivity.BroadcastingEvent(event);
                     Gson gson = new Gson();
 
@@ -642,7 +650,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
                 @Override
                 public void run() {
                     //background tracking in progress
-                    if (accessibilityEventSetToTrack.contains(event.getEventType()) && (!trackingExcludedPackages.contains(event.getPackageName()))) {
+                    if (accessibilityEventSetToTrack.contains(eventType) && (!trackingExcludedPackages.contains(eventPackageName))) {
                         sugilteTrackingHandler.handle(event, sourceNode, generateFeaturePack(event, sourceNode, rootNodeForTracking, null, null, preOrderTraverseSourceNodeForTracking, preOrderTracerseRootNodeForTracking, preOrderTraverseSibNodeForTracking));
                     }
 
@@ -657,7 +665,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
                             }
                         }
                         //only read/write DB at every click -> to optimize performance
-                        if (event.getEventType() == AccessibilityEvent.TYPE_VIEW_CLICKED) {
+                        if (eventType == AccessibilityEvent.TYPE_VIEW_CLICKED) {
                             for (Map.Entry<String, String> entry : packageVocabs) {
                                 try {
                                     vocabularyDao.save(entry.getKey(), entry.getValue(), "meh", previousClickText, previousClickContentDescription, previousClickChildText, previousClickChildContentDescription, previousClickPackageName);

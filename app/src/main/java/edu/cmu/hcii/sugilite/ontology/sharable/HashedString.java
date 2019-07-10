@@ -6,6 +6,7 @@ import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.Arrays;
 
 public final class HashedString implements Serializable {
 
@@ -41,11 +42,11 @@ public final class HashedString implements Serializable {
     }
 
     public String toString() {
-        return String.format("%064x", new BigInteger(hash));
+        return bytesToHex(hash);
     }
 
     public static HashedString fromEncodedString(String encodedString) {
-        return new HashedString(new BigInteger(encodedString, 16).toByteArray());
+        return new HashedString(bytesFromHex(encodedString));
     }
 
     public static byte[] hash(String input) {
@@ -56,6 +57,25 @@ public final class HashedString implements Serializable {
             e.printStackTrace();
         }
         return null;
+    }
+
+    private static final char[] HEX_ARRAY = "0123456789abcdef".toCharArray();
+    public static String bytesToHex(byte[] bytes) {
+        char[] hexChars = new char[bytes.length * 2];
+        for (int j = 0; j < bytes.length; j++) {
+            int v = bytes[j] & 0xFF;
+            hexChars[j * 2] = HEX_ARRAY[v >>> 4];
+            hexChars[j * 2 + 1] = HEX_ARRAY[v & 0x0F];
+        }
+        return new String(hexChars);
+    }
+    public static byte[] bytesFromHex(String hexString) {
+        char[] hexChars = hexString.toCharArray();
+        byte[] result = new byte[hexChars.length / 2];
+        for (int j = 0; j < hexChars.length; j += 2) {
+            result[j / 2] = (byte) (Arrays.binarySearch(HEX_ARRAY, hexChars[j]) * 16 + Arrays.binarySearch(HEX_ARRAY, hexChars[j + 1]));
+        }
+        return result;
     }
 
     public static void main(String[] args) {

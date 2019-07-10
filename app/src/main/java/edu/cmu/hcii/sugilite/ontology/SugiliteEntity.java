@@ -107,6 +107,10 @@ public class SugiliteEntity<T> implements Serializable {
         }
     }
 
+    public SugiliteEntity<T> clone() {
+        return new SugiliteEntity<>(new SugiliteSerializableEntity(this));
+    }
+
     @Override
     public int hashCode() {
         return Objects.hash(this.entityValue);

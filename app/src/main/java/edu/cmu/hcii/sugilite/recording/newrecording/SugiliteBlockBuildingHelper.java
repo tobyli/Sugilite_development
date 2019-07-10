@@ -38,14 +38,9 @@ import edu.cmu.hcii.sugilite.model.block.special_operation.SugiliteSpecialOperat
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteOperation;
 import edu.cmu.hcii.sugilite.model.operation.unary.SugiliteClickOperation;
-import edu.cmu.hcii.sugilite.model.operation.unary.SugiliteUnaryOperation;
+import edu.cmu.hcii.sugilite.ontology.*;
 import edu.cmu.hcii.sugilite.ontology.description.OntologyDescriptionGenerator;
-import edu.cmu.hcii.sugilite.ontology.OntologyQuery;
-import edu.cmu.hcii.sugilite.ontology.SerializableOntologyQuery;
-import edu.cmu.hcii.sugilite.ontology.SugiliteEntity;
-import edu.cmu.hcii.sugilite.ontology.SugiliteRelation;
-import edu.cmu.hcii.sugilite.ontology.SugiliteTriple;
-import edu.cmu.hcii.sugilite.ontology.UISnapshot;
+import edu.cmu.hcii.sugilite.ontology.OntologyQueryWithSubQueries;
 import edu.cmu.hcii.sugilite.recording.ReadableDescriptionGenerator;
 
 import static edu.cmu.hcii.sugilite.Const.SQL_SCRIPT_DAO;
@@ -101,7 +96,7 @@ public class SugiliteBlockBuildingHelper {
     public static List<Pair<OntologyQuery, Double>> generateDefaultQueries(SugiliteAvailableFeaturePack featurePack, UISnapshot uiSnapshot, boolean excludeHasTextRelation){
         //generate parent query
         List<Pair<OntologyQuery, Double>> queries = new ArrayList<>();
-        OntologyQuery q = new OntologyQuery(OntologyQuery.relationType.AND);
+        CombinedOntologyQuery q = new CombinedOntologyQuery(CombinedOntologyQuery.RelationType.AND);
         boolean hasNonBoundingBoxFeature = false;
         boolean hasNonChildFeature = false;
 
@@ -122,20 +117,20 @@ public class SugiliteBlockBuildingHelper {
 
         if(featurePack.packageName != null && (!featurePack.packageName.equals("NULL"))){
             //add packageName
-            OntologyQuery subQuery = new OntologyQuery(OntologyQuery.relationType.nullR);
+            LeafOntologyQuery subQuery = new LeafOntologyQuery();
             Set<SugiliteEntity> object = new HashSet<>();
             object.add(new SugiliteEntity(-1, String.class, featurePack.packageName));
-            subQuery.setObject(object);
+            subQuery.setObjectSet(object);
             subQuery.setQueryFunction(SugiliteRelation.HAS_PACKAGE_NAME);
             q.addSubQuery(subQuery);
         }
 
         if(featurePack.className != null && (!featurePack.className.equals("NULL"))){
             //add className
-            OntologyQuery subQuery = new OntologyQuery(OntologyQuery.relationType.nullR);
+            LeafOntologyQuery subQuery = new LeafOntologyQuery();
             Set<SugiliteEntity> object = new HashSet<>();
             object.add(new SugiliteEntity(-1, String.class, featurePack.className));
-            subQuery.setObject(object);
+            subQuery.setObjectSet(object);
             subQuery.setQueryFunction(SugiliteRelation.HAS_CLASS_NAME);
             q.addSubQuery(subQuery);
         }
@@ -143,11 +138,11 @@ public class SugiliteBlockBuildingHelper {
         if (!excludeHasTextRelation) {
             if (featurePack.text != null && (!featurePack.text.equals("NULL"))) {
                 //add a text query
-                OntologyQuery clonedQuery = q.clone();
-                OntologyQuery subQuery = new OntologyQuery(OntologyQuery.relationType.nullR);
+                CombinedOntologyQuery clonedQuery = q.clone();
+                LeafOntologyQuery subQuery = new LeafOntologyQuery();
                 Set<SugiliteEntity> object = new HashSet<>();
                 object.add(new SugiliteEntity(-1, String.class, featurePack.text));
-                subQuery.setObject(object);
+                subQuery.setObjectSet(object);
                 subQuery.setQueryFunction(SugiliteRelation.HAS_TEXT);
                 clonedQuery.addSubQuery(subQuery);
                 hasNonBoundingBoxFeature = true;
@@ -158,11 +153,11 @@ public class SugiliteBlockBuildingHelper {
 
         if(featurePack.contentDescription != null && (!featurePack.contentDescription.equals("NULL")) && (!featurePack.contentDescription.equals(featurePack.text))){
             //add content description
-            OntologyQuery clonedQuery = q.clone();
-            OntologyQuery subQuery = new OntologyQuery(OntologyQuery.relationType.nullR);
+            CombinedOntologyQuery clonedQuery = q.clone();
+            LeafOntologyQuery subQuery = new LeafOntologyQuery();
             Set<SugiliteEntity> object = new HashSet<>();
             object.add(new SugiliteEntity(-1, String.class, featurePack.contentDescription));
-            subQuery.setObject(object);
+            subQuery.setObjectSet(object);
             subQuery.setQueryFunction(SugiliteRelation.HAS_CONTENT_DESCRIPTION);
             clonedQuery.addSubQuery(subQuery);
             hasNonBoundingBoxFeature = true;
@@ -172,11 +167,11 @@ public class SugiliteBlockBuildingHelper {
 
         if(featurePack.viewId != null && (!featurePack.viewId.equals("NULL"))){
             //add view id
-            OntologyQuery clonedQuery = q.clone();
-            OntologyQuery subQuery = new OntologyQuery(OntologyQuery.relationType.nullR);
+            CombinedOntologyQuery clonedQuery = q.clone();
+            LeafOntologyQuery subQuery = new LeafOntologyQuery();
             Set<SugiliteEntity> object = new HashSet<>();
             object.add(new SugiliteEntity(-1, String.class, featurePack.viewId));
-            subQuery.setObject(object);
+            subQuery.setObjectSet(object);
             subQuery.setQueryFunction(SugiliteRelation.HAS_VIEW_ID);
             clonedQuery.addSubQuery(subQuery);
             hasNonBoundingBoxFeature = true;
@@ -193,11 +188,11 @@ public class SugiliteBlockBuildingHelper {
                 for(SugiliteTriple triple : triples){
                     String order = triple.getObject().getEntityValue().toString();
 
-                    OntologyQuery clonedQuery = q.clone();
-                    OntologyQuery subQuery = new OntologyQuery(OntologyQuery.relationType.nullR);
+                    CombinedOntologyQuery clonedQuery = q.clone();
+                    LeafOntologyQuery subQuery = new LeafOntologyQuery();
                     Set<SugiliteEntity> object = new HashSet<>();
                     object.add(new SugiliteEntity(-1, String.class, order));
-                    subQuery.setObject(object);
+                    subQuery.setObjectSet(object);
                     subQuery.setQueryFunction(SugiliteRelation.HAS_LIST_ORDER);
                     clonedQuery.addSubQuery(subQuery);
                     hasNonBoundingBoxFeature = true;
@@ -211,11 +206,11 @@ public class SugiliteBlockBuildingHelper {
                 for(SugiliteTriple triple : triples2){
                     String order = triple.getObject().getEntityValue().toString();
 
-                    OntologyQuery clonedQuery = q.clone();
-                    OntologyQuery subQuery = new OntologyQuery(OntologyQuery.relationType.nullR);
+                    CombinedOntologyQuery clonedQuery = q.clone();
+                    LeafOntologyQuery subQuery = new LeafOntologyQuery();
                     Set<SugiliteEntity> object = new HashSet<>();
                     object.add(new SugiliteEntity(-1, String.class, order));
-                    subQuery.setObject(object);
+                    subQuery.setObjectSet(object);
                     subQuery.setQueryFunction(SugiliteRelation.HAS_PARENT_WITH_LIST_ORDER);
                     clonedQuery.addSubQuery(subQuery);
                     hasNonBoundingBoxFeature = true;
@@ -232,13 +227,13 @@ public class SugiliteBlockBuildingHelper {
             int count = 0;
             double score = 2.01 + (((double)(count++)) / (double) childTexts.size());
             Set<String> homeScreenPackageNames = new HashSet<>(Arrays.asList(Const.HOME_SCREEN_PACKAGE_NAMES));
-            OntologyQuery clonedQuery = q.clone();
+            CombinedOntologyQuery clonedQuery = q.clone();
             for(String childText : childTexts){
                 if(childText != null && !childText.equals(featurePack.text)) {
-                    OntologyQuery subQuery = new OntologyQuery(OntologyQuery.relationType.nullR);
+                    LeafOntologyQuery subQuery = new LeafOntologyQuery();
                     Set<SugiliteEntity> object = new HashSet<>();
                     object.add(new SugiliteEntity(-1, String.class, childText));
-                    subQuery.setObject(object);
+                    subQuery.setObjectSet(object);
                     subQuery.setQueryFunction(SugiliteRelation.HAS_CHILD_TEXT);
                     clonedQuery.addSubQuery(subQuery);
                     double newScore = score;
@@ -253,22 +248,22 @@ public class SugiliteBlockBuildingHelper {
         }
 
         if(featurePack.boundsInScreen != null && (!featurePack.boundsInScreen.equals("NULL"))){
-            OntologyQuery clonedQuery = q.clone();
-            OntologyQuery subQuery = new OntologyQuery(OntologyQuery.relationType.nullR);
+            CombinedOntologyQuery clonedQuery = q.clone();
+            LeafOntologyQuery subQuery = new LeafOntologyQuery();
             Set<SugiliteEntity> object = new HashSet<>();
             object.add(new SugiliteEntity(-1, String.class, featurePack.boundsInScreen));
-            subQuery.setObject(object);
+            subQuery.setObjectSet(object);
             subQuery.setQueryFunction(SugiliteRelation.HAS_SCREEN_LOCATION);
             clonedQuery.addSubQuery(subQuery);
             queries.add(Pair.create(clonedQuery, 5.1));
         }
 
         if(featurePack.boundsInParent != null && (!featurePack.boundsInParent.equals("NULL"))){
-            OntologyQuery clonedQuery = q.clone();
-            OntologyQuery subQuery = new OntologyQuery(OntologyQuery.relationType.nullR);
+            CombinedOntologyQuery clonedQuery = q.clone();
+            LeafOntologyQuery subQuery = new LeafOntologyQuery();
             Set<SugiliteEntity> object = new HashSet<>();
             object.add(new SugiliteEntity(-1, String.class, featurePack.boundsInParent));
-            subQuery.setObject(object);
+            subQuery.setObjectSet(object);
             subQuery.setQueryFunction(SugiliteRelation.HAS_PARENT_LOCATION);
             clonedQuery.addSubQuery(subQuery);
             queries.add(Pair.create(clonedQuery, 8.2));
@@ -403,29 +398,38 @@ public class SugiliteBlockBuildingHelper {
      * @return
      */
     public static OntologyQuery stripOntologyQuery(OntologyQuery query){
-        OntologyQuery queryCloned = query.clone();
-        List<OntologyQuery> queriesToRemove = new ArrayList<>();
-        for(OntologyQuery subQuery : queryCloned.getSubQueries()){
-            if(subQuery != null && subQuery.getR() != null) {
-                /*
-                if (subQuery.getR().equals(SugiliteRelation.HAS_CLASS_NAME)) {
-                    queriesToRemove.add(subQuery);
-                }
-                */
-                if (subQuery.getR().equals(SugiliteRelation.HAS_PACKAGE_NAME)) {
-                    queriesToRemove.add(subQuery);
+        // TODO make this work recursively?
+        if (query instanceof CombinedOntologyQuery) {
+            OntologyQueryWithSubQueries queryCloned = ((CombinedOntologyQuery)query).clone();
+
+            List<OntologyQuery> queriesToRemove = new ArrayList<>();
+            for (OntologyQuery subQuery : queryCloned.getSubQueries()) {
+                if (subQuery != null && subQuery instanceof LeafOntologyQuery) {
+                    LeafOntologyQuery loq = (LeafOntologyQuery)subQuery;
+                    SugiliteRelation r = loq.getR();
+                    /*
+                    if (r.equals(SugiliteRelation.HAS_CLASS_NAME)) {
+                        queriesToRemove.add(subQuery);
+                    }
+                    */
+                    if (r.equals(SugiliteRelation.HAS_PACKAGE_NAME)) {
+                        queriesToRemove.add(subQuery);
+                    }
                 }
             }
-        }
-        for(OntologyQuery queryToRemove : queriesToRemove){
-            queryCloned.getSubQueries().remove(queryToRemove);
-        }
-        if(queryCloned.getSubQueries().size() == 1){
-            for(OntologyQuery query1 : queryCloned.getSubQueries()){
-                return query1;
+            for (OntologyQuery queryToRemove : queriesToRemove) {
+                queryCloned.getSubQueries().remove(queryToRemove);
             }
+            if (queryCloned.getSubQueries().size() == 1) {
+                for (OntologyQuery query1 : queryCloned.getSubQueries()) {
+                    return query1;
+                }
+            }
+            return queryCloned;
+        } else {
+            // TODO what if its not OntologyQueryWithSubQueries?
+            return query.clone();
         }
-        return queryCloned;
     }
 
 }

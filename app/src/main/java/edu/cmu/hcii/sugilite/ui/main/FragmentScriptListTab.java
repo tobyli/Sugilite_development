@@ -35,6 +35,7 @@ import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptFileDao;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptSQLDao;
 import edu.cmu.hcii.sugilite.model.NewScriptGeneralizer;
+import edu.cmu.hcii.sugilite.model.ScriptQueryHasher;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.model.block.util.ScriptPrinter;
 import edu.cmu.hcii.sugilite.pumice.PumiceDemonstrationUtil;
@@ -60,6 +61,7 @@ public class FragmentScriptListTab extends Fragment {
     private Activity activity;
     private AlertDialog progressDialog;
     private NewScriptGeneralizer newScriptGeneralizer;
+    private ScriptQueryHasher scriptQueryHasher;
 
 
     @Override
@@ -71,6 +73,7 @@ public class FragmentScriptListTab extends Fragment {
         this.sharedPreferences = PreferenceManager.getDefaultSharedPreferences(activity);
         this.sugiliteData = activity.getApplication() instanceof SugiliteData? (SugiliteData)activity.getApplication() : new SugiliteData();
         this.newScriptGeneralizer = new NewScriptGeneralizer(activity);
+        this.scriptQueryHasher = new ScriptQueryHasher(activity);
 
         if(Const.DAO_TO_USE == SQL_SCRIPT_DAO)
             this.sugiliteScriptDao = new SugiliteScriptSQLDao(activity);
@@ -151,6 +154,7 @@ public class FragmentScriptListTab extends Fragment {
     private static final int ITEM_8 = Menu.FIRST + 7;
     private static final int ITEM_9 = Menu.FIRST + 8;
     private static final int ITEM_10 = Menu.FIRST + 9;
+    private static final int ITEM_11 = Menu.FIRST + 10;
 
 
 
@@ -173,6 +177,7 @@ public class FragmentScriptListTab extends Fragment {
         menu.add(0, ITEM_7, 0, "Print Debug Info");
         menu.add(0, ITEM_8, 0, "Edit Source");
         menu.add(0, ITEM_9, 0, "Delete");
+        menu.add(0, ITEM_10, 0, "Hash Strings");
 
     }
 
@@ -337,6 +342,43 @@ public class FragmentScriptListTab extends Fragment {
                         sugiliteScriptDao.delete(((TextView) info.targetView).getText().toString() + ".SugiliteScript");
                         setUpScriptList();
                     }
+                    break;
+                case ITEM_10:
+                    // hash strings (DEBUG)
+                    progressDialog = new AlertDialog.Builder(activity).setMessage(Const.LOADING_MESSAGE).create();
+                    progressDialog.getWindow().setType(OVERLAY_TYPE);
+                    progressDialog.setCanceledOnTouchOutside(false);
+                    progressDialog.show();
+                    new Thread(new Runnable() {
+                        @Override
+                        public void run()
+                        {
+                            try {
+                                scriptQueryHasher.hashOntologyQueries(script);
+                                sugiliteScriptDao.save(script);
+                                sugiliteScriptDao.commitSave();
+                            }
+                            catch (Exception e){
+                                e.printStackTrace();
+                            }
+                            Runnable dismissDialog = new Runnable() {
+                                @Override
+                                public void run() {
+                                    progressDialog.dismiss();
+                                    try {
+                                        setUpScriptList();
+                                    }
+                                    catch (Exception e){
+                                        e.printStackTrace();
+                                    }
+                                }
+                            };
+                            if(activity != null){
+                                activity.runOnUiThread(dismissDialog);
+                            }
+                        }
+                    }).start();
+
                     break;
             }
         }

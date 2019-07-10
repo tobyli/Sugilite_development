@@ -21,13 +21,7 @@ import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.model.variable.StringVariable;
 import edu.cmu.hcii.sugilite.model.variable.Variable;
-import edu.cmu.hcii.sugilite.ontology.OntologyQuery;
-import edu.cmu.hcii.sugilite.ontology.SerializableOntologyQuery;
-import edu.cmu.hcii.sugilite.ontology.SerializableUISnapshot;
-import edu.cmu.hcii.sugilite.ontology.SugiliteEntity;
-import edu.cmu.hcii.sugilite.ontology.SugiliteRelation;
-import edu.cmu.hcii.sugilite.ontology.SugiliteSerializableEntity;
-import edu.cmu.hcii.sugilite.ontology.SugiliteSerializableTriple;
+import edu.cmu.hcii.sugilite.ontology.*;
 import edu.cmu.hcii.sugilite.ontology.description.OntologyDescriptionGenerator;
 
 import static edu.cmu.hcii.sugilite.ontology.SugiliteRelation.HAS_CHILD;
@@ -129,16 +123,19 @@ public class NewScriptGeneralizer {
     }
 
     private void replaceParametersInOntologyQuery (OntologyQuery ontologyQuery, String parameter) {
-        if (ontologyQuery.getObject() != null) {
-            for (SugiliteEntity objectEntity : ontologyQuery.getObject()) {
-                if (objectEntity.getEntityValue() instanceof String && parameter.equals(objectEntity.getEntityValue())) {
-                    objectEntity.setEntityValue("@" + objectEntity.getEntityValue());
+        if (ontologyQuery instanceof LeafOntologyQuery) {
+            LeafOntologyQuery loq = (LeafOntologyQuery)ontologyQuery;
+            if (loq.getObject() != null) {
+                for (SugiliteSerializableEntity objectEntity : loq.getObject()) {
+                    if (objectEntity.getEntityValue() instanceof String && parameter.equals(objectEntity.getEntityValue())) {
+                        objectEntity.setEntityValue("@" + objectEntity.getEntityValue());
+                    }
                 }
             }
         }
 
-        if (ontologyQuery.getSubQueries() != null) {
-            for (OntologyQuery subQuery : ontologyQuery.getSubQueries()) {
+        if (ontologyQuery instanceof OntologyQueryWithSubQueries) {
+            for (OntologyQuery subQuery : ((OntologyQueryWithSubQueries)ontologyQuery).getSubQueries()) {
                 replaceParametersInOntologyQuery(subQuery, parameter);
             }
         }
@@ -149,16 +146,19 @@ public class NewScriptGeneralizer {
     private List<Pair<SugiliteRelation, String>> getAllStringsUsedInTheDataDescriptionQuery (OntologyQuery ontologyQuery) {
         List<Pair<SugiliteRelation, String>> allStringsUsedInTheDataDescriptionQuery = new ArrayList<>();
 
-        if (ontologyQuery.getObject() != null && ontologyQuery.getR() != null) {
-            for (SugiliteEntity objectEntity : ontologyQuery.getObject()) {
-                if (objectEntity.getEntityValue() instanceof String) {
-                    allStringsUsedInTheDataDescriptionQuery.add(new Pair<>(ontologyQuery.getR(), (String) objectEntity.getEntityValue()));
+        if (ontologyQuery instanceof LeafOntologyQuery) {
+            LeafOntologyQuery loq = (LeafOntologyQuery)ontologyQuery;
+            if (loq.getObject() != null && loq.getR() != null) {
+                for (SugiliteSerializableEntity objectEntity : loq.getObject()) {
+                    if (objectEntity.getEntityValue() instanceof String) {
+                        allStringsUsedInTheDataDescriptionQuery.add(new Pair<>(loq.getR(), (String) objectEntity.getEntityValue()));
+                    }
                 }
             }
         }
 
-        if (ontologyQuery.getSubQueries() != null) {
-            for (OntologyQuery subQuery : ontologyQuery.getSubQueries()) {
+        if (ontologyQuery instanceof OntologyQueryWithSubQueries) {
+            for (OntologyQuery subQuery : ((OntologyQueryWithSubQueries)ontologyQuery).getSubQueries()) {
                 allStringsUsedInTheDataDescriptionQuery.addAll(getAllStringsUsedInTheDataDescriptionQuery(subQuery));
             }
         }

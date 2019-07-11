@@ -116,6 +116,8 @@ public class SugiliteAccessibilityService extends AccessibilityService {
     private Handler errorHandlingHandler;
     private Handler refreshIconHandler;
 
+    private String currentAppPackageName = "";
+
     public SugiliteAccessibilityService() {
         Log.d(TAG, "inside constructor");
     }
@@ -296,6 +298,9 @@ public class SugiliteAccessibilityService extends AccessibilityService {
                 triggerHandler.checkForAppLaunchTrigger(event.getPackageName().toString());
                 //lastPackageName used to avoid sync issue between threads
                 lastPackageName = event.getSource().getPackageName().toString();
+                if (!lastPackageName.equals("edu.cmu.hcii.sugilite")) {
+                    currentAppPackageName = lastPackageName;
+                }
             }
         }
 
@@ -854,6 +859,9 @@ public class SugiliteAccessibilityService extends AccessibilityService {
 
     }
 
+    public String getCurrentAppPackageName() {
+        return currentAppPackageName;
+    }
 }
 
 

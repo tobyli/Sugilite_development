@@ -11,7 +11,7 @@ import edu.cmu.hcii.sugilite.model.operation.trinary.SugiliteTrinaryOperation;
 import edu.cmu.hcii.sugilite.model.operation.unary.SugiliteUnaryOperation;
 import edu.cmu.hcii.sugilite.ontology.OntologyQuery;
 import edu.cmu.hcii.sugilite.ontology.description.OntologyDescriptionGenerator;
-import edu.cmu.hcii.sugilite.ontology.sharable.HashedStringOntologyQuery;
+import edu.cmu.hcii.sugilite.ontology.HashedStringOntologyQuery;
 
 import java.util.ArrayList;
 import java.util.List;

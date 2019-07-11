@@ -2,11 +2,10 @@ package edu.cmu.hcii.sugilite.ontology.description;
 
 import java.util.*;
 
-import edu.cmu.hcii.sugilite.model.operation.SugiliteOperation;
 import edu.cmu.hcii.sugilite.ontology.LeafOntologyQuery;
 import edu.cmu.hcii.sugilite.ontology.OntologyQuery;
 import edu.cmu.hcii.sugilite.ontology.SugiliteRelation;
-import edu.cmu.hcii.sugilite.ontology.sharable.HashedStringOntologyQuery;
+import edu.cmu.hcii.sugilite.ontology.HashedStringOntologyQuery;
 
 /**
  * Created by Wanling Ding on 15/02/2018.

@@ -42,6 +42,10 @@ public class SugiliteSerializableTriple implements Serializable{
         this.predicateStringValue = t.getPredicateStringValue();
     }
 
+    public SugiliteRelation getPredicate() {
+        return predicate;
+    }
+
     public String getPredicateStringValue() {
         return predicateStringValue;
     }

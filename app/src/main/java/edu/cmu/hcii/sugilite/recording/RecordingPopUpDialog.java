@@ -1063,7 +1063,7 @@ public class RecordingPopUpDialog implements AbstractSugiliteDialog {
                 setTextEditText.setText(text);
             }
         }
-        else if(featurePack.beforeText != null && featurePack.afterText != null){
+        else if(featurePack.afterText != null){
             setTextEditText.setText(featurePack.afterText);
         }
 

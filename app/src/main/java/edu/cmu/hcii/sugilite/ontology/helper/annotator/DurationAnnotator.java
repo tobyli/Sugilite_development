@@ -31,12 +31,15 @@ public class DurationAnnotator implements SugiliteTextAnnotator {
 
     @Override
     public List<AnnotatingResult> annotate(String text) {
+        text = text.replaceAll("[\\u00A0\\u2007\\u202F]+", " ");
+
+
         if (cache.containsKey(text)){
             return cache.get(text);
         }
 
         List<AnnotatingResult> results = new ArrayList<>();
-        String regex = "\\b\\d+?(.\\d+?)?( )?(d|h|hr(s)?|hour(s)?|m|min(s)?|minute(s)?|s|sec)\\b";
+        String regex = "\\b\\d+?(.\\d+?)?(\\s)?(d|h|hr(s)?|hour(s)?|m|min(s)?|minute(s)?|s|sec)\\b";
         Pattern pattern = Pattern.compile(regex);
 
         int curEnd = -3;

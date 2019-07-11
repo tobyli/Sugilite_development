@@ -91,6 +91,10 @@ public class TextChangedEventHandler {
         if(aggregatedFeaturePack != null) {
             System.out.println("text changed event flushed successfully");
             //show the recording popup only after an text entry session has concluded
+            if (aggregatedFeaturePack.text == null) {
+                //dirty fix
+                aggregatedFeaturePack.text = "NULL";
+            }
             RecordingPopUpDialog recordingPopUpDialog = new RecordingPopUpDialog(sugiliteData, context, aggregatedFeaturePack, sharedPreferences, lastLayoutInflator, RecordingPopUpDialog.TRIGGERED_BY_NEW_EVENT, lastAvailableAlternatives);
             sugiliteData.recordingPopupDialogQueue.add(recordingPopUpDialog);
             if (!sugiliteData.recordingPopupDialogQueue.isEmpty() && sugiliteData.hasRecordingPopupActive == false) {
@@ -98,7 +102,6 @@ public class TextChangedEventHandler {
                 Log.i(TAG, "FLUSH-TAG1");
                 sugiliteData.recordingPopupDialogQueue.poll().show();
                 Log.i(TAG, "FLUSH-TAG2");
-
             }
             aggregatedFeaturePack = null;
         }

@@ -27,6 +27,8 @@ public class TimeAnnotator implements SugiliteTextAnnotator {
 
     @Override
     public List<AnnotatingResult> annotate(String text) {
+        text = text.replaceAll("[\\u00A0\\u2007\\u202F]+", " ");
+
         if (cache.containsKey(text)){
             return cache.get(text);
         }

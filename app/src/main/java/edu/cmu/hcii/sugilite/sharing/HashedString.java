@@ -6,7 +6,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 
-public final class HashedString implements Serializable {
+public class HashedString implements Serializable {
 
     private final byte[] hash;
 

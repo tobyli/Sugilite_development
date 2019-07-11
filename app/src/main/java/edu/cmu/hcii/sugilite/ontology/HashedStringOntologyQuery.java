@@ -1,6 +1,6 @@
-package edu.cmu.hcii.sugilite.ontology.sharable;
+package edu.cmu.hcii.sugilite.ontology;
 
-import edu.cmu.hcii.sugilite.ontology.*;
+import edu.cmu.hcii.sugilite.sharing.HashedString;
 
 import java.util.Arrays;
 import java.util.Set;

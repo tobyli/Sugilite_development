@@ -12,8 +12,7 @@ import edu.cmu.hcii.sugilite.Const;
 import edu.cmu.hcii.sugilite.model.operation.trinary.SugiliteLoadVariableOperation;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteOperation;
 import edu.cmu.hcii.sugilite.ontology.*;
-import edu.cmu.hcii.sugilite.ontology.sharable.HashedString;
-import edu.cmu.hcii.sugilite.ontology.sharable.HashedStringOntologyQuery;
+import edu.cmu.hcii.sugilite.ontology.HashedStringOntologyQuery;
 
 /**
  * Created by Wanling Ding on 22/02/2018.

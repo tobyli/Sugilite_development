@@ -1,8 +1,6 @@
-package edu.cmu.hcii.sugilite.ontology.sharable;
+package edu.cmu.hcii.sugilite.sharing;
 
 import java.io.Serializable;
-import java.io.UnsupportedEncodingException;
-import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;

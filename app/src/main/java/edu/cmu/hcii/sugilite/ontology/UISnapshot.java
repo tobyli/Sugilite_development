@@ -238,6 +238,9 @@ public class UISnapshot {
                 //isSelected
                 addEntityBooleanTriple(currentEntity, node.getSelected(), SugiliteRelation.IS_SELECTED);
 
+                //isFocused
+                addEntityBooleanTriple(currentEntity, node.getFocused(), SugiliteRelation.IS_FOCUSED);
+
 
                 //screen location
                 addEntityStringTriple(currentEntity, node.getBoundsInScreen(), SugiliteRelation.HAS_SCREEN_LOCATION);

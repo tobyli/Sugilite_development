@@ -41,6 +41,7 @@ public class RelationWeight {
         weightMap.put(SugiliteRelation.IS_CHECKABLE,16);
         weightMap.put(SugiliteRelation.IS_CHECKED,17);
         weightMap.put(SugiliteRelation.IS_SELECTED,18);
+        weightMap.put(SugiliteRelation.IS_FOCUSED,40);
 
 
         weightMap.put(SugiliteRelation.IS_A_LIST,19);

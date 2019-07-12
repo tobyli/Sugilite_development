@@ -74,6 +74,7 @@ public class SugiliteRelation implements Serializable {
     public static final SugiliteRelation IS_CHECKABLE = new SugiliteRelation(15, "IS_CHECKABLE");
     public static final SugiliteRelation IS_CHECKED = new SugiliteRelation(16, "IS_CHECKED");
     public static final SugiliteRelation IS_SELECTED = new SugiliteRelation(17, "IS_SELECTED");
+    public static final SugiliteRelation IS_FOCUSED = new SugiliteRelation(40, "IS_FOCUSED"); //added later
 
     //adv
     public static final SugiliteRelation HAS_LIST_ORDER = new SugiliteRelation(18, "numeric_index");
@@ -133,6 +134,7 @@ public class SugiliteRelation implements Serializable {
         stringRelationMap.put("IS_CHECKABLE", IS_CHECKABLE);
         stringRelationMap.put("IS_CHECKED", IS_CHECKED);
         stringRelationMap.put("IS_SELECTED", IS_SELECTED);
+        stringRelationMap.put("IS_FOCUSED", IS_FOCUSED);
 
         stringRelationMap.put("numeric_index", HAS_LIST_ORDER);
         stringRelationMap.put("numeric_parent_index", HAS_PARENT_WITH_LIST_ORDER);

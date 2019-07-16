@@ -17,7 +17,7 @@ import java.nio.charset.StandardCharsets;
 public class PrivacyHashUploader {
 
     // TODO make this server address permanent
-    private final String DEFAULT_SERVER_URL = "http://128.237.120.186:8080/";
+    private final String DEFAULT_SERVER_URL = "http://128.237.171.73:8080/";
     private final String UPLOAD_HASHED_UI_ENDPOINT = "privacy/upload_ui";
 
     private URL uploadHashedUIUrl;
@@ -117,9 +117,8 @@ public class PrivacyHashUploader {
                 int responseCode = urlConnection.getResponseCode();
                 Log.v("PrivacyHashUploader", "uploaded hashed UI with response code " + responseCode);
                 return responseCode;
-            } catch (SocketTimeoutException e) {
-                Log.i("PrivacyHashUploader", "upload hashed UI timed out");
             } catch (IOException e) {
+                Log.i("PrivacyHashUploader", "upload hashed ui failed");
                 e.printStackTrace();
             } finally {
             }

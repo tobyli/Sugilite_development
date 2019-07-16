@@ -97,6 +97,11 @@ public class HashedStringOntologyQuery extends OntologyQuery {
             return result;
         }
 
+        if (query instanceof PlaceholderOntologyQuery) {
+            PlaceholderOntologyQuery poq = (PlaceholderOntologyQuery)query;
+            return new PlaceholderOntologyQuery(hashQuery(poq.getInnerQuery()));
+        }
+
         // non-hashable leaf or already hashed
         return query;
     }

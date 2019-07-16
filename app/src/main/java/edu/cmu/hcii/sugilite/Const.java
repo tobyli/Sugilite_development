@@ -120,8 +120,17 @@ public class Const {
 
 
     //colors
-    public static final String SCRIPT_ACTION_COLOR = "#ffa500", SCRIPT_ACTION_PARAMETER_COLOR = "#bc002f", SCRIPT_TARGET_TYPE_COLOR = "#36a095"
-            , SCRIPT_IDENTIFYING_FEATURE_COLOR = "#008400", SCRIPT_VIEW_ID_COLOR = "#1f71e2", SCRIPT_WITHIN_APP_COLOR = "#ff00ff", SCRIPT_LINK_COLOR = "#2e159f", SCRIPT_CONDITIONAL_COLOR = "#9333FF", SCRIPT_CONDITIONAL_COLOR_2 = "#6D3333", SCRIPT_CONDITIONAL_COLOR_3 = "#10b29a";
+    public static final String SCRIPT_ACTION_COLOR = "#ffa500";
+    public static final String SCRIPT_ACTION_PARAMETER_COLOR = "#bc002f";
+    public static final String SCRIPT_TARGET_TYPE_COLOR = "#36a095";
+    public static final String SCRIPT_IDENTIFYING_FEATURE_COLOR = "#008400";
+    public static final String SCRIPT_VIEW_ID_COLOR = "#1f71e2";
+    public static final String SCRIPT_WITHIN_APP_COLOR = "#ff00ff";
+    public static final String SCRIPT_LINK_COLOR = "#2e159f";
+    public static final String SCRIPT_CONDITIONAL_COLOR = "#9333FF";
+    public static final String SCRIPT_CONDITIONAL_COLOR_2 = "#6D3333";
+    public static final String SCRIPT_CONDITIONAL_COLOR_3 = "#10b29a";
+    public static final String SCRIPT_PLACEHOLDER_COLOR = "#999999";
 
     public static int RECORDING_OVERLAY_COLOR = 0x20FFFF00;
     public static int RECORDING_OVERLAY_COLOR_STOP = 0x20FF0000;

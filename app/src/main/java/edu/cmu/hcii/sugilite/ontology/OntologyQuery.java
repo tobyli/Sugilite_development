@@ -36,34 +36,39 @@ public abstract class OntologyQuery implements Serializable {
             String firstWord = s.substring(0, spaceIndex);
             // firstWord: conj
             if (s.contains("(")) {
-                CombinedOntologyQuery q = new CombinedOntologyQuery();
-                // nested relation
-                if (firstWord.equals("conj")) {
-                    q.setSubRelation(CombinedOntologyQuery.RelationType.AND);
-                } else if (firstWord.equals("or")) {
-                    q.setSubRelation(CombinedOntologyQuery.RelationType.OR);
+                if (firstWord.equals("placeholder")) {
+                    OntologyQuery innerQuery = parseString(s.substring(spaceIndex + 1));
+                    query = new PlaceholderOntologyQuery(innerQuery);
                 } else {
-                    q.setSubRelation(CombinedOntologyQuery.RelationType.PREV);
-                    q.setQueryFunction(SugiliteRelation.stringRelationMap.get(firstWord));
-                }
-
-                Set<OntologyQuery> subQ = new HashSet<>();
-                // walk through the string and parse in the next level query strings recursively
-                int lastMatchIndex = spaceIndex + 1;
-                int counter = 0;
-                for (int i = spaceIndex + 1; i < s.length(); i++) {
-                    if (s.charAt(i) == '(') counter++;
-                    else if (s.charAt(i) == ')') counter--;
-
-                    if (counter == 0) {
-                        OntologyQuery sub_query = parseString(s.substring(lastMatchIndex, i + 1));
-                        subQ.add(sub_query);
-                        lastMatchIndex = i + 2;
-                        i++;
+                    CombinedOntologyQuery q = new CombinedOntologyQuery();
+                    // nested relation
+                    if (firstWord.equals("conj")) {
+                        q.setSubRelation(CombinedOntologyQuery.RelationType.AND);
+                    } else if (firstWord.equals("or")) {
+                        q.setSubRelation(CombinedOntologyQuery.RelationType.OR);
+                    } else {
+                        q.setSubRelation(CombinedOntologyQuery.RelationType.PREV);
+                        q.setQueryFunction(SugiliteRelation.stringRelationMap.get(firstWord));
                     }
+
+                    Set<OntologyQuery> subQ = new HashSet<>();
+                    // walk through the string and parse in the next level query strings recursively
+                    int lastMatchIndex = spaceIndex + 1;
+                    int counter = 0;
+                    for (int i = spaceIndex + 1; i < s.length(); i++) {
+                        if (s.charAt(i) == '(') counter++;
+                        else if (s.charAt(i) == ')') counter--;
+
+                        if (counter == 0) {
+                            OntologyQuery sub_query = parseString(s.substring(lastMatchIndex, i + 1));
+                            subQ.add(sub_query);
+                            lastMatchIndex = i + 2;
+                            i++;
+                        }
+                    }
+                    q.setSubQueries(subQ);
+                    query = q;
                 }
-                q.setSubQueries(subQ);
-                query = q;
             }
 
             else {

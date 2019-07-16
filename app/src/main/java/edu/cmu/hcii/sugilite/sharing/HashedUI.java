@@ -18,6 +18,7 @@ public class HashedUI {
     public final HashedString packageUserHash;
     public final List<HashedSplitString> hashedTexts;
 
+    // note: storing activityname and packagename may be redundant
     public HashedUI(String packageName, String activityName, SerializableUISnapshot snapshot, String androidID, HashedSplitStringGenerator generator) {
         this.packageName = packageName;
         this.activityName = activityName;

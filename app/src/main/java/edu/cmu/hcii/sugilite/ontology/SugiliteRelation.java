@@ -58,6 +58,7 @@ public class SugiliteRelation implements Serializable {
     public static final SugiliteRelation HAS_PARENT_LOCATION = new SugiliteRelation(6, "HAS_PARENT_LOCATION");
     public static final SugiliteRelation HAS_PACKAGE_NAME = new SugiliteRelation(7, "HAS_PACKAGE_NAME");
     public static final SugiliteRelation HAS_CHILD = new SugiliteRelation(8, "HAS_CHILD");
+    public static final SugiliteRelation HAS_ACTIVITY_NAME = new SugiliteRelation(41, "HAS_ACTIVITY_NAME");
 
 
     //TODO: new relations to add for flattening the ontology
@@ -123,6 +124,7 @@ public class SugiliteRelation implements Serializable {
         stringRelationMap.put("HAS_PARENT_LOCATION", HAS_PARENT_LOCATION);
         stringRelationMap.put("HAS_PACKAGE_NAME", HAS_PACKAGE_NAME);
         stringRelationMap.put("HAS_CHILD", HAS_CHILD);
+        stringRelationMap.put("HAS_ACTIVITY_NAME", HAS_ACTIVITY_NAME);
 
         stringRelationMap.put("HAS_CHILD_TEXT", HAS_CHILD_TEXT);
         stringRelationMap.put("HAS_SIBLING_TEXT", HAS_SIBLING_TEXT);

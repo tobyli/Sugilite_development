@@ -248,7 +248,8 @@ public class Automator {
                 }
 
 
-                UISnapshot uiSnapshot = new UISnapshot(rootNode, true, sugiliteTextParentAnnotator, true);
+                // getCurrentAppActivityName might not yield correct activity name at this moment
+                UISnapshot uiSnapshot = new UISnapshot(rootNode, true, sugiliteTextParentAnnotator, true, serviceContext.getCurrentAppActivityName());
 
                 //de-serialize the OntologyQuery
                 OntologyQuery q = operationBlock.getOperation().getDataDescriptionQueryIfAvailable().clone();
@@ -308,7 +309,8 @@ public class Automator {
                 if (!succeeded) {
                     lastTimeFailed.clear();
                     for (AccessibilityNodeInfo node : filteredNodes) {
-                        lastTimeFailed.add(new Node(node));
+                        // getCurrentAppActivityName might not yield correct activity name at this moment
+                        lastTimeFailed.add(new Node(node, serviceContext.getCurrentAppActivityName()));
                     }
                 } else {
                     lastTimeFailed.clear();
@@ -542,7 +544,8 @@ public class Automator {
                 if (!succeeded) {
                     lastTimeFailed.clear();
                     for (AccessibilityNodeInfo node : filteredNodes) {
-                        lastTimeFailed.add(new Node(node));
+                        // getCurrentAppActivityName might not yield correct activity name at this moment
+                        lastTimeFailed.add(new Node(node, serviceContext.getCurrentAppActivityName()));
                     }
                 } else {
                     lastTimeFailed.clear();

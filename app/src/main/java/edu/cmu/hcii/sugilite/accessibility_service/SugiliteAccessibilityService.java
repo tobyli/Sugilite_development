@@ -300,6 +300,22 @@ public class SugiliteAccessibilityService extends AccessibilityService {
             return;
         }
 
+        // check to see if changed activity
+        if (event.getPackageName() != null && event.getClassName() != null) {
+            ComponentName componentName = new ComponentName(
+                    event.getPackageName().toString(),
+                    event.getClassName().toString()
+            );
+
+            try {
+                ActivityInfo activityInfo = getPackageManager().getActivityInfo(componentName, 0);
+                Log.i("CurrentActivity", activityInfo.packageName + " : " + activityInfo.name + " : "  + AccessibilityEvent.eventTypeToString(event.getEventType()));
+                currentAppPackageName = activityInfo.packageName;
+                currentAppActivityName = activityInfo.name;
+            } catch (PackageManager.NameNotFoundException e) {
+            }
+        }
+
         //check for the trigger, see if an app launch trigger should be triggered
         if (eventType == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) {
             if (sourceNode != null && sourceNode.getPackageName() != null && (!lastPackageName.contentEquals(sourceNode.getPackageName()))) {
@@ -307,20 +323,6 @@ public class SugiliteAccessibilityService extends AccessibilityService {
                 //lastPackageName used to avoid sync issue between threads
                 lastPackageName = sourceNode.getPackageName().toString();
 
-                if (event.getPackageName() != null && event.getClassName() != null) {
-                    ComponentName componentName = new ComponentName(
-                            event.getPackageName().toString(),
-                            event.getClassName().toString()
-                    );
-
-                    try {
-                        ActivityInfo activityInfo = getPackageManager().getActivityInfo(componentName, 0);
-                        Log.i("CurrentActivity", activityInfo.packageName + " : " + activityInfo.name);
-                        currentAppPackageName = activityInfo.packageName;
-                        currentAppActivityName = activityInfo.name;
-                    } catch (PackageManager.NameNotFoundException e) {
-                    }
-                }
             }
         }
 
@@ -496,7 +498,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
                         @Override
                         public void run() {
                             Log.i(TAG, "Entering handle recording thread");
-                            UISnapshot uiSnapshot = new UISnapshot(final_root, true, sugiliteTextParentAnnotator, true);
+                            UISnapshot uiSnapshot = new UISnapshot(final_root, true, sugiliteTextParentAnnotator, true, currentAppActivityName);
                             System.out.printf("UI Snapshot Constructed for Recording!");
                             //temp hack for ViewGroup in Google Now Launcher
                             if (sourceNode != null && sourceNode.getClassName() != null && sourceNode.getPackageName() != null && sourceNode.getClassName().toString().contentEquals("android.view.ViewGroup") && homeScreenPackageNameSet.contains(sourceNode.getPackageName().toString())) {
@@ -769,7 +771,8 @@ public class SugiliteAccessibilityService extends AccessibilityService {
                         uiSnapshotGenerationExecutor.execute(new Runnable() {
                             @Override
                             public void run() {
-                                UISnapshot uiSnapshot = new UISnapshot(windows, true, sugiliteTextParentAnnotator, false);
+                                // currentAppActivityName might not be correct at this point in time?
+                                UISnapshot uiSnapshot = new UISnapshot(windows, true, sugiliteTextParentAnnotator, false, currentAppActivityName);
                                 if (uiSnapshot.getNodeAccessibilityNodeInfoMap().size() >= 5) {
                                     //filter out (mostly) empty ui snapshots
                                     verbalInstructionIconManager.setLatestUISnapshot(uiSnapshot);
@@ -806,7 +809,8 @@ public class SugiliteAccessibilityService extends AccessibilityService {
                 @Override
                 public void run() {
                     List<AccessibilityNodeInfo> allNodes = AutomatorUtil.getAllNodesFromWindows(windows);
-                    UISnapshot uiSnapshot = new UISnapshot(windows, true, sugiliteTextParentAnnotator, true);
+                    // getCurrentAppActivityName might not yield correct activity name at this moment
+                    UISnapshot uiSnapshot = new UISnapshot(windows, true, sugiliteTextParentAnnotator, true, currentAppActivityName);
                     automator.handleLiveEvent(uiSnapshot, getApplicationContext(), allNodes);
                 }
             });

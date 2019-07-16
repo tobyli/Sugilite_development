@@ -1,6 +1,7 @@
 package edu.cmu.hcii.sugilite.sharing;
 
 import android.os.AsyncTask;
+import android.util.Log;
 import android.widget.Toast;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -9,13 +10,14 @@ import edu.cmu.hcii.sugilite.ontology.SerializableUISnapshot;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
+import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 
 public class PrivacyHashUploader {
 
     // TODO make this server address permanent
-    private final String DEFAULT_SERVER_URL = "http://128.237.213.33:8080/";
+    private final String DEFAULT_SERVER_URL = "http://128.237.120.186:8080/";
     private final String UPLOAD_HASHED_UI_ENDPOINT = "privacy/upload_ui";
 
     private URL uploadHashedUIUrl;
@@ -115,6 +117,8 @@ public class PrivacyHashUploader {
                 int responseCode = urlConnection.getResponseCode();
                 System.out.println(responseCode);
                 return responseCode;
+            } catch (SocketTimeoutException e) {
+                Log.i("UploadUI", "upload hashed UI timed out");
             } catch (IOException e) {
                 e.printStackTrace();
             } finally {

@@ -23,6 +23,7 @@ public class Node implements Serializable {
     private String contentDescription;
     private String viewId;
     private String packageName;
+    private String activityName;
     private String className;
     private String boundsInScreen;
     private String boundsInParent;
@@ -46,8 +47,8 @@ public class Node implements Serializable {
     private List<Integer> nodeZIndexSequence = new ArrayList<>();
 
 
-    public Node(AccessibilityNodeInfo nodeInfo, Integer windowZIndex, List<Integer> parentNodeZIndexSequence){
-        this(nodeInfo);
+    public Node(AccessibilityNodeInfo nodeInfo, Integer windowZIndex, List<Integer> parentNodeZIndexSequence, String activityName){
+        this(nodeInfo, activityName);
         this.windowZIndex = windowZIndex;
         this.nodeZIndexSequence = new ArrayList<>(parentNodeZIndexSequence);
         Collections.copy(this.nodeZIndexSequence, parentNodeZIndexSequence);
@@ -55,7 +56,7 @@ public class Node implements Serializable {
         this.nodeZIndexSequence.add(nodeInfo.getDrawingOrder());
     }
 
-    public Node(AccessibilityNodeInfo nodeInfo){
+    public Node(AccessibilityNodeInfo nodeInfo, String activityName){
         if(nodeInfo == null){
             new Exception("null nodeinfo!").printStackTrace();
             return;
@@ -68,6 +69,7 @@ public class Node implements Serializable {
             viewId = nodeInfo.getViewIdResourceName();
         if(nodeInfo.getPackageName() != null)
             packageName = nodeInfo.getPackageName().toString();
+        this.activityName = activityName;
         if(nodeInfo.getClassName() != null)
             className = nodeInfo.getClassName().toString();
 //        if(nodeInfo.getEventManagerId() != null)
@@ -97,7 +99,7 @@ public class Node implements Serializable {
 //            childNodes.add(new Node(nodeInfo.getChild(i)));
 //        }
         if(nodeInfo.getParent() != null) {
-            parent = new Node(nodeInfo.getParent());
+            parent = new Node(nodeInfo.getParent(), activityName);
         }
 //        TextLabelManager textLabelManager = new TextLabelManager();
 //        this.childrenTextLabels = textLabelManager.getChildrenTextLabels(this);
@@ -122,6 +124,10 @@ public class Node implements Serializable {
 
     public String getPackageName() {
         return packageName;
+    }
+
+    public String getActivityName() {
+        return activityName;
     }
 
     public String getClassName() {

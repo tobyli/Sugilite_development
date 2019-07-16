@@ -763,7 +763,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
                     }
                 }
                 long finishGettingWindowsTime = System.currentTimeMillis();
-                Log.i(TAG, String.format("Finished getting windows -- Takes %s ms.", String.valueOf(finishGettingWindowsTime - startTime)));
+                Log.v(TAG, String.format("Finished getting windows -- Takes %s ms.", String.valueOf(finishGettingWindowsTime - startTime)));
 
                 //if(!rootNodePackageNames.contains("edu.cmu.hcii.sugilite")) {
                 if (true) {
@@ -777,7 +777,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
                                     //filter out (mostly) empty ui snapshots
                                     verbalInstructionIconManager.setLatestUISnapshot(uiSnapshot);
                                     long stopTime = System.currentTimeMillis();
-                                    Log.i(TAG, "Updated UI Snapshot! -- Takes " + String.valueOf(stopTime - startTime) + "ms");
+                                    Log.v(TAG, "Updated UI Snapshot! -- Takes " + String.valueOf(stopTime - startTime) + "ms");
                                     if (runnableOnUpdateFinishesOnUIThread != null){
                                         runOnUiThread(runnableOnUpdateFinishesOnUIThread);
                                     }

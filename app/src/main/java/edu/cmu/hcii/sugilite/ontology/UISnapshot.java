@@ -96,7 +96,7 @@ public class UISnapshot {
         long startTime = System.currentTimeMillis();
         constructFromListOfNodes(allNodes, toAnnotateStringEntities);
         long stopTime = System.currentTimeMillis();
-        Log.i(TAG, String.format("Constructed from List of %d Nodes! -- Takes %s ms", allNodes.size(), String.valueOf(stopTime - startTime)));
+        Log.v(TAG, String.format("Constructed from List of %d Nodes! -- Takes %s ms", allNodes.size(), String.valueOf(stopTime - startTime)));
     }
 
     //construct a UISnapshot from a rootNode
@@ -153,7 +153,7 @@ public class UISnapshot {
                 List<Future<Boolean>> results = executor.invokeAll(todos);
                 stringEntitiesAreAnnotated = true;
                 long stopTime = System.currentTimeMillis();
-                Log.i(TAG, String.format("Parsed strings for %d entities! -- Takes %s ms", results.size(), String.valueOf(stopTime - startTime)));
+                Log.v(TAG, String.format("Parsed strings for %d entities! -- Takes %s ms", results.size(), String.valueOf(stopTime - startTime)));
 
             } catch (InterruptedException e){
                 e.printStackTrace();;

@@ -115,10 +115,10 @@ public class PrivacyHashUploader {
                 urlConnection.connect();
 
                 int responseCode = urlConnection.getResponseCode();
-                System.out.println(responseCode);
+                Log.v("PrivacyHashUploader", "uploaded hashed UI with response code " + responseCode);
                 return responseCode;
             } catch (SocketTimeoutException e) {
-                Log.i("UploadUI", "upload hashed UI timed out");
+                Log.i("PrivacyHashUploader", "upload hashed UI timed out");
             } catch (IOException e) {
                 e.printStackTrace();
             } finally {

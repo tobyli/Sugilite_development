@@ -6,6 +6,7 @@ import android.widget.Toast;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import edu.cmu.hcii.sugilite.ontology.SerializableUISnapshot;
+import edu.cmu.hcii.sugilite.sharing.debug.HasPlaintext;
 
 import java.io.*;
 import java.net.HttpURLConnection;
@@ -44,6 +45,11 @@ public class PrivacyHashUploader {
         sb.append(jsonProperty("text_hash", hashedText.preferred.toString()));
         sb.append(",\n");
 
+        if (hashedText instanceof HasPlaintext) {
+            sb.append(jsonProperty("debug_text", ((HasPlaintext)hashedText).getPlaintext()));
+            sb.append(",\n");
+        }
+
         sb.append("\"derived_hashes\": [\n");
 
         for (int i = 0; i < hashedText.alternatives.size(); i++) {
@@ -54,6 +60,12 @@ public class PrivacyHashUploader {
 
             sb.append(jsonProperty("text_hash", subString.toString()));
             sb.append(",\n");
+
+            if (subString instanceof HasPlaintext) {
+                sb.append(jsonProperty("debug_text", ((HasPlaintext)subString).getPlaintext()));
+                sb.append(",\n");
+            }
+
             sb.append(jsonProperty("tokens_removed", subString.priority));
 
             sb.append("}");

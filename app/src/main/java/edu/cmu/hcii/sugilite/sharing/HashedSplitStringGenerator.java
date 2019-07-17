@@ -1,5 +1,9 @@
 package edu.cmu.hcii.sugilite.sharing;
 
+import edu.cmu.hcii.sugilite.sharing.debug.HashedSplitStringWithPlaintext;
+import edu.cmu.hcii.sugilite.sharing.debug.HashedStringWithPlaintext;
+import edu.cmu.hcii.sugilite.sharing.debug.HashedSubStringWithPlaintext;
+
 import java.util.ArrayList;
 
 public class HashedSplitStringGenerator {
@@ -21,9 +25,9 @@ public class HashedSplitStringGenerator {
                         sb.append(' ');
                     }
                 }
-                substrings.add(new HashedSubString(sb.toString(), 1));
+                substrings.add(new HashedSubStringWithPlaintext(sb.toString(), 1));
             }
         }
-        return new HashedSplitString(new HashedString(s), substrings);
+        return new HashedSplitStringWithPlaintext(new HashedStringWithPlaintext(s), substrings);
     }
 }

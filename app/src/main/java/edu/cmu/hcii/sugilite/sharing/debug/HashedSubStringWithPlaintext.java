@@ -7,6 +7,7 @@ public class HashedSubStringWithPlaintext extends HashedSubString implements Has
 
     public HashedSubStringWithPlaintext(String string, int priority) {
         super(string, priority);
+        this.plaintext = string;
     }
 
     @Override

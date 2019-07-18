@@ -15,7 +15,8 @@ public class HashedUI {
 
     private static final SugiliteRelation[] USABLE_RELATIONS = {
             SugiliteRelation.HAS_TEXT,
-            SugiliteRelation.HAS_CHILD_TEXT
+            SugiliteRelation.HAS_CHILD_TEXT,
+            SugiliteRelation.HAS_CONTENT_DESCRIPTION
     };
 
     public final String packageName;

@@ -48,6 +48,11 @@ public class SugiliteScriptFileDao implements SugiliteScriptDao {
         }
     }
 
+    private void invalidateCache() {
+        savingCache.clear();
+        readingCache.clear();
+    }
+
     /**
      * commit the changes in savingBuffer
      *
@@ -62,11 +67,11 @@ public class SugiliteScriptFileDao implements SugiliteScriptDao {
         for(Map.Entry<String, SugiliteStartingBlock> entry : savingCache.entrySet()){
             commitSaveForASingleScript(entry.getValue());
         }
-        savingCache.clear();
+        invalidateCache();
         System.out.println("COMMIT SAVE: SAVED " + number + " SCRIPTS");
     }
 
-    public void commitSaveForASingleScript(SugiliteStartingBlock sugiliteBlock) throws Exception{
+    private void commitSaveForASingleScript(SugiliteStartingBlock sugiliteBlock) throws Exception{
         String scriptName = sugiliteBlock.getScriptName();
         ObjectOutputStream oos = null;
         FileOutputStream fout = null;
@@ -156,6 +161,9 @@ public class SugiliteScriptFileDao implements SugiliteScriptDao {
             throw e;
             //TODO: error handling
         }
+        finally {
+            invalidateCache();
+        }
     }
     public int clear(){
         int count = 0;
@@ -171,6 +179,9 @@ public class SugiliteScriptFileDao implements SugiliteScriptDao {
             e.printStackTrace();
             throw e;
             //TODO: error handling
+        }
+        finally {
+            invalidateCache();
         }
         return count;
     }

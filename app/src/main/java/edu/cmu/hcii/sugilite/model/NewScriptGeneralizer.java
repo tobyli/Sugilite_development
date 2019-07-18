@@ -177,6 +177,10 @@ public class NewScriptGeneralizer {
                 SugiliteSerializableEntity<Node> parentEntity = getParentNodeEntity(currentEntity, uiSnapshot);
                 List<SugiliteSerializableEntity<Node>> immediateChildNodeEntities = getAllChildNodeEntity(parentEntity, uiSnapshot, true, currentEntity);
                 for (SugiliteSerializableEntity<Node> sibling : immediateChildNodeEntities) {
+                    if (sibling.getEntityValue().getBoundsInScreen() != null && nodeEntity.getEntityValue().getBoundsInScreen() != null && sibling.getEntityValue().getBoundsInScreen().equals(nodeEntity.getEntityValue().getBoundsInScreen())) {
+                        continue;
+                    }
+
                     String siblingIsClickable = getUISnapshotRelationValue(sibling, IS_CLICKABLE, uiSnapshot);
                     String siblingClassName = getUISnapshotRelationValue(sibling, HAS_CLASS_NAME, uiSnapshot);
 

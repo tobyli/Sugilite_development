@@ -178,6 +178,7 @@ public class FragmentScriptListTab extends Fragment {
         menu.add(0, ITEM_8, 0, "Edit Source");
         menu.add(0, ITEM_9, 0, "Delete");
         menu.add(0, ITEM_10, 0, "Hash Strings");
+        menu.add(0, ITEM_11, 0, "Duplicate");
 
     }
 
@@ -378,8 +379,42 @@ public class FragmentScriptListTab extends Fragment {
                             }
                         }
                     }).start();
-
                     break;
+                case ITEM_11:
+                    //duplicate
+                    progressDialog = new AlertDialog.Builder(activity).setMessage(Const.LOADING_MESSAGE).create();
+                    progressDialog.getWindow().setType(OVERLAY_TYPE);
+                    progressDialog.setCanceledOnTouchOutside(false);
+                    progressDialog.show();
+                    new Thread(new Runnable() {
+                        @Override
+                        public void run()
+                        {
+                            try {
+                                script.setScriptName(scriptName.replace(".SugiliteScript", "") + "_copy" + ".SugiliteScript");
+                                sugiliteScriptDao.save(script);
+                                sugiliteScriptDao.commitSave();
+                            }
+                            catch (Exception e){
+                                e.printStackTrace();
+                            }
+                            Runnable dismissDialog = new Runnable() {
+                                @Override
+                                public void run() {
+                                    progressDialog.dismiss();
+                                    try {
+                                        setUpScriptList();
+                                    }
+                                    catch (Exception e){
+                                        e.printStackTrace();
+                                    }
+                                }
+                            };
+                            if(activity != null){
+                                activity.runOnUiThread(dismissDialog);
+                            }
+                        }
+                    }).start();
             }
         }
         catch (Exception e){

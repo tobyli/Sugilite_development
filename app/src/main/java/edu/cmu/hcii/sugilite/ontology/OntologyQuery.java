@@ -1,7 +1,6 @@
 package edu.cmu.hcii.sugilite.ontology;
 
-import edu.cmu.hcii.sugilite.ontology.sharable.HashedString;
-import edu.cmu.hcii.sugilite.ontology.sharable.HashedStringOntologyQuery;
+import edu.cmu.hcii.sugilite.sharing.HashedString;
 
 import java.io.Serializable;
 import java.util.HashSet;

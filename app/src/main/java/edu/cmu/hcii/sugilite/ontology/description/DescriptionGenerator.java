@@ -41,6 +41,7 @@ public class DescriptionGenerator {
         descriptionMap.put(SugiliteRelation.IS_CHECKABLE,"is checkable ");
         descriptionMap.put(SugiliteRelation.IS_CHECKED,"is checked ");
         descriptionMap.put(SugiliteRelation.IS_SELECTED,"is selected ");
+        descriptionMap.put(SugiliteRelation.IS_FOCUSED,"is focused ");
 
         descriptionMap.put(SugiliteRelation.HAS_LIST_ORDER,"the %s item");
         descriptionMap.put(SugiliteRelation.HAS_PARENT_WITH_LIST_ORDER,"the %s item");

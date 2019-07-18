@@ -1,9 +1,12 @@
 package edu.cmu.hcii.sugilite.accessibility_service;
 
 import android.accessibilityservice.AccessibilityService;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.ActivityInfo;
+import android.content.pm.PackageManager;
 import android.graphics.Rect;
 import android.os.Handler;
 import android.os.IBinder;
@@ -115,6 +118,9 @@ public class SugiliteAccessibilityService extends AccessibilityService {
 
     private Handler errorHandlingHandler;
     private Handler refreshIconHandler;
+
+    private String currentAppPackageName = "";
+    private String currentAppActivityName = "";
 
     public SugiliteAccessibilityService() {
         Log.d(TAG, "inside constructor");
@@ -300,6 +306,21 @@ public class SugiliteAccessibilityService extends AccessibilityService {
                 triggerHandler.checkForAppLaunchTrigger(eventPackageName);
                 //lastPackageName used to avoid sync issue between threads
                 lastPackageName = sourceNode.getPackageName().toString();
+
+                if (event.getPackageName() != null && event.getClassName() != null) {
+                    ComponentName componentName = new ComponentName(
+                            event.getPackageName().toString(),
+                            event.getClassName().toString()
+                    );
+
+                    try {
+                        ActivityInfo activityInfo = getPackageManager().getActivityInfo(componentName, 0);
+                        Log.i("CurrentActivity", activityInfo.packageName + " : " + activityInfo.name);
+                        currentAppPackageName = activityInfo.packageName;
+                        currentAppActivityName = activityInfo.name;
+                    } catch (PackageManager.NameNotFoundException e) {
+                    }
+                }
             }
         }
 
@@ -862,6 +883,13 @@ public class SugiliteAccessibilityService extends AccessibilityService {
 
     }
 
+    public String getCurrentAppActivityName() {
+        return currentAppActivityName;
+    }
+
+    public String getCurrentAppPackageName() {
+        return currentAppPackageName;
+    }
 }
 
 

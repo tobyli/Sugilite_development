@@ -37,17 +37,25 @@ import static edu.cmu.hcii.sugilite.ontology.SugiliteRelation.IS_CLICKABLE;
 public class NewScriptGeneralizer {
     private Activity context;
     private OntologyDescriptionGenerator ontologyDescriptionGenerator;
+    private static final int DEFAULT_DEPTH_LIMIT = 3;
+    private int depthLimit;
 
-    public NewScriptGeneralizer(Activity context) {
+    public NewScriptGeneralizer(Activity context, int depthLimit) {
         this.context = context;
+        this.depthLimit = depthLimit;
         this.ontologyDescriptionGenerator = new OntologyDescriptionGenerator(context);
     }
 
-    /**
-     * extract parameters and their possible values from a script based on the input user utterance
-     * @param sugiliteStartingBlock
-     * @param userUtterance
-     */
+    public NewScriptGeneralizer(Activity context) {
+        this(context, DEFAULT_DEPTH_LIMIT);
+    }
+
+
+        /**
+         * extract parameters and their possible values from a script based on the input user utterance
+         * @param sugiliteStartingBlock
+         * @param userUtterance
+         */
     public void extractParameters (SugiliteStartingBlock sugiliteStartingBlock, String userUtterance) {
 
         //clear the existing variable maps
@@ -85,7 +93,7 @@ public class NewScriptGeneralizer {
                         System.out.printf("Found parameter: \"%s\" in the utterance was found in the operation %s\n", textLabel, operationBlock.toString());
 
                         //extract possible values from uiSnapshot
-                        Map<SugiliteSerializableEntity<Node>, List<String>> alternativeNodeTextLabelsMap = getPossibleValueForParameter(blockMetaInfo.getTargetEntity(), blockMetaInfo.getUiSnapshot(), relation);
+                        Map<SugiliteSerializableEntity<Node>, List<String>> alternativeNodeTextLabelsMap = getPossibleValueForParameter(blockMetaInfo.getTargetEntity(), blockMetaInfo.getUiSnapshot(), relation, depthLimit );
 
                         //construct the Variable object
                         String variableName = textLabel;
@@ -167,7 +175,7 @@ public class NewScriptGeneralizer {
     }
 
 
-    private Map<SugiliteSerializableEntity<Node>, List<String>> getPossibleValueForParameter(SugiliteSerializableEntity<Node> nodeEntity, SerializableUISnapshot uiSnapshot, SugiliteRelation relation) {
+    private Map<SugiliteSerializableEntity<Node>, List<String>> getPossibleValueForParameter(SugiliteSerializableEntity<Node> nodeEntity, SerializableUISnapshot uiSnapshot, SugiliteRelation relation, int depthLimit) {
         Map<SugiliteSerializableEntity<Node>, List<String>> alternativeNodeTextLabelsMap = new HashMap<>();
         SugiliteSerializableEntity<Node> currentEntity = nodeEntity;
         String nodeEntityClassName = getUISnapshotRelationValue(nodeEntity, HAS_CLASS_NAME, uiSnapshot);
@@ -176,6 +184,7 @@ public class NewScriptGeneralizer {
                 //trying going up in the UI tree
                 SugiliteSerializableEntity<Node> parentEntity = getParentNodeEntity(currentEntity, uiSnapshot);
                 List<SugiliteSerializableEntity<Node>> immediateChildNodeEntities = getAllChildNodeEntity(parentEntity, uiSnapshot, true, currentEntity);
+                boolean foundAtThisLevel = false;
                 for (SugiliteSerializableEntity<Node> sibling : immediateChildNodeEntities) {
                     if (sibling.getEntityValue().getBoundsInScreen() != null && nodeEntity.getEntityValue().getBoundsInScreen() != null && sibling.getEntityValue().getBoundsInScreen().equals(nodeEntity.getEntityValue().getBoundsInScreen())) {
                         continue;
@@ -192,9 +201,12 @@ public class NewScriptGeneralizer {
                             siblingClassName != null && siblingClassName.equals(nodeEntityClassName) &&
                             siblingValues != null && siblingValues.size() > 0)  {
                         alternativeNodeTextLabelsMap.put(sibling, siblingValues);
+                        foundAtThisLevel = true;
                     }
                 }
-                if (alternativeNodeTextLabelsMap.size() > 0) {
+                if (foundAtThisLevel) {
+                    depthLimit --;
+                } if (depthLimit <= 0) {
                     break;
                 } else {
                     currentEntity = parentEntity;

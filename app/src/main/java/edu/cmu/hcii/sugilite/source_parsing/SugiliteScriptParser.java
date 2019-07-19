@@ -162,15 +162,16 @@ public class SugiliteScriptParser {
         for(SugiliteScriptExpression expression : expressionList){
             //turn each expression to a block
             SugiliteBlock block = expression.toSugiliteBlock(startingBlock, ontologyDescriptionGenerator);
-            if(block instanceof SugiliteStartingBlock) {
-                //contains a starting block
-                startingBlock = (SugiliteStartingBlock) block;
+            if (block != null) {
+                if (block instanceof SugiliteStartingBlock) {
+                    //contains a starting block
+                    startingBlock = (SugiliteStartingBlock) block;
+                } else {
+                    currentBlock.setNextBlock(block);
+                    block.setPreviousBlock(currentBlock);
+                }
+                currentBlock = block;
             }
-            else {
-                currentBlock.setNextBlock(block);
-                block.setPreviousBlock(currentBlock);
-            }
-            currentBlock = block;
         }
         return startingBlock;
     }

@@ -101,6 +101,10 @@ public class SugiliteScriptParser {
         SugiliteScriptNode parsingResult = parseTokens(new LinkedList<>(tokenizationResult));
         List<SugiliteScriptExpression> expressionList = new ArrayList<>();
         for(SugiliteScriptNode node : parsingResult.getChildren()){
+            if (node.getChildren().size() == 1 && node
+                    .getChildren().get(0).getValue().equals("SUGILITE_END")) {
+                continue;
+            }
             expressionList.addAll(SugiliteScriptExpression.parse(node));
         }
         return expressionList;

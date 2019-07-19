@@ -22,10 +22,12 @@ import java.util.Set;
 
 import edu.cmu.hcii.sugilite.accessibility_service.SugiliteAccessibilityService;
 import edu.cmu.hcii.sugilite.SugiliteData;
+import edu.cmu.hcii.sugilite.model.Node;
 import edu.cmu.hcii.sugilite.model.block.util.SugiliteAvailableFeaturePack;
 import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteOperation;
 import edu.cmu.hcii.sugilite.ontology.OntologyQuery;
+import edu.cmu.hcii.sugilite.ontology.SugiliteEntity;
 import edu.cmu.hcii.sugilite.ontology.UISnapshot;
 import edu.cmu.hcii.sugilite.recording.ReadableDescriptionGenerator;
 
@@ -37,7 +39,7 @@ import static edu.cmu.hcii.sugilite.Const.OVERLAY_TYPE;
  * @time 4:59 PM
  */
 
-
+//singleton class
 public class NewDemonstrationHandler {
     private SugiliteData sugiliteData;
     private Context context;
@@ -47,7 +49,20 @@ public class NewDemonstrationHandler {
     private ReadableDescriptionGenerator readableDescriptionGenerator;
     private SugiliteAccessibilityService accessibilityService;
 
-    public NewDemonstrationHandler(SugiliteData sugiliteData, Context context, LayoutInflater layoutInflater, SharedPreferences sharedPreferences, SugiliteAccessibilityService accessibilityService){
+    private static NewDemonstrationHandler instance = null;
+
+    public static NewDemonstrationHandler getInstance(SugiliteData sugiliteData, Context context, LayoutInflater layoutInflater, SharedPreferences sharedPreferences, SugiliteAccessibilityService accessibilityService){
+        if (instance == null) {
+            instance = new NewDemonstrationHandler(sugiliteData, context, layoutInflater, sharedPreferences, accessibilityService);
+        }
+        return instance;
+    }
+
+    public static NewDemonstrationHandler getInstance(){
+        return instance;
+    }
+
+    private NewDemonstrationHandler(SugiliteData sugiliteData, Context context, LayoutInflater layoutInflater, SharedPreferences sharedPreferences, SugiliteAccessibilityService accessibilityService){
         this.sugiliteData = sugiliteData;
         this.context = context;
         this.accessibilityService = accessibilityService;;
@@ -69,8 +84,26 @@ public class NewDemonstrationHandler {
         System.out.println("HANDLE");
         //determine if disambiguation is needed
 
+        //extract the targetEntity from uiSnapshot based on featurePack
+        SugiliteEntity<Node> targetEntity = null;
+        if(uiSnapshot != null) {
+            for (Map.Entry<Node, SugiliteEntity<Node>> entityEntry : uiSnapshot.getNodeSugiliteEntityMap().entrySet()) {
+                if (entityEntry.getKey().getBoundsInScreen().equals(featurePack.boundsInScreen) &&
+                        entityEntry.getKey().getClassName().equals(featurePack.className)) {
+                    //found
+                    targetEntity = entityEntry.getValue();
+                    break;
+                }
+            }
+        }
+
+        if (targetEntity == null) {
+            return;
+        }
+
+
         //show the confirmation popup if not ambiguous
-        List<Pair<OntologyQuery, Double>> queryScoreList = SugiliteBlockBuildingHelper.generateDefaultQueries(featurePack, uiSnapshot, false);
+        List<Pair<OntologyQuery, Double>> queryScoreList = SugiliteBlockBuildingHelper.generateDefaultQueries(uiSnapshot, targetEntity);
         if(queryScoreList.size() > 0) {
             //threshold for determine whether the results are ambiguous
             if (queryScoreList.size() <= 1 || (queryScoreList.get(1).second.intValue() - queryScoreList.get(0).second.intValue() > 2)) {
@@ -111,7 +144,7 @@ public class NewDemonstrationHandler {
     }
 
 
-    private void showAmbiguousPopup(List<Pair<OntologyQuery, Double>> queryScoreList, SugiliteAvailableFeaturePack featurePack){
+    public void showAmbiguousPopup(List<Pair<OntologyQuery, Double>> queryScoreList, SugiliteAvailableFeaturePack featurePack){
         //the temporary popup to show for when the demonstration is ambiguous
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
         builder.setTitle("Select from disambiguation results");

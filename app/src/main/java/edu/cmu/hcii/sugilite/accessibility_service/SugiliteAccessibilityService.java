@@ -151,7 +151,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
         verbalInstructionIconManager = new VerbalInstructionIconManager(this, sugiliteStudyHandler, sugiliteData, sharedPreferences, recordingOverlayManager, this, tts);
         statusIconManager.setVerbalInstructionIconManager(verbalInstructionIconManager);
         sugiliteData.verbalInstructionIconManager = verbalInstructionIconManager;
-        newDemonstrationHandler = new NewDemonstrationHandler(sugiliteData, this, LayoutInflater.from(getApplicationContext()), sharedPreferences, this);
+        newDemonstrationHandler = NewDemonstrationHandler.getInstance(sugiliteData, this, LayoutInflater.from(getApplicationContext()), sharedPreferences, this);
 
         screenshotManager = new SugiliteScreenshotManager(sharedPreferences, getApplicationContext());
         sugiliteTextParentAnnotator = SugiliteTextParentAnnotator.getInstance();

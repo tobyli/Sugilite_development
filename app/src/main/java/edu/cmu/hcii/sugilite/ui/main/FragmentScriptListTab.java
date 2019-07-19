@@ -39,7 +39,6 @@ import edu.cmu.hcii.sugilite.model.ScriptQueryHasher;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.model.block.util.ScriptPrinter;
 import edu.cmu.hcii.sugilite.pumice.PumiceDemonstrationUtil;
-import edu.cmu.hcii.sugilite.source_parsing.SugiliteScriptParser;
 import edu.cmu.hcii.sugilite.study.ScriptUsageLogManager;
 import edu.cmu.hcii.sugilite.ui.ScriptDebuggingActivity;
 import edu.cmu.hcii.sugilite.ui.ScriptDetailActivity;
@@ -63,7 +62,6 @@ public class FragmentScriptListTab extends Fragment {
     private AlertDialog progressDialog;
     private NewScriptGeneralizer newScriptGeneralizer;
     private ScriptQueryHasher scriptQueryHasher;
-    private SugiliteScriptParser sugiliteScriptParser;
 
 
     @Override
@@ -76,7 +74,6 @@ public class FragmentScriptListTab extends Fragment {
         this.sugiliteData = activity.getApplication() instanceof SugiliteData? (SugiliteData)activity.getApplication() : new SugiliteData();
         this.newScriptGeneralizer = new NewScriptGeneralizer(activity);
         this.scriptQueryHasher = new ScriptQueryHasher(activity);
-        this.sugiliteScriptParser = new SugiliteScriptParser();
 
         if(Const.DAO_TO_USE == SQL_SCRIPT_DAO)
             this.sugiliteScriptDao = new SugiliteScriptSQLDao(activity);
@@ -158,7 +155,6 @@ public class FragmentScriptListTab extends Fragment {
     private static final int ITEM_9 = Menu.FIRST + 8;
     private static final int ITEM_10 = Menu.FIRST + 9;
     private static final int ITEM_11 = Menu.FIRST + 10;
-    private static final int ITEM_12 = Menu.FIRST + 11;
 
 
 
@@ -183,7 +179,6 @@ public class FragmentScriptListTab extends Fragment {
         menu.add(0, ITEM_9, 0, "Delete");
         menu.add(0, ITEM_10, 0, "Hash Strings");
         menu.add(0, ITEM_11, 0, "Duplicate");
-        menu.add(0, ITEM_12, 0, "Reinterpret");
 
     }
 
@@ -398,42 +393,6 @@ public class FragmentScriptListTab extends Fragment {
                             try {
                                 script.setScriptName(scriptName.replace(".SugiliteScript", "") + "_copy" + ".SugiliteScript");
                                 sugiliteScriptDao.save(script);
-                                sugiliteScriptDao.commitSave();
-                            }
-                            catch (Exception e){
-                                e.printStackTrace();
-                            }
-                            Runnable dismissDialog = new Runnable() {
-                                @Override
-                                public void run() {
-                                    progressDialog.dismiss();
-                                    try {
-                                        setUpScriptList();
-                                    }
-                                    catch (Exception e){
-                                        e.printStackTrace();
-                                    }
-                                }
-                            };
-                            if(activity != null){
-                                activity.runOnUiThread(dismissDialog);
-                            }
-                        }
-                    }).start();
-                case ITEM_12:
-                    //duplicate
-                    progressDialog = new AlertDialog.Builder(activity).setMessage(Const.LOADING_MESSAGE).create();
-                    progressDialog.getWindow().setType(OVERLAY_TYPE);
-                    progressDialog.setCanceledOnTouchOutside(false);
-                    progressDialog.show();
-                    new Thread(new Runnable() {
-                        @Override
-                        public void run()
-                        {
-                            try {
-                                SugiliteStartingBlock newScript = sugiliteScriptParser.parseBlockFromString(ScriptPrinter.getStringScript(script));
-                                newScript.setScriptName(scriptName.replace(".SugiliteScript", "") + " reinterpreted" + ".SugiliteScript");
-                                sugiliteScriptDao.save(newScript);
                                 sugiliteScriptDao.commitSave();
                             }
                             catch (Exception e){

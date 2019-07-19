@@ -96,6 +96,7 @@ public class SugiliteScriptParser {
     }
 
     private List<SugiliteScriptExpression> runASTParsingPipeline(String input){
+        input = input.trim();
         List<String> tokenizationResult = tokenize(input);
         SugiliteScriptNode parsingResult = parseTokens(new LinkedList<>(tokenizationResult));
         List<SugiliteScriptExpression> expressionList = new ArrayList<>();
@@ -152,6 +153,8 @@ public class SugiliteScriptParser {
     }
 
     public SugiliteStartingBlock parseBlockFromString(String input){
+        input = input.replaceAll("[\\u2018\\u2019]", "'")
+                .replaceAll("[\\u201C\\u201D]", "\"");
         List<SugiliteScriptExpression> expressionList = runASTParsingPipeline(input);
         System.out.println("Final result: " + expressionList);
         SugiliteStartingBlock startingBlock = new SugiliteStartingBlock("test.SugiliteScript");

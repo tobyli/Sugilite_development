@@ -263,14 +263,17 @@ public class LeafOntologyQuery extends OntologyQuery {
         }
     }
 
+    public String getObjectAsString() {
+        return object.toArray(new SugiliteSerializableEntity[object.size()])[0].toString();
+    }
+
     @Override
     public String toString() {
         String baseQueryString = "";
 
         // base case
         // this should have size 1 always, the array is only used in execution for when there's a query whose results are used as the objects of the next one
-        SugiliteSerializableEntity[] objectArr = object.toArray(new SugiliteSerializableEntity[object.size()]);
-        baseQueryString = "(" + r.getRelationName() + " " + addQuoteToTokenIfNeeded(objectArr[0].toString()) + ")";
+        baseQueryString = "(" + r.getRelationName() + " " + addQuoteToTokenIfNeeded(getObjectAsString()) + ")";
 
         //include the ontologyQueryFilter in the toString() method
         if(getOntologyQueryFilter() == null) {

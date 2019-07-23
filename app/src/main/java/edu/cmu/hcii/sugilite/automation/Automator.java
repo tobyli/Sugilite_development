@@ -252,7 +252,7 @@ public class Automator {
                 }
 
 
-                UISnapshot uiSnapshot = new UISnapshot(windowManager.getDefaultDisplay(), rootNode, true, sugiliteTextParentAnnotator, true);
+                UISnapshot uiSnapshot = new UISnapshot(windowManager.getDefaultDisplay(), rootNode, true, sugiliteTextParentAnnotator, true, serviceContext.getCurrentAppActivityName(), serviceContext.getCurrentAppPackageName());
 
                 //de-serialize the OntologyQuery
                 OntologyQuery q = operationBlock.getOperation().getDataDescriptionQueryIfAvailable().clone();

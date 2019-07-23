@@ -40,11 +40,12 @@ public class RecordingOverlayContextClickDialog {
     private SugiliteEntity<Node> topLongClickableNode;
     private SugiliteEntity<Node> topClickableNode;
     private List<SugiliteEntity<Node>> matchedAllNodeEntities;
-    private String variableName;
+    private LayoutInflater layoutInflater;
+    private SharedPreferences sharedPreferences;
     private List<String> supportedActions = new ArrayList<>();
 
 
-    public RecordingOverlayContextClickDialog(Context context, FullScreenRecordingOverlayManager parentOverlayManager, SugiliteEntity<Node> topLongClickableNode, SugiliteEntity<Node> topClickableNode, List<SugiliteEntity<Node>> matchedAllNodeEntities, UISnapshot uiSnapshot, String variableName, SugiliteData sugiliteData, TextToSpeech tts, float x, float y){
+    public RecordingOverlayContextClickDialog(Context context, FullScreenRecordingOverlayManager parentOverlayManager, SugiliteEntity<Node> topLongClickableNode, SugiliteEntity<Node> topClickableNode, List<SugiliteEntity<Node>> matchedAllNodeEntities, UISnapshot uiSnapshot, SugiliteData sugiliteData, TextToSpeech tts, float x, float y){
         this.context = context;
         this.parentOverlayManager = parentOverlayManager;
         this.x = x;
@@ -52,7 +53,8 @@ public class RecordingOverlayContextClickDialog {
         this.topLongClickableNode = topLongClickableNode;
         this.topClickableNode = topClickableNode;
         this.matchedAllNodeEntities = matchedAllNodeEntities;
-        this.variableName = variableName;
+        this.layoutInflater = LayoutInflater.from(context);
+        this.sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
         ListView mainListView = new ListView(context);
 
@@ -64,7 +66,7 @@ public class RecordingOverlayContextClickDialog {
             supportedActions.add("Click on this item in the app");
         }
 
-        if (getTextLabelNodeEntityMap().size() > 0){
+        if (getTextLabelNodeEntityMap().size() > 0 && sugiliteData.valueDemonstrationVariableName != null && sugiliteData.valueDemonstrationVariableName.length() > 0){
             supportedActions.add("Select this value for Pumice to learn");
             //supportedActions.add("Mark this value as \"commute time\"");
         }
@@ -93,18 +95,16 @@ public class RecordingOverlayContextClickDialog {
                         System.out.println(matchedAllNodeEntities.toString());
                         System.out.println("SELECTED TEXTS: " + textLabelEntityMap.keySet());
 
-                        LayoutInflater layoutInflater = LayoutInflater.from(context);
-                        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
-
-                        //TODO: handle the selected texts
-                        PumiceValueDemonstrationSelectionDialog valueDemonstrationSelectionDialog = new PumiceValueDemonstrationSelectionDialog(context, textLabelEntityMap, uiSnapshot, variableName, parentOverlayManager, sugiliteData, tts, layoutInflater, sharedPreferences, x, y);
+                        //handle the selected texts
+                        PumiceValueDemonstrationSelectionDialog valueDemonstrationSelectionDialog = new PumiceValueDemonstrationSelectionDialog(context, textLabelEntityMap, uiSnapshot, parentOverlayManager, sugiliteData, tts, layoutInflater, sharedPreferences, x, y);
                         valueDemonstrationSelectionDialog.show();
                         break;
                     case "Long click on this item in the app":
                         //send a long click to the underlying app
                         dialog.dismiss();
                         if (topLongClickableNode.getEntityValue() != null) {
-                            parentOverlayManager.addSugiliteOperationBlockBasedOnNode(topLongClickableNode.getEntityValue(), true);
+                            OverlayClickedDialog overlayClickedDialog = new OverlayClickedDialog(context, topClickableNode, uiSnapshot, x, y, parentOverlayManager, parentOverlayManager.getOverlay(), sugiliteData, layoutInflater, sharedPreferences, tts, true);
+                            overlayClickedDialog.show();
                         }
                         /*
                         parentOverlayManager.clickWithRootPermission(x, y, new Runnable() {
@@ -119,7 +119,8 @@ public class RecordingOverlayContextClickDialog {
                     case "Click on this item in the app":
                         dialog.dismiss();
                         if (topClickableNode.getEntityValue() != null) {
-                            parentOverlayManager.addSugiliteOperationBlockBasedOnNode(topClickableNode.getEntityValue(), false);
+                            OverlayClickedDialog overlayClickedDialog = new OverlayClickedDialog(context, topClickableNode, uiSnapshot, x, y, parentOverlayManager, parentOverlayManager.getOverlay(), sugiliteData, layoutInflater, sharedPreferences, tts, false);
+                            overlayClickedDialog.show();
                         }
                 }
             }

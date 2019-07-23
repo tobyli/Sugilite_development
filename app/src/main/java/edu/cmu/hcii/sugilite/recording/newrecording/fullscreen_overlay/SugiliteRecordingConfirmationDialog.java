@@ -232,6 +232,9 @@ public class SugiliteRecordingConfirmationDialog extends SugiliteDialogManager {
                     sugiliteData.verbalInstructionIconManager.turnOffCatOverlay();
                 }
 
+                //reset the valueDemonstrationVariableName
+                sugiliteData.valueDemonstrationVariableName = "";
+
 
                 sugiliteData.setCurrentSystemState(SugiliteData.DEFAULT_STATE);
                 Toast.makeText(context, "end recording", Toast.LENGTH_SHORT).show();

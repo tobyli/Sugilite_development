@@ -122,6 +122,9 @@ public class OntologyDescriptionGenerator {
         if(operation.getOperationType() == SugiliteOperation.CLICK){
             return prefix + getDescriptionForOperation(setColor("Click on ", Const.SCRIPT_ACTION_COLOR), sq);
         }
+        else if(operation.getOperationType() == SugiliteOperation.LONG_CLICK){
+            return prefix + getDescriptionForOperation(setColor("Long click on ", Const.SCRIPT_ACTION_COLOR), sq);
+        }
         else if(operation.getOperationType() == SugiliteOperation.READ_OUT){
             return prefix + getDescriptionForOperation(setColor("Read out ", Const.SCRIPT_ACTION_COLOR), sq);
         }

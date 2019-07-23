@@ -42,6 +42,7 @@ import edu.cmu.hcii.sugilite.model.block.special_operation.SugiliteSpecialOperat
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteOperation;
 import edu.cmu.hcii.sugilite.model.operation.unary.SugiliteClickOperation;
+import edu.cmu.hcii.sugilite.model.operation.unary.SugiliteLongClickOperation;
 import edu.cmu.hcii.sugilite.ontology.*;
 import edu.cmu.hcii.sugilite.ontology.description.OntologyDescriptionGenerator;
 import edu.cmu.hcii.sugilite.ontology.OntologyQueryWithSubQueries;
@@ -87,17 +88,26 @@ public class SugiliteBlockBuildingHelper {
             sugiliteOperation.setQuery(query);
             operationBlock.setScreenshot(featurePack.screenshot);
 
-            //description is set
-            //TODO: fix
-            //operationBlock.setDescription(operationBlock.toString());
             operationBlock.setDescription(ontologyDescriptionGenerator.getDescriptionForOperation(sugiliteOperation, query));
             return operationBlock;
-        } else {
+        } else if(opeartionType == SugiliteOperation.LONG_CLICK) {
+            SugiliteLongClickOperation sugiliteOperation = new SugiliteLongClickOperation();
+            sugiliteOperation.setOperationType(opeartionType);
+            final SugiliteOperationBlock operationBlock = new SugiliteOperationBlock();
+            operationBlock.setOperation(sugiliteOperation);
+            operationBlock.setFeaturePack(featurePack);
+            sugiliteOperation.setQuery(query);
+            operationBlock.setScreenshot(featurePack.screenshot);
+
+            operationBlock.setDescription(ontologyDescriptionGenerator.getDescriptionForOperation(sugiliteOperation, query));
+            return operationBlock;
+        }
+
+        else {
             throw new RuntimeException("got an unsupported operation type");
         }
     }
 
-    //TODO: extend GenerateDefaultQueries() to support spatial relations
     public static List<Pair<OntologyQuery, Double>> newGenerateDefaultQueries(UISnapshot uiSnapshot, SugiliteEntity<Node> targetEntity, SugiliteRelation... relationsToExcludeArray){
         List<Pair<OntologyQuery, Double>> result = new ArrayList<>();
 
@@ -429,12 +439,13 @@ public class SugiliteBlockBuildingHelper {
 
 
         //save the meta info into a file to check if the metaInfo is constructed correctly
-        saveMetaInfoToFile(metaInfo);
+        //saveMetaInfoToFile(metaInfo);
 
         System.out.println("saved block");
     }
 
 
+    //for testing purpose
     private void saveMetaInfoToFile(SugiliteBlockMetaInfo metaInfo){
         Gson gson = new Gson();
         String metaInfoJson = gson.toJson(metaInfo);

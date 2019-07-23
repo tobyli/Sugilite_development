@@ -104,8 +104,71 @@ public class SugiliteBlockBuildingHelper {
         //add All results from the legacy data description query generator
         result.addAll(generateDefaultQueries(uiSnapshot, targetEntity, relationsToExcludeArray));
 
-        //also handle spatial relations
+        //also handle spatial relations - initially support CONTAINS, RIGHT, LEFT, ABOVE, BELOW
+        SugiliteRelation[] relationsToInclude = new SugiliteRelation[]{SugiliteRelation.CONTAINS, SugiliteRelation.RIGHT, SugiliteRelation.LEFT, SugiliteRelation.ABOVE, SugiliteRelation.BELOW};
+        List<Pair<SugiliteEntity<Node>, SugiliteRelation>> nodesWithSpatialRelations = new ArrayList<>();
+        for (SugiliteRelation relation : relationsToInclude) {
+            //query the UI graph
+            Set<SugiliteTriple> allTriplesWithTheTargetAsSubject = uiSnapshot.getSubjectTriplesMap().get(targetEntity.getEntityId());
+            for (SugiliteTriple triple : allTriplesWithTheTargetAsSubject) {
+                if (triple.getObject().equals(targetEntity)) {
+                    continue;
+                }
+                if (triple.getPredicate().equals(relation)) {
+                    nodesWithSpatialRelations.add(new Pair<>(triple.getObject(), triple.getPredicate()));
+                }
+            }
+        }
 
+        //process nodesWithSpatialRelations to generate possible data description queries
+        for (Pair<SugiliteEntity<Node>, SugiliteRelation> nodeWithSpatialRelation : nodesWithSpatialRelations) {
+            Set<SugiliteRelation> excludedRelations = new HashSet<>(Arrays.asList(relationsToExcludeArray));
+            excludedRelations.add(SugiliteRelation.HAS_PARENT_LOCATION);
+            excludedRelations.add(SugiliteRelation.HAS_SCREEN_LOCATION);
+            SugiliteRelation excludedRelationArray[] = new SugiliteRelation[excludedRelations.size()];
+            excludedRelationArray = excludedRelations.toArray(excludedRelationArray);
+
+            List<Pair<OntologyQuery, Double>> possibleQueries = generateDefaultQueries(uiSnapshot, nodeWithSpatialRelation.first, excludedRelationArray);
+            for (Pair<OntologyQuery, Double> possibleQuery : possibleQueries) {
+                //add className and packageName constraints
+                CombinedOntologyQuery q = new CombinedOntologyQuery(CombinedOntologyQuery.RelationType.AND);
+
+                if (! excludedRelations.contains(SugiliteRelation.HAS_CLASS_NAME)) {
+                    if (getValueIfOnlyOneObject(uiSnapshot.getStringValuesForObjectEntityAndRelation(targetEntity, SugiliteRelation.HAS_CLASS_NAME)) != null) {
+                        //add className
+                        LeafOntologyQuery subQuery = new LeafOntologyQuery();
+                        Set<SugiliteEntity> object = new HashSet<>();
+                        object.add(new SugiliteEntity(-1, String.class, getValueIfOnlyOneObject(uiSnapshot.getStringValuesForObjectEntityAndRelation(targetEntity, SugiliteRelation.HAS_CLASS_NAME))));
+                        subQuery.setObjectSet(object);
+                        subQuery.setQueryFunction(SugiliteRelation.HAS_CLASS_NAME);
+                        q.addSubQuery(subQuery);
+                    }
+                }
+
+                //add query
+                CombinedOntologyQuery subQuery = new CombinedOntologyQuery(CombinedOntologyQuery.RelationType.PREV);
+                subQuery.setQueryFunction(nodeWithSpatialRelation.second);
+                subQuery.addSubQuery(possibleQuery.first);
+
+                q.addSubQuery(subQuery);
+
+
+                //test if the query returns and ONLY returns the target
+                Set<SugiliteEntity> executionResult = q.executeOn(uiSnapshot);
+                if (executionResult.size() == 1 && executionResult.contains(targetEntity)) {
+                    result.add(new Pair<>(q, possibleQuery.second + 2));
+                }
+            }
+        }
+
+        Collections.sort(result, new Comparator<Pair<OntologyQuery, Double>>() {
+            @Override
+            public int compare(Pair<OntologyQuery, Double> o1, Pair<OntologyQuery, Double> o2) {
+                if(o1.second > o2.second) return 1;
+                else if (o1.second.equals(o2.second)) return 0;
+                else return -1;
+            }
+        });
 
         return result;
     }
@@ -291,7 +354,7 @@ public class SugiliteBlockBuildingHelper {
                 subQuery.setObjectSet(object);
                 subQuery.setQueryFunction(SugiliteRelation.HAS_SCREEN_LOCATION);
                 clonedQuery.addSubQuery(subQuery);
-                queries.add(Pair.create(clonedQuery, 5.1));
+                queries.add(Pair.create(clonedQuery, 100.0));
             }
         }
 
@@ -304,7 +367,7 @@ public class SugiliteBlockBuildingHelper {
                 subQuery.setObjectSet(object);
                 subQuery.setQueryFunction(SugiliteRelation.HAS_PARENT_LOCATION);
                 clonedQuery.addSubQuery(subQuery);
-                queries.add(Pair.create(clonedQuery, 8.2));
+                queries.add(Pair.create(clonedQuery, 101.0));
             }
         }
 

@@ -25,7 +25,9 @@ public class ObjectTranslation {
             return objectMap.get(o);
         }
         else{
-            return "item";
+            //return "item";
+            String[] splittedString =  o.split("\\.");
+            return splittedString[splittedString.length - 1];
         }
     }
 

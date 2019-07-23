@@ -127,17 +127,23 @@ public class CombinedOntologyQuery extends OntologyQueryWithSubQueries {
             }
             return false;
         }
-        else{
-            // subRelation == RelationType.PREV
-            // only one subquery
-            // TODO not sure whats going on here
-            OntologyQuery prevQ = subQueries.toArray(new OntologyQuery[subQueries.size()])[0];
-            // Set<SugiliteEntity> prevResult = prevQ.executeOn(graph);
-            // setSubQueries(null);
-            // setSubRelation(RelationType.nullR);
-            // setObjectSet(prevResult);
-            return prevQ.overallQueryFunction(currNode, graph);
+        else if (subRelation == RelationType.PREV) {
+            OntologyQuery prevQuery = subQueries.toArray(new OntologyQuery[subQueries.size()])[0];
+            Set<SugiliteEntity> prevResultObjects = prevQuery.executeOn(graph);
+            Set<SugiliteTriple> subjectTriples = graph.getSubjectTriplesMap().get(currNode.getEntityId());
+            if (subjectTriples == null) {
+                return false;
+            }
+            for (SugiliteEntity objectEntity : prevResultObjects) {
+                SugiliteTriple newTriple = new SugiliteTriple(currNode, r, objectEntity);
+                if (subjectTriples.contains(newTriple)) {
+                    return true;
+                }
+            }
+            return false;
         }
+
+        throw new RuntimeException("Unsupported subRelation type: " + subRelation.toString());
     }
 
     @Override

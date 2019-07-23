@@ -52,27 +52,15 @@ public class OntologyDescriptionGenerator {
 
     // get the package name for the application
     private String getAppName(String packageName) {
-        if(packageName.equals("com.android.launcher3") ||
-                packageName.equals("com.google.android.googlequicksearchbox") ||
-                packageName.equals("com.google.android.apps.nexuslauncher"))
-            return "Home Screen";
-        if(packageManager != null) {
-            ApplicationInfo ai;
-            try {
-                ai = packageManager.getApplicationInfo(packageName, 0);
-            } catch (final PackageManager.NameNotFoundException e) {
-                ai = null;
-            }
-            final String applicationName = (String) (ai != null ? packageManager.getApplicationLabel(ai) : "(unknown)");
-            return applicationName;
-        }
-        else {
+        if (context != null) {
+            return getAppName(context, packageName);
+        } else {
             return packageName;
         }
     }
 
     // get a more viewable list order
-    private String numberToOrder(String number) {
+    private static String numberToOrder(String number) {
         if (number.endsWith("1")) {
             if (number.endsWith("11"))
                 number = number + "th";
@@ -173,7 +161,7 @@ public class OntologyDescriptionGenerator {
     }
 
     private String getDescriptionForOperation(String verb, OntologyQuery q){
-        return verb + getDescriptionForOntologyQuery(q);
+        return verb + getDescriptionForOntologyQuery(q, true);
     }
 
     // translates the filters
@@ -186,7 +174,7 @@ public class OntologyDescriptionGenerator {
             translation = String.format(DescriptionGenerator.getDescription(filterRelation), FilterTranslation.getFilterTranslation(filter));
         }
         else {
-            translation = ("the " + FilterTranslation.getFilterTranslation(filter) + " " + DescriptionGenerator.getDescription(filterRelation)).trim();
+            translation = ("the " + FilterTranslation.getFilterTranslation(filter) + " " + DescriptionGenerator.getDescription(filterRelation)).replace("contains the ", "").trim();
         }
         return translation;
     }
@@ -196,7 +184,6 @@ public class OntologyDescriptionGenerator {
         String result = "";
         int descriptionArrayLength = descriptions.length;
         String translatedFilter = "";
-        String conjunction = "has ";
         boolean isListOrder = false;
         if(filter != null) {
             translatedFilter = translateFilter(filter);
@@ -207,28 +194,15 @@ public class OntologyDescriptionGenerator {
                 isListOrder = true;
             }
         }
-        if (!isListOrder)
+        if (!isListOrder) {
             result = "the item that ";
+        }
 
         for (int i = 0; i < descriptionArrayLength-1; i++) {
-            if (getRForQuery(queries[i]).equals(SugiliteRelation.HAS_CLASS_NAME)||isListOrderRelation(getRForQuery(queries[i]))) {
-                // e.g. is button / is the first item
-                conjunction = "is ";
-            }
-            else {
-                // e.g. has text hello
-                conjunction = "has ";
-            }
-            result += conjunction + descriptions[i] + " or ";
+            result += " " + descriptions[i] + " or ";
         }
-        if (getRForQuery(queries[descriptionArrayLength-1]).equals(SugiliteRelation.HAS_PACKAGE_NAME)) {
-            // e.g. is in homescreen
-            conjunction = "is ";
-        }
-        else {
-            conjunction = "has ";
-        }
-        result += conjunction+descriptions[descriptionArrayLength-1];
+
+        result += (" " + descriptions[descriptionArrayLength-1]);
         if (filter != null && !isListOrder)
             result += ", with " + translatedFilter;
 
@@ -258,18 +232,18 @@ public class OntologyDescriptionGenerator {
             }
             else
             {
-                result += " that has " + descriptions[descriptionArrayLength-2]; // the query before package name needs to be included
+                result += " that " + descriptions[descriptionArrayLength-2]; // the query before package name needs to be included
                 result += " " + descriptions[descriptionArrayLength-1]; // and then add package name relation
             }
         }
         else { // the last relation is not package name, so there is no package name relation in the queries
             if (!needsMoreChange) // all queries before last query are taken care of
             {
-                result += " that has " + descriptions[descriptionArrayLength-1]; // add the last relation
+                result += " that " + descriptions[descriptionArrayLength-1]; // add the last relation
             }
             else
             {
-                result += " that has " + descriptions[descriptionArrayLength-2]; // the query before last query needs to be included
+                result += " that " + descriptions[descriptionArrayLength-2]; // the query before last query needs to be included
                 result += " and " + descriptions[descriptionArrayLength-1]; // and then add the last relation
             }
         }
@@ -368,7 +342,7 @@ public class OntologyDescriptionGenerator {
                     }
                     // needs for loop
                     else {
-                        result += " that has ";
+                        result += " that ";
                         result += descriptions[2];
                         result = packageNameHandlerWithForLoop(descriptions, filter, result, translatedFilter, isListOrder, lastRelation,3);
                         // startingNumber indicates the index of the description that should be followed with ","
@@ -385,11 +359,13 @@ public class OntologyDescriptionGenerator {
                         result = filterListOrderTranslationWithClassName(result, translatedFilter, descriptions);
                         isListOrder = true;
                     }
-                    else
+                    else {
                         result = String.format("the %s", descriptions[0]); // e.g. the button
+                    }
                 }
-                else
+                else {
                     result = String.format("the %s", descriptions[0]);
+                }
 
                 if (descriptionArrayLength == 2) {
                     result = packageNameSpecialCaseHandler(descriptions,filter,result,translatedFilter,isListOrder,lastRelation,false);
@@ -399,7 +375,7 @@ public class OntologyDescriptionGenerator {
                 }
                 // needs for loop
                 else {
-                    result += " that has ";
+                    result += " that ";
                     result += descriptions[1];
                     result = packageNameHandlerWithForLoop(descriptions,filter,result,translatedFilter,isListOrder,lastRelation,2);
                     // startingNumber indicates the index of the description that should be followed with ","
@@ -427,7 +403,7 @@ public class OntologyDescriptionGenerator {
             }
             // needs for loop
             else {
-                result += " that has ";
+                result += " that ";
                 result += descriptions[1];
                 result = packageNameHandlerWithForLoop(descriptions, filter, result, translatedFilter, isListOrder, lastRelation, 2);
                 // startingNumber indicates the index of the description that should be followed with ","
@@ -444,14 +420,16 @@ public class OntologyDescriptionGenerator {
                 if (isListOrderRelation(filterRelation))
                 {
                     // e.g. the first item that has
-                    result = translatedFilter + " that has ";
+                    result = translatedFilter + " that ";
                     isListOrder = true;
                 }
-                else
-                    result = "the item that has ";
+                else {
+                    result = "the item that ";
+                }
             }
-            else
-                result = "the item that has ";
+            else {
+                result = "the item that ";
+            }
             // e.g. the item that has text hello
             result += descriptions[0];
             result = packageNameHandlerWithForLoop(descriptions,filter,result,translatedFilter,isListOrder,lastRelation,1);
@@ -463,29 +441,22 @@ public class OntologyDescriptionGenerator {
         return result;
     }
 
-    private String descriptionForSingleQuery(OntologyQuery ontologyQuery) {
-        if (ontologyQuery instanceof LeafOntologyQuery) {
-            String[] objectString = new String[1];
-            SugiliteRelation sugiliteRelation = getRForQuery(ontologyQuery);
-            LeafOntologyQuery loq = (LeafOntologyQuery)ontologyQuery;
-            if (loq.getObjectSet() != null) {
-                SugiliteEntity[] objectArr = loq.getObjectSet().toArray(new SugiliteEntity[loq.getObjectSet().size()]);
-                if (sugiliteRelation.equals(SugiliteRelation.HAS_CLASS_NAME)) {
-                    objectString[0] = ObjectTranslation.getTranslation(objectArr[0].toString());
-                } else {
-                    if (sugiliteRelation.equals(SugiliteRelation.HAS_PACKAGE_NAME)) {
-                        objectString[0] = getAppName(objectArr[0].toString());
-                    } else {
-                        objectString[0] = objectArr[0].toString();
-                    }
-                }
-            }
-            return formatting(sugiliteRelation, objectString);
+    private String descriptionForSingleQuery(LeafOntologyQuery ontologyQuery) {
+        String[] objectString = new String[1];
+        SugiliteRelation sugiliteRelation = getRForQuery(ontologyQuery);
+        SugiliteEntity[] objectArr = ontologyQuery.getObjectSet().toArray(new SugiliteEntity[ontologyQuery.getObjectSet().size()]);
+
+        if (sugiliteRelation.equals(SugiliteRelation.HAS_CLASS_NAME)) {
+            objectString[0] = ObjectTranslation.getTranslation(objectArr[0].toString());
+        } else if  (sugiliteRelation.equals(SugiliteRelation.HAS_PACKAGE_NAME)) {
+            objectString[0] = getAppName(objectArr[0].toString());
+        } else {
+            objectString[0] = objectArr[0].toString();
         }
-        return "AAAAH";
+        return formatting(sugiliteRelation, objectString);
     }
 
-    private String descriptionForSingleQueryWithFilter(OntologyQuery ontologyQuery) {
+    private String descriptionForSingleQueryWithFilter(LeafOntologyQuery ontologyQuery) {
         OntologyQueryFilter filter = ontologyQuery.getOntologyQueryFilter();
         SugiliteRelation filterRelation = filter.getRelation();
         String result = "";
@@ -493,28 +464,31 @@ public class OntologyDescriptionGenerator {
         String translatedFilter = translateFilter(filter);
         if (isListOrderRelation(filterRelation))  {
             result += translatedFilter;
-            if (sugiliteRelation.equals(SugiliteRelation.HAS_CLASS_NAME))
+            if (sugiliteRelation.equals(SugiliteRelation.HAS_CLASS_NAME)) {
                 result = result.replace("item", descriptionForSingleQuery(ontologyQuery));
-            else if (sugiliteRelation.equals(SugiliteRelation.HAS_PACKAGE_NAME))
-                result += " "+descriptionForSingleQuery(ontologyQuery);
-            else if (!(isListOrderRelation(sugiliteRelation)))
-                result += " that has "+ descriptionForSingleQuery(ontologyQuery);
+            }
+            else if (sugiliteRelation.equals(SugiliteRelation.HAS_PACKAGE_NAME)) {
+                result += descriptionForSingleQuery(ontologyQuery);
+            }
+            else if (!(isListOrderRelation(sugiliteRelation))) {
+                result += " that " + descriptionForSingleQuery(ontologyQuery);
+            }
             return result;
         }
         if (isListOrderRelation(sugiliteRelation) || sugiliteRelation.equals(SugiliteRelation.HAS_CLASS_NAME))
         {
             result += descriptionForSingleQuery(ontologyQuery);
-            result += " with "+translatedFilter;
         }
+
         else if (sugiliteRelation.equals(SugiliteRelation.HAS_PACKAGE_NAME))
         {
-            result += "item "+descriptionForSingleQuery(ontologyQuery);
-            result += " with "+translatedFilter;
+            result += "item " + descriptionForSingleQuery(ontologyQuery);
         }
+
         else {
-            result += "the item that has " + descriptionForSingleQuery(ontologyQuery);
-            result += " with "+translatedFilter;
+            result += "the item that " + descriptionForSingleQuery(ontologyQuery);
         }
+        result += " with " + translatedFilter;
         return result;
     }
 
@@ -534,19 +508,13 @@ public class OntologyDescriptionGenerator {
         return false;
     }
 
+    //return string that starts with "has" or "is"
     private String translationWithRelationshipPrev(String[] descriptions, SugiliteRelation sugiliteRelation)
     {
-        String result = "the item that ";
-        if (isParentChildSiblingPrev(sugiliteRelation))
-            result += "has ";
-        else if (isSpatialRelationship(sugiliteRelation)) {
-            if (!sugiliteRelation.equals(SugiliteRelation.CONTAINS))
-                result += "is ";
-        }
+        String result = "";
         result += DescriptionGenerator.getDescription(sugiliteRelation);
-        if (isSpatialRelationship(sugiliteRelation))
-            result += "the item ";
-        result += "that has " + descriptions[0];
+
+        result += descriptions[0];
         for (int i = 1; i<descriptions.length;i++) {
             result += " and " + descriptions[i];
         }
@@ -558,7 +526,7 @@ public class OntologyDescriptionGenerator {
      * @param ontologyQuery
      * @return
      */
-    public String getDescriptionForOntologyQuery(OntologyQuery ontologyQuery) {
+    public String getDescriptionForOntologyQuery(OntologyQuery ontologyQuery, boolean isParentQuery) {
         String postfix = ""; // pretty sure this isn't used
 
         OntologyQueryFilter filter = ontologyQuery.getOntologyQueryFilter();
@@ -569,25 +537,40 @@ public class OntologyDescriptionGenerator {
                 return "";
             }
             if (filter == null) {
-                return descriptionForSingleQuery(ontologyQuery) + postfix;
+                if (((LeafOntologyQuery) ontologyQuery).getR().equals(SugiliteRelation.HAS_CLASS_NAME)) {
+                    if (isParentQuery) {
+                        return "the " + descriptionForSingleQuery((LeafOntologyQuery) ontologyQuery) + postfix;
+                    } else {
+                        return descriptionForSingleQuery((LeafOntologyQuery) ontologyQuery) + postfix;
+                    }
+                } else {
+                    if (isParentQuery) {
+                        return "the item that " + descriptionForSingleQuery((LeafOntologyQuery) ontologyQuery) + postfix;
+                    } else {
+                        return descriptionForSingleQuery((LeafOntologyQuery) ontologyQuery) + postfix;
+                    }
+                }
             }
             else {
-                return descriptionForSingleQueryWithFilter(ontologyQuery) + postfix;
+                return descriptionForSingleQueryWithFilter((LeafOntologyQuery)ontologyQuery) + postfix;
             }
         } else if (ontologyQuery instanceof CombinedOntologyQuery) {
             CombinedOntologyQuery coq = (CombinedOntologyQuery)ontologyQuery;
             OntologyQuery[] subQueryArray = coq.getSubQueries().toArray(new OntologyQuery[coq.getSubQueries().size()]);
+
+            //sort the queries based on the order that they should appear in the description
             Arrays.sort(subQueryArray, RelationWeight.ontologyQueryComparator);
 
             if (coq.getSubRelation() == CombinedOntologyQuery.RelationType.AND || coq.getSubRelation() == CombinedOntologyQuery.RelationType.OR || coq.getSubRelation() == CombinedOntologyQuery.RelationType.PREV) {
                 int size = subQueryArray.length;
+
+                //generate descriptions for subQueries
                 String[] arr = new String[size];
                 for (int i = 0; i < size; i++) {
-                    arr[i] = getDescriptionForOntologyQuery(subQueryArray[i]);
+                    arr[i] = getDescriptionForOntologyQuery(subQueryArray[i], false);
                 }
 
                 if (coq.getSubRelation() == CombinedOntologyQuery.RelationType.AND) {
-                    System.out.println(translationWithRelationshipAnd(arr,subQueryArray, filter));
                     System.out.println(postfix);
                     return translationWithRelationshipAnd(arr,subQueryArray, filter) + postfix;
                 }
@@ -598,6 +581,8 @@ public class OntologyDescriptionGenerator {
                 else if (coq.getSubRelation() == CombinedOntologyQuery.RelationType.PREV) {
                     return translationWithRelationshipPrev(arr, coq.getR()) + postfix;
                 }
+            } else {
+                throw new RuntimeException("Unsupported relation type: " + coq.getSubRelation().toString());
             }
         } else if (ontologyQuery instanceof HashedStringOntologyQuery) {
             // TODO not very convincing

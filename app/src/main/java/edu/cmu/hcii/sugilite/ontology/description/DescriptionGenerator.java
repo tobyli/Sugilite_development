@@ -22,18 +22,18 @@ public class DescriptionGenerator {
     static {
         descriptionMap = new HashMap<SugiliteRelation,String>();
         descriptionMap.put(SugiliteRelation.HAS_CLASS_NAME,"");
-        descriptionMap.put(SugiliteRelation.HAS_TEXT, setColor("text ", SCRIPT_VIEW_ID_COLOR));
-        descriptionMap.put(SugiliteRelation.HAS_PARENT, setColor("parent ", SCRIPT_VIEW_ID_COLOR));
-        descriptionMap.put(SugiliteRelation.HAS_VIEW_ID, setColor("view id " ,SCRIPT_VIEW_ID_COLOR));
-        descriptionMap.put(SugiliteRelation.HAS_CONTENT_DESCRIPTION, setColor("content ", SCRIPT_VIEW_ID_COLOR));
-        descriptionMap.put(SugiliteRelation.HAS_SCREEN_LOCATION, setColor("the exact location ", SCRIPT_VIEW_ID_COLOR));
-        descriptionMap.put(SugiliteRelation.HAS_PARENT_LOCATION, setColor("the parent location ", SCRIPT_VIEW_ID_COLOR));
+        descriptionMap.put(SugiliteRelation.HAS_TEXT, setColor("has the text ", SCRIPT_VIEW_ID_COLOR));
+        descriptionMap.put(SugiliteRelation.HAS_PARENT, setColor("is the parent of ", SCRIPT_VIEW_ID_COLOR));
+        descriptionMap.put(SugiliteRelation.HAS_VIEW_ID, setColor("has the view id " ,SCRIPT_VIEW_ID_COLOR));
+        descriptionMap.put(SugiliteRelation.HAS_CONTENT_DESCRIPTION, setColor("has the content ", SCRIPT_VIEW_ID_COLOR));
+        descriptionMap.put(SugiliteRelation.HAS_SCREEN_LOCATION, setColor("has the exact location ", SCRIPT_VIEW_ID_COLOR));
+        descriptionMap.put(SugiliteRelation.HAS_PARENT_LOCATION, setColor("has the parent location ", SCRIPT_VIEW_ID_COLOR));
         descriptionMap.put(SugiliteRelation.HAS_PACKAGE_NAME,"in ");
-        descriptionMap.put(SugiliteRelation.HAS_CHILD, setColor("child ", SCRIPT_VIEW_ID_COLOR));
+        descriptionMap.put(SugiliteRelation.HAS_CHILD, setColor("is a child of ", SCRIPT_VIEW_ID_COLOR));
 
-        descriptionMap.put(SugiliteRelation.HAS_CHILD_TEXT, setColor("text ", SCRIPT_VIEW_ID_COLOR));
+        descriptionMap.put(SugiliteRelation.HAS_CHILD_TEXT, setColor("has the text ", SCRIPT_VIEW_ID_COLOR));
         descriptionMap.put(SugiliteRelation.HAS_SIBLING_TEXT,"");
-        descriptionMap.put(SugiliteRelation.HAS_SIBLING, setColor("sibling ", SCRIPT_VIEW_ID_COLOR));
+        descriptionMap.put(SugiliteRelation.HAS_SIBLING, setColor("is a sibling of ", SCRIPT_VIEW_ID_COLOR));
 
         descriptionMap.put(SugiliteRelation.IS_EDITABLE,"is editable ");
         descriptionMap.put(SugiliteRelation.IS_CLICKABLE,"is clickable ");
@@ -48,24 +48,24 @@ public class DescriptionGenerator {
         descriptionMap.put(SugiliteRelation.IS_A_LIST,"is a list ");
 
         descriptionMap.put(SugiliteRelation.CONTAINS, setColor("contains ", SCRIPT_VIEW_ID_COLOR));
-        descriptionMap.put(SugiliteRelation.ABOVE, setColor("above ", SCRIPT_VIEW_ID_COLOR));
-        descriptionMap.put(SugiliteRelation.BELOW, setColor("above ", SCRIPT_VIEW_ID_COLOR));
-        descriptionMap.put(SugiliteRelation.NEAR, setColor("near ", SCRIPT_VIEW_ID_COLOR));
-        descriptionMap.put(SugiliteRelation.NEXT_TO, setColor("next to ", SCRIPT_VIEW_ID_COLOR));
-        descriptionMap.put(SugiliteRelation.RIGHT, setColor("to the right of ", SCRIPT_VIEW_ID_COLOR));
-        descriptionMap.put(SugiliteRelation.LEFT, setColor("to the left of ", SCRIPT_VIEW_ID_COLOR));
+        descriptionMap.put(SugiliteRelation.ABOVE, setColor("is above ", SCRIPT_VIEW_ID_COLOR));
+        descriptionMap.put(SugiliteRelation.BELOW, setColor("is below ", SCRIPT_VIEW_ID_COLOR));
+        descriptionMap.put(SugiliteRelation.NEAR, setColor("is near ", SCRIPT_VIEW_ID_COLOR));
+        descriptionMap.put(SugiliteRelation.NEXT_TO, setColor("is next to ", SCRIPT_VIEW_ID_COLOR));
+        descriptionMap.put(SugiliteRelation.RIGHT, setColor("is to the right of ", SCRIPT_VIEW_ID_COLOR));
+        descriptionMap.put(SugiliteRelation.LEFT, setColor("is to the left of ", SCRIPT_VIEW_ID_COLOR));
 
 
-        descriptionMap.put(SugiliteRelation.CONTAINS_EMAIL_ADDRESS,"email address ");
-        descriptionMap.put(SugiliteRelation.CONTAINS_PHONE_NUMBER,"phone number ");
-        descriptionMap.put(SugiliteRelation.CONTAINS_MONEY,"price ");
-        descriptionMap.put(SugiliteRelation.CONTAINS_TIME,"time ");
-        descriptionMap.put(SugiliteRelation.CONTAINS_DATE,"date ");
-        descriptionMap.put(SugiliteRelation.CONTAINS_DURATION,"duration ");
-        descriptionMap.put(SugiliteRelation.CONTAINS_LENGTH,"distance ");
-        descriptionMap.put(SugiliteRelation.CONTAINS_PERCENTAGE,"percentage ");
-        descriptionMap.put(SugiliteRelation.CONTAINS_VOLUME,"volume ");
-        descriptionMap.put(SugiliteRelation.CONTAINS_NUMBER,"number ");
+        descriptionMap.put(SugiliteRelation.CONTAINS_EMAIL_ADDRESS,"contains the email address ");
+        descriptionMap.put(SugiliteRelation.CONTAINS_PHONE_NUMBER,"contains the phone number ");
+        descriptionMap.put(SugiliteRelation.CONTAINS_MONEY,"contains the price ");
+        descriptionMap.put(SugiliteRelation.CONTAINS_TIME,"contains the time ");
+        descriptionMap.put(SugiliteRelation.CONTAINS_DATE,"contains the date ");
+        descriptionMap.put(SugiliteRelation.CONTAINS_DURATION,"contains the duration ");
+        descriptionMap.put(SugiliteRelation.CONTAINS_LENGTH,"contains the distance ");
+        descriptionMap.put(SugiliteRelation.CONTAINS_PERCENTAGE,"contains the percentage ");
+        descriptionMap.put(SugiliteRelation.CONTAINS_VOLUME,"contains the volume ");
+        descriptionMap.put(SugiliteRelation.CONTAINS_NUMBER,"contains the number ");
 
 
     }

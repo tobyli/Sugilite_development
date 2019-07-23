@@ -2,6 +2,7 @@ package edu.cmu.hcii.sugilite.ontology.description;
 
 import java.util.*;
 
+import edu.cmu.hcii.sugilite.ontology.CombinedOntologyQuery;
 import edu.cmu.hcii.sugilite.ontology.LeafOntologyQuery;
 import edu.cmu.hcii.sugilite.ontology.OntologyQuery;
 import edu.cmu.hcii.sugilite.ontology.SugiliteRelation;
@@ -18,6 +19,8 @@ public class RelationWeight {
         weightMap = new HashMap<SugiliteRelation, Integer>();
 
         weightMap.put(SugiliteRelation.HAS_CLASS_NAME,0);
+        weightMap.put(SugiliteRelation.HAS_PACKAGE_NAME,101);
+
         weightMap.put(SugiliteRelation.HAS_LIST_ORDER,1);
         weightMap.put(SugiliteRelation.HAS_PARENT_WITH_LIST_ORDER,2);
         weightMap.put(SugiliteRelation.HAS_TEXT,3);
@@ -26,7 +29,7 @@ public class RelationWeight {
         weightMap.put(SugiliteRelation.HAS_CONTENT_DESCRIPTION,6);
 
         weightMap.put(SugiliteRelation.HAS_SCREEN_LOCATION,7);
-        weightMap.put(SugiliteRelation.HAS_PACKAGE_NAME,101);
+
 
         weightMap.put(SugiliteRelation.HAS_PARENT,8);
         weightMap.put(SugiliteRelation.HAS_VIEW_ID,9);
@@ -67,8 +70,6 @@ public class RelationWeight {
         weightMap.put(SugiliteRelation.BELOW, 35);
         weightMap.put(SugiliteRelation.NEAR, 36);
         weightMap.put(SugiliteRelation.NEXT_TO, 37);
-
-
     }
 
     public int getWeight(SugiliteRelation r)
@@ -101,28 +102,44 @@ public class RelationWeight {
             SugiliteRelation qr1 = null;
             SugiliteRelation qr2 = null;
 
-            if (q1 instanceof LeafOntologyQuery)
-                qr1 = ((LeafOntologyQuery)q1).getR();
 
-            if (q1 instanceof HashedStringOntologyQuery)
-                qr1 = ((HashedStringOntologyQuery)q1).getR();
+            if (q1 instanceof LeafOntologyQuery) {
+                qr1 = ((LeafOntologyQuery) q1).getR();
+            }
+
+            if (q1 instanceof HashedStringOntologyQuery) {
+                qr1 = ((HashedStringOntologyQuery) q1).getR();
+            }
+
+            if (q1 instanceof CombinedOntologyQuery) {
+                qr1 = ((CombinedOntologyQuery) q1).getR();
+            }
 
 
-            if (q2 instanceof LeafOntologyQuery)
-                qr2 = ((LeafOntologyQuery)q2).getR();
+            if (q2 instanceof LeafOntologyQuery) {
+                qr2 = ((LeafOntologyQuery) q2).getR();
+            }
 
-            if (q2 instanceof HashedStringOntologyQuery)
-                qr2 = ((HashedStringOntologyQuery)q2).getR();
+            if (q2 instanceof HashedStringOntologyQuery) {
+                qr2 = ((HashedStringOntologyQuery) q2).getR();
+            }
+
+            if (q2 instanceof CombinedOntologyQuery) {
+                qr2 = ((CombinedOntologyQuery) q2).getR();
+            }
 
 
-            if (qr1 != null && qr2 != null)
+            if (qr1 != null && qr2 != null) {
                 return sugiliteRelationComparator.compare(qr1, qr2);
+            }
 
-            if (q1 != null)
+            if (q1 != null) {
                 return -1;
+            }
 
-            if (q2 != null)
+            if (q2 != null) {
                 return 1;
+            }
 
             return 0;
         }

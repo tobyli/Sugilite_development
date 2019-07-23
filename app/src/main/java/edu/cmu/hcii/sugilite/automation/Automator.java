@@ -9,6 +9,7 @@ import android.graphics.Rect;
 import android.os.Bundle;
 import android.text.Html;
 import android.view.LayoutInflater;
+import android.view.WindowManager;
 import android.view.accessibility.AccessibilityNodeInfo;
 
 import java.util.ArrayList;
@@ -72,6 +73,8 @@ public class Automator {
     private boolean ttsReady = false;
     private SugiliteScreenshotManager screenshotManager;
     private SugiliteTextParentAnnotator sugiliteTextParentAnnotator;
+    private WindowManager windowManager;
+
 
     public Automator(SugiliteData sugiliteData, SugiliteAccessibilityService context, StatusIconManager statusIconManager, SharedPreferences sharedPreferences, SugiliteTextParentAnnotator sugiliteTextParentAnnotator, TextToSpeech tts) {
         this.sugiliteData = sugiliteData;
@@ -86,6 +89,7 @@ public class Automator {
         this.sharedPreferences = sharedPreferences;
 
         this.tts = tts;
+        this.windowManager = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
         screenshotManager = new SugiliteScreenshotManager(sharedPreferences, context);
     }
 
@@ -248,7 +252,7 @@ public class Automator {
                 }
 
 
-                UISnapshot uiSnapshot = new UISnapshot(rootNode, true, sugiliteTextParentAnnotator, true);
+                UISnapshot uiSnapshot = new UISnapshot(windowManager.getDefaultDisplay(), rootNode, true, sugiliteTextParentAnnotator, true);
 
                 //de-serialize the OntologyQuery
                 OntologyQuery q = operationBlock.getOperation().getDataDescriptionQueryIfAvailable().clone();

@@ -109,7 +109,7 @@ public class OverlayClickedDialog {
      * handle when the operation is to be recorded
      */
     private void handleRecording() {
-        List<Pair<OntologyQuery, Double>> queryScoreList = SugiliteBlockBuildingHelper.generateDefaultQueries(uiSnapshot, node);
+        List<Pair<OntologyQuery, Double>> queryScoreList = SugiliteBlockBuildingHelper.newGenerateDefaultQueries(uiSnapshot, node);
         if (queryScoreList.size() > 0) {
             System.out.println("Query Score List: " + queryScoreList);
 

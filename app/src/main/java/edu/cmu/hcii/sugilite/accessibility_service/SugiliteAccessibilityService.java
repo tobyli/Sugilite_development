@@ -496,7 +496,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
                         @Override
                         public void run() {
                             Log.i(TAG, "Entering handle recording thread");
-                            UISnapshot uiSnapshot = new UISnapshot(final_root, true, sugiliteTextParentAnnotator, true);
+                            UISnapshot uiSnapshot = new UISnapshot(windowManager.getDefaultDisplay(), final_root, true, sugiliteTextParentAnnotator, true);
                             System.out.printf("UI Snapshot Constructed for Recording!");
                             //temp hack for ViewGroup in Google Now Launcher
                             if (sourceNode != null && sourceNode.getClassName() != null && sourceNode.getPackageName() != null && sourceNode.getClassName().toString().contentEquals("android.view.ViewGroup") && homeScreenPackageNameSet.contains(sourceNode.getPackageName().toString())) {
@@ -769,7 +769,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
                         uiSnapshotGenerationExecutor.execute(new Runnable() {
                             @Override
                             public void run() {
-                                UISnapshot uiSnapshot = new UISnapshot(windows, true, sugiliteTextParentAnnotator, false);
+                                UISnapshot uiSnapshot = new UISnapshot(windowManager.getDefaultDisplay(), windows, true, sugiliteTextParentAnnotator, false);
                                 if (uiSnapshot.getNodeAccessibilityNodeInfoMap().size() >= 5) {
                                     //filter out (mostly) empty ui snapshots
                                     verbalInstructionIconManager.setLatestUISnapshot(uiSnapshot);
@@ -806,7 +806,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
                 @Override
                 public void run() {
                     List<AccessibilityNodeInfo> allNodes = AutomatorUtil.getAllNodesFromWindows(windows);
-                    UISnapshot uiSnapshot = new UISnapshot(windows, true, sugiliteTextParentAnnotator, true);
+                    UISnapshot uiSnapshot = new UISnapshot(windowManager.getDefaultDisplay(), windows, true, sugiliteTextParentAnnotator, true);
                     automator.handleLiveEvent(uiSnapshot, getApplicationContext(), allNodes);
                 }
             });

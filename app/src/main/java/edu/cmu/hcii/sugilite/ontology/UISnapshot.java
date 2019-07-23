@@ -1,5 +1,6 @@
 package edu.cmu.hcii.sugilite.ontology;
 
+import android.content.Context;
 import android.graphics.Point;
 import android.graphics.Rect;
 import android.util.Log;
@@ -63,30 +64,32 @@ public class UISnapshot {
     private boolean stringEntitiesAreAnnotated = false;
 
     protected static final String TAG = UISnapshot.class.getSimpleName();
+    private transient Display display;
 
 
     //construct an empty UI snapshot
-    public UISnapshot(){
+    public UISnapshot(Display display){
         //empty
-        uiSnapshot = this;
-        triples = new LinkedHashSet<>();
-        subjectTriplesMap = new HashMap<>();
-        objectTriplesMap = new HashMap<>();
-        predicateTriplesMap = new HashMap<>();
-        subjectPredicateTriplesMap = new HashMap<>();
-        sugiliteEntityIdSugiliteEntityMap = new HashMap<>();
-        sugiliteRelationIdSugiliteRelationMap = new HashMap<>();
-        nodeSugiliteEntityMap = new HashMap<>();
-        stringSugiliteEntityMap = new HashMap<>();
-        doubleSugiliteEntityMap = new HashMap<>();
-        booleanSugiliteEntityMap = new HashMap<>();
-        nodeAccessibilityNodeInfoMap = new HashMap<>();
-        entityIdCounter = 0;
+        this.display = display;
+        this.uiSnapshot = this;
+        this.triples = new LinkedHashSet<>();
+        this.subjectTriplesMap = new HashMap<>();
+        this.objectTriplesMap = new HashMap<>();
+        this.predicateTriplesMap = new HashMap<>();
+        this.subjectPredicateTriplesMap = new HashMap<>();
+        this.sugiliteEntityIdSugiliteEntityMap = new HashMap<>();
+        this.sugiliteRelationIdSugiliteRelationMap = new HashMap<>();
+        this.nodeSugiliteEntityMap = new HashMap<>();
+        this.stringSugiliteEntityMap = new HashMap<>();
+        this.doubleSugiliteEntityMap = new HashMap<>();
+        this.booleanSugiliteEntityMap = new HashMap<>();
+        this.nodeAccessibilityNodeInfoMap = new HashMap<>();
+        this.entityIdCounter = 0;
     }
 
     //construct a UISnapshot for a list of windows
-    public UISnapshot(List<AccessibilityWindowInfo> windows, boolean toConstructNodeAccessibilityNodeInfoMap, SugiliteTextParentAnnotator sugiliteTextParentAnnotator, boolean toAnnotateStringEntities) {
-        this();
+    public UISnapshot(Display display, List<AccessibilityWindowInfo> windows, boolean toConstructNodeAccessibilityNodeInfoMap, SugiliteTextParentAnnotator sugiliteTextParentAnnotator, boolean toAnnotateStringEntities) {
+        this(display);
         List<Node> allNodes = new ArrayList<>();
         for(AccessibilityWindowInfo window : windows){
             AccessibilityNodeInfo rootNode = window.getRoot();
@@ -101,8 +104,8 @@ public class UISnapshot {
     }
 
     //construct a UISnapshot from a rootNode
-    public UISnapshot(AccessibilityNodeInfo rootNode, boolean toConstructNodeAccessibilityNodeInfoMap, SugiliteTextParentAnnotator sugiliteTextParentAnnotator, boolean toAnnotateStringEntities) {
-        this();
+    public UISnapshot(Display display, AccessibilityNodeInfo rootNode, boolean toConstructNodeAccessibilityNodeInfoMap, SugiliteTextParentAnnotator sugiliteTextParentAnnotator, boolean toAnnotateStringEntities) {
+        this(display);
         List<AccessibilityNodeInfo> allOldNodes = AutomatorUtil.preOrderTraverse(rootNode);
         List<Node> allNodes = new ArrayList<>();
         if(allOldNodes != null) {
@@ -334,8 +337,7 @@ public class UISnapshot {
 
             //parse node entities
 
-            /*
-            Display display = context.getWindowManager().getDefaultDisplay();
+            //geometric/spatial relations
             Point size = new Point();
             display.getSize(size);
             int width = size.x;
@@ -348,10 +350,10 @@ public class UISnapshot {
             }
 
             SugiliteNodeAnnotator annotator = SugiliteNodeAnnotator.getInstance();
-            for (SugiliteNodeAnnotator.NodeAnnotatingResult res : annotator.annotate(nodeEntities)) {
-                this.addEntityNodeTriple(res.getSubjectSet(), res.getObjectSet(), res.getRelation());
+            for (SugiliteNodeAnnotator.NodeAnnotatingResult res : annotator.annotate(nodeEntities, width, height)) {
+                this.addEntityNodeTriple(res.getSubject(), res.getObject(), res.getRelation());
             }
-            */
+
 
 
         }

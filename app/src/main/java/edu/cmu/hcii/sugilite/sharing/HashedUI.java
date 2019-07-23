@@ -2,6 +2,7 @@ package edu.cmu.hcii.sugilite.sharing;
 
 import android.util.Log;
 import android.widget.EditText;
+import edu.cmu.hcii.sugilite.Const;
 import edu.cmu.hcii.sugilite.ontology.SerializableUISnapshot;
 import edu.cmu.hcii.sugilite.ontology.SugiliteRelation;
 import edu.cmu.hcii.sugilite.ontology.SugiliteSerializableTriple;
@@ -12,12 +13,6 @@ import java.util.*;
  * A hashed representation of the text present in a UI snapshot.
  */
 public class HashedUI {
-
-    private static final SugiliteRelation[] USABLE_RELATIONS = {
-            SugiliteRelation.HAS_TEXT,
-            SugiliteRelation.HAS_CHILD_TEXT,
-            SugiliteRelation.HAS_CONTENT_DESCRIPTION
-    };
 
     public final String packageName;
     public final String activityName;
@@ -82,7 +77,7 @@ public class HashedUI {
 
         for (SugiliteSerializableTriple triple : snapshot.getTriples()) {
             // if we can hash this kind of relation
-            if (Arrays.stream(USABLE_RELATIONS).anyMatch(triple.getPredicate()::equals)) {
+            if (Arrays.stream(Const.POTENTIALLY_PRIVATE_RELATIONS).anyMatch(triple.getPredicate()::equals)) {
                 if (editTextSubjects.contains(triple.getSubjectId())) {
                     Log.v("EditTextSkip", "Not adding EditText text : " + triple.getObjectStringValue());
                 } else {
@@ -92,7 +87,7 @@ public class HashedUI {
         }
 
         for (String s : childStrings) {
-            hashedTexts.add(generator.generate(s));
+            hashedTexts.add(HashedSplitStringGenerator.generate(s));
         }
     }
 }

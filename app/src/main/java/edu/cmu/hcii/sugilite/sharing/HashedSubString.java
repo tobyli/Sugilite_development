@@ -4,7 +4,7 @@ public class HashedSubString extends HashedString {
     /**
      * Lower values have higher priority.
      * Semantically should always be greater than zero.
-     * Represents notion of "tokens removed".
+     * Loosely represents notion of "tokens removed".
      */
     public final int priority;
     public HashedSubString(String string, int priority) {

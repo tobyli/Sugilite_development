@@ -198,4 +198,12 @@ public class SerializableUISnapshot implements Serializable {
     public Set<SugiliteSerializableTriple> getTriples() {
         return triples;
     }
+
+    public String getActivityName() {
+        return activityName;
+    }
+
+    public String getPackageName() {
+        return packageName;
+    }
 }

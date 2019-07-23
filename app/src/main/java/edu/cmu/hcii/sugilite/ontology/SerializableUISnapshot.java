@@ -32,7 +32,14 @@ public class SerializableUISnapshot implements Serializable {
     private transient Map<String, SugiliteSerializableEntity<String>> stringSugiliteEntityMap;
     private transient Map<Boolean, SugiliteSerializableEntity<Boolean>> booleanSugiliteEntityMap;
 
+    private String activityName;
+    private String packageName;
+
     public SerializableUISnapshot(UISnapshot uiSnapshot) {
+
+        this.activityName = uiSnapshot.getActivityName();
+        this.packageName = uiSnapshot.getPackageName();
+
         if(uiSnapshot.getTriples() != null) {
             triples = new HashSet<>();
             for (SugiliteTriple t : uiSnapshot.getTriples()) {
@@ -190,5 +197,13 @@ public class SerializableUISnapshot implements Serializable {
 
     public Set<SugiliteSerializableTriple> getTriples() {
         return triples;
+    }
+
+    public String getActivityName() {
+        return activityName;
+    }
+
+    public String getPackageName() {
+        return packageName;
     }
 }

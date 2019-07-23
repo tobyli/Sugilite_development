@@ -1,6 +1,8 @@
 package edu.cmu.hcii.sugilite.model.block;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
 import edu.cmu.hcii.sugilite.SugiliteData;
 
@@ -135,6 +137,24 @@ public class SugiliteConditionBlock extends SugiliteBlock implements Serializabl
                 result += " ";
                 result += getStringForASeriesOfBlock(block.getNextBlock());
             }
+        }
+        return result;
+    }
+
+    @Override
+    public List<SugiliteBlock> getFollowingBlocks() {
+        List<SugiliteBlock> result = new ArrayList<SugiliteBlock>();
+        if (thenBlock != null) {
+            result.add(thenBlock);
+            result.addAll(thenBlock.getFollowingBlocks());
+        }
+        if (elseBlock != null) {
+            result.add(elseBlock);
+            result.addAll(elseBlock.getFollowingBlocks());
+        }
+        if (nextBlock != null) {
+            result.add(nextBlock);
+            result.addAll(nextBlock.getFollowingBlocks());
         }
         return result;
     }

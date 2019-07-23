@@ -66,6 +66,9 @@ public class UISnapshot {
     protected static final String TAG = UISnapshot.class.getSimpleName();
     private transient Display display;
 
+    private String activityName;
+    private String packageName;
+
 
     //construct an empty UI snapshot
     public UISnapshot(Display display){
@@ -88,29 +91,33 @@ public class UISnapshot {
     }
 
     //construct a UISnapshot for a list of windows
-    public UISnapshot(Display display, List<AccessibilityWindowInfo> windows, boolean toConstructNodeAccessibilityNodeInfoMap, SugiliteTextParentAnnotator sugiliteTextParentAnnotator, boolean toAnnotateStringEntities) {
+    public UISnapshot(Display display, List<AccessibilityWindowInfo> windows, boolean toConstructNodeAccessibilityNodeInfoMap, SugiliteTextParentAnnotator sugiliteTextParentAnnotator, boolean toAnnotateStringEntities, String activityName, String packageName) {
         this(display);
+        this.activityName = activityName;
+        this.packageName = packageName;
         List<Node> allNodes = new ArrayList<>();
         for(AccessibilityWindowInfo window : windows){
             AccessibilityNodeInfo rootNode = window.getRoot();
             if(rootNode != null) {
-                allNodes.addAll(preOrderNodeTraverseWithZIndex(rootNode, toConstructNodeAccessibilityNodeInfoMap, window.getLayer(), new ArrayList<>()));
+                allNodes.addAll(preOrderNodeTraverseWithZIndex(rootNode, toConstructNodeAccessibilityNodeInfoMap, window.getLayer(), new ArrayList<>(), activityName));
             }
         }
         long startTime = System.currentTimeMillis();
         constructFromListOfNodes(allNodes, toAnnotateStringEntities);
         long stopTime = System.currentTimeMillis();
-        Log.i(TAG, String.format("Constructed from List of %d Nodes! -- Takes %s ms", allNodes.size(), String.valueOf(stopTime - startTime)));
+        Log.v(TAG, String.format("Constructed from List of %d Nodes! -- Takes %s ms", allNodes.size(), String.valueOf(stopTime - startTime)));
     }
 
     //construct a UISnapshot from a rootNode
-    public UISnapshot(Display display, AccessibilityNodeInfo rootNode, boolean toConstructNodeAccessibilityNodeInfoMap, SugiliteTextParentAnnotator sugiliteTextParentAnnotator, boolean toAnnotateStringEntities) {
+    public UISnapshot(Display display, AccessibilityNodeInfo rootNode, boolean toConstructNodeAccessibilityNodeInfoMap, SugiliteTextParentAnnotator sugiliteTextParentAnnotator, boolean toAnnotateStringEntities, String activityName, String packageName) {
         this(display);
+        this.activityName = activityName;
+        this.packageName = packageName;
         List<AccessibilityNodeInfo> allOldNodes = AutomatorUtil.preOrderTraverse(rootNode);
         List<Node> allNodes = new ArrayList<>();
         if(allOldNodes != null) {
             for (AccessibilityNodeInfo oldNode : allOldNodes) {
-                Node node = new Node(oldNode);
+                Node node = new Node(oldNode, activityName);
                 if (node.getPackageName() != null && (node.getPackageName().contains("com.android.systemui") || node.getPackageName().contains("sugilite"))) {
                     continue;
                 }
@@ -157,7 +164,7 @@ public class UISnapshot {
                 List<Future<Boolean>> results = executor.invokeAll(todos);
                 stringEntitiesAreAnnotated = true;
                 long stopTime = System.currentTimeMillis();
-                Log.i(TAG, String.format("Parsed strings for %d entities! -- Takes %s ms", results.size(), String.valueOf(stopTime - startTime)));
+                Log.v(TAG, String.format("Parsed strings for %d entities! -- Takes %s ms", results.size(), String.valueOf(stopTime - startTime)));
 
             } catch (InterruptedException e){
                 e.printStackTrace();;
@@ -215,6 +222,12 @@ public class UISnapshot {
                     //package name
                     String packageName = node.getPackageName();
                     addEntityStringTriple(currentEntity, packageName, SugiliteRelation.HAS_PACKAGE_NAME);
+                }
+
+                if (node.getActivityName() != null) {
+                    //activity name
+                    String activityName = node.getActivityName();
+                    addEntityStringTriple(currentEntity, activityName, SugiliteRelation.HAS_ACTIVITY_NAME);
                 }
 
                 if (node.getContentDescription() != null) {
@@ -627,6 +640,14 @@ public class UISnapshot {
         return subjectPredicateTriplesMap;
     }
 
+    public String getActivityName() {
+        return activityName;
+    }
+
+    public String getPackageName() {
+        return packageName;
+    }
+
     /**
      *
      * @param parent parent node
@@ -635,13 +656,13 @@ public class UISnapshot {
      * @param parentNodeZIndexSequence the z index sequence of the parent node
      * @return
      */
-    private List<Node> preOrderNodeTraverseWithZIndex(AccessibilityNodeInfo parent, boolean toConstructNodeAccessibilityNodeInfoMap, Integer windowZIndex, List<Integer> parentNodeZIndexSequence){
+    private List<Node> preOrderNodeTraverseWithZIndex(AccessibilityNodeInfo parent, boolean toConstructNodeAccessibilityNodeInfoMap, Integer windowZIndex, List<Integer> parentNodeZIndexSequence, String activityName){
         //fill in the Z-index for nodes recursively
         if(parent == null) {
             return null;
         }
         List<Node> list = new ArrayList<>();
-        Node node = new Node(parent, windowZIndex, parentNodeZIndexSequence);
+        Node node = new Node(parent, windowZIndex, parentNodeZIndexSequence, activityName);
         if(toConstructNodeAccessibilityNodeInfoMap){
             nodeAccessibilityNodeInfoMap.put(node, parent);
         }
@@ -650,7 +671,7 @@ public class UISnapshot {
         for(int i = 0; i < childCount; i ++){
             AccessibilityNodeInfo childNode = parent.getChild(i);
             if(childNode != null) {
-                list.addAll(preOrderNodeTraverseWithZIndex(childNode, toConstructNodeAccessibilityNodeInfoMap, windowZIndex, node.getNodeZIndexSequence()));
+                list.addAll(preOrderNodeTraverseWithZIndex(childNode, toConstructNodeAccessibilityNodeInfoMap, windowZIndex, node.getNodeZIndexSequence(), activityName));
             }
         }
         return list;

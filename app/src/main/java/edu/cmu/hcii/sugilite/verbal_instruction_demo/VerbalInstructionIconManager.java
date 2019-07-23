@@ -45,6 +45,9 @@ import edu.cmu.hcii.sugilite.ontology.SerializableUISnapshot;
 import edu.cmu.hcii.sugilite.ontology.UISnapshot;
 import edu.cmu.hcii.sugilite.recording.newrecording.fullscreen_overlay.FollowUpQuestionDialog;
 import edu.cmu.hcii.sugilite.recording.newrecording.fullscreen_overlay.FullScreenRecordingOverlayManager;
+import edu.cmu.hcii.sugilite.sharing.HashedSplitStringGenerator;
+import edu.cmu.hcii.sugilite.sharing.HashedUI;
+import edu.cmu.hcii.sugilite.sharing.PrivacyHashUploader;
 import edu.cmu.hcii.sugilite.ui.StatusIconManager;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.speech.SugiliteAndroidAPIVoiceRecognitionListener;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.speech.SugiliteGoogleCloudVoiceRecognitionListener;
@@ -75,6 +78,7 @@ public class VerbalInstructionIconManager implements SugiliteVoiceInterface {
     private SugiliteAccessibilityService sugiliteAccessibilityService;
     private StatusIconManager duckIconManager;
     private TextToSpeech tts;
+    private PrivacyHashUploader privacyHashUploader; // TODO move this to accessibility service
     public boolean isListening = false;
     public boolean isSpeaking = false;
     private Dialog dialog;
@@ -120,6 +124,8 @@ public class VerbalInstructionIconManager implements SugiliteVoiceInterface {
             this.sugiliteVoiceRecognitionListener = new SugiliteGoogleCloudVoiceRecognitionListener(context, this, tts);
         }
         this.recordingOverlayManager = recordingOverlayManager;
+
+        this.privacyHashUploader = new PrivacyHashUploader();
 
     }
 
@@ -232,6 +238,10 @@ public class VerbalInstructionIconManager implements SugiliteVoiceInterface {
                             @Override
                             public void run() {
                                 sugiliteAccessibilityService.updatePumiceOverlay(latestUISnapshot);
+                                if (sharedPreferences.getBoolean("uploading_hashed_ui_in_progress", false)) {
+                                    HashedUI hashedUI = new HashedUI(sugiliteAccessibilityService.getCurrentAppPackageName(), sugiliteAccessibilityService.getCurrentAppActivityName(), new SerializableUISnapshot(latestUISnapshot), Settings.Secure.getString(context.getContentResolver(), Settings.Secure.ANDROID_ID), new HashedSplitStringGenerator());
+                                    privacyHashUploader.uploadHashedUI(hashedUI);
+                                }
                                 sugiliteAccessibilityService.checkIfAutomationCanBePerformed();
                             }
                         });
@@ -355,7 +365,8 @@ public class VerbalInstructionIconManager implements SugiliteVoiceInterface {
 
                     //initialize the popup dialog
                     AlertDialog.Builder textDialogBuilder = new AlertDialog.Builder(context);
-                    textDialogBuilder.setTitle("Verbal Instruction");
+                    //textDialogBuilder.setTitle("Verbal Instruction");
+                    textDialogBuilder.setTitle(sharedPreferences.getBoolean("uploading_hashed_ui_in_progress", false) ? "UPLOADING UI GRAPHS" : "NOT UPLOADING");
                     List<String> operationList = new ArrayList<>();
 
                     //fill in the options
@@ -364,6 +375,7 @@ public class VerbalInstructionIconManager implements SugiliteVoiceInterface {
                     operationList.add("Dump the latest UI snapshot");
                     operationList.add("Record a Sugilite study packet");
                     operationList.add("Switch recording overlay");
+                    operationList.add("Toggle Uploading Hashed UI Graphs");
 
 
                     String[] operations = new String[operationList.size()];
@@ -413,6 +425,13 @@ public class VerbalInstructionIconManager implements SugiliteVoiceInterface {
                                             break;
                                         case "Switch recording overlay":
                                             switchCatOverlay();
+                                            break;
+                                        case "Toggle Uploading Hashed UI Graphs":
+                                            boolean uploading = sharedPreferences.getBoolean("uploading_hashed_ui_in_progress", false);
+                                            boolean success = sharedPreferences.edit().putBoolean("uploading_hashed_ui_in_progress", !uploading).commit();
+                                            if (!success) {
+                                                Toast.makeText(context, "Could not enable UI uploading", Toast.LENGTH_SHORT).show();
+                                            }
                                             break;
                                     }
                                 }

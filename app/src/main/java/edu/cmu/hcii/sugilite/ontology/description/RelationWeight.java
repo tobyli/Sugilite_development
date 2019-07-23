@@ -19,8 +19,6 @@ public class RelationWeight {
         weightMap = new HashMap<SugiliteRelation, Integer>();
 
         weightMap.put(SugiliteRelation.HAS_CLASS_NAME,0);
-        weightMap.put(SugiliteRelation.HAS_PACKAGE_NAME,101);
-
         weightMap.put(SugiliteRelation.HAS_LIST_ORDER,1);
         weightMap.put(SugiliteRelation.HAS_PARENT_WITH_LIST_ORDER,2);
         weightMap.put(SugiliteRelation.HAS_TEXT,3);
@@ -29,6 +27,9 @@ public class RelationWeight {
         weightMap.put(SugiliteRelation.HAS_CONTENT_DESCRIPTION,6);
 
         weightMap.put(SugiliteRelation.HAS_SCREEN_LOCATION,7);
+
+        weightMap.put(SugiliteRelation.HAS_ACTIVITY_NAME,100);
+        weightMap.put(SugiliteRelation.HAS_PACKAGE_NAME,101);
 
 
         weightMap.put(SugiliteRelation.HAS_PARENT,8);

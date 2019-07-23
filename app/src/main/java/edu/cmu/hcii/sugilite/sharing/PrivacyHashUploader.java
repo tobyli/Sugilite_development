@@ -5,6 +5,7 @@ import android.util.Log;
 import android.widget.Toast;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import edu.cmu.hcii.sugilite.Const;
 import edu.cmu.hcii.sugilite.ontology.SerializableUISnapshot;
 import edu.cmu.hcii.sugilite.sharing.debug.HasPlaintext;
 
@@ -18,14 +19,12 @@ import java.nio.charset.StandardCharsets;
 public class PrivacyHashUploader {
 
     // TODO make this server address permanent
-    private final String DEFAULT_SERVER_URL = "http://35.196.46.194:8080/";
-    private final String UPLOAD_HASHED_UI_ENDPOINT = "privacy/upload_ui";
 
     private URL uploadHashedUIUrl;
 
     public PrivacyHashUploader() {
         try {
-            uploadHashedUIUrl = new URL(DEFAULT_SERVER_URL + UPLOAD_HASHED_UI_ENDPOINT);
+            uploadHashedUIUrl = new URL(Const.SHARING_SERVER_BASE_URL + Const.UPLOAD_HASHED_UI_ENDPOINT);
         } catch (MalformedURLException e) {
             e.printStackTrace();
         }

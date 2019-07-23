@@ -2,7 +2,9 @@ package edu.cmu.hcii.sugilite.model.block;
 
 import java.io.File;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.List;
 import java.util.Random;
 
 /**
@@ -92,6 +94,15 @@ public abstract class SugiliteBlock implements Serializable{
 
     public void setNextBlock(SugiliteBlock nextBlock) {
         this.nextBlock = nextBlock;
+    }
+
+    public List<SugiliteBlock> getFollowingBlocks() {
+        List<SugiliteBlock> result = new ArrayList<SugiliteBlock>();
+        if (nextBlock != null) {
+            result.add(nextBlock);
+            result.addAll(nextBlock.getFollowingBlocks());
+        }
+        return result;
     }
 
 

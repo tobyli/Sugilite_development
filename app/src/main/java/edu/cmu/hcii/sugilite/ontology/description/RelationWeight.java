@@ -27,6 +27,7 @@ public class RelationWeight {
 
         weightMap.put(SugiliteRelation.HAS_SCREEN_LOCATION,7);
         weightMap.put(SugiliteRelation.HAS_PACKAGE_NAME,101);
+        weightMap.put(SugiliteRelation.HAS_ACTIVITY_NAME,100);
 
         weightMap.put(SugiliteRelation.HAS_PARENT,8);
         weightMap.put(SugiliteRelation.HAS_VIEW_ID,9);

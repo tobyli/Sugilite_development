@@ -30,6 +30,7 @@ public class DescriptionGenerator {
         descriptionMap.put(SugiliteRelation.HAS_PARENT_LOCATION, setColor("the parent location ", SCRIPT_VIEW_ID_COLOR));
         descriptionMap.put(SugiliteRelation.HAS_PACKAGE_NAME,"in ");
         descriptionMap.put(SugiliteRelation.HAS_CHILD, setColor("child ", SCRIPT_VIEW_ID_COLOR));
+        descriptionMap.put(SugiliteRelation.HAS_ACTIVITY_NAME,"on "); // TODO maybe change this
 
         descriptionMap.put(SugiliteRelation.HAS_CHILD_TEXT, setColor("text ", SCRIPT_VIEW_ID_COLOR));
         descriptionMap.put(SugiliteRelation.HAS_SIBLING_TEXT,"");

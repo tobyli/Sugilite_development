@@ -26,8 +26,9 @@ public class SugiliteSerializableEntity<T extends Serializable> implements Seria
 
         } else {
             if(e.getEntityValue() instanceof AccessibilityNodeInfo) {
-                type = (Class<T>) Node.class;
-                entityValue = (T)new Node((AccessibilityNodeInfo) e.getEntityValue());
+//                type = (Class<T>) Node.class;
+//                entityValue = (T)new Node((AccessibilityNodeInfo) e.getEntityValue());
+                throw new AssertionError("We shouldn't have AccessibilityNodeInfo as an entity value");
             }
             else {
                 if (BuildConfig.DEBUG) {

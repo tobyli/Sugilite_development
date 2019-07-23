@@ -23,6 +23,9 @@ public class SugiliteEntity<T> implements Serializable {
     }
 
     public SugiliteEntity(Integer entityId, Class<T> type, T value){
+        if (type.equals(AccessibilityNodeInfo.class)) {
+            throw new AssertionError("We shouldn't have AccessibilityNodeInfo as an entity value");
+        }
         this.entityId = entityId;
         this.entityValue = value;
         this.type = type;

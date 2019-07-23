@@ -10,7 +10,8 @@ public class HashedStringOntologyQuery extends OntologyQuery {
     // SugiliteRelations we can translate
     private static final SugiliteRelation[] USABLE_RELATIONS = {
             SugiliteRelation.HAS_TEXT,
-            SugiliteRelation.HAS_CHILD_TEXT
+            SugiliteRelation.HAS_CHILD_TEXT,
+            SugiliteRelation.HAS_CONTENT_DESCRIPTION
     };
 
     // the relation we want to match
@@ -95,6 +96,11 @@ public class HashedStringOntologyQuery extends OntologyQuery {
                 result.addSubQuery(hashQuery(subQ));
             }
             return result;
+        }
+
+        if (query instanceof PlaceholderOntologyQuery) {
+            PlaceholderOntologyQuery poq = (PlaceholderOntologyQuery)query;
+            return new PlaceholderOntologyQuery(hashQuery(poq.getInnerQuery()));
         }
 
         // non-hashable leaf or already hashed

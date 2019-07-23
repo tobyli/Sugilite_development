@@ -63,6 +63,9 @@ public class UISnapshot {
 
     protected static final String TAG = UISnapshot.class.getSimpleName();
 
+    private String activityName;
+    private String packageName;
+
 
     //construct an empty UI snapshot
     public UISnapshot(){
@@ -84,8 +87,10 @@ public class UISnapshot {
     }
 
     //construct a UISnapshot for a list of windows
-    public UISnapshot(List<AccessibilityWindowInfo> windows, boolean toConstructNodeAccessibilityNodeInfoMap, SugiliteTextParentAnnotator sugiliteTextParentAnnotator, boolean toAnnotateStringEntities, String activityName) {
+    public UISnapshot(List<AccessibilityWindowInfo> windows, boolean toConstructNodeAccessibilityNodeInfoMap, SugiliteTextParentAnnotator sugiliteTextParentAnnotator, boolean toAnnotateStringEntities, String activityName, String packageName) {
         this();
+        this.activityName = activityName;
+        this.packageName = packageName;
         List<Node> allNodes = new ArrayList<>();
         for(AccessibilityWindowInfo window : windows){
             AccessibilityNodeInfo rootNode = window.getRoot();
@@ -100,8 +105,10 @@ public class UISnapshot {
     }
 
     //construct a UISnapshot from a rootNode
-    public UISnapshot(AccessibilityNodeInfo rootNode, boolean toConstructNodeAccessibilityNodeInfoMap, SugiliteTextParentAnnotator sugiliteTextParentAnnotator, boolean toAnnotateStringEntities, String activityName) {
+    public UISnapshot(AccessibilityNodeInfo rootNode, boolean toConstructNodeAccessibilityNodeInfoMap, SugiliteTextParentAnnotator sugiliteTextParentAnnotator, boolean toAnnotateStringEntities, String activityName, String packageName) {
         this();
+        this.activityName = activityName;
+        this.packageName = packageName;
         List<AccessibilityNodeInfo> allOldNodes = AutomatorUtil.preOrderTraverse(rootNode);
         List<Node> allNodes = new ArrayList<>();
         if(allOldNodes != null) {
@@ -628,6 +635,14 @@ public class UISnapshot {
 
     public Map<Map.Entry<Integer, Integer>, Set<SugiliteTriple>> getSubjectPredicateTriplesMap() {
         return subjectPredicateTriplesMap;
+    }
+
+    public String getActivityName() {
+        return activityName;
+    }
+
+    public String getPackageName() {
+        return packageName;
     }
 
     /**

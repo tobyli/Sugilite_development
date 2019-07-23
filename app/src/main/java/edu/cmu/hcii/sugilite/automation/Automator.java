@@ -249,7 +249,7 @@ public class Automator {
 
 
                 // getCurrentAppActivityName might not yield correct activity name at this moment
-                UISnapshot uiSnapshot = new UISnapshot(rootNode, true, sugiliteTextParentAnnotator, true, serviceContext.getCurrentAppActivityName());
+                UISnapshot uiSnapshot = new UISnapshot(rootNode, true, sugiliteTextParentAnnotator, true, serviceContext.getCurrentAppActivityName(), serviceContext.getCurrentAppPackageName());
 
                 //de-serialize the OntologyQuery
                 OntologyQuery q = operationBlock.getOperation().getDataDescriptionQueryIfAvailable().clone();

@@ -1,12 +1,13 @@
 package edu.cmu.hcii.sugilite.sharing;
 
+import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class StringAlternativeGenerator {
-    public static class StringAlternative {
+    public static class StringAlternative implements Serializable {
         public String altText;
         public int priority;
 

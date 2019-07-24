@@ -176,7 +176,7 @@ public class Const {
 
     public static final String SHARING_SERVER_BASE_URL = "http://35.196.46.194:8080/";
     public static final String UPLOAD_HASHED_UI_ENDPOINT = "privacy/upload_ui";
-    public static final String FILTER_UI_STRING_ENDPOINT = "privacy/filter";
+    public static final String FILTER_UI_STRING_ENDPOINT = "privacy/debug_filter";
     public static final SugiliteRelation[] POTENTIALLY_PRIVATE_RELATIONS = {
             SugiliteRelation.HAS_TEXT,
             SugiliteRelation.HAS_CHILD_TEXT,

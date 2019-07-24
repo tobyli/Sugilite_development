@@ -39,4 +39,12 @@ public class PlaceholderOntologyQuery extends OntologyQueryWithSubQueries {
         queries.add(innerQuery);
         return queries;
     }
+
+    @Override
+    public OntologyQueryWithSubQueries cloneWithTheseSubQueries(Set<OntologyQuery> newSubQueries) {
+        if (newSubQueries.size() != 1) {
+            throw new IllegalArgumentException("number of subqueries to a PlaceholderOntologyQuery must be 1!");
+        }
+        return new PlaceholderOntologyQuery(newSubQueries.iterator().next());
+    }
 }

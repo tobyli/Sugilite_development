@@ -50,16 +50,17 @@ public class FilterTranslation {
     }
 
     public static String getFilterTranslation(OntologyQueryFilter f) {
-        for (OntologyQueryFilter i:filterMap.keySet())
-        {
+        for (OntologyQueryFilter i : filterMap.keySet()) {
             if (i.getFilterType().equals(f.getFilterType()) && i.getRelation().equals(f.getRelation())) {
                 return filterMap.get(i);
             }
         }
-        if (f.getFilterType().equals(OntologyQueryFilter.FilterType.ARG_MAX))
+        if (f.getFilterType().equals(OntologyQueryFilter.FilterType.ARG_MAX)) {
             return "maximum";
-        else
+        }
+        else {
             return "minimum";
+        }
     }
 
     public String toString() {

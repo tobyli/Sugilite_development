@@ -151,7 +151,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
         verbalInstructionIconManager = new VerbalInstructionIconManager(this, sugiliteStudyHandler, sugiliteData, sharedPreferences, recordingOverlayManager, this, tts);
         statusIconManager.setVerbalInstructionIconManager(verbalInstructionIconManager);
         sugiliteData.verbalInstructionIconManager = verbalInstructionIconManager;
-        newDemonstrationHandler = new NewDemonstrationHandler(sugiliteData, this, LayoutInflater.from(getApplicationContext()), sharedPreferences, this);
+        newDemonstrationHandler = NewDemonstrationHandler.getInstance(sugiliteData, this, LayoutInflater.from(getApplicationContext()), sharedPreferences, this);
 
         screenshotManager = new SugiliteScreenshotManager(sharedPreferences, getApplicationContext());
         sugiliteTextParentAnnotator = SugiliteTextParentAnnotator.getInstance();
@@ -498,7 +498,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
                         @Override
                         public void run() {
                             Log.i(TAG, "Entering handle recording thread");
-                            UISnapshot uiSnapshot = new UISnapshot(final_root, true, sugiliteTextParentAnnotator, true, currentAppActivityName, currentAppPackageName);
+                            UISnapshot uiSnapshot = new UISnapshot(windowManager.getDefaultDisplay(), final_root, true, sugiliteTextParentAnnotator, true, currentAppActivityName, currentAppPackageName);
                             System.out.printf("UI Snapshot Constructed for Recording!");
                             //temp hack for ViewGroup in Google Now Launcher
                             if (sourceNode != null && sourceNode.getClassName() != null && sourceNode.getPackageName() != null && sourceNode.getClassName().toString().contentEquals("android.view.ViewGroup") && homeScreenPackageNameSet.contains(sourceNode.getPackageName().toString())) {
@@ -772,7 +772,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
                             @Override
                             public void run() {
                                 // currentAppActivityName might not be correct at this point in time?
-                                UISnapshot uiSnapshot = new UISnapshot(windows, true, sugiliteTextParentAnnotator, false, currentAppActivityName, currentAppPackageName);
+                                UISnapshot uiSnapshot = new UISnapshot(windowManager.getDefaultDisplay(), windows, true, sugiliteTextParentAnnotator, false, currentAppActivityName, currentAppPackageName);
                                 if (uiSnapshot.getNodeAccessibilityNodeInfoMap().size() >= 5) {
                                     //filter out (mostly) empty ui snapshots
                                     verbalInstructionIconManager.setLatestUISnapshot(uiSnapshot);
@@ -810,7 +810,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
                 public void run() {
                     List<AccessibilityNodeInfo> allNodes = AutomatorUtil.getAllNodesFromWindows(windows);
                     // getCurrentAppActivityName might not yield correct activity name at this moment
-                    UISnapshot uiSnapshot = new UISnapshot(windows, true, sugiliteTextParentAnnotator, true, currentAppActivityName, currentAppPackageName);
+                    UISnapshot uiSnapshot = new UISnapshot(windowManager.getDefaultDisplay(), windows, true, sugiliteTextParentAnnotator, true, currentAppActivityName, currentAppPackageName);
                     automator.handleLiveEvent(uiSnapshot, getApplicationContext(), allNodes);
                 }
             });

@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import edu.cmu.hcii.sugilite.Const;
+import edu.cmu.hcii.sugilite.R;
 import edu.cmu.hcii.sugilite.model.Node;
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.model.block.util.SugiliteAvailableFeaturePack;
@@ -24,6 +25,8 @@ import edu.cmu.hcii.sugilite.ontology.OntologyQuery;
 import edu.cmu.hcii.sugilite.ontology.SugiliteEntity;
 import edu.cmu.hcii.sugilite.ontology.UISnapshot;
 import edu.cmu.hcii.sugilite.recording.newrecording.SugiliteBlockBuildingHelper;
+
+import static edu.cmu.hcii.sugilite.Const.OVERLAY_TYPE;
 
 
 /**
@@ -106,7 +109,7 @@ public class OverlayClickedDialog {
      * handle when the operation is to be recorded
      */
     private void handleRecording() {
-        List<Pair<OntologyQuery, Double>> queryScoreList = SugiliteBlockBuildingHelper.generateDefaultQueries(featurePack, uiSnapshot, false);
+        List<Pair<OntologyQuery, Double>> queryScoreList = SugiliteBlockBuildingHelper.newGenerateDefaultQueries(uiSnapshot, node);
         if (queryScoreList.size() > 0) {
             System.out.println("Query Score List: " + queryScoreList);
 
@@ -135,6 +138,7 @@ public class OverlayClickedDialog {
 
 
     public void show() {
+
         /*
         dialog.getWindow().setType(OVERLAY_TYPE);
         dialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_box);

@@ -1,5 +1,6 @@
 package edu.cmu.hcii.sugilite.ontology;
 
+import android.content.Context;
 import android.graphics.Point;
 import android.graphics.Rect;
 import android.util.Log;
@@ -13,6 +14,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -62,33 +64,35 @@ public class UISnapshot {
     private boolean stringEntitiesAreAnnotated = false;
 
     protected static final String TAG = UISnapshot.class.getSimpleName();
+    private transient Display display;
 
     private String activityName;
     private String packageName;
 
 
     //construct an empty UI snapshot
-    public UISnapshot(){
+    public UISnapshot(Display display){
         //empty
-        uiSnapshot = this;
-        triples = new HashSet<>();
-        subjectTriplesMap = new HashMap<>();
-        objectTriplesMap = new HashMap<>();
-        predicateTriplesMap = new HashMap<>();
-        subjectPredicateTriplesMap = new HashMap<>();
-        sugiliteEntityIdSugiliteEntityMap = new HashMap<>();
-        sugiliteRelationIdSugiliteRelationMap = new HashMap<>();
-        nodeSugiliteEntityMap = new HashMap<>();
-        stringSugiliteEntityMap = new HashMap<>();
-        doubleSugiliteEntityMap = new HashMap<>();
-        booleanSugiliteEntityMap = new HashMap<>();
-        nodeAccessibilityNodeInfoMap = new HashMap<>();
-        entityIdCounter = 0;
+        this.display = display;
+        this.uiSnapshot = this;
+        this.triples = new LinkedHashSet<>();
+        this.subjectTriplesMap = new HashMap<>();
+        this.objectTriplesMap = new HashMap<>();
+        this.predicateTriplesMap = new HashMap<>();
+        this.subjectPredicateTriplesMap = new HashMap<>();
+        this.sugiliteEntityIdSugiliteEntityMap = new HashMap<>();
+        this.sugiliteRelationIdSugiliteRelationMap = new HashMap<>();
+        this.nodeSugiliteEntityMap = new HashMap<>();
+        this.stringSugiliteEntityMap = new HashMap<>();
+        this.doubleSugiliteEntityMap = new HashMap<>();
+        this.booleanSugiliteEntityMap = new HashMap<>();
+        this.nodeAccessibilityNodeInfoMap = new HashMap<>();
+        this.entityIdCounter = 0;
     }
 
     //construct a UISnapshot for a list of windows
-    public UISnapshot(List<AccessibilityWindowInfo> windows, boolean toConstructNodeAccessibilityNodeInfoMap, SugiliteTextParentAnnotator sugiliteTextParentAnnotator, boolean toAnnotateStringEntities, String activityName, String packageName) {
-        this();
+    public UISnapshot(Display display, List<AccessibilityWindowInfo> windows, boolean toConstructNodeAccessibilityNodeInfoMap, SugiliteTextParentAnnotator sugiliteTextParentAnnotator, boolean toAnnotateStringEntities, String activityName, String packageName) {
+        this(display);
         this.activityName = activityName;
         this.packageName = packageName;
         List<Node> allNodes = new ArrayList<>();
@@ -105,8 +109,8 @@ public class UISnapshot {
     }
 
     //construct a UISnapshot from a rootNode
-    public UISnapshot(AccessibilityNodeInfo rootNode, boolean toConstructNodeAccessibilityNodeInfoMap, SugiliteTextParentAnnotator sugiliteTextParentAnnotator, boolean toAnnotateStringEntities, String activityName, String packageName) {
-        this();
+    public UISnapshot(Display display, AccessibilityNodeInfo rootNode, boolean toConstructNodeAccessibilityNodeInfoMap, SugiliteTextParentAnnotator sugiliteTextParentAnnotator, boolean toAnnotateStringEntities, String activityName, String packageName) {
+        this(display);
         this.activityName = activityName;
         this.packageName = packageName;
         List<AccessibilityNodeInfo> allOldNodes = AutomatorUtil.preOrderTraverse(rootNode);
@@ -137,7 +141,7 @@ public class UISnapshot {
             TextStringParseHelper textStringParseHelper = new TextStringParseHelper(sugiliteTextParentAnnotator);
 
             //use the tempEntities to avoid concurrentModification in the map
-            Set<SugiliteEntity<String>> tempEntities = new HashSet<>();
+            Set<SugiliteEntity<String>> tempEntities = new LinkedHashSet<>();
 
             for(Map.Entry<String, SugiliteEntity<String>> entry : stringSugiliteEntityMap.entrySet()){
                 tempEntities.add(entry.getValue());
@@ -293,7 +297,7 @@ public class UISnapshot {
                 //has_child_text relation
                 if (node.getParent() != null && node.getText() != null){
                     String text = node.getText();
-                    Set<Node> parentNodes = new HashSet<>();
+                    Set<Node> parentNodes = new LinkedHashSet<>();
                     Node currentParent = node;
                     while(currentParent.getParent() != null){
                         currentParent = currentParent.getParent();
@@ -320,7 +324,7 @@ public class UISnapshot {
                 // TODO: add order in list info
                 ListOrderResolver listOrderResolver = new ListOrderResolver();
                 Set<SugiliteTriple> triples = subjectPredicateTriplesMap.get(new AbstractMap.SimpleEntry<>(currentEntity.getEntityId(), SugiliteRelation.HAS_CHILD.getRelationId()));
-                Set<Node> childNodes = new HashSet<>();
+                Set<Node> childNodes = new LinkedHashSet<>();
                 if(triples != null) {
                     for (SugiliteTriple triple : triples) {
                         Node child = (Node)triple.getObject().getEntityValue();
@@ -346,8 +350,7 @@ public class UISnapshot {
 
             //parse node entities
 
-            /*
-            Display display = context.getWindowManager().getDefaultDisplay();
+            //geometric/spatial relations
             Point size = new Point();
             display.getSize(size);
             int width = size.x;
@@ -360,10 +363,10 @@ public class UISnapshot {
             }
 
             SugiliteNodeAnnotator annotator = SugiliteNodeAnnotator.getInstance();
-            for (SugiliteNodeAnnotator.NodeAnnotatingResult res : annotator.annotate(nodeEntities)) {
-                this.addEntityNodeTriple(res.getSubjectSet(), res.getObjectSet(), res.getRelation());
+            for (SugiliteNodeAnnotator.NodeAnnotatingResult res : annotator.annotate(nodeEntities, width, height)) {
+                this.addEntityNodeTriple(res.getSubject(), res.getObject(), res.getRelation());
             }
-            */
+
 
 
         }
@@ -392,7 +395,7 @@ public class UISnapshot {
 
             SugiliteEntity<Node> childEntity = nodeSugiliteEntityMap.get(childNode);
             if(childEntity != null){
-                for(SugiliteEntity<Node> entity : getAllChildEntities(childEntity, new HashSet<>())){
+                for(SugiliteEntity<Node> entity : getAllChildEntities(childEntity, new LinkedHashSet<>())){
                     //addEntityStringTriple(entity, String.valueOf(counter), SugiliteRelation.HAS_PARENT_WITH_LIST_ORDER);
                     addEntityNumericTriple(entity, Double.valueOf(counter), SugiliteRelation.HAS_PARENT_WITH_LIST_ORDER);
                 }
@@ -402,7 +405,7 @@ public class UISnapshot {
 
 
     private Set<SugiliteEntity<Node>> getAllChildEntities(SugiliteEntity<Node> node, Set<SugiliteEntity<Node>> coveredNodes){
-        Set<SugiliteEntity<Node>> results = new HashSet<>();
+        Set<SugiliteEntity<Node>> results = new LinkedHashSet<>();
         Set<SugiliteTriple> triples = subjectPredicateTriplesMap.get(new AbstractMap.SimpleEntry<>(node.getEntityId(), SugiliteRelation.HAS_CHILD.getRelationId()));
         if(triples != null) {
             for (SugiliteTriple triple : triples) {
@@ -510,7 +513,7 @@ public class UISnapshot {
      * @param node
      * @param relation
      */
-    void addEntityNodeTriple(SugiliteEntity currentEntity, Node node, SugiliteRelation relation){
+    private void addEntityNodeTriple(SugiliteEntity currentEntity, Node node, SugiliteRelation relation){
         //class
         SugiliteEntity<Node> objectEntity = null;
 
@@ -541,17 +544,17 @@ public class UISnapshot {
 
         //fill in the indexes for triples
         if(!subjectTriplesMap.containsKey(triple.getSubject().getEntityId())){
-            subjectTriplesMap.put(triple.getSubject().getEntityId(), new HashSet<>());
+            subjectTriplesMap.put(triple.getSubject().getEntityId(), new LinkedHashSet<>());
         }
         if(!predicateTriplesMap.containsKey(triple.getPredicate().getRelationId())){
-            predicateTriplesMap.put(triple.getPredicate().getRelationId(), new HashSet<>());
+            predicateTriplesMap.put(triple.getPredicate().getRelationId(), new LinkedHashSet<>());
         }
         if(!objectTriplesMap.containsKey(triple.getObject().getEntityId())){
-            objectTriplesMap.put(triple.getObject().getEntityId(), new HashSet<>());
+            objectTriplesMap.put(triple.getObject().getEntityId(), new LinkedHashSet<>());
         }
 
         if(!subjectPredicateTriplesMap.containsKey(new AbstractMap.SimpleEntry<>(triple.getSubject().getEntityId(), triple.getPredicate().getRelationId()))){
-            subjectPredicateTriplesMap.put(new AbstractMap.SimpleEntry<>(triple.getSubject().getEntityId(), triple.getPredicate().getRelationId()), new HashSet<>());
+            subjectPredicateTriplesMap.put(new AbstractMap.SimpleEntry<>(triple.getSubject().getEntityId(), triple.getPredicate().getRelationId()), new LinkedHashSet<>());
         }
 
         subjectTriplesMap.get(triple.getSubject().getEntityId()).add(triple);
@@ -672,6 +675,21 @@ public class UISnapshot {
             }
         }
         return list;
+    }
+
+    public Set<String> getStringValuesForObjectEntityAndRelation(SugiliteEntity objectEntity, SugiliteRelation relation) {
+        Set<String> result = new LinkedHashSet<>();
+        Integer subjectEntityId = objectEntity.getEntityId();
+        Set<SugiliteTriple> triples = new LinkedHashSet<>(subjectTriplesMap.get(subjectEntityId));
+        triples.removeIf(t -> !t.getPredicate().equals(relation));
+        for (SugiliteTriple t : triples) {
+            if (t.getObject() != null & t.getObject().getEntityValue() != null) {
+                if (t.getObject().getEntityValue() instanceof String) {
+                    result.add((String) t.getObject().getEntityValue());
+                }
+            }
+        }
+        return result;
     }
 
 }

@@ -41,6 +41,7 @@ import edu.cmu.hcii.sugilite.model.operation.SugiliteOperation;
 import edu.cmu.hcii.sugilite.model.operation.unary.SugiliteClickOperation;
 import edu.cmu.hcii.sugilite.ontology.*;
 import edu.cmu.hcii.sugilite.ontology.description.OntologyDescriptionGenerator;
+import edu.cmu.hcii.sugilite.recording.newrecording.NewDemonstrationHandler;
 import edu.cmu.hcii.sugilite.recording.newrecording.SugiliteBlockBuildingHelper;
 import edu.cmu.hcii.sugilite.recording.newrecording.dialog_management.SugiliteDialogManager;
 import edu.cmu.hcii.sugilite.recording.newrecording.dialog_management.SugiliteDialogSimpleState;
@@ -200,10 +201,10 @@ public class RecordingAmbiguousPopupDialog extends SugiliteDialogManager impleme
             public void onClick(DialogInterface dialog, int which) {
                 skipButtonOnClick();
             }
-        }).setNeutralButton("Cancel", new DialogInterface.OnClickListener() {
+        }).setNeutralButton("View List", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                dialog.cancel();
+                viewListButtonOnClick();
             }
         });
 
@@ -261,6 +262,16 @@ public class RecordingAmbiguousPopupDialog extends SugiliteDialogManager impleme
 
     private void skipButtonOnClick(){
         clickRunnable.run();
+        dialog.cancel();
+    }
+
+    private void viewListButtonOnClick(){
+        if (NewDemonstrationHandler.getInstance() != null) {
+            NewDemonstrationHandler newDemonstrationHandler = NewDemonstrationHandler.getInstance();
+            newDemonstrationHandler.showAmbiguousPopup(queryScoreList, featurePack);
+        } else {
+            Toast.makeText(context, "Can't show the query list!", Toast.LENGTH_SHORT).show();
+        }
         dialog.cancel();
     }
 

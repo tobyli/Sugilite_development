@@ -14,6 +14,10 @@ public class StringAlternativeGenerator {
             this.altText = altText;
             this.priority = priority;
         }
+
+        public StringAlternative clone() {
+            return new StringAlternative(altText, priority);
+        }
     }
 
     public static Set<StringAlternative> generateAlternatives(String s) {

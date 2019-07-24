@@ -28,7 +28,6 @@ import java.util.List;
 import edu.cmu.hcii.sugilite.Const;
 import edu.cmu.hcii.sugilite.R;
 import edu.cmu.hcii.sugilite.SugiliteData;
-import edu.cmu.hcii.sugilite.automation.Generalizer;
 import edu.cmu.hcii.sugilite.automation.ServiceStatusManager;
 import edu.cmu.hcii.sugilite.communication.SugiliteBlockJSONProcessor;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
@@ -144,17 +143,17 @@ public class FragmentScriptListTab extends Fragment {
         registerForContextMenu(scriptList);
     }
 
-    private static final int ITEM_1 = Menu.FIRST;
-    private static final int ITEM_2 = Menu.FIRST + 1;
-    private static final int ITEM_3 = Menu.FIRST + 2;
-    private static final int ITEM_4 = Menu.FIRST + 3;
-    private static final int ITEM_5 = Menu.FIRST + 4;
-    private static final int ITEM_6 = Menu.FIRST + 5;
-    private static final int ITEM_7 = Menu.FIRST + 6;
-    private static final int ITEM_8 = Menu.FIRST + 7;
-    private static final int ITEM_9 = Menu.FIRST + 8;
-    private static final int ITEM_10 = Menu.FIRST + 9;
-    private static final int ITEM_11 = Menu.FIRST + 10;
+    private static final int ITEM_VIEW = Menu.FIRST;
+    private static final int ITEM_RUN = Menu.FIRST + 1;
+    private static final int ITEM_DEBUG = Menu.FIRST + 2;
+    private static final int ITEM_RENAME = Menu.FIRST + 3;
+    private static final int ITEM_SHARE = Menu.FIRST + 4;
+    private static final int ITEM_GENERALIZE = Menu.FIRST + 5;
+    private static final int ITEM_PRINT_DEBUG_INFO = Menu.FIRST + 6;
+    private static final int ITEM_EDIT_SOURCE = Menu.FIRST + 7;
+    private static final int ITEM_DELETE = Menu.FIRST + 8;
+    private static final int ITEM_HASH_STRINGS = Menu.FIRST + 9;
+    private static final int ITEM_DUPLICATE = Menu.FIRST + 10;
 
 
 
@@ -168,17 +167,17 @@ public class FragmentScriptListTab extends Fragment {
             menu.setHeaderTitle("Sugilite Operation Menu");
 
         //TODO: add run script here
-        menu.add(0, ITEM_1, 0, "View");
-        menu.add(0, ITEM_2, 0, "Run");
-        menu.add(0, ITEM_3, 0, "Debug");
-        menu.add(0, ITEM_4, 0, "Rename");
-        menu.add(0, ITEM_5, 0, "Share");
-        menu.add(0, ITEM_6, 0, "Generalize");
-        menu.add(0, ITEM_7, 0, "Print Debug Info");
-        menu.add(0, ITEM_8, 0, "Edit Source");
-        menu.add(0, ITEM_9, 0, "Delete");
-        menu.add(0, ITEM_10, 0, "Hash Strings");
-        menu.add(0, ITEM_11, 0, "Duplicate");
+        menu.add(0, ITEM_VIEW, 0, "View");
+        menu.add(0, ITEM_RUN, 0, "Run");
+        menu.add(0, ITEM_DEBUG, 0, "Debug");
+        menu.add(0, ITEM_RENAME, 0, "Rename");
+        menu.add(0, ITEM_SHARE, 0, "Share");
+        menu.add(0, ITEM_GENERALIZE, 0, "Generalize");
+        menu.add(0, ITEM_PRINT_DEBUG_INFO, 0, "Print Debug Info");
+        menu.add(0, ITEM_EDIT_SOURCE, 0, "Edit Source");
+        menu.add(0, ITEM_DELETE, 0, "Delete");
+        menu.add(0, ITEM_HASH_STRINGS, 0, "Hash Strings");
+        menu.add(0, ITEM_DUPLICATE, 0, "Duplicate");
 
     }
 
@@ -188,10 +187,20 @@ public class FragmentScriptListTab extends Fragment {
         if(info == null)
             return super.onContextItemSelected(item);
         try {
+            // delete before loading script in case serialization is broken
+            // this should allow us to delete broken scripts
+            if (item.getItemId() == ITEM_DELETE) {
+                if (info.targetView instanceof TextView && ((TextView) info.targetView).getText() != null) {
+                    sugiliteScriptDao.delete(((TextView) info.targetView).getText().toString() + ".SugiliteScript");
+                    setUpScriptList();
+                }
+                return super.onContextItemSelected(item);
+            }
+
             final String scriptName = ((TextView) info.targetView).getText().toString() + ".SugiliteScript";
             final SugiliteStartingBlock script = sugiliteScriptDao.read(scriptName);
             switch (item.getItemId()) {
-                case ITEM_1:
+                case ITEM_VIEW:
                     //open the view script activity
                     if (info.targetView instanceof TextView && ((TextView) info.targetView).getText() != null) {
                         final Intent scriptDetailIntent = new Intent(activity, ScriptDetailActivity.class);
@@ -200,7 +209,7 @@ public class FragmentScriptListTab extends Fragment {
                         startActivity(scriptDetailIntent);
                     }
                     break;
-                case ITEM_2:
+                case ITEM_RUN:
                     //run the script
                     new AlertDialog.Builder(activity)
                             .setTitle("Run Script")
@@ -221,7 +230,7 @@ public class FragmentScriptListTab extends Fragment {
                             .setIcon(android.R.drawable.ic_dialog_alert)
                             .show();
                     break;
-                case ITEM_3:
+                case ITEM_DEBUG:
                     //open the debug activity
                     if (info.targetView instanceof TextView && ((TextView) info.targetView).getText() != null) {
                         final Intent scriptDetailIntent = new Intent(activity, ScriptDebuggingActivity.class);
@@ -230,7 +239,7 @@ public class FragmentScriptListTab extends Fragment {
                         startActivity(scriptDetailIntent);
                     }
                     break;
-                case ITEM_4:
+                case ITEM_RENAME:
                     //rename
                     if (info.targetView instanceof TextView && ((TextView) info.targetView).getText() != null) {
                         AlertDialog.Builder builder = new AlertDialog.Builder(activity);
@@ -271,7 +280,7 @@ public class FragmentScriptListTab extends Fragment {
 
                     }
                     break;
-                case ITEM_5:
+                case ITEM_SHARE:
                     //share
                     SugiliteBlockJSONProcessor processor = new SugiliteBlockJSONProcessor(activity);
                     try {
@@ -289,7 +298,7 @@ public class FragmentScriptListTab extends Fragment {
                     }
                     Toast.makeText(activity, "Sharing Script is not supported yet!", Toast.LENGTH_SHORT).show();
                     break;
-                case ITEM_6:
+                case ITEM_GENERALIZE:
                     //generalize
                     progressDialog = new AlertDialog.Builder(activity).setMessage(Const.LOADING_MESSAGE).create();
                     progressDialog.getWindow().setType(OVERLAY_TYPE);
@@ -326,25 +335,18 @@ public class FragmentScriptListTab extends Fragment {
                     }).start();
 
                     break;
-                case ITEM_7:
+                case ITEM_PRINT_DEBUG_INFO:
                     //view debug info
                     System.out.println(ScriptPrinter.getStringScript(script));
                     break;
-                case ITEM_8:
+                case ITEM_EDIT_SOURCE:
                     //view and edit script source
                     final Intent scriptSourceIntent = new Intent(getContext(), ScriptSourceActivity.class);
                     scriptSourceIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
                     scriptSourceIntent.putExtra("scriptName", scriptName);
                     startActivity(scriptSourceIntent);
                     break;
-                case ITEM_9:
-                    //delete script
-                    if (info.targetView instanceof TextView && ((TextView) info.targetView).getText() != null) {
-                        sugiliteScriptDao.delete(((TextView) info.targetView).getText().toString() + ".SugiliteScript");
-                        setUpScriptList();
-                    }
-                    break;
-                case ITEM_10:
+                case ITEM_HASH_STRINGS:
                     // hash strings (DEBUG)
                     progressDialog = new AlertDialog.Builder(activity).setMessage(Const.LOADING_MESSAGE).create();
                     progressDialog.getWindow().setType(OVERLAY_TYPE);
@@ -380,7 +382,7 @@ public class FragmentScriptListTab extends Fragment {
                         }
                     }).start();
                     break;
-                case ITEM_11:
+                case ITEM_DUPLICATE:
                     //duplicate
                     progressDialog = new AlertDialog.Builder(activity).setMessage(Const.LOADING_MESSAGE).create();
                     progressDialog.getWindow().setType(OVERLAY_TYPE);

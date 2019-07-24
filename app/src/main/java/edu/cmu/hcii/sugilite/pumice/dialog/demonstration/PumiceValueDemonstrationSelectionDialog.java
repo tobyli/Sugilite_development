@@ -48,7 +48,6 @@ public class PumiceValueDemonstrationSelectionDialog {
     private Context context;
     private Map<String, SugiliteEntity<Node>> textLabelEntityMap;
     private UISnapshot uiSnapshot;
-    private String variableName;
     private OntologyDescriptionGenerator ontologyDescriptionGenerator;
     private SugiliteBlockBuildingHelper blockBuildingHelper;
     private FullScreenRecordingOverlayManager recordingOverlayManager;
@@ -61,11 +60,10 @@ public class PumiceValueDemonstrationSelectionDialog {
 
 
 
-    public PumiceValueDemonstrationSelectionDialog(Context context, Map<String, SugiliteEntity<Node>> textLabelEntityMap, UISnapshot uiSnapshot, String variableName, FullScreenRecordingOverlayManager recordingOverlayManager, SugiliteData sugiliteData, TextToSpeech tts, LayoutInflater layoutInflater, SharedPreferences sharedPreferences, float x, float y) {
+    public PumiceValueDemonstrationSelectionDialog(Context context, Map<String, SugiliteEntity<Node>> textLabelEntityMap, UISnapshot uiSnapshot, FullScreenRecordingOverlayManager recordingOverlayManager, SugiliteData sugiliteData, TextToSpeech tts, LayoutInflater layoutInflater, SharedPreferences sharedPreferences, float x, float y) {
         this.context = context;
         this.textLabelEntityMap = textLabelEntityMap;
         this.uiSnapshot = uiSnapshot;
-        this.variableName = variableName;
         this.sugiliteData = sugiliteData;
         this.sharedPreferences = sharedPreferences;
         this.layoutInflater = layoutInflater;
@@ -125,8 +123,8 @@ public class PumiceValueDemonstrationSelectionDialog {
             SugiliteLoadVariableOperation loadVariableOperation = new SugiliteLoadVariableOperation();
             loadVariableOperation.setPropertyToSave("hasText");
             loadVariableOperation.setQuery(selectedQuery);
-            if(variableName != null && variableName.length() > 0) {
-                loadVariableOperation.setVariableName(variableName);
+            if(sugiliteData.valueDemonstrationVariableName != null && sugiliteData.valueDemonstrationVariableName.length() > 0) {
+                loadVariableOperation.setVariableName(sugiliteData.valueDemonstrationVariableName);
             } else {
                 loadVariableOperation.setVariableName("RETURN_VALUE");
             }

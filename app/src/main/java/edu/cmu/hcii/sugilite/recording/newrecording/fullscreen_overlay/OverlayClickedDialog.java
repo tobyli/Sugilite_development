@@ -52,9 +52,10 @@ public class OverlayClickedDialog {
     private SugiliteBlockBuildingHelper blockBuildingHelper;
     private SharedPreferences sharedPreferences;
     private SugiliteData sugiliteData;
+    private boolean isLongClick;
 
 
-    public OverlayClickedDialog(Context context, SugiliteEntity<Node> node, UISnapshot uiSnapshot, float x, float y, FullScreenRecordingOverlayManager recordingOverlayManager, View overlay, SugiliteData sugiliteData, LayoutInflater layoutInflater, SharedPreferences sharedPreferences, TextToSpeech tts) {
+    public OverlayClickedDialog(Context context, SugiliteEntity<Node> node, UISnapshot uiSnapshot, float x, float y, FullScreenRecordingOverlayManager recordingOverlayManager, View overlay, SugiliteData sugiliteData, LayoutInflater layoutInflater, SharedPreferences sharedPreferences, TextToSpeech tts, boolean isLongClick) {
         this.context = context;
         this.node = node;
         this.uiSnapshot = uiSnapshot;
@@ -67,6 +68,7 @@ public class OverlayClickedDialog {
         this.blockBuildingHelper = new SugiliteBlockBuildingHelper(context, sugiliteData);
         this.sugiliteData = sugiliteData;
         this.sharedPreferences = sharedPreferences;
+        this.isLongClick = isLongClick;
         featurePack = new SugiliteAvailableFeaturePack(node, uiSnapshot);
 
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
@@ -93,7 +95,7 @@ public class OverlayClickedDialog {
                         dialog.dismiss();
                         break;
                     case "Click without Recording":
-                        recordingOverlayManager.clickNode(node.getEntityValue(), x, y, overlay, false);
+                        recordingOverlayManager.clickNode(node.getEntityValue(), x, y, overlay, isLongClick);
                         dialog.dismiss();
                         break;
                     case "Cancel":
@@ -117,7 +119,7 @@ public class OverlayClickedDialog {
             /*
             if (queryScoreList.size() <= 1 || (queryScoreList.get(1).second.doubleValue() - queryScoreList.get(0).second.doubleValue() >= 2)) {
                 //not ambiguous, show the confirmation popup
-                SugiliteOperationBlock block = blockBuildingHelper.getOperationBlockFromQuery(queryScoreList.get(0).first, SugiliteOperation.CLICK, featurePack);
+                SugiliteOperationBlock block = blockBuildingHelper.getOperationBlockFromQuery(queryScoreList.get(0).first, isLongClick ? SugiliteOperation.LONG_CLICK : SugiliteOperation.CLICK, featurePack);
                 showConfirmation(block, featurePack, queryScoreList);
 
             } else {
@@ -128,7 +130,7 @@ public class OverlayClickedDialog {
             */
 
             //TODO: 19/03/11 temporarily disable the ambiguous pop-up for PUMICE study
-            SugiliteOperationBlock block = blockBuildingHelper.getOperationBlockFromQuery(queryScoreList.get(0).first, SugiliteOperation.CLICK, featurePack);
+            SugiliteOperationBlock block = blockBuildingHelper.getOperationBlockFromQuery(queryScoreList.get(0).first, isLongClick ? SugiliteOperation.LONG_CLICK : SugiliteOperation.CLICK, featurePack);
             showConfirmation(block, featurePack, queryScoreList);
         } else {
             //empty result
@@ -161,7 +163,7 @@ public class OverlayClickedDialog {
         RecordingAmbiguousPopupDialog recordingAmbiguousPopupDialog = new RecordingAmbiguousPopupDialog(context, queryScoreList, featurePack, blockBuildingHelper, layoutInflater, new Runnable() {
             @Override
             public void run() {
-                recordingOverlayManager.clickNode(node.getEntityValue(), x, y, overlay, false);
+                recordingOverlayManager.clickNode(node.getEntityValue(), x, y, overlay, isLongClick);
             }
         },
                 uiSnapshot, actualClickedNode, sugiliteData, sharedPreferences, tts, 0);
@@ -179,7 +181,7 @@ public class OverlayClickedDialog {
         Runnable clickRunnable = new Runnable() {
             @Override
             public void run() {
-                recordingOverlayManager.clickNode(node.getEntityValue(), x, y, overlay, false);
+                recordingOverlayManager.clickNode(node.getEntityValue(), x, y, overlay, isLongClick);
             }
         };
         SugiliteRecordingConfirmationDialog confirmationDialog = new SugiliteRecordingConfirmationDialog(context, block, featurePack, queryScoreList, clickRunnable, blockBuildingHelper, layoutInflater, uiSnapshot, node, sugiliteData, sharedPreferences, tts);

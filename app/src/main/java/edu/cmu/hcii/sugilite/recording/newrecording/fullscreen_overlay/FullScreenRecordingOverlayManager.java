@@ -169,6 +169,7 @@ public class FullScreenRecordingOverlayManager {
         overlay = overlayFactory.getFullScreenOverlay(displayMetrics);
     }
 
+
     public void enableOverlay() {
         removeOverlays();
         //enable overlay
@@ -400,7 +401,7 @@ public class FullScreenRecordingOverlayManager {
                 SugiliteStudyHandler studyHandler = sugiliteAccessibilityService.getSugiliteStudyHandler();
                 studyHandler.handleEvent(new SugiliteAvailableFeaturePack(node, uiSnapshot), uiSnapshot, path, fileName);
             } else {
-                OverlayClickedDialog overlayClickedDialog = new OverlayClickedDialog(context, node, uiSnapshot, x, y, this, overlay, sugiliteData, layoutInflater, sharedPreferences, tts);
+                OverlayClickedDialog overlayClickedDialog = new OverlayClickedDialog(context, node, uiSnapshot, x, y, this, overlay, sugiliteData, layoutInflater, sharedPreferences, tts, false);
                 overlayClickedDialog.show();
             }
         } else {
@@ -424,7 +425,7 @@ public class FullScreenRecordingOverlayManager {
             }
             List<SugiliteEntity<Node>> matchedAllNodeEntities = getMatchedNodesFromCoordinate(x, y, uiSnapshot, false, false);
             if (matchedAllNodeEntities != null) {
-                RecordingOverlayContextClickDialog recordingOverlayContextClickDialog = new RecordingOverlayContextClickDialog(context, this, topLongClickableNode, topClickableNode, matchedAllNodeEntities, uiSnapshot, sugiliteData.valueDemonstrationVariableName, sugiliteData, tts, x, y);
+                RecordingOverlayContextClickDialog recordingOverlayContextClickDialog = new RecordingOverlayContextClickDialog(context, this, topLongClickableNode, topClickableNode, matchedAllNodeEntities, uiSnapshot, sugiliteData, tts, x, y);
                 recordingOverlayContextClickDialog.show();
             } else {
                 Toast.makeText(context, "No node matched!", Toast.LENGTH_SHORT).show();
@@ -639,6 +640,8 @@ public class FullScreenRecordingOverlayManager {
             recordingOverlayManager.addSugiliteOperationBlockBasedOnNode(node, isLongClick);
         }
     }
+
+
 
 
 }

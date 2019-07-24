@@ -387,19 +387,6 @@ public class SugiliteAccessibilityService extends AccessibilityService {
             sugiliteData.errorHandler.checkError(event, sugiliteData.peekInstructionQueue(), Calendar.getInstance().getTimeInMillis());
         }
 
-        /*
-        if(verbalInstructionIconManager.isShowingIcon() && event.getPackageName() != null && (! exceptedPackages.contains(event.getPackageName()))) {
-            //generate the ui snapshot and send to verbal instruction manager
-            if (event.getEventType() == AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED ||
-                    event.getEventType() == AccessibilityEvent.TYPE_WINDOWS_CHANGED ||
-                    event.getEventType() == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED ||
-                    event.getEventType() == AccessibilityEvent.TYPE_ANNOUNCEMENT ||
-                    event.getEventType() == AccessibilityEvent.TYPE_VIEW_FOCUSED) {
-                //updateUISnapshotInVerbalInstructionManager();
-            }
-        }
-        */
-
 
         if (sharedPreferences.getBoolean("recording_in_process", false)) {
             //if recording is in progress
@@ -539,15 +526,6 @@ public class SugiliteAccessibilityService extends AccessibilityService {
                                     });
 
                                     newDemonstrationHandler.handleEvent(featurePack, availableAlternatives, uiSnapshot);
-                                    /*
-                                    RecordingPopUpDialog recordingPopUpDialog = new RecordingPopUpDialog(sugiliteData, context, featurePack, sharedPreferences, layoutInflater, RecordingPopUpDialog.TRIGGERED_BY_NEW_EVENT, availableAlternatives);
-                                    sugiliteData.recordingPopupDialogQueue.add(recordingPopUpDialog);
-
-                                    if (!sugiliteData.recordingPopupDialogQueue.isEmpty() && sugiliteData.hasRecordingPopupActive == false) {
-                                        sugiliteData.hasRecordingPopupActive = true;
-                                        sugiliteData.recordingPopupDialogQueue.poll().show();
-                                    }
-                                    */
                                 }
                             }
 
@@ -721,7 +699,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
         }
 
 
-        //temporarily disable running automation from accessibility events
+        //disable running automation from accessibility events
 
         /*
         if(sugiliteData.getInstructionQueueSize() > 0) {

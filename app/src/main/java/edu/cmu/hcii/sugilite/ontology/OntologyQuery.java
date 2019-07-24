@@ -78,7 +78,7 @@ public abstract class OntologyQuery implements Serializable {
                     query = new HashedStringOntologyQuery(SugiliteRelation.stringRelationMap.get(parts[1]), HashedString.fromEncodedString(parts[2]));
                 } else if (firstWord.equals("patternMatch")) {
                     String[] parts = s.split(" ", 3);
-                    StringAlternativeGenerator.StringAlternative alt = new StringAlternativeGenerator.StringAlternative(parts[2], -1);
+                    StringAlternativeGenerator.StringAlternative alt = new StringAlternativeGenerator.StringAlternative(OntologyQueryUtils.removeQuoteSigns(parts[2]), -1);
                     query = new StringAlternativeOntologyQuery(SugiliteRelation.stringRelationMap.get(parts[1]), alt);
                 } else {
                     // base case: simple relation

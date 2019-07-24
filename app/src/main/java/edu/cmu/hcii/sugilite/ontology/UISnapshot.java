@@ -40,6 +40,7 @@ import static edu.cmu.hcii.sugilite.Const.UI_SNAPSHOT_TEXT_PARSING_THREAD_COUNT;
  */
 public class UISnapshot {
     private final Set<SugiliteTriple> triples;
+    private static boolean TO_ADD_SPATIAL_RELATIONS = false;
 
     //indexes for triples
     private final Map<Integer, Set<SugiliteTriple>> subjectTriplesMap;
@@ -349,22 +350,23 @@ public class UISnapshot {
             //*** temporarily disable geometric relations ***
 
             //parse node entities
+            if (TO_ADD_SPATIAL_RELATIONS) {
+                //geometric/spatial relations
+                Point size = new Point();
+                display.getSize(size);
+                int width = size.x;
+                int height = size.y;
 
-            //geometric/spatial relations
-            Point size = new Point();
-            display.getSize(size);
-            int width = size.x;
-            int height = size.y;
+                Set<SugiliteEntity<Node>> nodeEntitiesToAnnotate = new HashSet<>();
 
-            Set<SugiliteEntity<Node>> nodeEntities = new HashSet<>();
+                for (Map.Entry<Node, SugiliteEntity<Node>> entry : nodeSugiliteEntityMap.entrySet()) {
+                    nodeEntitiesToAnnotate.add(entry.getValue());
+                }
 
-            for(Map.Entry<Node, SugiliteEntity<Node>> entry : nodeSugiliteEntityMap.entrySet()){
-                nodeEntities.add(entry.getValue());
-            }
-
-            SugiliteNodeAnnotator annotator = SugiliteNodeAnnotator.getInstance();
-            for (SugiliteNodeAnnotator.NodeAnnotatingResult res : annotator.annotate(nodeEntities, width, height)) {
-                this.addEntityNodeTriple(res.getSubject(), res.getObject(), res.getRelation());
+                SugiliteNodeAnnotator annotator = SugiliteNodeAnnotator.getInstance();
+                for (SugiliteNodeAnnotator.NodeAnnotatingResult res : annotator.annotate(nodeEntitiesToAnnotate, width, height)) {
+                    this.addEntityNodeTriple(res.getSubject(), res.getObject(), res.getRelation());
+                }
             }
 
 

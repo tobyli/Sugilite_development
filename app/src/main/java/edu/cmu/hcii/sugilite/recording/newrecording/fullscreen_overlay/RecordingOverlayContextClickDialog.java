@@ -11,6 +11,7 @@ import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
+import android.widget.Toast;
 
 
 import java.util.ArrayList;
@@ -66,7 +67,7 @@ public class RecordingOverlayContextClickDialog {
             supportedActions.add("Click on this item in the app");
         }
 
-        if (getTextLabelNodeEntityMap().size() > 0 && sugiliteData.valueDemonstrationVariableName != null && sugiliteData.valueDemonstrationVariableName.length() > 0){
+        if (getTextLabelNodeEntityMap().size() > 0){
             supportedActions.add("Select this value for Pumice to learn");
             //supportedActions.add("Mark this value as \"commute time\"");
         }
@@ -91,13 +92,18 @@ public class RecordingOverlayContextClickDialog {
                     case "Select this value for Pumice to learn":
                         //present a list of matched items with text labels for the user to select
                         dialog.dismiss();
-                        Map<String, SugiliteEntity<Node>> textLabelEntityMap = getTextLabelNodeEntityMap();
-                        System.out.println(matchedAllNodeEntities.toString());
-                        System.out.println("SELECTED TEXTS: " + textLabelEntityMap.keySet());
+                        //check if in a Pumice value concept learning session
+                        if(sugiliteData.valueDemonstrationVariableName != null && sugiliteData.valueDemonstrationVariableName.length() > 0) {
+                            Map<String, SugiliteEntity<Node>> textLabelEntityMap = getTextLabelNodeEntityMap();
+                            System.out.println(matchedAllNodeEntities.toString());
+                            System.out.println("SELECTED TEXTS: " + textLabelEntityMap.keySet());
 
-                        //handle the selected texts
-                        PumiceValueDemonstrationSelectionDialog valueDemonstrationSelectionDialog = new PumiceValueDemonstrationSelectionDialog(context, textLabelEntityMap, uiSnapshot, parentOverlayManager, sugiliteData, tts, layoutInflater, sharedPreferences, x, y);
-                        valueDemonstrationSelectionDialog.show();
+                            //handle the selected texts
+                            PumiceValueDemonstrationSelectionDialog valueDemonstrationSelectionDialog = new PumiceValueDemonstrationSelectionDialog(context, textLabelEntityMap, uiSnapshot, parentOverlayManager, sugiliteData, tts, layoutInflater, sharedPreferences, x, y);
+                            valueDemonstrationSelectionDialog.show();
+                        } else {
+                            Toast.makeText(context, "Not in a Pumice value concept learning session!!", Toast.LENGTH_SHORT).show();
+                        }
                         break;
                     case "Long click on this item in the app":
                         //send a long click to the underlying app

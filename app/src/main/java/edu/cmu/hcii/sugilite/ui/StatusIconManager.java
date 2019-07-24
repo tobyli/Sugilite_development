@@ -265,7 +265,7 @@ public class StatusIconManager {
                         sinceLastWindowChange = currentTime - sugiliteData.errorHandler.getLastWindowChange();
                     }
                     if(sinceLastWindowChange < 0 || sinceLastWindowChange > Const.THRESHOLD_FOR_START_SENDING_ACCESSIBILITY_EVENT) {
-                        System.out.println("INFO: SENDING GENERATED ACCESSIBILITY EVENT: sinceLastWindowChange = " + sinceLastWindowChange);
+                        //System.out.println("INFO: SENDING GENERATED ACCESSIBILITY EVENT: sinceLastWindowChange = " + sinceLastWindowChange);
                         AccessibilityEvent event = AccessibilityEvent.obtain();
                         event.setEventType(AccessibilityEvent.TYPE_ANNOUNCEMENT);
                         event.getText().add("NULL");

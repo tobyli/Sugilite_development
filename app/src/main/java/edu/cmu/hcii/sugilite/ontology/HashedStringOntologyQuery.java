@@ -24,11 +24,7 @@ public class HashedStringOntologyQuery extends OntologyQuery {
         Set<SugiliteTriple> sugiliteTriples = graph.getSubjectTriplesMap().get(currNode.getEntityId());
         if (sugiliteTriples != null) {
             for (SugiliteTriple triple : sugiliteTriples) {
-                if (triple.getPredicate().equals(r)) {
-                    System.out.println(triple.getObjectStringValue() + " " + new HashedString(triple.getObjectStringValue()));
-                }
                 if (triple.getPredicate().equals(r) && hashedString.equals(new HashedString(triple.getObjectStringValue()))) {
-                    System.out.println(triple.getObjectStringValue()); // TODO debug only; remove later
                     return true;
                 }
             }

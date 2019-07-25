@@ -2,30 +2,24 @@ package edu.cmu.hcii.sugilite.sharing;
 
 import android.os.AsyncTask;
 import android.util.Log;
-import android.widget.Toast;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import edu.cmu.hcii.sugilite.ontology.SerializableUISnapshot;
+import edu.cmu.hcii.sugilite.Const;
 import edu.cmu.hcii.sugilite.sharing.debug.HasPlaintext;
 
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
-import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 
 public class PrivacyHashUploader {
 
     // TODO make this server address permanent
-    private final String DEFAULT_SERVER_URL = "http://35.196.46.194:8080/";
-    private final String UPLOAD_HASHED_UI_ENDPOINT = "privacy/upload_ui";
 
     private URL uploadHashedUIUrl;
 
     public PrivacyHashUploader() {
         try {
-            uploadHashedUIUrl = new URL(DEFAULT_SERVER_URL + UPLOAD_HASHED_UI_ENDPOINT);
+            uploadHashedUIUrl = new URL(Const.SHARING_SERVER_BASE_URL + Const.UPLOAD_HASHED_UI_ENDPOINT);
         } catch (MalformedURLException e) {
             e.printStackTrace();
         }
@@ -75,7 +69,7 @@ public class PrivacyHashUploader {
         return sb.toString();
     }
 
-    public static String hashedUIToJson(HashedUI ui) {
+    public static String hashedUIToJson(HashedUIStrings ui) {
         StringBuilder sb = new StringBuilder("{\n");
 
         sb.append(jsonProperty("package", ui.packageName));
@@ -98,15 +92,15 @@ public class PrivacyHashUploader {
         return sb.toString();
     }
 
-    public void uploadHashedUI(HashedUI ui) {
+    public void uploadHashedUI(HashedUIStrings ui) {
         new UploadHashedUITask().execute(ui);
     }
 
-    private class UploadHashedUITask extends AsyncTask<HashedUI, Void, Integer> {
+    private class UploadHashedUITask extends AsyncTask<HashedUIStrings, Void, Integer> {
         @Override
-        protected Integer doInBackground(HashedUI... hashedUIS) {
-            if (hashedUIS.length != 1) return 0;
-            HashedUI ui = hashedUIS[0];
+        protected Integer doInBackground(HashedUIStrings... hashedUIStrings) {
+            if (hashedUIStrings.length != 1) return 0;
+            HashedUIStrings ui = hashedUIStrings[0];
             try {
                 HttpURLConnection urlConnection = (HttpURLConnection) uploadHashedUIUrl.openConnection();
                 urlConnection.setRequestMethod("POST");

@@ -19,6 +19,11 @@ public class HashedString implements Serializable {
     }
 
     @Override
+    public int hashCode() {
+        return Arrays.hashCode(hash);
+    }
+
+    @Override
     public boolean equals(Object obj) {
 
         byte[] hash2;

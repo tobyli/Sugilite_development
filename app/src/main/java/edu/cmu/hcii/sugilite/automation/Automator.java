@@ -8,6 +8,7 @@ import android.content.SharedPreferences;
 import android.graphics.Rect;
 import android.os.Bundle;
 import android.text.Html;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.WindowManager;
 import android.view.accessibility.AccessibilityNodeInfo;
@@ -270,6 +271,7 @@ public class Automator {
                 }
 
                 boolean succeeded = false;
+                Log.v("Automator", "Matched " + filteredNodes.size() + " nodes");
                 for (AccessibilityNodeInfo node : filteredNodes) {
                     //TODO: scrolling to find more nodes -- not only the ones displayed on the current screen
                     if (operationBlock.getOperation().getOperationType() == SugiliteOperation.CLICK && (!node.isClickable()))
@@ -512,10 +514,12 @@ public class Automator {
 
                 if (filteredNodes.size() == 0) {
                     //couldn't find a matched node in the current UISnapshot
+                    Log.v("Automator", "couldn't find a matched node for query " + q.toString());
                     return false;
                 }
 
                 boolean succeeded = false;
+                Log.v("Automator", "Matched " + filteredNodes.size() + " nodes for query " + q.toString());
                 for (AccessibilityNodeInfo node : filteredNodes) {
                     //TODO: scrolling to find more nodes -- not only the ones displayed on the current screen
                     boolean retVal = performAction(node, operationBlock);

@@ -20,14 +20,9 @@ import edu.cmu.hcii.sugilite.ontology.HashedStringOntologyQuery;
 
 public class OntologyDescriptionGenerator {
     Context context;
-    PackageManager packageManager;
-
 
     public OntologyDescriptionGenerator(Context context) {
         this.context = context;
-        if(context != null) {
-            this.packageManager = context.getPackageManager();
-        }
     }
     public static String getAppName(Context context, String packageName) {
         PackageManager packageManager = context.getPackageManager();

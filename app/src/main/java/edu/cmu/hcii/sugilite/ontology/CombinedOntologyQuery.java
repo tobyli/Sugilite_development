@@ -90,6 +90,20 @@ public class CombinedOntologyQuery extends OntologyQueryWithSubQueries {
     public Set<OntologyQuery> getSubQueries() {return this.subQueries;}
 
     @Override
+    public OntologyQueryWithSubQueries cloneWithTheseSubQueries(Set<OntologyQuery> newSubQueries) {
+        CombinedOntologyQuery q = new CombinedOntologyQuery();
+        q.setSubRelation(subRelation);
+        q.setOntologyQueryFilter(getOntologyQueryFilter());
+        if (getR() != null) {
+            q.setQueryFunction(getR());
+        }
+        for (OntologyQuery subQ : newSubQueries) {
+            q.addSubQuery(subQ.clone());
+        }
+        return q;
+    }
+
+    @Override
     public CombinedOntologyQuery clone() {
         CombinedOntologyQuery q = new CombinedOntologyQuery();
         q.setSubRelation(subRelation);

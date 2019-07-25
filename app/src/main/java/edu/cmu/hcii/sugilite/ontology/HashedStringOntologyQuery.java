@@ -1,18 +1,12 @@
 package edu.cmu.hcii.sugilite.ontology;
 
+import edu.cmu.hcii.sugilite.Const;
 import edu.cmu.hcii.sugilite.sharing.HashedString;
 
 import java.util.Arrays;
 import java.util.Set;
 
 public class HashedStringOntologyQuery extends OntologyQuery {
-
-    // SugiliteRelations we can translate
-    private static final SugiliteRelation[] USABLE_RELATIONS = {
-            SugiliteRelation.HAS_TEXT,
-            SugiliteRelation.HAS_CHILD_TEXT,
-            SugiliteRelation.HAS_CONTENT_DESCRIPTION
-    };
 
     // the relation we want to match
     protected SugiliteRelation r = null;
@@ -30,11 +24,7 @@ public class HashedStringOntologyQuery extends OntologyQuery {
         Set<SugiliteTriple> sugiliteTriples = graph.getSubjectTriplesMap().get(currNode.getEntityId());
         if (sugiliteTriples != null) {
             for (SugiliteTriple triple : sugiliteTriples) {
-                if (triple.getPredicate().equals(r)) {
-                    System.out.println(triple.getObjectStringValue() + " " + new HashedString(triple.getObjectStringValue()));
-                }
                 if (triple.getPredicate().equals(r) && hashedString.equals(new HashedString(triple.getObjectStringValue()))) {
-                    System.out.println(triple.getObjectStringValue()); // TODO debug only; remove later
                     return true;
                 }
             }
@@ -74,7 +64,7 @@ public class HashedStringOntologyQuery extends OntologyQuery {
             HashedStringOntologyQuery result = null;
 
             // if we can hash this kind of relation
-            if (Arrays.stream(USABLE_RELATIONS).anyMatch(loq.getR()::equals) && loq.getObject().size() == 1) {
+            if (Arrays.stream(Const.POTENTIALLY_PRIVATE_RELATIONS).anyMatch(loq.getR()::equals) && loq.getObject().size() == 1) {
                 HashedString hashedString = new HashedString(loq.getObject().toArray(new SugiliteSerializableEntity[1])[0].toString());
                 result = new HashedStringOntologyQuery(loq.getR(), hashedString);
             }

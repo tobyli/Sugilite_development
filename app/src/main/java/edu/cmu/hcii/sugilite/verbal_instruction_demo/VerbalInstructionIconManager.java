@@ -22,14 +22,12 @@ import android.widget.Toast;
 
 
 import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -46,7 +44,7 @@ import edu.cmu.hcii.sugilite.ontology.UISnapshot;
 import edu.cmu.hcii.sugilite.recording.newrecording.fullscreen_overlay.FollowUpQuestionDialog;
 import edu.cmu.hcii.sugilite.recording.newrecording.fullscreen_overlay.FullScreenRecordingOverlayManager;
 import edu.cmu.hcii.sugilite.sharing.HashedSplitStringGenerator;
-import edu.cmu.hcii.sugilite.sharing.HashedUI;
+import edu.cmu.hcii.sugilite.sharing.HashedUIStrings;
 import edu.cmu.hcii.sugilite.sharing.PrivacyHashUploader;
 import edu.cmu.hcii.sugilite.ui.StatusIconManager;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.speech.SugiliteAndroidAPIVoiceRecognitionListener;
@@ -239,8 +237,8 @@ public class VerbalInstructionIconManager implements SugiliteVoiceInterface {
                             public void run() {
                                 sugiliteAccessibilityService.updatePumiceOverlay(latestUISnapshot);
                                 if (sharedPreferences.getBoolean("uploading_hashed_ui_in_progress", false)) {
-                                    HashedUI hashedUI = new HashedUI(sugiliteAccessibilityService.getCurrentAppPackageName(), sugiliteAccessibilityService.getCurrentAppActivityName(), new SerializableUISnapshot(latestUISnapshot), Settings.Secure.getString(context.getContentResolver(), Settings.Secure.ANDROID_ID), new HashedSplitStringGenerator());
-                                    privacyHashUploader.uploadHashedUI(hashedUI);
+                                    HashedUIStrings hashedUIStrings = new HashedUIStrings(sugiliteAccessibilityService.getCurrentAppPackageName(), sugiliteAccessibilityService.getCurrentAppActivityName(), new SerializableUISnapshot(latestUISnapshot), Settings.Secure.getString(context.getContentResolver(), Settings.Secure.ANDROID_ID), new HashedSplitStringGenerator());
+                                    privacyHashUploader.uploadHashedUI(hashedUIStrings);
                                 }
                                 sugiliteAccessibilityService.checkIfAutomationCanBePerformed();
                             }

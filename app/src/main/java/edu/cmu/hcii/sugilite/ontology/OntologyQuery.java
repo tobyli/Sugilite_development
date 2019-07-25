@@ -1,6 +1,7 @@
 package edu.cmu.hcii.sugilite.ontology;
 
 import edu.cmu.hcii.sugilite.sharing.HashedString;
+import edu.cmu.hcii.sugilite.sharing.StringAlternativeGenerator;
 
 import java.io.Serializable;
 import java.util.HashSet;
@@ -75,6 +76,10 @@ public abstract class OntologyQuery implements Serializable {
                 if (firstWord.equals("privateMatch")) {
                     String[] parts = s.split(" ");
                     query = new HashedStringOntologyQuery(SugiliteRelation.stringRelationMap.get(parts[1]), HashedString.fromEncodedString(parts[2]));
+                } else if (firstWord.equals("patternMatch")) {
+                    String[] parts = s.split(" ", 3);
+                    StringAlternativeGenerator.StringAlternative alt = new StringAlternativeGenerator.StringAlternative(OntologyQueryUtils.removeQuoteSigns(parts[2]), -1);
+                    query = new StringAlternativeOntologyQuery(SugiliteRelation.stringRelationMap.get(parts[1]), alt);
                 } else {
                     // base case: simple relation
                     // note: the object will never be an accessbility node info (since this is directly from user)

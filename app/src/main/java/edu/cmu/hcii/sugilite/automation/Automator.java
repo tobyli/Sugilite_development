@@ -70,7 +70,6 @@ public class Automator {
     private LayoutInflater layoutInflater;
     private SharedPreferences sharedPreferences;
     private TextToSpeech tts = null;
-    private boolean ttsReady = false;
     private SugiliteScreenshotManager screenshotManager;
     private SugiliteTextParentAnnotator sugiliteTextParentAnnotator;
     private WindowManager windowManager;
@@ -595,7 +594,7 @@ public class Automator {
         }
 
         if (block.getOperation().getOperationType() == SugiliteOperation.READ_OUT) {
-            if (tts != null && ttsReady) {
+            if (tts != null) {
                 if (((SugiliteReadoutOperation) (block.getOperation())).getPropertyToReadout().contentEquals("hasText")) {
                     if (node != null && node.getText() != null) {
                         tts.speak(node.getText().toString(), TextToSpeech.QUEUE_ADD, null);
@@ -624,7 +623,7 @@ public class Automator {
         }
 
         if (block.getOperation().getOperationType() == SugiliteOperation.READOUT_CONST) {
-            if (tts != null && ttsReady && block.getOperation() instanceof SugiliteReadoutConstOperation) {
+            if (tts != null && block.getOperation() instanceof SugiliteReadoutConstOperation) {
                 variableHelper = new VariableHelper(sugiliteData.stringVariableMap);
                 String text = variableHelper.parse(((SugiliteReadoutConstOperation) block.getOperation()).getTextToReadout());
                 tts.speak(text, TextToSpeech.QUEUE_ADD, null);

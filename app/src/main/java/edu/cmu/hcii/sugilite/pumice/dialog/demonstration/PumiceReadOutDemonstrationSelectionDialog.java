@@ -7,7 +7,6 @@ import android.speech.tts.TextToSpeech;
 import android.util.Pair;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
@@ -43,7 +42,7 @@ import static edu.cmu.hcii.sugilite.Const.OVERLAY_TYPE;
 /**
  * dialog for selecting the text value if the user's long press matches multiple -- constructed and called from RecordingOverlayContextClickDialog
  */
-public class PumiceValueDemonstrationSelectionDialog {
+public class PumiceReadOutDemonstrationSelectionDialog {
     private AlertDialog dialog;
     private Context context;
     private Map<String, SugiliteEntity<Node>> textLabelEntityMap;
@@ -57,10 +56,7 @@ public class PumiceValueDemonstrationSelectionDialog {
     private LayoutInflater layoutInflater;
     private TextToSpeech tts;
 
-
-
-
-    public PumiceValueDemonstrationSelectionDialog(Context context, Map<String, SugiliteEntity<Node>> textLabelEntityMap, UISnapshot uiSnapshot, FullScreenRecordingOverlayManager recordingOverlayManager, SugiliteData sugiliteData, TextToSpeech tts, LayoutInflater layoutInflater, SharedPreferences sharedPreferences, float x, float y) {
+    public PumiceReadOutDemonstrationSelectionDialog(Context context, Map<String, SugiliteEntity<Node>> textLabelEntityMap, UISnapshot uiSnapshot, FullScreenRecordingOverlayManager recordingOverlayManager, SugiliteData sugiliteData, TextToSpeech tts, LayoutInflater layoutInflater, SharedPreferences sharedPreferences, float x, float y) {
         this.context = context;
         this.textLabelEntityMap = textLabelEntityMap;
         this.uiSnapshot = uiSnapshot;
@@ -79,7 +75,7 @@ public class PumiceValueDemonstrationSelectionDialog {
         stringArray = textLabelEntityMap.keySet().toArray(stringArray);
         ArrayAdapter<String> adapter = new ArrayAdapter<>(context, android.R.layout.simple_list_item_1, stringArray);
         mainListView.setAdapter(adapter);
-        builder.setTitle("Which text value would you like to select?");
+        builder.setTitle("Which text value would you like to read out?");
         builder.setView(mainListView);
         mainListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
@@ -117,23 +113,8 @@ public class PumiceValueDemonstrationSelectionDialog {
         if (queryScoreList.size() > 0){
             OntologyQuery selectedQuery = queryScoreList.get(0).first;
 
-            //create a extract operation
-            SugiliteLoadVariableOperation loadVariableOperation = new SugiliteLoadVariableOperation();
-            loadVariableOperation.setPropertyToSave("hasText");
-            loadVariableOperation.setQuery(selectedQuery);
-            if(sugiliteData.valueDemonstrationVariableName != null && sugiliteData.valueDemonstrationVariableName.length() > 0) {
-                loadVariableOperation.setVariableName(sugiliteData.valueDemonstrationVariableName);
-            } else {
-                loadVariableOperation.setVariableName("RETURN_VALUE");
-            }
-
-            final SugiliteOperationBlock operationBlock = new SugiliteOperationBlock();
-            operationBlock.setOperation(loadVariableOperation);
-            operationBlock.setFeaturePack(featurePack);
-            operationBlock.setScreenshot(featurePack.screenshot);
-
-            //description is set
-            operationBlock.setDescription(ontologyDescriptionGenerator.getDescriptionForOperation(loadVariableOperation, selectedQuery));
+            SugiliteBlockBuildingHelper sugiliteBlockBuildingHelper = new SugiliteBlockBuildingHelper(context, sugiliteData);
+            SugiliteOperationBlock operationBlock = sugiliteBlockBuildingHelper.getBinaryOperationBlockWithOntologyQueryFromQuery(selectedQuery, SugiliteOperation.READ_OUT, featurePack, SugiliteRelation.HAS_TEXT.getRelationName());
 
             //need to run on ui thread
             showConfirmation(operationBlock, featurePack, queryScoreList, nodeEntity);
@@ -157,7 +138,7 @@ public class PumiceValueDemonstrationSelectionDialog {
             @Override
             public void run() {
                 //recordingOverlayManager.clickNode(nodeEntity.getEntityValue(), x, y, recordingOverlayManager.getOverlay(), false);
-                Toast.makeText(context, "Value query saved!", Toast.LENGTH_SHORT).show();
+                Toast.makeText(context, "Read out operation saved!", Toast.LENGTH_SHORT).show();
             }
         };
         SugiliteRecordingConfirmationDialog confirmationDialog = new SugiliteRecordingConfirmationDialog(context, block, featurePack, queryScoreList, clickRunnable, blockBuildingHelper, layoutInflater, uiSnapshot, nodeEntity, sugiliteData, sharedPreferences, tts);

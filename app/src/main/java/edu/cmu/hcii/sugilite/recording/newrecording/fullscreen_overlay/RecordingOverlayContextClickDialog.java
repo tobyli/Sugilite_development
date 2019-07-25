@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 import android.speech.tts.TextToSpeech;
+import android.util.Pair;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.WindowManager;
@@ -22,9 +23,12 @@ import java.util.Map;
 import edu.cmu.hcii.sugilite.Const;
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.model.Node;
+import edu.cmu.hcii.sugilite.ontology.OntologyQuery;
 import edu.cmu.hcii.sugilite.ontology.SugiliteEntity;
 import edu.cmu.hcii.sugilite.ontology.UISnapshot;
+import edu.cmu.hcii.sugilite.pumice.dialog.demonstration.PumiceReadOutDemonstrationSelectionDialog;
 import edu.cmu.hcii.sugilite.pumice.dialog.demonstration.PumiceValueDemonstrationSelectionDialog;
+import edu.cmu.hcii.sugilite.recording.newrecording.SugiliteBlockBuildingHelper;
 
 import static edu.cmu.hcii.sugilite.Const.OVERLAY_TYPE;
 
@@ -68,9 +72,13 @@ public class RecordingOverlayContextClickDialog {
         }
 
         if (getTextLabelNodeEntityMap().size() > 0){
+            supportedActions.add("Record a \"read out\" operation");
             supportedActions.add("Select this value for Pumice to learn");
             //supportedActions.add("Mark this value as \"commute time\"");
         }
+
+
+
 
         String[] stringArray = new String[supportedActions.size()];
         stringArray = supportedActions.toArray(stringArray);
@@ -93,17 +101,29 @@ public class RecordingOverlayContextClickDialog {
                         //present a list of matched items with text labels for the user to select
                         dialog.dismiss();
                         //check if in a Pumice value concept learning session
-                        if(sugiliteData.valueDemonstrationVariableName != null && sugiliteData.valueDemonstrationVariableName.length() > 0) {
+                        //TODO: for debug use -- allow displaying this item while not in the recording mode
+                        if(true || sugiliteData.valueDemonstrationVariableName != null && sugiliteData.valueDemonstrationVariableName.length() > 0) {
                             Map<String, SugiliteEntity<Node>> textLabelEntityMap = getTextLabelNodeEntityMap();
-                            System.out.println(matchedAllNodeEntities.toString());
-                            System.out.println("SELECTED TEXTS: " + textLabelEntityMap.keySet());
-
                             //handle the selected texts
                             PumiceValueDemonstrationSelectionDialog valueDemonstrationSelectionDialog = new PumiceValueDemonstrationSelectionDialog(context, textLabelEntityMap, uiSnapshot, parentOverlayManager, sugiliteData, tts, layoutInflater, sharedPreferences, x, y);
                             valueDemonstrationSelectionDialog.show();
                         } else {
                             Toast.makeText(context, "Not in a Pumice value concept learning session!!", Toast.LENGTH_SHORT).show();
                         }
+                        break;
+                    case "Record a \"read out\" operation":
+                        dialog.dismiss();
+                        //check if recording is is progress
+                        //TODO: for debug use -- allow displaying this item while not in the recording mode
+                        if(true || sharedPreferences.getBoolean("recording_in_process", false)) {
+                            Map<String, SugiliteEntity<Node>> textLabelEntityMap = getTextLabelNodeEntityMap();
+                            //TODO: handle the selected texts
+                            PumiceReadOutDemonstrationSelectionDialog readOutDemonstrationSelectionDialog = new PumiceReadOutDemonstrationSelectionDialog(context, textLabelEntityMap, uiSnapshot, parentOverlayManager, sugiliteData, tts, layoutInflater, sharedPreferences, x, y);
+                            readOutDemonstrationSelectionDialog.show();
+                        } else {
+                            Toast.makeText(context, "Not in the recording mode!!", Toast.LENGTH_SHORT).show();
+                        }
+
                         break;
                     case "Long click on this item in the app":
                         //send a long click to the underlying app

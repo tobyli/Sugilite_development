@@ -515,11 +515,12 @@ public class Automator {
 
                 if (filteredNodes.size() == 0) {
                     //couldn't find a matched node in the current UISnapshot
+                    Log.v("Automator", "couldn't find a matched node for query " + q.toString());
                     return false;
                 }
 
                 boolean succeeded = false;
-                Log.v("Automator", "Matched " + filteredNodes.size() + " nodes");
+                Log.v("Automator", "Matched " + filteredNodes.size() + " nodes for query " + q.toString());
                 for (AccessibilityNodeInfo node : filteredNodes) {
                     //TODO: scrolling to find more nodes -- not only the ones displayed on the current screen
                     boolean retVal = performAction(node, operationBlock);

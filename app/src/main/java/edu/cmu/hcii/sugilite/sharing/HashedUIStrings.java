@@ -12,7 +12,7 @@ import java.util.*;
 /**
  * A hashed representation of the text present in a UI snapshot.
  */
-public class HashedUI {
+public class HashedUIStrings {
 
     public final String packageName;
     public final String activityName;
@@ -20,7 +20,7 @@ public class HashedUI {
     public final List<HashedSplitString> hashedTexts;
 
     // note: storing activityname and packagename may be redundant
-    public HashedUI(String packageName, String activityName, SerializableUISnapshot snapshot, String androidID, HashedSplitStringGenerator generator) {
+    public HashedUIStrings(String packageName, String activityName, SerializableUISnapshot snapshot, String androidID, HashedSplitStringGenerator generator) {
         this.packageName = packageName;
         this.activityName = activityName;
         this.packageUserHash = new HashedString(packageName + androidID);

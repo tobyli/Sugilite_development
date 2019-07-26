@@ -41,6 +41,8 @@ import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
 import edu.cmu.hcii.sugilite.model.block.special_operation.SugiliteSpecialOperationBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteOperation;
+import edu.cmu.hcii.sugilite.model.operation.binary.SugiliteReadoutOperation;
+import edu.cmu.hcii.sugilite.model.operation.binary.SugiliteSetTextOperation;
 import edu.cmu.hcii.sugilite.model.operation.unary.SugiliteClickOperation;
 import edu.cmu.hcii.sugilite.model.operation.unary.SugiliteLongClickOperation;
 import edu.cmu.hcii.sugilite.ontology.*;
@@ -78,33 +80,65 @@ public class SugiliteBlockBuildingHelper {
         readableDescriptionGenerator = new ReadableDescriptionGenerator(context);
     }
 
-    public SugiliteOperationBlock getOperationBlockFromQuery(OntologyQuery query, int opeartionType, SugiliteAvailableFeaturePack featurePack){
+    public SugiliteOperationBlock getUnaryOperationBlockWithOntologyQueryFromQuery(OntologyQuery query, int opeartionType, SugiliteAvailableFeaturePack featurePack){
         if(opeartionType == SugiliteOperation.CLICK) {
             SugiliteClickOperation sugiliteOperation = new SugiliteClickOperation();
-            sugiliteOperation.setOperationType(opeartionType);
-            final SugiliteOperationBlock operationBlock = new SugiliteOperationBlock();
+            sugiliteOperation.setQuery(query);
+
+            SugiliteOperationBlock operationBlock = new SugiliteOperationBlock();
             operationBlock.setOperation(sugiliteOperation);
             operationBlock.setFeaturePack(featurePack);
-            sugiliteOperation.setQuery(query);
             operationBlock.setScreenshot(featurePack.screenshot);
-
             operationBlock.setDescription(ontologyDescriptionGenerator.getDescriptionForOperation(sugiliteOperation, query));
             return operationBlock;
-        } else if(opeartionType == SugiliteOperation.LONG_CLICK) {
+        }
+
+        else if(opeartionType == SugiliteOperation.LONG_CLICK) {
             SugiliteLongClickOperation sugiliteOperation = new SugiliteLongClickOperation();
-            sugiliteOperation.setOperationType(opeartionType);
-            final SugiliteOperationBlock operationBlock = new SugiliteOperationBlock();
+            sugiliteOperation.setQuery(query);
+
+            SugiliteOperationBlock operationBlock = new SugiliteOperationBlock();
             operationBlock.setOperation(sugiliteOperation);
             operationBlock.setFeaturePack(featurePack);
-            sugiliteOperation.setQuery(query);
             operationBlock.setScreenshot(featurePack.screenshot);
-
             operationBlock.setDescription(ontologyDescriptionGenerator.getDescriptionForOperation(sugiliteOperation, query));
             return operationBlock;
         }
 
         else {
-            throw new RuntimeException("got an unsupported operation type");
+            throw new RuntimeException("got an unsupported operation type: " + opeartionType);
+        }
+    }
+
+    public SugiliteOperationBlock getBinaryOperationBlockWithOntologyQueryFromQuery(OntologyQuery query, int operationType, SugiliteAvailableFeaturePack featurePack, String arg0){
+        if(operationType == SugiliteOperation.SET_TEXT) {
+            SugiliteSetTextOperation sugiliteSetTextOperation = new SugiliteSetTextOperation();
+            sugiliteSetTextOperation.setParameter0(arg0);
+            sugiliteSetTextOperation.setQuery(query);
+
+            SugiliteOperationBlock operationBlock = new SugiliteOperationBlock();
+            operationBlock.setOperation(sugiliteSetTextOperation);
+            operationBlock.setFeaturePack(featurePack);
+            operationBlock.setScreenshot(featurePack.screenshot);
+            operationBlock.setDescription(ontologyDescriptionGenerator.getDescriptionForOperation(sugiliteSetTextOperation, query));
+            return operationBlock;
+        }
+
+        else if(operationType == SugiliteOperation.READ_OUT) {
+            SugiliteReadoutOperation sugiliteReadoutOperation = new SugiliteReadoutOperation();
+            sugiliteReadoutOperation.setParameter0(arg0);
+            sugiliteReadoutOperation.setQuery(query);
+
+            SugiliteOperationBlock operationBlock = new SugiliteOperationBlock();
+            operationBlock.setOperation(sugiliteReadoutOperation);
+            operationBlock.setFeaturePack(featurePack);
+            operationBlock.setScreenshot(featurePack.screenshot);
+            operationBlock.setDescription(ontologyDescriptionGenerator.getDescriptionForOperation(sugiliteReadoutOperation, query));
+            return operationBlock;
+        }
+
+        else {
+            throw new RuntimeException("got an unsupported operation type: " + operationType);
         }
     }
 

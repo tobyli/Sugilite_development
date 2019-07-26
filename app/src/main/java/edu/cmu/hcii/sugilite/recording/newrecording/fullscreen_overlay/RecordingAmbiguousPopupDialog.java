@@ -136,7 +136,7 @@ public class RecordingAmbiguousPopupDialog extends SugiliteDialogManager impleme
 
         int i = 0;
         for (Pair<OntologyQuery, Double> entry : queryScoreList) {
-            SugiliteOperationBlock block = blockBuildingHelper.getOperationBlockFromQuery(entry.first, SugiliteOperation.CLICK, featurePack);
+            SugiliteOperationBlock block = blockBuildingHelper.getUnaryOperationBlockWithOntologyQueryFromQuery(entry.first, SugiliteOperation.CLICK, featurePack);
             sugiliteOperationBlockArray[i++] = block;
         }
 
@@ -439,7 +439,7 @@ public class RecordingAmbiguousPopupDialog extends SugiliteDialogManager impleme
                 System.out.println("Result Query: " + query.toString());
 
                 //construct a block from the query formula
-                SugiliteOperationBlock block = blockBuildingHelper.getOperationBlockFromQuery(query, SugiliteOperation.CLICK, featurePack);
+                SugiliteOperationBlock block = blockBuildingHelper.getUnaryOperationBlockWithOntologyQueryFromQuery(query, SugiliteOperation.CLICK, featurePack);
 
                 //construct a confirmation dialog from the block
                 showConfirmationDialog(block, featurePack, queryScoreList, clickRunnable);

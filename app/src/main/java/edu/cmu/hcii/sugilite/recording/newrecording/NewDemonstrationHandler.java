@@ -108,7 +108,7 @@ public class NewDemonstrationHandler {
             //threshold for determine whether the results are ambiguous
             if (queryScoreList.size() <= 1 || (queryScoreList.get(1).second.intValue() - queryScoreList.get(0).second.intValue() > 2)) {
                 //not ambiguous, show the confirmation popup
-                SugiliteOperationBlock block = blockBuildingHelper.getOperationBlockFromQuery(queryScoreList.get(0).first, SugiliteOperation.CLICK, featurePack);
+                SugiliteOperationBlock block = blockBuildingHelper.getUnaryOperationBlockWithOntologyQueryFromQuery(queryScoreList.get(0).first, SugiliteOperation.CLICK, featurePack);
 
                 //need to run on ui thread
                 accessibilityService.runOnUiThread(new Runnable() {
@@ -155,7 +155,7 @@ public class NewDemonstrationHandler {
 
         int i = 0;
         for(Pair<OntologyQuery, Double> entry : queryScoreList){
-            SugiliteOperationBlock block = blockBuildingHelper.getOperationBlockFromQuery(entry.first, SugiliteOperation.CLICK, featurePack);
+            SugiliteOperationBlock block = blockBuildingHelper.getUnaryOperationBlockWithOntologyQueryFromQuery(entry.first, SugiliteOperation.CLICK, featurePack);
             sugiliteOperationBlockArray[i++] = block;
         }
 

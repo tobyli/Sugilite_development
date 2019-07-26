@@ -37,6 +37,10 @@ public class SugiliteBlockMetaInfo implements Serializable {
         return uiSnapshot;
     }
 
+    public void setUiSnapshot(SerializableUISnapshot uiSnapshot) {
+        this.uiSnapshot = uiSnapshot;
+    }
+
     public SugiliteBlock getParentBlock() {
         return parentBlock;
     }

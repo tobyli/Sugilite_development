@@ -1,8 +1,8 @@
 package edu.cmu.hcii.sugilite.sharing;
 
+import android.os.Build;
+import android.util.Base64;
 import android.util.Log;
-import com.google.api.client.repackaged.com.google.common.base.Objects;
-import com.google.common.base.Function;
 import com.google.common.collect.*;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
@@ -17,8 +17,8 @@ import edu.cmu.hcii.sugilite.model.operation.binary.SugiliteBinaryOperation;
 import edu.cmu.hcii.sugilite.model.operation.trinary.SugiliteTrinaryOperation;
 import edu.cmu.hcii.sugilite.model.operation.unary.SugiliteUnaryOperation;
 import edu.cmu.hcii.sugilite.ontology.*;
+import org.apache.commons.lang3.SerializationUtils;
 
-import javax.annotation.Nullable;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -38,50 +38,18 @@ public class PrepareScriptForSharingTask implements Callable<SugiliteStartingBlo
         this.script = script;
     }
 
-    private static class StringInContext {
-        public String activityName;
-        public String packageName;
-        public String text;
+    private static class StringInContextWithIndexAndPriority extends StringInContext {
         public int priority = -1;
         public int index = -1;
 
-        public StringInContext(String activityName, String packageName, String text) {
-            this.activityName = activityName;
-            this.packageName = packageName;
-            this.text = text;
+        public StringInContextWithIndexAndPriority(String activityName, String packageName, String text) {
+            super(activityName, packageName, text);
         }
 
-        public StringInContext(String activityName, String packageName, String text, int priority, int index) {
-            this.activityName = activityName;
-            this.packageName = packageName;
-            this.text = text;
+        public StringInContextWithIndexAndPriority(String activityName, String packageName, String text, int priority, int index) {
+            super(activityName, packageName, text);
             this.priority = priority;
             this.index = index;
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hashCode(text, activityName, packageName);
-        }
-
-        @Override
-        public boolean equals(Object obj) {
-            if (obj instanceof StringInContext) {
-                StringInContext sic = (StringInContext)obj;
-                return text.equals(sic.text) && activityName.equals(sic.activityName) && packageName.equals(sic.packageName);
-            }
-            return false;
-        }
-
-        public String toJson() {
-            StringBuilder sb = new StringBuilder("{");
-            sb.append("\"package\": \"" + packageName + "\"");
-            sb.append(",\"activity\": \"" + activityName + "\"");
-            sb.append(",\"text_hash\": \"" + new HashedString(text).toString() + "\"");
-            //sb.append(",\"priority\": " + this.priority);
-            //sb.append(",\"index\": " + index);
-            sb.append("}");
-            return sb.toString();
         }
 
     }
@@ -92,7 +60,7 @@ public class PrepareScriptForSharingTask implements Callable<SugiliteStartingBlo
         if (query instanceof LeafOntologyQuery) {
             LeafOntologyQuery loq = (LeafOntologyQuery) query;
             if (Arrays.stream(Const.POTENTIALLY_PRIVATE_RELATIONS).anyMatch(loq.getR()::equals)) {
-                strings.add(new StringInContext(activityName, packageName, loq.getObjectAsString(), 0, startIndex++));
+                strings.add(new StringInContextWithIndexAndPriority(activityName, packageName, loq.getObjectAsString(), 0, startIndex++));
             }
         }
 
@@ -185,18 +153,17 @@ public class PrepareScriptForSharingTask implements Callable<SugiliteStartingBlo
         if (oq instanceof LeafOntologyQuery) {
             LeafOntologyQuery loq = (LeafOntologyQuery) oq;
             if (Arrays.stream(Const.POTENTIALLY_PRIVATE_RELATIONS).anyMatch(loq.getR()::equals)) {
-                StringInContext key = new StringInContext(activityName, packageName, loq.getObjectAsString());
+                StringInContext key = new StringInContextWithIndexAndPriority(activityName, packageName, loq.getObjectAsString());
                 StringAlternativeGenerator.StringAlternative alt = replacements.get(key);
-                if (alt.altText == loq.getObjectAsString()) {
-                    Log.v("PrepareScriptForSharingTask", "not altering LeafOntologyQuery with object \"" + loq.getObjectAsString() + "\"");
-                    return oq;
-                }
-                if (alt != null) {
-                    Log.v("PrepareScriptForSharingTask", "replacing \"" + loq.getObjectAsString() + "\" with \"" + alt.altText + "\"");
-                    return new StringAlternativeOntologyQuery(loq.getR(), alt);
-                } else {
+                if (alt == null) {
                     // TODO return generated alternative and/or hole
                     throw new RuntimeException("not sure how to replace a query");
+                } else if (alt.altText == loq.getObjectAsString()) {
+                    Log.v("PrepareScriptForSharingTask", "not altering LeafOntologyQuery with object \"" + loq.getObjectAsString() + "\"");
+                    return oq;
+                } else {
+                    Log.v("PrepareScriptForSharingTask", "replacing \"" + loq.getObjectAsString() + "\" with \"" + alt.altText + "\"");
+                    return new StringAlternativeOntologyQuery(loq.getR(), alt);
                 }
             } else {
                 return oq;
@@ -217,13 +184,14 @@ public class PrepareScriptForSharingTask implements Callable<SugiliteStartingBlo
     }
 
     public static void replaceStringsInBlock(SugiliteBlock block, Map<StringInContext, StringAlternativeGenerator.StringAlternative> replacements) {
-        // TODO replace strings in graph
         if (block instanceof SugiliteOperationBlock) {
             SugiliteOperationBlock operationBlock = (SugiliteOperationBlock)block;
             SugiliteOperation op = ((SugiliteOperationBlock) block).getOperation();
-            SerializableUISnapshot snapshot = operationBlock.getFeaturePack().serializableUISnapshot;
+            SerializableUISnapshot snapshot = operationBlock.getSugiliteBlockMetaInfo().getUiSnapshot();
             String packageName = snapshot.getPackageName();
             String activityName = snapshot.getActivityName();
+
+            // replace strings in ontologyquery
             if (op instanceof SugiliteUnaryOperation) {
                 SugiliteUnaryOperation unary = (SugiliteUnaryOperation)op;
                 if (unary.getParameter0() instanceof OntologyQuery) {
@@ -266,30 +234,32 @@ public class PrepareScriptForSharingTask implements Callable<SugiliteStartingBlo
         Log.i("PrepareScriptForSharingTask", "AAAAAAAA we've started");
 
         // get strings
-        Set<StringInContext> queryStrings = getStringsFromScript(script);
+        Set<StringInContext> originalQueryStrings = getStringsFromScript(script);
 
-        Log.i("PrepareScriptForSharingTask", "size of querystrings " + queryStrings.size());
-
-        // TODO debug only
-        for (StringInContext s : queryStrings) {
-            Log.v("PrepareScriptForSharingTask", s.index + " : " + s.text + " \t\t\t( " + s.packageName + " , " + s.activityName + " )");
-        }
+        Log.i("PrepareScriptForSharingTask", "size of querystrings " + originalQueryStrings.size());
 
         // COMPUTE ALTERNATIVE STRINGS
         Map<StringInContext, Integer> originalQueryStringsIndex = new HashMap<>();
-        Multimap<HashedString, StringInContext> decodedStrings = HashMultimap.create();
-        Set<StringInContext> alternateQueriesTemp = new HashSet<StringInContext>();
-        for (StringInContext s : queryStrings) {
+        Multimap<HashedString, StringInContextWithIndexAndPriority> decodedStrings = HashMultimap.create();
+
+        Set<StringInContextWithIndexAndPriority> queryStrings = new HashSet<>();
+
+        int index = 0;
+
+        for (StringInContext s : originalQueryStrings) {
             Set<StringAlternativeGenerator.StringAlternative> alternatives = StringAlternativeGenerator.generateAlternatives(s.text);
-            decodedStrings.put(new HashedString(s.text), s);
-            originalQueryStringsIndex.put(s, s.index);
+            StringInContextWithIndexAndPriority entry = new StringInContextWithIndexAndPriority(s.activityName, s.packageName, s.text, 0, index);
+            decodedStrings.put(new HashedString(s.text), entry);
+            originalQueryStringsIndex.put(s, index);
+            queryStrings.add(entry);
             for (StringAlternativeGenerator.StringAlternative a : alternatives) {
-                StringInContext alt = new StringInContext(s.activityName, s.packageName, a.altText, a.priority, s.index);
-                alternateQueriesTemp.add(alt);
+                StringInContextWithIndexAndPriority alt = new StringInContextWithIndexAndPriority(s.activityName, s.packageName, a.altText, a.priority, index);
+                queryStrings.add(alt);
                 decodedStrings.put(new HashedString(alt.text), alt);
             }
+
+            index++;
         }
-        queryStrings.addAll(alternateQueriesTemp);
 
         // FILTER OUT PRIVATE STRINGS
         URL filterStringUrl = new URL(Const.SHARING_SERVER_BASE_URL + Const.FILTER_UI_STRING_ENDPOINT);
@@ -335,7 +305,7 @@ public class PrepareScriptForSharingTask implements Callable<SugiliteStartingBlo
         for (JsonElement elt : filteredResponses){
             if (elt instanceof JsonObject) {
                 JsonObject o = (JsonObject)elt;
-                for (StringInContext s : decodedStrings.get(HashedString.fromEncodedString(o.get("text_hash").getAsString()))) {
+                for (StringInContextWithIndexAndPriority s : decodedStrings.get(HashedString.fromEncodedString(o.get("text_hash").getAsString()))) {
                     if (o.get("activity").getAsString().equals(s.activityName) && o.get("package").getAsString().equals(s.packageName)) {
                         if (bestMatch[s.index] == null || s.priority <= bestMatch[s.index].priority) {
                             bestMatch[s.index] = new StringAlternativeGenerator.StringAlternative(s.text, s.priority);
@@ -346,19 +316,28 @@ public class PrepareScriptForSharingTask implements Callable<SugiliteStartingBlo
         }
 
         Map<StringInContext, StringAlternativeGenerator.StringAlternative> replacements = new HashMap<>();
-        for (StringInContext s : originalQueryStringsIndex.keySet()) {
-            if (bestMatch[s.index] != null) {
-                Log.v("PrepareScriptForSharingTask", "\"" + s.text + "\" ---> \"" + bestMatch[s.index].altText + "\"");
-                replacements.put(s, bestMatch[s.index]);
+        for (StringInContext s : originalQueryStrings) {
+            int i = originalQueryStringsIndex.get(s);
+            if (bestMatch[i] != null) {
+                Log.v("PrepareScriptForSharingTask", "\"" + s.text + "\" ---> \"" + bestMatch[i].altText + "\"");
+                replacements.put(s, bestMatch[i]);
             } else {
                 Log.v("PrepareScriptForSharingTask", "\"" + s.text + "\" no replacement found");
             }
         }
 
-        // TODO REPLACE HAS_TEXT and HAS_CHILD_TEXT with hashed equivalents in graph
-
         // REPLACE HAS_TEXT and HAS_CHILD_TEXT with hashed equivalents in queries
         replaceStringsInScript(script, replacements);
+
+        for (SugiliteBlock block : script.getFollowingBlocks()) {
+            if (block instanceof SugiliteOperationBlock) {
+                // TODO REPLACE HAS_TEXT and HAS_CHILD_TEXT with hashed equivalents in graph
+                // in the meantime we'll just remove the ui snapshots
+                // SerializableUISnapshot snapshot = ((SugiliteOperationBlock) block).getSugiliteBlockMetaInfo().getUiSnapshot();
+                // UISnapshotShareUtils.prepareSnapshotForSharing(snapshot, replacements);
+                ((SugiliteOperationBlock) block).getSugiliteBlockMetaInfo().setUiSnapshot(null);
+            }
+        }
 
         return script;
     }

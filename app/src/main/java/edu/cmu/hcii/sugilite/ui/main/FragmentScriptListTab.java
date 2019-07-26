@@ -9,6 +9,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.util.Log;
 import android.view.ContextMenu;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -46,6 +47,7 @@ import edu.cmu.hcii.sugilite.model.block.util.ScriptPrinter;
 import edu.cmu.hcii.sugilite.ontology.description.OntologyDescriptionGenerator;
 import edu.cmu.hcii.sugilite.pumice.PumiceDemonstrationUtil;
 import edu.cmu.hcii.sugilite.sharing.PrepareScriptForSharingTask;
+import edu.cmu.hcii.sugilite.sharing.UploadScriptTask;
 import edu.cmu.hcii.sugilite.study.ScriptUsageLogManager;
 import edu.cmu.hcii.sugilite.ui.ScriptDebuggingActivity;
 import edu.cmu.hcii.sugilite.ui.ScriptDetailActivity;
@@ -321,6 +323,12 @@ public class FragmentScriptListTab extends Fragment {
                                 OperationBlockDescriptionRegenerator.regenerateScriptDescriptions(sharable, ontologyDescriptionGenerator);
                                 sugiliteScriptDao.save(script);
                                 sugiliteScriptDao.commitSave();
+                                UploadScriptTask uploadTask = new UploadScriptTask();
+                                uploadTask.setTitle(scriptName);
+                                uploadTask.setAuthor("demo");
+                                uploadTask.setScript(sharable);
+                                String id = executor.submit(uploadTask).get();
+                                Log.i("Upload script", "Script shared with id : " + id);
                             } catch (InterruptedException e) {
                                 e.printStackTrace();
                             } catch (ExecutionException e) {
@@ -345,7 +353,6 @@ public class FragmentScriptListTab extends Fragment {
                             }
                         }
                     }).start();
-                    System.out.println("Yank");
                     break;
                 case ITEM_GENERALIZE:
                     //generalize

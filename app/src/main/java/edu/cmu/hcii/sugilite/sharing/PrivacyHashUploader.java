@@ -2,6 +2,7 @@ package edu.cmu.hcii.sugilite.sharing;
 
 import android.os.AsyncTask;
 import android.util.Log;
+import com.google.gson.Gson;
 import edu.cmu.hcii.sugilite.Const;
 import edu.cmu.hcii.sugilite.sharing.debug.HasPlaintext;
 

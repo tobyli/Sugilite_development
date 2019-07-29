@@ -16,6 +16,10 @@
     <item android:id="@+id/clear_usage_log" android:title="Delete All Usage Logs"
         android:orderInCategory="7" app:showAsAction="never" />
     <item android:id="@+id/launch_pumice" android:title="Launch Pumice"
-        android:orderInCategory="8" app:showAsAction="never" />
+          android:orderInCategory="8" app:showAsAction="never" />
+    <item android:id="@+id/download_repo" android:title="Download Repo Scripts"
+        android:orderInCategory="9" app:showAsAction="never" />
+    <item android:id="@+id/download_last_script" android:title="Download Last Script"
+          android:orderInCategory="10" app:showAsAction="never" />
 
 </menu>

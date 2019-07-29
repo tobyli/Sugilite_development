@@ -10,15 +10,20 @@ import android.os.Bundle;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.Window;
+import android.view.WindowManager;
 import android.widget.Toast;
 
 
 import java.io.File;
 import java.util.Calendar;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import edu.cmu.hcii.sugilite.Const;
 import edu.cmu.hcii.sugilite.R;
@@ -27,8 +32,12 @@ import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptFileDao;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptSQLDao;
 import edu.cmu.hcii.sugilite.dao.SugiliteTriggerDao;
+import edu.cmu.hcii.sugilite.model.OperationBlockDescriptionRegenerator;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
+import edu.cmu.hcii.sugilite.ontology.description.OntologyDescriptionGenerator;
 import edu.cmu.hcii.sugilite.pumice.ui.PumiceDialogActivity;
+import edu.cmu.hcii.sugilite.sharing.DownloadRepoListTask;
+import edu.cmu.hcii.sugilite.sharing.DownloadScriptTask;
 import edu.cmu.hcii.sugilite.study.ScriptUsageLogManager;
 import edu.cmu.hcii.sugilite.study.StudyConst;
 import edu.cmu.hcii.sugilite.study.StudyDataUploadManager;
@@ -298,6 +307,74 @@ public class SugiliteMainActivity extends AppCompatActivity {
             startActivity(intent);
             return true;
 
+        }
+        if(id == R.id.download_repo) {
+            Log.i("SugiliteMainActivity", "want to download repo");
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    ExecutorService executor = Executors.newFixedThreadPool(1);
+
+                    DownloadRepoListTask repoListTask = new DownloadRepoListTask();
+                    try {
+                        List<DownloadRepoListTask.SugiliteRepoListing> repo = executor.submit(repoListTask).get();
+                        for (DownloadRepoListTask.SugiliteRepoListing listing : repo) {
+                            Log.i("SugiliteMainActivity", listing.id + " " + listing.title);
+                        }
+
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    } catch (ExecutionException e) {
+                        e.printStackTrace();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+
+                }
+            }).start();
+        }
+        if(id == R.id.download_last_script) {
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    ExecutorService executor = Executors.newFixedThreadPool(1);
+                    try {
+                        DownloadRepoListTask repoListTask = new DownloadRepoListTask();
+                        List<DownloadRepoListTask.SugiliteRepoListing> repo = executor.submit(repoListTask).get();
+                        DownloadRepoListTask.SugiliteRepoListing listing = repo.get(repo.size() - 1);
+                        Log.i("SugiliteMainActivity", listing.id + " " + listing.title);
+
+                        DownloadScriptTask scriptTask = new DownloadScriptTask();
+                        scriptTask.setId(listing.id + "");
+                        SugiliteStartingBlock script = executor.submit(scriptTask).get();
+                        script.setScriptName("DOWNLOADED: " + script.getScriptName());
+                        OntologyDescriptionGenerator odg = new OntologyDescriptionGenerator(getApplicationContext());
+                        OperationBlockDescriptionRegenerator.regenerateScriptDescriptions(script, odg);
+                        sugiliteScriptDao.save(script);
+                        sugiliteScriptDao.commitSave();
+
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    } catch (ExecutionException e) {
+                        e.printStackTrace();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                    Runnable dismissDialog = new Runnable() {
+                        @Override
+                        public void run() {
+                            try {
+                                if (fragmentScriptListTab instanceof FragmentScriptListTab)
+                                    ((FragmentScriptListTab) fragmentScriptListTab).setUpScriptList();
+                            }
+                            catch (Exception e){
+                                e.printStackTrace();
+                            }
+                        }
+                    };
+                    runOnUiThread(dismissDialog);
+                }
+            }).start();
         }
         return super.onOptionsItemSelected(item);
     }

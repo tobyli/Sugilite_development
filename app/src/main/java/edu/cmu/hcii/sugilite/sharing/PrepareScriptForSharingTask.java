@@ -157,7 +157,8 @@ public class PrepareScriptForSharingTask implements Callable<SugiliteStartingBlo
                 StringAlternativeGenerator.StringAlternative alt = replacements.get(key);
                 if (alt == null) {
                     // TODO return generated alternative and/or hole
-                    throw new RuntimeException("not sure how to replace a query");
+                    //throw new RuntimeException("not sure how to replace a query");
+                    return oq;
                 } else if (alt.altText == loq.getObjectAsString()) {
                     Log.v("PrepareScriptForSharingTask", "not altering LeafOntologyQuery with object \"" + loq.getObjectAsString() + "\"");
                     return oq;
@@ -330,6 +331,7 @@ public class PrepareScriptForSharingTask implements Callable<SugiliteStartingBlo
         replaceStringsInScript(script, replacements);
 
         for (SugiliteBlock block : script.getFollowingBlocks()) {
+            block.setDescription("this is not a trustworthy description");
             if (block instanceof SugiliteOperationBlock) {
                 // TODO REPLACE HAS_TEXT and HAS_CHILD_TEXT with hashed equivalents in graph
                 // in the meantime we'll just remove the ui snapshots

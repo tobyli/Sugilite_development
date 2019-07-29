@@ -319,16 +319,16 @@ public class FragmentScriptListTab extends Fragment {
                             ExecutorService executor = Executors.newFixedThreadPool(1);
                             try {
                                 SugiliteStartingBlock sharable = executor.submit(task).get();
-                                sharable.setScriptName(scriptName.replace(".SugiliteScript", "") + " share ready" + ".SugiliteScript");
-                                OperationBlockDescriptionRegenerator.regenerateScriptDescriptions(sharable, ontologyDescriptionGenerator);
-                                sugiliteScriptDao.save(script);
-                                sugiliteScriptDao.commitSave();
                                 UploadScriptTask uploadTask = new UploadScriptTask();
                                 uploadTask.setTitle(scriptName);
                                 uploadTask.setAuthor("demo");
                                 uploadTask.setScript(sharable);
                                 String id = executor.submit(uploadTask).get();
                                 Log.i("Upload script", "Script shared with id : " + id);
+                                OperationBlockDescriptionRegenerator.regenerateScriptDescriptions(sharable, ontologyDescriptionGenerator);
+                                sharable.setScriptName("UPLOADED: " + scriptName);
+                                sugiliteScriptDao.save(script);
+                                sugiliteScriptDao.commitSave();
                             } catch (InterruptedException e) {
                                 e.printStackTrace();
                             } catch (ExecutionException e) {

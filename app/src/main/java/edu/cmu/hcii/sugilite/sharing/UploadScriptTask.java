@@ -1,21 +1,16 @@
 package edu.cmu.hcii.sugilite.sharing;
 
-import android.util.Base64;
-import android.util.Log;
 import com.google.api.client.util.Charsets;
-import com.google.api.client.util.IOUtils;
 import com.google.common.io.CharStreams;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonObject;
 import edu.cmu.hcii.sugilite.Const;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
+import okhttp3.*;
 import org.apache.commons.lang3.SerializationUtils;
 
-import java.io.*;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PipedInputStream;
+import java.io.PipedOutputStream;
 import java.util.concurrent.Callable;
 
 public class UploadScriptTask implements Callable<String> {
@@ -42,42 +37,25 @@ public class UploadScriptTask implements Callable<String> {
 
     @Override
     public String call() throws Exception {
-        URL filterStringUrl = new URL(Const.SHARING_SERVER_BASE_URL + Const.UPLOAD_SCRIPT_TO_REPO_ENDPOINT);
-        HttpURLConnection urlConnection = (HttpURLConnection) filterStringUrl.openConnection();
-        urlConnection.setRequestMethod("POST");
-        urlConnection.setRequestProperty("Accept-Language", "en-US,en;q=0.5");
-        urlConnection.setRequestProperty("Content-Type", "application/json");
-        urlConnection.setReadTimeout(1 * 3000);
-        urlConnection.setConnectTimeout(1 * 3000);
+        OkHttpClient client = new OkHttpClient();
 
-        urlConnection.setDoOutput(true);
-        urlConnection.setDoInput(true);
-        urlConnection.setChunkedStreamingMode(0); // this might increase performance?
-        BufferedOutputStream out = new BufferedOutputStream(urlConnection.getOutputStream());
-        BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(out, StandardCharsets.UTF_8));
+        MultipartBody.Builder requestBodyBuilder = new MultipartBody.Builder()
+                .setType(MultipartBody.FORM)
+                .addFormDataPart("title", this.title)
+                .addFormDataPart("script", "scriptfile", RequestBody.create(SerializationUtils.serialize(script)));
+        if (author != null) requestBodyBuilder = requestBodyBuilder.addFormDataPart("author", author);
 
-        Gson gson = new Gson();
-        JsonObject obj = new JsonObject();
-        obj.addProperty("title", this.title);
-        if (author != null) obj.addProperty("author", this.author);
-        obj.addProperty("script", android.util.Base64.encodeToString(SerializationUtils.serialize(script), Base64.DEFAULT));
+        RequestBody requestBody = requestBodyBuilder.build();
 
-        writer.write(gson.toJson(obj));
+        Request request = new Request.Builder()
+                .url(Const.SHARING_SERVER_BASE_URL + Const.UPLOAD_SCRIPT_TO_REPO_ENDPOINT)
+                .post(requestBody).build();
+        try (Response response = client.newCall(request).execute()) {
+            if (!response.isSuccessful()) throw new IOException("Unexpected code " + response);
 
-        writer.flush();
-        writer.close();
-        out.close();
-        urlConnection.connect();
-
-        int responseCode = urlConnection.getResponseCode();
-
-        if (responseCode != HttpURLConnection.HTTP_OK) {
-            // TODO scream or something
-            Log.e("UploadScriptTask", "Uh oh");
-            throw new Exception("aaa");
+            String id = response.body().string();
+            return id;
         }
 
-        String id = CharStreams.toString(new InputStreamReader(urlConnection.getInputStream(), Charsets.UTF_8));
-        return id;
     }
 }

@@ -309,17 +309,22 @@ public class SugiliteMainActivity extends AppCompatActivity {
 
         }
         if(id == R.id.download_repo) {
-            Log.i("SugiliteMainActivity", "want to download repo");
             new Thread(new Runnable() {
                 @Override
                 public void run() {
                     ExecutorService executor = Executors.newFixedThreadPool(1);
-
-                    DownloadRepoListTask repoListTask = new DownloadRepoListTask();
                     try {
+                        DownloadRepoListTask repoListTask = new DownloadRepoListTask();
                         List<DownloadRepoListTask.SugiliteRepoListing> repo = executor.submit(repoListTask).get();
                         for (DownloadRepoListTask.SugiliteRepoListing listing : repo) {
-                            Log.i("SugiliteMainActivity", listing.id + " " + listing.title);
+                            DownloadScriptTask scriptTask = new DownloadScriptTask();
+                            scriptTask.setId(listing.id + "");
+                            SugiliteStartingBlock script = executor.submit(scriptTask).get();
+                            script.setScriptName("DOWNLOADED: " + script.getScriptName());
+                            OntologyDescriptionGenerator odg = new OntologyDescriptionGenerator(getApplicationContext());
+                            OperationBlockDescriptionRegenerator.regenerateScriptDescriptions(script, odg);
+                            sugiliteScriptDao.save(script);
+                            sugiliteScriptDao.commitSave();
                         }
 
                     } catch (InterruptedException e) {
@@ -329,7 +334,19 @@ public class SugiliteMainActivity extends AppCompatActivity {
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
-
+                    Runnable dismissDialog = new Runnable() {
+                        @Override
+                        public void run() {
+                            try {
+                                if (fragmentScriptListTab instanceof FragmentScriptListTab)
+                                    ((FragmentScriptListTab) fragmentScriptListTab).setUpScriptList();
+                            }
+                            catch (Exception e){
+                                e.printStackTrace();
+                            }
+                        }
+                    };
+                    runOnUiThread(dismissDialog);
                 }
             }).start();
         }

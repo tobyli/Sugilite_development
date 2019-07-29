@@ -277,21 +277,37 @@ public class Automator {
                 //execute the OntologyQuery on the current UI snapshot
                 Set<SugiliteEntity> querySet = q.executeOn(uiSnapshot);
 
-                List<AccessibilityNodeInfo> filteredNodes = new ArrayList<AccessibilityNodeInfo>();
+                List<AccessibilityNodeInfo> preFilteredNodes = new ArrayList<AccessibilityNodeInfo>();
                 for (SugiliteEntity e : querySet) {
                     if (e.getEntityValue() instanceof Node) {
-                        filteredNodes.add(uiSnapshot.getNodeAccessibilityNodeInfoMap().get(e.getEntityValue()));
+                        preFilteredNodes.add(uiSnapshot.getNodeAccessibilityNodeInfoMap().get(e.getEntityValue()));
                     }
                 }
 
-                if (filteredNodes.size() == 0) {
+                if (preFilteredNodes.size() == 0) {
                     //couldn't find a matched node in the current UISnapshot
                     Log.v("Automator", "couldn't find a matched node for query " + q.toString());
                     return false;
                 }
 
+                Log.v("Automator", "Matched " + preFilteredNodes.size() + " nodes for query " + q.toString());
+
+                // remove direct parents of matched nodes
+                // this would likely remove grandparents if they are incorrectly matched as well?
+                List<AccessibilityNodeInfo> filteredNodes = new ArrayList<>();
+                filteredNodes.addAll(preFilteredNodes);
+
+                for (AccessibilityNodeInfo node : preFilteredNodes) {
+                    AccessibilityNodeInfo parent = node.getParent();
+                    while (parent != null) {
+                        filteredNodes.remove(node.getParent());
+                        parent = parent.getParent();
+                    }
+                }
+
+                Log.v("Automator", "Removed " + (preFilteredNodes.size() - filteredNodes.size()) + " nodes with remove parent heuristic");
+
                 boolean succeeded = false;
-                Log.v("Automator", "Matched " + filteredNodes.size() + " nodes for query " + q.toString());
                 for (AccessibilityNodeInfo node : filteredNodes) {
                     //TODO: scrolling to find more nodes -- not only the ones displayed on the current screen
                     boolean retVal = performAction(node, operationBlock);

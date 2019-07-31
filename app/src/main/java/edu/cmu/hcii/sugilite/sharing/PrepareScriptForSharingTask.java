@@ -3,6 +3,7 @@ package edu.cmu.hcii.sugilite.sharing;
 import android.os.Build;
 import android.util.Base64;
 import android.util.Log;
+import android.util.Pair;
 import com.google.common.collect.*;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
@@ -10,6 +11,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import edu.cmu.hcii.sugilite.Const;
 import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
+import edu.cmu.hcii.sugilite.model.block.SugiliteBlockMetaInfo;
 import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteOperation;
@@ -17,6 +19,7 @@ import edu.cmu.hcii.sugilite.model.operation.binary.SugiliteBinaryOperation;
 import edu.cmu.hcii.sugilite.model.operation.trinary.SugiliteTrinaryOperation;
 import edu.cmu.hcii.sugilite.model.operation.unary.SugiliteUnaryOperation;
 import edu.cmu.hcii.sugilite.ontology.*;
+import edu.cmu.hcii.sugilite.recording.newrecording.SugiliteBlockBuildingHelper;
 import org.apache.commons.lang3.SerializationUtils;
 
 import java.io.*;
@@ -29,6 +32,7 @@ import java.util.concurrent.Callable;
 public class PrepareScriptForSharingTask implements Callable<SugiliteStartingBlock> {
 
     private SugiliteStartingBlock script;
+    private SugiliteBlockBuildingHelper helper;
 
     public SugiliteStartingBlock getScript() {
         return script;
@@ -36,6 +40,14 @@ public class PrepareScriptForSharingTask implements Callable<SugiliteStartingBlo
 
     public void setScript(SugiliteStartingBlock script) {
         this.script = script;
+    }
+
+    public SugiliteBlockBuildingHelper getHelper() {
+        return helper;
+    }
+
+    public void setHelper(SugiliteBlockBuildingHelper helper) {
+        this.helper = helper;
     }
 
     private static class StringInContextWithIndexAndPriority extends StringInContext {
@@ -149,7 +161,10 @@ public class PrepareScriptForSharingTask implements Callable<SugiliteStartingBlo
         return strings;
     }
 
-    public static OntologyQuery getReplacementOntologyQuery(OntologyQuery oq, String packageName, String activityName, Map<StringInContext, StringAlternativeGenerator.StringAlternative> replacements) {
+    public static OntologyQuery getStringReplacementOntologyQuery(OntologyQuery oq, SugiliteBlockMetaInfo metaInfo, Map<StringInContext, StringAlternativeGenerator.StringAlternative> replacements) {
+        String activityName = metaInfo.getUiSnapshot().getActivityName();
+        String packageName = metaInfo.getUiSnapshot().getPackageName();
+
         if (oq instanceof LeafOntologyQuery) {
             LeafOntologyQuery loq = (LeafOntologyQuery) oq;
             if (Arrays.stream(Const.POTENTIALLY_PRIVATE_RELATIONS).anyMatch(loq.getR()::equals)) {
@@ -157,8 +172,8 @@ public class PrepareScriptForSharingTask implements Callable<SugiliteStartingBlo
                 StringAlternativeGenerator.StringAlternative alt = replacements.get(key);
                 if (alt == null) {
                     // TODO return generated alternative and/or hole
-                    //throw new RuntimeException("not sure how to replace a query");
-                    return oq;
+                    Log.v("PrepareScriptForSharingTask", "no string alternative found for \"" + loq.getObjectAsString() + "\"");
+                    return null;
                 } else if (alt.altText == loq.getObjectAsString()) {
                     Log.v("PrepareScriptForSharingTask", "not altering LeafOntologyQuery with object \"" + loq.getObjectAsString() + "\"");
                     return oq;
@@ -174,50 +189,61 @@ public class PrepareScriptForSharingTask implements Callable<SugiliteStartingBlo
             Set<OntologyQuery> subQs = ((OntologyQueryWithSubQueries) oq).getSubQueries();
             Set<OntologyQuery> newSubQs = new HashSet<OntologyQuery>();
             for (OntologyQuery subQ : subQs) {
-                newSubQs.add(getReplacementOntologyQuery(subQ, packageName, activityName, replacements));
+                OntologyQuery replacement = getStringReplacementOntologyQuery(subQ, metaInfo, replacements);
+                if (replacement == null) return null;
+                newSubQs.add(replacement);
             }
             return ((OntologyQueryWithSubQueries) oq).cloneWithTheseSubQueries(newSubQs);
         }
         if (oq instanceof HashedStringOntologyQuery) {
             return oq;
         }
-        throw new RuntimeException("not sure how to replace queries in " + oq.getClass().getCanonicalName());
+        Log.v("PrepareScriptForSharingTask", "not sure how to replace queries in " + oq.getClass().getCanonicalName());
+        return null;
+    }
+
+    public static OntologyQuery getReplacementOntologyQuery(OntologyQuery oq, SugiliteBlockMetaInfo metaInfo, Map<StringInContext, StringAlternativeGenerator.StringAlternative> replacements) {
+        OntologyQuery replacement = getStringReplacementOntologyQuery(oq, metaInfo, replacements);
+
+        // uh oh this should be a UISnapshot not a SerializableUISnapshot
+        //for (Pair<OntologyQuery, Double> pair : SugiliteBlockBuildingHelper.newGenerateDefaultQueries(metaInfo.getUiSnapshot(), metaInfo.getTargetEntity())
+
+        if (replacement == null) throw new RuntimeException("not sure how to replace " + oq.toString());
+        return replacement;
     }
 
     public static void replaceStringsInBlock(SugiliteBlock block, Map<StringInContext, StringAlternativeGenerator.StringAlternative> replacements) {
         if (block instanceof SugiliteOperationBlock) {
             SugiliteOperationBlock operationBlock = (SugiliteOperationBlock)block;
             SugiliteOperation op = ((SugiliteOperationBlock) block).getOperation();
-            SerializableUISnapshot snapshot = operationBlock.getSugiliteBlockMetaInfo().getUiSnapshot();
-            String packageName = snapshot.getPackageName();
-            String activityName = snapshot.getActivityName();
+            SugiliteBlockMetaInfo metaInfo = operationBlock.getSugiliteBlockMetaInfo();
 
             // replace strings in ontologyquery
             if (op instanceof SugiliteUnaryOperation) {
                 SugiliteUnaryOperation unary = (SugiliteUnaryOperation)op;
                 if (unary.getParameter0() instanceof OntologyQuery) {
-                    unary.setParameter0(getReplacementOntologyQuery((OntologyQuery) unary.getParameter0(), packageName, activityName, replacements));
+                    unary.setParameter0(getReplacementOntologyQuery((OntologyQuery) unary.getParameter0(), metaInfo, replacements));
                 }
             }
             if (op instanceof SugiliteBinaryOperation) {
                 SugiliteBinaryOperation binary = (SugiliteBinaryOperation)op;
                 if (binary.getParameter0() instanceof OntologyQuery) {
-                    binary.setParameter0(getReplacementOntologyQuery((OntologyQuery) binary.getParameter0(), packageName, activityName, replacements));
+                    binary.setParameter0(getReplacementOntologyQuery((OntologyQuery) binary.getParameter0(), metaInfo, replacements));
                 }
                 if (binary.getParameter1() instanceof OntologyQuery) {
-                    binary.setParameter1(getReplacementOntologyQuery((OntologyQuery) binary.getParameter1(), packageName, activityName, replacements));
+                    binary.setParameter1(getReplacementOntologyQuery((OntologyQuery) binary.getParameter1(), metaInfo, replacements));
                 }
             }
             if (op instanceof SugiliteTrinaryOperation) {
                 SugiliteTrinaryOperation trinary = (SugiliteTrinaryOperation)op;
                 if (trinary.getParameter0() instanceof OntologyQuery) {
-                    trinary.setParameter0(getReplacementOntologyQuery((OntologyQuery) trinary.getParameter0(), packageName, activityName, replacements));
+                    trinary.setParameter0(getReplacementOntologyQuery((OntologyQuery) trinary.getParameter0(), metaInfo, replacements));
                 }
                 if (trinary.getParameter1() instanceof OntologyQuery) {
-                    trinary.setParameter1(getReplacementOntologyQuery((OntologyQuery) trinary.getParameter1(), packageName, activityName, replacements));
+                    trinary.setParameter1(getReplacementOntologyQuery((OntologyQuery) trinary.getParameter1(), metaInfo, replacements));
                 }
                 if (trinary.getParameter2() instanceof OntologyQuery) {
-                    trinary.setParameter2(getReplacementOntologyQuery((OntologyQuery) trinary.getParameter2(), packageName, activityName, replacements));
+                    trinary.setParameter2(getReplacementOntologyQuery((OntologyQuery) trinary.getParameter2(), metaInfo, replacements));
                 }
             }
         }

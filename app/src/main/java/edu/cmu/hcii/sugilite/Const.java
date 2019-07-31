@@ -180,6 +180,7 @@ public class Const {
     public static final String UPLOAD_SCRIPT_TO_REPO_ENDPOINT = "repo/upload";
     public static final String DOWNLOAD_SCRIPT_FROM_REPO_ENDPOINT_PREFIX = "repo/";
     public static final String DOWNLOAD_REPO_LIST_ENDPOINT = "repo/list";
+    public static final String[] UI_UPLOAD_PACKAGE_BLACKLIST = {"com.google.android.inputmethod.pinyin", "com.google.android.inputmethod.latin", "com.menny.android.anysoftkeyboard"};
     public static final SugiliteRelation[] POTENTIALLY_PRIVATE_RELATIONS = {
             SugiliteRelation.HAS_TEXT,
             SugiliteRelation.HAS_CHILD_TEXT,

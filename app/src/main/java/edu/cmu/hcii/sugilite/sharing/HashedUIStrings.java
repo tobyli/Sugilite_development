@@ -26,6 +26,15 @@ public class HashedUIStrings {
         this.packageUserHash = new HashedString(packageName + androidID);
         this.hashedTexts = new ArrayList<>();
 
+        Set<String> blacklistPackageSubjects = new HashSet<>();
+        for (SugiliteSerializableTriple triple : snapshot.getTriples()) {
+            if (triple.getPredicate().equals(SugiliteRelation.HAS_PACKAGE_NAME)) {
+                if (Arrays.stream(Const.UI_UPLOAD_PACKAGE_BLACKLIST).anyMatch(triple.getObjectStringValue()::equals)) {
+                    blacklistPackageSubjects.add(triple.getSubjectId());
+                }
+            }
+        }
+
         // subjects that are focused edittexts (which we don't want to upload hashes of)
         Set<String> editTextSubjects = new HashSet<>();
 
@@ -50,10 +59,10 @@ public class HashedUIStrings {
                 try {
                     if (EditText.class.isAssignableFrom(Class.forName(className))) {
                         textBoxSubclassNames.add(className);
-                        Log.i("EditTextSubclass", className);
+                        Log.i("HashedUIStrings", className);
                     }
                 } catch (ClassNotFoundException e) {
-                    Log.i("EditTextSubclassClassNotFound", className);
+                    Log.i("HashedUIStrings", className);
                 }
             }
             for (SugiliteSerializableTriple triple : snapshot.getPredicateTriplesMap().get(SugiliteRelation.HAS_CLASS_NAME.getRelationName())) {
@@ -79,7 +88,9 @@ public class HashedUIStrings {
             // if we can hash this kind of relation
             if (Arrays.stream(Const.POTENTIALLY_PRIVATE_RELATIONS).anyMatch(triple.getPredicate()::equals)) {
                 if (editTextSubjects.contains(triple.getSubjectId())) {
-                    Log.v("EditTextSkip", "Not adding EditText text : " + triple.getObjectStringValue());
+                    Log.v("HashedUIStrings", "Not adding EditText text : " + triple.getObjectStringValue());
+                } else if (blacklistPackageSubjects.contains(triple.getSubjectId())) {
+                    Log.v("HashedUIStrings", "Not adding blacklisted package text : " + triple.getObjectStringValue());
                 } else {
                     childStrings.add(triple.getObjectStringValue());
                 }

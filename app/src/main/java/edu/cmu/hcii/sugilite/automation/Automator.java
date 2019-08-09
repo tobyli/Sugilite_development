@@ -670,6 +670,7 @@ public class Automator {
 
 
     private void addNextBlockToQueue(final SugiliteBlock block) {
+        System.out.println("block: " + block);
         if (block instanceof SugiliteStartingBlock) {
             sugiliteData.addInstruction(block.getNextBlockToRun());
         } else if (block instanceof SugiliteOperationBlock) {

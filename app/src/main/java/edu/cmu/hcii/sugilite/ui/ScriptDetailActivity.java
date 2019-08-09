@@ -121,6 +121,7 @@ public class ScriptDetailActivity extends AppCompatActivity implements SugiliteV
         else
             sugiliteScriptDao = new SugiliteScriptFileDao(this, sugiliteData);
         this.context = this;
+
         if (scriptName != null)
             setTitle("View Script: " + scriptName.replace(".SugiliteScript", ""));
 
@@ -166,10 +167,17 @@ public class ScriptDetailActivity extends AppCompatActivity implements SugiliteV
         tts = new TextToSpeech(this, new TextToSpeech.OnInitListener() {
             @Override
             public void onInit(int status) {
+                System.out.println("init");
             }
         });
         tts.setLanguage(Locale.US);
-        sugiliteVoiceRecognitionListener = new SugiliteGoogleCloudVoiceRecognitionListener(this,this, tts);//new SugiliteAndroidAPIVoiceRecognitionListener(this, this, tts);
+        System.out.println("tts: " + tts);
+        if (Const.SELECTED_SPEECH_RECOGNITION_TYPE == Const.SpeechRecognitionType.ANDROID) {
+            this.sugiliteVoiceRecognitionListener = new SugiliteAndroidAPIVoiceRecognitionListener(this, this, tts);
+        } else if (Const.SELECTED_SPEECH_RECOGNITION_TYPE == Const.SpeechRecognitionType.GOOGLE_CLOUD) {
+            this.sugiliteVoiceRecognitionListener = new SugiliteGoogleCloudVoiceRecognitionListener(this, this, tts);
+        }
+
         speakButton = findViewById(R.id.button5);
         cancelButton = findViewById(R.id.button5);
         conditionalPumiceDialogManager = new ConditionalPumiceDialogManager(this);
@@ -214,15 +222,7 @@ public class ScriptDetailActivity extends AppCompatActivity implements SugiliteV
      * @param: SugiliteConditionBlock block for which to get description, int count to keep track of how many recursive calls have been made
      */
     public static String setConditionBlockDescription(SugiliteConditionBlock block, int count) {
-        //SugiliteBooleanExpressionNew booleanExpression = block.getSugiliteBooleanExpressionNew();//SugiliteBooleanExpression booleanExpression = block.getSugiliteBooleanExpression();
         String boolExp = block.getPumiceUserReadableDecription().substring(2,block.getPumiceUserReadableDecription().indexOf(",") + 1);
-
-        /*boolExp = boolExp.substring(1,boolExp.length()-1).trim();
-        String[] split = boolExp.split("\\(");
-        boolExp = booleanExpression.breakdown();
-        if(!split[0].contains("&&") && !split[0].contains("||")) {
-            boolExp = ReadableDescriptionGenerator.setColor(boolExp, "#954608");
-        }*/
 
         SugiliteBlock ifBlock = block.getThenBlock();
         SugiliteBlock elseBlock = block.getElseBlock();
@@ -283,7 +283,6 @@ public class ScriptDetailActivity extends AppCompatActivity implements SugiliteV
                 }
                 sc++;
             }
-            System.out.println(block.getPumiceUserReadableDecription());
             block.setDescription(ReadableDescriptionGenerator.setColor("If ", Const.SCRIPT_CONDITIONAL_COLOR) + boolExp + ReadableDescriptionGenerator.setColor(" then ", Const.SCRIPT_CONDITIONAL_COLOR) + ifBlockDes + "<br/>" + tabs2 + ReadableDescriptionGenerator.setColor("Otherwise", Const.SCRIPT_CONDITIONAL_COLOR) + elseBlockDes);
             return ReadableDescriptionGenerator.setColor("If ", Const.SCRIPT_CONDITIONAL_COLOR) + boolExp + ReadableDescriptionGenerator.setColor(" then ", Const.SCRIPT_CONDITIONAL_COLOR) + ifBlockDes + "<br/>" + tabs2 + ReadableDescriptionGenerator.setColor("Otherwise", Const.SCRIPT_CONDITIONAL_COLOR) + elseBlockDes;
         } else {
@@ -1011,6 +1010,11 @@ public class ScriptDetailActivity extends AppCompatActivity implements SugiliteV
     }
 
 
+    /*for interaction for adding conditional to script, this method adds a snackbar at the bottom of the screen with text reflecting what the agent says
+    *
+    * @param s: String of what the snackbar should say
+    *
+    * */
     public void addSnackbar(String s) {
         Snackbar mySnackbar = Snackbar.make(cancelButton, s, BaseTransientBottomBar.LENGTH_INDEFINITE);
         mySnackbar.show();
@@ -1020,6 +1024,7 @@ public class ScriptDetailActivity extends AppCompatActivity implements SugiliteV
         mySnackbar.setAction(R.string.cancel_btn,new cancelListener());
     }
 
+    /*starts the interaction for adding a conditional to the script*/
     public void addCheck() {
         conditionalPumiceDialogManager.addCheck = true;
         addSnackbar("You are adding a check to do different steps in different cases. Please say something like 'check if it's cold' or 'check if the current time is before 5pm.'");
@@ -1170,7 +1175,7 @@ public class ScriptDetailActivity extends AppCompatActivity implements SugiliteV
 
     @Override
     public void listeningEndedCallback() {
-        System.out.println("listeningE");
+        System.out.println("listeningE1");
         isListening = false;
     }
 

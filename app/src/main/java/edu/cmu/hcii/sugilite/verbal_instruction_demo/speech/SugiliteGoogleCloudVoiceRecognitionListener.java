@@ -16,6 +16,7 @@ import android.speech.tts.UtteranceProgressListener;
 import android.support.v4.app.ActivityCompat;
 import android.text.TextUtils;
 import android.widget.Toast;
+import android.os.Handler;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -41,6 +42,7 @@ public class SugiliteGoogleCloudVoiceRecognitionListener implements SugiliteVoic
     private List<String> contextPhrases = new ArrayList<>();
     private AlertDialog progressDialog;
     private SugiliteGoogleCloudVoiceRecognitionListener sugiliteGoogleCloudVoiceRecognitionListener;
+    private Handler handler = new Handler();
 
     //initiate voice recorder
     private GoogleVoiceRecorder mVoiceRecorder;
@@ -173,6 +175,7 @@ public class SugiliteGoogleCloudVoiceRecognitionListener implements SugiliteVoic
      */
     @Override
     public void startListening() {
+        System.out.println("startListening");
         if (mVoiceRecorder != null) {
             mVoiceRecorder.stop(null);
         }
@@ -354,8 +357,19 @@ public class SugiliteGoogleCloudVoiceRecognitionListener implements SugiliteVoic
                         @Override
                         public void run() {
                             if (hearingVoice) {
-                                sugiliteVoiceInterface.listeningStartedCallback();
-                            } else {
+                                handler.postDelayed(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        //replace this line to scroll up or down
+                                        try {
+                                            sugiliteVoiceInterface.listeningStartedCallback();
+                                        } catch (Exception e){
+                                            e.printStackTrace();
+                                        }
+                                    }
+                                }, 1000L);
+                            }
+                            else {
                                 sugiliteVoiceInterface.listeningEndedCallback();
                             }
                         }

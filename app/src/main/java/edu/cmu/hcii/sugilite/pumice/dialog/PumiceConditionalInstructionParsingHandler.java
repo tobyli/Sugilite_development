@@ -80,7 +80,6 @@ public class PumiceConditionalInstructionParsingHandler extends PumiceInitInstru
 
             PumiceBooleanExpKnowledge booleanExpKnowledge = new PumiceBooleanExpKnowledge(parentKnowledgeName, userUtterance, booleanExpression);
             boolExp = booleanExpression;
-            System.out.println("boolExp: " + boolExp.getReadableDescription());
             ((ScriptDetailActivity) pumiceDialogManager.getContext()).addSnackbar("Ok, should I add the check for whether or not " + boolExp.getReadableDescription() + " to the script?");
             pumiceDialogManager.sendAgentMessage("Ok, should I add the check for whether or not " + booleanExpression.getReadableDescription() + " to the script?",true,true);
             pumiceDialogManager.updateUtteranceIntentHandlerInANewState(new PumiceConditionalIntentHandler(pumiceDialogManager,(ScriptDetailActivity) context, PumiceUtteranceIntentHandler.PumiceIntent.ADD_CONDITIONAL_Y));

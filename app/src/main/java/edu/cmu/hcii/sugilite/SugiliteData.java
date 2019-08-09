@@ -99,9 +99,6 @@ public class SugiliteData extends Application {
 
     private TextToSpeech tts;
 
-    public boolean testing = false;
-    public boolean testRun = false;
-
 
     public String valueDemonstrationVariableName = "";
 
@@ -194,14 +191,10 @@ public class SugiliteData extends Application {
         this.currentTrackingBlock = currentTrackingBlock;
     }
     public synchronized void addInstruction(SugiliteBlock block){
-        System.out.println("HERE");
-        System.out.println(block);
-        System.out.println(((ConditionalPumiceDialogManager) pumiceDialogManager).lastCheck);
-        System.out.println(((ConditionalPumiceDialogManager) pumiceDialogManager).elseStatementDem);
         if(block == null || (pumiceDialogManager instanceof ConditionalPumiceDialogManager && block instanceof SugiliteConditionBlock && ((ConditionalPumiceDialogManager) pumiceDialogManager).elseStatementDem && !((ConditionalPumiceDialogManager) pumiceDialogManager).lastCheck)) {
-            if(block instanceof SugiliteConditionBlock)
-                ((ConditionalPumiceDialogManager) pumiceDialogManager).elseStatementDem = false;
-
+            if(block instanceof SugiliteConditionBlock) {
+                ((ConditionalPumiceDialogManager) pumiceDialogManager).elseStatementDem = false; //make elseStatementDem false once it has been true
+            }
             //note: nullable -> see Automator.addNextBlockToQueue
             if(afterExecutionOperation != null) {
                 instructionQueue.add(afterExecutionOperation);
@@ -213,7 +206,10 @@ public class SugiliteData extends Application {
                     afterExecutionRunnable = null;
                 }
                 setCurrentSystemState(DEFAULT_STATE);
+
+                /*if running a test for the interaction involving adding a condition to the script, ask if there were any problems with the test run*/
                 if(pumiceDialogManager instanceof ConditionalPumiceDialogManager && ((ConditionalPumiceDialogManager) pumiceDialogManager).checkingTask) {
+                    ((PumiceConditionalIntentHandler) pumiceDialogManager.getPumiceDialogState().getPumiceUtteranceIntentHandlerInUse()).problemsQ = true;
                     pumiceDialogManager.sendAgentMessage("Were there any problems with the task?",true,true);
                 }
             }
@@ -225,17 +221,18 @@ public class SugiliteData extends Application {
 
         boolean isConditionBlock = block instanceof SugiliteConditionBlock;
         boolean conditionalTask = pumiceDialogManager instanceof ConditionalPumiceDialogManager && ((ConditionalPumiceDialogManager) pumiceDialogManager).addCheck;
-        if((conditionalTask && isConditionBlock && last) || !isConditionBlock) {
-            System.out.println("add block");
+        if(!conditionalTask || (conditionalTask && isConditionBlock && last) || !isConditionBlock) { //if aren't on a condition block or are on a condition block and should be running it...
             instructionQueue.add(block);
         }
-        else if(check1 && conditionalTask) {
-            instructionQueue.add(((SugiliteConditionBlock) block).getThenBlock());
-            check1 = false;
-        }
-        else {
-            instructionQueue.add(((SugiliteConditionBlock) block).getElseBlock());
-            check1 = true;
+        else if(conditionalTask && ((ConditionalPumiceDialogManager) pumiceDialogManager).checkingTask) { //else if checking then or else block...
+            pumiceDialogManager.sendAgentMessage("Check happening now.",true,false);
+            if (check1) {
+                pumiceDialogManager.sendAgentMessage("Acting as if check were true.",true,false);
+                instructionQueue.add(((SugiliteConditionBlock) block).getThenBlock());
+            } else {
+                pumiceDialogManager.sendAgentMessage("Acting as if check were false.",true,false);
+                instructionQueue.add(((SugiliteConditionBlock) block).getElseBlock());
+            }
         }
     }
     public void addInstructions(Queue<SugiliteBlock> blocks){
@@ -384,4 +381,11 @@ public class SugiliteData extends Application {
         return tts;
     }
 
+    public void setCheck1(boolean check1) {
+        this.check1 = check1;
+    }
+
+    public boolean getCheck1() {
+        return check1;
+    }
 }

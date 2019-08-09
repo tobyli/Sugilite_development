@@ -19,10 +19,10 @@ import edu.cmu.hcii.sugilite.ui.dialog.VariableSetValueDialog;
 import android.content.Intent;
 
 public class ConditionalPumiceDialogManager extends PumiceDialogManager {
-    public SugiliteConditionBlock newBlock;
-    private int newBlockIndex;
+    public SugiliteConditionBlock newBlock; //condition block
+    private int newBlockIndex; //index of condition block
     private ScriptDetailActivity context;
-    private boolean isThen;
+    private boolean isThen; //whether or not added then block or else block first
     public boolean addCheck = false; //whether or not a check is being added to the script (i.e., whether or not this dialog manager is getting used)
     public boolean checkingTask = false; //whether or not testing versus demonstrating
     public boolean elseStatementDem = false; //whether or not performing else statement demonstration
@@ -35,6 +35,7 @@ public class ConditionalPumiceDialogManager extends PumiceDialogManager {
         setPumiceInitInstructionParsingHandler(new PumiceConditionalInstructionParsingHandler(context, this, sugiliteData));
     }
 
+    /*add the condition to the top of the script*/
     public void determineConditionalLoc() {
         SugiliteBooleanExpressionNew sben = ((PumiceConditionalInstructionParsingHandler) getPumiceInitInstructionParsingHandler()).getBoolExp();
         SugiliteConditionBlock scb = new SugiliteConditionBlock(null, null, null);
@@ -51,13 +52,17 @@ public class ConditionalPumiceDialogManager extends PumiceDialogManager {
         context.loadOperationList();
     }
 
+    /*move condition to step location that user wants
+    *
+   *@param s: String given by user indicating index of step that new step should go after
+    * */
     public void moveStep(String s) {
-        int i = Integer.parseInt(s);//index of step that new step should go after; indices start at 1 and new step starts at index 1
+        int i = Integer.parseInt(s);//index of step that condition should go after; indices start at 1 and condition originally starts at index 1
         int j = newBlockIndex;
         SugiliteBlock storedCondBlock = null;
-        boolean onIf = false;
+        boolean onIf = false; //true if iterBlock is in the then or else block of the condition block
         if(i == j-1) {
-            return;
+            return; //do nothing because user is saying condition should go where it already is
         }
         if(i != j) {
             SugiliteBlock iterBlock = context.getScript();
@@ -76,6 +81,9 @@ public class ConditionalPumiceDialogManager extends PumiceDialogManager {
                     if(iterBlock != null) {
                         onIf = true;
                     }
+                    else if(condBlock.getElseBlock() != null) {
+                        iterBlock = condBlock.getElseBlock();
+                    }
                     else {
                         iterBlock = condBlock.getNextBlock();
                     }
@@ -90,47 +98,81 @@ public class ConditionalPumiceDialogManager extends PumiceDialogManager {
                     new Exception("unsupported block type").printStackTrace();
                 count++;
             }
-            SugiliteBlock iterNextBlock = iterBlock.getNextBlock();
-            SugiliteBlock newNextBlock = newBlock.getNextBlock();
-            SugiliteBlock newPrevBlock;
-            if (j == 1) {
-                newPrevBlock = context.getScript();
-            } else {
-                newPrevBlock = newBlock.getPreviousBlock();
-            }
 
-            int check = j + 1;
-            if (i == check) {
-                iterBlock.setPreviousBlock(newPrevBlock);
-                newPrevBlock.setNextBlock(iterBlock);
-            } else {
-                if (newNextBlock != null) {
-                    newNextBlock.setPreviousBlock(newPrevBlock);
+            if(iterBlock == null) {
+                context.addSnackbar("The step number you gave does not exist.");
+                sendAgentMessage("The step number you gave does not exist.",true,false);
+            }
+            else { //store blocks necessary for reconfiguring blocks according to condition block's new position
+                SugiliteBlock iterNextBlock = iterBlock.getNextBlock();
+                SugiliteBlock newNextBlock;
+                boolean then = false; //true if condition block has a then block
+                boolean thenOrElse = true; //true if condition block has a then or else block
+                if (newBlock.getThenBlock() != null) {
+                    then = true;
+                    newNextBlock = newBlock.getThenBlock();
                 }
-                newPrevBlock.setNextBlock(newNextBlock);
+                else if (newBlock.getElseBlock() != null) {
+                    newNextBlock = newBlock.getElseBlock();
+                }
+                else {
+                    thenOrElse = false;
+                    newNextBlock = newBlock.getNextBlock();
+                }
+
+                SugiliteBlock newPrevBlock;
+                if(j == 1) {
+                    newPrevBlock = context.getScript();
+                }
+                else {
+                    newPrevBlock = newBlock.getPreviousBlock();
+                }
+
+                //reconfigure blocks according to condition block's new position
+                if(thenOrElse) {
+                    newNextBlock.setPreviousBlock(newPrevBlock);
+                    newPrevBlock.setNextBlock(newNextBlock);
+                    if(then) {
+                        newBlock.setThenBlock(iterNextBlock);
+                    }
+                    else {
+                        newBlock.setElseBlock(iterNextBlock);
+                    }
+                }
+                else {
+                    newNextBlock.setPreviousBlock(newPrevBlock);
+                    newPrevBlock.setNextBlock(newNextBlock);
+                    newBlock.setNextBlock(iterNextBlock);
+                    iterNextBlock.setPreviousBlock(newBlock);
+                }
+                newBlock.setPreviousBlock(iterBlock);
+                iterBlock.setNextBlock(newBlock);
+
+                //update index of condition block
+                if(j < i) {
+                    newBlockIndex = i;
+                }
+                else {
+                    newBlockIndex = i + 1;
+                }
             }
-
-            newBlock.setPreviousBlock(iterBlock);
-            iterBlock.setNextBlock(newBlock);
-
-
-            newBlock.setNextBlock(iterNextBlock);
-            if (iterNextBlock != null) {
-                iterNextBlock.setPreviousBlock(newBlock);
-            }
-
-            if (j < i) {
-                newBlockIndex = i;
-            } else {
-                newBlockIndex = i + 1;
-            }
-
             context.loadOperationList();
         }
     }
 
+    /*switch boolean value of SugiliteData.java's variable check1 indicating whether currently checking then block or else block*/
+    public void changeCheck1() {
+        boolean c = sugiliteData.getCheck1();
+        sugiliteData.setCheck1(!c);
+    }
+
+    /*make blocks underneath newly added condition the then block or else block
+    *
+    * @param then: whether setting blocks below the newly added condition to be the then block or else block; true if setting to then block
+    * */
     public void chooseThenBlock(boolean then) {
         isThen = then;
+        sugiliteData.setCheck1(isThen);
         SugiliteBlock storedBlock = newBlock.getNextBlock();
         if(then) {
             storedBlock.setPreviousBlock(null);
@@ -147,13 +189,28 @@ public class ConditionalPumiceDialogManager extends PumiceDialogManager {
         context.loadOperationList();
     }
 
+    /*switch the then and else blocks*/
     public void switchThenElse() {
-        SugiliteBlock storedBlock = newBlock.getElseBlock();
+        SugiliteBlock storedElse = newBlock.getElseBlock();
+        SugiliteBlock elseNext = null;
+        if(storedElse != null) {
+            elseNext = storedElse.getNextBlock();
+        }
         newBlock.setElseBlock(newBlock.getThenBlock());
-        newBlock.setThenBlock(storedBlock);
+        if(newBlock.getThenBlock() != null && newBlock.getElseBlock() != null) {
+            newBlock.getElseBlock().setNextBlock(newBlock.getThenBlock().getNextBlock());
+        }
+        newBlock.setThenBlock(storedElse);
+        if(newBlock.getThenBlock() != null) {
+            newBlock.getThenBlock().setNextBlock(elseNext);
+        }
         context.loadOperationList();
     }
 
+    /*test run the then block, else block, or full condition block
+    *
+    * @param last: true if testing full condition block
+    * */
     public void testRun(boolean last) {
         if(last) {
             sugiliteData.last = true;
@@ -179,6 +236,7 @@ public class ConditionalPumiceDialogManager extends PumiceDialogManager {
         }
     }
 
+    /*end test run and return to script*/
     public void endTestRun() {
         SugiliteStartingBlock script = context.getScript();
         sugiliteData.clearInstructionQueue();
@@ -189,6 +247,7 @@ public class ConditionalPumiceDialogManager extends PumiceDialogManager {
         context.startActivity(openMainActivity);
     }
 
+    /*change the condition*/
     public void changeCheck() {
         SugiliteBlock iterBlock = context.getScript();
         while (iterBlock != null) {
@@ -217,6 +276,7 @@ public class ConditionalPumiceDialogManager extends PumiceDialogManager {
         context.loadOperationList();
     }
 
+    /*end the interaction for adding a condition to the script*/
     public void endInteraction() {
         newBlock.inScope = false;
         context.loadOperationList();
@@ -226,7 +286,9 @@ public class ConditionalPumiceDialogManager extends PumiceDialogManager {
         return newBlockIndex;
     }
 
-    public SugiliteConditionBlock getNewBlock() { return newBlock; }
+    public SugiliteConditionBlock getNewBlock() {
+        return newBlock;
+    }
 
     public boolean getIsThen() {
         return isThen;

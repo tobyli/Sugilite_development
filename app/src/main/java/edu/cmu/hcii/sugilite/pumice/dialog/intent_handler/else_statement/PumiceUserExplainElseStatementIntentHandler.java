@@ -233,7 +233,12 @@ public class PumiceUserExplainElseStatementIntentHandler implements PumiceUttera
                 if (blockToAdd instanceof SugiliteStartingBlock) {
                     blockToAdd = blockToAdd.getNextBlockToRun();
                 }
-                originalConditionBlock.setElseBlock(blockToAdd);
+                if(((ConditionalPumiceDialogManager) pumiceDialogManager).getIsThen()) {
+                    originalConditionBlock.setElseBlock(blockToAdd);
+                }
+                else {
+                    originalConditionBlock.setThenBlock(blockToAdd);
+                }
                 blockToAdd.setParentBlock(originalConditionBlock);
 
             }

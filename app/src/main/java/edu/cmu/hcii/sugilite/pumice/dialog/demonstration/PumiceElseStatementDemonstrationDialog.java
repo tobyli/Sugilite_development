@@ -63,7 +63,7 @@ public class PumiceElseStatementDemonstrationDialog {
 
     private void constructDialog(){
         AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(context);
-        dialogBuilder.setMessage("Please start demonstrating what to do when " + boolExpReadableName +  " is not true. " + "When you are done, click the duck followed by 'End Recording.' Click OK to continue.")
+        dialogBuilder.setMessage("Please start demonstrating what to do when " + boolExpReadableName +  " is not true. " + "Click OK to continue.")
                 .setIcon(android.R.drawable.ic_dialog_alert)
                 .setPositiveButton("OK", new DialogInterface.OnClickListener() {
                     @Override

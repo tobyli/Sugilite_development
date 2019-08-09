@@ -465,8 +465,9 @@ public class PumiceInitInstructionParsingHandler {
 
                 pumiceDialogManager.getPumiceKnowledgeManager().addPumiceProceduralKnowledge(proceduralKnowledge);
                 pumiceDialogManager.savePumiceKnowledgeToDao();
-		 if(pumiceDialogManager.getContext() instanceof ScriptDetailActivity) {
-		     ((ScriptDetailActivity) pumiceDialogManager.getContext()).addSnackbar("OK, I learned " + proceduralKnowledge.getProcedureDescription(pumiceDialogManager.getPumiceKnowledgeManager()).toLowerCase() + ".");
+
+                if(pumiceDialogManager.getContext() instanceof ScriptDetailActivity) {
+                    ((ScriptDetailActivity) pumiceDialogManager.getContext()).addSnackbar("OK, I learned " + proceduralKnowledge.getProcedureDescription(pumiceDialogManager.getPumiceKnowledgeManager()).toLowerCase() + ".");
                 }
                 pumiceDialogManager.sendAgentMessage("OK, I learned " + proceduralKnowledge.getProcedureDescription(pumiceDialogManager.getPumiceKnowledgeManager()).toLowerCase() + ".", true, false);
 
@@ -474,11 +475,6 @@ public class PumiceInitInstructionParsingHandler {
                 return new SugiliteGetProcedureOperation(procedureUtterance);
             } else if (operation instanceof SugiliteResolveValueQueryOperation) {
                 String valueUtterance = ((SugiliteResolveValueQueryOperation) operation).getParameter0();
-
-	    /*if(pumiceDialogManager.getContext() instanceof ScriptDetailActivity) {
-                    ((ScriptDetailActivity) pumiceDialogManager.getContext()).addSnackbar("How do I find out the value for " + valueUtterance + "?" + " You can explain, or say \"demonstrate\" to demonstrate");
-                }
-                pumiceDialogManager.sendAgentMessage("How do I find out the value for " + valueUtterance + "?" + " You can explain, or say \"demonstrate\" to demonstrate", true, true);*/
 
                 //locks used to notify() when a new intent has been handled by handlers that return a new knowledge object as the result
                 PumiceValueQueryKnowledge resolveValueLock = new PumiceValueQueryKnowledge();
@@ -513,11 +509,6 @@ public class PumiceInitInstructionParsingHandler {
                 return new SugiliteGetValueOperation<Number>(valueUtterance);
             } else if (operation instanceof SugiliteResolveBoolExpOperation) {
                 String boolUtterance = ((SugiliteResolveBoolExpOperation) operation).getParameter0();
-
-	    /*if(pumiceDialogManager.getContext() instanceof ScriptDetailActivity) {
-                    ((ScriptDetailActivity) pumiceDialogManager.getContext()).addSnackbar("How do I tell whether " + boolUtterance + "?");
-                }
-                pumiceDialogManager.sendAgentMessage("How do I tell whether " + boolUtterance + "?", true, true);*/
 
                 //TODO: resolve -- user response - actually learn the boolean exp
 

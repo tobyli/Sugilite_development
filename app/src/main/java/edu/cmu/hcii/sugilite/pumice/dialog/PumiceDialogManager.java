@@ -72,7 +72,7 @@ public class PumiceDialogManager{
     protected ServiceStatusManager serviceStatusManager;
     private PumiceKnowledgeDao pumiceKnowledgeDao;
     private Handler handler;
-    public boolean waitingForPause = false;
+    //public boolean waitingForPause = false;
 
     private List<PumiceDialogState> stateHistoryList;
 
@@ -144,7 +144,6 @@ public class PumiceDialogManager{
         pumiceDialogState.getUtteranceHistory().add(utterance);
         pumiceDialogView.addMessage(utterance);
 
-        System.out.println("utterance: " + utterance);
         //classify the intent of user message
         PumiceUtteranceIntentHandler.PumiceIntent intent = pumiceUtteranceIntentHandler.detectIntentFromUtterance(utterance);
 
@@ -190,8 +189,7 @@ public class PumiceDialogManager{
      * @param requireUserResponse
      */
     public void sendAgentMessage(String message, boolean isSpokenMessage, boolean requireUserResponse){
-        System.out.println("sendAgentMessage");
-        System.out.println(message);
+        System.out.println("sendAgentMessage" + message);
         runOnMainThread(new Runnable() {
             @Override
             public void run() {

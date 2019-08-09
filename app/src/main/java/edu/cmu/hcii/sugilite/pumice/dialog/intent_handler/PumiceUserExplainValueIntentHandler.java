@@ -19,6 +19,7 @@ import edu.cmu.hcii.sugilite.pumice.dialog.PumiceDialogManager;
 import edu.cmu.hcii.sugilite.pumice.dialog.demonstration.PumiceValueDemonstrationDialog;
 import edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.parsing_confirmation.PumiceParsingConfirmationHandler;
 import edu.cmu.hcii.sugilite.pumice.kb.PumiceValueQueryKnowledge;
+import edu.cmu.hcii.sugilite.ui.ScriptDetailActivity;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.server_comm.SugiliteVerbalInstructionHTTPQueryInterface;
 
 /**
@@ -177,6 +178,9 @@ public class PumiceUserExplainValueIntentHandler implements PumiceUtteranceInten
     public void sendPromptForTheIntentHandler() {
         pumiceDialogManager.getSugiliteVoiceRecognitionListener().setContextPhrases(Const.DEMONSTRATION_CONTEXT_WORDS);
         pumiceDialogManager.sendAgentMessage("How do I find out the value for " + parentKnowledgeName + "?" + " You can explain, or say \"demonstrate\" to demonstrate", true, true);
+        /*if(context instanceof ScriptDetailActivity) {
+            ((ScriptDetailActivity) context).addSnackbar("How do I find out the value for " + parentKnowledgeName + "?" + " You can explain, or say 'demonstrate' to demonstrate");
+        }*/
     }
 
     @Override

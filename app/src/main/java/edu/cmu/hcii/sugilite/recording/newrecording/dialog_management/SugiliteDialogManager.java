@@ -214,6 +214,7 @@ public abstract class SugiliteDialogManager implements SugiliteVoiceInterface {
     }
 
     public void onDestroy(){
+        System.out.println("SugiliteDialogManager");
         sugiliteVoiceRecognitionListener.stopAllAndEndASRService();
     }
 }

@@ -14,6 +14,24 @@ public class StringAlternativeOntologyQuery extends OntologyQuery {
         this.alt = alt;
     }
 
+    @Override
+    protected boolean overallQueryFunction(SugiliteSerializableEntity currNode, SerializableUISnapshot graph) {
+        Set<SugiliteSerializableTriple> sugiliteTriples = graph.getSubjectTriplesMap().get(currNode.toString());
+        if (sugiliteTriples != null) {
+            for (SugiliteSerializableTriple triple : sugiliteTriples) {
+                if (triple.getPredicateStringValue().equals(r.getRelationName())) {
+                    Set<StringAlternativeGenerator.StringAlternative> alts = StringAlternativeGenerator.generateAlternatives(triple.getObjectStringValue());
+                    for (StringAlternativeGenerator.StringAlternative a : alts) {
+                        // TODO maybe also check if priority is equal?
+                        if (a.altText.equals(this.alt.altText)) {
+                            return true;
+                        }
+                    }
+                }
+            }
+        }
+        return false;
+    }
 
     @Override
     protected boolean overallQueryFunction(SugiliteEntity currNode, UISnapshot graph) {

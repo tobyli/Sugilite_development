@@ -42,8 +42,9 @@ public class SugiliteSerializableTriple implements Serializable{
         this.predicateStringValue = t.getPredicateStringValue();
     }
 
+    @Deprecated
     public SugiliteRelation getPredicate() {
-        return predicate;
+        return SugiliteRelation.stringRelationMap.get(predicateStringValue);
     }
 
     public String getPredicateStringValue() {
@@ -56,6 +57,11 @@ public class SugiliteSerializableTriple implements Serializable{
 
     public String getObjectStringValue() {
         return objectStringValue;
+    }
+
+    // TODO rename to getObject
+    public SugiliteSerializableEntity getObjectAsSerializableEntity() {
+        return object;
     }
 
     @Override

@@ -3,12 +3,7 @@ package edu.cmu.hcii.sugilite.ontology;
 import edu.cmu.hcii.sugilite.model.Node;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * @author nancy
@@ -205,5 +200,18 @@ public class SerializableUISnapshot implements Serializable {
 
     public String getPackageName() {
         return packageName;
+    }
+
+    public Set<String> getStringValuesForObjectEntityAndRelation(SugiliteSerializableEntity<Node> objectEntity, SugiliteRelation relation) {
+        Set<String> result = new LinkedHashSet<>();
+        if (subjectTriplesMap.get(objectEntity.toString()) == null) return result;
+        Set<SugiliteSerializableTriple> triples = new LinkedHashSet<>(subjectTriplesMap.get(objectEntity.toString()));
+        triples.removeIf(t -> !t.getPredicate().equals(relation));
+        for (SugiliteSerializableTriple t : triples) {
+            if (t.getObjectStringValue() != null) {
+                result.add(t.getObjectStringValue());
+            }
+        }
+        return result;
     }
 }

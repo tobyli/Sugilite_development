@@ -37,16 +37,6 @@ public class LeafOntologyQuery extends OntologyQuery {
         }
     }
 
-    public void setQueryFunction(BiFunction<SubjectEntityObjectEntityPair, UISnapshot, Boolean> f, SugiliteRelation r){
-        /*
-        if(BuildConfig.DEBUG && !(SubRelation == RelationType.nullR)){
-            throw new AssertionError();
-        }
-        */
-        QueryFunction = f;
-        this.r = r;
-    }
-
     public void setQueryFunction(SugiliteRelation relation){
         r = relation;
         QueryFunction = new BiFunction<SubjectEntityObjectEntityPair, UISnapshot, Boolean>() {
@@ -261,6 +251,33 @@ public class LeafOntologyQuery extends OntologyQuery {
             // both subject and object are not null
             return objectBool || subjectBool;
         }
+    }
+
+    @Override
+    protected boolean overallQueryFunction(SugiliteSerializableEntity currNode, SerializableUISnapshot graph) {
+        // base case, leaf node
+        if(subject == null && object == null){
+            throw new RuntimeException("null subject and object");
+//            return false;
+        }
+
+        if(object != null){
+            // TODO not create so many objects?
+            for(SugiliteSerializableEntity o : object){
+                if (graph.getTriples().contains(new SugiliteSerializableTriple(new SugiliteTriple(new SugiliteEntity(currNode), getR(), new SugiliteEntity(o))))) {
+                    return true;
+                }
+            }
+        }
+
+        if(subject != null){
+            for(SugiliteSerializableEntity s : subject){
+                if (graph.getTriples().contains(new SugiliteSerializableTriple(new SugiliteTriple(new SugiliteEntity(s), getR(), new SugiliteEntity(currNode))))) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     public String getObjectAsString() {

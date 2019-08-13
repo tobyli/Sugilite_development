@@ -174,7 +174,7 @@ public class Const {
     public static final String[] CONFIRM_CONTEXT_WORDS = {"yes", "no", "correct", "incorrect", "wrong"};
     public static final String[] COMPARISON_CONTEXT_WORDS = {"at least", "greater", "less", "below", "above", "cheaper", "colder", "cooler", "price", "temperature"};
 
-    public static final String SHARING_SERVER_BASE_URL = "http://35.196.46.194:8080/";
+    public static final String SHARING_SERVER_BASE_URL = "http://35.211.46.118:8080/";
     public static final String UPLOAD_HASHED_UI_ENDPOINT = "privacy/upload_ui";
     public static final String FILTER_UI_STRING_ENDPOINT = "privacy/debug_filter";
     public static final String UPLOAD_SCRIPT_TO_REPO_ENDPOINT = "repo/upload";

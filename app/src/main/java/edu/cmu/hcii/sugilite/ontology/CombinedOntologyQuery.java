@@ -117,6 +117,43 @@ public class CombinedOntologyQuery extends OntologyQueryWithSubQueries {
         return q;
     }
 
+    @Override
+    protected boolean overallQueryFunction(SugiliteSerializableEntity currNode, SerializableUISnapshot graph) {
+        if(subRelation == RelationType.AND){
+            for(OntologyQuery q : subQueries){
+                if(!q.overallQueryFunction(currNode, graph)){
+                    return false;
+                }
+            }
+            return true;
+        }
+        else if(subRelation == RelationType.OR){
+            for(OntologyQuery q : subQueries){
+                if(q.overallQueryFunction(currNode, graph)){
+                    return true;
+                }
+            }
+            return false;
+        }
+        else if (subRelation == RelationType.PREV) {
+            OntologyQuery prevQuery = subQueries.toArray(new OntologyQuery[subQueries.size()])[0];
+            Set<SugiliteSerializableEntity> prevResultObjects = prevQuery.executeOn(graph);
+            Set<SugiliteSerializableTriple> subjectTriples = graph.getSubjectTriplesMap().get(currNode.getEntityId());
+            if (subjectTriples == null) {
+                return false;
+            }
+            for (SugiliteSerializableEntity objectEntity : prevResultObjects) {
+                SugiliteTriple newTriple = new SugiliteTriple(new SugiliteEntity(currNode), r, new SugiliteEntity(objectEntity));
+                if (subjectTriples.contains(newTriple)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        throw new RuntimeException("Unsupported subRelation type: " + subRelation.toString());
+    }
+
     /**
      * the query function used for determine whether a node matches the query
      * @param currNode

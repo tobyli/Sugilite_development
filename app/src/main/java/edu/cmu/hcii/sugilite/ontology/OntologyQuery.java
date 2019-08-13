@@ -133,6 +133,7 @@ public abstract class OntologyQuery implements Serializable {
     }
 
     protected abstract boolean overallQueryFunction(SugiliteEntity currNode, UISnapshot graph);
+    protected abstract boolean overallQueryFunction(SugiliteSerializableEntity currNode, SerializableUISnapshot graph);
 
     public Set<SugiliteEntity> executeOn(UISnapshot graph){
         Set<SugiliteEntity> results = new HashSet<SugiliteEntity>();
@@ -156,6 +157,25 @@ public abstract class OntologyQuery implements Serializable {
 
     @Override
     public abstract OntologyQuery clone();
+
+    @Deprecated
+    public Set<SugiliteSerializableEntity> executeOn(SerializableUISnapshot uiSnapshot) {
+        Set<SugiliteSerializableEntity> results = new HashSet<SugiliteSerializableEntity>();
+        // for each node in the graph, follow the if statements in notes
+        // if it matches query, then add to results set
+        for(SugiliteSerializableEntity s : uiSnapshot.getSugiliteEntityIdSugiliteEntityMap().values()) {
+            if(overallQueryFunction(s, uiSnapshot)){
+                results.add(s);
+            }
+        }
+
+        if(ontologyQueryFilter != null) {
+            //return ontologyQueryFilter.filter(results, uiSnapshot);
+            throw new RuntimeException("Filters on SerializableUISnapshots not supported yet");
+        } else {
+            return results;
+        }
+    }
 
     static class SubjectEntityObjectEntityPair{
         private SugiliteEntity subject = null;

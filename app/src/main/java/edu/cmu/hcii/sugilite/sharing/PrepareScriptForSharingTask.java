@@ -205,8 +205,13 @@ public class PrepareScriptForSharingTask implements Callable<SugiliteStartingBlo
     public static OntologyQuery getReplacementOntologyQuery(OntologyQuery oq, SugiliteBlockMetaInfo metaInfo, Map<StringInContext, StringAlternativeGenerator.StringAlternative> replacements) {
         OntologyQuery replacement = getStringReplacementOntologyQuery(oq, metaInfo, replacements);
 
-        // uh oh this should be a UISnapshot not a SerializableUISnapshot
-        //for (Pair<OntologyQuery, Double> pair : SugiliteBlockBuildingHelper.newGenerateDefaultQueries(metaInfo.getUiSnapshot(), metaInfo.getTargetEntity())
+        if (replacement != null) return replacement;
+
+        for (Pair<OntologyQuery, Double> pair : SugiliteBlockBuildingHelper.newGenerateDefaultQueries(metaInfo.getUiSnapshot(), metaInfo.getTargetEntity())) {
+            Log.v("PrepareScriptForSharingTask", pair.first.toString());
+            replacement = getStringReplacementOntologyQuery(pair.first, metaInfo, replacements);
+            if (replacement != null) return replacement;
+        }
 
         if (replacement == null) throw new RuntimeException("not sure how to replace " + oq.toString());
         return replacement;
@@ -294,8 +299,8 @@ public class PrepareScriptForSharingTask implements Callable<SugiliteStartingBlo
         urlConnection.setRequestMethod("POST");
         urlConnection.setRequestProperty("Accept-Language", "en-US,en;q=0.5");
         urlConnection.setRequestProperty("Content-Type", "application/json");
-        urlConnection.setReadTimeout(1 * 3000);
-        urlConnection.setConnectTimeout(1 * 3000);
+        urlConnection.setReadTimeout(1 * 9000);
+        urlConnection.setConnectTimeout(1 * 5000);
 
         urlConnection.setDoOutput(true);
         urlConnection.setDoInput(true);

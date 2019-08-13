@@ -20,6 +20,19 @@ public class HashedStringOntologyQuery extends OntologyQuery {
     }
 
     @Override
+    protected boolean overallQueryFunction(SugiliteSerializableEntity currNode, SerializableUISnapshot graph) {
+        Set<SugiliteSerializableTriple> sugiliteTriples = graph.getSubjectTriplesMap().get(currNode.getEntityId());
+        if (sugiliteTriples != null) {
+            for (SugiliteSerializableTriple triple : sugiliteTriples) {
+                if (triple.getPredicate().equals(r) && hashedString.equals(new HashedString(triple.getObjectStringValue()))) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    @Override
     protected boolean overallQueryFunction(SugiliteEntity currNode, UISnapshot graph) {
         Set<SugiliteTriple> sugiliteTriples = graph.getSubjectTriplesMap().get(currNode.getEntityId());
         if (sugiliteTriples != null) {

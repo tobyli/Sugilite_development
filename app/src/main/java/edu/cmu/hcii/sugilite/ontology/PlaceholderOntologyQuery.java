@@ -11,6 +11,11 @@ public class PlaceholderOntologyQuery extends OntologyQueryWithSubQueries {
     }
 
     @Override
+    protected boolean overallQueryFunction(SugiliteSerializableEntity currNode, SerializableUISnapshot graph) {
+        return innerQuery.overallQueryFunction(currNode, graph);
+    }
+
+    @Override
     protected boolean overallQueryFunction(SugiliteEntity currNode, UISnapshot graph) {
         return innerQuery.overallQueryFunction(currNode, graph);
     }

@@ -319,20 +319,25 @@ public class FragmentScriptListTab extends Fragment {
                             ExecutorService executor = Executors.newFixedThreadPool(1);
                             try {
                                 SugiliteStartingBlock sharable = executor.submit(task).get();
-                                UploadScriptTask uploadTask = new UploadScriptTask();
-                                uploadTask.setTitle(scriptName);
-                                uploadTask.setAuthor("demo");
-                                uploadTask.setScript(sharable);
-                                String id = executor.submit(uploadTask).get();
-                                Log.i("Upload script", "Script shared with id : " + id);
-                                OperationBlockDescriptionRegenerator.regenerateScriptDescriptions(sharable, ontologyDescriptionGenerator);
-                                sharable.setScriptName("UPLOADED: " + scriptName);
-                                sugiliteScriptDao.save(script);
-                                sugiliteScriptDao.commitSave();
-                            } catch (InterruptedException e) {
-                                e.printStackTrace();
-                            } catch (ExecutionException e) {
-                                e.printStackTrace();
+                                try {
+                                    UploadScriptTask uploadTask = new UploadScriptTask();
+                                    uploadTask.setTitle(scriptName);
+                                    uploadTask.setAuthor("demo");
+                                    uploadTask.setScript(sharable);
+                                    String id = executor.submit(uploadTask).get();
+                                    Log.i("Upload script", "Script shared with id : " + id);
+                                    OperationBlockDescriptionRegenerator.regenerateScriptDescriptions(sharable, ontologyDescriptionGenerator);
+                                    sharable.setScriptName("UPLOADED: " + scriptName);
+                                    sugiliteScriptDao.save(script);
+                                    sugiliteScriptDao.commitSave();
+                                } catch (Exception e) {
+                                    e.printStackTrace();
+                                    Log.i("Upload script", "Script upload failed but saved script");
+                                    OperationBlockDescriptionRegenerator.regenerateScriptDescriptions(sharable, ontologyDescriptionGenerator);
+                                    sharable.setScriptName("ATTEMPTED UPLOAD: " + scriptName);
+                                    sugiliteScriptDao.save(script);
+                                    sugiliteScriptDao.commitSave();
+                                }
                             } catch (Exception e) {
                                 e.printStackTrace();
                             }

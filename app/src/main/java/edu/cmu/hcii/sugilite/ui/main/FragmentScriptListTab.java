@@ -163,11 +163,10 @@ public class FragmentScriptListTab extends Fragment {
     private static final int ITEM_SHARE_DIRECTLY = Menu.FIRST + 4;
     private static final int ITEM_SHARE_FILTERED = Menu.FIRST + 5;
     private static final int ITEM_GENERALIZE = Menu.FIRST + 6;
-    private static final int ITEM_PRINT_DEBUG_INFO = Menu.FIRST + 7;
-    private static final int ITEM_EDIT_SOURCE = Menu.FIRST + 8;
-    private static final int ITEM_DELETE = Menu.FIRST + 9;
-    private static final int ITEM_HASH_STRINGS = Menu.FIRST + 10;
-    private static final int ITEM_DUPLICATE = Menu.FIRST + 11;
+    private static final int ITEM_EDIT_SOURCE = Menu.FIRST + 7;
+    private static final int ITEM_DELETE = Menu.FIRST + 8;
+    private static final int ITEM_HASH_STRINGS = Menu.FIRST + 9;
+    private static final int ITEM_DUPLICATE = Menu.FIRST + 10;
 
     //context menu are the long-click menus for each script
     @Override
@@ -186,7 +185,6 @@ public class FragmentScriptListTab extends Fragment {
         menu.add(0, ITEM_SHARE_DIRECTLY, 0, "Share Raw Script");
         menu.add(0, ITEM_SHARE_FILTERED, 0, "Share Masked Script");
         menu.add(0, ITEM_GENERALIZE, 0, "Generalize");
-        menu.add(0, ITEM_PRINT_DEBUG_INFO, 0, "Print Debug Info");
         menu.add(0, ITEM_EDIT_SOURCE, 0, "Edit Source");
         menu.add(0, ITEM_DELETE, 0, "Delete");
         menu.add(0, ITEM_HASH_STRINGS, 0, "Hash Strings");
@@ -256,8 +254,10 @@ public class FragmentScriptListTab extends Fragment {
                     //rename
                     if (info.targetView instanceof TextView && ((TextView) info.targetView).getText() != null) {
                         AlertDialog.Builder builder = new AlertDialog.Builder(activity);
-                        final EditText newName = new EditText(activity);
-                        builder.setView(newName)
+                        final EditText newNameEditText = new EditText(activity);
+                        newNameEditText.setText(((TextView) info.targetView).getText().toString());
+                        newNameEditText.setSelectAllOnFocus(true);
+                        builder.setView(newNameEditText)
                                 .setTitle("Enter the new name for \"" + ((TextView) info.targetView).getText().toString() + "\"")
                                 .setPositiveButton("OK", new DialogInterface.OnClickListener() {
                                     @Override
@@ -270,7 +270,7 @@ public class FragmentScriptListTab extends Fragment {
                                             e.printStackTrace();
                                         }
                                         if (startingBlock != null) {
-                                            startingBlock.setScriptName(newName.getText().toString() + ".SugiliteScript");
+                                            startingBlock.setScriptName(newNameEditText.getText().toString() + ".SugiliteScript");
                                             try {
                                                 sugiliteScriptDao.save(startingBlock);
                                                 sugiliteScriptDao.commitSave();
@@ -411,10 +411,6 @@ public class FragmentScriptListTab extends Fragment {
                         }
                     }).start();
 
-                    break;
-                case ITEM_PRINT_DEBUG_INFO:
-                    //view debug info
-                    System.out.println(ScriptPrinter.getStringScript(script));
                     break;
                 case ITEM_EDIT_SOURCE:
                     //view and edit script source

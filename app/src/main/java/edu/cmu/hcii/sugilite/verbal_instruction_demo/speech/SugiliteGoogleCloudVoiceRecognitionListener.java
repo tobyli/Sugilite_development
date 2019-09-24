@@ -148,7 +148,7 @@ public class SugiliteGoogleCloudVoiceRecognitionListener implements SugiliteVoic
         // Prepare Cloud Speech API
         ComponentName service = context.startService(new Intent(context, GoogleCloudSpeechService.class));
 
-        context.bindService(new Intent(context, GoogleCloudSpeechService.class), mServiceConnection, START_STICKY);
+        context.bindService(new Intent(context, GoogleCloudSpeechService.class), mServiceConnection, BIND_AUTO_CREATE);
 
         // Check the permission for recording voices
         if (ActivityCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO)

@@ -254,6 +254,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
                         Toast.makeText(preference.getContext(), "Root access is disabled", Toast.LENGTH_SHORT).show();
                     }
                     break;
+
                 case "tracking_in_process":
                     final SwitchPreference trackingEnabledSwitch = (SwitchPreference) preference;
                     if (!trackingEnabledSwitch.isChecked()) {
@@ -394,8 +395,9 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
             // to their values. When their values change, their summaries are
             // updated to reflect the new value, per the Android Design
             // guidelines.
-            bindPreferenceSummaryToValue(findPreference("participantId"));
             bindPreferenceSummaryToValue(findPreference("scriptName"));
+            bindPreferenceSummaryToValue(findPreference("semantic_parsing_server_address"));
+
             findPreference("recording_in_process").setOnPreferenceChangeListener(recordingInProgressPreferenceChangeListener);
             findPreference("root_enabled").setOnPreferenceChangeListener(recordingInProgressPreferenceChangeListener);
             findPreference("tracking_in_process").setOnPreferenceChangeListener(recordingInProgressPreferenceChangeListener);
@@ -423,12 +425,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
             super.onCreate(savedInstanceState);
             addPreferencesFromResource(R.xml.pref_notification);
             setHasOptionsMenu(true);
-
-            // Bind the summaries of EditText/List/Dialog/Ringtone preferences
-            // to their values. When their values change, their summaries are
-            // updated to reflect the new value, per the Android Design
-            // guidelines.
-            bindPreferenceSummaryToValue(findPreference("notifications_new_message_ringtone"));
+            bindPreferenceSummaryToValue(findPreference("participantId"));
         }
 
         @Override
@@ -453,12 +450,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
             super.onCreate(savedInstanceState);
             addPreferencesFromResource(R.xml.pref_data_sync);
             setHasOptionsMenu(true);
-
-            // Bind the summaries of EditText/List/Dialog/Ringtone preferences
-            // to their values. When their values change, their summaries are
-            // updated to reflect the new value, per the Android Design
-            // guidelines.
-            bindPreferenceSummaryToValue(findPreference("sync_frequency"));
+            bindPreferenceSummaryToValue(findPreference("script_sharing_server_address"));
         }
 
         @Override

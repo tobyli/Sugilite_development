@@ -31,6 +31,12 @@ import java.util.concurrent.Callable;
 
 public class PrepareScriptForSharingTask implements Callable<SugiliteStartingBlock> {
 
+    private URL filterStringUrl;
+
+    public PrepareScriptForSharingTask (URL filterStringUrl) {
+        this.filterStringUrl = filterStringUrl;
+    }
+
     private SugiliteStartingBlock script;
     private SugiliteBlockBuildingHelper helper;
 
@@ -289,7 +295,8 @@ public class PrepareScriptForSharingTask implements Callable<SugiliteStartingBlo
         }
 
         // FILTER OUT PRIVATE STRINGS
-        URL filterStringUrl = new URL(Const.SHARING_SERVER_BASE_URL + Const.FILTER_UI_STRING_ENDPOINT);
+        //URL filterStringUrl = new URL(Const.SHARING_SERVER_BASE_URL + Const.FILTER_UI_STRING_ENDPOINT);
+
         HttpURLConnection urlConnection = (HttpURLConnection) filterStringUrl.openConnection();
         urlConnection.setRequestMethod("POST");
         urlConnection.setRequestProperty("Accept-Language", "en-US,en;q=0.5");

@@ -12,11 +12,6 @@
         android:summary="@string/pref_description_tracking_in_progress"
         android:defaultValue="false" />
 
-    <SwitchPreference
-        android:key="uploading_data"
-        android:title="Uploading Study Data"
-        android:summary="Uploading created scripts to the SUGILITE server for research purpose"
-        android:defaultValue="true" />
 
     <!-- NOTE: EditTextPreference accepts EditText attributes. -->
     <!-- NOTE: EditTextPreference's summary should be set to its value by the activity code. -->
@@ -30,27 +25,17 @@
         android:singleLine="true"
         android:maxLines="1" />
 
-    <!--android:defaultValue="http://128.237.214.41:4567/semparse"-->
     <EditTextPreference
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:capitalize="words"
-        android:defaultValue="http://34.201.115.69:4567/semparse"
-        android:inputType="textCapWords"
-        android:key="edit_text_server_address"
+        android:defaultValue="http://35.207.16.161:4567/semparse"
+        android:inputType="textNoSuggestions"
+        android:key="semantic_parsing_server_address"
         android:maxLines="1"
         android:selectAllOnFocus="true"
         android:singleLine="true"
         android:title="Semantic Parsing Server Address" />
-    <EditTextPreference
-        android:key="participantId"
-        android:title="@string/pref_title_display_name"
-        android:defaultValue="@string/pref_default_display_name"
-        android:selectAllOnFocus="true"
-        android:inputType="textCapWords"
-        android:capitalize="words"
-        android:singleLine="true"
-        android:maxLines="1" />
 
     <SwitchPreference
         android:key="root_enabled"
@@ -58,11 +43,6 @@
         android:summary="Grant Sugilite root access to your phone. It's needed for the graphic preview of the script."
         android:defaultValue="false" />
 
-    <SwitchPreference
-        android:key="auto_fill_enabled"
-        android:title="Auto Fill the UI Element Features"
-        android:summary="Automatically select the recommended features by default for identifying the UI elements"
-        android:defaultValue="true" />
 
     <SwitchPreference
         android:key="broadcasting_enabled"

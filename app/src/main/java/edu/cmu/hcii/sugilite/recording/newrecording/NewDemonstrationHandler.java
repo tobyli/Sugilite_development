@@ -42,7 +42,6 @@ import static edu.cmu.hcii.sugilite.Const.OVERLAY_TYPE;
 //singleton class
 public class NewDemonstrationHandler {
     private SugiliteData sugiliteData;
-    private Context context;
     private SharedPreferences sharedPreferences;
     private LayoutInflater layoutInflater;
     private SugiliteBlockBuildingHelper blockBuildingHelper;
@@ -51,9 +50,9 @@ public class NewDemonstrationHandler {
 
     private static NewDemonstrationHandler instance = null;
 
-    public static NewDemonstrationHandler getInstance(SugiliteData sugiliteData, Context context, LayoutInflater layoutInflater, SharedPreferences sharedPreferences, SugiliteAccessibilityService accessibilityService){
+    public static NewDemonstrationHandler getInstance(SugiliteData sugiliteData, LayoutInflater layoutInflater, SharedPreferences sharedPreferences, SugiliteAccessibilityService accessibilityService){
         if (instance == null) {
-            instance = new NewDemonstrationHandler(sugiliteData, context, layoutInflater, sharedPreferences, accessibilityService);
+            instance = new NewDemonstrationHandler(sugiliteData, SugiliteData.getAppContext(), layoutInflater, sharedPreferences, accessibilityService);
         }
         return instance;
     }
@@ -64,7 +63,6 @@ public class NewDemonstrationHandler {
 
     private NewDemonstrationHandler(SugiliteData sugiliteData, Context context, LayoutInflater layoutInflater, SharedPreferences sharedPreferences, SugiliteAccessibilityService accessibilityService){
         this.sugiliteData = sugiliteData;
-        this.context = context;
         this.accessibilityService = accessibilityService;;
         this.sharedPreferences = sharedPreferences;
         this.layoutInflater = layoutInflater;
@@ -125,7 +123,7 @@ public class NewDemonstrationHandler {
                 accessibilityService.runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        Toast.makeText(context, "Ambiguous!", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(SugiliteData.getAppContext(), "Ambiguous!", Toast.LENGTH_SHORT).show();
                         showAmbiguousPopup(queryScoreList, featurePack);
                     }
                 });
@@ -136,7 +134,7 @@ public class NewDemonstrationHandler {
             accessibilityService.runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    Toast.makeText(context, "Empty Results!", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(SugiliteData.getAppContext(), "Empty Results!", Toast.LENGTH_SHORT).show();
                 }
             });
         }
@@ -146,9 +144,9 @@ public class NewDemonstrationHandler {
 
     public void showAmbiguousPopup(List<Pair<OntologyQuery, Double>> queryScoreList, SugiliteAvailableFeaturePack featurePack){
         //the temporary popup to show for when the demonstration is ambiguous
-        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+        AlertDialog.Builder builder = new AlertDialog.Builder(SugiliteData.getAppContext());
         builder.setTitle("Select from disambiguation results");
-        ListView mainListView = new ListView(context);
+        ListView mainListView = new ListView(SugiliteData.getAppContext());
         Map<TextView, SugiliteOperationBlock> textViews = new HashMap<>();
         String[] stringArray = new String[queryScoreList.size()];
         SugiliteOperationBlock[] sugiliteOperationBlockArray = new SugiliteOperationBlock[queryScoreList.size()];
@@ -167,7 +165,7 @@ public class NewDemonstrationHandler {
         }
 
 
-        ArrayAdapter<String> adapter = new ArrayAdapter<String>(context, android.R.layout.simple_list_item_1, stringArray)
+        ArrayAdapter<String> adapter = new ArrayAdapter<String>(SugiliteData.getAppContext(), android.R.layout.simple_list_item_1, stringArray)
         {
             //override the arrayadapter to show HTML-styled textviews in the listview
             @Override
@@ -202,7 +200,7 @@ public class NewDemonstrationHandler {
     }
 
     private void showConfirmation(SugiliteOperationBlock block, SugiliteAvailableFeaturePack featurePack, List<Pair<OntologyQuery, Double>> queryScoreList){
-        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+        AlertDialog.Builder builder = new AlertDialog.Builder(SugiliteData.getAppContext());
         String newDescription = readableDescriptionGenerator.generateDescriptionForVerbalBlock(block, blockBuildingHelper.stripOntologyQuery(block.getOperation().getDataDescriptionQueryIfAvailable()).toString(), "UTTERANCE");
         builder.setTitle("Save Operation Confirmation").setMessage(Html.fromHtml("Are you sure you want to record the operation: " + newDescription));
         builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {

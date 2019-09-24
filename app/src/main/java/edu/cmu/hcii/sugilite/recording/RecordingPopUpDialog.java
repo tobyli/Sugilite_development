@@ -653,7 +653,7 @@ public class RecordingPopUpDialog implements AbstractSugiliteDialog {
         SimpleDateFormat dateFormat;
         dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ", Locale.US);
         dateFormat.setTimeZone(TimeZone.getTimeZone("US/Eastern"));
-        boolean autoFillEnabled = sharedPreferences.getBoolean("auto_fill_enabled", true);
+        boolean autoFillEnabled = true;
         LinearLayout identifierLayout = (LinearLayout) dialogRootView.findViewById(R.id.identifier_layout);
 
 

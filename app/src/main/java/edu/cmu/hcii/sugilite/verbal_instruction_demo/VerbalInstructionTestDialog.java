@@ -79,7 +79,7 @@ public class VerbalInstructionTestDialog implements SugiliteVoiceInterface, Sugi
         } else if (Const.SELECTED_SPEECH_RECOGNITION_TYPE == Const.SpeechRecognitionType.GOOGLE_CLOUD) {
             this.sugiliteVoiceRecognitionListener = new SugiliteGoogleCloudVoiceRecognitionListener(context, this, tts);
         }
-        this.sugiliteVerbalInstructionHTTPQueryManager = new SugiliteVerbalInstructionHTTPQueryManager(sharedPreferences);
+        this.sugiliteVerbalInstructionHTTPQueryManager = SugiliteVerbalInstructionHTTPQueryManager.getInstance(context);
         this.overlayManager = new VerbalInstructionOverlayManager(context, sugiliteData, sharedPreferences);
         this.gson = new Gson();
         this.verbalInstructionTestDialog = this;

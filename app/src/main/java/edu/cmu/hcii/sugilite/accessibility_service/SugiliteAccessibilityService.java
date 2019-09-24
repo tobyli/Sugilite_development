@@ -151,7 +151,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
         verbalInstructionIconManager = new VerbalInstructionIconManager(this, sugiliteStudyHandler, sugiliteData, sharedPreferences, recordingOverlayManager, this, tts);
         statusIconManager.setVerbalInstructionIconManager(verbalInstructionIconManager);
         sugiliteData.verbalInstructionIconManager = verbalInstructionIconManager;
-        newDemonstrationHandler = NewDemonstrationHandler.getInstance(sugiliteData, this, LayoutInflater.from(getApplicationContext()), sharedPreferences, this);
+        newDemonstrationHandler = NewDemonstrationHandler.getInstance(sugiliteData , LayoutInflater.from(getApplicationContext()), sharedPreferences, this);
 
         screenshotManager = new SugiliteScreenshotManager(sharedPreferences, getApplicationContext());
         sugiliteTextParentAnnotator = SugiliteTextParentAnnotator.getInstance();
@@ -206,7 +206,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
         SharedPreferences.Editor prefEditor = sharedPreferences.edit();
         prefEditor.putBoolean("recording_in_process", false);
         prefEditor.putBoolean("root_enabled", true);
-        prefEditor.putBoolean("auto_fill_enabled", true);
+
         prefEditor.apply();
 
         //packages within the excepted package will be totally excepted from the accessibility service tracking

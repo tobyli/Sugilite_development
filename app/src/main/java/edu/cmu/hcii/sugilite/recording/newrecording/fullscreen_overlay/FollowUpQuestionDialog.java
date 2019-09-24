@@ -139,7 +139,7 @@ public class FollowUpQuestionDialog extends SugiliteDialogManager implements Sug
         this.layoutInflater = layoutInflater;
         this.uiSnapshot = uiSnapshot;
         this.serializableUISnapshot = new SerializableUISnapshot(uiSnapshot);
-        this.sugiliteVerbalInstructionHTTPQueryManager = new SugiliteVerbalInstructionHTTPQueryManager(sharedPreferences);
+        this.sugiliteVerbalInstructionHTTPQueryManager = SugiliteVerbalInstructionHTTPQueryManager.getInstance(context);
         this.sharedPreferences = sharedPreferences;
         this.actualClickedNode = actualClickedNode;
         this.featurePack = featurePack;

@@ -45,7 +45,7 @@ public class OverlayChosenPopupDialog implements SugiliteVerbalInstructionHTTPQu
         this.sugiliteData = sugiliteData;
         this.sharedPreferences = sharedPreferences;
         this.verbalInstructionRecordingManager = new VerbalInstructionRecordingManager(context, sugiliteData, sharedPreferences);
-        this.httpQueryManager = new SugiliteVerbalInstructionHTTPQueryManager(sharedPreferences);
+        this.httpQueryManager = SugiliteVerbalInstructionHTTPQueryManager.getInstance(context);
         this.overlayChosenPopupDialog = this;
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
         builder.setTitle(Const.appNameUpperCase + " Verbal Instruction");

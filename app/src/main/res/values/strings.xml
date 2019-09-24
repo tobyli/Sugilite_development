@@ -32,7 +32,7 @@
     </string-array>
 
     <!-- Example settings for Data & Sync -->
-    <string name="pref_header_recoding">Automation Recording Settings</string>
+    <string name="pref_header_recoding">Script Sharing Settings</string>
 
     <string name="pref_title_sync_frequency">Sync frequency</string>
     <string-array name="pref_sync_frequency_titles">

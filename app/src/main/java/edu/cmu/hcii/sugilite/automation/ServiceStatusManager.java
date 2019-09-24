@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.provider.Settings;
 
+import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.accessibility_service.SugiliteAccessibilityService;
 
 /**
@@ -13,7 +14,7 @@ import edu.cmu.hcii.sugilite.accessibility_service.SugiliteAccessibilityService;
  * @time 5:03 PM
  */
 public class ServiceStatusManager {
-    private Context context;
+    private ActivityManager manager;
     private static ServiceStatusManager instance;
     private Class serviceClass;
 
@@ -21,7 +22,7 @@ public class ServiceStatusManager {
     // contexts (e.g., Activities, Services, providers, etc). So we need: to make sure we use always
     // the same context (app context)
     private ServiceStatusManager(Context context){
-        this.context = context;
+         this.manager = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
     }
 
     public static ServiceStatusManager getInstance(Context ctx){
@@ -45,7 +46,6 @@ public class ServiceStatusManager {
      */
     public boolean isRunning() {
         Class clazz = serviceClass == null? SugiliteAccessibilityService.class : serviceClass;
-        ActivityManager manager = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
         if (manager != null) {
             for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
                 if (clazz.getName().equals(service.service.getClassName())) {
@@ -60,7 +60,7 @@ public class ServiceStatusManager {
      * bring the user to the accessibility settings if SugiliteAccessibilityService is not active
      */
     public void promptEnabling(){
-        promptEnabling( false );
+        promptEnabling(false);
     }
 
     /**
@@ -70,10 +70,10 @@ public class ServiceStatusManager {
     public void promptEnabling(boolean addFlag){
         if(!isRunning()){
             Intent intent = new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS);
-            if( addFlag ){
+            if(addFlag){
                 intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             }
-            context.startActivity(intent);
+            SugiliteData.getAppContext().startActivity(intent);
         }
     }
 

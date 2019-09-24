@@ -1,6 +1,8 @@
 package edu.cmu.hcii.sugilite.verbal_instruction_demo.server_comm;
 
+import android.content.Context;
 import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
 
 import com.google.gson.ExclusionStrategy;
 import com.google.gson.FieldAttributes;
@@ -14,10 +16,12 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
 import java.net.URL;
 
 import edu.cmu.hcii.sugilite.pumice.communication.PumiceInstructionPacket;
 import edu.cmu.hcii.sugilite.pumice.communication.SkipPumiceJSONSerialization;
+import edu.cmu.hcii.sugilite.sharing.SugiliteScriptSharingHTTPQueryManager;
 
 /**
  * @author toby
@@ -25,13 +29,26 @@ import edu.cmu.hcii.sugilite.pumice.communication.SkipPumiceJSONSerialization;
  * @time 1:12 AM
  */
 public class SugiliteVerbalInstructionHTTPQueryManager {
-    private final String DEFAULT_SERVER_URL =  "http://35.211.149.88:4567/semparse";//"http://codermoder.com:4567/semparse";
-    private final String USER_AGENT = "Mozilla/5.0";
+    private static SugiliteVerbalInstructionHTTPQueryManager instance;
+
+    private static final String DEFAULT_SERVER_URL =  "http://35.211.149.88:4567/semparse";
+    private static final String USER_AGENT = "Mozilla/5.0";
+    private static final int TIME_OUT = 3000;
+
+
     private Gson gson;
     private SharedPreferences sharedPreferences;
+    private URL url;
 
-    public SugiliteVerbalInstructionHTTPQueryManager(SharedPreferences sharedPreferences){
-        this.sharedPreferences = sharedPreferences;
+    public static SugiliteVerbalInstructionHTTPQueryManager getInstance(Context context){
+        if (instance == null) {
+            instance = new SugiliteVerbalInstructionHTTPQueryManager(context);
+        }
+        return instance;
+    }
+
+    private SugiliteVerbalInstructionHTTPQueryManager(Context context){
+        this.sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
         this.gson = new GsonBuilder()
                 .addSerializationExclusionStrategy(new ExclusionStrategy()
                 {
@@ -48,6 +65,22 @@ public class SugiliteVerbalInstructionHTTPQueryManager {
                     }
                 })
                 .create();
+
+        String urlString = "null";
+            if (sharedPreferences != null) {
+                urlString = sharedPreferences.getString("semantic_parsing_server_address", "null");
+        }
+
+        try {
+            if (urlString.equals("null")) {
+                url = new URL(DEFAULT_SERVER_URL);
+            } else {
+                url = new URL(urlString);
+            }
+        } catch (MalformedURLException e){
+            throw new RuntimeException("malformed URL!");
+        }
+
     }
 
     public void sendPumiceInstructionPacketOnASeparateThread(PumiceInstructionPacket packet, SugiliteVerbalInstructionHTTPQueryInterface caller) throws Exception {
@@ -106,20 +139,16 @@ public class SugiliteVerbalInstructionHTTPQueryManager {
 
 
     private void sendRequest(String content, SugiliteVerbalInstructionHTTPQueryInterface caller) throws Exception {
-        String url = sharedPreferences.getString("edit_text_server_address", "null");
-        if(url.equals("null")){
-            url = DEFAULT_SERVER_URL;
-        }
-        URL obj = new URL(url);
-        HttpURLConnection con = (HttpURLConnection) obj.openConnection();
+
+        HttpURLConnection con = (HttpURLConnection) url.openConnection();
 
         //add request header
         con.setRequestMethod("POST");
         con.setRequestProperty("User-Agent", USER_AGENT);
         con.setRequestProperty("Accept-Language", "en-US,en;q=0.5");
         con.setRequestProperty("Content-Type", "application/json");
-        con.setReadTimeout(1 * 3000);
-        con.setConnectTimeout(1 * 3000);
+        con.setReadTimeout(TIME_OUT);
+        con.setConnectTimeout(TIME_OUT);
 
         // Send post request
         con.setDoOutput(true);

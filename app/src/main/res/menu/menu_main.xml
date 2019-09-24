@@ -19,7 +19,6 @@
           android:orderInCategory="8" app:showAsAction="never" />
     <item android:id="@+id/download_repo" android:title="Download Repo Scripts"
         android:orderInCategory="9" app:showAsAction="never" />
-    <item android:id="@+id/download_last_script" android:title="Download Last Script"
-          android:orderInCategory="10" app:showAsAction="never" />
+
 
 </menu>

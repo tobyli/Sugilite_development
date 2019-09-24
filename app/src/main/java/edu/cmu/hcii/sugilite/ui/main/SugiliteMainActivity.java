@@ -5,6 +5,8 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.os.Bundle;
 import android.support.v7.app.ActionBar;
@@ -36,8 +38,8 @@ import edu.cmu.hcii.sugilite.model.OperationBlockDescriptionRegenerator;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.ontology.description.OntologyDescriptionGenerator;
 import edu.cmu.hcii.sugilite.pumice.ui.PumiceDialogActivity;
-import edu.cmu.hcii.sugilite.sharing.DownloadRepoListTask;
-import edu.cmu.hcii.sugilite.sharing.DownloadScriptTask;
+import edu.cmu.hcii.sugilite.sharing.SugiliteScriptSharingHTTPQueryManager;
+import edu.cmu.hcii.sugilite.sharing.model.SugiliteRepoListing;
 import edu.cmu.hcii.sugilite.study.ScriptUsageLogManager;
 import edu.cmu.hcii.sugilite.study.StudyConst;
 import edu.cmu.hcii.sugilite.study.StudyDataUploadManager;
@@ -49,15 +51,16 @@ import static edu.cmu.hcii.sugilite.Const.SQL_SCRIPT_DAO;
 
 
 public class SugiliteMainActivity extends AppCompatActivity {
-    ActionBar.Tab scriptListTab, triggerListTab;
-    Fragment fragmentScriptListTab = new FragmentScriptListTab();
-    Fragment fragmentTriggerListTab = new FragmentTriggerListTab();
+    private ActionBar.Tab scriptListTab, triggerListTab;
+    private Fragment fragmentScriptListTab = new FragmentScriptListTab();
+    private Fragment fragmentTriggerListTab = new FragmentTriggerListTab();
     private SugiliteScriptDao sugiliteScriptDao;
     private SugiliteTriggerDao sugiliteTriggerDao;
     private SugiliteData sugiliteData;
     private AlertDialog progressDialog;
-    StudyDataUploadManager uploadManager;
-    Context context;
+    private StudyDataUploadManager uploadManager;
+    private SugiliteScriptSharingHTTPQueryManager sugiliteScriptSharingHTTPQueryManager;
+    private Context context;
 
 
 
@@ -72,15 +75,16 @@ public class SugiliteMainActivity extends AppCompatActivity {
 
         requestWindowFeature(Window.FEATURE_ACTION_BAR);
         setContentView(R.layout.activity_main);
-        uploadManager = new StudyDataUploadManager(this, sugiliteData);
-        sugiliteData = getApplication() instanceof SugiliteData? (SugiliteData)getApplication() : new SugiliteData();
+        this.uploadManager = new StudyDataUploadManager(this, sugiliteData);
+        this.sugiliteData = getApplication() instanceof SugiliteData? (SugiliteData)getApplication() : new SugiliteData();
+        this.sugiliteScriptSharingHTTPQueryManager = SugiliteScriptSharingHTTPQueryManager.getInstance(this);
         if(Const.DAO_TO_USE == SQL_SCRIPT_DAO) {
-            sugiliteScriptDao = new SugiliteScriptSQLDao(this);
+            this.sugiliteScriptDao = new SugiliteScriptSQLDao(this);
         }
         else {
-            sugiliteScriptDao = new SugiliteScriptFileDao(this, sugiliteData);
+            this.sugiliteScriptDao = new SugiliteScriptFileDao(this, sugiliteData);
         }
-        sugiliteTriggerDao = new SugiliteTriggerDao(this);
+        this.sugiliteTriggerDao = new SugiliteTriggerDao(this);
         this.context = this;
 
         ActionBar actionBar = getSupportActionBar();
@@ -96,8 +100,8 @@ public class SugiliteMainActivity extends AppCompatActivity {
         actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
 
         // Set Tab Icon and Titles
-        scriptListTab = actionBar.newTab().setText("Script List");
-        triggerListTab = actionBar.newTab().setText("Trigger List");
+        this.scriptListTab = actionBar.newTab().setText("Script List");
+        this.triggerListTab = actionBar.newTab().setText("Trigger List");
 
         // Set Tab Listeners
         scriptListTab.setTabListener(new TabListener(fragmentScriptListTab));
@@ -312,63 +316,16 @@ public class SugiliteMainActivity extends AppCompatActivity {
             new Thread(new Runnable() {
                 @Override
                 public void run() {
-                    ExecutorService executor = Executors.newFixedThreadPool(1);
                     try {
-                        DownloadRepoListTask repoListTask = new DownloadRepoListTask();
-                        List<DownloadRepoListTask.SugiliteRepoListing> repo = executor.submit(repoListTask).get();
-                        for (DownloadRepoListTask.SugiliteRepoListing listing : repo) {
-                            DownloadScriptTask scriptTask = new DownloadScriptTask();
-                            scriptTask.setId(listing.id + "");
-                            SugiliteStartingBlock script = executor.submit(scriptTask).get();
+                        List<SugiliteRepoListing> repo = sugiliteScriptSharingHTTPQueryManager.getRepoList();
+                        for (SugiliteRepoListing listing : repo) {
+                            SugiliteStartingBlock script = sugiliteScriptSharingHTTPQueryManager.downloadScript(String.valueOf(listing.getId()));
                             script.setScriptName("DOWNLOADED: " + script.getScriptName());
                             OntologyDescriptionGenerator odg = new OntologyDescriptionGenerator(getApplicationContext());
                             OperationBlockDescriptionRegenerator.regenerateScriptDescriptions(script, odg);
                             sugiliteScriptDao.save(script);
                             sugiliteScriptDao.commitSave();
                         }
-
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    } catch (ExecutionException e) {
-                        e.printStackTrace();
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                    Runnable dismissDialog = new Runnable() {
-                        @Override
-                        public void run() {
-                            try {
-                                if (fragmentScriptListTab instanceof FragmentScriptListTab)
-                                    ((FragmentScriptListTab) fragmentScriptListTab).setUpScriptList();
-                            }
-                            catch (Exception e){
-                                e.printStackTrace();
-                            }
-                        }
-                    };
-                    runOnUiThread(dismissDialog);
-                }
-            }).start();
-        }
-        if(id == R.id.download_last_script) {
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    ExecutorService executor = Executors.newFixedThreadPool(1);
-                    try {
-                        DownloadRepoListTask repoListTask = new DownloadRepoListTask();
-                        List<DownloadRepoListTask.SugiliteRepoListing> repo = executor.submit(repoListTask).get();
-                        DownloadRepoListTask.SugiliteRepoListing listing = repo.get(repo.size() - 1);
-                        Log.i("SugiliteMainActivity", listing.id + " " + listing.title);
-
-                        DownloadScriptTask scriptTask = new DownloadScriptTask();
-                        scriptTask.setId(listing.id + "");
-                        SugiliteStartingBlock script = executor.submit(scriptTask).get();
-                        script.setScriptName("DOWNLOADED: " + script.getScriptName());
-                        OntologyDescriptionGenerator odg = new OntologyDescriptionGenerator(getApplicationContext());
-                        OperationBlockDescriptionRegenerator.regenerateScriptDescriptions(script, odg);
-                        sugiliteScriptDao.save(script);
-                        sugiliteScriptDao.commitSave();
 
                     } catch (InterruptedException e) {
                         e.printStackTrace();

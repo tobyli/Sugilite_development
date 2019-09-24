@@ -1,6 +1,7 @@
 package edu.cmu.hcii.sugilite;
 
 import android.app.Application;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Handler;
@@ -44,6 +45,9 @@ import edu.cmu.hcii.sugilite.verbal_instruction_demo.VerbalInstructionIconManage
  * @time 2:02 PM
  */
 public class SugiliteData extends Application {
+    //the static application context
+    private static Context applicationContext;
+
     //used to store the current active script
     private SugiliteStartingBlock scriptHead, trackingHead;
     private SugiliteBlock currentScriptBlock, currentTrackingBlock;
@@ -100,6 +104,18 @@ public class SugiliteData extends Application {
 
     //used to indicate the state of the sugilite system
     public static final int DEFAULT_STATE = 0, RECORDING_STATE = 1, RECORDING_FOR_ERROR_HANDLING_STATE = 2, EXECUTION_STATE = 3, REGULAR_DEBUG_STATE = 4, PAUSED_FOR_DUCK_MENU_IN_REGULAR_EXECUTION_STATE = 6, PAUSED_FOR_ERROR_HANDLING_STATE = 7, PAUSED_FOR_CRUCIAL_STEP_STATE = 8, PAUSED_FOR_BREAKPOINT_STATE = 9, PAUSED_FOR_DUCK_MENU_IN_DEBUG_MODE = 10;
+
+    @Override
+    public void onCreate(){
+        super.onCreate();
+        SugiliteData.applicationContext = getApplicationContext();
+    }
+
+    public static Context getAppContext() {
+        return SugiliteData.applicationContext;
+    }
+
+
     public int getCurrentSystemState(){
         return currentSystemState;
     }

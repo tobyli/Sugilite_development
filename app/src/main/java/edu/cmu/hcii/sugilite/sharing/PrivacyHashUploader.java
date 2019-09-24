@@ -1,9 +1,11 @@
 package edu.cmu.hcii.sugilite.sharing;
 
+import android.content.Context;
 import android.os.AsyncTask;
 import android.util.Log;
 import com.google.gson.Gson;
 import edu.cmu.hcii.sugilite.Const;
+import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.sharing.debug.HasPlaintext;
 
 import java.io.*;
@@ -11,19 +13,22 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.util.concurrent.ExecutionException;
 
 public class PrivacyHashUploader {
 
     // TODO make this server address permanent
 
-    private URL uploadHashedUIUrl;
+    private SugiliteScriptSharingHTTPQueryManager sugiliteScriptSharingHTTPQueryManager;
 
-    public PrivacyHashUploader() {
+    public PrivacyHashUploader(Context context) {
+        this.sugiliteScriptSharingHTTPQueryManager = SugiliteScriptSharingHTTPQueryManager.getInstance(context);
+        /*
         try {
             uploadHashedUIUrl = new URL(Const.SHARING_SERVER_BASE_URL + Const.UPLOAD_HASHED_UI_ENDPOINT);
         } catch (MalformedURLException e) {
             e.printStackTrace();
-        }
+        }*/
     }
 
     private static String jsonProperty(String key, String value) {
@@ -34,7 +39,7 @@ public class PrivacyHashUploader {
         return "\"" + key + "\": " + value;
     }
 
-    public static String hashedTextToJson(HashedSplitString hashedText) {
+    private static String hashedTextToJson(HashedSplitString hashedText) {
         StringBuilder sb = new StringBuilder("{\n");
 
         sb.append(jsonProperty("text_hash", hashedText.preferred.toString()));
@@ -93,44 +98,8 @@ public class PrivacyHashUploader {
         return sb.toString();
     }
 
-    public void uploadHashedUI(HashedUIStrings ui) {
-        new UploadHashedUITask().execute(ui);
+    public void uploadHashedUI(HashedUIStrings ui) throws ExecutionException, InterruptedException {
+        sugiliteScriptSharingHTTPQueryManager.uploadHashedUI(ui);
     }
 
-    private class UploadHashedUITask extends AsyncTask<HashedUIStrings, Void, Integer> {
-        @Override
-        protected Integer doInBackground(HashedUIStrings... hashedUIStrings) {
-            if (hashedUIStrings.length != 1) return 0;
-            HashedUIStrings ui = hashedUIStrings[0];
-            try {
-                HttpURLConnection urlConnection = (HttpURLConnection) uploadHashedUIUrl.openConnection();
-                urlConnection.setRequestMethod("POST");
-                urlConnection.setRequestProperty("Accept-Language", "en-US,en;q=0.5");
-                urlConnection.setRequestProperty("Content-Type", "application/json");
-                urlConnection.setReadTimeout(1 * 3000);
-                urlConnection.setConnectTimeout(1 * 3000);
-
-                urlConnection.setDoOutput(true);
-                urlConnection.setDoInput(true);
-                urlConnection.setChunkedStreamingMode(0); // this might increase performance?
-                BufferedOutputStream out = new BufferedOutputStream(urlConnection.getOutputStream());
-                BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(out, StandardCharsets.UTF_8));
-                writer.write(hashedUIToJson(ui));
-                writer.flush();
-                writer.close();
-                out.close();
-                urlConnection.connect();
-
-                int responseCode = urlConnection.getResponseCode();
-                Log.v("PrivacyHashUploader", "uploaded hashed UI with response code " + responseCode);
-                return responseCode;
-            } catch (IOException e) {
-                Log.i("PrivacyHashUploader", "upload hashed ui failed");
-                e.printStackTrace();
-            } finally {
-            }
-            return 400;
-
-        }
-    }
 }

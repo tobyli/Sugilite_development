@@ -70,7 +70,6 @@ public class Const {
 
     //package names to excluded for recording & tracking
     public static final String[] ACCESSIBILITY_SERVICE_EXCEPTED_PACKAGE_NAMES = {"edu.cmu.hcii.sugilite", "com.android.systemui", "edu.cmu.hcii.sugilitecommunicationtest", "edu.cmu.helpr"};
-    //public static final String[] ACCESSIBILITY_SERVICE_EXCEPTED_PACKAGE_NAMES = {"edu.cmu.hcii.sugilite", "edu.cmu.hcii.sugilitecommunicationtest", "edu.cmu.helpr"};
     public static final String[] ACCESSIBILITY_SERVICE_TRACKING_EXCLUDED_PACKAGE_NAMES = {"edu.cmu.hcii.sugilitecommunicationtest", "edu.cmu.hcii.sugilite", "edu.cmu.helpr"};
     public static final String[] INPUT_METHOD_PACKAGE_NAMES = {"com.google.android.inputmethod.pinyin", "com.google.android.inputmethod.latin", "com.menny.android.anysoftkeyboard"};
 
@@ -174,12 +173,6 @@ public class Const {
     public static final String[] CONFIRM_CONTEXT_WORDS = {"yes", "no", "correct", "incorrect", "wrong"};
     public static final String[] COMPARISON_CONTEXT_WORDS = {"at least", "greater", "less", "below", "above", "cheaper", "colder", "cooler", "price", "temperature"};
 
-    public static final String SHARING_SERVER_BASE_URL = "http://35.196.46.194:8080/";
-    public static final String UPLOAD_HASHED_UI_ENDPOINT = "privacy/upload_ui";
-    public static final String FILTER_UI_STRING_ENDPOINT = "privacy/debug_filter";
-    public static final String UPLOAD_SCRIPT_TO_REPO_ENDPOINT = "repo/upload";
-    public static final String DOWNLOAD_SCRIPT_FROM_REPO_ENDPOINT_PREFIX = "repo/";
-    public static final String DOWNLOAD_REPO_LIST_ENDPOINT = "repo/list";
     public static final String[] UI_UPLOAD_PACKAGE_BLACKLIST = {"com.google.android.inputmethod.pinyin", "com.google.android.inputmethod.latin", "com.menny.android.anysoftkeyboard"};
     public static final SugiliteRelation[] POTENTIALLY_PRIVATE_RELATIONS = {
             SugiliteRelation.HAS_TEXT,

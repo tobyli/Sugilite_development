@@ -34,6 +34,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.ExecutionException;
 
 import edu.cmu.hcii.sugilite.Const;
 import edu.cmu.hcii.sugilite.R;
@@ -123,7 +124,7 @@ public class VerbalInstructionIconManager implements SugiliteVoiceInterface {
         }
         this.recordingOverlayManager = recordingOverlayManager;
 
-        this.privacyHashUploader = new PrivacyHashUploader();
+        this.privacyHashUploader = new PrivacyHashUploader(context);
 
     }
 
@@ -238,7 +239,12 @@ public class VerbalInstructionIconManager implements SugiliteVoiceInterface {
                                 sugiliteAccessibilityService.updatePumiceOverlay(latestUISnapshot);
                                 if (sharedPreferences.getBoolean("uploading_hashed_ui_in_progress", false)) {
                                     HashedUIStrings hashedUIStrings = new HashedUIStrings(sugiliteAccessibilityService.getCurrentAppPackageName(), sugiliteAccessibilityService.getCurrentAppActivityName(), new SerializableUISnapshot(latestUISnapshot), Settings.Secure.getString(context.getContentResolver(), Settings.Secure.ANDROID_ID), new HashedSplitStringGenerator());
-                                    privacyHashUploader.uploadHashedUI(hashedUIStrings);
+                                    try {
+                                        privacyHashUploader.uploadHashedUI(hashedUIStrings);
+                                    } catch (Exception e) {
+                                        //TODO: better handle this error
+                                        e.printStackTrace();
+                                    }
                                 }
                                 sugiliteAccessibilityService.checkIfAutomationCanBePerformed();
                             }
@@ -372,8 +378,9 @@ public class VerbalInstructionIconManager implements SugiliteVoiceInterface {
                     operationList.add("Test ASR");
                     operationList.add("Dump the latest UI snapshot");
                     operationList.add("Record a Sugilite study packet");
-                    operationList.add("Switch recording overlay");
                     operationList.add("Toggle Uploading Hashed UI Graphs");
+                    operationList.add("Switch recording overlay");
+
 
 
                     String[] operations = new String[operationList.size()];

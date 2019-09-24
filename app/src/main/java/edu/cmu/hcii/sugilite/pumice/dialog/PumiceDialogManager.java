@@ -96,7 +96,7 @@ public class PumiceDialogManager{
             throw new RuntimeException("failed to initiate/load the knowledge manager");
         }
         this.sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
-        this.httpQueryManager = new SugiliteVerbalInstructionHTTPQueryManager(sharedPreferences);
+        this.httpQueryManager = SugiliteVerbalInstructionHTTPQueryManager.getInstance(context);
         this.executorService = Executors.newFixedThreadPool(Const.UI_SNAPSHOT_TEXT_PARSING_THREAD_COUNT);
         this.serviceStatusManager = ServiceStatusManager.getInstance(context);
         this.sugiliteData.pumiceDialogManager = this;

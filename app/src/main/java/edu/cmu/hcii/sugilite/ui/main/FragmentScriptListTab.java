@@ -21,21 +21,18 @@ import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 
-import com.google.longrunning.Operation;
+
 import edu.cmu.hcii.sugilite.Const;
 import edu.cmu.hcii.sugilite.R;
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.automation.ServiceStatusManager;
-import edu.cmu.hcii.sugilite.communication.SugiliteBlockJSONProcessor;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptFileDao;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptSQLDao;
@@ -47,7 +44,7 @@ import edu.cmu.hcii.sugilite.model.block.util.ScriptPrinter;
 import edu.cmu.hcii.sugilite.ontology.description.OntologyDescriptionGenerator;
 import edu.cmu.hcii.sugilite.pumice.PumiceDemonstrationUtil;
 import edu.cmu.hcii.sugilite.sharing.PrepareScriptForSharingTask;
-import edu.cmu.hcii.sugilite.sharing.UploadScriptTask;
+import edu.cmu.hcii.sugilite.sharing.SugiliteScriptSharingHTTPQueryManager;
 import edu.cmu.hcii.sugilite.study.ScriptUsageLogManager;
 import edu.cmu.hcii.sugilite.ui.ScriptDebuggingActivity;
 import edu.cmu.hcii.sugilite.ui.ScriptDetailActivity;
@@ -72,6 +69,8 @@ public class FragmentScriptListTab extends Fragment {
     private NewScriptGeneralizer newScriptGeneralizer;
     private ScriptQueryHasher scriptQueryHasher;
     private OntologyDescriptionGenerator ontologyDescriptionGenerator;
+    private SugiliteScriptSharingHTTPQueryManager sugiliteScriptSharingHTTPQueryManager;
+
 
 
     @Override
@@ -85,6 +84,7 @@ public class FragmentScriptListTab extends Fragment {
         this.newScriptGeneralizer = new NewScriptGeneralizer(activity);
         this.scriptQueryHasher = new ScriptQueryHasher(activity);
         this.ontologyDescriptionGenerator = new OntologyDescriptionGenerator(getContext());
+        this.sugiliteScriptSharingHTTPQueryManager = SugiliteScriptSharingHTTPQueryManager.getInstance(activity);
 
         if(Const.DAO_TO_USE == SQL_SCRIPT_DAO)
             this.sugiliteScriptDao = new SugiliteScriptSQLDao(activity);
@@ -94,6 +94,7 @@ public class FragmentScriptListTab extends Fragment {
         //TODO: confirm overwrite when duplicated name
         //TODO: combine the two instances of script creation
 
+        //initiate the button for adding a new script
         View addButton = rootView.findViewById(R.id.addButton);
         addButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -159,13 +160,14 @@ public class FragmentScriptListTab extends Fragment {
     private static final int ITEM_RUN = Menu.FIRST + 1;
     private static final int ITEM_DEBUG = Menu.FIRST + 2;
     private static final int ITEM_RENAME = Menu.FIRST + 3;
-    private static final int ITEM_SHARE = Menu.FIRST + 4;
-    private static final int ITEM_GENERALIZE = Menu.FIRST + 5;
-    private static final int ITEM_PRINT_DEBUG_INFO = Menu.FIRST + 6;
-    private static final int ITEM_EDIT_SOURCE = Menu.FIRST + 7;
-    private static final int ITEM_DELETE = Menu.FIRST + 8;
-    private static final int ITEM_HASH_STRINGS = Menu.FIRST + 9;
-    private static final int ITEM_DUPLICATE = Menu.FIRST + 10;
+    private static final int ITEM_SHARE_DIRECTLY = Menu.FIRST + 4;
+    private static final int ITEM_SHARE_FILTERED = Menu.FIRST + 5;
+    private static final int ITEM_GENERALIZE = Menu.FIRST + 6;
+    private static final int ITEM_PRINT_DEBUG_INFO = Menu.FIRST + 7;
+    private static final int ITEM_EDIT_SOURCE = Menu.FIRST + 8;
+    private static final int ITEM_DELETE = Menu.FIRST + 9;
+    private static final int ITEM_HASH_STRINGS = Menu.FIRST + 10;
+    private static final int ITEM_DUPLICATE = Menu.FIRST + 11;
 
     //context menu are the long-click menus for each script
     @Override
@@ -181,7 +183,8 @@ public class FragmentScriptListTab extends Fragment {
         menu.add(0, ITEM_RUN, 0, "Run");
         menu.add(0, ITEM_DEBUG, 0, "Debug");
         menu.add(0, ITEM_RENAME, 0, "Rename");
-        menu.add(0, ITEM_SHARE, 0, "Share");
+        menu.add(0, ITEM_SHARE_DIRECTLY, 0, "Share Raw Script");
+        menu.add(0, ITEM_SHARE_FILTERED, 0, "Share Masked Script");
         menu.add(0, ITEM_GENERALIZE, 0, "Generalize");
         menu.add(0, ITEM_PRINT_DEBUG_INFO, 0, "Print Debug Info");
         menu.add(0, ITEM_EDIT_SOURCE, 0, "Edit Source");
@@ -290,23 +293,7 @@ public class FragmentScriptListTab extends Fragment {
 
                     }
                     break;
-                case ITEM_SHARE:
-                    //share
-                    // SugiliteBlockJSONProcessor processor = new SugiliteBlockJSONProcessor(activity);
-                    // try {
-                    //     String json = processor.scriptToJson(script);
-                    //     System.out.println(json);
-                    //     SugiliteStartingBlock recoveredFromJSON = processor.jsonToScript(json);
-                    //     recoveredFromJSON.setScriptName("recovered_" + recoveredFromJSON.getScriptName());
-                    //     sugiliteScriptDao.save(recoveredFromJSON);
-                    //     sugiliteScriptDao.commitSave();
-                    //     setUpScriptList();
-
-                    //     sugiliteData.communicationController.sendAllScripts();
-                    // } catch (Exception e) {
-                    //     e.printStackTrace();
-                    // }
-                    // Toast.makeText(activity, "Sharing Script is not supported yet!", Toast.LENGTH_SHORT).show();
+                case ITEM_SHARE_DIRECTLY:
                     progressDialog = new AlertDialog.Builder(activity).setMessage(Const.LOADING_MESSAGE).create();
                     progressDialog.getWindow().setType(OVERLAY_TYPE);
                     progressDialog.setCanceledOnTouchOutside(false);
@@ -314,20 +301,54 @@ public class FragmentScriptListTab extends Fragment {
                     new Thread(new Runnable() {
                         @Override
                         public void run() {
-                            PrepareScriptForSharingTask task = new PrepareScriptForSharingTask();
+                            try {
+                                String id = sugiliteScriptSharingHTTPQueryManager.uploadScript(scriptName, "demo", script);
+                                Log.i("Upload script", "Script shared with id : " + id);
+                                sugiliteScriptDao.save(script);
+                                sugiliteScriptDao.commitSave();
+                            } catch (InterruptedException e) {
+                                e.printStackTrace();
+                            } catch (ExecutionException e) {
+                                e.printStackTrace();
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+                            Runnable dismissDialog = new Runnable() {
+                                @Override
+                                public void run() {
+                                    progressDialog.dismiss();
+                                    try {
+                                        setUpScriptList();
+                                    }
+                                    catch (Exception e){
+                                        e.printStackTrace();
+                                    }
+                                }
+                            };
+                            if(activity != null){
+                                activity.runOnUiThread(dismissDialog);
+                            }
+                        }
+                    }).start();
+                    break;
+                case ITEM_SHARE_FILTERED:
+                    progressDialog = new AlertDialog.Builder(activity).setMessage(Const.LOADING_MESSAGE).create();
+                    progressDialog.getWindow().setType(OVERLAY_TYPE);
+                    progressDialog.setCanceledOnTouchOutside(false);
+                    progressDialog.show();
+                    new Thread(new Runnable() {
+                        @Override
+                        public void run() {
+                            PrepareScriptForSharingTask task = new PrepareScriptForSharingTask(sugiliteScriptSharingHTTPQueryManager.getFilterURL());
                             task.setScript(script);
                             ExecutorService executor = Executors.newFixedThreadPool(1);
                             try {
                                 SugiliteStartingBlock sharable = executor.submit(task).get();
-                                UploadScriptTask uploadTask = new UploadScriptTask();
-                                uploadTask.setTitle(scriptName);
-                                uploadTask.setAuthor("demo");
-                                uploadTask.setScript(sharable);
-                                String id = executor.submit(uploadTask).get();
+                                String id = sugiliteScriptSharingHTTPQueryManager.uploadScript(scriptName, "demo", sharable);
                                 Log.i("Upload script", "Script shared with id : " + id);
                                 OperationBlockDescriptionRegenerator.regenerateScriptDescriptions(sharable, ontologyDescriptionGenerator);
                                 sharable.setScriptName("UPLOADED: " + scriptName);
-                                sugiliteScriptDao.save(script);
+                                sugiliteScriptDao.save(sharable);
                                 sugiliteScriptDao.commitSave();
                             } catch (InterruptedException e) {
                                 e.printStackTrace();

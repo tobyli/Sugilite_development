@@ -18,6 +18,10 @@ public class HashedString implements Serializable {
         this.hash = hash;
     }
 
+    public static HashedString fromEncodedString(String encodedString) {
+        return new HashedString(bytesFromHex(encodedString));
+    }
+
     @Override
     public int hashCode() {
         return Arrays.hashCode(hash);
@@ -36,7 +40,9 @@ public class HashedString implements Serializable {
             return false;
         }
 
-        if (hash.length != hash2.length) return false;
+        if (hash.length != hash2.length) {
+            return false;
+        }
         for (int i = 0; i < hash.length; i++) {
             if (hash[i] != hash2[i]) return false;
         }
@@ -48,11 +54,8 @@ public class HashedString implements Serializable {
         return bytesToHex(hash);
     }
 
-    public static HashedString fromEncodedString(String encodedString) {
-        return new HashedString(bytesFromHex(encodedString));
-    }
 
-    public static byte[] hash(String input) {
+    private static byte[] hash(String input) {
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
             return digest.digest(input.getBytes(StandardCharsets.UTF_8));
@@ -63,7 +66,8 @@ public class HashedString implements Serializable {
     }
 
     private static final char[] HEX_ARRAY = "0123456789abcdef".toCharArray();
-    public static String bytesToHex(byte[] bytes) {
+
+    private static String bytesToHex(byte[] bytes) {
         char[] hexChars = new char[bytes.length * 2];
         for (int j = 0; j < bytes.length; j++) {
             int v = bytes[j] & 0xFF;
@@ -72,7 +76,8 @@ public class HashedString implements Serializable {
         }
         return new String(hexChars);
     }
-    public static byte[] bytesFromHex(String hexString) {
+
+    private static byte[] bytesFromHex(String hexString) {
         char[] hexChars = hexString.toCharArray();
         byte[] result = new byte[hexChars.length / 2];
         for (int j = 0; j < hexChars.length; j += 2) {

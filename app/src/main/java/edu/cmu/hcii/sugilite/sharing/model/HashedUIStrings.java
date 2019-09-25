@@ -12,14 +12,14 @@ import edu.cmu.hcii.sugilite.sharing.debug.HasPlaintext;
 import java.util.*;
 
 /**
- * A hashed representation of the text present in a UI snapshot.
+ * A hashed representation of all text strings present in a UI snapshot.
  */
 public class HashedUIStrings {
 
-    public final String packageName;
-    public final String activityName;
-    public final HashedString packageUserHash;
-    public final List<HashedSplitString> hashedTexts;
+    private final String packageName;
+    private final String activityName;
+    private final HashedString packageUserHash;
+    private final List<HashedSplitString> hashedTexts;
 
     // note: storing activityname and packagename may be redundant
     public HashedUIStrings(String packageName, String activityName, SerializableUISnapshot snapshot, String androidID, HashedSplitStringGenerator generator) {
@@ -106,7 +106,7 @@ public class HashedUIStrings {
     private static String hashedTextToJson(HashedSplitString hashedText) {
         StringBuilder sb = new StringBuilder("{\n");
 
-        sb.append(jsonProperty("text_hash", hashedText.preferred.toString()));
+        sb.append(jsonProperty("text_hash", hashedText.getPreferred().toString()));
         sb.append(",\n");
 
         if (hashedText instanceof HasPlaintext) {
@@ -116,8 +116,8 @@ public class HashedUIStrings {
 
         sb.append("\"derived_hashes\": [\n");
 
-        for (int i = 0; i < hashedText.alternatives.size(); i++) {
-            HashedSubString subString = hashedText.alternatives.get(i);
+        for (int i = 0; i < hashedText.getAlternatives().size(); i++) {
+            HashedSubString subString = hashedText.getAlternatives().get(i);
 
             if (i != 0) sb.append(",\n");
             sb.append("{\n");
@@ -130,7 +130,7 @@ public class HashedUIStrings {
                 sb.append(",\n");
             }
 
-            sb.append(jsonProperty("tokens_removed", subString.priority));
+            sb.append(jsonProperty("tokens_removed", subString.getPriority()));
 
             sb.append("}");
         }

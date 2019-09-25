@@ -43,8 +43,8 @@ import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.model.block.util.ScriptPrinter;
 import edu.cmu.hcii.sugilite.ontology.description.OntologyDescriptionGenerator;
 import edu.cmu.hcii.sugilite.pumice.PumiceDemonstrationUtil;
-import edu.cmu.hcii.sugilite.sharing.PrepareScriptForSharingTask;
 import edu.cmu.hcii.sugilite.sharing.SugiliteScriptSharingHTTPQueryManager;
+import edu.cmu.hcii.sugilite.sharing.SugiliteSharingScriptPreparer;
 import edu.cmu.hcii.sugilite.study.ScriptUsageLogManager;
 import edu.cmu.hcii.sugilite.ui.ScriptDebuggingActivity;
 import edu.cmu.hcii.sugilite.ui.ScriptDetailActivity;
@@ -70,6 +70,7 @@ public class FragmentScriptListTab extends Fragment {
     private ScriptQueryHasher scriptQueryHasher;
     private OntologyDescriptionGenerator ontologyDescriptionGenerator;
     private SugiliteScriptSharingHTTPQueryManager sugiliteScriptSharingHTTPQueryManager;
+    private SugiliteSharingScriptPreparer sugiliteSharingScriptPreparer;
 
 
 
@@ -85,6 +86,7 @@ public class FragmentScriptListTab extends Fragment {
         this.scriptQueryHasher = new ScriptQueryHasher(activity);
         this.ontologyDescriptionGenerator = new OntologyDescriptionGenerator(getContext());
         this.sugiliteScriptSharingHTTPQueryManager = SugiliteScriptSharingHTTPQueryManager.getInstance(activity);
+        this.sugiliteSharingScriptPreparer = new SugiliteSharingScriptPreparer(activity);
 
         if(Const.DAO_TO_USE == SQL_SCRIPT_DAO)
             this.sugiliteScriptDao = new SugiliteScriptSQLDao(activity);
@@ -339,15 +341,12 @@ public class FragmentScriptListTab extends Fragment {
                     new Thread(new Runnable() {
                         @Override
                         public void run() {
-                            PrepareScriptForSharingTask task = new PrepareScriptForSharingTask(sugiliteScriptSharingHTTPQueryManager.getFilterURL());
-                            task.setScript(script);
-                            ExecutorService executor = Executors.newFixedThreadPool(1);
                             try {
-                                SugiliteStartingBlock sharable = executor.submit(task).get();
+                                SugiliteStartingBlock sharable = sugiliteSharingScriptPreparer.prepareScript(script);
                                 String id = sugiliteScriptSharingHTTPQueryManager.uploadScript(scriptName, "demo", sharable);
                                 Log.i("Upload script", "Script shared with id : " + id);
                                 OperationBlockDescriptionRegenerator.regenerateScriptDescriptions(sharable, ontologyDescriptionGenerator);
-                                sharable.setScriptName("UPLOADED: " + scriptName);
+                                sharable.setScriptName("UPLOADED_FILTERED: " + scriptName);
                                 sugiliteScriptDao.save(sharable);
                                 sugiliteScriptDao.commitSave();
                             } catch (InterruptedException e) {
@@ -430,6 +429,7 @@ public class FragmentScriptListTab extends Fragment {
                         public void run()
                         {
                             try {
+                                script.setScriptName("LOCAL_HASHED: " + scriptName);
                                 scriptQueryHasher.hashOntologyQueries(script);
                                 sugiliteScriptDao.save(script);
                                 sugiliteScriptDao.commitSave();

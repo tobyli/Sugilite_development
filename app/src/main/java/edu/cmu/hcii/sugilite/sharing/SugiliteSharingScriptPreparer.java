@@ -1,13 +1,31 @@
 package edu.cmu.hcii.sugilite.sharing;
 
+import android.content.Context;
 import android.util.Log;
 
-import com.google.common.collect.*;
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Multimap;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+
+import java.io.BufferedOutputStream;
+import java.io.BufferedWriter;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.Callable;
+
 import edu.cmu.hcii.sugilite.Const;
+import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteBlockMetaInfo;
 import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
@@ -16,62 +34,29 @@ import edu.cmu.hcii.sugilite.model.operation.SugiliteOperation;
 import edu.cmu.hcii.sugilite.model.operation.binary.SugiliteBinaryOperation;
 import edu.cmu.hcii.sugilite.model.operation.trinary.SugiliteTrinaryOperation;
 import edu.cmu.hcii.sugilite.model.operation.unary.SugiliteUnaryOperation;
-import edu.cmu.hcii.sugilite.ontology.*;
+import edu.cmu.hcii.sugilite.ontology.HashedStringOntologyQuery;
+import edu.cmu.hcii.sugilite.ontology.LeafOntologyQuery;
+import edu.cmu.hcii.sugilite.ontology.OntologyQuery;
+import edu.cmu.hcii.sugilite.ontology.OntologyQueryWithSubQueries;
+import edu.cmu.hcii.sugilite.ontology.SerializableUISnapshot;
+import edu.cmu.hcii.sugilite.ontology.StringAlternativeOntologyQuery;
 import edu.cmu.hcii.sugilite.recording.newrecording.SugiliteBlockBuildingHelper;
 import edu.cmu.hcii.sugilite.sharing.model.HashedString;
 import edu.cmu.hcii.sugilite.sharing.model.StringInContext;
+import edu.cmu.hcii.sugilite.sharing.model.StringInContextWithIndexAndPriority;
 
-import java.io.*;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
-import java.util.*;
-import java.util.concurrent.Callable;
+public class SugiliteSharingScriptPreparer {
 
-public class PrepareScriptForSharingTask implements Callable<SugiliteStartingBlock> {
+    //private SugiliteBlockBuildingHelper helper;
+    private SugiliteScriptSharingHTTPQueryManager sugiliteScriptSharingHTTPQueryManager;
 
-    private URL filterStringUrl;
 
-    public PrepareScriptForSharingTask (URL filterStringUrl) {
-        this.filterStringUrl = filterStringUrl;
+    public SugiliteSharingScriptPreparer(Context context) {
+        //this.helper = helper;
+        this.sugiliteScriptSharingHTTPQueryManager = SugiliteScriptSharingHTTPQueryManager.getInstance(context);
     }
 
-    private SugiliteStartingBlock script;
-    private SugiliteBlockBuildingHelper helper;
-
-    public SugiliteStartingBlock getScript() {
-        return script;
-    }
-
-    public void setScript(SugiliteStartingBlock script) {
-        this.script = script;
-    }
-
-    public SugiliteBlockBuildingHelper getHelper() {
-        return helper;
-    }
-
-    public void setHelper(SugiliteBlockBuildingHelper helper) {
-        this.helper = helper;
-    }
-
-    private static class StringInContextWithIndexAndPriority extends StringInContext {
-        public int priority = -1;
-        public int index = -1;
-
-        public StringInContextWithIndexAndPriority(String activityName, String packageName, String text) {
-            super(activityName, packageName, text);
-        }
-
-        public StringInContextWithIndexAndPriority(String activityName, String packageName, String text, int priority, int index) {
-            super(activityName, packageName, text);
-            this.priority = priority;
-            this.index = index;
-        }
-
-    }
-
-    public static Set<StringInContext> getStringsFromOntologyQuery(OntologyQuery query, int startIndex, String packageName, String activityName) {
+    private static Set<StringInContext> getStringsFromOntologyQuery(OntologyQuery query, int startIndex, String packageName, String activityName) {
         Set<StringInContext> strings = new HashSet<StringInContext>();
 
         if (query instanceof LeafOntologyQuery) {
@@ -93,7 +78,7 @@ public class PrepareScriptForSharingTask implements Callable<SugiliteStartingBlo
         return strings;
     }
 
-    public static Set<StringInContext> getStringsFromBlock(SugiliteBlock block, int startIndex) {
+    private static Set<StringInContext> getStringsFromBlock(SugiliteBlock block, int startIndex) {
         Set<StringInContext> strings = new HashSet<StringInContext>();
         if (block instanceof SugiliteOperationBlock) {
             SugiliteOperationBlock operationBlock = (SugiliteOperationBlock)block;
@@ -151,7 +136,7 @@ public class PrepareScriptForSharingTask implements Callable<SugiliteStartingBlo
     }
 
     // TODO should this method be in its own class?
-    public static Set<StringInContext> getStringsFromScript(SugiliteStartingBlock script) {
+    private static Set<StringInContext> getStringsFromScript(SugiliteStartingBlock script) {
 
         int currentIndex = 0;
         Set<StringInContext> strings = new HashSet<StringInContext>();
@@ -166,7 +151,7 @@ public class PrepareScriptForSharingTask implements Callable<SugiliteStartingBlo
         return strings;
     }
 
-    public static OntologyQuery getStringReplacementOntologyQuery(OntologyQuery oq, SugiliteBlockMetaInfo metaInfo, Map<StringInContext, StringAlternativeGenerator.StringAlternative> replacements) {
+    private static OntologyQuery getStringReplacementOntologyQuery(OntologyQuery oq, SugiliteBlockMetaInfo metaInfo, Map<StringInContext, StringAlternativeGenerator.StringAlternative> replacements) {
         String activityName = metaInfo.getUiSnapshot().getActivityName();
         String packageName = metaInfo.getUiSnapshot().getPackageName();
 
@@ -207,7 +192,7 @@ public class PrepareScriptForSharingTask implements Callable<SugiliteStartingBlo
         return null;
     }
 
-    public static OntologyQuery getReplacementOntologyQuery(OntologyQuery oq, SugiliteBlockMetaInfo metaInfo, Map<StringInContext, StringAlternativeGenerator.StringAlternative> replacements) {
+    private static OntologyQuery getReplacementOntologyQuery(OntologyQuery oq, SugiliteBlockMetaInfo metaInfo, Map<StringInContext, StringAlternativeGenerator.StringAlternative> replacements) {
         OntologyQuery replacement = getStringReplacementOntologyQuery(oq, metaInfo, replacements);
 
         // uh oh this should be a UISnapshot not a SerializableUISnapshot
@@ -217,7 +202,7 @@ public class PrepareScriptForSharingTask implements Callable<SugiliteStartingBlo
         return replacement;
     }
 
-    public static void replaceStringsInBlock(SugiliteBlock block, Map<StringInContext, StringAlternativeGenerator.StringAlternative> replacements) {
+    private static void replaceStringsInBlock(SugiliteBlock block, Map<StringInContext, StringAlternativeGenerator.StringAlternative> replacements) {
         if (block instanceof SugiliteOperationBlock) {
             SugiliteOperationBlock operationBlock = (SugiliteOperationBlock)block;
             SugiliteOperation op = ((SugiliteOperationBlock) block).getOperation();
@@ -254,21 +239,19 @@ public class PrepareScriptForSharingTask implements Callable<SugiliteStartingBlo
         }
     }
 
-    public static void replaceStringsInScript(SugiliteStartingBlock script, Map<StringInContext, StringAlternativeGenerator.StringAlternative> replacements) {
+    private static void replaceStringsInScript(SugiliteStartingBlock script, Map<StringInContext, StringAlternativeGenerator.StringAlternative> replacements) {
         for (SugiliteBlock block : script.getFollowingBlocks()) {
             replaceStringsInBlock(block, replacements);
         }
     }
 
-    @Override
-    public SugiliteStartingBlock call() throws Exception {
-
-        Log.i("PrepareScriptForSharingTask", "AAAAAAAA we've started");
+    public SugiliteStartingBlock prepareScript(SugiliteStartingBlock script) throws Exception {
+        Log.i("PrepareScriptForSharingTask", "PrepareScriptForSharingTask started");
 
         // get strings
         Set<StringInContext> originalQueryStrings = getStringsFromScript(script);
 
-        Log.i("PrepareScriptForSharingTask", "size of querystrings " + originalQueryStrings.size());
+        Log.i("PrepareScriptForSharingTask", "size of query strings" + originalQueryStrings.size());
 
         // COMPUTE ALTERNATIVE STRINGS
         Map<StringInContext, Integer> originalQueryStringsIndex = new HashMap<>();
@@ -279,83 +262,32 @@ public class PrepareScriptForSharingTask implements Callable<SugiliteStartingBlo
         int index = 0;
 
         for (StringInContext s : originalQueryStrings) {
-            Set<StringAlternativeGenerator.StringAlternative> alternatives = StringAlternativeGenerator.generateAlternatives(s.text);
-            StringInContextWithIndexAndPriority entry = new StringInContextWithIndexAndPriority(s.activityName, s.packageName, s.text, 0, index);
-            decodedStrings.put(new HashedString(s.text), entry);
+            Set<StringAlternativeGenerator.StringAlternative> alternatives = StringAlternativeGenerator.generateAlternatives(s.getText());
+            StringInContextWithIndexAndPriority entry = new StringInContextWithIndexAndPriority(s.getActivityName(), s.getPackageName(), s.getText(), 0, index);
+            decodedStrings.put(new HashedString(s.getText()), entry);
             originalQueryStringsIndex.put(s, index);
             queryStrings.add(entry);
             for (StringAlternativeGenerator.StringAlternative a : alternatives) {
-                StringInContextWithIndexAndPriority alt = new StringInContextWithIndexAndPriority(s.activityName, s.packageName, a.altText, a.priority, index);
+                StringInContextWithIndexAndPriority alt = new StringInContextWithIndexAndPriority(s.getActivityName(), s.getPackageName(), a.altText, a.priority, index);
                 queryStrings.add(alt);
-                decodedStrings.put(new HashedString(alt.text), alt);
+                decodedStrings.put(new HashedString(alt.getText()), alt);
             }
 
             index++;
         }
 
         // FILTER OUT PRIVATE STRINGS
-        //URL filterStringUrl = new URL(Const.SHARING_SERVER_BASE_URL + Const.FILTER_UI_STRING_ENDPOINT);
+        StringAlternativeGenerator.StringAlternative[] bestMatch = sugiliteScriptSharingHTTPQueryManager.getFilteredStrings(queryStrings, originalQueryStringsIndex, decodedStrings);
 
-        HttpURLConnection urlConnection = (HttpURLConnection) filterStringUrl.openConnection();
-        urlConnection.setRequestMethod("POST");
-        urlConnection.setRequestProperty("Accept-Language", "en-US,en;q=0.5");
-        urlConnection.setRequestProperty("Content-Type", "application/json");
-        urlConnection.setReadTimeout(1 * 3000);
-        urlConnection.setConnectTimeout(1 * 3000);
-
-        urlConnection.setDoOutput(true);
-        urlConnection.setDoInput(true);
-        urlConnection.setChunkedStreamingMode(0); // this might increase performance?
-        BufferedOutputStream out = new BufferedOutputStream(urlConnection.getOutputStream());
-        BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(out, StandardCharsets.UTF_8));
-
-        writer.write("[");
-        boolean first = true;
-        for (StringInContext s : queryStrings) {
-            if (!first) writer.write(',');
-            writer.write(s.toJson());
-            first = false;
-        }
-        writer.write("]");
-
-        writer.flush();
-        writer.close();
-        out.close();
-        urlConnection.connect();
-
-        int responseCode = urlConnection.getResponseCode();
-
-        if (responseCode != HttpURLConnection.HTTP_OK) {
-            // TODO scream or something
-            Log.e("PrepareScriptForSharingTask", "Uh oh");
-            throw new Exception("aaa");
-        }
-
-        // SELECT BEST ALTERNATIVE FROM RESPONSES
-        StringAlternativeGenerator.StringAlternative[] bestMatch = new StringAlternativeGenerator.StringAlternative[originalQueryStringsIndex.size()];
-        Gson g = new Gson();
-        JsonArray filteredResponses = g.fromJson(new InputStreamReader(urlConnection.getInputStream()), JsonArray.class);
-        for (JsonElement elt : filteredResponses){
-            if (elt instanceof JsonObject) {
-                JsonObject o = (JsonObject)elt;
-                for (StringInContextWithIndexAndPriority s : decodedStrings.get(HashedString.fromEncodedString(o.get("text_hash").getAsString()))) {
-                    if (o.get("activity").getAsString().equals(s.activityName) && o.get("package").getAsString().equals(s.packageName)) {
-                        if (bestMatch[s.index] == null || s.priority <= bestMatch[s.index].priority) {
-                            bestMatch[s.index] = new StringAlternativeGenerator.StringAlternative(s.text, s.priority);
-                        }
-                    }
-                }
-            }
-        }
 
         Map<StringInContext, StringAlternativeGenerator.StringAlternative> replacements = new HashMap<>();
         for (StringInContext s : originalQueryStrings) {
             int i = originalQueryStringsIndex.get(s);
             if (bestMatch[i] != null) {
-                Log.v("PrepareScriptForSharingTask", "\"" + s.text + "\" ---> \"" + bestMatch[i].altText + "\"");
+                Log.v("PrepareScriptForSharingTask", "\"" + s.getText() + "\" ---> \"" + bestMatch[i].altText + "\"");
                 replacements.put(s, bestMatch[i]);
             } else {
-                Log.v("PrepareScriptForSharingTask", "\"" + s.text + "\" no replacement found");
+                Log.v("PrepareScriptForSharingTask", "\"" + s.getText() + "\" no replacement found");
             }
         }
 

@@ -1,11 +1,10 @@
 package edu.cmu.hcii.sugilite.sharing.model;
-
-import com.google.api.client.repackaged.com.google.common.base.Objects;
+import java.util.Objects;
 
 public class StringInContext {
-    public String activityName;
-    public String packageName;
-    public String text;
+    private final String activityName;
+    private final String packageName;
+    private final String text;
 
     public StringInContext(String activityName, String packageName, String text) {
         this.activityName = activityName;
@@ -13,9 +12,21 @@ public class StringInContext {
         this.text = text;
     }
 
+    public String getActivityName() {
+        return activityName;
+    }
+
+    public String getPackageName() {
+        return packageName;
+    }
+
+    public String getText() {
+        return text;
+    }
+
     @Override
     public int hashCode() {
-        return Objects.hashCode(text, activityName, packageName);
+        return Objects.hash(text, activityName, packageName);
     }
 
     @Override

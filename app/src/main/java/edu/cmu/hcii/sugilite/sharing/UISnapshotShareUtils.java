@@ -1,6 +1,7 @@
 package edu.cmu.hcii.sugilite.sharing;
 
 import android.util.Log;
+
 import edu.cmu.hcii.sugilite.Const;
 import edu.cmu.hcii.sugilite.ontology.SerializableUISnapshot;
 import edu.cmu.hcii.sugilite.ontology.SugiliteSerializableTriple;

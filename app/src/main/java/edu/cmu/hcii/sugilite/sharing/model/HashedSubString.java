@@ -6,7 +6,8 @@ public class HashedSubString extends HashedString {
      * Semantically should always be greater than zero.
      * Loosely represents notion of "tokens removed".
      */
-    public final int priority;
+    private final int priority;
+
     public HashedSubString(String string, int priority) {
         super(string);
         this.priority = priority;
@@ -14,5 +15,9 @@ public class HashedSubString extends HashedString {
     public HashedSubString(byte[] bytes, int priority) {
         super(bytes);
         this.priority = priority;
+    }
+
+    public int getPriority() {
+        return priority;
     }
 }

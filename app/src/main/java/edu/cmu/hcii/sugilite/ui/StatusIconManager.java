@@ -59,6 +59,7 @@ import edu.cmu.hcii.sugilite.model.variable.VariableHelper;
 import edu.cmu.hcii.sugilite.recording.ReadableDescriptionGenerator;
 import edu.cmu.hcii.sugilite.ui.dialog.NewScriptDialog;
 import edu.cmu.hcii.sugilite.ui.dialog.SelectElementWithTextDialog;
+import edu.cmu.hcii.sugilite.ui.dialog.SugiliteProgressDialog;
 import edu.cmu.hcii.sugilite.ui.main.SugiliteMainActivity;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.VerbalInstructionIconManager;
 
@@ -88,7 +89,6 @@ public class StatusIconManager {
     private AccessibilityManager accessibilityManager;
     private CurrentStateView statusView;
     private Queue<SugiliteBlock> storedQueue;
-    private AlertDialog progressDialog;
     private VerbalInstructionIconManager verbalInstructionIconManager = null;
     private Dialog duckDialog = null;
 
@@ -526,12 +526,6 @@ public class StatusIconManager {
                                         //end recording
                                         prefEditor.putBoolean("recording_in_process", false);
                                         prefEditor.apply();
-                                        progressDialog = new AlertDialog.Builder(context).setMessage(Const.SAVING_MESSAGE).create();
-                                        if(progressDialog.getWindow() != null) {
-                                            progressDialog.getWindow().setType(OVERLAY_TYPE);
-                                        }
-                                        progressDialog.setCanceledOnTouchOutside(false);
-                                        progressDialog.show();
                                         new Thread(new Runnable() {
                                             @Override
                                             public void run()
@@ -541,18 +535,6 @@ public class StatusIconManager {
                                                 }
                                                 catch (Exception e){
                                                     e.printStackTrace();
-                                                }
-                                                Runnable dismissDialog = new Runnable() {
-                                                    @Override
-                                                    public void run() {
-                                                        progressDialog.dismiss();
-                                                    }
-                                                };
-                                                if(context instanceof SugiliteAccessibilityService) {
-                                                    ((SugiliteAccessibilityService) context).runOnUiThread(dismissDialog);
-                                                }
-                                                else if(context instanceof Activity){
-                                                    ((Activity)context).runOnUiThread(dismissDialog);
                                                 }
                                             }
                                         }).start();

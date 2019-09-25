@@ -9,7 +9,6 @@ import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.graphics.Rect;
 import android.os.Handler;
-import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.speech.tts.TextToSpeech;
 import android.util.Log;
@@ -34,7 +33,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.RejectedExecutionException;
 
 import edu.cmu.hcii.sugilite.Const;
 import edu.cmu.hcii.sugilite.SugiliteData;
@@ -518,13 +516,12 @@ public class SugiliteAccessibilityService extends AccessibilityService {
                                 } else {
                                     System.out.println("flush from service");
                                     //flush the text changed event handler
-                                    runOnUiThread(new Runnable() {
+                                    SugiliteData.runOnUiThread(new Runnable() {
                                         @Override
                                         public void run() {
                                             textChangedEventHandler.flush();
                                         }
                                     });
-
                                     newDemonstrationHandler.handleEvent(featurePack, availableAlternatives, uiSnapshot);
                                 }
                             }
@@ -757,7 +754,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
                                     long stopTime = System.currentTimeMillis();
                                     Log.v(TAG, "Updated UI Snapshot! -- Takes " + String.valueOf(stopTime - startTime) + "ms");
                                     if (runnableOnUpdateFinishesOnUIThread != null){
-                                        runOnUiThread(runnableOnUpdateFinishesOnUIThread);
+                                        SugiliteData.runOnUiThread(runnableOnUpdateFinishesOnUIThread);
                                     }
                                 }
                             }
@@ -804,15 +801,6 @@ public class SugiliteAccessibilityService extends AccessibilityService {
         } else {
             sugiliteData.currentPumiceValueDemonstrationType = null;
         }
-    }
-
-    /**
-     * run the runnable on the main UI thread
-     * @param runnable the runnable to run
-     */
-    public void runOnUiThread(Runnable runnable) {
-        Handler handler = new Handler(getApplicationContext().getMainLooper());
-        handler.post(runnable);
     }
 
     public StatusIconManager getDuckIconManager() {

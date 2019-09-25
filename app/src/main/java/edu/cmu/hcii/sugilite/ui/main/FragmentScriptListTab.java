@@ -65,7 +65,6 @@ public class FragmentScriptListTab extends Fragment {
     private ServiceStatusManager serviceStatusManager;
     private View rootView;
     private Activity activity;
-    private AlertDialog progressDialog;
     private NewScriptGeneralizer newScriptGeneralizer;
     private ScriptQueryHasher scriptQueryHasher;
     private OntologyDescriptionGenerator ontologyDescriptionGenerator;
@@ -296,10 +295,6 @@ public class FragmentScriptListTab extends Fragment {
                     }
                     break;
                 case ITEM_SHARE_DIRECTLY:
-                    progressDialog = new AlertDialog.Builder(activity).setMessage(Const.LOADING_MESSAGE).create();
-                    progressDialog.getWindow().setType(OVERLAY_TYPE);
-                    progressDialog.setCanceledOnTouchOutside(false);
-                    progressDialog.show();
                     new Thread(new Runnable() {
                         @Override
                         public void run() {
@@ -315,29 +310,10 @@ public class FragmentScriptListTab extends Fragment {
                             } catch (Exception e) {
                                 e.printStackTrace();
                             }
-                            Runnable dismissDialog = new Runnable() {
-                                @Override
-                                public void run() {
-                                    progressDialog.dismiss();
-                                    try {
-                                        setUpScriptList();
-                                    }
-                                    catch (Exception e){
-                                        e.printStackTrace();
-                                    }
-                                }
-                            };
-                            if(activity != null){
-                                activity.runOnUiThread(dismissDialog);
-                            }
                         }
                     }).start();
                     break;
                 case ITEM_SHARE_FILTERED:
-                    progressDialog = new AlertDialog.Builder(activity).setMessage(Const.LOADING_MESSAGE).create();
-                    progressDialog.getWindow().setType(OVERLAY_TYPE);
-                    progressDialog.setCanceledOnTouchOutside(false);
-                    progressDialog.show();
                     new Thread(new Runnable() {
                         @Override
                         public void run() {
@@ -356,30 +332,11 @@ public class FragmentScriptListTab extends Fragment {
                             } catch (Exception e) {
                                 e.printStackTrace();
                             }
-                            Runnable dismissDialog = new Runnable() {
-                                @Override
-                                public void run() {
-                                    progressDialog.dismiss();
-                                    try {
-                                        setUpScriptList();
-                                    }
-                                    catch (Exception e){
-                                        e.printStackTrace();
-                                    }
-                                }
-                            };
-                            if(activity != null){
-                                activity.runOnUiThread(dismissDialog);
-                            }
                         }
                     }).start();
                     break;
                 case ITEM_GENERALIZE:
                     //generalize
-                    progressDialog = new AlertDialog.Builder(activity).setMessage(Const.LOADING_MESSAGE).create();
-                    progressDialog.getWindow().setType(OVERLAY_TYPE);
-                    progressDialog.setCanceledOnTouchOutside(false);
-                    progressDialog.show();
                     new Thread(new Runnable() {
                         @Override
                         public void run()
@@ -391,21 +348,6 @@ public class FragmentScriptListTab extends Fragment {
                             }
                             catch (Exception e){
                                 e.printStackTrace();
-                            }
-                            Runnable dismissDialog = new Runnable() {
-                                @Override
-                                public void run() {
-                                    progressDialog.dismiss();
-                                    try {
-                                        setUpScriptList();
-                                    }
-                                    catch (Exception e){
-                                        e.printStackTrace();
-                                    }
-                                }
-                            };
-                            if(activity != null){
-                                activity.runOnUiThread(dismissDialog);
                             }
                         }
                     }).start();
@@ -420,10 +362,6 @@ public class FragmentScriptListTab extends Fragment {
                     break;
                 case ITEM_HASH_STRINGS:
                     // hash strings (DEBUG)
-                    progressDialog = new AlertDialog.Builder(activity).setMessage(Const.LOADING_MESSAGE).create();
-                    progressDialog.getWindow().setType(OVERLAY_TYPE);
-                    progressDialog.setCanceledOnTouchOutside(false);
-                    progressDialog.show();
                     new Thread(new Runnable() {
                         @Override
                         public void run()
@@ -437,30 +375,11 @@ public class FragmentScriptListTab extends Fragment {
                             catch (Exception e){
                                 e.printStackTrace();
                             }
-                            Runnable dismissDialog = new Runnable() {
-                                @Override
-                                public void run() {
-                                    progressDialog.dismiss();
-                                    try {
-                                        setUpScriptList();
-                                    }
-                                    catch (Exception e){
-                                        e.printStackTrace();
-                                    }
-                                }
-                            };
-                            if(activity != null){
-                                activity.runOnUiThread(dismissDialog);
-                            }
                         }
                     }).start();
                     break;
                 case ITEM_DUPLICATE:
                     //duplicate
-                    progressDialog = new AlertDialog.Builder(activity).setMessage(Const.LOADING_MESSAGE).create();
-                    progressDialog.getWindow().setType(OVERLAY_TYPE);
-                    progressDialog.setCanceledOnTouchOutside(false);
-                    progressDialog.show();
                     new Thread(new Runnable() {
                         @Override
                         public void run()
@@ -472,21 +391,6 @@ public class FragmentScriptListTab extends Fragment {
                             }
                             catch (Exception e){
                                 e.printStackTrace();
-                            }
-                            Runnable dismissDialog = new Runnable() {
-                                @Override
-                                public void run() {
-                                    progressDialog.dismiss();
-                                    try {
-                                        setUpScriptList();
-                                    }
-                                    catch (Exception e){
-                                        e.printStackTrace();
-                                    }
-                                }
-                            };
-                            if(activity != null){
-                                activity.runOnUiThread(dismissDialog);
                             }
                         }
                     }).start();

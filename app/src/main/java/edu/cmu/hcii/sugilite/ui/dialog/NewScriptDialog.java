@@ -192,9 +192,6 @@ public class NewScriptDialog extends SugiliteDialogManager implements AbstractSu
                 if(dialog != null || dialog.getButton(DialogInterface.BUTTON_POSITIVE) != null) {
                     dialog.getButton(DialogInterface.BUTTON_POSITIVE).performClick();
                     speak("Please start demonstrating the task.", null);
-                    if(verbalInstructionIconManager != null){
-                        verbalInstructionIconManager.turnOnCatOverlay();
-                    }
 
                 }
             }

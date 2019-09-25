@@ -1,5 +1,6 @@
 package edu.cmu.hcii.sugilite.dao;
 
+import android.app.AlertDialog;
 import android.content.Context;
 
 import java.io.File;
@@ -12,9 +13,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import edu.cmu.hcii.sugilite.R;
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
+import edu.cmu.hcii.sugilite.ui.dialog.SugiliteProgressDialog;
+
+import static edu.cmu.hcii.sugilite.Const.OVERLAY_TYPE;
 
 /**
  * Created by toby on 3/28/17.
@@ -63,12 +68,17 @@ public class SugiliteScriptFileDao implements SugiliteScriptDao {
      * @throws Exception
      */
     public void commitSave() throws Exception{
+        SugiliteProgressDialog progressDialog = new SugiliteProgressDialog(SugiliteData.getAppContext(), R.string.saving_script_message);
+        progressDialog.show();
+
+
         int number = savingCache.size();
         for(Map.Entry<String, SugiliteStartingBlock> entry : savingCache.entrySet()){
             commitSaveForASingleScript(entry.getValue());
         }
         invalidateCache();
         System.out.println("COMMIT SAVE: SAVED " + number + " SCRIPTS");
+        progressDialog.dismiss();
     }
 
     private void commitSaveForASingleScript(SugiliteStartingBlock sugiliteBlock) throws Exception{
@@ -125,6 +135,10 @@ public class SugiliteScriptFileDao implements SugiliteScriptDao {
             return readingCache.get(key);
         }
         else {
+            //show the progress dialog when reading from the file system
+            SugiliteProgressDialog progressDialog = new SugiliteProgressDialog(SugiliteData.getAppContext(), R.string.loading_script_message);
+            progressDialog.show();
+
             //read the script out from the file, and put it into the cache
             FileInputStream fin = null;
             ObjectInputStream ois = null;
@@ -144,6 +158,8 @@ public class SugiliteScriptFileDao implements SugiliteScriptDao {
                     ois.close();
             }
             readingCache.put(key, block);
+
+            progressDialog.dismiss();
             return block;
         }
     }

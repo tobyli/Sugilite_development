@@ -66,4 +66,19 @@
     <string name="title_activity_communication_interface">CommunicationInterfaceActivity</string>
     <string name="accessibility_service_name">Sugilite - InMind</string>
 
+
+
+
+
+    <string name="loading_script_message">Loading the script...\n</string>
+    <string name="saving_script_message">Saving the script...\n</string>
+    <string name="downloading_script_message">Downloading the script...\n</string>
+    <string name="uploading_script_message">Uploading the script...\n</string>
+    <string name="processing_query_message">Processing the query...\n</string>
+    <string name="filtering_personal_information_message">Filtering your personal information...\n</string>
+    <string name="ask_new_fork_message">Please give your condition for the new fork.\n</string>
+    <string name="ask_else_fork_message">Would you like to do something if the condition is not fulfilled?\n</string>
+
+
+
 </resources>

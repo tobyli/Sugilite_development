@@ -205,8 +205,4 @@ public class PumiceDefaultUtteranceIntentHandler implements PumiceUtteranceInten
         pumiceDialogManager.sendAgentMessage(String.format("Hi I'm %s bot! How can I help you?", Const.appName), true, true);
     }
 
-    @Override
-    public void runOnMainThread(Runnable r) {
-        pumiceDialogManager.runOnMainThread(r);
-    }
 }

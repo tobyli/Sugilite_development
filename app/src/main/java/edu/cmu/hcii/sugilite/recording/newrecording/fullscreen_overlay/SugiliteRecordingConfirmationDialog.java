@@ -182,17 +182,9 @@ public class SugiliteRecordingConfirmationDialog extends SugiliteDialogManager {
         if (block != null && block.getOperation() instanceof SugiliteLoadVariableOperation) {
             if (sugiliteData.currentPumiceValueDemonstrationType != null && sugiliteData.valueDemonstrationVariableName != null) {
                 //value demonstration
-
                 SharedPreferences.Editor prefEditor = sharedPreferences.edit();
                 prefEditor.putBoolean("recording_in_process", false);
                 prefEditor.apply();
-
-                AlertDialog progressDialog = new AlertDialog.Builder(context).setMessage(Const.SAVING_MESSAGE).create();
-                if(progressDialog.getWindow() != null) {
-                    progressDialog.getWindow().setType(OVERLAY_TYPE);
-                }
-                progressDialog.setCanceledOnTouchOutside(false);
-                progressDialog.show();
                 new Thread(new Runnable() {
                     @Override
                     public void run()
@@ -203,18 +195,6 @@ public class SugiliteRecordingConfirmationDialog extends SugiliteDialogManager {
                         }
                         catch (Exception e){
                             e.printStackTrace();
-                        }
-                        Runnable dismissDialog = new Runnable() {
-                            @Override
-                            public void run() {
-                                progressDialog.dismiss();
-                            }
-                        };
-                        if(context instanceof SugiliteAccessibilityService) {
-                            ((SugiliteAccessibilityService) context).runOnUiThread(dismissDialog);
-                        }
-                        else if(context instanceof Activity){
-                            ((Activity)context).runOnUiThread(dismissDialog);
                         }
                     }
                 }).start();

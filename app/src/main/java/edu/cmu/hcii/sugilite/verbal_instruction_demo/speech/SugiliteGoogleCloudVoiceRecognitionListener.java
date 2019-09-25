@@ -23,6 +23,7 @@ import java.util.HashMap;
 import java.util.List;
 
 import edu.cmu.hcii.sugilite.R;
+import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.accessibility_service.SugiliteAccessibilityService;
 
 import static android.app.Service.START_STICKY;
@@ -40,7 +41,6 @@ public class SugiliteGoogleCloudVoiceRecognitionListener implements SugiliteVoic
     private TextToSpeech tts;
     private static final int REQUEST_RECORD_AUDIO_PERMISSION = 1;
     private List<String> contextPhrases = new ArrayList<>();
-    private AlertDialog progressDialog;
     private SugiliteGoogleCloudVoiceRecognitionListener sugiliteGoogleCloudVoiceRecognitionListener;
 
     //initiate voice recorder
@@ -117,14 +117,14 @@ public class SugiliteGoogleCloudVoiceRecognitionListener implements SugiliteVoic
                         }
                     }
                     if (!TextUtils.isEmpty(text)) {
-                        runOnUiThread(new Runnable() {
+                        SugiliteData.runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
                                     //return the result
                                     List<String> results = new ArrayList<>();
                                     results.add(text);
                                     if (sugiliteVoiceInterface != null) {
-                                        runOnUiThread(new Runnable() {
+                                        SugiliteData.runOnUiThread(new Runnable() {
                                             @Override
                                             public void run() {
                                                 //this callback is ran on the UI thread because it often involves UI actions
@@ -190,7 +190,7 @@ public class SugiliteGoogleCloudVoiceRecognitionListener implements SugiliteVoic
                         }
                     }
                 }
-                runOnUiThread(new Runnable() {
+                SugiliteData.runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
                         //only allow ONE listener at a time
@@ -244,11 +244,11 @@ public class SugiliteGoogleCloudVoiceRecognitionListener implements SugiliteVoic
                 public void onStart(String utteranceId) {
                     if (sugiliteVoiceInterface != null) {
                         try {
-                            runOnUiThread(new Runnable() {
+                            SugiliteData.runOnUiThread(new Runnable() {
                                 @Override
                                 public void run() {
                                     if (sugiliteVoiceInterface != null) {
-                                        runOnUiThread(new Runnable() {
+                                        SugiliteData.runOnUiThread(new Runnable() {
                                             @Override
                                             public void run() {
                                                 sugiliteVoiceInterface.speakingStartedCallback();
@@ -267,9 +267,9 @@ public class SugiliteGoogleCloudVoiceRecognitionListener implements SugiliteVoic
                 public void onDone(String utteranceId) {
                     if (utteranceId.equals(originalUtteranceId)) {
                         try {
-                            runOnUiThread(onDone);
+                            SugiliteData.runOnUiThread(onDone);
                             if (sugiliteVoiceInterface != null) {
-                                runOnUiThread(new Runnable() {
+                                SugiliteData.runOnUiThread(new Runnable() {
                                     @Override
                                     public void run() {
                                         sugiliteVoiceInterface.speakingEndedCallback();
@@ -287,7 +287,7 @@ public class SugiliteGoogleCloudVoiceRecognitionListener implements SugiliteVoic
                 public void onError(String utteranceId) {
                     if (sugiliteVoiceInterface != null) {
                         try {
-                            runOnUiThread(new Runnable() {
+                            SugiliteData.runOnUiThread(new Runnable() {
                                 @Override
                                 public void run() {
                                     sugiliteVoiceInterface.speakingEndedCallback();
@@ -313,7 +313,7 @@ public class SugiliteGoogleCloudVoiceRecognitionListener implements SugiliteVoic
                 tts.stop();
                 if (sugiliteVoiceInterface != null) {
                     try {
-                        runOnUiThread(new Runnable() {
+                        SugiliteData.runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
                                 sugiliteVoiceInterface.speakingEndedCallback();
@@ -329,17 +329,7 @@ public class SugiliteGoogleCloudVoiceRecognitionListener implements SugiliteVoic
         }
     }
 
-    private void runOnUiThread(Runnable runnable) {
 
-        if(context instanceof Activity) {
-            ((Activity) context).runOnUiThread(runnable);
-        } else if (context instanceof SugiliteAccessibilityService) {
-            ((SugiliteAccessibilityService) context).runOnUiThread(runnable);
-        }
-        else {
-            throw new RuntimeException("no context available for running on ui thread");
-        }
-    }
 
 
     /**
@@ -348,11 +338,11 @@ public class SugiliteGoogleCloudVoiceRecognitionListener implements SugiliteVoic
      */
     private void showStatus(final boolean hearingVoice) {
         //TODO: change the listening indicator status depending on whether the listener is listening or not
-        runOnUiThread(new Runnable() {
+        SugiliteData.runOnUiThread(new Runnable() {
             @Override
             public void run() {
                 if (sugiliteVoiceInterface != null) {
-                    runOnUiThread(new Runnable() {
+                    SugiliteData.runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
                             if (hearingVoice) {

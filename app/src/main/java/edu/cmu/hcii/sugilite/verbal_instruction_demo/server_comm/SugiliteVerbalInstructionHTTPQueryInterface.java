@@ -7,6 +7,4 @@ package edu.cmu.hcii.sugilite.verbal_instruction_demo.server_comm;
  */
 public interface SugiliteVerbalInstructionHTTPQueryInterface {
     void resultReceived(int responseCode, String result, String originalQuery);
-    void runOnMainThread(Runnable r);
-
 }

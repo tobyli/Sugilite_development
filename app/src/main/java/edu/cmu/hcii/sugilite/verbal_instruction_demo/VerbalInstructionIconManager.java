@@ -229,7 +229,7 @@ public class VerbalInstructionIconManager implements SugiliteVoiceInterface {
             @Override
             public void run()
             {
-                sugiliteAccessibilityService.runOnUiThread(new Runnable() {
+                SugiliteData.runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
                         sugiliteAccessibilityService.updateUISnapshotInVerbalInstructionManager(new Runnable() {

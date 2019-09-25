@@ -16,6 +16,7 @@ import java.util.Calendar;
 import java.util.Collection;
 import java.util.HashMap;
 
+import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.accessibility_service.SugiliteAccessibilityService;
 
 /**
@@ -91,7 +92,7 @@ public class SugiliteAndroidAPIVoiceRecognitionListener implements SugiliteVoice
                 public void onStart(String utteranceId) {
                     if (sugiliteVoiceInterface != null) {
                         try {
-                            runOnUiThread(new Runnable() {
+                            SugiliteData.runOnUiThread(new Runnable() {
                                 @Override
                                 public void run() {
                                     sugiliteVoiceInterface.speakingStartedCallback();
@@ -107,9 +108,9 @@ public class SugiliteAndroidAPIVoiceRecognitionListener implements SugiliteVoice
                 public void onDone(String utteranceId) {
                     if (utteranceId.equals(originalUtteranceId)) {
                         try {
-                            runOnUiThread(onDone);
+                            SugiliteData.runOnUiThread(onDone);
                             if (sugiliteVoiceInterface != null) {
-                                runOnUiThread(new Runnable() {
+                                SugiliteData.runOnUiThread(new Runnable() {
                                     @Override
                                     public void run() {
                                         sugiliteVoiceInterface.speakingEndedCallback();
@@ -127,7 +128,7 @@ public class SugiliteAndroidAPIVoiceRecognitionListener implements SugiliteVoice
                 public void onError(String utteranceId) {
                     if (sugiliteVoiceInterface != null) {
                         try {
-                            runOnUiThread(new Runnable() {
+                            SugiliteData.runOnUiThread(new Runnable() {
                                 @Override
                                 public void run() {
                                     sugiliteVoiceInterface.speakingEndedCallback();
@@ -152,7 +153,7 @@ public class SugiliteAndroidAPIVoiceRecognitionListener implements SugiliteVoice
                 tts.stop();
                 if (sugiliteVoiceInterface != null) {
                     try {
-                        runOnUiThread(new Runnable() {
+                        SugiliteData.runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
                                 sugiliteVoiceInterface.speakingEndedCallback();
@@ -276,20 +277,6 @@ public class SugiliteAndroidAPIVoiceRecognitionListener implements SugiliteVoice
             }
         }
         return false;
-    }
-
-    private void runOnUiThread(Runnable runnable) throws Exception{
-        if(context instanceof SugiliteAccessibilityService) {
-            ((SugiliteAccessibilityService) context).runOnUiThread(runnable);
-        }
-
-        else if(context instanceof Activity) {
-            ((Activity) context).runOnUiThread(runnable);
-        }
-
-        else {
-            throw new Exception("no context available for running on ui thread");
-        }
     }
 
     @Override

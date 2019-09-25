@@ -484,9 +484,5 @@ public class PumiceConditionalIntentHandler implements PumiceUtteranceIntentHand
         //TODO: implement
     }
 
-    @Override
-    public void runOnMainThread(Runnable r) {
-        sourceActivity.runOnUiThread(r);
-    }
 }
 

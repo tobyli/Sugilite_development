@@ -71,6 +71,7 @@ import edu.cmu.hcii.sugilite.ontology.*;
 import edu.cmu.hcii.sugilite.pumice.PumiceDemonstrationUtil;
 import edu.cmu.hcii.sugilite.ui.dialog.AbstractSugiliteDialog;
 import edu.cmu.hcii.sugilite.ui.dialog.ChooseVariableDialog;
+import edu.cmu.hcii.sugilite.ui.dialog.SugiliteProgressDialog;
 
 import static edu.cmu.hcii.sugilite.Const.OVERLAY_TYPE;
 import static edu.cmu.hcii.sugilite.Const.SQL_SCRIPT_DAO;
@@ -110,7 +111,6 @@ public class RecordingPopUpDialog implements AbstractSugiliteDialog {
     private String childText = "";
     private String siblingText = "";
     private String scriptName;
-    private AlertDialog progressDialog;
     private Context context;
     protected static final String TAG = RecordingPopUpDialog.class.getSimpleName();
 
@@ -260,35 +260,21 @@ public class RecordingPopUpDialog implements AbstractSugiliteDialog {
 
         else if (skipManager.checkSkip(featurePack, triggerMode, generateFilter(), featurePack.alternativeNodes).contentEquals("disambiguation")){
             hideUnrelevantInfo(true, "Sugilite finds multiple possible features for the object you've just opearted on and can't determine the best feature to use.\n\nCan you choose the best feature to use for identifying this object in future executions of this script?");
-            if(context instanceof SugiliteAccessibilityService) {
-                Log.i(TAG, "FLAG-SHOW2.1");
-                ((SugiliteAccessibilityService) context).runOnUiThread(runnable);
-            }
-            else if(context instanceof Activity){
-                Log.i(TAG, "FLAG-SHOW2.2");
-                ((Activity) context).runOnUiThread(runnable);
-            }
+            SugiliteData.runOnUiThread(runnable);
+
         }
         else if (skipManager.checkSkip(featurePack, triggerMode, generateFilter(), featurePack.alternativeNodes).contentEquals("multipleMatch")){
             hideUnrelevantInfo(false, "Sugilte's automatically generated feature set can match more than one objects on the current screen.\n\nCan you choose the best set of features to use for identifying this object in future executions of this script?");
             Log.i(TAG, "FLAG-SHOW2");
-            if(context instanceof SugiliteAccessibilityService) {
-                ((SugiliteAccessibilityService)context).runOnUiThread(runnable);
-            }
-            else if(context instanceof Activity){
-                ((Activity) context).runOnUiThread(runnable);
-            }
+            SugiliteData.runOnUiThread(runnable);
+
         }
         //to show the full popup
         else {
             //context can be either from an activity (editing) or the accessibility service
             Log.i(TAG, "FLAG-SHOW2");
-            if(context instanceof SugiliteAccessibilityService) {
-                ((SugiliteAccessibilityService)context).runOnUiThread(runnable);
-            }
-            else if(context instanceof Activity){
-                ((Activity) context).runOnUiThread(runnable);
-            }
+            SugiliteData.runOnUiThread(runnable);
+
         }
     }
 
@@ -399,12 +385,7 @@ public class RecordingPopUpDialog implements AbstractSugiliteDialog {
                         }).show();
                     }
                 };
-                if(context instanceof SugiliteAccessibilityService) {
-                    ((SugiliteAccessibilityService) context).runOnUiThread(popupRunnable);
-                }
-                else if (context instanceof Activity){
-                    ((Activity) context).runOnUiThread(popupRunnable);
-                }
+                SugiliteData.runOnUiThread(popupRunnable);
                 return;
             }
         }
@@ -490,13 +471,7 @@ public class RecordingPopUpDialog implements AbstractSugiliteDialog {
                     Log.i(TAG, "FLAG-SHOW_DONE");
                 }
             };
-
-            if(context instanceof SugiliteAccessibilityService) {
-                ((SugiliteAccessibilityService) context).runOnUiThread(showDialogRunnable);
-            }
-            else if (context instanceof Activity){
-                ((Activity) context).runOnUiThread(showDialogRunnable);
-            }
+            SugiliteData.runOnUiThread(showDialogRunnable);
         }
 
         else {
@@ -533,12 +508,7 @@ public class RecordingPopUpDialog implements AbstractSugiliteDialog {
                 finalChooseVariableDialog.show();
             }
         };
-        if(context instanceof SugiliteAccessibilityService) {
-            ((SugiliteAccessibilityService) context).runOnUiThread(showChooseVariableDialogRunnable);
-        }
-        else if (context instanceof Activity){
-            ((Activity) context).runOnUiThread(showChooseVariableDialogRunnable);
-        }
+        SugiliteData.runOnUiThread(showChooseVariableDialogRunnable);
     }
 
     public void seeAlternativeLabelLinkOnClick(View view) {
@@ -568,12 +538,7 @@ public class RecordingPopUpDialog implements AbstractSugiliteDialog {
                 dialog.show();
             }
         };
-        if(context instanceof SugiliteAccessibilityService) {
-            ((SugiliteAccessibilityService) context).runOnUiThread(showDialogRunnable);
-        }
-        else if (context instanceof Activity){
-            ((Activity) context).runOnUiThread(showDialogRunnable);
-        }
+        SugiliteData.runOnUiThread(showDialogRunnable);
     }
 
     private void setupSelections(){
@@ -1435,24 +1400,6 @@ public class RecordingPopUpDialog implements AbstractSugiliteDialog {
                                     originalScript.relevantPackages.add(featurePack.packageName);
                                     sugiliteScriptDao.save(originalScript);
                                     //commit save for triggered_by_edit
-
-                                    progressDialog = new AlertDialog.Builder(context).setMessage(Const.SAVING_MESSAGE).create();
-                                    progressDialog.getWindow().setType(OVERLAY_TYPE);
-                                    progressDialog.setCanceledOnTouchOutside(false);
-                                    Runnable showProgressDialogRunnable = new Runnable() {
-                                        @Override
-                                        public void run() {
-                                            progressDialog.show();
-                                        }
-                                    };
-
-                                    if(context instanceof SugiliteAccessibilityService) {
-                                        ((SugiliteAccessibilityService) context).runOnUiThread(showProgressDialogRunnable);
-                                    }
-                                    else if (context instanceof Activity){
-                                        ((Activity) context).runOnUiThread(showProgressDialogRunnable);
-                                    }
-
                                     new Thread(new Runnable() {
                                         @Override
                                         public void run()
@@ -1462,18 +1409,6 @@ public class RecordingPopUpDialog implements AbstractSugiliteDialog {
                                             }
                                             catch (Exception e){
                                                 e.printStackTrace();
-                                            }
-                                            Runnable dismissDialog = new Runnable() {
-                                                @Override
-                                                public void run() {
-                                                    progressDialog.dismiss();
-                                                }
-                                            };
-                                            if(context instanceof SugiliteAccessibilityService) {
-                                                ((SugiliteAccessibilityService) context).runOnUiThread(dismissDialog);
-                                            }
-                                            else if(context instanceof Activity){
-                                                ((Activity) context).runOnUiThread(dismissDialog);
                                             }
                                         }
                                     }).start();
@@ -1492,24 +1427,6 @@ public class RecordingPopUpDialog implements AbstractSugiliteDialog {
                                 try {
                                     sugiliteScriptDao.save(originalScript);
                                     //commit save for triggered_by_edit
-                                    progressDialog = new AlertDialog.Builder(context).setMessage(Const.SAVING_MESSAGE).create();
-                                    progressDialog.getWindow().setType(OVERLAY_TYPE);
-                                    progressDialog.setCanceledOnTouchOutside(false);
-
-                                    Runnable showProgressDialogRunnable = new Runnable() {
-                                        @Override
-                                        public void run() {
-                                            progressDialog.show();
-                                        }
-                                    };
-
-                                    if(context instanceof SugiliteAccessibilityService) {
-                                        ((SugiliteAccessibilityService) context).runOnUiThread(showProgressDialogRunnable);
-                                    }
-                                    else if (context instanceof Activity){
-                                        ((Activity) context).runOnUiThread(showProgressDialogRunnable);
-                                    }
-
                                     new Thread(new Runnable() {
                                         @Override
                                         public void run()
@@ -1519,18 +1436,6 @@ public class RecordingPopUpDialog implements AbstractSugiliteDialog {
                                             }
                                             catch (Exception e){
                                                 e.printStackTrace();
-                                            }
-                                            Runnable dismissDialog = new Runnable() {
-                                                @Override
-                                                public void run() {
-                                                    progressDialog.dismiss();
-                                                }
-                                            };
-                                            if(context instanceof SugiliteAccessibilityService) {
-                                                ((SugiliteAccessibilityService) context).runOnUiThread(dismissDialog);
-                                            }
-                                            else if(context instanceof Activity){
-                                                ((Activity) context).runOnUiThread(dismissDialog);
                                             }
                                         }
                                     }).start();

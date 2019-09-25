@@ -178,10 +178,6 @@ public class PumiceUserExplainProcedureIntentHandler implements PumiceUtteranceI
         pumiceDialogManager.sendAgentMessage("How do I " + parentKnowledgeName + "?" + " You can explain, or say \"demonstrate\" to demonstrate", true, true);
     }
 
-    @Override
-    public void runOnMainThread(Runnable r) {
-        pumiceDialogManager.runOnMainThread(r);
-    }
 
     /**
      * return the result PumiceProceduralKnowledge, and release the lock in the original PumiceInitInstructionParsingHandler

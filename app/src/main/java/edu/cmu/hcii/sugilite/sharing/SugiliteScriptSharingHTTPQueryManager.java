@@ -36,12 +36,15 @@ import java.util.concurrent.Executors;
 
 import javax.annotation.Nullable;
 
+import edu.cmu.hcii.sugilite.R;
+import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.sharing.model.HashedString;
 import edu.cmu.hcii.sugilite.sharing.model.HashedUIStrings;
 import edu.cmu.hcii.sugilite.sharing.model.StringInContext;
 import edu.cmu.hcii.sugilite.sharing.model.StringInContextWithIndexAndPriority;
 import edu.cmu.hcii.sugilite.sharing.model.SugiliteRepoListing;
+import edu.cmu.hcii.sugilite.ui.dialog.SugiliteProgressDialog;
 import okhttp3.MultipartBody;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -69,7 +72,6 @@ public class SugiliteScriptSharingHTTPQueryManager {
 
     private ExecutorService executor;
     private SharedPreferences sharedPreferences;
-    private URI baseUri;
 
     public static SugiliteScriptSharingHTTPQueryManager getInstance(Context context) {
         if (instance == null) {
@@ -81,27 +83,35 @@ public class SugiliteScriptSharingHTTPQueryManager {
     private SugiliteScriptSharingHTTPQueryManager(Context context) {
         this.sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
         this.executor = Executors.newFixedThreadPool(1);
+    }
 
+    private URI getBaseUri(){
+        URI baseUri;
         String urlString = "null";
         if (sharedPreferences != null) {
             urlString = sharedPreferences.getString("script_sharing_server_address", "null");
         }
-
         try {
             if (urlString.equals("null")) {
                 baseUri = new URI(DEFAULT_SERVER_URL);
+                Log.e("SugiliteScriptSharingHTTPQueryManager", "Failed getting URL from preferencess");
             } else {
                 baseUri = new URI(urlString);
             }
         } catch (URISyntaxException e) {
             throw new RuntimeException("malformed URL!");
         }
+        return baseUri;
     }
 
-
     public List<SugiliteRepoListing> getRepoList() throws ExecutionException, InterruptedException {
+        SugiliteProgressDialog progressDialog = new SugiliteProgressDialog(SugiliteData.getAppContext(), R.string.downloading_script_message);
+        progressDialog.show();
+
         DownloadRepoListTask repoListTask = new DownloadRepoListTask();
         List<SugiliteRepoListing> repo = executor.submit(repoListTask).get();
+
+        progressDialog.dismiss();
         return repo;
     }
 
@@ -109,7 +119,7 @@ public class SugiliteScriptSharingHTTPQueryManager {
 
         @Override
         public ArrayList<SugiliteRepoListing> call() throws Exception {
-            URL downloadUrl = baseUri.resolve(DOWNLOAD_REPO_LIST_ENDPOINT).toURL();
+            URL downloadUrl = getBaseUri().resolve(DOWNLOAD_REPO_LIST_ENDPOINT).toURL();
 
             HttpURLConnection urlConnection = (HttpURLConnection) downloadUrl.openConnection();
             urlConnection.setRequestMethod("GET");
@@ -150,8 +160,13 @@ public class SugiliteScriptSharingHTTPQueryManager {
     }
 
     public SugiliteStartingBlock downloadScript(String id) throws ExecutionException, InterruptedException {
+        SugiliteProgressDialog progressDialog = new SugiliteProgressDialog(SugiliteData.getAppContext(), R.string.downloading_script_message);
+        progressDialog.show();
+
         DownloadScriptTask downloadScriptTask = new DownloadScriptTask(id);
         SugiliteStartingBlock script = executor.submit(downloadScriptTask).get();
+
+        progressDialog.dismiss();
         return script;
     }
 
@@ -168,7 +183,7 @@ public class SugiliteScriptSharingHTTPQueryManager {
 
         @Override
         public SugiliteStartingBlock call() throws Exception {
-            URL downloadUrl = baseUri.resolve(DOWNLOAD_SCRIPT_FROM_REPO_ENDPOINT_PREFIX).resolve(id).toURL();
+            URL downloadUrl = getBaseUri().resolve(DOWNLOAD_SCRIPT_FROM_REPO_ENDPOINT_PREFIX).resolve(id).toURL();
 
             HttpURLConnection urlConnection = (HttpURLConnection) downloadUrl.openConnection();
             urlConnection.setRequestMethod("GET");
@@ -194,8 +209,13 @@ public class SugiliteScriptSharingHTTPQueryManager {
     }
 
     public String uploadScript(String title, String author, SugiliteStartingBlock script) throws ExecutionException, InterruptedException {
+        SugiliteProgressDialog progressDialog = new SugiliteProgressDialog(SugiliteData.getAppContext(), R.string.uploading_script_message);
+        progressDialog.show();
+
         UploadScriptTask uploadScriptTask = new UploadScriptTask(title, author, script);
         String scriptId = executor.submit(uploadScriptTask).get();
+
+        progressDialog.dismiss();
         return scriptId;
     }
 
@@ -232,7 +252,7 @@ public class SugiliteScriptSharingHTTPQueryManager {
 
         @Override
         public String call() throws Exception {
-            URL uploadScriptURL = baseUri.resolve(UPLOAD_SCRIPT_TO_REPO_ENDPOINT).toURL();
+            URL uploadScriptURL = getBaseUri().resolve(UPLOAD_SCRIPT_TO_REPO_ENDPOINT).toURL();
             OkHttpClient client = new OkHttpClient();
 
             MultipartBody.Builder requestBodyBuilder = new MultipartBody.Builder()
@@ -259,6 +279,7 @@ public class SugiliteScriptSharingHTTPQueryManager {
 
 
     public void uploadHashedUI(HashedUIStrings hashedUIStrings) throws ExecutionException, InterruptedException {
+        //no progress dialog because this happends in the background
         UploadHashedUITask uploadHashedUITask = new UploadHashedUITask(hashedUIStrings);
         executor.submit(uploadHashedUITask).get();
     }
@@ -274,7 +295,7 @@ public class SugiliteScriptSharingHTTPQueryManager {
         public Void call() {
 
             try {
-                URL uploadHashedUIUrl = baseUri.resolve(UPLOAD_HASHED_UI_ENDPOINT).toURL();
+                URL uploadHashedUIUrl = getBaseUri().resolve(UPLOAD_HASHED_UI_ENDPOINT).toURL();
                 HttpURLConnection urlConnection = (HttpURLConnection) uploadHashedUIUrl.openConnection();
                 urlConnection.setRequestMethod("POST");
                 urlConnection.setRequestProperty("Accept-Language", "en-US,en;q=0.5");
@@ -308,8 +329,13 @@ public class SugiliteScriptSharingHTTPQueryManager {
     }
 
     public StringAlternativeGenerator.StringAlternative[] getFilteredStrings(Set<StringInContextWithIndexAndPriority> queryStrings, Map<StringInContext, Integer> originalQueryStringsIndex, Multimap<HashedString, StringInContextWithIndexAndPriority> decodedStrings) throws Exception {
+        SugiliteProgressDialog progressDialog = new SugiliteProgressDialog(SugiliteData.getAppContext(), R.string.filtering_personal_information_message);
+        progressDialog.show();
+
         GetFilteredStringsTask getFilteredStringsTask = new GetFilteredStringsTask(queryStrings, originalQueryStringsIndex, decodedStrings);
         StringAlternativeGenerator.StringAlternative[] bestMatch = executor.submit(getFilteredStringsTask).get();
+
+        progressDialog.dismiss();
         return bestMatch;
     }
 
@@ -327,7 +353,7 @@ public class SugiliteScriptSharingHTTPQueryManager {
         @Override
         public StringAlternativeGenerator.StringAlternative[] call() throws Exception {
             try {
-                URL filterStringUrl = baseUri.resolve(FILTER_UI_STRING_ENDPOINT).toURL();
+                URL filterStringUrl = getBaseUri().resolve(FILTER_UI_STRING_ENDPOINT).toURL();
                 HttpURLConnection urlConnection = (HttpURLConnection) filterStringUrl.openConnection();
                 urlConnection.setRequestMethod("POST");
                 urlConnection.setRequestProperty("Accept-Language", "en-US,en;q=0.5");
@@ -389,7 +415,7 @@ public class SugiliteScriptSharingHTTPQueryManager {
     @TestOnly
     public URL getFilterURL() {
         try {
-            URL filterStringUrl = baseUri.resolve(FILTER_UI_STRING_ENDPOINT).toURL();
+            URL filterStringUrl = getBaseUri().resolve(FILTER_UI_STRING_ENDPOINT).toURL();
             return filterStringUrl;
         } catch (Exception e) {
             e.printStackTrace();

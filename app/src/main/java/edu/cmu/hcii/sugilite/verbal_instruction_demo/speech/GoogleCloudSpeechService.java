@@ -53,6 +53,7 @@ import java.util.concurrent.TimeUnit;
 
 import edu.cmu.hcii.sugilite.Const;
 import edu.cmu.hcii.sugilite.R;
+import edu.cmu.hcii.sugilite.ui.dialog.SugiliteProgressDialog;
 import io.grpc.CallOptions;
 import io.grpc.Channel;
 import io.grpc.ClientCall;
@@ -106,7 +107,7 @@ public class GoogleCloudSpeechService extends Service {
     private SpeechGrpc.SpeechStub mApi;
     private static Handler mHandler;
 
-    private AlertDialog progressDialog;
+    private SugiliteProgressDialog progressDialog;
     private MediaPlayer speechRecognizedSoundMediaPlayer;
 
     private List<String> contextPhrases = new ArrayList<>();
@@ -137,7 +138,7 @@ public class GoogleCloudSpeechService extends Service {
                         @Override
                         public void run() {
                             if (progressDialog != null && progressDialog.isShowing()) {
-                                progressDialog.hide();
+                                progressDialog.dismiss();
                             }
                         }
                     });
@@ -210,19 +211,7 @@ public class GoogleCloudSpeechService extends Service {
         fetchAccessToken();
         this.speechRecognizedSoundMediaPlayer = MediaPlayer.create(getApplicationContext(), R.raw.speech_recognized);
 
-        //disable progress dialog for now
-        /*
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                progressDialog = new AlertDialog.Builder(getApplicationContext()).setMessage(Const.PROCESSING_MESSAGE).create();
-                if(progressDialog.getWindow() != null) {
-                    progressDialog.getWindow().setType(OVERLAY_TYPE);
-                }
-                progressDialog.setCanceledOnTouchOutside(false);
-            }
-        });
-        */
+
     }
 
     @Override

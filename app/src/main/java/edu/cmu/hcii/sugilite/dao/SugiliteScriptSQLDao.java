@@ -23,6 +23,7 @@ import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
  * @date 6/15/16
  * @time 4:04 PM
  */
+@Deprecated
 public class SugiliteScriptSQLDao implements SugiliteScriptDao {
     private SugiliteScriptDBHelper sugiliteScriptDBHelper;
     private Gson gson = new Gson();

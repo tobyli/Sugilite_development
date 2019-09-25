@@ -14,6 +14,7 @@ import android.widget.Toast;
 import java.util.Map;
 
 import edu.cmu.hcii.sugilite.Const;
+import edu.cmu.hcii.sugilite.R;
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.accessibility_service.SugiliteAccessibilityService;
 import edu.cmu.hcii.sugilite.automation.ServiceStatusManager;
@@ -23,6 +24,7 @@ import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.model.variable.Variable;
 import edu.cmu.hcii.sugilite.pumice.dialog.PumiceDialogManager;
+import edu.cmu.hcii.sugilite.ui.dialog.SugiliteProgressDialog;
 import edu.cmu.hcii.sugilite.ui.dialog.VariableSetValueDialog;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.VerbalInstructionIconManager;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.speech.SugiliteAndroidAPIVoiceRecognitionListener;
@@ -129,9 +131,7 @@ public class PumiceDemonstrationUtil {
                 } else {
                     dialogManager = new PumiceDialogManager(activityContext);
                     SugiliteVoiceRecognitionListener sugiliteVoiceRecognitionListener = null;
-                    TextToSpeech tts = new TextToSpeech(activityContext, i -> {
-                        // nothing
-                    });
+                    TextToSpeech tts = sugiliteData.getTTS();
                     if (Const.SELECTED_SPEECH_RECOGNITION_TYPE == Const.SpeechRecognitionType.ANDROID) {
                         sugiliteVoiceRecognitionListener = new SugiliteAndroidAPIVoiceRecognitionListener(activityContext, null, tts);
                     } else if (Const.SELECTED_SPEECH_RECOGNITION_TYPE == Const.SpeechRecognitionType.GOOGLE_CLOUD) {
@@ -193,12 +193,6 @@ public class PumiceDemonstrationUtil {
 
         //save the script
         if (sugiliteScriptDao != null) {
-            AlertDialog progressDialog = new AlertDialog.Builder(context).setMessage(Const.SAVING_MESSAGE).create();
-            if (progressDialog.getWindow() != null) {
-                progressDialog.getWindow().setType(OVERLAY_TYPE);
-            }
-            progressDialog.setCanceledOnTouchOutside(false);
-            progressDialog.show();
             new Thread(new Runnable() {
                 @Override
                 public void run() {
@@ -207,17 +201,6 @@ public class PumiceDemonstrationUtil {
                         sugiliteScriptDao.commitSave();
                     } catch (Exception e) {
                         e.printStackTrace();
-                    }
-                    Runnable dismissDialog = new Runnable() {
-                        @Override
-                        public void run() {
-                            progressDialog.dismiss();
-                        }
-                    };
-                    if (context instanceof SugiliteAccessibilityService) {
-                        ((SugiliteAccessibilityService) context).runOnUiThread(dismissDialog);
-                    } else if (context instanceof Activity) {
-                        ((Activity) context).runOnUiThread(dismissDialog);
                     }
                 }
             }).start();

@@ -72,9 +72,6 @@ public class SugiliteData extends Application {
 
     public Runnable afterRecordingCallback;
 
-
-    private Gson gson = new Gson();
-
     //true if the current recording script is initiated externally
     public boolean initiatedExternally  = false;
     public SugiliteCommunicationController communicationController;
@@ -115,6 +112,14 @@ public class SugiliteData extends Application {
         return SugiliteData.applicationContext;
     }
 
+    public static void runOnUiThread(Runnable runnable) {
+        if (applicationContext != null) {
+            Handler handler = new Handler(applicationContext.getMainLooper());
+            handler.post(runnable);
+        } else {
+            new Exception("null application context!").printStackTrace();
+        }
+    }
 
     public int getCurrentSystemState(){
         return currentSystemState;
@@ -316,6 +321,7 @@ public class SugiliteData extends Application {
         if(registeredBroadcastingListener.size() < 1)
             return;
         SugiliteEventBroadcastingActivity.BroadcastingEvent broadcastingEvent = new SugiliteEventBroadcastingActivity.BroadcastingEvent(event);
+        Gson gson = new Gson();
         String messageToSend = gson.toJson(broadcastingEvent);
         for (String dest : registeredBroadcastingListener){
             Intent intent = new Intent(dest);

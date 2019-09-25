@@ -55,6 +55,7 @@ import edu.cmu.hcii.sugilite.pumice.dialog.PumiceDialogManager;
 import edu.cmu.hcii.sugilite.recording.ReadableDescriptionGenerator;
 import edu.cmu.hcii.sugilite.recording.RecordingPopUpDialog;
 import edu.cmu.hcii.sugilite.study.ScriptUsageLogManager;
+import edu.cmu.hcii.sugilite.ui.dialog.SugiliteProgressDialog;
 import edu.cmu.hcii.sugilite.ui.dialog.VariableSetValueDialog;
 import edu.cmu.hcii.sugilite.ui.main.SugiliteMainActivity;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.speech.SugiliteAndroidAPIVoiceRecognitionListener;
@@ -79,7 +80,6 @@ public class ScriptDetailActivity extends AppCompatActivity implements SugiliteV
     private ActivityManager activityManager;
     private ServiceStatusManager serviceStatusManager;
     private Activity context;
-    private AlertDialog progressDialog;
     private AlertDialog editDialog;
     private EditText editText;
     private SugiliteBlock newBlock;
@@ -103,11 +103,16 @@ public class ScriptDetailActivity extends AppCompatActivity implements SugiliteV
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        this.context = this;
         setContentView(R.layout.activity_script_detail);
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         activityManager = (ActivityManager)getSystemService(Context.ACTIVITY_SERVICE);
         serviceStatusManager = ServiceStatusManager.getInstance(this);
-        this.context = this;
+        sugiliteData = (SugiliteData)getApplication();
+        tts = sugiliteData.getTTS();
+        pumiceDialogManager = new PumiceDialogManager(this);
+        pumiceDialogManager.setSpeakButtonForCallback(speakButton);
+        pumiceDialogManager.setSugiliteVoiceRecognitionListener(sugiliteVoiceRecognitionListener);
 
         if (Const.SELECTED_SPEECH_RECOGNITION_TYPE == Const.SpeechRecognitionType.ANDROID) {
             this.sugiliteVoiceRecognitionListener = new SugiliteAndroidAPIVoiceRecognitionListener(this, this, tts);
@@ -120,7 +125,6 @@ public class ScriptDetailActivity extends AppCompatActivity implements SugiliteV
         } else {
             scriptName = savedInstanceState.getString("scriptName");
         }
-        sugiliteData = (SugiliteData)getApplication();
         if(Const.DAO_TO_USE == SQL_SCRIPT_DAO)
             sugiliteScriptDao = new SugiliteScriptSQLDao(this);
         else
@@ -128,11 +132,6 @@ public class ScriptDetailActivity extends AppCompatActivity implements SugiliteV
         if(scriptName != null)
             setTitle("View Script: " + scriptName.replace(".SugiliteScript", ""));
 
-        //progress dialog for loading the script
-        progressDialog = new AlertDialog.Builder(context).setMessage(Const.LOADING_MESSAGE).create();
-        progressDialog.getWindow().setType(OVERLAY_TYPE);
-        progressDialog.setCanceledOnTouchOutside(false);
-        progressDialog.show();
         new Thread(new Runnable() {
             @Override
             public void run()
@@ -143,12 +142,6 @@ public class ScriptDetailActivity extends AppCompatActivity implements SugiliteV
                 catch (Exception e){
                     e.printStackTrace();
                 }
-                Runnable dismissDialog = new Runnable() {
-                    @Override
-                    public void run() {
-                        progressDialog.dismiss();
-                    }
-                };
                 Runnable loadOperation = new Runnable() {
                     @Override
                     public void run() {
@@ -156,8 +149,6 @@ public class ScriptDetailActivity extends AppCompatActivity implements SugiliteV
                     }
                 };
                 context.runOnUiThread(loadOperation);
-                context.runOnUiThread(dismissDialog);
-
             }
         }).start();
 
@@ -173,6 +164,9 @@ public class ScriptDetailActivity extends AppCompatActivity implements SugiliteV
     //TODO: set up operation on resume
 
     public void loadOperationList(){
+        SugiliteProgressDialog progressDialog = new SugiliteProgressDialog(SugiliteData.getAppContext(), R.string.loading_script_message);
+        progressDialog.show();
+
         operationStepList = (LinearLayout)findViewById(R.id.operation_list_view);
         operationStepList.removeAllViews();
         SugiliteBlock iterBlock = script;
@@ -201,6 +195,8 @@ public class ScriptDetailActivity extends AppCompatActivity implements SugiliteV
         tv.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
         tv.setPadding(10, 10, 10, 10);
         operationStepList.addView(tv);
+
+        progressDialog.dismiss();
     }
 
     /*
@@ -706,7 +702,7 @@ public class ScriptDetailActivity extends AppCompatActivity implements SugiliteV
                                 LinearLayout.LayoutParams.MATCH_PARENT);
                         input.setLayoutParams(lp);
                         AlertDialog.Builder builder = new AlertDialog.Builder(context);
-                        builder.setMessage(Const.GET_CONDITION).create();
+                        builder.setMessage(getString(R.string.ask_new_fork_message)).create();
                         builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
@@ -718,7 +714,7 @@ public class ScriptDetailActivity extends AppCompatActivity implements SugiliteV
                                 current.setPreviousBlock(null);
 
                                 AlertDialog.Builder builder2 = new AlertDialog.Builder(context);
-                                builder2.setMessage(Const.CHECK_FOR_ELSE).create();
+                                builder2.setMessage(getString(R.string.ask_else_fork_message)).create();
                                 builder2.setPositiveButton("YES", new DialogInterface.OnClickListener() {
                                     @Override
                                     public void onClick(DialogInterface dialog, int which) {
@@ -985,19 +981,12 @@ public class ScriptDetailActivity extends AppCompatActivity implements SugiliteV
     private void editScript(boolean c) {
         clickedStep = c;
         speakButton = (ImageButton) findViewById(R.id.button5);
-        tts = new TextToSpeech(this, new TextToSpeech.OnInitListener() {
-            @Override
-            public void onInit(int status) {
-                pumiceDialogManager.sendAgentMessage("You are adding a step to do different things in different cases. What should I check to figure out what case we're in? Please say something like check if it's cold or check if it's before 5pm.", true, true);
-            }
-        });
-        tts.setLanguage(Locale.US);
+        pumiceDialogManager.sendAgentMessage("You are adding a step to do different things in different cases. What should I check to figure out what case we're in? Please say something like check if it's cold or check if it's before 5pm.", true, true);
+
 
         //PumiceConditionalIntentHandler ih = new PumiceConditionalIntentHandler(context);
         //pumiceDialogManager = new PumiceDialogManager(this, new PumiceConditionalIntentHandler(pumiceDialogManager, this));
-        pumiceDialogManager = new PumiceDialogManager(this);
-        pumiceDialogManager.setSpeakButtonForCallback(speakButton);
-        pumiceDialogManager.setSugiliteVoiceRecognitionListener(sugiliteVoiceRecognitionListener);
+
     }
 
     public void determineConditionalLoc(SugiliteBlock sb) {
@@ -1317,7 +1306,7 @@ public class ScriptDetailActivity extends AppCompatActivity implements SugiliteV
             }
             sugiliteData.runScript(script, true, SugiliteData.EXECUTION_STATE);
 
-            //turn on the cat overlay to prepare for demonstration
+            //turn on the cat overlay to prepare for demonstration - resume recording
             if(sugiliteData.verbalInstructionIconManager != null){
                 sugiliteData.verbalInstructionIconManager.turnOnCatOverlay();
             }

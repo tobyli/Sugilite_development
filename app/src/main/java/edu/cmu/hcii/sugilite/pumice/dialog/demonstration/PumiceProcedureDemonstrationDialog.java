@@ -66,7 +66,7 @@ public class PumiceProcedureDemonstrationDialog {
                         Runnable onFinishDemonstrationCallback = new Runnable() {
                             @Override
                             public void run() {
-                                parentIntentHandler.runOnMainThread(new Runnable() {
+                                SugiliteData.runOnUiThread(new Runnable() {
                                     @Override
                                     public void run() {
                                         //turn off the overlay

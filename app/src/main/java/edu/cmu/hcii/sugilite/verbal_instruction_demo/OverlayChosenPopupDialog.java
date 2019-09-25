@@ -109,17 +109,6 @@ public class OverlayChosenPopupDialog implements SugiliteVerbalInstructionHTTPQu
 
 
     @Override
-    public void runOnMainThread(Runnable r) {
-        try{
-            dialog.getListView().post(r);
-        }
-        catch (Exception e){
-            //do nothing
-            e.printStackTrace();
-        }
-    }
-
-    @Override
     public void resultReceived(int responseCode, String result, String originalQuery) {
         //do nothing
     }

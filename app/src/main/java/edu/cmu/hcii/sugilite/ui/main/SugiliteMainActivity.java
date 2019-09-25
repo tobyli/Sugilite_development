@@ -45,6 +45,7 @@ import edu.cmu.hcii.sugilite.study.StudyConst;
 import edu.cmu.hcii.sugilite.study.StudyDataUploadManager;
 import edu.cmu.hcii.sugilite.ui.SettingsActivity;
 import edu.cmu.hcii.sugilite.ui.dialog.AddTriggerDialog;
+import edu.cmu.hcii.sugilite.ui.dialog.SugiliteProgressDialog;
 
 import static edu.cmu.hcii.sugilite.Const.OVERLAY_TYPE;
 import static edu.cmu.hcii.sugilite.Const.SQL_SCRIPT_DAO;
@@ -57,7 +58,7 @@ public class SugiliteMainActivity extends AppCompatActivity {
     private SugiliteScriptDao sugiliteScriptDao;
     private SugiliteTriggerDao sugiliteTriggerDao;
     private SugiliteData sugiliteData;
-    private AlertDialog progressDialog;
+    private SugiliteProgressDialog progressDialog;
     private StudyDataUploadManager uploadManager;
     private SugiliteScriptSharingHTTPQueryManager sugiliteScriptSharingHTTPQueryManager;
     private Context context;
@@ -244,10 +245,6 @@ public class SugiliteMainActivity extends AppCompatActivity {
 
         if(id == R.id.upload_scripts){
             //progress dialog for loading the script
-            progressDialog = new AlertDialog.Builder(this).setMessage(Const.LOADING_MESSAGE).create();
-            progressDialog.getWindow().setType(OVERLAY_TYPE);
-            progressDialog.setCanceledOnTouchOutside(false);
-            progressDialog.show();
             new Thread(new Runnable() {
                 @Override
                 public void run()
@@ -281,21 +278,12 @@ public class SugiliteMainActivity extends AppCompatActivity {
                                 System.out.println("usage log doesn't exist!");
                             }
                             //finish uploading the usage log
-
                         }
                     }
                     catch (Exception e){
                         e.printStackTrace();
                     }
                     final int finalJSONCount = uploadJSONCount, finalFileCount = uploadFileCount;
-                    Runnable dismissDialog = new Runnable() {
-                        @Override
-                        public void run() {
-                            progressDialog.dismiss();
-                            Toast.makeText(context, "Uploaded " + finalJSONCount + " JSONs and " + finalFileCount + " files", Toast.LENGTH_SHORT).show();
-                        }
-                    };
-                    runOnUiThread(dismissDialog);
                 }
             }).start();
             return true;

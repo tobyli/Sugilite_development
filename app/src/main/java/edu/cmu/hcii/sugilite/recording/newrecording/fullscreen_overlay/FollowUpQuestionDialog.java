@@ -129,7 +129,6 @@ public class FollowUpQuestionDialog extends SugiliteDialogManager implements Sug
     private OntologyQuery currentQuery;
 
     private AlertDialog dialog;
-    private Dialog progressDialog;
 
     public FollowUpQuestionDialog(Context context, TextToSpeech tts, OntologyQuery initialQuery, UISnapshot uiSnapshot, SugiliteEntity<Node> actualClickedNode, List<Node> matchedNodes, SugiliteAvailableFeaturePack featurePack, List<Pair<OntologyQuery, Double>> queryScoreList, SugiliteBlockBuildingHelper blockBuildingHelper, LayoutInflater layoutInflater, Runnable clickRunnable, SugiliteData sugiliteData, SharedPreferences sharedPreferences, int errorCount){
         super(context, tts);
@@ -285,9 +284,7 @@ public class FollowUpQuestionDialog extends SugiliteDialogManager implements Sug
                 e.printStackTrace();
             }
 
-            //show loading popup
             dialog.dismiss();
-            showProgressDialog();
         }
     }
 
@@ -350,14 +347,6 @@ public class FollowUpQuestionDialog extends SugiliteDialogManager implements Sug
         }
     }
 
-    private void showProgressDialog() {
-        progressDialog = new AlertDialog.Builder(context).setMessage("Processing the query ...").create();
-        if(progressDialog.getWindow() != null) {
-            progressDialog.getWindow().setType(OVERLAY_TYPE);
-        }
-        progressDialog.setCanceledOnTouchOutside(false);
-        progressDialog.show();
-    }
 
     /**
      * refresh the current query text view so that it reflects currentQuery
@@ -674,10 +663,6 @@ public class FollowUpQuestionDialog extends SugiliteDialogManager implements Sug
 
     @Override
     public void resultReceived(int responseCode, String result, String originalQuery) {
-        //dismiss the progress dialog
-        if (progressDialog != null && progressDialog.isShowing()) {
-            progressDialog.dismiss();
-        }
         //update currentQuery based on the result received
         VerbalInstructionServerResults results = gson.fromJson(result, VerbalInstructionServerResults.class);
 
@@ -802,19 +787,5 @@ public class FollowUpQuestionDialog extends SugiliteDialogManager implements Sug
     private void showConfirmationDialog(SugiliteOperationBlock block, SugiliteAvailableFeaturePack featurePack, List<Pair<OntologyQuery, Double>> queryScoreList, Runnable clickRunnable) {
         SugiliteRecordingConfirmationDialog sugiliteRecordingConfirmationDialog = new SugiliteRecordingConfirmationDialog(context, block, featurePack, queryScoreList, clickRunnable, blockBuildingHelper, layoutInflater, uiSnapshot, actualClickedNode, sugiliteData, sharedPreferences, tts);
         sugiliteRecordingConfirmationDialog.show();
-    }
-
-    @Override
-    public void runOnMainThread(Runnable r) {
-        try {
-            if (context instanceof SugiliteAccessibilityService) {
-                ((SugiliteAccessibilityService) context).runOnUiThread(r);
-            } else {
-                throw new Exception("no access to ui thread");
-            }
-        } catch (Exception e) {
-            //do nothing
-            e.printStackTrace();
-        }
     }
 }

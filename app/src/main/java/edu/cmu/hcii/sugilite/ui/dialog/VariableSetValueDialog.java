@@ -225,8 +225,6 @@ public class VariableSetValueDialog extends SugiliteDialogManager implements Abs
         }
 
     }
-    AlertDialog progressDialog;
-
 
     /**
      * @param afterExecutionOperation @nullable, this operation will be pushed into the queue after the execution
@@ -242,33 +240,13 @@ public class VariableSetValueDialog extends SugiliteDialogManager implements Abs
             AutomatorUtil.killPackage(packageName);
         }
 
-        progressDialog = new AlertDialog.Builder(context).setMessage(Const.LOADING_MESSAGE).create();
-        progressDialog.getWindow().setType(OVERLAY_TYPE);
-        progressDialog.setCanceledOnTouchOutside(false);
-        progressDialog.show();
-
         sugiliteData.logUsageData(ScriptUsageLogManager.EXECUTE_SCRIPT, startingBlock.getScriptName());
 
 
         Runnable delayAndRunScript = new Runnable() {
             @Override
             public void run() {
-                Runnable dismissDialog = new Runnable() {
-                    @Override
-                    public void run() {
-                        progressDialog.dismiss();
-                    }
-                };
                 sugiliteData.runScript(startingBlock, afterExecutionOperation, afterExecutionRunnable, state);
-                if(context instanceof SugiliteData) {
-                    progressDialog.dismiss();
-                }
-                if(context instanceof SugiliteAccessibilityService) {
-                    ((SugiliteAccessibilityService) context).runOnUiThread(dismissDialog);
-                }
-                else if(context instanceof Activity){
-                    ((Activity)context).runOnUiThread(dismissDialog);
-                }
             }
         };
         Handler handler = new Handler();

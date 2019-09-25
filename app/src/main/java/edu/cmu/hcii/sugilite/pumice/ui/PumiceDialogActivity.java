@@ -19,6 +19,7 @@ import java.util.Locale;
 
 import edu.cmu.hcii.sugilite.Const;
 import edu.cmu.hcii.sugilite.R;
+import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.pumice.dialog.PumiceDialogManager;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.speech.SugiliteAndroidAPIVoiceRecognitionListener;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.speech.SugiliteGoogleCloudVoiceRecognitionListener;
@@ -46,6 +47,7 @@ public class PumiceDialogActivity extends AppCompatActivity implements SugiliteV
     private Runnable speakingEndedRunnable;
     private boolean runSpeakingEndedRunnable = false;
     private Activity context;
+    private SugiliteData sugiliteData;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,17 +59,11 @@ public class PumiceDialogActivity extends AppCompatActivity implements SugiliteV
         this.userTextBox = (EditText) findViewById(R.id.pumice_user_textbox);
 
         //initiate tts
-        this.tts = new TextToSpeech(this, new TextToSpeech.OnInitListener() {
-            @Override
-            public void onInit(int status) {
-                //bind the dialog manager
-                bindDialogManager(new PumiceDialogManager(context));
-                //send the first prompt from the default intent handler in the dialog manager
-                pumiceDialogManager.callSendPromptForTheIntentHandlerForCurrentIntentHandler();
-            }
-        });
+
+        this.sugiliteData = (SugiliteData) getApplication();
+        this.tts = sugiliteData.getTTS();
         initiateDrawables();
-        tts.setLanguage(Locale.US);
+
 
         //initiate sugiliteVoiceRecognitionListener
         if (Const.SELECTED_SPEECH_RECOGNITION_TYPE == Const.SpeechRecognitionType.ANDROID) {

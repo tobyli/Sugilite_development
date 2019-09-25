@@ -190,10 +190,6 @@ public class PumiceParsingConfirmationHandler implements PumiceUtteranceIntentHa
         pumiceDialogManager.sendAgentMessage("Is this correct?", true, true);
     }
 
-    @Override
-    public void runOnMainThread(Runnable r) {
-        context.runOnUiThread(r);
-    }
 
     @Override
     public void setContext(Activity context) {

@@ -47,6 +47,7 @@ import edu.cmu.hcii.sugilite.recording.newrecording.dialog_management.SugiliteDi
 import edu.cmu.hcii.sugilite.recording.newrecording.dialog_management.SugiliteDialogSimpleState;
 import edu.cmu.hcii.sugilite.recording.newrecording.dialog_management.SugiliteDialogUtteranceFilter;
 import edu.cmu.hcii.sugilite.source_parsing.SugiliteScriptParser;
+import edu.cmu.hcii.sugilite.ui.dialog.SugiliteProgressDialog;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.VerbalInstructionRecordingManager;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.server_comm.SugiliteVerbalInstructionHTTPQueryInterface;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.server_comm.SugiliteVerbalInstructionHTTPQueryManager;
@@ -71,7 +72,6 @@ public class RecordingAmbiguousPopupDialog extends SugiliteDialogManager impleme
     private SugiliteVerbalInstructionHTTPQueryManager sugiliteVerbalInstructionHTTPQueryManager;
     private Dialog dialog;
     private View dialogView;
-    private AlertDialog progressDialog;
     private Gson gson;
     private SerializableUISnapshot serializableUISnapshot;
     private UISnapshot uiSnapshot;
@@ -251,14 +251,6 @@ public class RecordingAmbiguousPopupDialog extends SugiliteDialogManager impleme
         refreshSpeakButtonStyle(mySpeakButton);
     }
 
-    private void showProgressDialog() {
-        progressDialog = new AlertDialog.Builder(context).setMessage("Processing the query ...").create();
-        if(progressDialog.getWindow() != null) {
-            progressDialog.getWindow().setType(OVERLAY_TYPE);
-        }
-        progressDialog.setCanceledOnTouchOutside(false);
-        progressDialog.show();
-    }
 
     private void skipButtonOnClick(){
         clickRunnable.run();
@@ -292,9 +284,7 @@ public class RecordingAmbiguousPopupDialog extends SugiliteDialogManager impleme
             } catch (Exception e){
                 e.printStackTrace();
             }
-            //show loading popup
             dialog.dismiss();
-            showProgressDialog();
         }
     }
 
@@ -305,10 +295,6 @@ public class RecordingAmbiguousPopupDialog extends SugiliteDialogManager impleme
     public void resultReceived(int responseCode, String result, String originalQuery) {
         final int MAX_QUERY_CANDIDATE_NUMBER = 7;
 
-        //dismiss the dialog
-        if (progressDialog != null && progressDialog.isShowing()) {
-            progressDialog.dismiss();
-        }
         //raw response
         System.out.print(responseCode + ": " + result);
 
@@ -630,19 +616,5 @@ public class RecordingAmbiguousPopupDialog extends SugiliteDialogManager impleme
         //set current sate
         setCurrentState(askingForVerbalInstructionState);
         initPrompt();
-    }
-
-    @Override
-    public void runOnMainThread(Runnable r) {
-        try {
-            if (context instanceof SugiliteAccessibilityService) {
-                ((SugiliteAccessibilityService) context).runOnUiThread(r);
-            } else {
-                throw new Exception("no access to ui thread");
-            }
-        } catch (Exception e) {
-            //do nothing
-            e.printStackTrace();
-        }
     }
 }

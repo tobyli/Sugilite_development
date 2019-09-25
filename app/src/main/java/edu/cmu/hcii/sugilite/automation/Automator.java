@@ -491,16 +491,18 @@ public class Automator {
                             sugiliteData.addInstruction(((SugiliteErrorHandlingForkBlock) block).getAlternativeNextBlock());
                         }
                     });
-            serviceContext.runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    AlertDialog dialog = builder.create();
-                    if (dialog.getWindow() != null) {
-                        dialog.getWindow().setType(OVERLAY_TYPE);
+
+                SugiliteData.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        AlertDialog dialog = builder.create();
+                        if (dialog.getWindow() != null) {
+                            dialog.getWindow().setType(OVERLAY_TYPE);
+                        }
+                        dialog.show();
                     }
-                    dialog.show();
-                }
-            });
+                });
+
         } else if (block instanceof SugiliteSpecialOperationBlock) {
             sugiliteData.addInstruction(block.getNextBlockToRun());
         } else if (block instanceof SugiliteConditionBlock) {

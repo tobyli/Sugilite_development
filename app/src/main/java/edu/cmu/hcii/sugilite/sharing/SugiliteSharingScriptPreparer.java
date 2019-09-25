@@ -292,6 +292,7 @@ public class SugiliteSharingScriptPreparer {
         }
 
         // REPLACE HAS_TEXT and HAS_CHILD_TEXT with hashed equivalents in queries
+        //TODO: solve the "not sure how to replace" problem
         replaceStringsInScript(script, replacements);
 
         for (SugiliteBlock block : script.getFollowingBlocks()) {

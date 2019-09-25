@@ -18,6 +18,7 @@ import edu.cmu.hcii.sugilite.pumice.PumiceDemonstrationUtil;
 import edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.PumiceUserExplainValueIntentHandler;
 import edu.cmu.hcii.sugilite.pumice.kb.PumiceValueQueryKnowledge;
 import edu.cmu.hcii.sugilite.pumice.ui.PumiceDialogActivity;
+import edu.cmu.hcii.sugilite.ui.dialog.SugiliteProgressDialog;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.VerbalInstructionIconManager;
 
 /**
@@ -71,7 +72,7 @@ public class PumiceValueDemonstrationDialog {
                             @Override
                             public void run() {
                                 sugiliteData.currentPumiceValueDemonstrationType = null;
-                                parentIntentHandler.runOnMainThread(new Runnable() {
+                                SugiliteData.runOnUiThread(new Runnable() {
                                     @Override
                                     public void run() {
                                         //turn off the overlay

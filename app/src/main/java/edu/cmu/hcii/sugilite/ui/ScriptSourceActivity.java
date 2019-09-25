@@ -24,6 +24,7 @@ import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.pumice.PumiceDemonstrationUtil;
 import edu.cmu.hcii.sugilite.source_parsing.SugiliteScriptParser;
 import edu.cmu.hcii.sugilite.ontology.description.OntologyDescriptionGenerator;
+import edu.cmu.hcii.sugilite.ui.dialog.SugiliteProgressDialog;
 import edu.cmu.hcii.sugilite.ui.main.SugiliteMainActivity;
 
 import static edu.cmu.hcii.sugilite.Const.OVERLAY_TYPE;
@@ -37,7 +38,6 @@ public class ScriptSourceActivity extends AppCompatActivity {
     private SugiliteData sugiliteData;
     private SugiliteScriptDao sugiliteScriptDao;
     private Activity context;
-    private AlertDialog progressDialog;
     private SugiliteStartingBlock script;
     private EditText sourceEditText;
     private SugiliteScriptParser sugiliteScriptParser;
@@ -69,11 +69,6 @@ public class ScriptSourceActivity extends AppCompatActivity {
             setTitle("Edit Source: " + scriptName.replace(".SugiliteScript", ""));
         }
 
-        //progress dialog for loading the script
-        progressDialog = new AlertDialog.Builder(context).setMessage(Const.LOADING_MESSAGE).create();
-        progressDialog.getWindow().setType(OVERLAY_TYPE);
-        progressDialog.setCanceledOnTouchOutside(false);
-        progressDialog.show();
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -82,12 +77,6 @@ public class ScriptSourceActivity extends AppCompatActivity {
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
-                Runnable dismissDialog = new Runnable() {
-                    @Override
-                    public void run() {
-                        progressDialog.dismiss();
-                    }
-                };
                 Runnable loadOperation = new Runnable() {
                     @Override
                     public void run() {
@@ -96,8 +85,6 @@ public class ScriptSourceActivity extends AppCompatActivity {
                 };
 
                 context.runOnUiThread(loadOperation);
-                context.runOnUiThread(dismissDialog);
-
             }
         }).start();
 
@@ -110,10 +97,15 @@ public class ScriptSourceActivity extends AppCompatActivity {
     }
 
     public void loadScriptSource() {
+        SugiliteProgressDialog progressDialog = new SugiliteProgressDialog(SugiliteData.getAppContext(), R.string.loading_script_message);
+        progressDialog.show();
+
         sourceEditText = (EditText) findViewById(R.id.edit_text_source);
         sourceEditText.setHorizontallyScrolling(true);
         String source = sugiliteScriptParser.scriptToString(script);
         sourceEditText.setText(source);
+
+        progressDialog.dismiss();
     }
 
     public void scriptSourceRunSaveButtonOnClick(final View view) {

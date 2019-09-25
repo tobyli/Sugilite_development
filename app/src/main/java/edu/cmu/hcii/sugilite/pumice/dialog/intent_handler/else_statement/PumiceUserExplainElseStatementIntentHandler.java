@@ -201,10 +201,6 @@ public class PumiceUserExplainElseStatementIntentHandler implements PumiceUttera
         pumiceDialogManager.sendAgentMessage(String.format("What should I do if %s is not true?", boolExpReadableName.replace(" is true", "")), true, true);
     }
 
-    @Override
-    public void runOnMainThread(Runnable r) {
-        pumiceDialogManager.runOnMainThread(r);
-    }
 
     /**
      * return the result newBlock by adding it to originalConditionBlock, and release the lock in the original PumiceInitInstructionParsingHandler

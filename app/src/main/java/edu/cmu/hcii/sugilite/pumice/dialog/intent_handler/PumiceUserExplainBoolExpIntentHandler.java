@@ -171,10 +171,6 @@ public class PumiceUserExplainBoolExpIntentHandler implements PumiceUtteranceInt
         pumiceDialogManager.sendAgentMessage("How do I tell whether " + parentKnowledgeName + "?", true, true);
     }
 
-    @Override
-    public void runOnMainThread(Runnable r) {
-        pumiceDialogManager.runOnMainThread(r);
-    }
 
     /**
      * return the result PumiceBooleanExpKnowledge, and release the lock in the original PumiceInitInstructionParsingHandler

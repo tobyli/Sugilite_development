@@ -179,10 +179,6 @@ public class PumiceUserExplainValueIntentHandler implements PumiceUtteranceInten
         pumiceDialogManager.sendAgentMessage("How do I find out the value for " + parentKnowledgeName + "?" + " You can explain, or say \"demonstrate\" to demonstrate", true, true);
     }
 
-    @Override
-    public void runOnMainThread(Runnable r) {
-        pumiceDialogManager.runOnMainThread(r);
-    }
 
     /**
      * return the result PumiceValueQueryKnowledge, and release the lock in the original PumiceInitInstructionParsingHandler

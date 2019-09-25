@@ -34,6 +34,7 @@ import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.ontology.SerializableUISnapshot;
 import edu.cmu.hcii.sugilite.ontology.SugiliteRelation;
 import edu.cmu.hcii.sugilite.ontology.SugiliteSerializableEntity;
+import edu.cmu.hcii.sugilite.ui.dialog.SugiliteProgressDialog;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.server_comm.SugiliteVerbalInstructionHTTPQueryInterface;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.server_comm.SugiliteVerbalInstructionHTTPQueryManager;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.server_comm.VerbalInstructionServerResults;
@@ -60,7 +61,6 @@ public class VerbalInstructionTestDialog implements SugiliteVoiceInterface, Sugi
     private Context context;
     private EditText instructionTextbox;
     private AlertDialog dialog;
-    private AlertDialog progressDialog;
     private ImageButton speakButton;
     private SugiliteVoiceRecognitionListener sugiliteVoiceRecognitionListener;
     private SugiliteVerbalInstructionHTTPQueryManager sugiliteVerbalInstructionHTTPQueryManager;
@@ -152,11 +152,6 @@ public class VerbalInstructionTestDialog implements SugiliteVoiceInterface, Sugi
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
-
-
-                //TODO: show loading popup
-                showProgressDialog();
-
             }
         });
     }
@@ -197,21 +192,12 @@ public class VerbalInstructionTestDialog implements SugiliteVoiceInterface, Sugi
         }
     }
 
-    private void showProgressDialog(){
-        progressDialog = new AlertDialog.Builder(context).setMessage("Processing the query ...").create();
-        progressDialog.getWindow().setType(OVERLAY_TYPE);
-        progressDialog.setCanceledOnTouchOutside(false);
-        progressDialog.show();
-    }
 
     @Override
     /**
      * callback for HTTP query
      */
     public void resultReceived(int responseCode, String result, String originalQuery) {
-        if (progressDialog != null && progressDialog.isShowing()) {
-            progressDialog.dismiss();
-        }
         //raw response
         System.out.print(responseCode + ": " + result);
 
@@ -295,16 +281,6 @@ public class VerbalInstructionTestDialog implements SugiliteVoiceInterface, Sugi
         }
     }
 
-    @Override
-    public void runOnMainThread(Runnable r) {
-        try {
-            mainLayout.post(r);
-        }
-        catch (Exception e){
-            //do nothing
-            e.printStackTrace();
-        }
-    }
 
 
 

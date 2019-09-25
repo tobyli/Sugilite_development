@@ -15,6 +15,7 @@ import java.io.PrintWriter;
 import java.util.Map;
 
 import edu.cmu.hcii.sugilite.Const;
+import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.model.Node;
 import edu.cmu.hcii.sugilite.accessibility_service.SugiliteAccessibilityService;
 import edu.cmu.hcii.sugilite.model.block.util.SugiliteAvailableFeaturePack;
@@ -77,7 +78,7 @@ public class SugiliteStudyHandler {
 
             SerializableUISnapshot serializableUISnapshot = new SerializableUISnapshot(uiSnapshot);
             SugiliteSerializableEntity<Node> serializableEntity = new SugiliteSerializableEntity<>(foundEntity);
-            accessibilityService.runOnUiThread(new Runnable() {
+            SugiliteData.runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
                     SugiliteVerbalInstructionStudyDialog verbalInstructionTestDialog = new SugiliteVerbalInstructionStudyDialog(serializableUISnapshot, serializableEntity, sugiliteStudyHandler, context, layoutInflater, sugiliteVoiceRecognitionListener, path, fileName);
@@ -130,7 +131,7 @@ public class SugiliteStudyHandler {
             e.printStackTrace();
         } finally {
             if (out1 != null) out1.close();
-            accessibilityService.runOnUiThread(new Runnable() {
+            SugiliteData.runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
                     Toast.makeText(context, "Packet saved to " + path, Toast.LENGTH_SHORT).show();
@@ -149,7 +150,7 @@ public class SugiliteStudyHandler {
     }
 
     private void refreshIconStatus(){
-        accessibilityService.runOnUiThread(new Runnable() {
+        SugiliteData.runOnUiThread(new Runnable() {
             @Override
             public void run() {
                 if(iconManager != null) {

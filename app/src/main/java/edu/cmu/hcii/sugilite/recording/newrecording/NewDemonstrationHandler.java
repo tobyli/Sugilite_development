@@ -109,7 +109,7 @@ public class NewDemonstrationHandler {
                 SugiliteOperationBlock block = blockBuildingHelper.getUnaryOperationBlockWithOntologyQueryFromQuery(queryScoreList.get(0).first, SugiliteOperation.CLICK, featurePack);
 
                 //need to run on ui thread
-                accessibilityService.runOnUiThread(new Runnable() {
+                SugiliteData.runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
                         showConfirmation(block, featurePack, queryScoreList);
@@ -120,7 +120,7 @@ public class NewDemonstrationHandler {
             else{
                 //ask for clarification if ambiguous
                 //need to run on ui thread
-                accessibilityService.runOnUiThread(new Runnable() {
+                SugiliteData.runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
                         Toast.makeText(SugiliteData.getAppContext(), "Ambiguous!", Toast.LENGTH_SHORT).show();
@@ -131,7 +131,7 @@ public class NewDemonstrationHandler {
         }
         else{
             //empty result
-            accessibilityService.runOnUiThread(new Runnable() {
+            SugiliteData.runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
                     Toast.makeText(SugiliteData.getAppContext(), "Empty Results!", Toast.LENGTH_SHORT).show();

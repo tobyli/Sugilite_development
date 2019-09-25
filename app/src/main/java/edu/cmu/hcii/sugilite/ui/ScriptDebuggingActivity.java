@@ -48,6 +48,7 @@ import edu.cmu.hcii.sugilite.model.block.special_operation.SugiliteSpecialOperat
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.model.variable.Variable;
 import edu.cmu.hcii.sugilite.recording.RecordingPopUpDialog;
+import edu.cmu.hcii.sugilite.ui.dialog.SugiliteProgressDialog;
 import edu.cmu.hcii.sugilite.ui.dialog.VariableSetValueDialog;
 import edu.cmu.hcii.sugilite.ui.main.SugiliteMainActivity;
 
@@ -74,7 +75,6 @@ public class ScriptDebuggingActivity extends AppCompatActivity {
     private ActivityManager activityManager;
     private ServiceStatusManager serviceStatusManager;
     private Context context;
-    private AlertDialog progressDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -102,9 +102,7 @@ public class ScriptDebuggingActivity extends AppCompatActivity {
         this.context = this;
         if(scriptName != null)
             setTitle("View Script: " + scriptName.replace(".SugiliteScript", ""));
-        progressDialog = new AlertDialog.Builder(context).setMessage(Const.LOADING_MESSAGE).create();
-        progressDialog.getWindow().setType(OVERLAY_TYPE);
-        progressDialog.show();
+
         new Thread(new Runnable() {
             @Override
             public void run()
@@ -115,26 +113,14 @@ public class ScriptDebuggingActivity extends AppCompatActivity {
                 catch (Exception e){
                     e.printStackTrace();
                 }
-                Runnable dismissDialog = new Runnable() {
-                    @Override
-                    public void run() {
-                        progressDialog.dismiss();
-                    }
-                };
+
                 Runnable loadOperation = new Runnable() {
                     @Override
                     public void run() {
                         loadOperationList();
                     }
                 };
-                if(context instanceof SugiliteAccessibilityService) {
-                    ((SugiliteAccessibilityService) context).runOnUiThread(loadOperation);
-                    ((SugiliteAccessibilityService) context).runOnUiThread(dismissDialog);
-                }
-                else if(context instanceof Activity){
-                    ((Activity)context).runOnUiThread(loadOperation);
-                    ((Activity)context).runOnUiThread(dismissDialog);
-                }
+                SugiliteData.runOnUiThread(loadOperation);
             }
         }).start();
 
@@ -143,6 +129,9 @@ public class ScriptDebuggingActivity extends AppCompatActivity {
     //TODO: set up operation on resume
 
     public void loadOperationList(){
+        SugiliteProgressDialog progressDialog = new SugiliteProgressDialog(SugiliteData.getAppContext(), R.string.loading_script_message);
+        progressDialog.show();
+
         operationStepList = (LinearLayout)findViewById(R.id.operation_list_view);
         operationStepList.removeAllViews();
         SugiliteBlock iterBlock = script;
@@ -165,6 +154,8 @@ public class ScriptDebuggingActivity extends AppCompatActivity {
         tv.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
         tv.setPadding(10, 10, 10, 10);
         operationStepList.addView(tv);
+
+        progressDialog.dismiss();
     }
 
     /**

@@ -19,8 +19,10 @@ SUGILITE is a new programming-by-demonstration (PBD) system that enables users t
 
 
 ## Reference:
-Toby Jia-Jun Li, Amos Azaria and Brad A. Myers. 2017. [SUGILITE: Creating Multimodal Smartphone Automation by Demonstration.](http://www.toby.li/sugilite_paper) Proceedings of the 2017 CHI Conference on Human Factors in Computing Systems  (CHI 2017)
+Toby Jia-Jun Li, Amos Azaria, and Brad A. Myers. [SUGILITE: Creating Multimodal Smartphone Automation by Demonstration.](http://www.toby.li/sugilite_paper) Proceedings of the 2017 CHI Conference on Human Factors in Computing Systems  (CHI 2017)
 
-Toby Jia-Jun Li, Yuanchun Li, Fanglin Chen and Brad A. Myers. 2017. [Programming IoT Devices by Demonstration Using Mobile Apps.](http://toby.li/wp-content/uploads/2017/03/TobyLi-ISEUD2017-ProgrammingIoTDevicesByDemonstration.pdf) Proceedings of the International Symposium on End User Development (IS-EUD 2017).
+Toby Jia-Jun Li, Yuanchun Li, Fanglin Chen, and Brad A. Myers. [Programming IoT Devices by Demonstration Using Mobile Apps.](http://toby.li/wp-content/uploads/2017/03/TobyLi-ISEUD2017-ProgrammingIoTDevicesByDemonstration.pdf) Proceedings of the International Symposium on End User Development (IS-EUD 2017).
 
-Toby Jia-Jun Li, Igor Labutov, Xiaohan Nancy Li, Xiaoyi Zhang, Wenze Shi, Wanling Ding, Tom M. Mitchell and Brad A. Myers. 2018. [APPINITE: A Multi-Modal Interface for Specifying Data Descriptions in Programming by Demonstration Using Natural Language Instructions.](http://toby.li/wp-content/uploads/2018/07/TobyLi-VLHCC18-APPINITE.pdf) Proceedings of  the 2018 IEEE Symposium on Visual Languages and Human-Centric Computing (VL/HCC 2018).
+Toby Jia-Jun Li, Igor Labutov, Xiaohan Nancy Li, Xiaoyi Zhang, Wenze Shi, Wanling Ding, Tom M. Mitchell, and Brad A. Myers. [APPINITE: A Multi-Modal Interface for Specifying Data Descriptions in Programming by Demonstration Using Natural Language Instructions.](http://toby.li/wp-content/uploads/2018/07/TobyLi-VLHCC18-APPINITE.pdf) Proceedings of  the 2018 IEEE Symposium on Visual Languages and Human-Centric Computing (VL/HCC 2018).
+
+Toby Jia-Jun Li, Marissa Radensky, Justin Jia, Kirielle Singarajah, Tom M. Mitchell, and Brad A. Myers. [PUMICE: A Multi-Modal Agent that Learns Concepts and Conditionals from Natural Language and Demonstrations.](http://toby.li/wp-content/uploads/2019/07/Li_Pumice_UIST19.pdf) Proceedings of the 32nd Annual ACM Symposium on User Interface Software and Technology (UIST 2019).

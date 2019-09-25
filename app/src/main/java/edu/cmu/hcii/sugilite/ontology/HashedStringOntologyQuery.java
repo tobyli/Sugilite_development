@@ -1,7 +1,7 @@
 package edu.cmu.hcii.sugilite.ontology;
 
 import edu.cmu.hcii.sugilite.Const;
-import edu.cmu.hcii.sugilite.sharing.HashedString;
+import edu.cmu.hcii.sugilite.sharing.model.HashedString;
 
 import java.util.Arrays;
 import java.util.Set;

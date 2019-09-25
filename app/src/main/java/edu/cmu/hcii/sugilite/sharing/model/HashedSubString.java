@@ -1,4 +1,4 @@
-package edu.cmu.hcii.sugilite.sharing;
+package edu.cmu.hcii.sugilite.sharing.model;
 
 public class HashedSubString extends HashedString {
     /**

@@ -1,6 +1,6 @@
 package edu.cmu.hcii.sugilite.sharing.debug;
 
-import edu.cmu.hcii.sugilite.sharing.HashedSubString;
+import edu.cmu.hcii.sugilite.sharing.model.HashedSubString;
 
 public class HashedSubStringWithPlaintext extends HashedSubString implements HasPlaintext {
     private String plaintext;

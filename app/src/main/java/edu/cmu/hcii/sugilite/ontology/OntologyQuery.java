@@ -1,6 +1,6 @@
 package edu.cmu.hcii.sugilite.ontology;
 
-import edu.cmu.hcii.sugilite.sharing.HashedString;
+import edu.cmu.hcii.sugilite.sharing.model.HashedString;
 import edu.cmu.hcii.sugilite.sharing.StringAlternativeGenerator;
 
 import java.io.Serializable;

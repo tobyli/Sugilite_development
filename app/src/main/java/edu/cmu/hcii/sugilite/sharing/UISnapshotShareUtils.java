@@ -3,12 +3,11 @@ package edu.cmu.hcii.sugilite.sharing;
 import android.util.Log;
 import edu.cmu.hcii.sugilite.Const;
 import edu.cmu.hcii.sugilite.ontology.SerializableUISnapshot;
-import edu.cmu.hcii.sugilite.ontology.SugiliteRelation;
 import edu.cmu.hcii.sugilite.ontology.SugiliteSerializableTriple;
+import edu.cmu.hcii.sugilite.sharing.model.StringInContext;
 
 import java.util.Arrays;
 import java.util.Map;
-import java.util.Set;
 
 public class UISnapshotShareUtils {
     public static void prepareSnapshotForSharing(SerializableUISnapshot snapshot, Map<StringInContext, StringAlternativeGenerator.StringAlternative> replacements) {

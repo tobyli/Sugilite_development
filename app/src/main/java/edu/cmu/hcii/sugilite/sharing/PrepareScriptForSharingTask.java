@@ -1,9 +1,7 @@
 package edu.cmu.hcii.sugilite.sharing;
 
-import android.os.Build;
-import android.util.Base64;
 import android.util.Log;
-import android.util.Pair;
+
 import com.google.common.collect.*;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
@@ -20,7 +18,8 @@ import edu.cmu.hcii.sugilite.model.operation.trinary.SugiliteTrinaryOperation;
 import edu.cmu.hcii.sugilite.model.operation.unary.SugiliteUnaryOperation;
 import edu.cmu.hcii.sugilite.ontology.*;
 import edu.cmu.hcii.sugilite.recording.newrecording.SugiliteBlockBuildingHelper;
-import org.apache.commons.lang3.SerializationUtils;
+import edu.cmu.hcii.sugilite.sharing.model.HashedString;
+import edu.cmu.hcii.sugilite.sharing.model.StringInContext;
 
 import java.io.*;
 import java.net.HttpURLConnection;

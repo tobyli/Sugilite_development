@@ -2,7 +2,6 @@ package edu.cmu.hcii.sugilite.sharing;
 
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.os.AsyncTask;
 import android.preference.PreferenceManager;
 import android.util.Log;
 
@@ -23,7 +22,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -39,6 +37,7 @@ import javax.annotation.Nullable;
 
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.pumice.communication.SkipPumiceJSONSerialization;
+import edu.cmu.hcii.sugilite.sharing.model.HashedUIStrings;
 import edu.cmu.hcii.sugilite.sharing.model.SugiliteRepoListing;
 import okhttp3.MultipartBody;
 import okhttp3.OkHttpClient;
@@ -306,7 +305,7 @@ public class SugiliteScriptSharingHTTPQueryManager {
                 urlConnection.setChunkedStreamingMode(0); // this might increase performance?
                 BufferedOutputStream out = new BufferedOutputStream(urlConnection.getOutputStream());
                 BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(out, StandardCharsets.UTF_8));
-                writer.write(PrivacyHashUploader.hashedUIToJson(hashedUIStrings));
+                writer.write(hashedUIStrings.toJson());
                 writer.flush();
                 writer.close();
                 out.close();

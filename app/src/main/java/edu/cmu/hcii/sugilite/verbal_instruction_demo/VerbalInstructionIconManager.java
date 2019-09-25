@@ -34,7 +34,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.concurrent.ExecutionException;
 
 import edu.cmu.hcii.sugilite.Const;
 import edu.cmu.hcii.sugilite.R;
@@ -45,8 +44,8 @@ import edu.cmu.hcii.sugilite.ontology.UISnapshot;
 import edu.cmu.hcii.sugilite.recording.newrecording.fullscreen_overlay.FollowUpQuestionDialog;
 import edu.cmu.hcii.sugilite.recording.newrecording.fullscreen_overlay.FullScreenRecordingOverlayManager;
 import edu.cmu.hcii.sugilite.sharing.HashedSplitStringGenerator;
-import edu.cmu.hcii.sugilite.sharing.HashedUIStrings;
-import edu.cmu.hcii.sugilite.sharing.PrivacyHashUploader;
+import edu.cmu.hcii.sugilite.sharing.SugiliteScriptSharingHTTPQueryManager;
+import edu.cmu.hcii.sugilite.sharing.model.HashedUIStrings;
 import edu.cmu.hcii.sugilite.ui.StatusIconManager;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.speech.SugiliteAndroidAPIVoiceRecognitionListener;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.speech.SugiliteGoogleCloudVoiceRecognitionListener;
@@ -75,9 +74,9 @@ public class VerbalInstructionIconManager implements SugiliteVoiceInterface {
     private SugiliteStudyHandler sugiliteStudyHandler;
     private FullScreenRecordingOverlayManager recordingOverlayManager;
     private SugiliteAccessibilityService sugiliteAccessibilityService;
+    private SugiliteScriptSharingHTTPQueryManager sugiliteScriptSharingHTTPQueryManager;
     private StatusIconManager duckIconManager;
     private TextToSpeech tts;
-    private PrivacyHashUploader privacyHashUploader; // TODO move this to accessibility service
     public boolean isListening = false;
     public boolean isSpeaking = false;
     private Dialog dialog;
@@ -112,6 +111,7 @@ public class VerbalInstructionIconManager implements SugiliteVoiceInterface {
         this.sugiliteStudyHandler = sugiliteStudyHandler;
         this.sugiliteAccessibilityService = sugiliteAccessibilityService;
         this.duckIconManager = sugiliteAccessibilityService.getDuckIconManager();
+        this.sugiliteScriptSharingHTTPQueryManager = SugiliteScriptSharingHTTPQueryManager.getInstance(context);
         this.tts = tts;
         sugiliteStudyHandler.setIconManager(this);
         windowManager = (WindowManager) context.getSystemService(context.WINDOW_SERVICE);
@@ -124,7 +124,6 @@ public class VerbalInstructionIconManager implements SugiliteVoiceInterface {
         }
         this.recordingOverlayManager = recordingOverlayManager;
 
-        this.privacyHashUploader = new PrivacyHashUploader(context);
 
     }
 
@@ -240,7 +239,7 @@ public class VerbalInstructionIconManager implements SugiliteVoiceInterface {
                                 if (sharedPreferences.getBoolean("uploading_hashed_ui_in_progress", false)) {
                                     HashedUIStrings hashedUIStrings = new HashedUIStrings(sugiliteAccessibilityService.getCurrentAppPackageName(), sugiliteAccessibilityService.getCurrentAppActivityName(), new SerializableUISnapshot(latestUISnapshot), Settings.Secure.getString(context.getContentResolver(), Settings.Secure.ANDROID_ID), new HashedSplitStringGenerator());
                                     try {
-                                        privacyHashUploader.uploadHashedUI(hashedUIStrings);
+                                        sugiliteScriptSharingHTTPQueryManager.uploadHashedUI(hashedUIStrings);
                                     } catch (Exception e) {
                                         //TODO: better handle this error
                                         e.printStackTrace();

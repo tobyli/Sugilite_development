@@ -1,8 +1,7 @@
 package edu.cmu.hcii.sugilite.sharing.debug;
 
-import edu.cmu.hcii.sugilite.sharing.HashedSplitString;
-import edu.cmu.hcii.sugilite.sharing.HashedString;
-import edu.cmu.hcii.sugilite.sharing.HashedSubString;
+import edu.cmu.hcii.sugilite.sharing.model.HashedSplitString;
+import edu.cmu.hcii.sugilite.sharing.model.HashedSubString;
 
 import java.util.List;
 

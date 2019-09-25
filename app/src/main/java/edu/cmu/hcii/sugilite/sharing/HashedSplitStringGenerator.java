@@ -3,6 +3,8 @@ package edu.cmu.hcii.sugilite.sharing;
 import edu.cmu.hcii.sugilite.sharing.debug.HashedSplitStringWithPlaintext;
 import edu.cmu.hcii.sugilite.sharing.debug.HashedStringWithPlaintext;
 import edu.cmu.hcii.sugilite.sharing.debug.HashedSubStringWithPlaintext;
+import edu.cmu.hcii.sugilite.sharing.model.HashedSplitString;
+import edu.cmu.hcii.sugilite.sharing.model.HashedSubString;
 
 import java.util.ArrayList;
 import java.util.List;

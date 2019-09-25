@@ -1,4 +1,4 @@
-package edu.cmu.hcii.sugilite.sharing;
+package edu.cmu.hcii.sugilite.sharing.model;
 
 import android.util.Log;
 import android.widget.EditText;
@@ -6,6 +6,8 @@ import edu.cmu.hcii.sugilite.Const;
 import edu.cmu.hcii.sugilite.ontology.SerializableUISnapshot;
 import edu.cmu.hcii.sugilite.ontology.SugiliteRelation;
 import edu.cmu.hcii.sugilite.ontology.SugiliteSerializableTriple;
+import edu.cmu.hcii.sugilite.sharing.HashedSplitStringGenerator;
+import edu.cmu.hcii.sugilite.sharing.debug.HasPlaintext;
 
 import java.util.*;
 
@@ -100,5 +102,69 @@ public class HashedUIStrings {
         for (String s : childStrings) {
             hashedTexts.add(HashedSplitStringGenerator.generate(s));
         }
+    }
+    private static String hashedTextToJson(HashedSplitString hashedText) {
+        StringBuilder sb = new StringBuilder("{\n");
+
+        sb.append(jsonProperty("text_hash", hashedText.preferred.toString()));
+        sb.append(",\n");
+
+        if (hashedText instanceof HasPlaintext) {
+            sb.append(jsonProperty("debug_text", ((HasPlaintext)hashedText).getPlaintext()));
+            sb.append(",\n");
+        }
+
+        sb.append("\"derived_hashes\": [\n");
+
+        for (int i = 0; i < hashedText.alternatives.size(); i++) {
+            HashedSubString subString = hashedText.alternatives.get(i);
+
+            if (i != 0) sb.append(",\n");
+            sb.append("{\n");
+
+            sb.append(jsonProperty("text_hash", subString.toString()));
+            sb.append(",\n");
+
+            if (subString instanceof HasPlaintext) {
+                sb.append(jsonProperty("debug_text", ((HasPlaintext)subString).getPlaintext()));
+                sb.append(",\n");
+            }
+
+            sb.append(jsonProperty("tokens_removed", subString.priority));
+
+            sb.append("}");
+        }
+
+        sb.append("\n]}");
+        return sb.toString();
+    }
+    private static String jsonProperty(String key, String value) {
+        return "\"" + key + "\": \"" + value + "\"";
+    }
+    private static String jsonProperty(String key, int value) {
+        return "\"" + key + "\": " + value;
+    }
+
+    public String toJson(){
+        StringBuilder sb = new StringBuilder("{\n");
+
+        sb.append(jsonProperty("package", this.packageName));
+        sb.append(",\n");
+
+        sb.append(jsonProperty("activity", this.activityName));
+        sb.append(",\n");
+
+        sb.append(jsonProperty("package_user_hash", this.packageUserHash.toString()));
+        sb.append(",\n");
+
+        sb.append("\"text_hashes\":\n[\n");
+
+        for (int i = 0; i < this.hashedTexts.size(); i++) {
+            if (i != 0) sb.append(",\n");
+            sb.append(hashedTextToJson(this.hashedTexts.get(i)));
+        }
+
+        sb.append("\n]\n}");
+        return sb.toString();
     }
 }

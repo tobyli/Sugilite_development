@@ -19,7 +19,7 @@ import edu.cmu.hcii.sugilite.pumice.communication.PumiceInstructionPacket;
 import edu.cmu.hcii.sugilite.pumice.communication.PumiceSemanticParsingResultPacket;
 import edu.cmu.hcii.sugilite.pumice.communication.SkipPumiceJSONSerialization;
 import edu.cmu.hcii.sugilite.pumice.dialog.PumiceDialogManager;
-import edu.cmu.hcii.sugilite.ui.ScriptDetailActivity;
+import edu.cmu.hcii.sugilite.ui.LocalScriptDetailActivity;
 import edu.cmu.hcii.sugilite.model.block.SugiliteConditionBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
 import edu.cmu.hcii.sugilite.SugiliteData;
@@ -30,7 +30,7 @@ import static edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.PumiceUtterance
 import static edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.PumiceUtteranceIntentHandler.PumiceIntent.FIX_SCOPE;
 
 public class PumiceConditionalIntentHandler implements PumiceUtteranceIntentHandler, SugiliteVerbalInstructionHTTPQueryInterface {
-    private ScriptDetailActivity sourceActivity;
+    private LocalScriptDetailActivity sourceActivity;
     private PumiceDialogManager dialogManager;
     private Context context;
     private ExecutorService es;
@@ -43,7 +43,7 @@ public class PumiceConditionalIntentHandler implements PumiceUtteranceIntentHand
     private SugiliteConditionBlock originalBlock;
     private boolean justAddElse = false;
 
-    public PumiceConditionalIntentHandler(PumiceDialogManager dialogManager, ScriptDetailActivity sourceActivity){
+    public PumiceConditionalIntentHandler(PumiceDialogManager dialogManager, LocalScriptDetailActivity sourceActivity){
         this.dialogManager = dialogManager;
         this.sourceActivity = sourceActivity;
         this.context = sourceActivity;
@@ -138,7 +138,7 @@ public class PumiceConditionalIntentHandler implements PumiceUtteranceIntentHand
             case FIX_SCOPE:
                 lastIntent = FIX_SCOPE;
                 lastUtterance = utterance;
-                sourceActivity.fixScope(utterance.getContent(),s);
+                sourceActivity.fixScope(utterance.getTriggerContent(),s);
                 if(s.equals("true")) {
                     originalBlock.setElseBlock(storedBlock);
                 }
@@ -150,7 +150,7 @@ public class PumiceConditionalIntentHandler implements PumiceUtteranceIntentHand
             case FIX_SCRIPT2:
                 lastIntent = PumiceIntent.FIX_SCRIPT2;
                 lastUtterance = utterance;
-                if((utterance.getContent().contains(s) || utterance.getContent().contains("step"))) {
+                if((utterance.getTriggerContent().contains(s) || utterance.getTriggerContent().contains("step"))) {
                     moving = false;
                     if(s.equals("true")) {
                         storedBlock = ((SugiliteConditionBlock) dialogManager.conditionBlock).getThenBlock();
@@ -163,7 +163,7 @@ public class PumiceConditionalIntentHandler implements PumiceUtteranceIntentHand
                     sourceActivity.loadOperationList();
                     dialogManager.sendAgentMessage("Ok, please tell me the last step shown that should happen only if the check is " + s, true, true);
                 }
-                /*else if(utterance.getContent().contains("happens") || utterance.getContent().contains("true") || utterance.getContent().contains("false")) {
+                /*else if(utterance.getTriggerContent().contains("happens") || utterance.getTriggerContent().contains("true") || utterance.getTriggerContent().contains("false")) {
                     if(s.equals("true") && ((SugiliteConditionBlock) dialogManager.tResult).getIfBlock().getNextBlockCond() == null) {
                         dialogManager.sendAgentMessage("Ok, please tell me what I should actually do if " + dialogManager.check + "is true.", true, true);
                     }
@@ -185,7 +185,7 @@ public class PumiceConditionalIntentHandler implements PumiceUtteranceIntentHand
                 lastUtterance = utterance;
                 SugiliteData sugiliteData2 = sourceActivity.getSugiliteData();
                 sugiliteData2.testRun = true;
-                if(utterance.getContent().contains("true")) {
+                if(utterance.getTriggerContent().contains("true")) {
                     sugiliteData2.testing = true;
                 }
                 sourceActivity.testRun();
@@ -193,7 +193,7 @@ public class PumiceConditionalIntentHandler implements PumiceUtteranceIntentHand
             case FIX_SCRIPT:
                 lastIntent = PumiceIntent.FIX_SCRIPT;
                 s = "false";
-                if(lastUtterance.getContent().contains("true")) {
+                if(lastUtterance.getTriggerContent().contains("true")) {
                     s = "true";
                 }
                 lastUtterance = utterance;
@@ -220,7 +220,7 @@ public class PumiceConditionalIntentHandler implements PumiceUtteranceIntentHand
                 lastUtterance = utterance;
                 dialogManager.addElse = true;
                 dialogManager.conditionBlock = dialogManager.tResult;
-                PumiceInstructionPacket pumiceInstructionPacket4 = new PumiceInstructionPacket(dialogManager.getPumiceKnowledgeManager(), PumiceIntent.DEFINE_VALUE_EXP, calendar.getTimeInMillis(), utterance.getContent(), "");//"if it is hot" +
+                PumiceInstructionPacket pumiceInstructionPacket4 = new PumiceInstructionPacket(dialogManager.getPumiceKnowledgeManager(), PumiceIntent.DEFINE_VALUE_EXP, calendar.getTimeInMillis(), utterance.getTriggerContent(), "");//"if it is hot" +
                 dialogManager.sendAgentMessage("Let's make sure I understood what you said...", true, false);
                 dialogManager.sendAgentMessage(pumiceInstructionPacket4.toString(), false, false);
                 try {
@@ -238,7 +238,7 @@ public class PumiceConditionalIntentHandler implements PumiceUtteranceIntentHand
             case ADD_ELSE:
                 lastIntent = PumiceIntent.ADD_ELSE;
                 lastUtterance = utterance;
-                if(utterance.getContent().contains("yes")) {
+                if(utterance.getTriggerContent().contains("yes")) {
                     dialogManager.sendAgentMessage("Ok, I need you to tell me what to do if" + dialogManager.check + "is false. Would you like to explain or demonstrate what to do?", true, true);
                 }
                 else {
@@ -248,13 +248,13 @@ public class PumiceConditionalIntentHandler implements PumiceUtteranceIntentHand
             case GET_SCOPE:
                 lastIntent = PumiceIntent.GET_SCOPE;
                 lastUtterance = utterance;
-                sourceActivity.getScope(utterance.getContent());
+                sourceActivity.getScope(utterance.getTriggerContent());
                 dialogManager.sendAgentMessage("Ok, would you like to do something if " + dialogManager.check + "is false?",true,true);
                 break;
             case ADD_TO_SCRIPT:
                 lastIntent = PumiceIntent.ADD_TO_SCRIPT;
                 lastUtterance = utterance;
-                if(utterance.getContent().contains("yes")) {
+                if(utterance.getTriggerContent().contains("yes")) {
                     dialogManager.setPcih(this);
                     sourceActivity.determineConditionalLoc(dialogManager.tResult);
                 }
@@ -266,7 +266,7 @@ public class PumiceConditionalIntentHandler implements PumiceUtteranceIntentHand
                 lastIntent = PumiceIntent.ADD_CONDITIONAL_2;
                 lastUtterance = utterance;
                 boolean after = false;
-                if(utterance.getContent().contains("after")) {
+                if(utterance.getTriggerContent().contains("after")) {
                     after = true;
                 }
                 sourceActivity.determineConditionalLoc2(after);
@@ -274,7 +274,7 @@ public class PumiceConditionalIntentHandler implements PumiceUtteranceIntentHand
             case ADD_CONDITIONAL:
                 lastIntent = PumiceIntent.ADD_CONDITIONAL;
                 lastUtterance = utterance;
-                String[] removeIf = utterance.getContent().split(" ",3);
+                String[] removeIf = utterance.getTriggerContent().split(" ",3);
                 String toParse = removeIf[2];
                 System.out.println(toParse);
                 PumiceInstructionPacket pumiceInstructionPacket2 = new PumiceInstructionPacket(dialogManager.getPumiceKnowledgeManager(), PumiceIntent.DEFINE_BOOL_EXP, calendar.getTimeInMillis(), toParse, "");
@@ -291,7 +291,7 @@ public class PumiceConditionalIntentHandler implements PumiceUtteranceIntentHand
                 lastIntent = PumiceIntent.CHECKING_LOC0;
                 lastUtterance = utterance;
                 originalBlock = ((SugiliteConditionBlock) dialogManager.tResult);
-                if(utterance.getContent().contains("yes")) {
+                if(utterance.getTriggerContent().contains("yes")) {
                     dialogManager.sendAgentMessage("Ok, are the steps that you want to happen if the check is true already part of the script?", true, true);
                 }
                 else {
@@ -301,7 +301,7 @@ public class PumiceConditionalIntentHandler implements PumiceUtteranceIntentHand
             case CHECKING_LOC:
                 lastIntent = PumiceIntent.CHECKING_LOC;
                 lastUtterance = utterance;
-                if(utterance.getContent().contains("yes")) {
+                if(utterance.getTriggerContent().contains("yes")) {
                     dialogManager.sendAgentMessage("Ok, please tell me the last step that should happen only if" + dialogManager.check + "is true.", true,true);
                 }
                 else {
@@ -318,7 +318,7 @@ public class PumiceConditionalIntentHandler implements PumiceUtteranceIntentHand
                 lastUtterance = utterance;
                 dialogManager.addElse = true;
                 dialogManager.conditionBlock = dialogManager.tResult;
-                PumiceInstructionPacket pumiceInstructionPacket5 = new PumiceInstructionPacket(dialogManager.getPumiceKnowledgeManager(), PumiceIntent.DEFINE_BOOL_EXP, calendar.getTimeInMillis(), utterance.getContent(), "");//"if it is hot" +
+                PumiceInstructionPacket pumiceInstructionPacket5 = new PumiceInstructionPacket(dialogManager.getPumiceKnowledgeManager(), PumiceIntent.DEFINE_BOOL_EXP, calendar.getTimeInMillis(), utterance.getTriggerContent(), "");//"if it is hot" +
                     dialogManager.sendAgentMessage("Let's make sure I understood what you said...", true, false);
                 dialogManager.sendAgentMessage(pumiceInstructionPacket5.toString(), false, false);
                 try {
@@ -343,7 +343,7 @@ public class PumiceConditionalIntentHandler implements PumiceUtteranceIntentHand
             case RUN_THROUGH:
                 lastIntent = PumiceIntent.RUN_THROUGH;
                 lastUtterance = utterance;
-                if(utterance.getContent().contains("yes")) {
+                if(utterance.getTriggerContent().contains("yes")) {
                     dialogManager.sendAgentMessage("Ok, would you like to test when the check is true or when it's false?",true,true);
                 }
                 else {
@@ -354,19 +354,19 @@ public class PumiceConditionalIntentHandler implements PumiceUtteranceIntentHand
             case MOVE_STEP:
                 lastIntent = PumiceIntent.MOVE_STEP;
                 lastUtterance = utterance;
-                if(!utterance.getContent().matches(".*\\d+.*")) {//need to account for if say number that isn't step
+                if(!utterance.getTriggerContent().matches(".*\\d+.*")) {//need to account for if say number that isn't step
                     dialogManager.sendAgentMessage("Please say the number of the step after which the check should happen.",true,true);
                 }
                 else {
-                    sourceActivity.moveStep(utterance.getContent());
+                    sourceActivity.moveStep(utterance.getTriggerContent());
                     dialogManager.sendAgentMessage("Ok, does it look like the check happens at the right time?",true,true);
                 }
                 break;
             case USER_INIT_INSTRUCTION:
                 lastIntent = PumiceIntent.USER_INIT_INSTRUCTION;
                 lastUtterance = utterance;
-                dialogManager.sendAgentMessage("I have received your instruction: " + utterance.getContent(), true, false);
-                PumiceInstructionPacket pumiceInstructionPacket = new PumiceInstructionPacket(dialogManager.getPumiceKnowledgeManager(), PumiceIntent.USER_INIT_INSTRUCTION, calendar.getTimeInMillis(), utterance.getContent(), "");
+                dialogManager.sendAgentMessage("I have received your instruction: " + utterance.getTriggerContent(), true, false);
+                PumiceInstructionPacket pumiceInstructionPacket = new PumiceInstructionPacket(dialogManager.getPumiceKnowledgeManager(), PumiceIntent.USER_INIT_INSTRUCTION, calendar.getTimeInMillis(), utterance.getTriggerContent(), "");
                 dialogManager.sendAgentMessage("Sending out the server query below...", true, false);
                 dialogManager.sendAgentMessage(pumiceInstructionPacket.toString(), false, false);
                 try {

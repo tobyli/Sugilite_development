@@ -24,6 +24,7 @@ import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteOperation;
 import edu.cmu.hcii.sugilite.model.operation.unary.SugiliteClickOperation;
 import edu.cmu.hcii.sugilite.ontology.*;
+import edu.cmu.hcii.sugilite.pumice.PumiceDemonstrationUtil;
 import edu.cmu.hcii.sugilite.recording.ReadableDescriptionGenerator;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.server_comm.VerbalInstructionServerResults;
 
@@ -98,7 +99,8 @@ public class VerbalInstructionRecordingManager {
 
                     //save the block
                     saveBlock(operationBlock, node.getPackageName());
-                    Toast.makeText(context, "Added " + queryFormula + " to the current recording", Toast.LENGTH_SHORT).show();
+                    PumiceDemonstrationUtil.showSugiliteToast("Added " + queryFormula + " to the current recording", Toast.LENGTH_SHORT);
+
                     Map.Entry<String, Long> boundsInScreenTimeStampPair = new AbstractMap.SimpleEntry<>(node.getBoundsInScreen(), Calendar.getInstance().getTimeInMillis());
                     sugiliteData.NodeToIgnoreRecordingBoundsInScreenTimeStampQueue.add(boundsInScreenTimeStampPair);
 

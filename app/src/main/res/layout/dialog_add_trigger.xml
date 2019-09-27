@@ -30,7 +30,7 @@
         android:paddingBottom="15dp" />
 
     <TextView
-        android:text="Choose app:"
+        android:text="Choose triggering app:"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:id="@+id/textview_choose_trigger_app" />
@@ -42,7 +42,7 @@
         android:paddingBottom="15dp" />
 
     <TextView
-        android:text="Choose source app:"
+        android:text="Choose notification source app:"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:id="@+id/textview_choose_notification_trigger_app" />

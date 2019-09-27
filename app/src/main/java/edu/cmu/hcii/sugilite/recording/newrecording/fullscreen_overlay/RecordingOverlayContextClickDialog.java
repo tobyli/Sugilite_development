@@ -5,10 +5,8 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 import android.speech.tts.TextToSpeech;
-import android.util.Pair;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
@@ -20,15 +18,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import edu.cmu.hcii.sugilite.Const;
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.model.Node;
-import edu.cmu.hcii.sugilite.ontology.OntologyQuery;
 import edu.cmu.hcii.sugilite.ontology.SugiliteEntity;
 import edu.cmu.hcii.sugilite.ontology.UISnapshot;
+import edu.cmu.hcii.sugilite.pumice.PumiceDemonstrationUtil;
 import edu.cmu.hcii.sugilite.pumice.dialog.demonstration.PumiceReadOutDemonstrationSelectionDialog;
 import edu.cmu.hcii.sugilite.pumice.dialog.demonstration.PumiceValueDemonstrationSelectionDialog;
-import edu.cmu.hcii.sugilite.recording.newrecording.SugiliteBlockBuildingHelper;
 
 import static edu.cmu.hcii.sugilite.Const.OVERLAY_TYPE;
 
@@ -108,7 +104,7 @@ public class RecordingOverlayContextClickDialog {
                             PumiceValueDemonstrationSelectionDialog valueDemonstrationSelectionDialog = new PumiceValueDemonstrationSelectionDialog(context, textLabelEntityMap, uiSnapshot, parentOverlayManager, sugiliteData, tts, layoutInflater, sharedPreferences, x, y);
                             valueDemonstrationSelectionDialog.show();
                         } else {
-                            Toast.makeText(context, "Not in a Pumice value concept learning session!!", Toast.LENGTH_SHORT).show();
+                            PumiceDemonstrationUtil.showSugiliteToast("Not in a Pumice value concept learning session!!", Toast.LENGTH_SHORT);
                         }
                         break;
                     case "Record a \"read out\" operation":
@@ -121,7 +117,7 @@ public class RecordingOverlayContextClickDialog {
                             PumiceReadOutDemonstrationSelectionDialog readOutDemonstrationSelectionDialog = new PumiceReadOutDemonstrationSelectionDialog(context, textLabelEntityMap, uiSnapshot, parentOverlayManager, sugiliteData, tts, layoutInflater, sharedPreferences, x, y);
                             readOutDemonstrationSelectionDialog.show();
                         } else {
-                            Toast.makeText(context, "Not in the recording mode!!", Toast.LENGTH_SHORT).show();
+                            PumiceDemonstrationUtil.showSugiliteToast("Not in the recording mode!!", Toast.LENGTH_SHORT);
                         }
 
                         break;

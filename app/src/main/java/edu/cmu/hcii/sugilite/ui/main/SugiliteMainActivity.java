@@ -17,7 +17,6 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.Window;
 import android.view.WindowManager;
-import android.widget.Toast;
 
 
 import java.io.File;
@@ -52,9 +51,10 @@ import static edu.cmu.hcii.sugilite.Const.SQL_SCRIPT_DAO;
 
 
 public class SugiliteMainActivity extends AppCompatActivity {
-    private ActionBar.Tab scriptListTab, triggerListTab;
+    private ActionBar.Tab scriptListTab, triggerListTab, remoteScriptListTab;
     private Fragment fragmentScriptListTab = new FragmentScriptListTab();
     private Fragment fragmentTriggerListTab = new FragmentTriggerListTab();
+    private Fragment fragmentRemoteScriptListTab = new FragmentRemoteScriptListTab();
     private SugiliteScriptDao sugiliteScriptDao;
     private SugiliteTriggerDao sugiliteTriggerDao;
     private SugiliteData sugiliteData;
@@ -101,16 +101,19 @@ public class SugiliteMainActivity extends AppCompatActivity {
         actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
 
         // Set Tab Icon and Titles
-        this.scriptListTab = actionBar.newTab().setText("Script List");
-        this.triggerListTab = actionBar.newTab().setText("Trigger List");
+        this.scriptListTab = actionBar.newTab().setText("Local Scripts");
+        this.triggerListTab = actionBar.newTab().setText("Triggers");
+        this.remoteScriptListTab = actionBar.newTab().setText("Remote Scripts");
 
         // Set Tab Listeners
         scriptListTab.setTabListener(new TabListener(fragmentScriptListTab));
         triggerListTab.setTabListener(new TabListener(fragmentTriggerListTab));
+        remoteScriptListTab.setTabListener(new TabListener(fragmentRemoteScriptListTab));
 
         // Add tabs to actionbar
         actionBar.addTab(scriptListTab);
         actionBar.addTab(triggerListTab);
+        actionBar.addTab(remoteScriptListTab);
 
         /*
         try {
@@ -201,16 +204,6 @@ public class SugiliteMainActivity extends AppCompatActivity {
                         })
                         .setIcon(android.R.drawable.ic_dialog_alert)
                         .show();
-            }
-            catch (Exception e){
-                e.printStackTrace();
-            }
-            return true;
-        }
-
-        if(id == R.id.add_trigger){
-            try {
-                new AddTriggerDialog(this, getLayoutInflater(), sugiliteData, sugiliteScriptDao, getPackageManager(), fragmentTriggerListTab).show();
             }
             catch (Exception e){
                 e.printStackTrace();

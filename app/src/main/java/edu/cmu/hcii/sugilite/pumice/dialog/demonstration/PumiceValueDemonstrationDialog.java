@@ -18,7 +18,6 @@ import edu.cmu.hcii.sugilite.pumice.PumiceDemonstrationUtil;
 import edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.PumiceUserExplainValueIntentHandler;
 import edu.cmu.hcii.sugilite.pumice.kb.PumiceValueQueryKnowledge;
 import edu.cmu.hcii.sugilite.pumice.ui.PumiceDialogActivity;
-import edu.cmu.hcii.sugilite.ui.dialog.SugiliteProgressDialog;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.VerbalInstructionIconManager;
 
 /**
@@ -111,8 +110,8 @@ public class PumiceValueDemonstrationDialog {
         Intent resumeActivity = new Intent(context, PumiceDialogActivity.class);
         resumeActivity.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
         context.startActivityIfNeeded(resumeActivity, 0);
+        PumiceDemonstrationUtil.showSugiliteToast("Demonstration Ready!", Toast.LENGTH_SHORT);
 
-        Toast.makeText(context, "Demonstration Ready!", Toast.LENGTH_SHORT).show();
 
         //run the returnResultCallback when the result if ready
         //TODO: determine the value type

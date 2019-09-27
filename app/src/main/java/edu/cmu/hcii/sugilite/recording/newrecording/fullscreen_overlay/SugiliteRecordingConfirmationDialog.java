@@ -1,6 +1,5 @@
 package edu.cmu.hcii.sugilite.recording.newrecording.fullscreen_overlay;
 
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Context;
@@ -19,7 +18,6 @@ import android.widget.Toast;
 import java.util.List;
 
 import edu.cmu.hcii.sugilite.Const;
-import edu.cmu.hcii.sugilite.accessibility_service.SugiliteAccessibilityService;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptFileDao;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptSQLDao;
@@ -33,6 +31,7 @@ import edu.cmu.hcii.sugilite.ontology.OntologyQuery;
 import edu.cmu.hcii.sugilite.ontology.SugiliteEntity;
 import edu.cmu.hcii.sugilite.ontology.UISnapshot;
 import edu.cmu.hcii.sugilite.ontology.description.OntologyDescriptionGenerator;
+import edu.cmu.hcii.sugilite.pumice.PumiceDemonstrationUtil;
 import edu.cmu.hcii.sugilite.recording.newrecording.SugiliteBlockBuildingHelper;
 import edu.cmu.hcii.sugilite.recording.newrecording.dialog_management.SugiliteDialogManager;
 import edu.cmu.hcii.sugilite.recording.newrecording.dialog_management.SugiliteDialogSimpleState;
@@ -102,7 +101,8 @@ public class SugiliteRecordingConfirmationDialog extends SugiliteDialogManager {
         if(confirmationPromptTextView != null){
             //TODO: show the source code temporarily
             confirmationPromptTextView.setText(Html.fromHtml("Are you sure you want to record the operation: " + newDescription));
-            Toast.makeText(context, block.toString(), Toast.LENGTH_SHORT).show();
+            PumiceDemonstrationUtil.showSugiliteToast(block.toString(), Toast.LENGTH_SHORT);
+
             //confirmationPromptTextView.setText(Html.fromHtml("Are you sure you want to record the operation: " + block.toString()));
 
         }
@@ -217,7 +217,8 @@ public class SugiliteRecordingConfirmationDialog extends SugiliteDialogManager {
 
 
                 sugiliteData.setCurrentSystemState(SugiliteData.DEFAULT_STATE);
-                Toast.makeText(context, "end recording", Toast.LENGTH_SHORT).show();
+                PumiceDemonstrationUtil.showSugiliteToast("end recording", Toast.LENGTH_SHORT);
+
             }
         }
     }

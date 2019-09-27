@@ -102,7 +102,8 @@ public class PumiceProcedureDemonstrationDialog {
         resumeActivity.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
         context.startActivityIfNeeded(resumeActivity, 0);
 
-        Toast.makeText(context, "Demonstration Ready!", Toast.LENGTH_SHORT).show();
+        PumiceDemonstrationUtil.showSugiliteToast("Demonstration Ready!", Toast.LENGTH_SHORT);
+
 
         //construct the procedure knowledge
 

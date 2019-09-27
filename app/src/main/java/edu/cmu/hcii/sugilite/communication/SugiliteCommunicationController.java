@@ -359,9 +359,9 @@ public class SugiliteCommunicationController {
                                             e.printStackTrace();
                                         }
                                         if( shouldUseToast ) {
-                                            Toast.makeText(context, "Recording new script " +
+                                            PumiceDemonstrationUtil.showSugiliteToast("Recording new script " +
                                                             sharedPreferences.getString("scriptName", "NULL"),
-                                                    Toast.LENGTH_SHORT).show();
+                                                    Toast.LENGTH_SHORT);
                                         }
 
                                         //go to home screen for recording
@@ -431,7 +431,7 @@ public class SugiliteCommunicationController {
             message = "Already tracking in progress, can't start";
         }
         if( shouldUseToast ) {
-            Toast.makeText(context, message, Toast.LENGTH_SHORT).show();
+            PumiceDemonstrationUtil.showSugiliteToast(message, Toast.LENGTH_SHORT);
         }
         Log.d(TAG, message);
         return message;
@@ -444,7 +444,7 @@ public class SugiliteCommunicationController {
             prefEditor2.putBoolean("tracking_in_process", false);
             prefEditor2.commit();
             if( shouldUseToast ) {
-                Toast.makeText(context, "end tracking", Toast.LENGTH_SHORT).show();
+                PumiceDemonstrationUtil.showSugiliteToast("end tracking", Toast.LENGTH_SHORT);
             }
             if (sendTracking == 1) {
                 // send back tracking log (script)? false == 0, true == 1.

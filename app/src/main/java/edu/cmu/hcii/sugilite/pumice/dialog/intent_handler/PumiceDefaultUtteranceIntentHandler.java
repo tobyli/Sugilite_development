@@ -103,7 +103,7 @@ public class PumiceDefaultUtteranceIntentHandler implements PumiceUtteranceInten
                 dialogManager.sendAgentViewMessage(imageView, "Here is the weather", true, false);
                 break;
             case USER_INIT_INSTRUCTION:
-                //dialogManager.sendAgentMessage("I have received your instruction: " + utterance.getContent(), true, false);
+                //dialogManager.sendAgentMessage("I have received your instruction: " + utterance.getTriggerContent(), true, false);
                 PumiceInstructionPacket pumiceInstructionPacket = new PumiceInstructionPacket(dialogManager.getPumiceKnowledgeManager(), PumiceIntent.USER_INIT_INSTRUCTION, calendar.getTimeInMillis(), utterance.getContent(), "ROOT");
                 //dialogManager.sendAgentMessage("Sending out the server query below...", true, false);
                 //dialogManager.sendAgentMessage(pumiceInstructionPacket.toString(), false, false);

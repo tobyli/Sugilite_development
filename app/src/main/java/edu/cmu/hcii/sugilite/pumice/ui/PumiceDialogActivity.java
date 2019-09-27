@@ -71,6 +71,14 @@ public class PumiceDialogActivity extends AppCompatActivity implements SugiliteV
         } else if (Const.SELECTED_SPEECH_RECOGNITION_TYPE == Const.SpeechRecognitionType.GOOGLE_CLOUD) {
             this.sugiliteVoiceRecognitionListener = new SugiliteGoogleCloudVoiceRecognitionListener(this, this, tts);
         }
+
+        init();
+    }
+
+    private void init() {
+        bindDialogManager(new PumiceDialogManager(context));
+        //send the first prompt from the default intent handler in the dialog manager
+        pumiceDialogManager.callSendPromptForTheIntentHandlerForCurrentIntentHandler();
     }
 
     /**
@@ -274,9 +282,6 @@ public class PumiceDialogActivity extends AppCompatActivity implements SugiliteV
 
     @Override
     protected void onDestroy() {
-        if(tts != null) {
-            tts.shutdown();
-        }
         if (sugiliteVoiceRecognitionListener != null) {
             sugiliteVoiceRecognitionListener.stopAllAndEndASRService();
         }

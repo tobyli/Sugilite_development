@@ -41,6 +41,7 @@ import edu.cmu.hcii.sugilite.communication.SugiliteEventBroadcastingActivity;
 import edu.cmu.hcii.sugilite.dao.SugiliteAppVocabularyDao;
 import edu.cmu.hcii.sugilite.ontology.UISnapshot;
 import edu.cmu.hcii.sugilite.ontology.helper.annotator.SugiliteTextParentAnnotator;
+import edu.cmu.hcii.sugilite.pumice.PumiceDemonstrationUtil;
 import edu.cmu.hcii.sugilite.pumice.visualization.PumiceDemoVisualizationManager;
 import edu.cmu.hcii.sugilite.recording.SugiliteScreenshotManager;
 import edu.cmu.hcii.sugilite.automation.*;
@@ -96,7 +97,6 @@ public class SugiliteAccessibilityService extends AccessibilityService {
     private static Set<String> homeScreenPackageNameSet;
     private SugiliteTextParentAnnotator sugiliteTextParentAnnotator;
     private FullScreenRecordingOverlayManager recordingOverlayManager;
-    private TextToSpeech tts;
 
     //this thread is for executing automation
     private static final int AUTOMATOR_THREAD_EXECUTOR_THREAD_COUNT = 3;
@@ -136,24 +136,17 @@ public class SugiliteAccessibilityService extends AccessibilityService {
         }
         AccessibilityManager accessibilityManager = (AccessibilityManager) this.getSystemService(Context.ACCESSIBILITY_SERVICE);
         context = this;
-        tts = new TextToSpeech(context, new TextToSpeech.OnInitListener() {
-            @Override
-            public void onInit(int status) {
-                tts.setLanguage(Locale.US);
-            }
-        });
-        sugiliteData.setTTS(tts);
-        sugiliteStudyHandler = new SugiliteStudyHandler(context, LayoutInflater.from(getApplicationContext()), this, tts);
+        sugiliteStudyHandler = new SugiliteStudyHandler(context, LayoutInflater.from(getApplicationContext()), this, sugiliteData.getTTS());
         statusIconManager = new StatusIconManager(this, sugiliteData, sharedPreferences, accessibilityManager);
-        recordingOverlayManager = new FullScreenRecordingOverlayManager(context, sugiliteData, sharedPreferences, this, tts);
-        verbalInstructionIconManager = new VerbalInstructionIconManager(this, sugiliteStudyHandler, sugiliteData, sharedPreferences, recordingOverlayManager, this, tts);
+        recordingOverlayManager = new FullScreenRecordingOverlayManager(context, sugiliteData, sharedPreferences, this, sugiliteData.getTTS());
+        verbalInstructionIconManager = new VerbalInstructionIconManager(this, sugiliteStudyHandler, sugiliteData, sharedPreferences, recordingOverlayManager, this, sugiliteData.getTTS());
         statusIconManager.setVerbalInstructionIconManager(verbalInstructionIconManager);
         sugiliteData.verbalInstructionIconManager = verbalInstructionIconManager;
         newDemonstrationHandler = NewDemonstrationHandler.getInstance(sugiliteData , LayoutInflater.from(getApplicationContext()), sharedPreferences, this);
 
         screenshotManager = new SugiliteScreenshotManager(sharedPreferences, getApplicationContext());
         sugiliteTextParentAnnotator = SugiliteTextParentAnnotator.getInstance();
-        automator = new Automator(sugiliteData, this, statusIconManager, sharedPreferences, sugiliteTextParentAnnotator, tts);
+        automator = new Automator(sugiliteData, this, statusIconManager, sharedPreferences, sugiliteTextParentAnnotator, sugiliteData.getTTS());
         sugilteTrackingHandler = new SugiliteTrackingHandler(sugiliteData, getApplicationContext());
         availableAlternatives = new HashSet<>();
         availableAlternativeNodes = new HashSet<>();
@@ -214,7 +207,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
 
         init();
 
-        Toast.makeText(this, "Sugilite Accessibility Service Created", Toast.LENGTH_SHORT).show();
+        PumiceDemonstrationUtil.showSugiliteToast("Sugilite Accessibility Service Created", Toast.LENGTH_SHORT);
     }
 
     private void init() {
@@ -260,7 +253,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
         }
 
         pumiceDemoVisualizationManager = new PumiceDemoVisualizationManager(context);
-        Toast.makeText(this, "Sugilite Accessibility Service Started", Toast.LENGTH_SHORT).show();
+        PumiceDemonstrationUtil.showSugiliteToast("Sugilite Accessibility Service Started", Toast.LENGTH_SHORT);
     }
 
     @Override
@@ -824,7 +817,8 @@ public class SugiliteAccessibilityService extends AccessibilityService {
     @Override
     public void onDestroy() {
         super.onDestroy();
-        Toast.makeText(this, "Sugilite Accessibility Service Stopped", Toast.LENGTH_SHORT).show();
+        PumiceDemonstrationUtil.showSugiliteToast("Sugilite Accessibility Service Stopped", Toast.LENGTH_SHORT);
+
         if (statusIconManager != null) {
             try {
                 statusIconManager.removeStatusIcon();
@@ -846,9 +840,6 @@ public class SugiliteAccessibilityService extends AccessibilityService {
         }
         if (refreshIconHandler != null) {
             refreshIconHandler.removeMessages(0);
-        }
-        if (tts != null) {
-            tts.shutdown();
         }
 
     }

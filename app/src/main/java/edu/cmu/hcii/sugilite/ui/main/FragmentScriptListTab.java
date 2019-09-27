@@ -21,13 +21,11 @@ import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-
 
 import edu.cmu.hcii.sugilite.Const;
 import edu.cmu.hcii.sugilite.R;
@@ -40,18 +38,16 @@ import edu.cmu.hcii.sugilite.model.NewScriptGeneralizer;
 import edu.cmu.hcii.sugilite.model.OperationBlockDescriptionRegenerator;
 import edu.cmu.hcii.sugilite.model.ScriptQueryHasher;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
-import edu.cmu.hcii.sugilite.model.block.util.ScriptPrinter;
 import edu.cmu.hcii.sugilite.ontology.description.OntologyDescriptionGenerator;
 import edu.cmu.hcii.sugilite.pumice.PumiceDemonstrationUtil;
 import edu.cmu.hcii.sugilite.sharing.SugiliteScriptSharingHTTPQueryManager;
 import edu.cmu.hcii.sugilite.sharing.SugiliteSharingScriptPreparer;
 import edu.cmu.hcii.sugilite.study.ScriptUsageLogManager;
+import edu.cmu.hcii.sugilite.ui.LocalScriptDetailActivity;
 import edu.cmu.hcii.sugilite.ui.ScriptDebuggingActivity;
-import edu.cmu.hcii.sugilite.ui.ScriptDetailActivity;
 import edu.cmu.hcii.sugilite.ui.ScriptSourceActivity;
 import edu.cmu.hcii.sugilite.ui.dialog.NewScriptDialog;
 
-import static edu.cmu.hcii.sugilite.Const.OVERLAY_TYPE;
 import static edu.cmu.hcii.sugilite.Const.SQL_SCRIPT_DAO;
 
 /**
@@ -72,7 +68,6 @@ public class FragmentScriptListTab extends Fragment {
     private SugiliteSharingScriptPreparer sugiliteSharingScriptPreparer;
 
 
-
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         this.activity = getActivity();
@@ -80,17 +75,18 @@ public class FragmentScriptListTab extends Fragment {
         this.rootView = inflater.inflate(R.layout.fragment_script_list, container, false);
         this.serviceStatusManager = ServiceStatusManager.getInstance(activity);
         this.sharedPreferences = PreferenceManager.getDefaultSharedPreferences(activity);
-        this.sugiliteData = activity.getApplication() instanceof SugiliteData? (SugiliteData)activity.getApplication() : new SugiliteData();
+        this.sugiliteData = (SugiliteData) activity.getApplication();
         this.newScriptGeneralizer = new NewScriptGeneralizer(activity);
         this.scriptQueryHasher = new ScriptQueryHasher(activity);
         this.ontologyDescriptionGenerator = new OntologyDescriptionGenerator(getContext());
         this.sugiliteScriptSharingHTTPQueryManager = SugiliteScriptSharingHTTPQueryManager.getInstance(activity);
         this.sugiliteSharingScriptPreparer = new SugiliteSharingScriptPreparer(activity);
 
-        if(Const.DAO_TO_USE == SQL_SCRIPT_DAO)
+        if (Const.DAO_TO_USE == SQL_SCRIPT_DAO) {
             this.sugiliteScriptDao = new SugiliteScriptSQLDao(activity);
-        else
+        } else {
             this.sugiliteScriptDao = new SugiliteScriptFileDao(activity, sugiliteData);
+        }
         this.activity.setTitle("Sugilite Script List");
         //TODO: confirm overwrite when duplicated name
         //TODO: combine the two instances of script creation
@@ -105,8 +101,7 @@ public class FragmentScriptListTab extends Fragment {
                     public void onClick(DialogInterface dialog, int which) {
                         try {
                             setUpScriptList();
-                        }
-                        catch (Exception e){
+                        } catch (Exception e) {
                             e.printStackTrace();
                         }
                     }
@@ -114,16 +109,10 @@ public class FragmentScriptListTab extends Fragment {
                 newScriptDialog.show();
             }
         });
-        try {
-            setUpScriptList();
-        }
-        catch (Exception e){
-            e.printStackTrace();
-        }
 
         //add back the duck icon
-        if(sugiliteData != null && sugiliteData.statusIconManager != null && serviceStatusManager != null){
-            if(!sugiliteData.statusIconManager.isShowingIcon() && serviceStatusManager.isRunning()){
+        if (sugiliteData != null && sugiliteData.statusIconManager != null && serviceStatusManager != null) {
+            if (!sugiliteData.statusIconManager.isShowingIcon() && serviceStatusManager.isRunning()) {
                 sugiliteData.statusIconManager.addStatusIcon();
             }
         }
@@ -131,14 +120,25 @@ public class FragmentScriptListTab extends Fragment {
         return rootView;
     }
 
+    @Override
+    public void onResume() {
+        super.onResume();
+        try {
+            setUpScriptList();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+
     /**
      * update the script list displayed at the main activity according to the DB
      */
-    public void setUpScriptList() throws Exception{
-        final ListView scriptList = (ListView)rootView.findViewById(R.id.scriptList);
+    public void setUpScriptList() throws Exception {
+        final ListView scriptList = (ListView) rootView.findViewById(R.id.scriptList);
         List<String> names = sugiliteScriptDao.getAllNames();
         List<String> displayNames = new ArrayList<>();
-        for(String name : names){
+        for (String name : names) {
             displayNames.add(new String(name).replace(".SugiliteScript", ""));
         }
         System.out.println("showing " + names.size() + " scripts: " + displayNames);
@@ -148,7 +148,7 @@ public class FragmentScriptListTab extends Fragment {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 String scriptName = (String) scriptList.getItemAtPosition(position) + ".SugiliteScript";
-                final Intent scriptDetailIntent = new Intent(activityContext, ScriptDetailActivity.class);
+                final Intent scriptDetailIntent = new Intent(activityContext, LocalScriptDetailActivity.class);
                 scriptDetailIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
                 scriptDetailIntent.putExtra("scriptName", scriptName);
                 startActivity(scriptDetailIntent);
@@ -171,12 +171,16 @@ public class FragmentScriptListTab extends Fragment {
 
     //context menu are the long-click menus for each script
     @Override
-    public void onCreateContextMenu(ContextMenu menu, View view, ContextMenu.ContextMenuInfo info){
+    public void onCreateContextMenu(ContextMenu menu, View view, ContextMenu.ContextMenuInfo info) {
         super.onCreateContextMenu(menu, view, info);
-        if(view instanceof TextView && ((TextView) view).getText() != null)
-            menu.setHeaderTitle(((TextView) view).getText());
-        else
+        if (info instanceof AdapterView.AdapterContextMenuInfo &&
+                ((AdapterView.AdapterContextMenuInfo) info).targetView instanceof TextView &&
+                ((TextView) ((AdapterView.AdapterContextMenuInfo) info).targetView).getText() != null) {
+            menu.setHeaderTitle(((TextView) ((AdapterView.AdapterContextMenuInfo) info).targetView).getText());
+        }
+        else {
             menu.setHeaderTitle("Sugilite Operation Menu");
+        }
 
         //TODO: add run script here
         menu.add(0, ITEM_VIEW, 0, "View");
@@ -196,7 +200,7 @@ public class FragmentScriptListTab extends Fragment {
     @Override
     public boolean onContextItemSelected(MenuItem item) {
         final AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
-        if(info == null)
+        if (info == null)
             return super.onContextItemSelected(item);
         try {
             // delete before loading script in case serialization is broken
@@ -215,7 +219,7 @@ public class FragmentScriptListTab extends Fragment {
                 case ITEM_VIEW:
                     //open the view script activity
                     if (info.targetView instanceof TextView && ((TextView) info.targetView).getText() != null) {
-                        final Intent scriptDetailIntent = new Intent(activity, ScriptDetailActivity.class);
+                        final Intent scriptDetailIntent = new Intent(activity, LocalScriptDetailActivity.class);
                         scriptDetailIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
                         scriptDetailIntent.putExtra("scriptName", scriptName);
                         startActivity(scriptDetailIntent);
@@ -265,9 +269,8 @@ public class FragmentScriptListTab extends Fragment {
                                     public void onClick(DialogInterface dialog, int which) {
                                         SugiliteStartingBlock startingBlock = null;
                                         try {
-                                             startingBlock = sugiliteScriptDao.read(scriptName);
-                                        }
-                                        catch (Exception e){
+                                            startingBlock = sugiliteScriptDao.read(scriptName);
+                                        } catch (Exception e) {
                                             e.printStackTrace();
                                         }
                                         if (startingBlock != null) {
@@ -301,6 +304,11 @@ public class FragmentScriptListTab extends Fragment {
                             try {
                                 String id = sugiliteScriptSharingHTTPQueryManager.uploadScript(scriptName, "demo", script);
                                 Log.i("Upload script", "Script shared with id : " + id);
+
+                                PumiceDemonstrationUtil.showSugiliteToast(String.format("Successfully uploaded the script \"%s\"!", scriptName), Toast.LENGTH_SHORT);
+
+                                // debug
+                                script.setScriptName("UPLOADED_RAW: " + scriptName);
                                 sugiliteScriptDao.save(script);
                                 sugiliteScriptDao.commitSave();
                             } catch (InterruptedException e) {
@@ -321,6 +329,10 @@ public class FragmentScriptListTab extends Fragment {
                                 SugiliteStartingBlock sharable = sugiliteSharingScriptPreparer.prepareScript(script);
                                 String id = sugiliteScriptSharingHTTPQueryManager.uploadScript(scriptName, "demo", sharable);
                                 Log.i("Upload script", "Script shared with id : " + id);
+                                PumiceDemonstrationUtil.showSugiliteToast(String.format("Successfully uploaded the script \"%s\"!", scriptName), Toast.LENGTH_SHORT);
+
+
+                                // debug
                                 OperationBlockDescriptionRegenerator.regenerateScriptDescriptions(sharable, ontologyDescriptionGenerator);
                                 sharable.setScriptName("UPLOADED_FILTERED: " + scriptName);
                                 sugiliteScriptDao.save(sharable);
@@ -339,14 +351,14 @@ public class FragmentScriptListTab extends Fragment {
                     //generalize
                     new Thread(new Runnable() {
                         @Override
-                        public void run()
-                        {
+                        public void run() {
                             try {
                                 newScriptGeneralizer.extractParameters(script, scriptName.replace(".SugiliteScript", ""));
                                 sugiliteScriptDao.save(script);
                                 sugiliteScriptDao.commitSave();
-                            }
-                            catch (Exception e){
+                                PumiceDemonstrationUtil.showSugiliteToast(String.format("Successfully generalized the script \"%s\"!", scriptName), Toast.LENGTH_SHORT);
+
+                            } catch (Exception e) {
                                 e.printStackTrace();
                             }
                         }
@@ -364,15 +376,13 @@ public class FragmentScriptListTab extends Fragment {
                     // hash strings (DEBUG)
                     new Thread(new Runnable() {
                         @Override
-                        public void run()
-                        {
+                        public void run() {
                             try {
                                 script.setScriptName("LOCAL_HASHED: " + scriptName);
                                 scriptQueryHasher.hashOntologyQueries(script);
                                 sugiliteScriptDao.save(script);
                                 sugiliteScriptDao.commitSave();
-                            }
-                            catch (Exception e){
+                            } catch (Exception e) {
                                 e.printStackTrace();
                             }
                         }
@@ -382,38 +392,24 @@ public class FragmentScriptListTab extends Fragment {
                     //duplicate
                     new Thread(new Runnable() {
                         @Override
-                        public void run()
-                        {
+                        public void run() {
                             try {
                                 script.setScriptName(scriptName.replace(".SugiliteScript", "") + "_copy" + ".SugiliteScript");
                                 sugiliteScriptDao.save(script);
                                 sugiliteScriptDao.commitSave();
-                            }
-                            catch (Exception e){
+                                PumiceDemonstrationUtil.showSugiliteToast(String.format("Successfully duplicated the script \"%s\"!", scriptName), Toast.LENGTH_SHORT);
+
+                            } catch (Exception e) {
                                 e.printStackTrace();
                             }
                         }
                     }).start();
             }
-        }
-        catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
         return super.onContextItemSelected(item);
     }
-
-    @Override
-    public void onResume(){
-        super.onResume();
-        try {
-            setUpScriptList();
-        }
-        catch (Exception e){
-            e.printStackTrace();
-        }
-    }
-
-
 
 
 }

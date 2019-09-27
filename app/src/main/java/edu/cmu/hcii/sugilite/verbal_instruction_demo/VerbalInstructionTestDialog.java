@@ -7,7 +7,6 @@ import android.content.SharedPreferences;
 import android.speech.tts.TextToSpeech;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.WindowManager;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
@@ -34,7 +33,7 @@ import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.ontology.SerializableUISnapshot;
 import edu.cmu.hcii.sugilite.ontology.SugiliteRelation;
 import edu.cmu.hcii.sugilite.ontology.SugiliteSerializableEntity;
-import edu.cmu.hcii.sugilite.ui.dialog.SugiliteProgressDialog;
+import edu.cmu.hcii.sugilite.pumice.PumiceDemonstrationUtil;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.server_comm.SugiliteVerbalInstructionHTTPQueryInterface;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.server_comm.SugiliteVerbalInstructionHTTPQueryManager;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.server_comm.VerbalInstructionServerResults;
@@ -238,7 +237,8 @@ public class VerbalInstructionTestDialog implements SugiliteVoiceInterface, Sugi
                 }
                 //=== done printing debug info ===
 
-                Toast.makeText(context, verbalInstructionResult.getFormula(), Toast.LENGTH_SHORT).show();
+                PumiceDemonstrationUtil.showSugiliteToast(verbalInstructionResult.getFormula(), Toast.LENGTH_SHORT);
+
                 for(Node node : filteredNodes){
                     //TODO: show overlay
                     String utternace = "";

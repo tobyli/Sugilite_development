@@ -5,7 +5,6 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.view.LayoutInflater;
-import android.view.WindowManager;
 import android.widget.Toast;
 
 import java.util.ArrayList;
@@ -16,6 +15,7 @@ import edu.cmu.hcii.sugilite.model.Node;
 import edu.cmu.hcii.sugilite.R;
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.ontology.SerializableUISnapshot;
+import edu.cmu.hcii.sugilite.pumice.PumiceDemonstrationUtil;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.server_comm.SugiliteVerbalInstructionHTTPQueryInterface;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.server_comm.SugiliteVerbalInstructionHTTPQueryManager;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.server_comm.VerbalInstructionServerResults;
@@ -68,7 +68,7 @@ public class OverlayChosenPopupDialog implements SugiliteVerbalInstructionHTTPQu
                     case 0:
                         //confirm parse
                         //confirm parse, send the result back to the server
-                        Toast.makeText(context, "Confirmed parse: " + chosenResult.getFormula(), Toast.LENGTH_SHORT).show();
+                        PumiceDemonstrationUtil.showSugiliteToast("Confirmed parse: " + chosenResult.getFormula(), Toast.LENGTH_SHORT);
                         VerbalInstructionServerResponse response = new VerbalInstructionServerResponse(chosenResult.getFormula(), chosenResult.getId());
 
                         try {

@@ -12,6 +12,7 @@ import edu.cmu.hcii.sugilite.Const;
 import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteConditionBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
+import edu.cmu.hcii.sugilite.model.block.booleanexp.SugiliteBooleanExpressionNew;
 import edu.cmu.hcii.sugilite.model.block.special_operation.SugiliteSpecialOperationBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.model.block.util.UIElementMatchingFilter;
@@ -209,7 +210,7 @@ public class ReadableDescriptionGenerator {
             return "<b> SPECIAL OPERATION " + setColor(((SugiliteSpecialOperationBlock) block).getDescription(), Const.SCRIPT_ACTION_PARAMETER_COLOR) + "</b>";
         }
         else if (block instanceof SugiliteConditionBlock) {
-            return ScriptDetailActivity.setConditionBlockDescription(((SugiliteConditionBlock) block),0);
+            return setConditionBlockDescription(((SugiliteConditionBlock) block), 0);
         }
 
         return "NULL";
@@ -315,6 +316,112 @@ public class ReadableDescriptionGenerator {
         return "NULL";
 
     }
+
+    /*
+   * set description for condition block
+   * @param: SugiliteConditionBlock block for which to get description, int count to keep track of how many recursive calls have been made
+   */
+    public static String setConditionBlockDescription(SugiliteConditionBlock block, int tabCount) {
+        SugiliteBooleanExpressionNew booleanExpression = block.getSugiliteBooleanExpressionNew();//SugiliteBooleanExpression booleanExpression = block.getSugiliteBooleanExpression();
+        String boolExp = booleanExpression.toString();
+        //boolExp = boolExp.substring(1,boolExp.length()-1).trim();
+        //String[] split = boolExp.split("\\(");
+        //boolExp = booleanExpression.breakdown();
+        /*if(!split[0].contains("&&") && !split[0].contains("||")) {
+            boolExp = ReadableDescriptionGenerator.setColor(boolExp, "#954608");
+        }*/
+
+        SugiliteBlock ifBlock = block.getThenBlock();
+        SugiliteBlock elseBlock = block.getElseBlock();
+        if(ifBlock instanceof SugiliteConditionBlock) {
+            setConditionBlockDescription(((SugiliteConditionBlock) ifBlock), tabCount + 1);
+        }
+        if(elseBlock != null && elseBlock instanceof SugiliteConditionBlock) {
+            setConditionBlockDescription(((SugiliteConditionBlock) elseBlock), tabCount + 1);
+        }
+
+        if(elseBlock != null) {
+            String t = "&nbsp;&nbsp;&nbsp;&nbsp;";
+            String tabs = "&nbsp;&nbsp;&nbsp;&nbsp;";
+            String tabs2 = "";
+            for(int c = 0; c < tabCount; c++) {
+                tabs += t;
+                tabs2 += t;
+            }
+            String ifBlockDes = "";
+            SugiliteBlock iterBlock = ifBlock;
+            while(iterBlock != null) {
+
+                ifBlockDes = ifBlockDes + " <br/>" + tabs + " " + iterBlock.getDescription();
+                if (iterBlock instanceof SugiliteStartingBlock)
+                    iterBlock = ((SugiliteStartingBlock) iterBlock).getNextBlockToRun();
+                else if (iterBlock instanceof SugiliteOperationBlock)
+                    iterBlock = ((SugiliteOperationBlock) iterBlock).getNextBlockToRun();
+                else if (iterBlock instanceof SugiliteSpecialOperationBlock)
+                    iterBlock = ((SugiliteSpecialOperationBlock) iterBlock).getNextBlockToRun();
+                else if (iterBlock instanceof SugiliteConditionBlock)
+                    iterBlock = ((SugiliteConditionBlock) iterBlock).getNextBlockToRun();
+                else
+                    new Exception("unsupported block type").printStackTrace();
+            }
+            String elseBlockDes = "";
+            SugiliteBlock iterBlock2 = elseBlock;
+            while(iterBlock2 != null) {
+                if (! (iterBlock2 instanceof SugiliteStartingBlock)) {
+                    if (iterBlock2.getDescription() == null || iterBlock2.getDescription().length() == 0) {
+                        iterBlock2.setDescription(iterBlock2.toString());
+                    }
+                    elseBlockDes = elseBlockDes + " <br/>" + tabs  + " " + iterBlock2.getDescription();
+                } else {
+
+                }
+                if (iterBlock2 instanceof SugiliteStartingBlock) {
+                    iterBlock2 = ((SugiliteStartingBlock) iterBlock2).getNextBlockToRun();
+                }
+                else if (iterBlock2 instanceof SugiliteOperationBlock) {
+                    iterBlock2 = ((SugiliteOperationBlock) iterBlock2).getNextBlockToRun();
+                }
+                else if (iterBlock2 instanceof SugiliteSpecialOperationBlock) {
+                    iterBlock2 = ((SugiliteSpecialOperationBlock) iterBlock2).getNextBlockToRun();
+                }
+                else if (iterBlock2 instanceof SugiliteConditionBlock) {
+                    iterBlock2 = ((SugiliteConditionBlock) iterBlock2).getNextBlockToRun();
+                }
+                else {
+                    new Exception("unsupported block type").printStackTrace();
+                }
+            }
+            block.setDescription(ReadableDescriptionGenerator.setColor("If ", Const.SCRIPT_CONDITIONAL_COLOR) + boolExp + ReadableDescriptionGenerator.setColor(" then ", Const.SCRIPT_CONDITIONAL_COLOR)  + ifBlockDes + "<br/>" + tabs2 + ReadableDescriptionGenerator.setColor("Otherwise", Const.SCRIPT_CONDITIONAL_COLOR) + elseBlockDes);
+            return ReadableDescriptionGenerator.setColor("If ", Const.SCRIPT_CONDITIONAL_COLOR) + boolExp + ReadableDescriptionGenerator.setColor(" then ", Const.SCRIPT_CONDITIONAL_COLOR) + ifBlockDes + "<br/>" + tabs2 + ReadableDescriptionGenerator.setColor("Otherwise", Const.SCRIPT_CONDITIONAL_COLOR) + elseBlockDes;
+        }
+        else {
+            String t = "&nbsp;&nbsp;&nbsp;&nbsp;";
+            String tabs = "&nbsp;&nbsp;&nbsp;&nbsp;";
+            for(int c = 0; c < tabCount-1; c++) {
+                tabs += t;
+            }
+            String ifBlockDes = "";
+            SugiliteBlock iterBlock = ifBlock;
+            while(iterBlock != null) {
+                ifBlockDes = ifBlockDes + " <br/>" + tabs + " " + iterBlock.getDescription();
+                if (iterBlock instanceof SugiliteStartingBlock)
+                    iterBlock = ((SugiliteStartingBlock) iterBlock).getNextBlockToRun();
+                else if (iterBlock instanceof SugiliteOperationBlock)
+                    iterBlock = ((SugiliteOperationBlock) iterBlock).getNextBlockToRun();
+                else if (iterBlock instanceof SugiliteSpecialOperationBlock)
+                    iterBlock = ((SugiliteSpecialOperationBlock) iterBlock).getNextBlockToRun();
+                else if (iterBlock instanceof SugiliteConditionBlock)
+                    iterBlock = ((SugiliteConditionBlock) iterBlock).getNextBlockToRun();
+                else
+                    new Exception("unsupported block type").printStackTrace();
+
+            }
+            block.setDescription(ReadableDescriptionGenerator.setColor("If ", Const.SCRIPT_CONDITIONAL_COLOR) + boolExp + ReadableDescriptionGenerator.setColor(" then ", Const.SCRIPT_CONDITIONAL_COLOR) + ifBlockDes);
+            return ReadableDescriptionGenerator.setColor("If ", Const.SCRIPT_CONDITIONAL_COLOR) + boolExp + ReadableDescriptionGenerator.setColor(" then ", Const.SCRIPT_CONDITIONAL_COLOR) + ifBlockDes;
+        }
+    }
+
+
 
     private void setupPackageNameReadableNameMap(){
         packageNameReadableNameMap.put("com.google.android.googlequicksearchbox", "Home Screen");

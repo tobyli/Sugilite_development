@@ -51,7 +51,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-import edu.cmu.hcii.sugilite.Const;
 import edu.cmu.hcii.sugilite.R;
 import edu.cmu.hcii.sugilite.ui.dialog.SugiliteProgressDialog;
 import io.grpc.CallOptions;
@@ -68,7 +67,6 @@ import io.grpc.internal.DnsNameResolverProvider;
 import io.grpc.okhttp.OkHttpChannelProvider;
 import io.grpc.stub.StreamObserver;
 
-import static edu.cmu.hcii.sugilite.Const.OVERLAY_TYPE;
 
 
 public class GoogleCloudSpeechService extends Service {
@@ -343,6 +341,7 @@ public class GoogleCloudSpeechService extends Service {
      *
      * @param stream The audio data.
      */
+    /*
     public void recognizeInputStream(InputStream stream) {
         try {
             mApi.recognize(
@@ -362,6 +361,7 @@ public class GoogleCloudSpeechService extends Service {
             Log.e(TAG, "Error loading the input", e);
         }
     }
+    */
 
     private class SpeechBinder extends Binder {
 

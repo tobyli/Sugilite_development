@@ -2,14 +2,12 @@ package edu.cmu.hcii.sugilite.verbal_instruction_demo.speech;
 
 import android.Manifest;
 import android.app.Activity;
-import android.app.AlertDialog;
 import android.content.ComponentName;
 
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
-import android.media.MediaPlayer;
 import android.os.IBinder;
 import android.speech.tts.TextToSpeech;
 import android.speech.tts.UtteranceProgressListener;
@@ -22,11 +20,9 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
-import edu.cmu.hcii.sugilite.R;
 import edu.cmu.hcii.sugilite.SugiliteData;
-import edu.cmu.hcii.sugilite.accessibility_service.SugiliteAccessibilityService;
+import edu.cmu.hcii.sugilite.pumice.PumiceDemonstrationUtil;
 
-import static android.app.Service.START_STICKY;
 import static android.content.Context.BIND_AUTO_CREATE;
 
 /**
@@ -159,7 +155,8 @@ public class SugiliteGoogleCloudVoiceRecognitionListener implements SugiliteVoic
                 ActivityCompat.requestPermissions((Activity) context, new String[]{Manifest.permission.RECORD_AUDIO},
                         REQUEST_RECORD_AUDIO_PERMISSION);
             } else {
-                Toast.makeText(context, "Need to enable the audio recording permission!", Toast.LENGTH_SHORT).show();
+                PumiceDemonstrationUtil.showSugiliteToast("Need to enable the audio recording permission!", Toast.LENGTH_SHORT);
+
             }
         }
     }

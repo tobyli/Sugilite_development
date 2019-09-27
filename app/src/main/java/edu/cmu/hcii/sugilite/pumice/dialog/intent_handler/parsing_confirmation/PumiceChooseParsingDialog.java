@@ -24,6 +24,7 @@ import java.util.Map;
 import edu.cmu.hcii.sugilite.R;
 
 
+import edu.cmu.hcii.sugilite.pumice.PumiceDemonstrationUtil;
 import edu.cmu.hcii.sugilite.pumice.communication.PumiceSemanticParsingResultPacket;
 import edu.cmu.hcii.sugilite.pumice.dialog.PumiceDialogManager;
 import edu.cmu.hcii.sugilite.ui.dialog.AbstractSugiliteDialog;
@@ -127,7 +128,7 @@ public class PumiceChooseParsingDialog implements AbstractSugiliteDialog {
                 dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
-                        Toast.makeText(context, "Please first choose the correct one that reflects your intention, or choose \"Try Again\" to give a different instruction.", Toast.LENGTH_SHORT).show();
+                        PumiceDemonstrationUtil.showSugiliteToast("Please first choose the correct one that reflects your intention, or choose \"Try Again\" to give a different instruction.", Toast.LENGTH_SHORT);
                         pumiceDialogManager.sendAgentMessage("Please choose the correct one that reflects your intention, or choose \"Try Again\" to give a different instruction.", true, false);
                     }
                 });

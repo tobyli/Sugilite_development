@@ -58,7 +58,7 @@ public class PumiceUserExplainValueIntentHandler implements PumiceUtteranceInten
     public void handleIntentWithUtterance(PumiceDialogManager dialogManager, PumiceIntent pumiceIntent, PumiceDialogManager.PumiceUtterance utterance) {
         if (pumiceIntent.equals(PumiceIntent.DEFINE_VALUE_EXP)){
             //branch for situations such as e.g., redirection
-            //dialogManager.sendAgentMessage("I have received your explanation: " + utterance.getContent(), true, false);
+            //dialogManager.sendAgentMessage("I have received your explanation: " + utterance.getTriggerContent(), true, false);
             //TODO: send out an VALUE_INSTRUCTION query to resolve the explanation
             //send out the server query
             PumiceInstructionPacket pumiceInstructionPacket = new PumiceInstructionPacket(dialogManager.getPumiceKnowledgeManager(), "VALUE_INSTRUCTION", calendar.getTimeInMillis(), utterance.getContent(), parentKnowledgeName);

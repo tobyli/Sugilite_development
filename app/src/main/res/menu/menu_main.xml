@@ -9,16 +9,14 @@
         android:orderInCategory="3" app:showAsAction="never" />
     <item android:id="@+id/clear_trigger_list" android:title="Delete All Triggers"
         android:orderInCategory="4" app:showAsAction="never" />
-    <item android:id="@+id/add_trigger" android:title="Add a Script Trigger"
-    android:orderInCategory="5" app:showAsAction="never" />
-    <item android:id="@+id/upload_scripts" android:title="Upload Scripts"
+    <item android:id="@+id/upload_scripts" android:title="Upload Study Scripts"
+        android:orderInCategory="5" app:showAsAction="never" />
+    <item android:id="@+id/clear_usage_log" android:title="Clear All Study Logs"
         android:orderInCategory="6" app:showAsAction="never" />
-    <item android:id="@+id/clear_usage_log" android:title="Delete All Usage Logs"
-        android:orderInCategory="7" app:showAsAction="never" />
     <item android:id="@+id/launch_pumice" android:title="Launch Pumice"
-          android:orderInCategory="8" app:showAsAction="never" />
+          android:orderInCategory="7" app:showAsAction="never" />
     <item android:id="@+id/download_repo" android:title="Download Repo Scripts"
-        android:orderInCategory="9" app:showAsAction="never" />
+        android:orderInCategory="8" app:showAsAction="never" />
 
 
 </menu>

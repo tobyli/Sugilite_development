@@ -16,6 +16,7 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -27,6 +28,7 @@ import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.model.variable.StringVariable;
 import edu.cmu.hcii.sugilite.model.variable.Variable;
+import edu.cmu.hcii.sugilite.pumice.PumiceDemonstrationUtil;
 
 import static edu.cmu.hcii.sugilite.Const.OVERLAY_TYPE;
 
@@ -137,9 +139,9 @@ public class ChooseVariableDialog implements AbstractSugiliteDialog {
              {
                  String defaultValueToShow = "";
                  if (selectedItemName == null || selectedItemName.length() < 1) {
-                     Toast.makeText(context, "No item selected!", Toast.LENGTH_SHORT).show();
+                     PumiceDemonstrationUtil.showSugiliteToast("No item selected!", Toast.LENGTH_SHORT);
                  } else if (newVariableNameEditText.getText().length() > 0 && defaultValueEditText.getText().length() < 1) {
-                     Toast.makeText(context, "No default value provided", Toast.LENGTH_SHORT).show();
+                     PumiceDemonstrationUtil.showSugiliteToast("No default value provided", Toast.LENGTH_SHORT);
                  } else {
                      if(newVariableNameEditText.getText().length() > 0){
                          //add the new variable and the new default value to the symbol table

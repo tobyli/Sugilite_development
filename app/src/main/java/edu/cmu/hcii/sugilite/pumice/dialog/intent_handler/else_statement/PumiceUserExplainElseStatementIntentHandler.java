@@ -64,7 +64,7 @@ public class PumiceUserExplainElseStatementIntentHandler implements PumiceUttera
 
         if (pumiceIntent.equals(PumiceIntent.DEFINE_PROCEDURE_EXP)){
             //for situations e.g., redirection
-            //dialogManager.sendAgentMessage("I have received your explanation: " + utterance.getContent(), true, false);
+            //dialogManager.sendAgentMessage("I have received your explanation: " + utterance.getTriggerContent(), true, false);
             //TODO: send out an OPERATION_INSTRUCTION query to resolve the explanation
             //send out the server query
             PumiceInstructionPacket pumiceInstructionPacket = new PumiceInstructionPacket(dialogManager.getPumiceKnowledgeManager(), "OPERATION_INSTRUCTION", calendar.getTimeInMillis(), utterance.getContent(), utterance.getContent());

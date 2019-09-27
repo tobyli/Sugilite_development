@@ -14,9 +14,7 @@ import android.widget.Toast;
 import java.util.Map;
 
 import edu.cmu.hcii.sugilite.Const;
-import edu.cmu.hcii.sugilite.R;
 import edu.cmu.hcii.sugilite.SugiliteData;
-import edu.cmu.hcii.sugilite.accessibility_service.SugiliteAccessibilityService;
 import edu.cmu.hcii.sugilite.automation.ServiceStatusManager;
 import edu.cmu.hcii.sugilite.communication.SugiliteBlockJSONProcessor;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
@@ -24,14 +22,11 @@ import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.model.variable.Variable;
 import edu.cmu.hcii.sugilite.pumice.dialog.PumiceDialogManager;
-import edu.cmu.hcii.sugilite.ui.dialog.SugiliteProgressDialog;
 import edu.cmu.hcii.sugilite.ui.dialog.VariableSetValueDialog;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.VerbalInstructionIconManager;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.speech.SugiliteAndroidAPIVoiceRecognitionListener;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.speech.SugiliteGoogleCloudVoiceRecognitionListener;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.speech.SugiliteVoiceRecognitionListener;
-
-import static edu.cmu.hcii.sugilite.Const.OVERLAY_TYPE;
 
 /**
  * @author toby
@@ -227,6 +222,32 @@ public class PumiceDemonstrationUtil {
 
 
         sugiliteData.setCurrentSystemState(SugiliteData.DEFAULT_STATE);
-        Toast.makeText(context, "end recording", Toast.LENGTH_SHORT).show();
+        PumiceDemonstrationUtil.showSugiliteToast("end recording", Toast.LENGTH_SHORT);
+    }
+
+    public static void showSugiliteToast(String text, int length) {
+        SugiliteData.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                Toast.makeText(SugiliteData.getAppContext(), text, length).show();
+
+            }
+        });
+    }
+
+    public static String removeScriptExtension (String scriptName) {
+        if (scriptName.endsWith(".SugiliteScript")) {
+            return scriptName.replace(".SugiliteScript", "");
+        } else {
+            return scriptName;
+        }
+    }
+
+    public static String addScriptExtension (String scriptName) {
+        if (scriptName.endsWith(".SugiliteScript")) {
+            return scriptName;
+        } else {
+            return scriptName + ".SugiliteScript";
+        }
     }
 }

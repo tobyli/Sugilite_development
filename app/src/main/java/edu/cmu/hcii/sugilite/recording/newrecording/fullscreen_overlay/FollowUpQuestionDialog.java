@@ -49,6 +49,7 @@ import edu.cmu.hcii.sugilite.ontology.SugiliteEntity;
 import edu.cmu.hcii.sugilite.ontology.SugiliteRelation;
 import edu.cmu.hcii.sugilite.ontology.UISnapshot;
 import edu.cmu.hcii.sugilite.ontology.description.OntologyDescriptionGenerator;
+import edu.cmu.hcii.sugilite.pumice.PumiceDemonstrationUtil;
 import edu.cmu.hcii.sugilite.recording.newrecording.SugiliteBlockBuildingHelper;
 import edu.cmu.hcii.sugilite.recording.newrecording.dialog_management.SugiliteDialogManager;
 import edu.cmu.hcii.sugilite.recording.newrecording.dialog_management.SugiliteDialogSimpleState;
@@ -354,7 +355,7 @@ public class FollowUpQuestionDialog extends SugiliteDialogManager implements Sug
     private void refreshPreviewTextView(){
         //TODO: show the source code temporarily
         String html = ontologyDescriptionGenerator.getDescriptionForOntologyQuery(currentQuery.clone(), true);
-        Toast.makeText(context, currentQuery.toString(), Toast.LENGTH_SHORT).show();
+        PumiceDemonstrationUtil.showSugiliteToast(currentQuery.toString(), Toast.LENGTH_SHORT);
         //String html = SugiliteBlockBuildingHelper.stripSerializableOntologyQuery(new SerializableOntologyQuery(currentQuery)).toString();
         currentQueryTextView.setText(Html.fromHtml(html));
     }
@@ -668,7 +669,7 @@ public class FollowUpQuestionDialog extends SugiliteDialogManager implements Sug
 
         if (results.getQueries() == null || results.getQueries().isEmpty()) {
             //error in parsing the server reply
-            Toast.makeText(context, String.valueOf(responseCode) + ": Can't parse the verbal instruction", Toast.LENGTH_SHORT).show();
+            PumiceDemonstrationUtil.showSugiliteToast(String.valueOf(responseCode) + ": Can't parse the verbal instruction", Toast.LENGTH_SHORT);
             dialog.show();
             setCurrentState(emptyResultState);
             initPrompt();
@@ -749,7 +750,7 @@ public class FollowUpQuestionDialog extends SugiliteDialogManager implements Sug
 
             if(matchingQueriesMatchedNodesList.get(0).getValue().size() > 1) {
                 //need to prompt for further generalization
-                Toast.makeText(context, "Matched " + matchingQueriesMatchedNodesList.get(0).getValue().size() + " Nodes, Need further disambiguation", Toast.LENGTH_SHORT).show();
+                PumiceDemonstrationUtil.showSugiliteToast("Matched " + matchingQueriesMatchedNodesList.get(0).getValue().size() + " Nodes, Need further disambiguation", Toast.LENGTH_SHORT);
 
                 //update the query
                 previousQuery = currentQuery;
@@ -767,7 +768,7 @@ public class FollowUpQuestionDialog extends SugiliteDialogManager implements Sug
             }
             else {
                 //save the block and show a confirmation dialog for the block
-                Toast.makeText(context, query.toString(), Toast.LENGTH_SHORT).show();
+                PumiceDemonstrationUtil.showSugiliteToast(query.toString(), Toast.LENGTH_SHORT);
                 System.out.println("Result Query: " + query.toString());
                 //construct the block from the query formula
 

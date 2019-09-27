@@ -1,6 +1,5 @@
 package edu.cmu.hcii.sugilite.recording;
 
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -44,7 +43,6 @@ import java.util.TimeZone;
 
 import edu.cmu.hcii.sugilite.Const;
 import edu.cmu.hcii.sugilite.R;
-import edu.cmu.hcii.sugilite.accessibility_service.SugiliteAccessibilityService;
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.communication.SugiliteBlockJSONProcessor;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
@@ -71,7 +69,6 @@ import edu.cmu.hcii.sugilite.ontology.*;
 import edu.cmu.hcii.sugilite.pumice.PumiceDemonstrationUtil;
 import edu.cmu.hcii.sugilite.ui.dialog.AbstractSugiliteDialog;
 import edu.cmu.hcii.sugilite.ui.dialog.ChooseVariableDialog;
-import edu.cmu.hcii.sugilite.ui.dialog.SugiliteProgressDialog;
 
 import static edu.cmu.hcii.sugilite.Const.OVERLAY_TYPE;
 import static edu.cmu.hcii.sugilite.Const.SQL_SCRIPT_DAO;
@@ -489,7 +486,8 @@ public class RecordingPopUpDialog implements AbstractSugiliteDialog {
 
 
     public void setAsAParameterOnClick(final View view, final TextView actionParameter, final String label, final String defaultDefaultValue){
-        Toast.makeText(view.getContext(), "set as a parameter", Toast.LENGTH_SHORT).show();
+        PumiceDemonstrationUtil.showSugiliteToast("set as a parameter", Toast.LENGTH_SHORT);
+
         ChooseVariableDialog chooseVariableDialog = null;
         if(actionParameter != null) {
             switch (triggerMode) {

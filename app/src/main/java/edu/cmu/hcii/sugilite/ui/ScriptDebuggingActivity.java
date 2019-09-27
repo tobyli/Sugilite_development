@@ -1,6 +1,5 @@
 package edu.cmu.hcii.sugilite.ui;
 
-import android.app.Activity;
 import android.app.ActivityManager;
 import android.app.AlertDialog;
 import android.content.Context;
@@ -34,7 +33,6 @@ import java.util.Map;
 
 import edu.cmu.hcii.sugilite.Const;
 import edu.cmu.hcii.sugilite.R;
-import edu.cmu.hcii.sugilite.accessibility_service.SugiliteAccessibilityService;
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.automation.AutomatorUtil;
 import edu.cmu.hcii.sugilite.automation.ServiceStatusManager;
@@ -47,12 +45,12 @@ import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
 import edu.cmu.hcii.sugilite.model.block.special_operation.SugiliteSpecialOperationBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.model.variable.Variable;
+import edu.cmu.hcii.sugilite.pumice.PumiceDemonstrationUtil;
 import edu.cmu.hcii.sugilite.recording.RecordingPopUpDialog;
 import edu.cmu.hcii.sugilite.ui.dialog.SugiliteProgressDialog;
 import edu.cmu.hcii.sugilite.ui.dialog.VariableSetValueDialog;
 import edu.cmu.hcii.sugilite.ui.main.SugiliteMainActivity;
 
-import static edu.cmu.hcii.sugilite.Const.OVERLAY_TYPE;
 import static edu.cmu.hcii.sugilite.Const.SCRIPT_DELAY;
 import static edu.cmu.hcii.sugilite.Const.SQL_SCRIPT_DAO;
 
@@ -496,13 +494,13 @@ public class ScriptDebuggingActivity extends AppCompatActivity {
                 if (Html.fromHtml(currentBlock.getDescription()).toString().contentEquals(textView.getText().toString())) {
                     if (((SugiliteOperationBlock) currentBlock).getFeaturePack() == null) {
                         //scripts passed from external sources (via json) has no feature pack & previous block fields
-                        Toast.makeText(this, "Can't view operations from external source!", Toast.LENGTH_SHORT).show();
+                        PumiceDemonstrationUtil.showSugiliteToast("Can't view operations from external source!", Toast.LENGTH_SHORT);
                         break;
                     }
                     //match, pop up the screenshot view
                     File screenshot = currentBlock.getScreenshot();
                     if (screenshot == null) {
-                        Toast.makeText(this, "No screenshot available", Toast.LENGTH_SHORT).show();
+                        PumiceDemonstrationUtil.showSugiliteToast("No screenshot available", Toast.LENGTH_SHORT);
                         return;
                     }
                     Intent intent = new Intent();
@@ -516,7 +514,7 @@ public class ScriptDebuggingActivity extends AppCompatActivity {
             } else if (currentBlock instanceof SugiliteStartingBlock) {
                 if (Html.fromHtml(currentBlock.getDescription()).toString().contentEquals(textView.getText().toString())) {
                     //match, can't edit starting block
-                    Toast.makeText(this, "Can't view starting block", Toast.LENGTH_SHORT).show();
+                    PumiceDemonstrationUtil.showSugiliteToast("Can't view starting block", Toast.LENGTH_SHORT);
                     break;
                 } else {
                     currentBlock = ((SugiliteStartingBlock) currentBlock).getNextBlockToRun();
@@ -547,7 +545,7 @@ public class ScriptDebuggingActivity extends AppCompatActivity {
                 if(Html.fromHtml(currentBlock.getDescription()).toString().contentEquals(textView.getText().toString())){
                     if(((SugiliteOperationBlock) currentBlock).getFeaturePack() == null){
                         //scripts passed from external sources (via json) has no feature pack & previous block fields
-                        Toast.makeText(this, "Can't edit scripts from external source!", Toast.LENGTH_SHORT).show();
+                        PumiceDemonstrationUtil.showSugiliteToast("Can't edit scripts from external source!", Toast.LENGTH_SHORT);
                         break;
                     }
                     DialogInterface.OnClickListener callback = new DialogInterface.OnClickListener() {
@@ -577,7 +575,7 @@ public class ScriptDebuggingActivity extends AppCompatActivity {
             else if(currentBlock instanceof SugiliteStartingBlock){
                 if(Html.fromHtml(currentBlock.getDescription()).toString().contentEquals(textView.getText().toString())){
                     //match, can't edit starting block
-                    Toast.makeText(this, "Can't edit starting block", Toast.LENGTH_SHORT).show();
+                    PumiceDemonstrationUtil.showSugiliteToast("Can't edit starting block", Toast.LENGTH_SHORT);
                     break;
                 }
                 else {
@@ -617,7 +615,7 @@ public class ScriptDebuggingActivity extends AppCompatActivity {
         if (requestCode == RecordingPopUpDialog.TRIGGERED_BY_EDIT) {
             // Make sure the request was successful
             if (resultCode == RESULT_OK) {
-                Toast.makeText(this, "Successfully Editing the Operation", Toast.LENGTH_SHORT).show();
+                PumiceDemonstrationUtil.showSugiliteToast("Successfully Editing the Operation", Toast.LENGTH_SHORT);
                 try {
                     script = sugiliteScriptDao.read(scriptName);
                 }
@@ -627,7 +625,7 @@ public class ScriptDebuggingActivity extends AppCompatActivity {
                 loadOperationList();
             }
             else {
-                Toast.makeText(this, "Failed to Editing the Operation", Toast.LENGTH_SHORT).show();
+                PumiceDemonstrationUtil.showSugiliteToast("Failed to Editing the Operation", Toast.LENGTH_SHORT);
             }
         }
     }
@@ -654,7 +652,7 @@ public class ScriptDebuggingActivity extends AppCompatActivity {
                 if(Html.fromHtml(currentBlock.getDescription()).toString().contentEquals(textView.getText().toString())){
                     //scripts passed from external sources (via json) has no feature pack & previous block fields
                     if(((SugiliteOperationBlock) currentBlock).getFeaturePack() == null){
-                        Toast.makeText(this, "Can't edit scripts from external source!", Toast.LENGTH_SHORT).show();
+                        PumiceDemonstrationUtil.showSugiliteToast("Can't edit scripts from external source!", Toast.LENGTH_SHORT);
                         break;
                     }
                     ((SugiliteOperationBlock) currentBlock).delete();
@@ -674,7 +672,7 @@ public class ScriptDebuggingActivity extends AppCompatActivity {
             else if(currentBlock instanceof SugiliteStartingBlock){
                 if(Html.fromHtml(currentBlock.getDescription()).toString().contentEquals(textView.getText().toString())){
                     //match, can't delete starting block
-                    Toast.makeText(this, "Can't delete starting block", Toast.LENGTH_SHORT).show();
+                    PumiceDemonstrationUtil.showSugiliteToast("Can't delete starting block", Toast.LENGTH_SHORT);
                     break;
                 }
                 else {

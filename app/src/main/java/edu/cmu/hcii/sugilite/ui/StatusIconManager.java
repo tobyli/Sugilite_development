@@ -36,7 +36,6 @@ import java.util.Random;
 
 import edu.cmu.hcii.sugilite.Const;
 import edu.cmu.hcii.sugilite.R;
-import edu.cmu.hcii.sugilite.accessibility_service.SugiliteAccessibilityService;
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.automation.AutomatorUtil;
 import edu.cmu.hcii.sugilite.automation.ServiceStatusManager;
@@ -59,7 +58,6 @@ import edu.cmu.hcii.sugilite.model.variable.VariableHelper;
 import edu.cmu.hcii.sugilite.recording.ReadableDescriptionGenerator;
 import edu.cmu.hcii.sugilite.ui.dialog.NewScriptDialog;
 import edu.cmu.hcii.sugilite.ui.dialog.SelectElementWithTextDialog;
-import edu.cmu.hcii.sugilite.ui.dialog.SugiliteProgressDialog;
 import edu.cmu.hcii.sugilite.ui.main.SugiliteMainActivity;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.VerbalInstructionIconManager;
 
@@ -479,20 +477,20 @@ public class StatusIconManager {
                                     Intent scriptListIntent = new Intent(context, SugiliteMainActivity.class);
                                     scriptListIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
                                     context.startActivity(scriptListIntent);
-                                    Toast.makeText(context, "view script list", Toast.LENGTH_SHORT).show();
+                                    PumiceDemonstrationUtil.showSugiliteToast("view script list", Toast.LENGTH_SHORT);
                                     if(runningInProgress)
                                         sugiliteData.setCurrentSystemState(SugiliteData.DEFAULT_STATE);
                                     break;
                                 //bring the user to the script list activity
                                 case "View Last Recording":
                                 case "View Current Recording":
-                                    Intent intent = new Intent(context, ScriptDetailActivity.class);
+                                    Intent intent = new Intent(context, LocalScriptDetailActivity.class);
                                     if(startingBlock != null && startingBlock.getScriptName() != null) {
                                         intent.putExtra("scriptName", startingBlock.getScriptName());
                                         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                                         context.startActivity(intent);
                                     }
-                                    Toast.makeText(context, "view current script", Toast.LENGTH_SHORT).show();
+                                    PumiceDemonstrationUtil.showSugiliteToast("view current script", Toast.LENGTH_SHORT);
                                     if(runningInProgress)
                                         sugiliteData.setCurrentSystemState(SugiliteData.DEFAULT_STATE);
                                     break;
@@ -511,7 +509,7 @@ public class StatusIconManager {
                                     SharedPreferences.Editor prefEditor2 = sharedPreferences.edit();
                                     prefEditor2.putBoolean("recording_in_process", true);
                                     prefEditor2.apply();
-                                    Toast.makeText(context, "resume recording", Toast.LENGTH_SHORT).show();
+                                    PumiceDemonstrationUtil.showSugiliteToast("resume recording", Toast.LENGTH_SHORT);
                                     sugiliteData.setCurrentSystemState(SugiliteData.RECORDING_STATE);
                                     break;
                                 case "Hide Duck Icon":
@@ -519,7 +517,8 @@ public class StatusIconManager {
                                     removeStatusIcon();
                                     break;
                                 case "Quit Sugilite":
-                                    Toast.makeText(context, "quit sugilite", Toast.LENGTH_SHORT).show();
+                                    PumiceDemonstrationUtil.showSugiliteToast("quit sugilite", Toast.LENGTH_SHORT);
+
 
                                     //step 1: end recording if one is in progress
                                     if(recordingInProgress){
@@ -885,17 +884,17 @@ public class StatusIconManager {
     }
 
     public void pauseTestRun(Activity a) {
-        SugiliteStartingBlock script = ((ScriptDetailActivity) a).getScript();
+        SugiliteStartingBlock script = ((LocalScriptDetailActivity) a).getScript();
         sugiliteData.clearInstructionQueue();
         //sugiliteData.setCurrentSystemState(SugiliteData.DEFAULT_STATE);
         if(storedQueue != null)
             storedQueue.clear();
 
-        //Intent intent = new Intent(context, ScriptDetailActivity.class);
+        //Intent intent = new Intent(context, LocalScriptDetailActivity.class);
         //intent.putExtra("scriptName", script.getScriptName());
         //intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         //context.startActivity(intent);
-        Intent openMainActivity= new Intent(a,ScriptDetailActivity.class);
+        Intent openMainActivity= new Intent(a, LocalScriptDetailActivity.class);
         openMainActivity.putExtra("scriptName", script.getScriptName());
         openMainActivity.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         openMainActivity.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);

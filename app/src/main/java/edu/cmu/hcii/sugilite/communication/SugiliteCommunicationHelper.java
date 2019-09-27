@@ -6,7 +6,6 @@ package edu.cmu.hcii.sugilite.communication;
         import android.content.Intent;
         import android.content.SharedPreferences;
         import android.preference.PreferenceManager;
-        import android.view.WindowManager;
         import android.widget.Toast;
 
         import com.google.gson.Gson;
@@ -202,7 +201,7 @@ public class SugiliteCommunicationHelper {
                                             e.printStackTrace();
                                         }
 
-                                        Toast.makeText(receivedContext.getApplicationContext(), "Recording new script " + sharedPreferences.getString("scriptName", "NULL"), Toast.LENGTH_SHORT).show();
+                                        PumiceDemonstrationUtil.showSugiliteToast("Recording new script " + sharedPreferences.getString("scriptName", "NULL"), Toast.LENGTH_SHORT);
 
                                         //go to home screen for recording
                                         Intent startMain = new Intent(Intent.ACTION_MAIN);
@@ -225,7 +224,7 @@ public class SugiliteCommunicationHelper {
                 }
                 if(recordingInProcess) {
                     PumiceDemonstrationUtil.endRecording(receivedContext, sugiliteData, sharedPreferences, null);
-                    Toast.makeText(receivedContext, "recording ended", Toast.LENGTH_SHORT).show();
+                    PumiceDemonstrationUtil.showSugiliteToast("recording ended", Toast.LENGTH_SHORT);
                     setReturnValue("");
                 }
                 else {
@@ -401,7 +400,7 @@ public class SugiliteCommunicationHelper {
                     e.printStackTrace();
                 }
                 setReturnValue("");
-                Toast.makeText(receivedContext, "tracking started", Toast.LENGTH_SHORT).show();
+                PumiceDemonstrationUtil.showSugiliteToast("tracking started", Toast.LENGTH_SHORT);
                 break;
 
             case Const.STOP_TRACKING:
@@ -409,7 +408,7 @@ public class SugiliteCommunicationHelper {
                     SharedPreferences.Editor prefEditor2 = sharedPreferences.edit();
                     prefEditor2.putBoolean("tracking_in_process", false);
                     prefEditor2.commit();
-                    Toast.makeText(receivedContext, "tracking ended", Toast.LENGTH_SHORT).show();
+                    PumiceDemonstrationUtil.showSugiliteToast("tracking ended", Toast.LENGTH_SHORT);
                     setReturnValue("");
                 }
                 break;

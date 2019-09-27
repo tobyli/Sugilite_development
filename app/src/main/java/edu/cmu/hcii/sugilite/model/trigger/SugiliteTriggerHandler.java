@@ -17,6 +17,7 @@ import edu.cmu.hcii.sugilite.dao.SugiliteScriptSQLDao;
 import edu.cmu.hcii.sugilite.dao.SugiliteTriggerDao;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.model.variable.Variable;
+import edu.cmu.hcii.sugilite.pumice.PumiceDemonstrationUtil;
 import edu.cmu.hcii.sugilite.ui.dialog.VariableSetValueDialog;
 
 import static edu.cmu.hcii.sugilite.Const.SQL_SCRIPT_DAO;
@@ -74,7 +75,8 @@ public class SugiliteTriggerHandler {
                         lastTriggerRan = "";
                     }
                 }, 5000);
-                Toast.makeText(context, "TRIGGERING SCRIPT " + trigger.getScriptName(), Toast.LENGTH_SHORT).show();
+                PumiceDemonstrationUtil.showSugiliteToast("TRIGGERING SCRIPT " + trigger.getScriptName(), Toast.LENGTH_SHORT);
+
                 SugiliteStartingBlock script = null;
                 try {
                     script = sugiliteScriptDao.read(trigger.getScriptName());

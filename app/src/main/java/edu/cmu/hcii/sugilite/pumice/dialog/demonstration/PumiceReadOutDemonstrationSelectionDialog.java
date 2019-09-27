@@ -20,12 +20,12 @@ import edu.cmu.hcii.sugilite.model.Node;
 import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
 import edu.cmu.hcii.sugilite.model.block.util.SugiliteAvailableFeaturePack;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteOperation;
-import edu.cmu.hcii.sugilite.model.operation.trinary.SugiliteLoadVariableOperation;
 import edu.cmu.hcii.sugilite.ontology.OntologyQuery;
 import edu.cmu.hcii.sugilite.ontology.SugiliteEntity;
 import edu.cmu.hcii.sugilite.ontology.SugiliteRelation;
 import edu.cmu.hcii.sugilite.ontology.UISnapshot;
 import edu.cmu.hcii.sugilite.ontology.description.OntologyDescriptionGenerator;
+import edu.cmu.hcii.sugilite.pumice.PumiceDemonstrationUtil;
 import edu.cmu.hcii.sugilite.recording.newrecording.SugiliteBlockBuildingHelper;
 import edu.cmu.hcii.sugilite.recording.newrecording.fullscreen_overlay.FullScreenRecordingOverlayManager;
 import edu.cmu.hcii.sugilite.recording.newrecording.fullscreen_overlay.SugiliteRecordingConfirmationDialog;
@@ -121,7 +121,8 @@ public class PumiceReadOutDemonstrationSelectionDialog {
 
 
         } else {
-            Toast.makeText(context, "Failed to generate data description!", Toast.LENGTH_SHORT).show();
+            PumiceDemonstrationUtil.showSugiliteToast("Failed to generate data description!", Toast.LENGTH_SHORT);
+
         }
 
     }
@@ -138,7 +139,8 @@ public class PumiceReadOutDemonstrationSelectionDialog {
             @Override
             public void run() {
                 //recordingOverlayManager.clickNode(nodeEntity.getEntityValue(), x, y, recordingOverlayManager.getOverlay(), false);
-                Toast.makeText(context, "Read out operation saved!", Toast.LENGTH_SHORT).show();
+                PumiceDemonstrationUtil.showSugiliteToast("Read out operation saved!", Toast.LENGTH_SHORT);
+
             }
         };
         SugiliteRecordingConfirmationDialog confirmationDialog = new SugiliteRecordingConfirmationDialog(context, block, featurePack, queryScoreList, clickRunnable, blockBuildingHelper, layoutInflater, uiSnapshot, nodeEntity, sugiliteData, sharedPreferences, tts);

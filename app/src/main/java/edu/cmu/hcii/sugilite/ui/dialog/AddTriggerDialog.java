@@ -10,6 +10,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.TextView;
@@ -17,6 +18,7 @@ import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -24,9 +26,9 @@ import java.util.Map;
 import edu.cmu.hcii.sugilite.R;
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
-import edu.cmu.hcii.sugilite.dao.SugiliteScriptSQLDao;
 import edu.cmu.hcii.sugilite.dao.SugiliteTriggerDao;
 import edu.cmu.hcii.sugilite.model.trigger.SugiliteTrigger;
+import edu.cmu.hcii.sugilite.pumice.PumiceDemonstrationUtil;
 import edu.cmu.hcii.sugilite.ui.main.FragmentScriptListTab;
 import edu.cmu.hcii.sugilite.ui.main.FragmentTriggerListTab;
 
@@ -43,29 +45,62 @@ public class AddTriggerDialog implements AbstractSugiliteDialog {
     private SugiliteData sugiliteData;
     private SugiliteScriptDao sugiliteScriptDao;
     private Spinner triggerTypeSpinner, chooseTriggerAppSpinner, chooseNotificationTriggerAppSpinner, chooseScriptTriggerSpinner;
-    private TextView chooseTriggerAppTextView, chooseNotificationTriggerAppTextView, notificationTriggerContentTextView;
+    private TextView chooseTriggerAppPromptTextView, chooseNotificationTriggerAppPromptTextView, notificationTriggerContentPromptTextView;
     private EditText notificationTriggerContentEditText, triggerNameEditText;
     private List<ApplicationInfo> packages;
     private SugiliteTriggerDao sugiliteTriggerDao;
     private FragmentTriggerListTab triggerTab;
 
+    private Map<String, String> appNamePackageNameMap;
+    private Map<String, String> packageNameAppNameMap;
+    private Map<String, Integer> appNameIndexMap;
+    private List<String> appNameOrderedList;
+
+    private List<String> scriptReadableNameOrderedList;
+    private Map<String, Integer> scriptReadableNameIndexMap;
+
+    private boolean isLoadedFromExistingTrigger = false;
+    private String originalTriggerName = null;
 
 
     public AddTriggerDialog(final Context context, LayoutInflater inflater, SugiliteData sugiliteData, SugiliteScriptDao sugiliteScriptDao, PackageManager pm, Fragment triggerListTab) throws Exception{
         this.context = context;
         this.sugiliteData = sugiliteData;
         this.sugiliteScriptDao = sugiliteScriptDao;
-        if(triggerListTab instanceof FragmentScriptListTab)
+        if(triggerListTab instanceof FragmentTriggerListTab) {
             this.triggerTab = (FragmentTriggerListTab) triggerListTab;
+        }
         sugiliteTriggerDao = new SugiliteTriggerDao(context);
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
         View dialogView = inflater.inflate(R.layout.dialog_add_trigger, null);
 
         packages = pm.getInstalledApplications(PackageManager.GET_META_DATA);
-        final Map<String, String> appNamePackageNameMap = new HashMap<>();
+
+        //initiate appNamePackageNameMap and appNameOrderedList
+        appNamePackageNameMap = new HashMap<>();
+        packageNameAppNameMap = new HashMap<>();
+        appNameIndexMap = new HashMap<>();
+        appNameOrderedList = new ArrayList<>();
         for(ApplicationInfo info : packages){
             appNamePackageNameMap.put(pm.getApplicationLabel(info).toString(), info.packageName);
+            packageNameAppNameMap.put(info.packageName, pm.getApplicationLabel(info).toString());
+
         }
+
+        //filter out those without a readable app name
+        for(Map.Entry<String, String> entry : appNamePackageNameMap.entrySet()) {
+            if (!entry.getKey().equals(entry.getValue())) {
+                appNameOrderedList.add(entry.getKey());
+            }
+        }
+
+        //sort the appNameList
+        Collections.sort(appNameOrderedList);
+        for (int i = 0; i < appNameOrderedList.size(); i ++) {
+            appNameIndexMap.put(appNameOrderedList.get(i), i);
+        }
+
+
 
         triggerTypeSpinner = (Spinner)dialogView.findViewById(R.id.spinner_trigger_type);
         chooseNotificationTriggerAppSpinner = (Spinner)dialogView.findViewById(R.id.spinner_choose_notification_trigger_app);
@@ -73,9 +108,9 @@ public class AddTriggerDialog implements AbstractSugiliteDialog {
         chooseScriptTriggerSpinner = (Spinner)dialogView.findViewById(R.id.spinner_choose_script_to_trigger);
         notificationTriggerContentEditText = (EditText)dialogView.findViewById(R.id.edittext_notification_contains);
         triggerNameEditText = (EditText)dialogView.findViewById(R.id.editText_trigger_name);
-        chooseTriggerAppTextView = (TextView)dialogView.findViewById(R.id.textview_choose_trigger_app);
-        chooseNotificationTriggerAppTextView = (TextView)dialogView.findViewById(R.id.textview_choose_notification_trigger_app);
-        notificationTriggerContentTextView = (TextView)dialogView.findViewById(R.id.textview_notification_contains);
+        chooseTriggerAppPromptTextView = (TextView)dialogView.findViewById(R.id.textview_choose_trigger_app);
+        chooseNotificationTriggerAppPromptTextView = (TextView)dialogView.findViewById(R.id.textview_choose_notification_trigger_app);
+        notificationTriggerContentPromptTextView = (TextView)dialogView.findViewById(R.id.textview_notification_contains);
 
         //initiate the trigger type spinner
         List<String> triggerTypeSpinnerItemList = Arrays.asList("App Launch", "Notification Content");
@@ -90,23 +125,20 @@ public class AddTriggerDialog implements AbstractSugiliteDialog {
                     case 0:
                         //App Launch selected
                         chooseTriggerAppSpinner.setVisibility(View.VISIBLE);
-                        chooseTriggerAppTextView.setVisibility(View.VISIBLE);
+                        chooseTriggerAppPromptTextView.setVisibility(View.VISIBLE);
                         chooseNotificationTriggerAppSpinner.setVisibility(GONE);
                         notificationTriggerContentEditText.setVisibility(GONE);
-                        chooseNotificationTriggerAppTextView.setVisibility(GONE);
-                        notificationTriggerContentTextView.setVisibility(GONE);
-                        chooseTriggerAppSpinner.setSelection(0);
+                        chooseNotificationTriggerAppPromptTextView.setVisibility(GONE);
+                        notificationTriggerContentPromptTextView.setVisibility(GONE);
                         break;
                     case 1:
                         //Notification content selected
                         chooseNotificationTriggerAppSpinner.setVisibility(View.VISIBLE);
                         notificationTriggerContentEditText.setVisibility(View.VISIBLE);
-                        chooseNotificationTriggerAppTextView.setVisibility(View.VISIBLE);
-                        notificationTriggerContentTextView.setVisibility(View.VISIBLE);
-                        chooseNotificationTriggerAppSpinner.setSelection(0);
-                        notificationTriggerContentEditText.setText("");
+                        chooseNotificationTriggerAppPromptTextView.setVisibility(View.VISIBLE);
+                        notificationTriggerContentPromptTextView.setVisibility(View.VISIBLE);
                         chooseTriggerAppSpinner.setVisibility(GONE);
-                        chooseTriggerAppTextView.setVisibility(GONE);
+                        chooseTriggerAppPromptTextView.setVisibility(GONE);
                         break;
                 }
             }
@@ -118,54 +150,39 @@ public class AddTriggerDialog implements AbstractSugiliteDialog {
         });
 
         //initiate the chooseNotificationTriggerAppSpinner
-        List<String> chooseNotificationTriggerAppSpinnerList = new ArrayList<>(appNamePackageNameMap.keySet());
+        List<String> chooseNotificationTriggerAppSpinnerList = new ArrayList<>(appNameOrderedList);
         ArrayAdapter<String> chooseNotificationTriggerAppSpinnerAdapter = new ArrayAdapter<String>(context, android.R.layout.simple_spinner_item, chooseNotificationTriggerAppSpinnerList);
         chooseNotificationTriggerAppSpinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         chooseNotificationTriggerAppSpinner.setAdapter(chooseNotificationTriggerAppSpinnerAdapter);
 
         //initiate the chooseTriggerAppSpinner
-        List<String> chooseTriggerAppSpinnerList = new ArrayList<>(appNamePackageNameMap.keySet());
+        List<String> chooseTriggerAppSpinnerList = new ArrayList<>(appNameOrderedList);
         ArrayAdapter<String> chooseTriggerAppSpinnerAdapter = new ArrayAdapter<String>(context, android.R.layout.simple_spinner_item, chooseTriggerAppSpinnerList);
         chooseTriggerAppSpinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         chooseTriggerAppSpinner.setAdapter(chooseTriggerAppSpinnerAdapter);
 
         //initiate the chooseScriptTrigger
         List<String> allScriptNameList = sugiliteScriptDao.getAllNames();
-        List<String> allReadableScriptNameList = new ArrayList<>();
+        scriptReadableNameOrderedList = new ArrayList<>();
         //remove the suffix in the script name
         for(String name : allScriptNameList){
-            allReadableScriptNameList.add(name.replace(".SugiliteScript", ""));
+            scriptReadableNameOrderedList.add(name.replace(".SugiliteScript", ""));
         }
-        ArrayAdapter<String> chooseScriptSpinnerAdapter = new ArrayAdapter<String>(context, android.R.layout.simple_spinner_item, allReadableScriptNameList);
+        Collections.sort(scriptReadableNameOrderedList);
+        scriptReadableNameIndexMap = new HashMap<>();
+        for (int i = 0; i < scriptReadableNameOrderedList.size(); i ++) {
+            scriptReadableNameIndexMap.put(scriptReadableNameOrderedList.get(i), i);
+        }
+
+        ArrayAdapter<String> chooseScriptSpinnerAdapter = new ArrayAdapter<String>(context, android.R.layout.simple_spinner_item, scriptReadableNameOrderedList);
         chooseScriptSpinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         chooseScriptTriggerSpinner.setAdapter(chooseScriptSpinnerAdapter);
         builder.setView(dialogView)
-                .setTitle("Add Trigger")
+                .setTitle("New Trigger")
                 .setPositiveButton("OK", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        if(triggerTypeSpinner.getSelectedItemPosition() == 0) {
-                            //app launch trigger selected
-                            String triggerName = triggerNameEditText.getText().toString(); //TODO: get trigger name;
-                            String scriptName = chooseScriptTriggerSpinner.getSelectedItem().toString().concat(".SugiliteScript");
-                            String appName = appNamePackageNameMap.get(chooseTriggerAppSpinner.getSelectedItem().toString());
-                            if(scriptName != null && scriptName.length() > 0 && appName != null && appName.length() > 0 && triggerName != null && triggerName.length() > 0) {
-                                SugiliteTrigger trigger = new SugiliteTrigger(triggerName, scriptName, "", appName, SugiliteTrigger.APP_LAUNCH_TRIGGER);
-                                try {
-                                    sugiliteTriggerDao.save(trigger);
-                                } catch (Exception e) {
-                                    e.printStackTrace();
-                                }
-                            }
-                            else {
-                                Toast.makeText(context, "Please finish the form", Toast.LENGTH_SHORT).show();
-                            }
-                            //refresh the trigger list tab
-                            if(triggerTab != null)
-                                triggerTab.setUpTriggerList();
-                        }
-
-                        //TODO: to handle notification trigger
+                        //intentionally do nothing -- will define later in show()
                     }
                 })
                 .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
@@ -175,11 +192,114 @@ public class AddTriggerDialog implements AbstractSugiliteDialog {
                     }
                 });
 
+
         dialog = builder.create();
     }
+
+    private void okButtonOnClick () {
+        if (triggerTypeSpinner.getSelectedItemPosition() == 0) {
+            //app launch trigger selected
+            String triggerName = triggerNameEditText.getText().toString();
+            String scriptName = chooseScriptTriggerSpinner.getSelectedItem().toString().concat(".SugiliteScript");
+            String packageName = appNamePackageNameMap.get(chooseTriggerAppSpinner.getSelectedItem().toString());
+            if(scriptName != null && scriptName.length() > 0 && packageName != null && packageName.length() > 0 && triggerName.length() > 0) {
+                SugiliteTrigger trigger = new SugiliteTrigger(triggerName, scriptName, "", packageName, SugiliteTrigger.APP_LAUNCH_TRIGGER);
+                try {
+                    //delete the old script if recover from triggers
+                    if (isLoadedFromExistingTrigger) {
+                        sugiliteTriggerDao.delete(originalTriggerName);
+                    }
+                    sugiliteTriggerDao.save(trigger);
+                    dialog.dismiss();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+            else {
+                PumiceDemonstrationUtil.showSugiliteToast("Please finish the form", Toast.LENGTH_SHORT);
+            }
+
+        } else if (triggerTypeSpinner.getSelectedItemPosition() == 1) {
+            //notification trigger selected
+            String triggerName = triggerNameEditText.getText().toString();
+            String notificationContent = notificationTriggerContentEditText.getText().toString();
+            String scriptName = chooseScriptTriggerSpinner.getSelectedItem().toString().concat(".SugiliteScript");
+            String packageName = appNamePackageNameMap.get(chooseNotificationTriggerAppSpinner.getSelectedItem().toString());
+            if(scriptName != null && scriptName.length() > 0 && packageName != null && packageName.length() > 0 && triggerName.length() > 0 && notificationContent.length() > 0) {
+                SugiliteTrigger trigger = new SugiliteTrigger(triggerName, scriptName, notificationContent, packageName, SugiliteTrigger.NOTIFICATION_TRIGGER);
+                try {
+                    //delete the old script if recover from triggers
+                    if (isLoadedFromExistingTrigger) {
+                        sugiliteTriggerDao.delete(originalTriggerName);
+                    }
+                    sugiliteTriggerDao.save(trigger);
+                    dialog.dismiss();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+            else {
+                PumiceDemonstrationUtil.showSugiliteToast("Please finish the form", Toast.LENGTH_SHORT);
+            }
+
+        }
+        //refresh the trigger list tab
+        if(triggerTab != null) {
+            triggerTab.setUpTriggerList();
+        }
+    }
+
+    public void loadFromExistingTrigger (SugiliteTrigger trigger) throws Exception {
+        originalTriggerName = trigger.getName();
+        triggerNameEditText.setText(trigger.getName());
+        dialog.setTitle("Edit Trigger");
+
+        isLoadedFromExistingTrigger = true;
+        if (trigger.getType() == SugiliteTrigger.APP_LAUNCH_TRIGGER) {
+            triggerTypeSpinner.setSelection(0);
+
+            if (scriptReadableNameIndexMap.containsKey(trigger.getScriptName().replace(".SugiliteScript", ""))) {
+                chooseScriptTriggerSpinner.setSelection(scriptReadableNameIndexMap.get(trigger.getScriptName().replace(".SugiliteScript", "")));
+            } else {
+                throw new Exception("Can't find the script: " + trigger.getScriptName().replace(".SugiliteScript", ""));
+            }
+
+            if (packageNameAppNameMap.containsKey(trigger.getAppPackageName()) && appNameIndexMap.containsKey(packageNameAppNameMap.get(trigger.getAppPackageName()))) {
+                chooseTriggerAppSpinner.setSelection(appNameIndexMap.get(packageNameAppNameMap.get(trigger.getAppPackageName())));
+            }
+            else {
+                throw new Exception("Can't find the trigger app: " + trigger.getAppPackageName());
+            }
+        } else if (trigger.getType() == SugiliteTrigger.NOTIFICATION_TRIGGER) {
+            triggerTypeSpinner.setSelection(1);
+            if (scriptReadableNameIndexMap.containsKey(trigger.getScriptName().replace(".SugiliteScript", ""))) {
+                chooseScriptTriggerSpinner.setSelection(scriptReadableNameIndexMap.get(trigger.getScriptName().replace(".SugiliteScript", "")));
+            } else {
+                throw new Exception("Can't find the script: " + trigger.getScriptName().replace(".SugiliteScript", ""));
+            }
+            if (packageNameAppNameMap.containsKey(trigger.getAppPackageName()) && appNameIndexMap.containsKey(packageNameAppNameMap.get(trigger.getAppPackageName()))) {
+                chooseNotificationTriggerAppSpinner.setSelection(appNameIndexMap.get(packageNameAppNameMap.get(trigger.getAppPackageName())));
+            } else {
+                throw new Exception("Can't find the trigger app: " + trigger.getAppPackageName());
+            }
+            notificationTriggerContentEditText.setText(trigger.getTriggerContent());
+        }
+    }
+
+
+
+
+
 
 
     public void show() {
         dialog.show();
+        Button b = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
+        b.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                okButtonOnClick();
+            }
+        });
     }
 }

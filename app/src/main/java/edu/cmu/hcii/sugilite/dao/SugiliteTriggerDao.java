@@ -36,7 +36,7 @@ public class SugiliteTriggerDao {
         }
         values.put(SugiliteTriggerDBContract.SugiliteTriggerRecordEntry.COLUMN_NAME_SCRIPT_NAME, sugiliteTrigger.getScriptName());
         values.put(SugiliteTriggerDBContract.SugiliteTriggerRecordEntry.COLUMN_NAME_TRIGGER_APP, sugiliteTrigger.getAppPackageName());
-        values.put(SugiliteTriggerDBContract.SugiliteTriggerRecordEntry.COLUMN_NAME_TRIGGER_CONTENT, sugiliteTrigger.getContent());
+        values.put(SugiliteTriggerDBContract.SugiliteTriggerRecordEntry.COLUMN_NAME_TRIGGER_CONTENT, sugiliteTrigger.getTriggerContent());
         values.put(SugiliteTriggerDBContract.SugiliteTriggerRecordEntry.COLUMN_NAME_TRIGGER_NAME, sugiliteTrigger.getName());
         values.put(SugiliteTriggerDBContract.SugiliteTriggerRecordEntry.COLUMN_NAME_TRIGGER_TYPE, sugiliteTrigger.getType());
 

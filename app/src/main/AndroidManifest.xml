@@ -68,7 +68,7 @@
             android:noHistory="true"
             tools:node="merge" />
         <activity
-            android:name=".ui.ScriptDetailActivity"
+            android:name=".ui.LocalScriptDetailActivity"
             tools:node="merge" />
         <activity
             android:name=".ui.ScriptDebuggingActivity"

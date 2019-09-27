@@ -19,6 +19,7 @@ import java.util.Calendar;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
@@ -105,7 +106,17 @@ public class SugiliteData extends Application {
     @Override
     public void onCreate(){
         super.onCreate();
+        //initiate a static copy of application context
         SugiliteData.applicationContext = getApplicationContext();
+
+        //initiate TTS
+        tts = new TextToSpeech(applicationContext, new TextToSpeech.OnInitListener() {
+            @Override
+            public void onInit(int status) {
+                tts.setLanguage(Locale.US);
+            }
+        });
+        setTTS(tts);
     }
 
     public static Context getAppContext() {

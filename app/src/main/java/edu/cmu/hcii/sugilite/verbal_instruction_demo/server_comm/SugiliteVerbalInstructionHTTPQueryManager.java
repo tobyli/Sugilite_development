@@ -150,59 +150,64 @@ public class SugiliteVerbalInstructionHTTPQueryManager {
             progressDialog.show();
         }
 
-        HttpURLConnection con = (HttpURLConnection) url.openConnection();
+        try {
+            HttpURLConnection con = (HttpURLConnection) url.openConnection();
 
-        //add request header
-        con.setRequestMethod("POST");
-        con.setRequestProperty("User-Agent", USER_AGENT);
-        con.setRequestProperty("Accept-Language", "en-US,en;q=0.5");
-        con.setRequestProperty("Content-Type", "application/json");
-        con.setReadTimeout(TIME_OUT);
-        con.setConnectTimeout(TIME_OUT);
+            //add request header
+            con.setRequestMethod("POST");
+            con.setRequestProperty("User-Agent", USER_AGENT);
+            con.setRequestProperty("Accept-Language", "en-US,en;q=0.5");
+            con.setRequestProperty("Content-Type", "application/json");
+            con.setReadTimeout(TIME_OUT);
+            con.setConnectTimeout(TIME_OUT);
 
-        // Send post request
-        con.setDoOutput(true);
-        con.setDoInput(true);
-        OutputStream out = null;
-        out = new BufferedOutputStream(con.getOutputStream());
-        BufferedWriter writer = new BufferedWriter (new OutputStreamWriter(out, "UTF-8"));
-        writer.write(content);
-        writer.flush();
-        writer.close();
-        out.close();
-        con.connect();
+            // Send post request
+            con.setDoOutput(true);
+            con.setDoInput(true);
+            OutputStream out = null;
+            out = new BufferedOutputStream(con.getOutputStream());
+            BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(out, "UTF-8"));
+            writer.write(content);
+            writer.flush();
+            writer.close();
+            out.close();
+            con.connect();
 
 
-        int responseCode = con.getResponseCode();
-        System.out.println("Response Code:" + responseCode);
+            int responseCode = con.getResponseCode();
+            System.out.println("Response Code:" + responseCode);
 
-        BufferedReader in = new BufferedReader(
-                new InputStreamReader(con.getInputStream()));
-        String inputLine;
-        StringBuffer response = new StringBuffer();
+            BufferedReader in = new BufferedReader(
+                    new InputStreamReader(con.getInputStream()));
+            String inputLine;
+            StringBuffer response = new StringBuffer();
 
-        while ((inputLine = in.readLine()) != null) {
-            response.append(inputLine);
-        }
-        in.close();
-
-        System.out.println("Response Content:" + response);
-
-        //return result
-        Runnable r = new Runnable() {
-            @Override
-            public void run() {
-                if(caller != null) {
-                    caller.resultReceived(responseCode, response.toString(), content);
-                }
+            while ((inputLine = in.readLine()) != null) {
+                response.append(inputLine);
             }
-        };
-        if (caller != null) {
-            SugiliteData.runOnUiThread(r);
-        }
+            in.close();
+            System.out.println("Response Content:" + response);
 
-        if (progressDialog != null) {
-            progressDialog.dismiss();
+            //return result
+            Runnable r = new Runnable() {
+                @Override
+                public void run() {
+                    if(caller != null) {
+                        caller.resultReceived(responseCode, response.toString(), content);
+                    }
+                }
+            };
+            if (caller != null) {
+                SugiliteData.runOnUiThread(r);
+            }
+        } catch (Exception e){
+            e.printStackTrace();
+            throw e;
+        } finally {
+            if (progressDialog != null) {
+                progressDialog.dismiss();
+            }
+
         }
     }
 

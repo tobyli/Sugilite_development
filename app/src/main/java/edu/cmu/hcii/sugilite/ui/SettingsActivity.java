@@ -171,7 +171,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
                                                     }).show();
                                         } else if (scriptNamePreference != null && scriptName != null && scriptName.getText().toString().length() > 0) {
                                             scriptNamePreference.setText(scriptName.getText().toString());
-                                            Toast.makeText(preference.getContext(), "Changed script name to " + sharedPreferences.getString("scriptName", "NULL"), Toast.LENGTH_SHORT).show();
+                                            PumiceDemonstrationUtil.showSugiliteToast("Changed script name to " + sharedPreferences.getString("scriptName", "NULL"), Toast.LENGTH_SHORT);
                                             scriptNamePreference.setSummary(scriptName.getText().toString());
                                             //set the active script to the newly created script
                                             sugiliteData.initiateScript(scriptName.getText().toString() + ".SugiliteScript", null);
@@ -243,15 +243,16 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
                             builder.show();
                             //do nothing
                         }
-                        if(rootEnabled)
-                            Toast.makeText(preference.getContext(), "Root access is enabled", Toast.LENGTH_SHORT).show();
+                        if(rootEnabled) {
+                            PumiceDemonstrationUtil.showSugiliteToast("Root access is disabled", Toast.LENGTH_SHORT);
+                        }
                         else {
                             builder.show();
                         }
                     }
                     else {
                         //root access is disabled
-                        Toast.makeText(preference.getContext(), "Root access is disabled", Toast.LENGTH_SHORT).show();
+                        PumiceDemonstrationUtil.showSugiliteToast("Root access is disabled", Toast.LENGTH_SHORT);
                     }
                     break;
 

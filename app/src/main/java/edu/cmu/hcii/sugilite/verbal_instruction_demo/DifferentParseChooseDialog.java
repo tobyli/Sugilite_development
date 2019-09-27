@@ -4,7 +4,6 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.view.LayoutInflater;
-import android.view.WindowManager;
 import android.widget.Toast;
 
 import com.google.gson.Gson;
@@ -19,6 +18,7 @@ import edu.cmu.hcii.sugilite.model.Node;
 import edu.cmu.hcii.sugilite.R;
 import edu.cmu.hcii.sugilite.ontology.SerializableUISnapshot;
 import edu.cmu.hcii.sugilite.ontology.SugiliteSerializableEntity;
+import edu.cmu.hcii.sugilite.pumice.PumiceDemonstrationUtil;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.server_comm.VerbalInstructionServerResults;
 
 import static edu.cmu.hcii.sugilite.Const.OVERLAY_TYPE;
@@ -87,7 +87,7 @@ public class DifferentParseChooseDialog {
                         }
                         //=== done printing debug info ===
 
-                        Toast.makeText(context, chosenResult.getFormula(), Toast.LENGTH_SHORT).show();
+                        PumiceDemonstrationUtil.showSugiliteToast(chosenResult.getFormula(), Toast.LENGTH_SHORT);
                         for(Node node : filteredNodes){
                             //TODO: show overlay
 
@@ -96,7 +96,7 @@ public class DifferentParseChooseDialog {
                         }
                     }
                     else {
-                        Toast.makeText(context, "No clickable element found for the selected parse!", Toast.LENGTH_SHORT).show();
+                        PumiceDemonstrationUtil.showSugiliteToast("No clickable element found for the selected parse!", Toast.LENGTH_SHORT);
                     }
                 }
             }

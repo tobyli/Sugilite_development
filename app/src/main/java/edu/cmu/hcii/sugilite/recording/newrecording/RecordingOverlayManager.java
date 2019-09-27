@@ -25,6 +25,7 @@ import edu.cmu.hcii.sugilite.model.Node;
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.ontology.SugiliteEntity;
 import edu.cmu.hcii.sugilite.ontology.UISnapshot;
+import edu.cmu.hcii.sugilite.pumice.PumiceDemonstrationUtil;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.util.NavigationBarUtil;
 
 import static edu.cmu.hcii.sugilite.Const.OVERLAY_TYPE;
@@ -130,7 +131,8 @@ public class RecordingOverlayManager {
             public boolean onTouch(final View v, MotionEvent event) {
                 if (gestureDetector.onTouchEvent(event)) {
                     // gesture is clicking
-                    Toast.makeText(context, "Clicked on " + entityId, Toast.LENGTH_SHORT).show();
+                    PumiceDemonstrationUtil.showSugiliteToast("Clicked on " + entityId, Toast.LENGTH_SHORT);
+
 
                     RecordingOverlayOnClickPopup overlayChosenPopupDialog = new RecordingOverlayOnClickPopup(context, layoutInflater, node, sugiliteData, sharedPreferences);
                     overlayChosenPopupDialog.show();

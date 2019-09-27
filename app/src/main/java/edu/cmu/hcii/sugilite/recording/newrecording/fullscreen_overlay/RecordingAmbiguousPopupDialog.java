@@ -32,7 +32,6 @@ import java.util.Set;
 
 import edu.cmu.hcii.sugilite.model.Node;
 import edu.cmu.hcii.sugilite.R;
-import edu.cmu.hcii.sugilite.accessibility_service.SugiliteAccessibilityService;
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
 import edu.cmu.hcii.sugilite.model.block.util.SugiliteAvailableFeaturePack;
@@ -41,13 +40,13 @@ import edu.cmu.hcii.sugilite.model.operation.SugiliteOperation;
 import edu.cmu.hcii.sugilite.model.operation.unary.SugiliteClickOperation;
 import edu.cmu.hcii.sugilite.ontology.*;
 import edu.cmu.hcii.sugilite.ontology.description.OntologyDescriptionGenerator;
+import edu.cmu.hcii.sugilite.pumice.PumiceDemonstrationUtil;
 import edu.cmu.hcii.sugilite.recording.newrecording.NewDemonstrationHandler;
 import edu.cmu.hcii.sugilite.recording.newrecording.SugiliteBlockBuildingHelper;
 import edu.cmu.hcii.sugilite.recording.newrecording.dialog_management.SugiliteDialogManager;
 import edu.cmu.hcii.sugilite.recording.newrecording.dialog_management.SugiliteDialogSimpleState;
 import edu.cmu.hcii.sugilite.recording.newrecording.dialog_management.SugiliteDialogUtteranceFilter;
 import edu.cmu.hcii.sugilite.source_parsing.SugiliteScriptParser;
-import edu.cmu.hcii.sugilite.ui.dialog.SugiliteProgressDialog;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.VerbalInstructionRecordingManager;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.server_comm.SugiliteVerbalInstructionHTTPQueryInterface;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.server_comm.SugiliteVerbalInstructionHTTPQueryManager;
@@ -262,7 +261,7 @@ public class RecordingAmbiguousPopupDialog extends SugiliteDialogManager impleme
             NewDemonstrationHandler newDemonstrationHandler = NewDemonstrationHandler.getInstance();
             newDemonstrationHandler.showAmbiguousPopup(queryScoreList, featurePack);
         } else {
-            Toast.makeText(context, "Can't show the query list!", Toast.LENGTH_SHORT).show();
+            PumiceDemonstrationUtil.showSugiliteToast("Can't show the query list!", Toast.LENGTH_SHORT);
         }
         dialog.cancel();
     }
@@ -303,7 +302,7 @@ public class RecordingAmbiguousPopupDialog extends SugiliteDialogManager impleme
 
         if (results.getQueries() == null || results.getQueries().isEmpty()) {
             //error in parsing the server reply
-            Toast.makeText(context, String.valueOf(responseCode) + ": Can't parse the verbal instruction", Toast.LENGTH_SHORT).show();
+            PumiceDemonstrationUtil.showSugiliteToast(String.valueOf(responseCode) + ": Can't parse the verbal instruction", Toast.LENGTH_SHORT);
             dialog.show();
             setCurrentState(emptyResultState);
             initPrompt();
@@ -412,7 +411,7 @@ public class RecordingAmbiguousPopupDialog extends SugiliteDialogManager impleme
 
         if (matchingQueriesMatchedNodesList.size() == 1) {
             OntologyQuery query = matchingQueriesMatchedNodesList.get(0).first;
-            Toast.makeText(context, query.toString(), Toast.LENGTH_SHORT).show();
+            PumiceDemonstrationUtil.showSugiliteToast(query.toString(), Toast.LENGTH_SHORT);
 
             //check if this has filteredNodes.size() = 1 -- whether need to show the followup question dialog
             if(matchingQueriesMatchedNodesList.get(0).second.size() > 1) {

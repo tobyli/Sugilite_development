@@ -7,7 +7,6 @@ import android.gesture.Gesture;
 import android.gesture.GestureLibraries;
 import android.gesture.GestureLibrary;
 import android.gesture.GestureOverlayView;
-import android.gesture.Prediction;
 import android.graphics.Path;
 import android.graphics.PixelFormat;
 import android.graphics.Rect;
@@ -17,23 +16,18 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.WindowManager;
 import android.view.accessibility.AccessibilityNodeInfo;
-import android.widget.AbsListView;
-import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.LinearLayout;
 import android.widget.ListView;
-import android.widget.Spinner;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import edu.cmu.hcii.sugilite.Const;
 import edu.cmu.hcii.sugilite.R;
 import edu.cmu.hcii.sugilite.SugiliteData;
-import edu.cmu.hcii.sugilite.model.variable.StringVariable;
+import edu.cmu.hcii.sugilite.pumice.PumiceDemonstrationUtil;
 
 import static edu.cmu.hcii.sugilite.Const.OVERLAY_TYPE;
 
@@ -55,7 +49,7 @@ public class SelectElementWithTextDialog implements AbstractSugiliteDialog {
 
     public SelectElementWithTextDialog(final Context context, final LayoutInflater inflater, final SugiliteData sugiliteData){
         if(Const.KEEP_ALL_TEXT_LABEL_LIST == false){
-            Toast.makeText(context, "Getting Text Selection Failed - Feature is Turned off!", Toast.LENGTH_SHORT);
+            PumiceDemonstrationUtil.showSugiliteToast("Getting Text Selection Failed - Feature is Turned off!", Toast.LENGTH_SHORT);
             return;
         }
         this.context = context;
@@ -118,11 +112,11 @@ public class SelectElementWithTextDialog implements AbstractSugiliteDialog {
                     public void onClick(View v)
                     {
                         if(listView != null && listView.getCheckedItemPosition() > 0 && listView.getItemAtPosition(listView.getCheckedItemPosition()) != null) {
-                            Toast.makeText(context, "Chosen option " + listView.getItemAtPosition(listView.getCheckedItemPosition()).toString(), Toast.LENGTH_SHORT);
+                            PumiceDemonstrationUtil.showSugiliteToast("Chosen option " + listView.getItemAtPosition(listView.getCheckedItemPosition()).toString(), Toast.LENGTH_SHORT);
                             System.out.println(listView.getItemAtPosition(listView.getCheckedItemPosition()).toString());
                         }
                         else {
-                            Toast.makeText(context, "Failed to get the text selection!", Toast.LENGTH_SHORT);
+                            PumiceDemonstrationUtil.showSugiliteToast("Failed to get the text selection!", Toast.LENGTH_SHORT);
                             System.out.println("Failed to get the text selection! " + listView.getCheckedItemPosition());
                         }
                         dialog.dismiss();
@@ -140,7 +134,7 @@ public class SelectElementWithTextDialog implements AbstractSugiliteDialog {
 
     public void show(){
         if(Const.KEEP_ALL_TEXT_LABEL_LIST == false){
-            Toast.makeText(context, "Getting Text Selection Failed - Feature is Turned off!", Toast.LENGTH_SHORT);
+            PumiceDemonstrationUtil.showSugiliteToast("Getting Text Selection Failed - Feature is Turned off!", Toast.LENGTH_SHORT);
             return;
         }
 

@@ -22,6 +22,7 @@ import java.util.List;
 import edu.cmu.hcii.sugilite.model.Node;
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.ontology.SerializableUISnapshot;
+import edu.cmu.hcii.sugilite.pumice.PumiceDemonstrationUtil;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.server_comm.SugiliteVerbalInstructionHTTPQueryManager;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.server_comm.VerbalInstructionServerResults;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.util.NavigationBarUtil;
@@ -158,7 +159,7 @@ public class VerbalInstructionOverlayManager {
             public boolean onTouch(final View v, MotionEvent event) {
                 if (gestureDetector.onTouchEvent(event)) {
                     // gesture is clicking
-                    Toast.makeText(context, "Clicked on " + entityId, Toast.LENGTH_SHORT).show();
+                    PumiceDemonstrationUtil.showSugiliteToast("Clicked on " + entityId, Toast.LENGTH_SHORT);
                     OverlayChosenPopupDialog overlayChosenPopupDialog = new OverlayChosenPopupDialog(context, layoutInflater, verbalInstructionOverlayManager, node,  correspondingResult, allResults, serializableUISnapshot, utterance, sugiliteData, sharedPreferences);
                     overlayChosenPopupDialog.show();
                     return true;

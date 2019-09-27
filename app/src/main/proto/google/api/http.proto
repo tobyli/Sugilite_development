@@ -43,7 +43,7 @@ option java_package = "com.google.api";
 //   string message_id = 1; // mapped to the URL
 // }
 // message Message {
-//   string text = 1; // content of the resource
+//   string text = 1; // triggerContent of the resource
 // }
 // ```
 //
@@ -198,7 +198,7 @@ option java_package = "com.google.api";
 // Use CustomHttpPattern to specify any HTTP method that is not included in the
 // pattern field, such as HEAD, or "*" to leave the HTTP method unspecified for
 // a given URL path rule. The wild-card rule is useful for services that provide
-// content to Web (HTML) clients.
+// triggerContent to Web (HTML) clients.
 message HttpRule {
 
   // Determines the URL pattern is matched by this rules. This pattern can be

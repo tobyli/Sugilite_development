@@ -29,6 +29,7 @@ import edu.cmu.hcii.sugilite.model.operation.SugiliteOperation;
 import edu.cmu.hcii.sugilite.ontology.OntologyQuery;
 import edu.cmu.hcii.sugilite.ontology.SugiliteEntity;
 import edu.cmu.hcii.sugilite.ontology.UISnapshot;
+import edu.cmu.hcii.sugilite.pumice.PumiceDemonstrationUtil;
 import edu.cmu.hcii.sugilite.recording.ReadableDescriptionGenerator;
 
 import static edu.cmu.hcii.sugilite.Const.OVERLAY_TYPE;
@@ -123,7 +124,7 @@ public class NewDemonstrationHandler {
                 SugiliteData.runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        Toast.makeText(SugiliteData.getAppContext(), "Ambiguous!", Toast.LENGTH_SHORT).show();
+                        PumiceDemonstrationUtil.showSugiliteToast("Ambiguous!", Toast.LENGTH_SHORT);
                         showAmbiguousPopup(queryScoreList, featurePack);
                     }
                 });
@@ -134,7 +135,8 @@ public class NewDemonstrationHandler {
             SugiliteData.runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    Toast.makeText(SugiliteData.getAppContext(), "Empty Results!", Toast.LENGTH_SHORT).show();
+                    PumiceDemonstrationUtil.showSugiliteToast("Empty Results!", Toast.LENGTH_SHORT);
+
                 }
             });
         }

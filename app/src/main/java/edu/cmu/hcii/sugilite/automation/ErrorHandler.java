@@ -24,6 +24,7 @@ import edu.cmu.hcii.sugilite.model.block.SugiliteErrorHandlingForkBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteOperation;
+import edu.cmu.hcii.sugilite.pumice.PumiceDemonstrationUtil;
 import edu.cmu.hcii.sugilite.recording.ReadableDescriptionGenerator;
 
 import static edu.cmu.hcii.sugilite.Const.OVERLAY_TYPE;
@@ -185,7 +186,8 @@ public class ErrorHandler {
                     public void onClick(DialogInterface dialog, int which) {
                         sugiliteData.clearInstructionQueue();
                         sugiliteData.setCurrentSystemState(SugiliteData.DEFAULT_STATE);
-                        Toast.makeText(applicationContext, "Cleared Operation Queue!", Toast.LENGTH_SHORT).show();
+                        PumiceDemonstrationUtil.showSugiliteToast("Cleared Operation Queue!", Toast.LENGTH_SHORT);
+
                         dialog.dismiss();
                     }
                 })
@@ -263,7 +265,8 @@ public class ErrorHandler {
         prefEditor.putBoolean("recording_in_process", true);
         prefEditor.putString("scriptName", startingBlock.getScriptName().replace(".SugiliteScript", ""));
         prefEditor.commit();
-        Toast.makeText(applicationContext, "resuming recording", Toast.LENGTH_SHORT).show();
+        PumiceDemonstrationUtil.showSugiliteToast("resuming recording", Toast.LENGTH_SHORT);
+
     }
 
     /**
@@ -308,7 +311,8 @@ public class ErrorHandler {
         prefEditor.putBoolean("recording_in_process", true);
         prefEditor.putString("scriptName", startingBlock.getScriptName().replace(".SugiliteScript", ""));
         prefEditor.commit();
-        Toast.makeText(applicationContext, "resuming recording", Toast.LENGTH_SHORT).show();
+        PumiceDemonstrationUtil.showSugiliteToast("resuming recording", Toast.LENGTH_SHORT);
+
     }
 
 }

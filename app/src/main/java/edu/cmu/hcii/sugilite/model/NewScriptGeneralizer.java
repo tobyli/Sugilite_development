@@ -1,13 +1,11 @@
 package edu.cmu.hcii.sugilite.model;
 
 import android.app.Activity;
-import android.content.Context;
 import android.support.annotation.Nullable;
 import android.util.Pair;
 import android.widget.Toast;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -23,6 +21,7 @@ import edu.cmu.hcii.sugilite.model.variable.StringVariable;
 import edu.cmu.hcii.sugilite.model.variable.Variable;
 import edu.cmu.hcii.sugilite.ontology.*;
 import edu.cmu.hcii.sugilite.ontology.description.OntologyDescriptionGenerator;
+import edu.cmu.hcii.sugilite.pumice.PumiceDemonstrationUtil;
 
 import static edu.cmu.hcii.sugilite.ontology.SugiliteRelation.HAS_CHILD;
 import static edu.cmu.hcii.sugilite.ontology.SugiliteRelation.HAS_CLASS_NAME;
@@ -118,7 +117,7 @@ public class NewScriptGeneralizer {
                         context.runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
-                                Toast.makeText(context, String.format("Found %d alternative options for the parameter \"%s\": %s", alternativeNodeTextLabelsMap.size(), textLabel, alternativeTextLabels.toString()), Toast.LENGTH_SHORT).show();
+                                PumiceDemonstrationUtil.showSugiliteToast(String.format("Found %d alternative options for the parameter \"%s\": %s", alternativeNodeTextLabelsMap.size(), textLabel, alternativeTextLabels.toString()), Toast.LENGTH_SHORT);
                             }
                         });
                         //TODO: add the parameter back to SugiliteStartingBlock

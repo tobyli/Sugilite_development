@@ -38,6 +38,7 @@ import edu.cmu.hcii.sugilite.model.operation.unary.SugiliteClickOperation;
 import edu.cmu.hcii.sugilite.model.operation.unary.SugiliteLongClickOperation;
 import edu.cmu.hcii.sugilite.model.operation.unary.SugiliteUnaryOperation;
 import edu.cmu.hcii.sugilite.ontology.*;
+import edu.cmu.hcii.sugilite.pumice.PumiceDemonstrationUtil;
 import edu.cmu.hcii.sugilite.recording.ReadableDescriptionGenerator;
 import edu.cmu.hcii.sugilite.recording.SugiliteScreenshotManager;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.study.SugiliteStudyHandler;
@@ -405,7 +406,7 @@ public class FullScreenRecordingOverlayManager {
                 overlayClickedDialog.show();
             }
         } else {
-            Toast.makeText(context, "No node matched!", Toast.LENGTH_SHORT).show();
+            PumiceDemonstrationUtil.showSugiliteToast("No node matched!", Toast.LENGTH_SHORT);
             System.out.println("No node matched!");
         }
     }
@@ -428,7 +429,7 @@ public class FullScreenRecordingOverlayManager {
                 RecordingOverlayContextClickDialog recordingOverlayContextClickDialog = new RecordingOverlayContextClickDialog(context, this, topLongClickableNode, topClickableNode, matchedAllNodeEntities, uiSnapshot, sugiliteData, tts, x, y);
                 recordingOverlayContextClickDialog.show();
             } else {
-                Toast.makeText(context, "No node matched!", Toast.LENGTH_SHORT).show();
+                PumiceDemonstrationUtil.showSugiliteToast("No node matched!", Toast.LENGTH_SHORT);
             }
         }
     }

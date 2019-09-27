@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.google.common.collect.Multimap;
 import com.google.gson.Gson;
@@ -20,7 +21,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -39,6 +39,7 @@ import javax.annotation.Nullable;
 import edu.cmu.hcii.sugilite.R;
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
+import edu.cmu.hcii.sugilite.pumice.PumiceDemonstrationUtil;
 import edu.cmu.hcii.sugilite.sharing.model.HashedString;
 import edu.cmu.hcii.sugilite.sharing.model.HashedUIStrings;
 import edu.cmu.hcii.sugilite.sharing.model.StringInContext;
@@ -82,7 +83,7 @@ public class SugiliteScriptSharingHTTPQueryManager {
 
     private SugiliteScriptSharingHTTPQueryManager(Context context) {
         this.sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
-        this.executor = Executors.newFixedThreadPool(1);
+        this.executor = Executors.newSingleThreadExecutor();
     }
 
     private URI getBaseUri(){
@@ -105,18 +106,23 @@ public class SugiliteScriptSharingHTTPQueryManager {
     }
 
     public List<SugiliteRepoListing> getRepoList() throws ExecutionException, InterruptedException {
-        SugiliteProgressDialog progressDialog = new SugiliteProgressDialog(SugiliteData.getAppContext(), R.string.downloading_script_message);
+        SugiliteProgressDialog progressDialog = new SugiliteProgressDialog(SugiliteData.getAppContext(), R.string.loading_remote_script_list_message);
         progressDialog.show();
 
         DownloadRepoListTask repoListTask = new DownloadRepoListTask();
-        List<SugiliteRepoListing> repo = executor.submit(repoListTask).get();
+        List<SugiliteRepoListing> repo = new ArrayList<>();
+        try {
+            repo = executor.submit(repoListTask).get();
+        } catch (Exception e) {
+            PumiceDemonstrationUtil.showSugiliteToast("Connection Failed", Toast.LENGTH_SHORT);
 
-        progressDialog.dismiss();
+        } finally {
+            progressDialog.dismiss();
+        }
         return repo;
     }
 
     private class DownloadRepoListTask implements Callable<ArrayList<SugiliteRepoListing>> {
-
         @Override
         public ArrayList<SugiliteRepoListing> call() throws Exception {
             URL downloadUrl = getBaseUri().resolve(DOWNLOAD_REPO_LIST_ENDPOINT).toURL();
@@ -164,9 +170,15 @@ public class SugiliteScriptSharingHTTPQueryManager {
         progressDialog.show();
 
         DownloadScriptTask downloadScriptTask = new DownloadScriptTask(id);
-        SugiliteStartingBlock script = executor.submit(downloadScriptTask).get();
+        SugiliteStartingBlock script = null;
+        try {
+            script = executor.submit(downloadScriptTask).get();
+        } catch (Exception e){
+            PumiceDemonstrationUtil.showSugiliteToast("Connection Failed", Toast.LENGTH_SHORT);
 
-        progressDialog.dismiss();
+        } finally {
+            progressDialog.dismiss();
+        }
         return script;
     }
 
@@ -213,9 +225,15 @@ public class SugiliteScriptSharingHTTPQueryManager {
         progressDialog.show();
 
         UploadScriptTask uploadScriptTask = new UploadScriptTask(title, author, script);
-        String scriptId = executor.submit(uploadScriptTask).get();
+        String scriptId = "";
+        try {
+            scriptId = executor.submit(uploadScriptTask).get();
+        } catch (Exception e) {
+            PumiceDemonstrationUtil.showSugiliteToast("Connection Failed", Toast.LENGTH_SHORT);
 
-        progressDialog.dismiss();
+        } finally {
+            //progressDialog.dismiss();
+        }
         return scriptId;
     }
 
@@ -332,11 +350,18 @@ public class SugiliteScriptSharingHTTPQueryManager {
         SugiliteProgressDialog progressDialog = new SugiliteProgressDialog(SugiliteData.getAppContext(), R.string.filtering_personal_information_message);
         progressDialog.show();
 
-        GetFilteredStringsTask getFilteredStringsTask = new GetFilteredStringsTask(queryStrings, originalQueryStringsIndex, decodedStrings);
-        StringAlternativeGenerator.StringAlternative[] bestMatch = executor.submit(getFilteredStringsTask).get();
+        try {
+            GetFilteredStringsTask getFilteredStringsTask = new GetFilteredStringsTask(queryStrings, originalQueryStringsIndex, decodedStrings);
+            StringAlternativeGenerator.StringAlternative[] bestMatch = executor.submit(getFilteredStringsTask).get();
+            return bestMatch;
+        } catch (Exception e) {
+            PumiceDemonstrationUtil.showSugiliteToast("Connection Failed", Toast.LENGTH_SHORT);
 
-        progressDialog.dismiss();
-        return bestMatch;
+        } finally {
+            progressDialog.dismiss();
+        }
+
+        return null;
     }
 
     private class GetFilteredStringsTask implements Callable<StringAlternativeGenerator.StringAlternative[]> {

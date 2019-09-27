@@ -41,6 +41,7 @@ import edu.cmu.hcii.sugilite.accessibility_service.SugiliteAccessibilityService;
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.ontology.SerializableUISnapshot;
 import edu.cmu.hcii.sugilite.ontology.UISnapshot;
+import edu.cmu.hcii.sugilite.pumice.PumiceDemonstrationUtil;
 import edu.cmu.hcii.sugilite.recording.newrecording.fullscreen_overlay.FollowUpQuestionDialog;
 import edu.cmu.hcii.sugilite.recording.newrecording.fullscreen_overlay.FullScreenRecordingOverlayManager;
 import edu.cmu.hcii.sugilite.sharing.HashedSplitStringGenerator;
@@ -237,13 +238,18 @@ public class VerbalInstructionIconManager implements SugiliteVoiceInterface {
                             public void run() {
                                 sugiliteAccessibilityService.updatePumiceOverlay(latestUISnapshot);
                                 if (sharedPreferences.getBoolean("uploading_hashed_ui_in_progress", false)) {
-                                    HashedUIStrings hashedUIStrings = new HashedUIStrings(sugiliteAccessibilityService.getCurrentAppPackageName(), sugiliteAccessibilityService.getCurrentAppActivityName(), new SerializableUISnapshot(latestUISnapshot), Settings.Secure.getString(context.getContentResolver(), Settings.Secure.ANDROID_ID), new HashedSplitStringGenerator());
-                                    try {
-                                        sugiliteScriptSharingHTTPQueryManager.uploadHashedUI(hashedUIStrings);
-                                    } catch (Exception e) {
-                                        //TODO: better handle this error
-                                        e.printStackTrace();
-                                    }
+                                    new Thread(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            HashedUIStrings hashedUIStrings = new HashedUIStrings(sugiliteAccessibilityService.getCurrentAppPackageName(), sugiliteAccessibilityService.getCurrentAppActivityName(), new SerializableUISnapshot(latestUISnapshot), Settings.Secure.getString(context.getContentResolver(), Settings.Secure.ANDROID_ID), new HashedSplitStringGenerator());
+                                            try {
+                                                sugiliteScriptSharingHTTPQueryManager.uploadHashedUI(hashedUIStrings);
+                                            } catch (Exception e) {
+                                                //TODO: better handle this error
+                                                e.printStackTrace();
+                                            }
+                                        }
+                                    }).start();
                                 }
                                 sugiliteAccessibilityService.checkIfAutomationCanBePerformed();
                             }
@@ -401,7 +407,7 @@ public class VerbalInstructionIconManager implements SugiliteVoiceInterface {
                                             }
 
                                             else{
-                                                Toast.makeText(context, "UI snapshot is NULL!", Toast.LENGTH_SHORT).show();
+                                                PumiceDemonstrationUtil.showSugiliteToast("UI snapshot is NULL!", Toast.LENGTH_SHORT);
                                             }
                                             break;
 
@@ -421,7 +427,7 @@ public class VerbalInstructionIconManager implements SugiliteVoiceInterface {
                                             if(finalSerializedUISnapshot != null) {
                                                 int snapshot_size = finalSerializedUISnapshot.getSugiliteEntityIdSugiliteEntityMap().size();
                                                 dumpUISnapshot(finalSerializedUISnapshot);
-                                                Toast.makeText(context, "dumped a UI snapshot with " + snapshot_size + " nodes", Toast.LENGTH_SHORT).show();
+                                                PumiceDemonstrationUtil.showSugiliteToast("dumped a UI snapshot with " + snapshot_size + " nodes", Toast.LENGTH_SHORT);
                                             }
                                             break;
                                         case "Record a Sugilite study packet":
@@ -434,7 +440,7 @@ public class VerbalInstructionIconManager implements SugiliteVoiceInterface {
                                             boolean uploading = sharedPreferences.getBoolean("uploading_hashed_ui_in_progress", false);
                                             boolean success = sharedPreferences.edit().putBoolean("uploading_hashed_ui_in_progress", !uploading).commit();
                                             if (!success) {
-                                                Toast.makeText(context, "Could not enable UI uploading", Toast.LENGTH_SHORT).show();
+                                                PumiceDemonstrationUtil.showSugiliteToast("Could not enable UI uploading", Toast.LENGTH_SHORT);
                                             }
                                             break;
                                     }

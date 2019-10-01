@@ -317,44 +317,6 @@ public class SugiliteMainActivity extends AppCompatActivity {
             return true;
 
         }
-        if(id == R.id.download_repo) {
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        List<SugiliteRepoListing> repo = sugiliteScriptSharingHTTPQueryManager.getRepoList();
-                        for (SugiliteRepoListing listing : repo) {
-                            SugiliteStartingBlock script = sugiliteScriptSharingHTTPQueryManager.downloadScript(String.valueOf(listing.getId()));
-                            script.setScriptName("DOWNLOADED: " + script.getScriptName());
-                            OntologyDescriptionGenerator odg = new OntologyDescriptionGenerator(getApplicationContext());
-                            OperationBlockDescriptionRegenerator.regenerateScriptDescriptions(script, odg);
-                            sugiliteScriptDao.save(script);
-                            sugiliteScriptDao.commitSave();
-                        }
-
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    } catch (ExecutionException e) {
-                        e.printStackTrace();
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                    Runnable dismissDialog = new Runnable() {
-                        @Override
-                        public void run() {
-                            try {
-                                if (fragmentScriptListTab instanceof FragmentScriptListTab)
-                                    ((FragmentScriptListTab) fragmentScriptListTab).setUpScriptList();
-                            }
-                            catch (Exception e){
-                                e.printStackTrace();
-                            }
-                        }
-                    };
-                    runOnUiThread(dismissDialog);
-                }
-            }).start();
-        }
         return super.onOptionsItemSelected(item);
     }
 }

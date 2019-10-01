@@ -82,7 +82,7 @@ public class SugiliteRecordingConfirmationDialog extends SugiliteDialogManager {
         this.actualClickedNode = actualClickedNode;
         this.sugiliteData = sugiliteData;
         this.sharedPreferences = sharedPreferences;
-        this.ontologyDescriptionGenerator = new OntologyDescriptionGenerator(context);
+        this.ontologyDescriptionGenerator = new OntologyDescriptionGenerator();
 
         if(Const.DAO_TO_USE == SQL_SCRIPT_DAO) {
             sugiliteScriptDao = new SugiliteScriptSQLDao(context);

@@ -23,7 +23,7 @@ public class ScriptQueryHasher {
 
     public ScriptQueryHasher(Activity context) {
         this.context = context;
-        this.ontologyDescriptionGenerator = new OntologyDescriptionGenerator(context);
+        this.ontologyDescriptionGenerator = new OntologyDescriptionGenerator();
     }
 
     public void hashOntologyQueries(SugiliteStartingBlock sugiliteStartingBlock) {

@@ -164,6 +164,7 @@ public class SugiliteScriptParser {
         SugiliteStartingBlock startingBlock = new SugiliteStartingBlock("test.SugiliteScript");
         SugiliteBlock currentBlock = startingBlock;
         for(SugiliteScriptExpression expression : expressionList){
+
             //turn each expression to a block
             SugiliteBlock block = expression.toSugiliteBlock(startingBlock, ontologyDescriptionGenerator);
             if (block != null) {

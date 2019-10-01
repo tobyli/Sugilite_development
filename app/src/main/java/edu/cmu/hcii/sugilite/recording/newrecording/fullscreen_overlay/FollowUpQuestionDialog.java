@@ -146,7 +146,7 @@ public class FollowUpQuestionDialog extends SugiliteDialogManager implements Sug
         this.queryScoreList = queryScoreList;
         this.blockBuildingHelper = blockBuildingHelper;
         this.sugiliteData = sugiliteData;
-        this.ontologyDescriptionGenerator = new OntologyDescriptionGenerator(context);
+        this.ontologyDescriptionGenerator = new OntologyDescriptionGenerator();
         this.gson = new Gson();
         this.sugiliteFullScreenOverlayFactory = new SugiliteFullScreenOverlayFactory(context);
         this.navigationBarUtil = new NavigationBarUtil();

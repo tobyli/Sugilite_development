@@ -66,7 +66,7 @@ public class PumiceValueDemonstrationSelectionDialog {
         this.sugiliteData = sugiliteData;
         this.sharedPreferences = sharedPreferences;
         this.layoutInflater = layoutInflater;
-        this.ontologyDescriptionGenerator = new OntologyDescriptionGenerator(context);
+        this.ontologyDescriptionGenerator = new OntologyDescriptionGenerator();
         this.blockBuildingHelper = new SugiliteBlockBuildingHelper(context, sugiliteData);
         this.recordingOverlayManager = recordingOverlayManager;
         this.tts = tts;

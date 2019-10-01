@@ -15,8 +15,7 @@
         android:orderInCategory="6" app:showAsAction="never" />
     <item android:id="@+id/launch_pumice" android:title="Launch Pumice"
           android:orderInCategory="7" app:showAsAction="never" />
-    <item android:id="@+id/download_repo" android:title="Download Repo Scripts"
-        android:orderInCategory="8" app:showAsAction="never" />
+
 
 
 </menu>

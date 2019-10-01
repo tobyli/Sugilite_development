@@ -101,7 +101,7 @@ public class RecordingAmbiguousPopupDialog extends SugiliteDialogManager impleme
         this.queryScoreList = queryScoreList;
         this.featurePack = featurePack;
         this.sugiliteVerbalInstructionHTTPQueryManager = SugiliteVerbalInstructionHTTPQueryManager.getInstance(context);
-        this.descriptionGenerator = new OntologyDescriptionGenerator(context);
+        this.descriptionGenerator = new OntologyDescriptionGenerator();
         this.sugiliteScriptParser = new SugiliteScriptParser();
 
         //TODO: need to operate on a copy of ui snapshot

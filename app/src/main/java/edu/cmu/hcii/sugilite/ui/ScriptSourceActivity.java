@@ -51,7 +51,7 @@ public class ScriptSourceActivity extends AppCompatActivity {
 
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         activityManager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
-        ontologyDescriptionGenerator = new OntologyDescriptionGenerator(context);
+        ontologyDescriptionGenerator = new OntologyDescriptionGenerator();
         sugiliteScriptParser = new SugiliteScriptParser(ontologyDescriptionGenerator);
         serviceStatusManager = ServiceStatusManager.getInstance(this);
         if (savedInstanceState == null) {
@@ -101,9 +101,9 @@ public class ScriptSourceActivity extends AppCompatActivity {
         progressDialog.show();
 
         sourceEditText = (EditText) findViewById(R.id.edit_text_source);
-        sourceEditText.setHorizontallyScrolling(true);
-        String source = sugiliteScriptParser.scriptToString(script);
-        sourceEditText.setText(source);
+        sourceEditText.setHorizontallyScrolling(false);
+        String source = SugiliteScriptParser.scriptToString(script);
+        sourceEditText.setText(source.replace("\n", "\n\n"));
 
         progressDialog.dismiss();
     }
@@ -149,7 +149,7 @@ public class ScriptSourceActivity extends AppCompatActivity {
         try{
             String input = sourceEditText.getText().toString();
             SugiliteStartingBlock newScript = sugiliteScriptParser.parseBlockFromString(input);
-            newScript.setScriptName(newScript.getScriptName().replace(".SugiliteScript", "") + "_edited.SugiliteScript");
+            newScript.setScriptName("EDITED: " + scriptName);
             sugiliteScriptDao.save(newScript);
             sugiliteScriptDao.commitSave();
             return newScript;

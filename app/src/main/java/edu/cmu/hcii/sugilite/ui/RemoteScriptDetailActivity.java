@@ -76,7 +76,7 @@ public class RemoteScriptDetailActivity extends ScriptDetailActivity {
         if(scriptName != null) {
             setTitle("View Remote Script: " + scriptName.replace(".SugiliteScript", ""));
         }
-        OntologyDescriptionGenerator ontologyDescriptionGenerator = new OntologyDescriptionGenerator(getApplicationContext());
+        OntologyDescriptionGenerator ontologyDescriptionGenerator = new OntologyDescriptionGenerator();
         if (repoListingId != -1) {
             new Thread(new Runnable() {
                 @Override

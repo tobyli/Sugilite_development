@@ -80,7 +80,7 @@ public class FragmentRemoteScriptListTab extends Fragment {
                 try {
                     if (rootView != null) {
                         final ListView remoteScriptEntryList = (ListView) rootView.findViewById(R.id.remoteScriptList);
-                        List<SugiliteRepoListing> remoteScriptList = sugiliteScriptSharingHTTPQueryManager.getRepoList();
+                        List<SugiliteRepoListing> remoteScriptList = sugiliteScriptSharingHTTPQueryManager.getRepoList(true);
                         Map<Integer, SugiliteRepoListing> listPositionRepoListingMap = new HashMap<>();
                         List<String> remoteScriptReadableNames = new ArrayList<>();
                         for (SugiliteRepoListing repoListing : remoteScriptList) {

@@ -82,7 +82,7 @@ public class ChooseParsingDialog extends SugiliteDialogManager {
         for(Pair<OntologyQuery, List<Node>> entry : matchingQueriesMatchedNodesList){
             resultQueries.add(entry.first);
         }
-        ontologyDescriptionGenerator = new OntologyDescriptionGenerator(context);
+        ontologyDescriptionGenerator = new OntologyDescriptionGenerator();
         //build the dialog
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
         //builder.setTitle("Select from disambiguation results");

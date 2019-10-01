@@ -9,6 +9,7 @@ import java.io.InputStreamReader;
 import java.util.Arrays;
 
 import edu.cmu.hcii.sugilite.Const;
+import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.model.operation.trinary.SugiliteLoadVariableOperation;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteOperation;
 import edu.cmu.hcii.sugilite.ontology.*;
@@ -19,13 +20,13 @@ import edu.cmu.hcii.sugilite.ontology.HashedStringOntologyQuery;
  */
 
 public class OntologyDescriptionGenerator {
-    Context context;
 
-    public OntologyDescriptionGenerator(Context context) {
-        this.context = context;
-    }
-    public static String getAppName(Context context, String packageName) {
-        PackageManager packageManager = context.getPackageManager();
+    public static String getAppName(String packageName) {
+        PackageManager packageManager = null;
+        if (SugiliteData.getAppContext() != null) {
+            packageManager = SugiliteData.getAppContext().getPackageManager();
+        }
+
         if(packageName.equals("com.android.launcher3") ||
                 packageName.equals("com.google.android.googlequicksearchbox") ||
                 packageName.equals("com.google.android.apps.nexuslauncher"))
@@ -45,14 +46,6 @@ public class OntologyDescriptionGenerator {
         }
     }
 
-    // get the package name for the application
-    private String getAppName(String packageName) {
-        if (context != null) {
-            return getAppName(context, packageName);
-        } else {
-            return packageName;
-        }
-    }
 
     // get a more viewable list order
     private static String numberToOrder(String number) {
@@ -584,7 +577,7 @@ public class OntologyDescriptionGenerator {
             }
         } else if (ontologyQuery instanceof HashedStringOntologyQuery) {
             // TODO not very convincing
-            return setColor("has secret text ", Const.SCRIPT_VIEW_ID_COLOR);
+            return setColor("has unknown text ", Const.SCRIPT_VIEW_ID_COLOR);
         } else if (ontologyQuery instanceof PlaceholderOntologyQuery) {
             return setColor("(temporary) ", Const.SCRIPT_PLACEHOLDER_COLOR) + getDescriptionForOntologyQuery(((PlaceholderOntologyQuery)ontologyQuery).getInnerQuery(), true);
         } else {
@@ -595,7 +588,7 @@ public class OntologyDescriptionGenerator {
     }
 
     public static void main(String[] args){
-        OntologyDescriptionGenerator generator = new OntologyDescriptionGenerator(null);
+        OntologyDescriptionGenerator generator = new OntologyDescriptionGenerator();
         System.out.println("Enter a query:");
         while (true) {
             BufferedReader screenReader = new BufferedReader(new InputStreamReader(System.in));

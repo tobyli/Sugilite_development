@@ -70,7 +70,7 @@ public class SugiliteBlockBuildingHelper {
     public SugiliteBlockBuildingHelper(Context context, SugiliteData sugiliteData){
         this.context = context;
         this.sugiliteData = sugiliteData;
-        this.ontologyDescriptionGenerator = new OntologyDescriptionGenerator(context);
+        this.ontologyDescriptionGenerator = new OntologyDescriptionGenerator();
         if(Const.DAO_TO_USE == SQL_SCRIPT_DAO) {
             this.sugiliteScriptDao = new SugiliteScriptSQLDao(context);
         }

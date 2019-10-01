@@ -110,11 +110,11 @@ public class SugiliteScriptSharingHTTPQueryManager {
         return baseUri;
     }
 
-    public List<SugiliteRepoListing> getRepoList() throws ExecutionException, InterruptedException {
+    public List<SugiliteRepoListing> getRepoList(boolean waitForDebug) throws ExecutionException, InterruptedException {
         SugiliteProgressDialog progressDialog = new SugiliteProgressDialog(SugiliteData.getAppContext(), R.string.loading_remote_script_list_message);
         progressDialog.show();
 
-        DownloadRepoListTask repoListTask = new DownloadRepoListTask();
+        DownloadRepoListTask repoListTask = new DownloadRepoListTask(waitForDebug);
         List<SugiliteRepoListing> repo = new ArrayList<>();
         try {
             repo = executor.submit(repoListTask).get();
@@ -128,6 +128,11 @@ public class SugiliteScriptSharingHTTPQueryManager {
     }
 
     private class DownloadRepoListTask implements Callable<ArrayList<SugiliteRepoListing>> {
+        private boolean waitForDebug;
+        DownloadRepoListTask (boolean waitForDebug) {
+            this.waitForDebug = waitForDebug;
+        }
+
         @Override
         public ArrayList<SugiliteRepoListing> call() throws Exception {
             URL downloadUrl = getBaseUri().resolve(DOWNLOAD_REPO_LIST_ENDPOINT).toURL();
@@ -164,6 +169,10 @@ public class SugiliteScriptSharingHTTPQueryManager {
                     }
                     result.add(listing);
                 }
+            }
+
+            if (waitForDebug) {
+                Thread.sleep(1000);
             }
 
             return result;

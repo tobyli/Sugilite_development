@@ -42,7 +42,7 @@ public class NewScriptGeneralizer {
     public NewScriptGeneralizer(Activity context, int depthLimit) {
         this.context = context;
         this.depthLimit = depthLimit;
-        this.ontologyDescriptionGenerator = new OntologyDescriptionGenerator(context);
+        this.ontologyDescriptionGenerator = new OntologyDescriptionGenerator();
     }
 
     public NewScriptGeneralizer(Activity context) {

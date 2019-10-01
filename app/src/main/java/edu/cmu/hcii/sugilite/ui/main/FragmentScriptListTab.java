@@ -77,7 +77,7 @@ public class FragmentScriptListTab extends Fragment {
         this.sharedPreferences = PreferenceManager.getDefaultSharedPreferences(activity);
         this.sugiliteData = (SugiliteData) activity.getApplication();
         this.newScriptGeneralizer = new NewScriptGeneralizer(activity);
-        this.ontologyDescriptionGenerator = new OntologyDescriptionGenerator(getContext());
+        this.ontologyDescriptionGenerator = new OntologyDescriptionGenerator();
         this.sugiliteScriptSharingHTTPQueryManager = SugiliteScriptSharingHTTPQueryManager.getInstance(activity);
         this.sugiliteSharingScriptPreparer = new SugiliteSharingScriptPreparer(activity);
 
@@ -166,8 +166,7 @@ public class FragmentScriptListTab extends Fragment {
     private static final int ITEM_GENERALIZE = Menu.FIRST + 6;
     private static final int ITEM_EDIT_SOURCE = Menu.FIRST + 7;
     private static final int ITEM_DELETE = Menu.FIRST + 8;
-    private static final int ITEM_HASH_STRINGS = Menu.FIRST + 9;
-    private static final int ITEM_DUPLICATE = Menu.FIRST + 10;
+    private static final int ITEM_DUPLICATE = Menu.FIRST + 9;
 
     //context menu are the long-click menus for each script
     @Override

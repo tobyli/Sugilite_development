@@ -102,7 +102,9 @@ public class SugiliteSharingScriptPreparer {
                 // in the meantime we'll just remove the ui snapshots
                 // SerializableUISnapshot snapshot = ((SugiliteOperationBlock) block).getSugiliteBlockMetaInfo().getUiSnapshot();
                 // UISnapshotShareUtils.prepareSnapshotForSharing(snapshot, replacements);
-                ((SugiliteOperationBlock) block).getSugiliteBlockMetaInfo().setUiSnapshot(null);
+
+
+                //***((SugiliteOperationBlock) block).getSugiliteBlockMetaInfo().setUiSnapshot(null);
             }
         }
 

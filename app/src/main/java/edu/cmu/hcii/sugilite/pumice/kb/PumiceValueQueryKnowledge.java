@@ -88,7 +88,7 @@ public class PumiceValueQueryKnowledge<T> implements Serializable {
         }
         for(String packageName : involvedAppPackageNames){
             //get app name for package name
-            involvedAppNames.add(OntologyDescriptionGenerator.getAppName(context, packageName));
+            involvedAppNames.add(OntologyDescriptionGenerator.getAppName(packageName));
         }
     }
 

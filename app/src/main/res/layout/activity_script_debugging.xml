@@ -54,7 +54,7 @@
         android:layout_height="wrap_content"
         android:text="Delete"
         android:id="@+id/script_detail_delete_button"
-        android:background="#ff0000"
+        android:backgroundTint="#C0392B"
         android:onClick="scriptDebugDeleteButtonOnClick"
         android:layout_alignParentBottom="true"
         android:layout_alignParentEnd="true"

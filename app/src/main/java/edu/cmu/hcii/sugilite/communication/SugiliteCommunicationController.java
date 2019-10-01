@@ -144,7 +144,7 @@ public class SugiliteCommunicationController {
             try {
                 vocabSet = vocabularyDao.getText(packageName);
                 Gson gson = new Gson();
-                sendMessage(Const.RESPONSE, Const.GET_PACKAGE_VOCAB, gson.toJson(vocabSet));
+                sendMessage(SugiliteCommunicationHelper.RESPONSE, SugiliteCommunicationHelper.GET_PACKAGE_VOCAB, gson.toJson(vocabSet));
                 return vocabSet;
             }
             catch (Exception e){
@@ -173,11 +173,11 @@ public class SugiliteCommunicationController {
                     retVal2 += entry.getKey() + ": " + text + "\n";
                 }
             }
-            sendMessage(Const.RESPONSE, Const.GET_ALL_PACKAGE_VOCAB, retVal2);
+            sendMessage(SugiliteCommunicationHelper.RESPONSE, SugiliteCommunicationHelper.GET_ALL_PACKAGE_VOCAB, retVal2);
             return retVal2;
         }
         else{
-            sendMessage(Const.RESPONSE, Const.GET_ALL_PACKAGE_VOCAB, "NULL");
+            sendMessage(SugiliteCommunicationHelper.RESPONSE, SugiliteCommunicationHelper.GET_ALL_PACKAGE_VOCAB, "NULL");
         }
         return null;
     }
@@ -185,13 +185,13 @@ public class SugiliteCommunicationController {
     public void clearTrackingList() {
         Log.d(TAG, "Request received: clearTrackingList");
         sugiliteTrackingDao.clear();
-        sendMessage(Const.RESPONSE, Const.CLEAR_TRACKING_LIST, "");
+        sendMessage(SugiliteCommunicationHelper.RESPONSE, SugiliteCommunicationHelper.CLEAR_TRACKING_LIST, "");
     }
 
 
     public boolean sendAllScripts(){
         Log.d(TAG, "Sending All Recording Scripts");
-        return sendMessage( Const.RESPONSE, Const.GET_ALL_RECORDING_SCRIPTS, jsonProcessor
+        return sendMessage( SugiliteCommunicationHelper.RESPONSE, SugiliteCommunicationHelper.GET_ALL_RECORDING_SCRIPTS, jsonProcessor
                 .scriptsToJson( getRecordingScripts() ));
     }
 
@@ -218,7 +218,7 @@ public class SugiliteCommunicationController {
 
     public boolean sendAllTrackings(){
         Log.d(TAG, "Sending All Tracking Scripts");
-        return sendMessage( Const.RESPONSE, Const.GET_ALL_TRACKING_SCRIPTS, jsonProcessor
+        return sendMessage( SugiliteCommunicationHelper.RESPONSE, SugiliteCommunicationHelper.GET_ALL_TRACKING_SCRIPTS, jsonProcessor
                 .scriptsToJson( getTrackingScripts() ));
     }
 
@@ -242,10 +242,10 @@ public class SugiliteCommunicationController {
         // you should send back the script which name is "scriptName"... now, we are using a dummy
         SugiliteStartingBlock script = getRecordingScript(scriptName);
         if(script != null) {
-            return sendMessage(Const.RESPONSE, Const.GET_RECORDING_SCRIPT, jsonProcessor.scriptToJson(script));
+            return sendMessage(SugiliteCommunicationHelper.RESPONSE, SugiliteCommunicationHelper.GET_RECORDING_SCRIPT, jsonProcessor.scriptToJson(script));
         }else {
             //the exception message below will be sent when can't find a script with provided name
-            return sendMessage(Const.RESPONSE_EXCEPTION, Const.GET_RECORDING_SCRIPT,
+            return sendMessage(SugiliteCommunicationHelper.RESPONSE_EXCEPTION, SugiliteCommunicationHelper.GET_RECORDING_SCRIPT,
                     "Can't find a script with provided name");
         }
     }
@@ -266,10 +266,10 @@ public class SugiliteCommunicationController {
         // you should send back the script which name is "scriptName"... now, we are using a dummy
         SugiliteStartingBlock tracking = getTrackingScript( trackingName );
         if(tracking != null)
-            return sendMessage(Const.RESPONSE, Const.GET_TRACKING_SCRIPT, jsonProcessor.scriptToJson(tracking));
+            return sendMessage(SugiliteCommunicationHelper.RESPONSE, SugiliteCommunicationHelper.GET_TRACKING_SCRIPT, jsonProcessor.scriptToJson(tracking));
         else
             //the exception message below will be sent when can't find a script with provided name
-            return sendMessage(Const.RESPONSE_EXCEPTION, Const.GET_TRACKING_SCRIPT,
+            return sendMessage(SugiliteCommunicationHelper.RESPONSE_EXCEPTION, SugiliteCommunicationHelper.GET_TRACKING_SCRIPT,
                     "Can't find a tracking with provided name");
     }
 
@@ -280,11 +280,11 @@ public class SugiliteCommunicationController {
 
     //the below message will be sent when a externally initiated script has finished recording
     public boolean sendRecordingFinishedSignal(String scriptName){
-        return sendMessage(Const.RESPONSE, Const.STOP_RECORDING, "FINISHED RECORDING " + scriptName);
+        return sendMessage(SugiliteCommunicationHelper.RESPONSE, SugiliteCommunicationHelper.STOP_RECORDING, "FINISHED RECORDING " + scriptName);
     }
 
     public boolean sendExecutionFinishedSignal(String scriptName){
-        return sendMessage(Const.RESPONSE, Const.RUN, "FINISHED EXECUTING " + scriptName);
+        return sendMessage(SugiliteCommunicationHelper.RESPONSE, SugiliteCommunicationHelper.RUN, "FINISHED EXECUTING " + scriptName);
     }
 
 
@@ -317,10 +317,10 @@ public class SugiliteCommunicationController {
         if( isRecordingInProcess() ) {
             //the exception message below will be sent when there's already recording in process
             message = "Already recording in progress, can't start";
-            SugiliteCommunicationController.this.sendMessage(Const.RESPONSE_EXCEPTION,
-                    Const.START_RECORDING, message);
+            SugiliteCommunicationController.this.sendMessage(SugiliteCommunicationHelper.RESPONSE_EXCEPTION,
+                    SugiliteCommunicationHelper.START_RECORDING, message);
             if( sendCallback ){
-                sugiliteData.sendCallbackMsg(Const.START_RECORDING_EXCEPTION,
+                sugiliteData.sendCallbackMsg(SugiliteCommunicationHelper.START_RECORDING_EXCEPTION,
                         "recording already in process", callbackString);
             }
         }
@@ -396,17 +396,17 @@ public class SugiliteCommunicationController {
                 // send back tracking log (script)? false == 0, true == 1.
                 SugiliteStartingBlock script = sugiliteData.getScriptHead();
                 if (script != null)
-                    SugiliteCommunicationController.this.sendMessage(Const.RESPONSE,
-                            Const.GET_RECORDING_SCRIPT, jsonProcessor.scriptToJson(script));
+                    SugiliteCommunicationController.this.sendMessage(SugiliteCommunicationHelper.RESPONSE,
+                            SugiliteCommunicationHelper.GET_RECORDING_SCRIPT, jsonProcessor.scriptToJson(script));
                 return script;
             }
         }
         else {
             //the exception message below will be sent when there's no recording in process
-            SugiliteCommunicationController.this.sendMessage(Const.RESPONSE_EXCEPTION,
-                    Const.STOP_RECORDING, "No recording in progress, can't stop");
+            SugiliteCommunicationController.this.sendMessage(SugiliteCommunicationHelper.RESPONSE_EXCEPTION,
+                    SugiliteCommunicationHelper.STOP_RECORDING, "No recording in progress, can't stop");
             if( sendCallback ){
-                sugiliteData.sendCallbackMsg(Const.END_RECORDING_EXCEPTION,
+                sugiliteData.sendCallbackMsg(SugiliteCommunicationHelper.END_RECORDING_EXCEPTION,
                         "no recording in process", callbackString);
             }
         }
@@ -450,15 +450,15 @@ public class SugiliteCommunicationController {
                 // send back tracking log (script)? false == 0, true == 1.
                 SugiliteStartingBlock tracking = sugiliteData.getTrackingHead();
                 if (tracking != null)
-                    SugiliteCommunicationController.this.sendMessage(Const.RESPONSE,
-                            Const.GET_TRACKING_SCRIPT, jsonProcessor.scriptToJson(tracking));
+                    SugiliteCommunicationController.this.sendMessage(SugiliteCommunicationHelper.RESPONSE,
+                            SugiliteCommunicationHelper.GET_TRACKING_SCRIPT, jsonProcessor.scriptToJson(tracking));
                 return tracking;
             }
         }
         else {
             //the exception message below will be sent when there's no recording in process
-            SugiliteCommunicationController.this.sendMessage(Const.RESPONSE_EXCEPTION,
-                    Const.STOP_TRACKING, "No tracking in progress, can't stop");
+            SugiliteCommunicationController.this.sendMessage(SugiliteCommunicationHelper.RESPONSE_EXCEPTION,
+                    SugiliteCommunicationHelper.STOP_TRACKING, "No tracking in progress, can't stop");
         }
         return null;
     }
@@ -478,12 +478,12 @@ public class SugiliteCommunicationController {
             }
             catch (Exception e){
                 e.printStackTrace();
-                sugiliteData.sendCallbackMsg(Const.ADD_JSON_AS_SCRIPT_EXCEPTION,
+                sugiliteData.sendCallbackMsg(SugiliteCommunicationHelper.ADD_JSON_AS_SCRIPT_EXCEPTION,
                         "error in json parsing", callbackString);
             }
         }
         else if( sendCallback ){
-            sugiliteData.sendCallbackMsg(Const.ADD_JSON_AS_SCRIPT, "null json", callbackString);
+            sugiliteData.sendCallbackMsg(SugiliteCommunicationHelper.ADD_JSON_AS_SCRIPT, "null json", callbackString);
         }
         return null;
     }
@@ -499,12 +499,12 @@ public class SugiliteCommunicationController {
             }
             catch (Exception e){
                 e.printStackTrace();
-                sugiliteData.sendCallbackMsg(Const.RUN_JSON_EXCEPTION,
+                sugiliteData.sendCallbackMsg(SugiliteCommunicationHelper.RUN_JSON_EXCEPTION,
                         "error in json parsing", callbackString);
             }
         }
         else if( sendCallback ){
-            sugiliteData.sendCallbackMsg(Const.RUN_JSON_EXCEPTION, "null json", callbackString);
+            sugiliteData.sendCallbackMsg(SugiliteCommunicationHelper.RUN_JSON_EXCEPTION, "null json", callbackString);
         }
 
         return null;
@@ -514,10 +514,10 @@ public class SugiliteCommunicationController {
         Log.d(TAG, "Request received: runScript");
         boolean recordingInProcess = isRecordingInProcess();
         if(recordingInProcess) {
-            SugiliteCommunicationController.this.sendMessage(Const.RESPONSE_EXCEPTION,
-                    Const.RUN, "Already recording in progress, can't run");
+            SugiliteCommunicationController.this.sendMessage(SugiliteCommunicationHelper.RESPONSE_EXCEPTION,
+                    SugiliteCommunicationHelper.RUN, "Already recording in progress, can't run");
             if( sendCallback ){
-                sugiliteData.sendCallbackMsg(Const.RUN_SCRIPT_EXCEPTION,
+                sugiliteData.sendCallbackMsg(SugiliteCommunicationHelper.RUN_SCRIPT_EXCEPTION,
                         "recording already in process", callbackString);
             }
         }
@@ -531,10 +531,10 @@ public class SugiliteCommunicationController {
                 e.printStackTrace();
             }
             if(script == null) {
-                SugiliteCommunicationController.this.sendMessage(Const.RESPONSE_EXCEPTION,
-                        Const.RUN, "Can't find the script");
+                SugiliteCommunicationController.this.sendMessage(SugiliteCommunicationHelper.RESPONSE_EXCEPTION,
+                        SugiliteCommunicationHelper.RUN, "Can't find the script");
                 if( sendCallback ){
-                    sugiliteData.sendCallbackMsg(Const.RUN_SCRIPT_EXCEPTION,
+                    sugiliteData.sendCallbackMsg(SugiliteCommunicationHelper.RUN_SCRIPT_EXCEPTION,
                             "null script", callbackString);
                 }
             }
@@ -582,7 +582,7 @@ public class SugiliteCommunicationController {
                 }
                 sugiliteData.runScript(script, null, null, SugiliteData.EXECUTION_STATE);
                 try {
-                    Thread.sleep( Const.SCRIPT_DELAY);
+                    Thread.sleep(Const.SCRIPT_DELAY);
                 } catch (Exception e) {
                     // do nothing
                 }
@@ -643,7 +643,7 @@ public class SugiliteCommunicationController {
             }
             sugiliteData.runScript(script, false, SugiliteData.EXECUTION_STATE);
             try {
-                Thread.sleep( Const.SCRIPT_DELAY);
+                Thread.sleep(Const.SCRIPT_DELAY);
             } catch (Exception e) {
                 // do nothing
             }

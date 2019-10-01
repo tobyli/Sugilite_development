@@ -64,6 +64,10 @@ public class Const {
     //# of thread for parsing/annotating string entities in UISnapshot
     public static final int UI_SNAPSHOT_TEXT_PARSING_THREAD_COUNT = 5;
 
+    //switch between using SQL Dao and File Dao (SQL Dao has a max script size issue)
+    public static final int FILE_SCRIPT_DAO = 1, SQL_SCRIPT_DAO = 2;
+    public static final int DAO_TO_USE = FILE_SCRIPT_DAO;
+    public static final boolean ENABLE_DAO_READING_CACHE = false;
 
     //contain package names for launchers so they won't be killed
     public static final String[] HOME_SCREEN_PACKAGE_NAMES = {"com.google.android.googlequicksearchbox", "com.google.android.apps.nexuslauncher"};
@@ -73,51 +77,9 @@ public class Const {
     public static final String[] ACCESSIBILITY_SERVICE_TRACKING_EXCLUDED_PACKAGE_NAMES = {"edu.cmu.hcii.sugilitecommunicationtest", "edu.cmu.hcii.sugilite", "edu.cmu.helpr"};
     public static final String[] INPUT_METHOD_PACKAGE_NAMES = {"com.google.android.inputmethod.pinyin", "com.google.android.inputmethod.latin", "com.menny.android.anysoftkeyboard"};
 
-
     //App name to display
     public static final String appName = "Sugilite";
     public static final String appNameUpperCase = appName.toUpperCase();
-
-    public static final int ID_APP_TRACKER = 1001;
-    public static final String APP_TRACKER = "APP_TRACKER";
-    public static final String SCRIPT_NAME = "SCRIPT_NAME";
-    public static final String CALLBACK_STRING = "CALLBACK_STRING";
-    public static final String SCRIPT = "SCRIPT";
-    public static final String PACKAGE_NAME = "PACKAGE_NAME";
-    public static final String JSON_STRING = "JSON_STRING";
-    public static final String SHOULD_SEND_CALLBACK ="SHOULD_SEND_CALLBACK";
-
-    //const code for communicating with InMind Middleware
-    public static final int REGISTER = 1;
-    public static final int UNREGISTER = 2;
-    public static final int RESPONSE = 3;
-    public static final int START_TRACKING = 4;
-    public static final int STOP_TRACKING = 5;
-    public static final int GET_ALL_TRACKING_SCRIPTS = 6;
-    public static final int GET_TRACKING_SCRIPT = 7;
-    public static final int APP_TRACKER_EXCEPTION = 8;
-    public static final int RUN = 9;
-    public static final int RESPONSE_EXCEPTION = 10;
-    public static final int START_RECORDING = 11;
-    public static final int STOP_RECORDING = 12;
-    public static final int GET_ALL_RECORDING_SCRIPTS = 13;
-    public static final int GET_RECORDING_SCRIPT = 14;
-    public static final int ACCESSIBILITY_EVENT = 15;
-    public static final int RUN_SCRIPT = 16;
-    public static final int END_RECORDING_EXCEPTION = 17;
-    public static final int START_RECORDING_EXCEPTION = 18;
-    public static final int FINISHED_RECORDING = 19;
-    public static final int RUN_SCRIPT_EXCEPTION = 20;
-    public static final int RUN_JSON = 21;
-    public static final int RUN_JSON_EXCEPTION = 22;
-    public static final int ADD_JSON_AS_SCRIPT = 23;
-    public static final int ADD_JSON_AS_SCRIPT_EXCEPTION = 24;
-    public static final int CLEAR_TRACKING_LIST = 25;
-    public static final int GET_ALL_PACKAGE_VOCAB = 26;
-    public static final int GET_PACKAGE_VOCAB = 27;
-    public static final int MULTIPURPOSE_REQUEST = 28;
-    public static final int RUN_SCRIPT_WITH_PARAMETERS = 29;
-
 
     //colors
     public static final String SCRIPT_ACTION_COLOR = "#ffa500";
@@ -148,19 +110,8 @@ public class Const {
 
     public static final int SEMI_TRANSPARENT_GRAY_BACKGROUND = Color.parseColor("#80000000");
 
-
-    public static final int FILE_SCRIPT_DAO = 1, SQL_SCRIPT_DAO = 2;
-
-    //switch between using SQL Dao and File Dao (SQL Dao has a max script size issue)
-    public static final int DAO_TO_USE = FILE_SCRIPT_DAO;
-
-
     //date format
     public static final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd=HH_mm_ss-SSS");
-
-    public static String boldify(String string){
-        return "<b>" + string + "</b>";
-    }
 
     public static final String[] INIT_INSTRUCTION_CONTEXT_WORDS = {"if", "when", "whenever", "order", "cold", "check", "bus", "schedule", "hotel", "room", "at least", "greater", "less", "below", "above", "cheaper", "colder", "cooler", "price", "temperature", "order"};
     public static final String[] DEMONSTRATION_CONTEXT_WORDS = {"demonstrate"};
@@ -168,10 +119,6 @@ public class Const {
     public static final String[] COMPARISON_CONTEXT_WORDS = {"at least", "greater", "less", "below", "above", "cheaper", "colder", "cooler", "price", "temperature"};
 
     public static final String[] UI_UPLOAD_PACKAGE_BLACKLIST = {"com.google.android.inputmethod.pinyin", "com.google.android.inputmethod.latin", "com.menny.android.anysoftkeyboard"};
-    public static final SugiliteRelation[] POTENTIALLY_PRIVATE_RELATIONS = {
-            SugiliteRelation.HAS_TEXT,
-            SugiliteRelation.HAS_CHILD_TEXT,
-            SugiliteRelation.HAS_CONTENT_DESCRIPTION
-    };
+
 
 }

@@ -38,7 +38,7 @@ public class StringInContext {
         return false;
     }
 
-    public String toJson() {
+    public String toHashedJson() {
         StringBuilder sb = new StringBuilder("{");
         sb.append("\"package\": \"" + packageName + "\"");
         sb.append(",\"activity\": \"" + activityName + "\"");

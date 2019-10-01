@@ -11,6 +11,8 @@ import edu.cmu.hcii.sugilite.sharing.debug.HasPlaintext;
 
 import java.util.*;
 
+import static edu.cmu.hcii.sugilite.sharing.SugiliteSharingScriptPreparer.POTENTIALLY_PRIVATE_RELATIONS;
+
 /**
  * A hashed representation of all text strings present in a UI snapshot.
  */
@@ -88,7 +90,7 @@ public class HashedUIStrings {
 
         for (SugiliteSerializableTriple triple : snapshot.getTriples()) {
             // if we can hash this kind of relation
-            if (Arrays.stream(Const.POTENTIALLY_PRIVATE_RELATIONS).anyMatch(triple.getPredicate()::equals)) {
+            if (Arrays.stream(POTENTIALLY_PRIVATE_RELATIONS).anyMatch(triple.getPredicate()::equals)) {
                 if (editTextSubjects.contains(triple.getSubjectId())) {
                     Log.v("HashedUIStrings", "Not adding EditText text : " + triple.getObjectStringValue());
                 } else if (blacklistPackageSubjects.contains(triple.getSubjectId())) {

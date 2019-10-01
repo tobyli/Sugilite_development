@@ -32,8 +32,10 @@ import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.model.variable.Variable;
 import edu.cmu.hcii.sugilite.ontology.SugiliteRelation;
+import edu.cmu.hcii.sugilite.ontology.SugiliteTriple;
 import edu.cmu.hcii.sugilite.pumice.dialog.PumiceDialogManager;
 import edu.cmu.hcii.sugilite.recording.RecordingPopUpDialog;
+import edu.cmu.hcii.sugilite.sharing.model.HashedString;
 import edu.cmu.hcii.sugilite.study.ScriptUsageLogManager;
 import edu.cmu.hcii.sugilite.ui.StatusIconManager;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.VerbalInstructionIconManager;
@@ -48,6 +50,7 @@ import edu.cmu.hcii.sugilite.verbal_instruction_demo.VerbalInstructionIconManage
 public class SugiliteData extends Application {
     //the static application context
     private static Context applicationContext;
+    private static Map<String, HashedString> screenStringSaltedHashMap;
 
     //used to store the current active script
     private SugiliteStartingBlock scriptHead, trackingHead;
@@ -108,6 +111,7 @@ public class SugiliteData extends Application {
         super.onCreate();
         //initiate a static copy of application context
         SugiliteData.applicationContext = getApplicationContext();
+        SugiliteData.screenStringSaltedHashMap = new HashMap<>();
 
         //initiate TTS
         tts = new TextToSpeech(applicationContext, new TextToSpeech.OnInitListener() {
@@ -121,6 +125,10 @@ public class SugiliteData extends Application {
 
     public static Context getAppContext() {
         return SugiliteData.applicationContext;
+    }
+
+    public static Map<String, HashedString> getScreenStringSaltedHashMap() {
+        return screenStringSaltedHashMap;
     }
 
     public static void runOnUiThread(Runnable runnable) {

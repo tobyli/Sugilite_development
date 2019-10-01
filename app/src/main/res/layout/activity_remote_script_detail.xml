@@ -5,7 +5,7 @@
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
     android:paddingBottom="@dimen/activity_vertical_margin"
-    tools:context="edu.cmu.hcii.sugilite.ui.LocalScriptDetailActivity">
+    tools:context="edu.cmu.hcii.sugilite.ui.RemoteScriptDetailActivity">
 
 
     <ScrollView
@@ -35,25 +35,11 @@
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Run"
-        android:id="@+id/script_detail_run_button"
+        android:text="Download"
+        android:id="@+id/remote_script_download_button"
+        android:backgroundTint="#5DADE2"
         android:layout_alignTop="@+id/script_detail_cancel_button"
         android:layout_alignParentStart="true"
-        android:onClick="scriptDetailRunButtonOnClick" />
+        android:onClick="scriptDetailDownloadButtonOnClick" />
 
-    <ImageButton
-        android:id="@+id/button5"
-        style="@style/Widget.AppCompat.ImageButton"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="10dp"
-        android:layout_marginTop="10dp"
-        android:layout_weight="0"
-        android:onClick="pumiceSendButtonOnClick"
-        android:padding="5dp"
-        android:adjustViewBounds="true"
-        android:cropToPadding="true"
-        android:elevation="2dp"
-        android:scaleType="fitCenter"
-        android:src="@mipmap/tap_to_talk"/>
 </RelativeLayout>

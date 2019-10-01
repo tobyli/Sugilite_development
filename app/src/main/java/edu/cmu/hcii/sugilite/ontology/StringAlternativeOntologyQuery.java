@@ -1,8 +1,10 @@
 package edu.cmu.hcii.sugilite.ontology;
 
 import edu.cmu.hcii.sugilite.sharing.StringAlternativeGenerator;
+import edu.cmu.hcii.sugilite.sharing.model.HashedString;
 import edu.cmu.hcii.sugilite.source_parsing.SugiliteScriptExpression;
 
+import java.util.Map;
 import java.util.Set;
 
 public class StringAlternativeOntologyQuery extends OntologyQuery {

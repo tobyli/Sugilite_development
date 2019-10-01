@@ -1,10 +1,17 @@
 package edu.cmu.hcii.sugilite.ontology;
 
 import edu.cmu.hcii.sugilite.Const;
+import edu.cmu.hcii.sugilite.SugiliteData;
+import edu.cmu.hcii.sugilite.sharing.SugiliteScriptSharingHTTPQueryManager;
 import edu.cmu.hcii.sugilite.sharing.model.HashedString;
 
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
+
+import static edu.cmu.hcii.sugilite.sharing.SugiliteSharingScriptPreparer.POTENTIALLY_PRIVATE_RELATIONS;
 
 public class HashedStringOntologyQuery extends OntologyQuery {
 
@@ -12,7 +19,7 @@ public class HashedStringOntologyQuery extends OntologyQuery {
     protected SugiliteRelation r = null;
 
     // the hashed string we want to match
-    private HashedString hashedString;
+    protected HashedString hashedString;
 
     public HashedStringOntologyQuery(SugiliteRelation r, HashedString hashedString) {
         this.r = r;
@@ -22,10 +29,21 @@ public class HashedStringOntologyQuery extends OntologyQuery {
     @Override
     protected boolean overallQueryFunction(SugiliteEntity currNode, UISnapshot graph) {
         Set<SugiliteTriple> sugiliteTriples = graph.getSubjectTriplesMap().get(currNode.getEntityId());
+
         if (sugiliteTriples != null) {
             for (SugiliteTriple triple : sugiliteTriples) {
-                if (triple.getPredicate().equals(r) && hashedString.equals(new HashedString(triple.getObjectStringValue()))) {
-                    return true;
+                if (triple.getPredicate().equals(r)) {
+                    if (hashedString.isServerSalted()) {
+                        //need to compare with server results
+                        if (hashedString.equals(SugiliteData.getScreenStringSaltedHashMap().get(graph.getPackageName() + graph.getActivityName()+ new HashedString(triple.getObjectStringValue()).toString()))) {
+                            return true;
+                        }
+                    } else {
+                        //can be compare locally
+                        if (hashedString.equals(new HashedString(triple.getObjectStringValue()))) {
+                            return true;
+                        }
+                    }
                 }
             }
         }
@@ -50,11 +68,14 @@ public class HashedStringOntologyQuery extends OntologyQuery {
         this.r = r;
     }
 
+
+
     /**
      * Hashes a LeafOntologyQuery if possible or returns null otherwise.
      * @param query
      * @return the equivalent HashedStringOntologyQuery if an equivalent could be made, or null otherwise.
      */
+    @Deprecated
     public static HashedStringOntologyQuery hashLeafOntologyQueryIfPossible(OntologyQuery query) {
 
         if (query instanceof HashedStringOntologyQuery) return (HashedStringOntologyQuery)query;
@@ -64,7 +85,7 @@ public class HashedStringOntologyQuery extends OntologyQuery {
             HashedStringOntologyQuery result = null;
 
             // if we can hash this kind of relation
-            if (Arrays.stream(Const.POTENTIALLY_PRIVATE_RELATIONS).anyMatch(loq.getR()::equals) && loq.getObject().size() == 1) {
+            if (Arrays.stream(POTENTIALLY_PRIVATE_RELATIONS).anyMatch(loq.getR()::equals) && loq.getObject().size() == 1) {
                 HashedString hashedString = new HashedString(loq.getObject().toArray(new SugiliteSerializableEntity[1])[0].toString());
                 result = new HashedStringOntologyQuery(loq.getR(), hashedString);
             }
@@ -75,6 +96,7 @@ public class HashedStringOntologyQuery extends OntologyQuery {
         return null;
     }
 
+    @Deprecated
     public static OntologyQuery hashQuery(OntologyQuery query) {
         OntologyQuery leafHash = hashLeafOntologyQueryIfPossible(query);
         if (leafHash != null) return leafHash;

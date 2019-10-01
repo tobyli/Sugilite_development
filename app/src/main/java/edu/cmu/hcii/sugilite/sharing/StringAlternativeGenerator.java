@@ -7,17 +7,20 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class StringAlternativeGenerator {
+    public final static int ORIGINAL_TYPE = 0, PATTERN_MATCH_TYPE = 1, HASH_TYPE = 2;
     public static class StringAlternative implements Serializable {
         public String altText;
         public int priority;
+        public int type;
 
-        public StringAlternative(String altText, int priority) {
+        public StringAlternative(String altText, int priority, int type) {
             this.altText = altText;
             this.priority = priority;
+            this.type = type;
         }
 
         public StringAlternative clone() {
-            return new StringAlternative(altText, priority);
+            return new StringAlternative(altText, priority, type);
         }
     }
 
@@ -37,14 +40,14 @@ public class StringAlternativeGenerator {
                         sb.append(' ');
                     }
                 }
-                alternatives.add(new StringAlternative(sb.toString(), 2));
+                alternatives.add(new StringAlternative(sb.toString(), 2, PATTERN_MATCH_TYPE));
             }
         }
 
         // should match numbers punctuated by (optionally) decimal points
         Matcher m = Pattern.compile("\\d+(?:.\\d+)*").matcher(s);
         while (m.find()) {
-            alternatives.add(new StringAlternative(s.substring(0, m.start()) + "<number>" + s.substring(m.end()), 1));
+            alternatives.add(new StringAlternative(s.substring(0, m.start()) + "<number>" + s.substring(m.end()), 1, PATTERN_MATCH_TYPE));
         }
 
         return alternatives;

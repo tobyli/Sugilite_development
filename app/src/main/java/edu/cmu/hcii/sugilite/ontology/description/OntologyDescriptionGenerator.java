@@ -584,7 +584,7 @@ public class OntologyDescriptionGenerator {
             }
         } else if (ontologyQuery instanceof HashedStringOntologyQuery) {
             // TODO not very convincing
-            return setColor("unknown text ", Const.SCRIPT_VIEW_ID_COLOR);
+            return setColor("has secret text ", Const.SCRIPT_VIEW_ID_COLOR);
         } else if (ontologyQuery instanceof PlaceholderOntologyQuery) {
             return setColor("(temporary) ", Const.SCRIPT_PLACEHOLDER_COLOR) + getDescriptionForOntologyQuery(((PlaceholderOntologyQuery)ontologyQuery).getInnerQuery(), true);
         } else {

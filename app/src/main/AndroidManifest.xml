@@ -71,6 +71,9 @@
             android:name=".ui.LocalScriptDetailActivity"
             tools:node="merge" />
         <activity
+            android:name=".ui.RemoteScriptDetailActivity"
+            tools:node="merge" />
+        <activity
             android:name=".ui.ScriptDebuggingActivity"
             tools:node="merge" />
 

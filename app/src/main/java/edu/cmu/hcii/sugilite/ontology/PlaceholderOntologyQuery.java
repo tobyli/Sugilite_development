@@ -1,7 +1,10 @@
 package edu.cmu.hcii.sugilite.ontology;
 
 import java.util.LinkedHashSet;
+import java.util.Map;
 import java.util.Set;
+
+import edu.cmu.hcii.sugilite.sharing.model.HashedString;
 
 public class PlaceholderOntologyQuery extends OntologyQueryWithSubQueries {
     private OntologyQuery innerQuery;

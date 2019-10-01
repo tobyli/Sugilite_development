@@ -49,6 +49,7 @@ import edu.cmu.hcii.sugilite.ui.ScriptSourceActivity;
 import edu.cmu.hcii.sugilite.ui.dialog.NewScriptDialog;
 
 import static edu.cmu.hcii.sugilite.Const.SQL_SCRIPT_DAO;
+import static edu.cmu.hcii.sugilite.pumice.PumiceDemonstrationUtil.removeScriptExtension;
 
 /**
  * Created by toby on 1/16/17.
@@ -62,7 +63,6 @@ public class FragmentScriptListTab extends Fragment {
     private View rootView;
     private Activity activity;
     private NewScriptGeneralizer newScriptGeneralizer;
-    private ScriptQueryHasher scriptQueryHasher;
     private OntologyDescriptionGenerator ontologyDescriptionGenerator;
     private SugiliteScriptSharingHTTPQueryManager sugiliteScriptSharingHTTPQueryManager;
     private SugiliteSharingScriptPreparer sugiliteSharingScriptPreparer;
@@ -77,7 +77,6 @@ public class FragmentScriptListTab extends Fragment {
         this.sharedPreferences = PreferenceManager.getDefaultSharedPreferences(activity);
         this.sugiliteData = (SugiliteData) activity.getApplication();
         this.newScriptGeneralizer = new NewScriptGeneralizer(activity);
-        this.scriptQueryHasher = new ScriptQueryHasher(activity);
         this.ontologyDescriptionGenerator = new OntologyDescriptionGenerator(getContext());
         this.sugiliteScriptSharingHTTPQueryManager = SugiliteScriptSharingHTTPQueryManager.getInstance(activity);
         this.sugiliteSharingScriptPreparer = new SugiliteSharingScriptPreparer(activity);
@@ -88,6 +87,7 @@ public class FragmentScriptListTab extends Fragment {
             this.sugiliteScriptDao = new SugiliteScriptFileDao(activity, sugiliteData);
         }
         this.activity.setTitle("Sugilite Script List");
+
         //TODO: confirm overwrite when duplicated name
         //TODO: combine the two instances of script creation
 
@@ -192,7 +192,6 @@ public class FragmentScriptListTab extends Fragment {
         menu.add(0, ITEM_GENERALIZE, 0, "Generalize");
         menu.add(0, ITEM_EDIT_SOURCE, 0, "Edit Source");
         menu.add(0, ITEM_DELETE, 0, "Delete");
-        menu.add(0, ITEM_HASH_STRINGS, 0, "Hash Strings");
         menu.add(0, ITEM_DUPLICATE, 0, "Duplicate");
 
     }
@@ -305,12 +304,15 @@ public class FragmentScriptListTab extends Fragment {
                                 String id = sugiliteScriptSharingHTTPQueryManager.uploadScript(scriptName, "demo", script);
                                 Log.i("Upload script", "Script shared with id : " + id);
 
-                                PumiceDemonstrationUtil.showSugiliteToast(String.format("Successfully uploaded the script \"%s\"!", scriptName), Toast.LENGTH_SHORT);
+                                PumiceDemonstrationUtil.showSugiliteAlertDialog(String.format("Successfully uploaded the script \"%s\"!", removeScriptExtension(scriptName)));
 
-                                // debug
+                                // debug - save the uploaded script locally
+                                /*
                                 script.setScriptName("UPLOADED_RAW: " + scriptName);
                                 sugiliteScriptDao.save(script);
                                 sugiliteScriptDao.commitSave();
+                                */
+
                             } catch (InterruptedException e) {
                                 e.printStackTrace();
                             } catch (ExecutionException e) {
@@ -329,14 +331,17 @@ public class FragmentScriptListTab extends Fragment {
                                 SugiliteStartingBlock sharable = sugiliteSharingScriptPreparer.prepareScript(script);
                                 String id = sugiliteScriptSharingHTTPQueryManager.uploadScript(scriptName, "demo", sharable);
                                 Log.i("Upload script", "Script shared with id : " + id);
-                                PumiceDemonstrationUtil.showSugiliteToast(String.format("Successfully uploaded the script \"%s\"!", scriptName), Toast.LENGTH_SHORT);
+                                PumiceDemonstrationUtil.showSugiliteAlertDialog(String.format("Successfully uploaded the script \"%s\"!", removeScriptExtension(scriptName)));
 
 
-                                // debug
+                                // debug - save the uploaded script locally
+                                /*
                                 OperationBlockDescriptionRegenerator.regenerateScriptDescriptions(sharable, ontologyDescriptionGenerator);
                                 sharable.setScriptName("UPLOADED_FILTERED: " + scriptName);
                                 sugiliteScriptDao.save(sharable);
                                 sugiliteScriptDao.commitSave();
+                                */
+
                             } catch (InterruptedException e) {
                                 e.printStackTrace();
                             } catch (ExecutionException e) {
@@ -371,22 +376,6 @@ public class FragmentScriptListTab extends Fragment {
                     scriptSourceIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
                     scriptSourceIntent.putExtra("scriptName", scriptName);
                     startActivity(scriptSourceIntent);
-                    break;
-                case ITEM_HASH_STRINGS:
-                    // hash strings (DEBUG)
-                    new Thread(new Runnable() {
-                        @Override
-                        public void run() {
-                            try {
-                                script.setScriptName("LOCAL_HASHED: " + scriptName);
-                                scriptQueryHasher.hashOntologyQueries(script);
-                                sugiliteScriptDao.save(script);
-                                sugiliteScriptDao.commitSave();
-                            } catch (Exception e) {
-                                e.printStackTrace();
-                            }
-                        }
-                    }).start();
                     break;
                 case ITEM_DUPLICATE:
                     //duplicate

@@ -17,6 +17,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.TabHost;
 
 
 import java.io.File;
@@ -114,6 +115,29 @@ public class SugiliteMainActivity extends AppCompatActivity {
         actionBar.addTab(scriptListTab);
         actionBar.addTab(triggerListTab);
         actionBar.addTab(remoteScriptListTab);
+
+        // switch to the active tab
+        String activeTab = null;
+        //load the local script
+        if (savedInstanceState == null) {
+            activeTab = this.getIntent().getStringExtra("active_tab");
+        } else {
+            activeTab = savedInstanceState.getString("active_tab");
+        }
+        if (activeTab != null) {
+            switch (activeTab) {
+                case "remote_scripts":
+                    remoteScriptListTab.select();
+                    break;
+                case "local_scripts":
+                    scriptListTab.select();
+                    break;
+                case "triggers":
+                    triggerListTab.select();
+                    break;
+            }
+        }
+
 
         /*
         try {

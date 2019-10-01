@@ -16,6 +16,7 @@ import edu.cmu.hcii.sugilite.ontology.HashedStringOntologyQuery;
 import java.util.ArrayList;
 import java.util.List;
 
+@Deprecated
 public class ScriptQueryHasher {
     private Activity context;
     private OntologyDescriptionGenerator ontologyDescriptionGenerator;

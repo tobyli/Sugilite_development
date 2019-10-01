@@ -40,6 +40,7 @@ import edu.cmu.hcii.sugilite.ontology.OntologyQuery;
 import edu.cmu.hcii.sugilite.ontology.OntologyQueryWithSubQueries;
 import edu.cmu.hcii.sugilite.ontology.SerializableUISnapshot;
 import edu.cmu.hcii.sugilite.ontology.StringAlternativeOntologyQuery;
+import edu.cmu.hcii.sugilite.ontology.SugiliteRelation;
 import edu.cmu.hcii.sugilite.recording.newrecording.SugiliteBlockBuildingHelper;
 import edu.cmu.hcii.sugilite.sharing.model.HashedString;
 import edu.cmu.hcii.sugilite.sharing.model.StringInContext;
@@ -56,12 +57,64 @@ public class SugiliteSharingScriptPreparer {
         this.sugiliteScriptSharingHTTPQueryManager = SugiliteScriptSharingHTTPQueryManager.getInstance(context);
     }
 
+    public SugiliteStartingBlock prepareScript(SugiliteStartingBlock script) throws Exception {
+        // 1. get all StringInContext in the block
+        Set<StringInContext> originalQueryStrings = getStringsFromScript(script);
+        Log.i("PrepareScriptForSharingTask", "size of query strings" + originalQueryStrings.size());
+
+        // 2. COMPUTE ALTERNATIVE STRINGS
+        Map<StringInContext, Integer> originalQueryStringsIndexMap = new HashMap<>();
+        Map<Integer, StringInContext> indexOriginalQueryStringsMap = new HashMap<>();
+        Multimap<HashedString, StringInContextWithIndexAndPriority> stringHashOriginalStringMap = HashMultimap.create();
+        Set<StringInContextWithIndexAndPriority> queryStringSet = new HashSet<>();
+
+        int index = 0;
+        for (StringInContext s : originalQueryStrings) {
+            Set<StringAlternativeGenerator.StringAlternative> alternatives = StringAlternativeGenerator.generateAlternatives(s.getText());
+            StringInContextWithIndexAndPriority entry = new StringInContextWithIndexAndPriority(s.getActivityName(), s.getPackageName(), s.getText(), 0, index);
+            stringHashOriginalStringMap.put(new HashedString(s.getText()), entry);
+            originalQueryStringsIndexMap.put(s, index);
+            indexOriginalQueryStringsMap.put(index, s);
+            queryStringSet.add(entry);
+            for (StringAlternativeGenerator.StringAlternative a : alternatives) {
+                StringInContextWithIndexAndPriority alt = new StringInContextWithIndexAndPriority(s.getActivityName(), s.getPackageName(), a.altText, a.priority, index);
+                queryStringSet.add(alt);
+                stringHashOriginalStringMap.put(new HashedString(alt.getText()), alt);
+            }
+            index++;
+        }
+
+        // FILTER OUT PRIVATE STRINGS
+        SugiliteScriptSharingHTTPQueryManager.GetFilteredStringsTaskResult queryResult = sugiliteScriptSharingHTTPQueryManager.getFilteredStrings(queryStringSet, originalQueryStringsIndexMap, stringHashOriginalStringMap);
+
+
+        Map<StringInContext, StringAlternativeGenerator.StringAlternative> replacements = new HashMap<>();
+        queryResult.getIndexStringAlternativeMap().forEach((i, s) -> replacements.put(indexOriginalQueryStringsMap.get(i), s));
+
+        // REPLACE HAS_TEXT and HAS_CHILD_TEXT with hashed equivalents in queries
+
+        replaceStringsInScript(script, replacements);
+
+        for (SugiliteBlock block : script.getFollowingBlocks()) {
+            block.setDescription("this is not a trustworthy description");
+            if (block instanceof SugiliteOperationBlock) {
+                // TODO REPLACE HAS_TEXT and HAS_CHILD_TEXT with hashed equivalents in graph
+                // in the meantime we'll just remove the ui snapshots
+                // SerializableUISnapshot snapshot = ((SugiliteOperationBlock) block).getSugiliteBlockMetaInfo().getUiSnapshot();
+                // UISnapshotShareUtils.prepareSnapshotForSharing(snapshot, replacements);
+                ((SugiliteOperationBlock) block).getSugiliteBlockMetaInfo().setUiSnapshot(null);
+            }
+        }
+
+        return script;
+    }
+
     private static Set<StringInContext> getStringsFromOntologyQuery(OntologyQuery query, int startIndex, String packageName, String activityName) {
         Set<StringInContext> strings = new HashSet<StringInContext>();
 
         if (query instanceof LeafOntologyQuery) {
             LeafOntologyQuery loq = (LeafOntologyQuery) query;
-            if (Arrays.stream(Const.POTENTIALLY_PRIVATE_RELATIONS).anyMatch(loq.getR()::equals)) {
+            if (Arrays.stream(POTENTIALLY_PRIVATE_RELATIONS).anyMatch(loq.getR()::equals)) {
                 strings.add(new StringInContextWithIndexAndPriority(activityName, packageName, loq.getObjectAsString(), 0, startIndex++));
             }
         }
@@ -136,6 +189,12 @@ public class SugiliteSharingScriptPreparer {
     }
 
     // TODO should this method be in its own class?
+
+    /**
+     * return a set of all strings and their contexts from a script
+     * @param script
+     * @return
+     */
     private static Set<StringInContext> getStringsFromScript(SugiliteStartingBlock script) {
 
         int currentIndex = 0;
@@ -151,25 +210,41 @@ public class SugiliteSharingScriptPreparer {
         return strings;
     }
 
+    /**
+     * replace applicable strings the the OntologyQuery oq based on alternatives provided in replacements
+     * @param oq
+     * @param metaInfo
+     * @param replacements
+     * @return
+     */
+    public static final SugiliteRelation[] POTENTIALLY_PRIVATE_RELATIONS = {
+            SugiliteRelation.HAS_TEXT,
+            SugiliteRelation.HAS_CHILD_TEXT,
+            SugiliteRelation.HAS_CONTENT_DESCRIPTION
+    };
     private static OntologyQuery getStringReplacementOntologyQuery(OntologyQuery oq, SugiliteBlockMetaInfo metaInfo, Map<StringInContext, StringAlternativeGenerator.StringAlternative> replacements) {
         String activityName = metaInfo.getUiSnapshot().getActivityName();
         String packageName = metaInfo.getUiSnapshot().getPackageName();
 
+
         if (oq instanceof LeafOntologyQuery) {
             LeafOntologyQuery loq = (LeafOntologyQuery) oq;
-            if (Arrays.stream(Const.POTENTIALLY_PRIVATE_RELATIONS).anyMatch(loq.getR()::equals)) {
+            if (Arrays.stream(POTENTIALLY_PRIVATE_RELATIONS).anyMatch(loq.getR()::equals)) {
                 StringInContext key = new StringInContextWithIndexAndPriority(activityName, packageName, loq.getObjectAsString());
                 StringAlternativeGenerator.StringAlternative alt = replacements.get(key);
                 if (alt == null) {
                     // TODO return generated alternative and/or hole
                     Log.v("PrepareScriptForSharingTask", "no string alternative found for \"" + loq.getObjectAsString() + "\"");
                     return null;
-                } else if (alt.altText == loq.getObjectAsString()) {
+                } else if (alt.type == StringAlternativeGenerator.ORIGINAL_TYPE) {
                     Log.v("PrepareScriptForSharingTask", "not altering LeafOntologyQuery with object \"" + loq.getObjectAsString() + "\"");
                     return oq;
-                } else {
+                } else if (alt.type == StringAlternativeGenerator.PATTERN_MATCH_TYPE) {
                     Log.v("PrepareScriptForSharingTask", "replacing \"" + loq.getObjectAsString() + "\" with \"" + alt.altText + "\"");
                     return new StringAlternativeOntologyQuery(loq.getR(), alt);
+                } else if (alt.type == StringAlternativeGenerator.HASH_TYPE) {
+                    Log.v("PrepareScriptForSharingTask", "replacing \"" + loq.getObjectAsString() + "\" with \"" + alt.altText + "\"");
+                    return new HashedStringOntologyQuery(loq.getR(), HashedString.fromEncodedString(alt.altText, true));
                 }
             } else {
                 return oq;
@@ -180,7 +255,9 @@ public class SugiliteSharingScriptPreparer {
             Set<OntologyQuery> newSubQs = new HashSet<OntologyQuery>();
             for (OntologyQuery subQ : subQs) {
                 OntologyQuery replacement = getStringReplacementOntologyQuery(subQ, metaInfo, replacements);
-                if (replacement == null) return null;
+                if (replacement == null) {
+                    return null;
+                }
                 newSubQs.add(replacement);
             }
             return ((OntologyQueryWithSubQueries) oq).cloneWithTheseSubQueries(newSubQs);
@@ -192,16 +269,32 @@ public class SugiliteSharingScriptPreparer {
         return null;
     }
 
+    /**
+     * replace applicable strings the the OntologyQuery oq based on alternatives provided in replacements
+     * @param oq
+     * @param metaInfo
+     * @param replacements
+     * @return
+     */
     private static OntologyQuery getReplacementOntologyQuery(OntologyQuery oq, SugiliteBlockMetaInfo metaInfo, Map<StringInContext, StringAlternativeGenerator.StringAlternative> replacements) {
         OntologyQuery replacement = getStringReplacementOntologyQuery(oq, metaInfo, replacements);
 
         // uh oh this should be a UISnapshot not a SerializableUISnapshot
         //for (Pair<OntologyQuery, Double> pair : SugiliteBlockBuildingHelper.newGenerateDefaultQueries(metaInfo.getUiSnapshot(), metaInfo.getTargetEntity())
 
-        if (replacement == null) throw new RuntimeException("not sure how to replace " + oq.toString());
+        if (replacement == null) {
+            //no replacement available
+
+            //throw new RuntimeException("not sure how to replace " + oq.toString());
+        }
         return replacement;
     }
 
+    /**
+     * replace applicable strings in the block based on alternatives provided in replacements
+     * @param block
+     * @param replacements
+     */
     private static void replaceStringsInBlock(SugiliteBlock block, Map<StringInContext, StringAlternativeGenerator.StringAlternative> replacements) {
         if (block instanceof SugiliteOperationBlock) {
             SugiliteOperationBlock operationBlock = (SugiliteOperationBlock)block;
@@ -239,73 +332,14 @@ public class SugiliteSharingScriptPreparer {
         }
     }
 
+    /**
+     * replace applicable strings in the script based on alternatives provided in replacements
+     * @param script
+     * @param replacements
+     */
     private static void replaceStringsInScript(SugiliteStartingBlock script, Map<StringInContext, StringAlternativeGenerator.StringAlternative> replacements) {
         for (SugiliteBlock block : script.getFollowingBlocks()) {
             replaceStringsInBlock(block, replacements);
         }
-    }
-
-    public SugiliteStartingBlock prepareScript(SugiliteStartingBlock script) throws Exception {
-        Log.i("PrepareScriptForSharingTask", "PrepareScriptForSharingTask started");
-
-        // get strings
-        Set<StringInContext> originalQueryStrings = getStringsFromScript(script);
-
-        Log.i("PrepareScriptForSharingTask", "size of query strings" + originalQueryStrings.size());
-
-        // COMPUTE ALTERNATIVE STRINGS
-        Map<StringInContext, Integer> originalQueryStringsIndex = new HashMap<>();
-        Multimap<HashedString, StringInContextWithIndexAndPriority> decodedStrings = HashMultimap.create();
-
-        Set<StringInContextWithIndexAndPriority> queryStrings = new HashSet<>();
-
-        int index = 0;
-
-        for (StringInContext s : originalQueryStrings) {
-            Set<StringAlternativeGenerator.StringAlternative> alternatives = StringAlternativeGenerator.generateAlternatives(s.getText());
-            StringInContextWithIndexAndPriority entry = new StringInContextWithIndexAndPriority(s.getActivityName(), s.getPackageName(), s.getText(), 0, index);
-            decodedStrings.put(new HashedString(s.getText()), entry);
-            originalQueryStringsIndex.put(s, index);
-            queryStrings.add(entry);
-            for (StringAlternativeGenerator.StringAlternative a : alternatives) {
-                StringInContextWithIndexAndPriority alt = new StringInContextWithIndexAndPriority(s.getActivityName(), s.getPackageName(), a.altText, a.priority, index);
-                queryStrings.add(alt);
-                decodedStrings.put(new HashedString(alt.getText()), alt);
-            }
-
-            index++;
-        }
-
-        // FILTER OUT PRIVATE STRINGS
-        StringAlternativeGenerator.StringAlternative[] bestMatch = sugiliteScriptSharingHTTPQueryManager.getFilteredStrings(queryStrings, originalQueryStringsIndex, decodedStrings);
-
-
-        Map<StringInContext, StringAlternativeGenerator.StringAlternative> replacements = new HashMap<>();
-        for (StringInContext s : originalQueryStrings) {
-            int i = originalQueryStringsIndex.get(s);
-            if (bestMatch[i] != null) {
-                Log.v("PrepareScriptForSharingTask", "\"" + s.getText() + "\" ---> \"" + bestMatch[i].altText + "\"");
-                replacements.put(s, bestMatch[i]);
-            } else {
-                Log.v("PrepareScriptForSharingTask", "\"" + s.getText() + "\" no replacement found");
-            }
-        }
-
-        // REPLACE HAS_TEXT and HAS_CHILD_TEXT with hashed equivalents in queries
-        //TODO: solve the "not sure how to replace" problem
-        replaceStringsInScript(script, replacements);
-
-        for (SugiliteBlock block : script.getFollowingBlocks()) {
-            block.setDescription("this is not a trustworthy description");
-            if (block instanceof SugiliteOperationBlock) {
-                // TODO REPLACE HAS_TEXT and HAS_CHILD_TEXT with hashed equivalents in graph
-                // in the meantime we'll just remove the ui snapshots
-                // SerializableUISnapshot snapshot = ((SugiliteOperationBlock) block).getSugiliteBlockMetaInfo().getUiSnapshot();
-                // UISnapshotShareUtils.prepareSnapshotForSharing(snapshot, replacements);
-                ((SugiliteOperationBlock) block).getSugiliteBlockMetaInfo().setUiSnapshot(null);
-            }
-        }
-
-        return script;
     }
 }

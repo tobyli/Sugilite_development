@@ -50,13 +50,13 @@ public class SugiliteEventBroadcastingActivity extends AppCompatActivity {
     private void handleRequest(int messageType, String arg1) {
         boolean broadcastingEnabled = sharedPreferences.getBoolean("broadcasting_enabled", false);
         switch (messageType) {
-            case Const.REGISTER:
+            case SugiliteCommunicationHelper.REGISTER:
                 sugiliteData.registeredBroadcastingListener.add(arg1);
                 Intent returnIntent = new Intent();
                 returnIntent.putExtra("result", sugiliteData.registeredBroadcastingListener.toString());
                 setResult(Activity.RESULT_OK, returnIntent);
                 break;
-            case Const.UNREGISTER:
+            case SugiliteCommunicationHelper.UNREGISTER:
                 if(sugiliteData.registeredBroadcastingListener.contains(arg1)) {
                     sugiliteData.registeredBroadcastingListener.remove(arg1);
                     Intent returnIntent2 = new Intent();

@@ -12,8 +12,8 @@ public class HashedSubString extends HashedString {
         super(string);
         this.priority = priority;
     }
-    public HashedSubString(byte[] bytes, int priority) {
-        super(bytes);
+    public HashedSubString(byte[] bytes, int priority, boolean isServerSalted) {
+        super(bytes, isServerSalted);
         this.priority = priority;
     }
 

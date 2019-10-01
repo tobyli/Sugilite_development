@@ -9,17 +9,20 @@ import java.util.Arrays;
 public class HashedString implements Serializable {
 
     private final byte[] hash;
+    private boolean isServerSalted;
 
     public HashedString(String string) {
         this.hash = hash(string);
+        this.isServerSalted = false;
     }
 
-    public HashedString(byte[] hash) {
+    public HashedString(byte[] hash, boolean isServerSalted) {
         this.hash = hash;
+        this.isServerSalted = isServerSalted;
     }
 
-    public static HashedString fromEncodedString(String encodedString) {
-        return new HashedString(bytesFromHex(encodedString));
+    public static HashedString fromEncodedString(String encodedString, boolean isServerSalted) {
+        return new HashedString(bytesFromHex(encodedString), isServerSalted);
     }
 
     @Override
@@ -29,7 +32,6 @@ public class HashedString implements Serializable {
 
     @Override
     public boolean equals(Object obj) {
-
         byte[] hash2;
 
         if (obj instanceof HashedString) {
@@ -40,11 +42,14 @@ public class HashedString implements Serializable {
             return false;
         }
 
+        //local hash currently uses SHA-256, but the remote salted hash uses SHA-512
         if (hash.length != hash2.length) {
             return false;
         }
         for (int i = 0; i < hash.length; i++) {
-            if (hash[i] != hash2[i]) return false;
+            if (hash[i] != hash2[i]) {
+                return false;
+            }
         }
 
         return true;
@@ -86,12 +91,16 @@ public class HashedString implements Serializable {
         return result;
     }
 
+    public boolean isServerSalted() {
+        return isServerSalted;
+    }
+
     public static void main(String[] args) {
         System.out.println("Hashing \"Starbucks\":");
         HashedString hashed = new HashedString("Starbucks");
         System.out.println(hashed);
         System.out.println("Reinterpreting output:");
-        HashedString interpreted = fromEncodedString(hashed.toString());
+        HashedString interpreted = fromEncodedString(hashed.toString(), false);
         System.out.println(interpreted);
         System.out.println("Equals \"Starbucks\"? (want true)");
         System.out.println(interpreted.equals("Starbucks"));

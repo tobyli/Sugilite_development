@@ -215,7 +215,7 @@ public class VariableSetValueDialog extends SugiliteDialogManager implements Abs
                     dialog.dismiss();
                 }
                 else {
-                    PumiceDemonstrationUtil.showSugiliteToast("Please complete all fields", Toast.LENGTH_SHORT);
+                    PumiceDemonstrationUtil.showSugiliteAlertDialog("Please complete all fields");
                 }
             }
         });

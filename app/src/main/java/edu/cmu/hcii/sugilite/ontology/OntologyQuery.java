@@ -1,10 +1,14 @@
 package edu.cmu.hcii.sugilite.ontology;
 
+import edu.cmu.hcii.sugilite.SugiliteData;
+import edu.cmu.hcii.sugilite.sharing.SugiliteScriptSharingHTTPQueryManager;
 import edu.cmu.hcii.sugilite.sharing.model.HashedString;
 import edu.cmu.hcii.sugilite.sharing.StringAlternativeGenerator;
 
 import java.io.Serializable;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 public abstract class OntologyQuery implements Serializable {
@@ -75,10 +79,10 @@ public abstract class OntologyQuery implements Serializable {
             else {
                 if (firstWord.equals("privateMatch")) {
                     String[] parts = s.split(" ");
-                    query = new HashedStringOntologyQuery(SugiliteRelation.stringRelationMap.get(parts[1]), HashedString.fromEncodedString(parts[2]));
+                    query = new HashedStringOntologyQuery(SugiliteRelation.stringRelationMap.get(parts[1]), HashedString.fromEncodedString(parts[2], true));
                 } else if (firstWord.equals("patternMatch")) {
                     String[] parts = s.split(" ", 3);
-                    StringAlternativeGenerator.StringAlternative alt = new StringAlternativeGenerator.StringAlternative(OntologyQueryUtils.removeQuoteSigns(parts[2]), -1);
+                    StringAlternativeGenerator.StringAlternative alt = new StringAlternativeGenerator.StringAlternative(OntologyQueryUtils.removeQuoteSigns(parts[2]), -1, StringAlternativeGenerator.PATTERN_MATCH_TYPE);
                     query = new StringAlternativeOntologyQuery(SugiliteRelation.stringRelationMap.get(parts[1]), alt);
                 } else {
                     // base case: simple relation
@@ -135,9 +139,17 @@ public abstract class OntologyQuery implements Serializable {
     protected abstract boolean overallQueryFunction(SugiliteEntity currNode, UISnapshot graph);
 
     public Set<SugiliteEntity> executeOn(UISnapshot graph){
+        // fetch the remote salt graph
+        Set<String> stringsForServerQuery = getStringsNeededForServerSaltedHashing(graph);
+        if (SugiliteData.getScreenStringSaltedHashMap() != null && stringsForServerQuery.size() > 0) {
+            SugiliteData.getScreenStringSaltedHashMap().putAll(SugiliteScriptSharingHTTPQueryManager.getInstance(SugiliteData.getAppContext()).getServerSaltedHash(stringsForServerQuery));
+        }
+
         Set<SugiliteEntity> results = new HashSet<SugiliteEntity>();
         // for each node in the graph, follow the if statements in notes
         // if it matches query, then add to results set
+
+
         for(SugiliteEntity s : graph.getSugiliteEntityIdSugiliteEntityMap().values()) {
             if(overallQueryFunction(s, graph)){
                 results.add(s);
@@ -149,6 +161,28 @@ public abstract class OntologyQuery implements Serializable {
         } else {
             return results;
         }
+    }
+
+    private Set<String> getStringsNeededForServerSaltedHashing (UISnapshot graph) {
+        Set<String> result = new HashSet<>();
+        if (this instanceof  HashedStringOntologyQuery) {
+            if (((HashedStringOntologyQuery)this).hashedString.isServerSalted()) {
+                Set<SugiliteTriple> sugiliteTriples = graph.getPredicateTriplesMap().get(((HashedStringOntologyQuery) this).getR().getRelationId());
+                if (sugiliteTriples != null) {
+                    for (SugiliteTriple triple : sugiliteTriples) {
+                        if (SugiliteData.getScreenStringSaltedHashMap() != null && SugiliteData.getScreenStringSaltedHashMap().containsKey(graph.getPackageName() + graph.getActivityName() + new HashedString(triple.getObjectStringValue()).toString())) {
+                            continue;
+                        }
+                        result.add(graph.getPackageName() + graph.getActivityName() + new HashedString(triple.getObjectStringValue()).toString());
+                    }
+                }
+            }
+        } else if (this instanceof OntologyQueryWithSubQueries) {
+            for (OntologyQuery q : ((OntologyQueryWithSubQueries)this).getSubQueries()) {
+                result.addAll(q.getStringsNeededForServerSaltedHashing(graph));
+            }
+        }
+        return result;
     }
 
     @Override

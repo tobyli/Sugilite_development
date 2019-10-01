@@ -19,6 +19,7 @@ import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.ui.dialog.SugiliteProgressDialog;
 
+import static edu.cmu.hcii.sugilite.Const.ENABLE_DAO_READING_CACHE;
 import static edu.cmu.hcii.sugilite.Const.OVERLAY_TYPE;
 
 /**
@@ -124,13 +125,13 @@ public class SugiliteScriptFileDao implements SugiliteScriptDao {
     }
 
     public SugiliteStartingBlock read(String key) throws Exception{
-        if(savingCache.containsKey(key)){
+        if(savingCache.containsKey(key) && ENABLE_DAO_READING_CACHE){
             //the script is in the saving cache, read it out from the saving cache, and updates the reading cache
             SugiliteStartingBlock block = savingCache.get(key);
             readingCache.put(key, block);
             return block;
         }
-        else if(readingCache.containsKey(key)){
+        else if(readingCache.containsKey(key) && ENABLE_DAO_READING_CACHE){
             //read the script out from the reading cache
             return readingCache.get(key);
         }

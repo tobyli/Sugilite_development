@@ -103,7 +103,6 @@ public class FragmentTriggerListTab extends Fragment {
             menu.setHeaderTitle("Sugilite Operation Menu");
         }
 
-        //TODO: add run script here
         menu.add(0, ITEM_VIEW, 0, "View");
         menu.add(0, ITEM_DELETE, 0, "Delete");
     }
@@ -172,10 +171,4 @@ public class FragmentTriggerListTab extends Fragment {
             e.printStackTrace();
         }
     }
-
-    //TODO: add context menu
-
-
-    //TODO: enable edit/delete/view triggers
-
 }

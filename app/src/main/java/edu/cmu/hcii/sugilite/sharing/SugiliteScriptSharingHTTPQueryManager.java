@@ -3,6 +3,7 @@ package edu.cmu.hcii.sugilite.sharing;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
+import android.util.ArraySet;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -14,6 +15,7 @@ import com.google.gson.JsonObject;
 
 import org.apache.commons.lang3.SerializationUtils;
 import org.jetbrains.annotations.TestOnly;
+import org.json.JSONArray;
 
 import java.io.BufferedOutputStream;
 import java.io.BufferedWriter;
@@ -26,6 +28,8 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -66,7 +70,8 @@ public class SugiliteScriptSharingHTTPQueryManager {
     private static final String DOWNLOAD_SCRIPT_FROM_REPO_ENDPOINT_PREFIX = "repo/";
     private static final String UPLOAD_SCRIPT_TO_REPO_ENDPOINT = "repo/upload";
     private static final String UPLOAD_HASHED_UI_ENDPOINT = "privacy/upload_ui";
-    private static final String FILTER_UI_STRING_ENDPOINT = "privacy/debug_filter";
+    private static final String FILTER_UI_STRING_ENDPOINT = "privacy/filter";
+    private static final String SALTED_HASH_QUERY_ENDPOINT = "/privacy/hash";
 
 
     private static final int TIME_OUT_THRESHOLD = 3000;
@@ -232,7 +237,7 @@ public class SugiliteScriptSharingHTTPQueryManager {
             PumiceDemonstrationUtil.showSugiliteToast("Connection Failed", Toast.LENGTH_SHORT);
 
         } finally {
-            //progressDialog.dismiss();
+            progressDialog.dismiss();
         }
         return scriptId;
     }
@@ -346,14 +351,13 @@ public class SugiliteScriptSharingHTTPQueryManager {
         }
     }
 
-    public StringAlternativeGenerator.StringAlternative[] getFilteredStrings(Set<StringInContextWithIndexAndPriority> queryStrings, Map<StringInContext, Integer> originalQueryStringsIndex, Multimap<HashedString, StringInContextWithIndexAndPriority> decodedStrings) throws Exception {
+    public GetFilteredStringsTaskResult getFilteredStrings(Set<StringInContextWithIndexAndPriority> queryStrings, Map<StringInContext, Integer> originalQueryStringsIndex, Multimap<HashedString, StringInContextWithIndexAndPriority> decodedStrings) throws Exception {
         SugiliteProgressDialog progressDialog = new SugiliteProgressDialog(SugiliteData.getAppContext(), R.string.filtering_personal_information_message);
         progressDialog.show();
-
         try {
             GetFilteredStringsTask getFilteredStringsTask = new GetFilteredStringsTask(queryStrings, originalQueryStringsIndex, decodedStrings);
-            StringAlternativeGenerator.StringAlternative[] bestMatch = executor.submit(getFilteredStringsTask).get();
-            return bestMatch;
+            GetFilteredStringsTaskResult result = executor.submit(getFilteredStringsTask).get();
+            return result;
         } catch (Exception e) {
             PumiceDemonstrationUtil.showSugiliteToast("Connection Failed", Toast.LENGTH_SHORT);
 
@@ -364,7 +368,32 @@ public class SugiliteScriptSharingHTTPQueryManager {
         return null;
     }
 
-    private class GetFilteredStringsTask implements Callable<StringAlternativeGenerator.StringAlternative[]> {
+    public class GetFilteredStringsTaskResult {
+        private Set<StringInContext> nonPrivateStringInContextSet;
+        private Map<StringInContext, String> privateStringInContextSaltedHashMap;
+        private Map<Integer, StringAlternativeGenerator.StringAlternative> indexStringAlternativeMap;
+
+        public GetFilteredStringsTaskResult() {
+            this.nonPrivateStringInContextSet = new HashSet<>();
+            this.privateStringInContextSaltedHashMap = new HashMap<>();
+            this.indexStringAlternativeMap = new HashMap<>();
+        }
+
+        public Map<StringInContext, String> getPrivateStringInContextSaltedHashMap() {
+            return privateStringInContextSaltedHashMap;
+        }
+
+        public Set<StringInContext> getNonPrivateStringInContextSet() {
+            return nonPrivateStringInContextSet;
+        }
+
+        public Map<Integer, StringAlternativeGenerator.StringAlternative> getIndexStringAlternativeMap() {
+            return indexStringAlternativeMap;
+        }
+    }
+
+
+    private class GetFilteredStringsTask implements Callable<GetFilteredStringsTaskResult> {
         private Set<StringInContextWithIndexAndPriority> queryStrings;
         private Map<StringInContext, Integer> originalQueryStringsIndex;
         private Multimap<HashedString, StringInContextWithIndexAndPriority> decodedStrings;
@@ -376,7 +405,7 @@ public class SugiliteScriptSharingHTTPQueryManager {
         }
 
         @Override
-        public StringAlternativeGenerator.StringAlternative[] call() throws Exception {
+        public GetFilteredStringsTaskResult call() throws Exception {
             try {
                 URL filterStringUrl = getBaseUri().resolve(FILTER_UI_STRING_ENDPOINT).toURL();
                 HttpURLConnection urlConnection = (HttpURLConnection) filterStringUrl.openConnection();
@@ -394,13 +423,12 @@ public class SugiliteScriptSharingHTTPQueryManager {
 
                 writer.write("[");
                 boolean first = true;
-                for (StringInContext s : queryStrings) {
+                for (StringInContextWithIndexAndPriority s : queryStrings) {
                     if (!first) writer.write(',');
-                    writer.write(s.toJson());
+                    writer.write(s.toHashedJson());
                     first = false;
                 }
                 writer.write("]");
-
                 writer.flush();
                 writer.close();
                 out.close();
@@ -412,24 +440,56 @@ public class SugiliteScriptSharingHTTPQueryManager {
                     throw new Exception("Failed string filtering request");
                 }
 
-                // SELECT BEST ALTERNATIVE FROM RESPONSES
-                StringAlternativeGenerator.StringAlternative[] bestMatch = new StringAlternativeGenerator.StringAlternative[originalQueryStringsIndex.size()];
                 Gson g = new Gson();
-                JsonArray filteredResponses = g.fromJson(new InputStreamReader(urlConnection.getInputStream()), JsonArray.class);
+                GetFilteredStringsTaskResult result = new GetFilteredStringsTaskResult();
+                JsonObject serverResponseObject = g.fromJson(new InputStreamReader(urlConnection.getInputStream()), JsonObject.class);
 
-                for (JsonElement elt : filteredResponses) {
-                    if (elt instanceof JsonObject) {
-                        JsonObject o = (JsonObject) elt;
-                        for (StringInContextWithIndexAndPriority s : decodedStrings.get(HashedString.fromEncodedString(o.get("text_hash").getAsString()))) {
-                            if (o.get("activity").getAsString().equals(s.getActivityName()) && o.get("package").getAsString().equals(s.getPackageName())) {
-                                if (bestMatch[s.getIndex()] == null || s.getPriority() <= bestMatch[s.getIndex()].priority) {
-                                    bestMatch[s.getIndex()] = new StringAlternativeGenerator.StringAlternative(s.getText(), s.getPriority());
+                JsonArray nonPrivateArray = serverResponseObject.getAsJsonArray("nonPrivate");
+                for (JsonElement entryElement : nonPrivateArray) {
+                    JsonObject entryObject = entryElement.getAsJsonObject();
+
+                    HashedString hashedString = HashedString.fromEncodedString(entryObject.get("text_hash").getAsString(), false);
+                    for (StringInContextWithIndexAndPriority s : decodedStrings.get(hashedString)) {
+                        if (entryObject.get("activity").getAsString().equals(s.getActivityName()) && entryObject.get("package").getAsString().equals(s.getPackageName())) {
+                            //matched
+                            if (result.getIndexStringAlternativeMap().containsKey(s.getIndex())) {
+                                if (s.getPriority() <= result.getIndexStringAlternativeMap().get(s.getIndex()).priority) {
+                                    result.getIndexStringAlternativeMap().put(s.getIndex(), new StringAlternativeGenerator.StringAlternative(s.getText(), s.getPriority(), s.getPriority() > 0 ? StringAlternativeGenerator.PATTERN_MATCH_TYPE : StringAlternativeGenerator.ORIGINAL_TYPE));
                                 }
+                            } else {
+                                result.getIndexStringAlternativeMap().put(s.getIndex(), new StringAlternativeGenerator.StringAlternative(s.getText(), s.getPriority(), s.getPriority() > 0 ? StringAlternativeGenerator.PATTERN_MATCH_TYPE : StringAlternativeGenerator.ORIGINAL_TYPE));
                             }
                         }
                     }
+
+                    //debug
+                    StringInContextWithIndexAndPriority entry = new StringInContextWithIndexAndPriority(entryObject.get("activity").getAsString(), entryObject.get("package").getAsString(), entryObject.get("text_hash").getAsString());
+                    result.getNonPrivateStringInContextSet().add(entry);
                 }
-                return bestMatch;
+
+                JsonArray privateArray = serverResponseObject.getAsJsonArray("private");
+                for (JsonElement entrySaltedHashElement : privateArray) {
+                    JsonObject entrySaltedHashObject = entrySaltedHashElement.getAsJsonObject();
+                    JsonObject entryObject = entrySaltedHashObject.get("entry").getAsJsonObject();
+                    String saltedHash = entrySaltedHashObject.get("salted_hash").getAsString();
+
+                    HashedString hashedString = HashedString.fromEncodedString(entryObject.get("text_hash").getAsString(), false);
+                    for (StringInContextWithIndexAndPriority s : decodedStrings.get(hashedString)) {
+                        if (entryObject.get("activity").getAsString().equals(s.getActivityName()) && entryObject.get("package").getAsString().equals(s.getPackageName())) {
+                            //matched
+                            StringInContext stringInContext = new StringInContext(s.getActivityName(), s.getPackageName(), s.getText());
+                            if (originalQueryStringsIndex.containsKey(stringInContext)) {
+                                result.getIndexStringAlternativeMap().put(originalQueryStringsIndex.get(stringInContext), new StringAlternativeGenerator.StringAlternative(saltedHash, Integer.MAX_VALUE, StringAlternativeGenerator.HASH_TYPE));
+                            }
+                        }
+                    }
+
+                    //debug
+                    StringInContextWithIndexAndPriority entry = new StringInContextWithIndexAndPriority(entryObject.get("activity").getAsString(), entryObject.get("package").getAsString(), entryObject.get("text_hash").getAsString());
+                    result.getPrivateStringInContextSaltedHashMap().put(entry, saltedHash);
+                }
+
+              return result;
             } catch (Exception e) {
                 Log.e("GetFilteredStringsTask", "Failed HTTP Request");
                 throw new Exception("Failure when filtering the script");
@@ -437,16 +497,78 @@ public class SugiliteScriptSharingHTTPQueryManager {
         }
     }
 
-    @TestOnly
-    public URL getFilterURL() {
+    public Map<String, HashedString> getServerSaltedHash(Set<String> strings) {
         try {
-            URL filterStringUrl = getBaseUri().resolve(FILTER_UI_STRING_ENDPOINT).toURL();
-            return filterStringUrl;
+            GetServerSaltedHashTask getServerSaltedHashTask = new GetServerSaltedHashTask(strings);
+            Map<String, HashedString> originalStringServerSaltedHashMap = getServerSaltedHashTask.call();
+            return originalStringServerSaltedHashMap;
         } catch (Exception e) {
-            e.printStackTrace();
+            PumiceDemonstrationUtil.showSugiliteToast("Connection Failed", Toast.LENGTH_SHORT);
+
+        } finally {
+
         }
+
         return null;
     }
+
+    private class GetServerSaltedHashTask implements Callable<Map<String, HashedString>> {
+        private Set<String> strings;
+
+        GetServerSaltedHashTask(Set<String> strings) {
+            this.strings = strings;
+        }
+
+        @Override
+        public Map<String, HashedString> call() throws Exception {
+            try {
+                URL filterStringUrl = getBaseUri().resolve(SALTED_HASH_QUERY_ENDPOINT).toURL();
+                HttpURLConnection urlConnection = (HttpURLConnection) filterStringUrl.openConnection();
+                urlConnection.setRequestMethod("POST");
+                urlConnection.setRequestProperty("Accept-Language", "en-US,en;q=0.5");
+                urlConnection.setRequestProperty("Content-Type", "application/json");
+                urlConnection.setReadTimeout(TIME_OUT_THRESHOLD);
+                urlConnection.setConnectTimeout(TIME_OUT_THRESHOLD);
+
+                urlConnection.setDoOutput(true);
+                urlConnection.setDoInput(true);
+                urlConnection.setChunkedStreamingMode(0); // this might increase performance?
+                BufferedOutputStream out = new BufferedOutputStream(urlConnection.getOutputStream());
+                BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(out, StandardCharsets.UTF_8));
+
+                Gson g = new Gson();
+                JsonObject jsonObject = new JsonObject();
+                jsonObject.add("text", g.toJsonTree(strings));
+                writer.write(g.toJson(jsonObject));
+                writer.flush();
+                writer.close();
+                out.close();
+                urlConnection.connect();
+
+                int responseCode = urlConnection.getResponseCode();
+
+                if (responseCode != HttpURLConnection.HTTP_OK) {
+                    throw new Exception("Failed string filtering request");
+                }
+
+                Map<String, HashedString> result = new HashMap<>();
+                JsonArray serverResponseArray = g.fromJson(new InputStreamReader(urlConnection.getInputStream()), JsonArray.class);
+                for (JsonElement e : serverResponseArray) {
+                    JsonObject o = e.getAsJsonObject();
+                    result.put(o.get("text").getAsString(), HashedString.fromEncodedString(o.get("hash").getAsString(), true));
+                }
+
+                return result;
+            } catch (Exception e) {
+                Log.e("GetFilteredStringsTask", "Failed HTTP Request");
+                throw new Exception("Failure when filtering the script");
+            }
+        }
+    }
+
+
+
+
 }
 
 

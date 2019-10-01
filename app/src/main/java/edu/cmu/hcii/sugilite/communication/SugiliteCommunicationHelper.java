@@ -38,6 +38,47 @@ package edu.cmu.hcii.sugilite.communication;
 
 public class SugiliteCommunicationHelper {
 
+    public static final int ID_APP_TRACKER = 1001;
+    public static final String APP_TRACKER = "APP_TRACKER";
+    public static final String SCRIPT_NAME = "SCRIPT_NAME";
+    public static final String CALLBACK_STRING = "CALLBACK_STRING";
+    public static final String SCRIPT = "SCRIPT";
+    public static final String PACKAGE_NAME = "PACKAGE_NAME";
+    public static final String JSON_STRING = "JSON_STRING";
+    public static final String SHOULD_SEND_CALLBACK ="SHOULD_SEND_CALLBACK";
+
+    //const code for communicating with InMind Middleware
+    public static final int REGISTER = 1;
+    public static final int UNREGISTER = 2;
+    public static final int RESPONSE = 3;
+    public static final int START_TRACKING = 4;
+    public static final int STOP_TRACKING = 5;
+    public static final int GET_ALL_TRACKING_SCRIPTS = 6;
+    public static final int GET_TRACKING_SCRIPT = 7;
+    public static final int APP_TRACKER_EXCEPTION = 8;
+    public static final int RUN = 9;
+    public static final int RESPONSE_EXCEPTION = 10;
+    public static final int START_RECORDING = 11;
+    public static final int STOP_RECORDING = 12;
+    public static final int GET_ALL_RECORDING_SCRIPTS = 13;
+    public static final int GET_RECORDING_SCRIPT = 14;
+    public static final int ACCESSIBILITY_EVENT = 15;
+    public static final int RUN_SCRIPT = 16;
+    public static final int END_RECORDING_EXCEPTION = 17;
+    public static final int START_RECORDING_EXCEPTION = 18;
+    public static final int FINISHED_RECORDING = 19;
+    public static final int RUN_SCRIPT_EXCEPTION = 20;
+    public static final int RUN_JSON = 21;
+    public static final int RUN_JSON_EXCEPTION = 22;
+    public static final int ADD_JSON_AS_SCRIPT = 23;
+    public static final int ADD_JSON_AS_SCRIPT_EXCEPTION = 24;
+    public static final int CLEAR_TRACKING_LIST = 25;
+    public static final int GET_ALL_PACKAGE_VOCAB = 26;
+    public static final int GET_PACKAGE_VOCAB = 27;
+    public static final int MULTIPURPOSE_REQUEST = 28;
+    public static final int RUN_SCRIPT_WITH_PARAMETERS = 29;
+
+
     // received information
     Context receivedContext;
     Intent receivedIntent;
@@ -74,45 +115,45 @@ public class SugiliteCommunicationHelper {
             switch (requestedMessageTypeString){
 
                 case "START_RECORDING":
-                    messageTypeInt = Const.START_RECORDING;
+                    messageTypeInt = START_RECORDING;
                     break;
                 case "END_RECORDING":
-                    messageTypeInt = Const.STOP_RECORDING;
+                    messageTypeInt = STOP_RECORDING;
                     break;
                 case "GET_SCRIPT":
-                    messageTypeInt = Const.GET_RECORDING_SCRIPT;
+                    messageTypeInt = GET_RECORDING_SCRIPT;
                     break;
                 case "GET_SCRIPT_LIST":
-                    messageTypeInt = Const.GET_ALL_RECORDING_SCRIPTS;
+                    messageTypeInt = GET_ALL_RECORDING_SCRIPTS;
                     break;
                 case "ADD_JSON_AS_SCRIPT":
-                    messageTypeInt = Const.ADD_JSON_AS_SCRIPT;
+                    messageTypeInt = ADD_JSON_AS_SCRIPT;
                     break;
 
                 case "RUN_SCRIPT":
-                    messageTypeInt = Const.RUN_SCRIPT;
+                    messageTypeInt = RUN_SCRIPT;
                     break;
                 case "RUN_JSON":
-                    messageTypeInt = Const.RUN_JSON;
+                    messageTypeInt = RUN_JSON;
                     break;
                 case "RUN_SCRIPT_WITH_PARAMETERS":
-                    messageTypeInt = Const.RUN_SCRIPT_WITH_PARAMETERS;
+                    messageTypeInt = RUN_SCRIPT_WITH_PARAMETERS;
                     break;
 
                 case "END_TRACKING":
-                    messageTypeInt = Const.STOP_TRACKING;
+                    messageTypeInt = STOP_TRACKING;
                     break;
                 case "START_TRACKING":
-                    messageTypeInt = Const.START_TRACKING;
+                    messageTypeInt = START_TRACKING;
                     break;
                 case "GET_TRACKING": // added ...
-                    messageTypeInt = Const.GET_TRACKING_SCRIPT;
+                    messageTypeInt = GET_TRACKING_SCRIPT;
                     break;
                 case "GET_TRACKING_LIST":
-                    messageTypeInt = Const.GET_ALL_TRACKING_SCRIPTS;
+                    messageTypeInt = GET_ALL_TRACKING_SCRIPTS;
                     break;
                 case "CLEAR_TRACKING_LIST":
-                    messageTypeInt = Const.CLEAR_TRACKING_LIST;
+                    messageTypeInt = CLEAR_TRACKING_LIST;
                     break;
             }
             /*
@@ -162,13 +203,13 @@ public class SugiliteCommunicationHelper {
             ////// recording scripts related
 
 
-            case Const.START_RECORDING:
+            case START_RECORDING:
                 //arg1 = scriptName, arg2 = callbackString
                 if(arg2 != null)
                     sugiliteData.callbackString = new String(arg2);
                 if(recordingInProcess) {
                     //the exception message below will be sent when there's already recording in process
-                    sugiliteData.sendCallbackMsg(Const.START_RECORDING_EXCEPTION, "recording already in process", arg2);
+                    sugiliteData.sendCallbackMsg(START_RECORDING_EXCEPTION, "recording already in process", arg2);
                     return(resultIntent);
                 }
                 else {
@@ -217,7 +258,7 @@ public class SugiliteCommunicationHelper {
                 }
                 break;
 
-            case Const.STOP_RECORDING:
+            case STOP_RECORDING:
                 //arg1 = "NULL", arg2 = callbackString
                 if(arg2 != null) {
                     sugiliteData.callbackString = new String(arg2);
@@ -229,12 +270,12 @@ public class SugiliteCommunicationHelper {
                 }
                 else {
                     //the exception message below will be sent when there's no recording in process
-                    sugiliteData.sendCallbackMsg(Const.END_RECORDING_EXCEPTION, "no recording in process", arg2);
+                    sugiliteData.sendCallbackMsg(END_RECORDING_EXCEPTION, "no recording in process", arg2);
                     return(resultIntent);
                 }
                 break;
 
-            case Const.GET_RECORDING_SCRIPT:
+            case GET_RECORDING_SCRIPT:
                 //arg1 = scriptName, arg2 = "NULL"
             {
                 SugiliteStartingBlock script = null;
@@ -254,7 +295,7 @@ public class SugiliteCommunicationHelper {
                 break;
             }
 
-            case Const.GET_ALL_RECORDING_SCRIPTS:
+            case GET_ALL_RECORDING_SCRIPTS:
                 //arg1 = scriptName, arg2 = "NULL"
                 List<String> allNames = new ArrayList<>();
                 try {
@@ -270,7 +311,7 @@ public class SugiliteCommunicationHelper {
                 setReturnValue(new Gson().toJson(retVal));
                 return(resultIntent);
 
-            case Const.ADD_JSON_AS_SCRIPT:
+            case ADD_JSON_AS_SCRIPT:
                 //arg1 = JSON, arg2 = "NULL"
                 if(arg1 != null){
                     try{
@@ -281,12 +322,12 @@ public class SugiliteCommunicationHelper {
                     }
                     catch (Exception e){
                         e.printStackTrace();
-                        sugiliteData.sendCallbackMsg(Const.ADD_JSON_AS_SCRIPT_EXCEPTION, "error in json parsing", arg2);
+                        sugiliteData.sendCallbackMsg(ADD_JSON_AS_SCRIPT_EXCEPTION, "error in json parsing", arg2);
                     }
 
                 }
                 else {
-                    sugiliteData.sendCallbackMsg(Const.ADD_JSON_AS_SCRIPT, "null json", arg2);
+                    sugiliteData.sendCallbackMsg(ADD_JSON_AS_SCRIPT, "null json", arg2);
                 }
                 break;
 
@@ -296,12 +337,12 @@ public class SugiliteCommunicationHelper {
 
             //TODO: add run script with parameter
             //TODO: get a script and its parameter & alternative value lists
-            case Const.RUN_SCRIPT:
+            case RUN_SCRIPT:
                 //arg1 = scriptName, arg2 = callbackString
                 if(arg2 != null)
                     sugiliteData.callbackString = new String(arg2);
                 if(recordingInProcess) {
-                    sugiliteData.sendCallbackMsg(Const.RUN_SCRIPT_EXCEPTION, "recording already in process", arg2);
+                    sugiliteData.sendCallbackMsg(RUN_SCRIPT_EXCEPTION, "recording already in process", arg2);
                     return(resultIntent);
                 }
                 else {
@@ -315,7 +356,7 @@ public class SugiliteCommunicationHelper {
                     }
 
                     if(script == null) {
-                        sugiliteData.sendCallbackMsg(Const.RUN_SCRIPT_EXCEPTION, "null script", arg2);
+                        sugiliteData.sendCallbackMsg(RUN_SCRIPT_EXCEPTION, "null script", arg2);
                         return(resultIntent);
                     }
                     else {
@@ -324,7 +365,7 @@ public class SugiliteCommunicationHelper {
                 }
                 break;
 
-            case Const.RUN_SCRIPT_WITH_PARAMETERS:
+            case RUN_SCRIPT_WITH_PARAMETERS:
                 /**
                  * arg1 = JSON in the format:
                  * {
@@ -341,7 +382,7 @@ public class SugiliteCommunicationHelper {
                 if(arg2 != null)
                     sugiliteData.callbackString = new String(arg2);
                 if(recordingInProcess) {
-                    sugiliteData.sendCallbackMsg(Const.RUN_SCRIPT_EXCEPTION, "recording already in process", arg2);
+                    sugiliteData.sendCallbackMsg(RUN_SCRIPT_EXCEPTION, "recording already in process", arg2);
                     return(resultIntent);
                 }
                 else {
@@ -351,7 +392,7 @@ public class SugiliteCommunicationHelper {
                         SugiliteStartingBlock script = sugiliteScriptDao.read(parametersWrapper.scriptName + ".SugiliteScript");
 
                         if (script == null) {
-                            sugiliteData.sendCallbackMsg(Const.RUN_SCRIPT_EXCEPTION, "null script", arg2);
+                            sugiliteData.sendCallbackMsg(RUN_SCRIPT_EXCEPTION, "null script", arg2);
                             return(resultIntent);
                         } else {
                             runScript(script, parametersWrapper.variables);
@@ -363,7 +404,7 @@ public class SugiliteCommunicationHelper {
                 }
                 break;
 
-            case Const.RUN_JSON:
+            case RUN_JSON:
                 //arg1 = JSON, arg2 = callbackString
                 if(arg2 != null)
                     sugiliteData.callbackString = new String(arg2);
@@ -374,12 +415,12 @@ public class SugiliteCommunicationHelper {
                     }
                     catch (Exception e){
                         e.printStackTrace();
-                        sugiliteData.sendCallbackMsg(Const.RUN_JSON_EXCEPTION, "error in json parsing", arg2);
+                        sugiliteData.sendCallbackMsg(RUN_JSON_EXCEPTION, "error in json parsing", arg2);
                         return(resultIntent);
                     }
                 }
                 else {
-                    sugiliteData.sendCallbackMsg(Const.RUN_JSON_EXCEPTION, "null json", arg2);
+                    sugiliteData.sendCallbackMsg(RUN_JSON_EXCEPTION, "null json", arg2);
                     return(resultIntent);
                 }
                 break;
@@ -388,7 +429,7 @@ public class SugiliteCommunicationHelper {
             ////// tracking
 
 
-            case Const.START_TRACKING:
+            case START_TRACKING:
                 //commit preference change
                 SharedPreferences.Editor prefEditor = sharedPreferences.edit();
                 sugiliteData.initiateTracking(arg1);
@@ -403,7 +444,7 @@ public class SugiliteCommunicationHelper {
                 PumiceDemonstrationUtil.showSugiliteToast("tracking started", Toast.LENGTH_SHORT);
                 break;
 
-            case Const.STOP_TRACKING:
+            case STOP_TRACKING:
                 if(trackingInProcess) {
                     SharedPreferences.Editor prefEditor2 = sharedPreferences.edit();
                     prefEditor2.putBoolean("tracking_in_process", false);
@@ -413,7 +454,7 @@ public class SugiliteCommunicationHelper {
                 }
                 break;
 
-            case Const.GET_TRACKING_SCRIPT:
+            case GET_TRACKING_SCRIPT:
                 SugiliteStartingBlock tracking = sugiliteTrackingDao.read(arg1);
                 if(tracking != null){
                     setReturnValue(jsonProcessor.scriptToJson(tracking));
@@ -424,7 +465,7 @@ public class SugiliteCommunicationHelper {
                 //TODO: send exception message
                 break;
 
-            case Const.GET_ALL_TRACKING_SCRIPTS:
+            case GET_ALL_TRACKING_SCRIPTS:
                 List<String> allTrackingNames = sugiliteTrackingDao.getAllNames();
                 List<String> trackingRetVal = new ArrayList<>();
                 for(String name : allTrackingNames)
@@ -432,7 +473,7 @@ public class SugiliteCommunicationHelper {
                 setReturnValue(new Gson().toJson(trackingRetVal));
                 return(resultIntent);
 
-            case Const.CLEAR_TRACKING_LIST:
+            case CLEAR_TRACKING_LIST:
                 sugiliteTrackingDao.clear();
                 setReturnValue("");
                 break;
@@ -441,7 +482,7 @@ public class SugiliteCommunicationHelper {
             ////// misc
 
 
-            case Const.GET_ALL_PACKAGE_VOCAB:
+            case GET_ALL_PACKAGE_VOCAB:
                 Map<String, Set<String>> appVocabMap =  null;
                 try {
                     appVocabMap = vocabularyDao.getTextsForAllPackages();
@@ -463,7 +504,7 @@ public class SugiliteCommunicationHelper {
                 }
                 break;
 
-            case Const.GET_PACKAGE_VOCAB:
+            case GET_PACKAGE_VOCAB:
                 Set<String> vocabSet = null;
                 if(arg1 != null) {
                     try {

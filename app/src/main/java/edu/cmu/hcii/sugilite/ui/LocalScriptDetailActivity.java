@@ -88,6 +88,31 @@ public class LocalScriptDetailActivity extends ScriptDetailActivity implements S
         } else if (Const.SELECTED_SPEECH_RECOGNITION_TYPE == Const.SpeechRecognitionType.GOOGLE_CLOUD) {
             this.sugiliteVoiceRecognitionListener = new SugiliteGoogleCloudVoiceRecognitionListener(this, this, tts);
         }
+
+        //load the local script
+        if (savedInstanceState == null) {
+            this.scriptName = this.getIntent().getStringExtra("scriptName");
+        } else {
+            this.scriptName = savedInstanceState.getString("scriptName");
+        }
+
+        if(scriptName != null) {
+            setTitle("View Script: " + scriptName.replace(".SugiliteScript", ""));
+        }
+
+        new Thread(new Runnable() {
+            @Override
+            public void run()
+            {
+                try {
+                    script = sugiliteScriptDao.read(scriptName);
+                }
+                catch (Exception e){
+                    e.printStackTrace();
+                }
+                loadOperationList(script);
+            }
+        }).start();
     }
 
 
@@ -146,7 +171,8 @@ public class LocalScriptDetailActivity extends ScriptDetailActivity implements S
     }
 
 
-    
+    //set up the context menu for operations
+
     private static final int ITEM_1 = Menu.FIRST;
     private static final int ITEM_2 = Menu.FIRST + 1;
     private static final int ITEM_3 = Menu.FIRST + 2;
@@ -160,8 +186,11 @@ public class LocalScriptDetailActivity extends ScriptDetailActivity implements S
         super.onCreateContextMenu(menu, view, info);
         menu.setHeaderTitle("Sugilite Operation Menu");
         menu.add(0, ITEM_1, 0, "View Screenshot");
-        menu.add(0, ITEM_2, 0, "Add Check");
+        //TODO: temporarily remove edit & fork options
+        /*
+        menu.add(0, ITEM_2, 0, "Edit");
         menu.add(0, ITEM_3, 0, "Fork");
+        */
         menu.add(0, ITEM_4, 0, "Delete");
         if(view instanceof TextView) {
             view.setBackgroundResource(android.R.color.transparent);
@@ -275,7 +304,7 @@ public class LocalScriptDetailActivity extends ScriptDetailActivity implements S
                             catch (Exception e){
                                 e.printStackTrace();
                             }
-                            loadOperationList();
+                            loadOperationList(script);
                         }
                     };
                     RecordingPopUpDialog recordingPopUpDialog = new RecordingPopUpDialog(sugiliteData, this, script, sharedPreferences, (SugiliteOperationBlock)currentBlock, LayoutInflater.from(getApplicationContext()), RecordingPopUpDialog.TRIGGERED_BY_EDIT, callback);
@@ -332,7 +361,7 @@ public class LocalScriptDetailActivity extends ScriptDetailActivity implements S
             e.printStackTrace();
         }
         System.out.println("after : " + script.getTail());
-        loadOperationList();
+        loadOperationList(script);
         /*
         1. create a new fork popup that generates fork blocks
         2. change the automator so it can handle fork blocks
@@ -462,7 +491,7 @@ public class LocalScriptDetailActivity extends ScriptDetailActivity implements S
                 catch (Exception e){
                     e.printStackTrace();
                 }
-                loadOperationList();
+                loadOperationList(script);
             }
             else {
                 PumiceDemonstrationUtil.showSugiliteToast("Failed to Editing the Operation", Toast.LENGTH_SHORT);
@@ -485,7 +514,7 @@ public class LocalScriptDetailActivity extends ScriptDetailActivity implements S
         catch (Exception e){
             e.printStackTrace();
         }
-        loadOperationList();
+        loadOperationList(script);
     }
 
     private void attemptToDelete(SugiliteBlock currentBlock, TextView textView){
@@ -667,7 +696,7 @@ public class LocalScriptDetailActivity extends ScriptDetailActivity implements S
                 newBlock.setPreviousBlock(script);
                 newBlock.setNextBlock(holdBlock);
                 holdBlock.setPreviousBlock(newBlock);
-                loadOperationList();
+                loadOperationList(script);
                 pumiceDialogManager.sendAgentMessage("Ok, does it look like the check happens at the right time?",true,true);
         }
         /*}
@@ -717,7 +746,7 @@ public class LocalScriptDetailActivity extends ScriptDetailActivity implements S
             iterNextBlock.setPreviousBlock(newBlock);
             newBlockIndex = i+1;
         }
-        loadOperationList();
+        loadOperationList(script);
         pumiceDialogManager.sendAgentMessage("Ok, does it look like the check happens at the right time?",true,true);
     }
 
@@ -777,7 +806,7 @@ public class LocalScriptDetailActivity extends ScriptDetailActivity implements S
             storedNext.setPreviousBlock(newBlock);
         }
         newBlock.setNextBlock(storedNext);
-        loadOperationList();
+        loadOperationList(script);
     }
 
     public void fixScope(String s,String s2) {
@@ -829,7 +858,7 @@ public class LocalScriptDetailActivity extends ScriptDetailActivity implements S
         iterBlock.setParentBlock(newBlock);
         newBlock.setNextBlock(oldNext);
 
-        loadOperationList();
+        loadOperationList(script);
     }
 
     public void moveStep(String s) {
@@ -906,7 +935,7 @@ public class LocalScriptDetailActivity extends ScriptDetailActivity implements S
                 newBlockIndex = i + 1;
             }
 
-            loadOperationList();
+            loadOperationList(script);
         }
     }
 

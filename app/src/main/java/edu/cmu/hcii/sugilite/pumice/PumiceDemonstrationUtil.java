@@ -17,6 +17,7 @@ import edu.cmu.hcii.sugilite.Const;
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.automation.ServiceStatusManager;
 import edu.cmu.hcii.sugilite.communication.SugiliteBlockJSONProcessor;
+import edu.cmu.hcii.sugilite.communication.SugiliteCommunicationHelper;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
 import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
@@ -27,6 +28,8 @@ import edu.cmu.hcii.sugilite.verbal_instruction_demo.VerbalInstructionIconManage
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.speech.SugiliteAndroidAPIVoiceRecognitionListener;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.speech.SugiliteGoogleCloudVoiceRecognitionListener;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.speech.SugiliteVoiceRecognitionListener;
+
+import static edu.cmu.hcii.sugilite.Const.OVERLAY_TYPE;
 
 /**
  * @author toby
@@ -205,7 +208,7 @@ public class PumiceDemonstrationUtil {
         if (sugiliteData.initiatedExternally && sugiliteData.getScriptHead() != null) {
             //return the recording to the external caller
             sugiliteData.communicationController.sendRecordingFinishedSignal(sugiliteData.getScriptHead().getScriptName());
-            sugiliteData.sendCallbackMsg(Const.FINISHED_RECORDING, jsonProcessor.scriptToJson(sugiliteData.getScriptHead()), sugiliteData.callbackString);
+            sugiliteData.sendCallbackMsg(SugiliteCommunicationHelper.FINISHED_RECORDING, jsonProcessor.scriptToJson(sugiliteData.getScriptHead()), sugiliteData.callbackString);
         }
 
         if (sugiliteData.getScriptHead() != null && sugiliteData.afterRecordingCallback != null){
@@ -235,6 +238,23 @@ public class PumiceDemonstrationUtil {
         });
     }
 
+    public static void showSugiliteAlertDialog(String content) {
+        SugiliteData.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                AlertDialog dialog = new AlertDialog.Builder(SugiliteData.getAppContext()).setMessage(content).setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                    }
+                }).create();
+                dialog.getWindow().setType(OVERLAY_TYPE);
+                dialog.setCanceledOnTouchOutside(false);
+                dialog.show();
+            }
+        });
+    }
+
     public static String removeScriptExtension (String scriptName) {
         if (scriptName.endsWith(".SugiliteScript")) {
             return scriptName.replace(".SugiliteScript", "");
@@ -249,5 +269,9 @@ public class PumiceDemonstrationUtil {
         } else {
             return scriptName + ".SugiliteScript";
         }
+    }
+
+    public static String boldify(String string){
+        return "<b>" + string + "</b>";
     }
 }

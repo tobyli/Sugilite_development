@@ -48,7 +48,7 @@
         android:id="@+id/script_detail_delete_button"
         android:layout_alignParentBottom="true"
         android:layout_alignParentEnd="true"
-        android:background="#ff0000"
+        android:backgroundTint="#C0392B"
         android:onClick="scriptDetailDeleteButtonOnClick" />
 
     <ImageButton

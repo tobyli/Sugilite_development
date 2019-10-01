@@ -57,7 +57,7 @@ import static edu.cmu.hcii.sugilite.Const.MUL_ZEROS;
 import static edu.cmu.hcii.sugilite.Const.OVERLAY_TYPE;
 import static edu.cmu.hcii.sugilite.Const.RECORDING_DARK_GRAY_COLOR;
 import static edu.cmu.hcii.sugilite.Const.RECORDING_OFF_BUTTON_COLOR;
-import static edu.cmu.hcii.sugilite.Const.boldify;
+import static edu.cmu.hcii.sugilite.pumice.PumiceDemonstrationUtil.boldify;
 
 /**
  * @author toby

@@ -89,40 +89,12 @@ public abstract class ScriptDetailActivity extends AppCompatActivity {
         this.activityManager = (ActivityManager)getSystemService(Context.ACTIVITY_SERVICE);
         this.serviceStatusManager = ServiceStatusManager.getInstance(this);
         this.sugiliteData = (SugiliteData)getApplication();
-
-        if (savedInstanceState == null) {
-            this.scriptName = this.getIntent().getStringExtra("scriptName");
-        } else {
-            this.scriptName = savedInstanceState.getString("scriptName");
-        }
         if(Const.DAO_TO_USE == SQL_SCRIPT_DAO) {
             this.sugiliteScriptDao = new SugiliteScriptSQLDao(this);
         }
         else {
             this.sugiliteScriptDao = new SugiliteScriptFileDao(this, sugiliteData);
         }
-        if(scriptName != null)
-            setTitle("View Script: " + scriptName.replace(".SugiliteScript", ""));
-
-        new Thread(new Runnable() {
-            @Override
-            public void run()
-            {
-                try {
-                    script = sugiliteScriptDao.read(scriptName);
-                }
-                catch (Exception e){
-                    e.printStackTrace();
-                }
-                Runnable loadOperation = new Runnable() {
-                    @Override
-                    public void run() {
-                        loadOperationList();
-                    }
-                };
-                context.runOnUiThread(loadOperation);
-            }
-        }).start();
 
         //add back the duck icon
         if(sugiliteData != null && sugiliteData.statusIconManager != null && serviceStatusManager != null){
@@ -133,42 +105,51 @@ public abstract class ScriptDetailActivity extends AppCompatActivity {
 
     }
 
-    //TODO: set up operation on resume
+    @Override
+    protected void onResume() {
+        super.onResume();
+        loadOperationList(script);
+    }
 
-    public void loadOperationList(){
-        SugiliteProgressDialog progressDialog = new SugiliteProgressDialog(SugiliteData.getAppContext(), R.string.loading_script_message);
-        progressDialog.show();
+    public void loadOperationList(SugiliteStartingBlock script){
+        SugiliteData.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                SugiliteProgressDialog progressDialog = new SugiliteProgressDialog(SugiliteData.getAppContext(), R.string.loading_script_message);
+                progressDialog.show();
 
-        operationStepList = (LinearLayout)findViewById(R.id.operation_list_view);
-        operationStepList.removeAllViews();
-        SugiliteBlock iterBlock = script;
-
-
-        while(iterBlock != null){
-            System.out.println("iterBlock: " + iterBlock);
-            operationStepList.addView(getViewForBlock(iterBlock));
-            if (iterBlock instanceof SugiliteStartingBlock)
-                iterBlock = ((SugiliteStartingBlock) iterBlock).getNextBlockToRun();
-            else if (iterBlock instanceof SugiliteOperationBlock)
-                iterBlock = ((SugiliteOperationBlock) iterBlock).getNextBlockToRun();
-            else if (iterBlock instanceof SugiliteSpecialOperationBlock)
-                iterBlock = ((SugiliteSpecialOperationBlock) iterBlock).getNextBlockToRun();
-            else if (iterBlock instanceof SugiliteErrorHandlingForkBlock)
-                break;
-            else if (iterBlock instanceof SugiliteConditionBlock)
-                iterBlock = ((SugiliteConditionBlock) iterBlock).getNextBlockToRun();
-            else
-                new Exception("unsupported block type").printStackTrace();
-        }
+                operationStepList = (LinearLayout)findViewById(R.id.operation_list_view);
+                operationStepList.removeAllViews();
+                SugiliteBlock iterBlock = script;
 
 
-        TextView tv = new TextView(context);
-        tv.setText(Html.fromHtml("<b>END SCRIPT</b>"));
-        tv.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
-        tv.setPadding(10, 10, 10, 10);
-        operationStepList.addView(tv);
+                while(iterBlock != null){
+                    System.out.println("iterBlock: " + iterBlock);
+                    operationStepList.addView(getViewForBlock(iterBlock));
+                    if (iterBlock instanceof SugiliteStartingBlock)
+                        iterBlock = ((SugiliteStartingBlock) iterBlock).getNextBlockToRun();
+                    else if (iterBlock instanceof SugiliteOperationBlock)
+                        iterBlock = ((SugiliteOperationBlock) iterBlock).getNextBlockToRun();
+                    else if (iterBlock instanceof SugiliteSpecialOperationBlock)
+                        iterBlock = ((SugiliteSpecialOperationBlock) iterBlock).getNextBlockToRun();
+                    else if (iterBlock instanceof SugiliteErrorHandlingForkBlock)
+                        break;
+                    else if (iterBlock instanceof SugiliteConditionBlock)
+                        iterBlock = ((SugiliteConditionBlock) iterBlock).getNextBlockToRun();
+                    else
+                        new Exception("unsupported block type").printStackTrace();
+                }
 
-        progressDialog.dismiss();
+
+                TextView tv = new TextView(context);
+                tv.setText(Html.fromHtml("<b>END SCRIPT</b>"));
+                tv.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
+                tv.setPadding(10, 10, 10, 10);
+                operationStepList.addView(tv);
+
+                progressDialog.dismiss();
+            }
+        });
     }
 
 
@@ -296,12 +277,12 @@ public abstract class ScriptDetailActivity extends AppCompatActivity {
     {
         Intent intent = new Intent(this, SugiliteMainActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        intent.putExtra("active_tab", "local_scripts");
         startActivity(intent);
     }
 
-    
-   float lastY = 0;
-
+    //used for tracking selection gesture
+    private float lastY = 0;
     final GestureDetector gestureDetector = new GestureDetector(context,new GestureDetector.SimpleOnGestureListener() {
         public void onLongPress(MotionEvent e) {
 

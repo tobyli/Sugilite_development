@@ -17,6 +17,7 @@ import edu.cmu.hcii.sugilite.automation.AutomatorUtil;
 import edu.cmu.hcii.sugilite.model.AccessibilityNodeInfoList;
 import edu.cmu.hcii.sugilite.model.block.util.SerializableNodeInfo;
 import edu.cmu.hcii.sugilite.model.block.util.SugiliteAvailableFeaturePack;
+import edu.cmu.hcii.sugilite.ontology.SerializableUISnapshot;
 
 /**
  * @author toby
@@ -25,7 +26,7 @@ import edu.cmu.hcii.sugilite.model.block.util.SugiliteAvailableFeaturePack;
  */
 class SugiliteAccessibilityServiceUtil {
 
-    static SugiliteAvailableFeaturePack generateFeaturePack(AccessibilityEvent event, AccessibilityNodeInfo sourceNode, AccessibilityNodeInfo rootNode, File screenshot, HashSet<SerializableNodeInfo> availableAlternativeNodes, List<AccessibilityNodeInfo> preOrderTraverseSourceNode, List<AccessibilityNodeInfo> preOderTraverseRootNode, List<AccessibilityNodeInfo> preOrderTraverseSibNode) {
+    static SugiliteAvailableFeaturePack generateFeaturePack(AccessibilityEvent event, AccessibilityNodeInfo sourceNode, AccessibilityNodeInfo rootNode, File screenshot, HashSet<SerializableNodeInfo> availableAlternativeNodes, List<AccessibilityNodeInfo> preOrderTraverseSourceNode, List<AccessibilityNodeInfo> preOderTraverseRootNode, List<AccessibilityNodeInfo> preOrderTraverseSibNode, SerializableUISnapshot uiSnapshot) {
         SugiliteAvailableFeaturePack featurePack = new SugiliteAvailableFeaturePack();
         Rect boundsInParents = new Rect();
         Rect boundsInScreen = new Rect();
@@ -122,6 +123,8 @@ class SugiliteAccessibilityServiceUtil {
                 featurePack.childTexts.add(node.text);
             }
         }
+
+        featurePack.serializableUISnapshot = uiSnapshot;
 
         return featurePack;
 

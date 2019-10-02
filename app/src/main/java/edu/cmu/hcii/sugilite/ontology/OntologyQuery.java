@@ -170,10 +170,10 @@ public abstract class OntologyQuery implements Serializable {
                 Set<SugiliteTriple> sugiliteTriples = graph.getPredicateTriplesMap().get(((HashedStringOntologyQuery) this).getR().getRelationId());
                 if (sugiliteTriples != null) {
                     for (SugiliteTriple triple : sugiliteTriples) {
-                        if (SugiliteData.getScreenStringSaltedHashMap() != null && SugiliteData.getScreenStringSaltedHashMap().containsKey(graph.getPackageName() + graph.getActivityName() + new HashedString(triple.getObjectStringValue()).toString())) {
+                        if (SugiliteData.getScreenStringSaltedHashMap() != null && SugiliteData.getScreenStringSaltedHashMap().containsKey(new HashedString(triple.getObjectStringValue()).toString())) {
                             continue;
                         }
-                        result.add(graph.getPackageName() + graph.getActivityName() + new HashedString(triple.getObjectStringValue()).toString());
+                        result.add(new HashedString(triple.getObjectStringValue()).toString());
                     }
                 }
             }

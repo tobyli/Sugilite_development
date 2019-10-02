@@ -79,7 +79,7 @@ public class NewDemonstrationHandler {
      * @param availableAlternatives
      * @param uiSnapshot
      */
-    public void handleEvent(SugiliteAvailableFeaturePack featurePack, Set<Map.Entry<String, String>> availableAlternatives, UISnapshot uiSnapshot){
+    public void handleEventInOldAccessiblityRecording(SugiliteAvailableFeaturePack featurePack, Set<Map.Entry<String, String>> availableAlternatives, UISnapshot uiSnapshot){
         System.out.println("HANDLE");
         //determine if disambiguation is needed
 

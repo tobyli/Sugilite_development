@@ -339,7 +339,7 @@ public class Automator {
                     lastTimeFailed.clear();
                     for (AccessibilityNodeInfo node : filteredNodes) {
                         // getCurrentAppActivityName might not yield correct activity name at this moment
-                        lastTimeFailed.add(new Node(node, serviceContext.getCurrentAppActivityName()));
+                        lastTimeFailed.add(new Node(node, null));
                     }
                 } else {
                     lastTimeFailed.clear();

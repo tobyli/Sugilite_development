@@ -33,16 +33,14 @@ public class HashedStringOntologyQuery extends OntologyQuery {
         if (sugiliteTriples != null) {
             for (SugiliteTriple triple : sugiliteTriples) {
                 if (triple.getPredicate().equals(r)) {
+                    HashedString objectHash;
                     if (hashedString.isServerSalted()) {
-                        //need to compare with server results
-                        if (hashedString.equals(SugiliteData.getScreenStringSaltedHashMap().get(graph.getPackageName() + graph.getActivityName()+ new HashedString(triple.getObjectStringValue()).toString()))) {
-                            return true;
-                        }
+                        objectHash = SugiliteData.getScreenStringSaltedHashMap().get(new HashedString(triple.getObjectStringValue()).toString());
                     } else {
-                        //can be compare locally
-                        if (hashedString.equals(new HashedString(triple.getObjectStringValue()))) {
-                            return true;
-                        }
+                        objectHash = new HashedString(triple.getObjectStringValue());
+                    }
+                    if (hashedString.equals(objectHash)) {
+                        return true;
                     }
                 }
             }

@@ -138,9 +138,16 @@ public class SugiliteSharingScriptPreparer {
         if (block instanceof SugiliteOperationBlock) {
             SugiliteOperationBlock operationBlock = (SugiliteOperationBlock)block;
             SugiliteOperation op = ((SugiliteOperationBlock) block).getOperation();
-            SerializableUISnapshot snapshot = operationBlock.getFeaturePack().serializableUISnapshot;
-            String packageName = snapshot.getPackageName();
-            String activityName = snapshot.getActivityName();
+            String packageName = "";
+            String activityName = "";
+
+            if (operationBlock.getSugiliteBlockMetaInfo() != null && operationBlock.getSugiliteBlockMetaInfo().getUiSnapshot() != null) {
+                SerializableUISnapshot snapshot = operationBlock.getSugiliteBlockMetaInfo().getUiSnapshot();
+                packageName = snapshot.getPackageName();
+                activityName = snapshot.getActivityName();
+
+            }
+
             if (op instanceof SugiliteUnaryOperation) {
                 SugiliteUnaryOperation unary = (SugiliteUnaryOperation)op;
                 if (unary.getParameter0() instanceof OntologyQuery) {

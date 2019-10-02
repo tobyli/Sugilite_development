@@ -241,7 +241,7 @@ public class VerbalInstructionIconManager implements SugiliteVoiceInterface {
                                     new Thread(new Runnable() {
                                         @Override
                                         public void run() {
-                                            HashedUIStrings hashedUIStrings = new HashedUIStrings(sugiliteAccessibilityService.getCurrentAppPackageName(), sugiliteAccessibilityService.getCurrentAppActivityName(), new SerializableUISnapshot(latestUISnapshot), Settings.Secure.getString(context.getContentResolver(), Settings.Secure.ANDROID_ID), new HashedSplitStringGenerator());
+                                            HashedUIStrings hashedUIStrings = new HashedUIStrings(latestUISnapshot.getPackageName(), latestUISnapshot.getActivityName(), new SerializableUISnapshot(latestUISnapshot), Settings.Secure.getString(context.getContentResolver(), Settings.Secure.ANDROID_ID), new HashedSplitStringGenerator());
                                             try {
                                                 sugiliteScriptSharingHTTPQueryManager.uploadHashedUI(hashedUIStrings);
                                             } catch (Exception e) {

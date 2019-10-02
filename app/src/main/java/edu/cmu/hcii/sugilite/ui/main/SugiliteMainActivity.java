@@ -37,6 +37,7 @@ import edu.cmu.hcii.sugilite.dao.SugiliteTriggerDao;
 import edu.cmu.hcii.sugilite.model.OperationBlockDescriptionRegenerator;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.ontology.description.OntologyDescriptionGenerator;
+import edu.cmu.hcii.sugilite.pumice.PumiceDemonstrationUtil;
 import edu.cmu.hcii.sugilite.pumice.ui.PumiceDialogActivity;
 import edu.cmu.hcii.sugilite.sharing.SugiliteScriptSharingHTTPQueryManager;
 import edu.cmu.hcii.sugilite.sharing.model.SugiliteRepoListing;
@@ -258,6 +259,12 @@ public class SugiliteMainActivity extends AppCompatActivity {
                     .setIcon(android.R.drawable.ic_dialog_alert)
                     .show();
             return true;
+        }
+
+        if (id == R.id.clear_hash_cache) {
+            int size = SugiliteData.getScreenStringSaltedHashMap().size();
+            SugiliteData.getScreenStringSaltedHashMap().clear();
+            PumiceDemonstrationUtil.showSugiliteAlertDialog(String.format("Cleared %d entries in the hash cache!", size));
         }
 
         if(id == R.id.upload_scripts){

@@ -10,7 +10,6 @@ import android.content.pm.PackageManager;
 import android.graphics.Rect;
 import android.os.Handler;
 import android.preference.PreferenceManager;
-import android.speech.tts.TextToSpeech;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.WindowManager;
@@ -28,7 +27,6 @@ import java.util.Arrays;
 import java.util.Calendar;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
@@ -39,6 +37,7 @@ import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.communication.SugiliteCommunicationController;
 import edu.cmu.hcii.sugilite.communication.SugiliteEventBroadcastingActivity;
 import edu.cmu.hcii.sugilite.dao.SugiliteAppVocabularyDao;
+import edu.cmu.hcii.sugilite.ontology.SerializableUISnapshot;
 import edu.cmu.hcii.sugilite.ontology.UISnapshot;
 import edu.cmu.hcii.sugilite.ontology.helper.annotator.SugiliteTextParentAnnotator;
 import edu.cmu.hcii.sugilite.pumice.PumiceDemonstrationUtil;
@@ -117,8 +116,8 @@ public class SugiliteAccessibilityService extends AccessibilityService {
     private Handler errorHandlingHandler;
     private Handler refreshIconHandler;
 
-    private String currentAppPackageName = "";
-    private String currentAppActivityName = "";
+    private String currentAppActivityName;
+    private String currentPackageName;
 
     public SugiliteAccessibilityService() {
         Log.d(TAG, "inside constructor");
@@ -270,6 +269,8 @@ public class SugiliteAccessibilityService extends AccessibilityService {
     private HashSet<Map.Entry<String, String>> trackingPackageVocabs;
     private String previousClickText = "NULL", previousClickContentDescription = "NULL", previousClickChildText = "NULL", previousClickChildContentDescription = "NULL", previousClickPackageName = "NULL";
 
+
+
     @Override
     public void onAccessibilityEvent(AccessibilityEvent event) {
         //TODO problem: the status of "right after click" (try getParent()?)
@@ -291,21 +292,24 @@ public class SugiliteAccessibilityService extends AccessibilityService {
             return;
         }
 
-        // check to see if changed activity
-        if (event.getPackageName() != null && event.getClassName() != null) {
-            ComponentName componentName = new ComponentName(
-                    event.getPackageName().toString(),
-                    event.getClassName().toString()
-            );
+        if (event.getEventType() == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) {
+            if (event.getPackageName() != null && event.getClassName() != null) {
+                ComponentName componentName = new ComponentName(
+                        event.getPackageName().toString(),
+                        event.getClassName().toString()
+                );
 
-            try {
-                ActivityInfo activityInfo = getPackageManager().getActivityInfo(componentName, 0);
-                Log.i("CurrentActivity", activityInfo.packageName + " : " + activityInfo.name + " : "  + AccessibilityEvent.eventTypeToString(event.getEventType()));
-                currentAppPackageName = activityInfo.packageName;
-                currentAppActivityName = activityInfo.name;
-            } catch (PackageManager.NameNotFoundException e) {
+                try {
+                    ActivityInfo activityInfo = getPackageManager().getActivityInfo(componentName, 0);
+                    Log.i("CurrentActivity", activityInfo.packageName + " : " + activityInfo.name + " : " + AccessibilityEvent.eventTypeToString(event.getEventType()));
+                    currentAppActivityName = activityInfo.name;
+                    currentPackageName = activityInfo.packageName;
+                } catch (PackageManager.NameNotFoundException e) {
+                    e.printStackTrace();
+                }
             }
         }
+
 
         //check for the trigger, see if an app launch trigger should be triggered
         if (eventType == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) {
@@ -476,7 +480,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
                         @Override
                         public void run() {
                             Log.i(TAG, "Entering handle recording thread");
-                            UISnapshot uiSnapshot = new UISnapshot(windowManager.getDefaultDisplay(), final_root, true, sugiliteTextParentAnnotator, true, currentAppActivityName, currentAppPackageName);
+                            UISnapshot uiSnapshot = new UISnapshot(windowManager.getDefaultDisplay(), final_root, true, sugiliteTextParentAnnotator, true, currentPackageName, currentAppActivityName);
                             System.out.printf("UI Snapshot Constructed for Recording!");
                             //temp hack for ViewGroup in Google Now Launcher
                             if (sourceNode != null && sourceNode.getClassName() != null && sourceNode.getPackageName() != null && sourceNode.getClassName().toString().contentEquals("android.view.ViewGroup") && homeScreenPackageNameSet.contains(sourceNode.getPackageName().toString())) {
@@ -497,7 +501,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
 
 
                                 //2. send the event to recording pop up dialog
-                                SugiliteAvailableFeaturePack featurePack = generateFeaturePack(event, sourceNode, rootNodeForRecording, screenshot, availableAlternativeNodes, preOrderTraverseSourceNodeForRecording, preOrderTracerseRootNodeForRecording, preOrderTraverseSibNodeForRecording);
+                                SugiliteAvailableFeaturePack featurePack = generateFeaturePack(event, sourceNode, rootNodeForRecording, screenshot, availableAlternativeNodes, preOrderTraverseSourceNodeForRecording, preOrderTracerseRootNodeForRecording, preOrderTraverseSibNodeForRecording, new SerializableUISnapshot(uiSnapshot));
                                 LayoutInflater layoutInflater = LayoutInflater.from(getApplicationContext());
 
                                 if (featurePack.isEditable) {
@@ -515,7 +519,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
                                             textChangedEventHandler.flush();
                                         }
                                     });
-                                    newDemonstrationHandler.handleEvent(featurePack, availableAlternatives, uiSnapshot);
+                                    newDemonstrationHandler.handleEventInOldAccessiblityRecording(featurePack, availableAlternatives, uiSnapshot);
                                 }
                             }
 
@@ -564,7 +568,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
                         public void run() {
                             UISnapshot uiSnapshot = new UISnapshot(final_root, true, sugiliteTextAnnotator);
                             SugiliteAvailableFeaturePack featurePack = generateFeaturePack(event, sourceNode, rootNodeForRecording, null, availableAlternativeNodes, preOrderTraverseSourceNodeForRecording, preOrderTracerseRootNodeForRecording, preOrderTraverseSibNodeForRecording);
-                            sugiliteStudyHandler.handleEvent(featurePack, uiSnapshot);
+                            sugiliteStudyHandler.handleEventInOldAccessiblityRecording(featurePack, uiSnapshot);
                         }
                     });
                 }
@@ -642,7 +646,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
                 public void run() {
                     //background tracking in progress
                     if (accessibilityEventSetToTrack.contains(eventType) && (!trackingExcludedPackages.contains(eventPackageName))) {
-                        sugilteTrackingHandler.handle(event, sourceNode, generateFeaturePack(event, sourceNode, rootNodeForTracking, null, null, preOrderTraverseSourceNodeForTracking, preOrderTracerseRootNodeForTracking, preOrderTraverseSibNodeForTracking));
+                        sugilteTrackingHandler.handle(event, sourceNode, generateFeaturePack(event, sourceNode, rootNodeForTracking, null, null, preOrderTraverseSourceNodeForTracking, preOrderTracerseRootNodeForTracking, preOrderTraverseSibNodeForTracking, null));
                     }
 
                     //add all seen clickable nodes to package vocab DB
@@ -740,15 +744,21 @@ public class SugiliteAccessibilityService extends AccessibilityService {
                             @Override
                             public void run() {
                                 // currentAppActivityName might not be correct at this point in time?
-                                UISnapshot uiSnapshot = new UISnapshot(windowManager.getDefaultDisplay(), windows, true, sugiliteTextParentAnnotator, false, currentAppActivityName, currentAppPackageName);
-                                if (uiSnapshot.getNodeAccessibilityNodeInfoMap().size() >= 5) {
-                                    //filter out (mostly) empty ui snapshots
-                                    verbalInstructionIconManager.setLatestUISnapshot(uiSnapshot);
-                                    long stopTime = System.currentTimeMillis();
-                                    Log.v(TAG, "Updated UI Snapshot! -- Takes " + String.valueOf(stopTime - startTime) + "ms");
-                                    if (runnableOnUpdateFinishesOnUIThread != null){
-                                        SugiliteData.runOnUiThread(runnableOnUpdateFinishesOnUIThread);
+                                try {
+                                    UISnapshot uiSnapshot = new UISnapshot(windowManager.getDefaultDisplay(), windows, true, sugiliteTextParentAnnotator, false, currentPackageName, currentAppActivityName);
+                                    if (uiSnapshot.getNodeAccessibilityNodeInfoMap().size() >= 5) {
+                                        //filter out (mostly) empty ui snapshots
+                                        verbalInstructionIconManager.setLatestUISnapshot(uiSnapshot);
+                                        long stopTime = System.currentTimeMillis();
+                                        Log.v(TAG, "Updated UI Snapshot! -- Takes " + String.valueOf(stopTime - startTime) + "ms");
+                                        if (runnableOnUpdateFinishesOnUIThread != null) {
+                                            SugiliteData.runOnUiThread(runnableOnUpdateFinishesOnUIThread);
+                                        }
                                     }
+                                } catch (Exception e) {
+                                    //do nothing
+                                    Log.e("SugiliteAccessibilityService", "Error when updating the UI snapshot");
+                                    e.printStackTrace();
                                 }
                             }
                         });
@@ -778,7 +788,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
                 public void run() {
                     List<AccessibilityNodeInfo> allNodes = AutomatorUtil.getAllNodesFromWindows(windows);
                     // getCurrentAppActivityName might not yield correct activity name at this moment
-                    UISnapshot uiSnapshot = new UISnapshot(windowManager.getDefaultDisplay(), windows, true, sugiliteTextParentAnnotator, true, currentAppActivityName, currentAppPackageName);
+                    UISnapshot uiSnapshot = new UISnapshot(windowManager.getDefaultDisplay(), windows, true, sugiliteTextParentAnnotator, true, currentPackageName, currentAppActivityName);
                     automator.handleLiveEvent(uiSnapshot, getApplicationContext(), allNodes);
                 }
             });
@@ -842,14 +852,6 @@ public class SugiliteAccessibilityService extends AccessibilityService {
             refreshIconHandler.removeMessages(0);
         }
 
-    }
-
-    public String getCurrentAppActivityName() {
-        return currentAppActivityName;
-    }
-
-    public String getCurrentAppPackageName() {
-        return currentAppPackageName;
     }
 }
 

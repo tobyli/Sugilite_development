@@ -1,6 +1,9 @@
 package edu.cmu.hcii.sugilite.ontology;
 
+import android.content.ComponentName;
 import android.content.Context;
+import android.content.pm.ActivityInfo;
+import android.content.pm.PackageManager;
 import android.graphics.Point;
 import android.graphics.Rect;
 import android.util.Log;
@@ -24,6 +27,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
+import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.model.Node;
 import edu.cmu.hcii.sugilite.automation.AutomatorUtil;
 import edu.cmu.hcii.sugilite.ontology.helper.ListOrderResolver;
@@ -92,17 +96,19 @@ public class UISnapshot {
     }
 
     //construct a UISnapshot for a list of windows
-    public UISnapshot(Display display, List<AccessibilityWindowInfo> windows, boolean toConstructNodeAccessibilityNodeInfoMap, SugiliteTextParentAnnotator sugiliteTextParentAnnotator, boolean toAnnotateStringEntities, String activityName, String packageName) {
+    public UISnapshot(Display display, List<AccessibilityWindowInfo> windows, boolean toConstructNodeAccessibilityNodeInfoMap, SugiliteTextParentAnnotator sugiliteTextParentAnnotator, boolean toAnnotateStringEntities, String activePackageName, String activeActivityName) {
         this(display);
-        this.activityName = activityName;
-        this.packageName = packageName;
+        this.activityName = activeActivityName;
+        this.packageName = activePackageName;
+
         List<Node> allNodes = new ArrayList<>();
         for(AccessibilityWindowInfo window : windows){
             AccessibilityNodeInfo rootNode = window.getRoot();
             if(rootNode != null) {
-                allNodes.addAll(preOrderNodeTraverseWithZIndex(rootNode, toConstructNodeAccessibilityNodeInfoMap, window.getLayer(), new ArrayList<>(), activityName));
+                allNodes.addAll(preOrderNodeTraverseWithZIndex(rootNode, toConstructNodeAccessibilityNodeInfoMap, window.getLayer(), new ArrayList<>(), activePackageName, activeActivityName));
             }
         }
+
         long startTime = System.currentTimeMillis();
         constructFromListOfNodes(allNodes, toAnnotateStringEntities);
         long stopTime = System.currentTimeMillis();
@@ -110,15 +116,16 @@ public class UISnapshot {
     }
 
     //construct a UISnapshot from a rootNode
-    public UISnapshot(Display display, AccessibilityNodeInfo rootNode, boolean toConstructNodeAccessibilityNodeInfoMap, SugiliteTextParentAnnotator sugiliteTextParentAnnotator, boolean toAnnotateStringEntities, String activityName, String packageName) {
+    public UISnapshot(Display display, AccessibilityNodeInfo rootNode, boolean toConstructNodeAccessibilityNodeInfoMap, SugiliteTextParentAnnotator sugiliteTextParentAnnotator, boolean toAnnotateStringEntities, String activePackageName, String activeActivityName) {
         this(display);
-        this.activityName = activityName;
-        this.packageName = packageName;
+        this.activityName = activeActivityName;
+        this.packageName = activePackageName;
+
         List<AccessibilityNodeInfo> allOldNodes = AutomatorUtil.preOrderTraverse(rootNode);
         List<Node> allNodes = new ArrayList<>();
         if(allOldNodes != null) {
             for (AccessibilityNodeInfo oldNode : allOldNodes) {
-                Node node = new Node(oldNode, activityName);
+                Node node = new Node(oldNode, activePackageName.equals(oldNode.getPackageName()) ? activeActivityName : null);
                 if (node.getPackageName() != null && (node.getPackageName().contains("com.android.systemui") || node.getPackageName().contains("sugilite"))) {
                     continue;
                 }
@@ -130,6 +137,43 @@ public class UISnapshot {
         }
         constructFromListOfNodes(allNodes, toAnnotateStringEntities);
     }
+
+    /*
+    private void setActivityNameAndPackageNameFromAllNodes(List<Node> allNodes) {
+        for(Node node : allNodes) {
+            if (node.getPackageName() != null) {
+                if (this.packageName == null) {
+                    this.packageName = node.getPackageName();
+                } else {
+                    if (! node.getPackageName().equals(this.packageName)){
+                        Log.e("UISnapshot", String.format("Inconsistent package name! Had %s, now get %s.", this.packageName, node.getPackageName()));
+                    }
+                }
+
+                if (node.getClassName() != null) {
+                    ComponentName componentName = new ComponentName(
+                            node.getPackageName().toString(),
+                            node.getClassName().toString()
+                    );
+                    try {
+                        ActivityInfo activityInfo = SugiliteData.getAppContext().getPackageManager().getActivityInfo(componentName, 0);
+                        if (activityInfo.name != null) {
+                            if (this.activityName == null) {
+                                this.activityName = activityInfo.name;
+                            } else {
+                                if (! node.getPackageName().equals(this.packageName)){
+                                    Log.e("UISnapshot", String.format("Inconsistent activity name! Had %s, now get %s.", this.activityName, activityInfo.name));
+                                }
+                            }
+                        }
+                    } catch (PackageManager.NameNotFoundException e) {
+                        Log.e("UISnapshot", String.format("Can't find activity name for %s", componentName.flattenToString()));
+                    }
+                }
+            }
+        }
+    }
+    */
 
     public void annotateStringEntitiesIfNeeded(){
         //create a multi-thread executor for parsing strings
@@ -642,13 +686,6 @@ public class UISnapshot {
         return subjectPredicateTriplesMap;
     }
 
-    public String getActivityName() {
-        return activityName;
-    }
-
-    public String getPackageName() {
-        return packageName;
-    }
 
     /**
      *
@@ -658,13 +695,13 @@ public class UISnapshot {
      * @param parentNodeZIndexSequence the z index sequence of the parent node
      * @return
      */
-    private List<Node> preOrderNodeTraverseWithZIndex(AccessibilityNodeInfo parent, boolean toConstructNodeAccessibilityNodeInfoMap, Integer windowZIndex, List<Integer> parentNodeZIndexSequence, String activityName){
+    private List<Node> preOrderNodeTraverseWithZIndex(AccessibilityNodeInfo parent, boolean toConstructNodeAccessibilityNodeInfoMap, Integer windowZIndex, List<Integer> parentNodeZIndexSequence, String externalPackageName, String externalActivityName){
         //fill in the Z-index for nodes recursively
         if(parent == null) {
             return null;
         }
         List<Node> list = new ArrayList<>();
-        Node node = new Node(parent, windowZIndex, parentNodeZIndexSequence, activityName);
+        Node node = new Node(parent, windowZIndex, parentNodeZIndexSequence, externalPackageName.equals(parent.getPackageName()) ? externalActivityName : null);
         if(toConstructNodeAccessibilityNodeInfoMap){
             nodeAccessibilityNodeInfoMap.put(node, parent);
         }
@@ -673,7 +710,7 @@ public class UISnapshot {
         for(int i = 0; i < childCount; i ++){
             AccessibilityNodeInfo childNode = parent.getChild(i);
             if(childNode != null) {
-                list.addAll(preOrderNodeTraverseWithZIndex(childNode, toConstructNodeAccessibilityNodeInfoMap, windowZIndex, node.getNodeZIndexSequence(), activityName));
+                list.addAll(preOrderNodeTraverseWithZIndex(childNode, toConstructNodeAccessibilityNodeInfoMap, windowZIndex, node.getNodeZIndexSequence(), externalPackageName, externalActivityName));
             }
         }
         return list;
@@ -694,4 +731,11 @@ public class UISnapshot {
         return result;
     }
 
+    public String getPackageName() {
+        return packageName;
+    }
+
+    public String getActivityName() {
+        return activityName;
+    }
 }

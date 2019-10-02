@@ -61,17 +61,22 @@ public class Node implements Serializable {
             new Exception("null nodeinfo!").printStackTrace();
             return;
         }
-        if(nodeInfo.getText() != null)
+        if(nodeInfo.getText() != null) {
             text = nodeInfo.getText().toString();
-        if(nodeInfo.getContentDescription() != null)
+        }
+        if(nodeInfo.getContentDescription() != null) {
             contentDescription = nodeInfo.getContentDescription().toString();
-        if(nodeInfo.getViewIdResourceName() != null)
+        }
+        if(nodeInfo.getViewIdResourceName() != null) {
             viewId = nodeInfo.getViewIdResourceName();
-        if(nodeInfo.getPackageName() != null)
+        }
+        if(nodeInfo.getPackageName() != null) {
             packageName = nodeInfo.getPackageName().toString();
+        }
         this.activityName = activityName;
-        if(nodeInfo.getClassName() != null)
+        if(nodeInfo.getClassName() != null) {
             className = nodeInfo.getClassName().toString();
+        }
 //        if(nodeInfo.getEventManagerId() != null)
 //            eventManagerId = nodeInfo.getEventManagerId();
 

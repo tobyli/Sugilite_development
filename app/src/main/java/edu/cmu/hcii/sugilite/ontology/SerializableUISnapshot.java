@@ -36,7 +36,6 @@ public class SerializableUISnapshot implements Serializable {
     private String packageName;
 
     public SerializableUISnapshot(UISnapshot uiSnapshot) {
-
         this.activityName = uiSnapshot.getActivityName();
         this.packageName = uiSnapshot.getPackageName();
 

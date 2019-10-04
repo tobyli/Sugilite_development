@@ -118,7 +118,7 @@ public class ScriptSourceActivity extends AppCompatActivity {
                     .setPositiveButton("Run", new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int which) {
                             //clear the queue first before adding new instructions
-                            PumiceDemonstrationUtil.executeScript(context, serviceStatusManager, script, sugiliteData, getLayoutInflater(), sharedPreferences, null, null, null);
+                            PumiceDemonstrationUtil.executeScript(context, serviceStatusManager, script, sugiliteData, sharedPreferences, null, null, null);
 
                         }
                     })

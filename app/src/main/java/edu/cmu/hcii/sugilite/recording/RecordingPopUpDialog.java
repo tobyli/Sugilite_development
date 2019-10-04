@@ -128,12 +128,12 @@ public class RecordingPopUpDialog implements AbstractSugiliteDialog {
     public static final int TRIGGERED_BY_NEW_EVENT = 1;
     public static final int TRIGGERED_BY_EDIT = 2;
 
-    public RecordingPopUpDialog(final SugiliteData sugiliteData, Context context, SugiliteAvailableFeaturePack featurePack, SharedPreferences sharedPreferences, LayoutInflater inflater, int triggerMode, Set<Map.Entry<String, String>> alternativeLabels){
+    public RecordingPopUpDialog(final SugiliteData sugiliteData, Context context, SugiliteAvailableFeaturePack featurePack, SharedPreferences sharedPreferences, int triggerMode, Set<Map.Entry<String, String>> alternativeLabels){
         this.sharedPreferences = sharedPreferences;
         this.sugiliteData = sugiliteData;
         this.featurePack = featurePack;
         this.triggerMode = triggerMode;
-        this.layoutInflater = inflater;
+        this.layoutInflater = LayoutInflater.from(context);
         this.context = context;
         if(Const.KEEP_ALL_ALTERNATIVES_IN_THE_FILTER) {
             this.alternativeLabels = new HashSet<>(alternativeLabels);
@@ -157,7 +157,7 @@ public class RecordingPopUpDialog implements AbstractSugiliteDialog {
         checkBoxParentEntryMap = new HashMap<>();
         checkBoxSiblingEntryMap = new HashMap<>();
         identifierCheckboxMap = new HashMap<>();
-        dialogRootView = inflater.inflate(R.layout.dialog_recording_pop_up, null);
+        dialogRootView = layoutInflater.inflate(R.layout.dialog_recording_pop_up, null);
         ContextThemeWrapper ctw = new ContextThemeWrapper(context, R.style.AlertDialogCustom);
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
         builder.setView(dialogRootView)
@@ -181,12 +181,12 @@ public class RecordingPopUpDialog implements AbstractSugiliteDialog {
     }
 
     //THIS CONSTRUCTOR IS USED FOR EDITING ONLY!
-    public RecordingPopUpDialog(final SugiliteData sugiliteData, Context context, SugiliteStartingBlock originalScript, SharedPreferences sharedPreferences, SugiliteOperationBlock blockToEdit, LayoutInflater inflater, int triggerMode, DialogInterface.OnClickListener callback){
+    public RecordingPopUpDialog(final SugiliteData sugiliteData, Context context, SugiliteStartingBlock originalScript, SharedPreferences sharedPreferences, SugiliteOperationBlock blockToEdit, int triggerMode, DialogInterface.OnClickListener callback){
         this.sharedPreferences = sharedPreferences;
         this.sugiliteData = sugiliteData;
         this.featurePack = blockToEdit.getFeaturePack();
         this.triggerMode = triggerMode;
-        this.layoutInflater = inflater;
+        this.layoutInflater = LayoutInflater.from(context);
         this.originalScript = originalScript;
         this.blockToEdit = blockToEdit;
         this.editCallback = callback;
@@ -209,7 +209,7 @@ public class RecordingPopUpDialog implements AbstractSugiliteDialog {
         checkBoxParentEntryMap = new HashMap<>();
         checkBoxSiblingEntryMap = new HashMap<>();
         identifierCheckboxMap = new HashMap<>();
-        dialogRootView = inflater.inflate(R.layout.dialog_recording_pop_up, null);
+        dialogRootView = layoutInflater.inflate(R.layout.dialog_recording_pop_up, null);
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
         builder.setView(dialogRootView)
                 .setTitle("Edit Sugilite Operation");

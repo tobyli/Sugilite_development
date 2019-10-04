@@ -55,7 +55,7 @@ public class PumiceScriptExecutingConfirmationIntentHandler implements PumiceUtt
                     .setPositiveButton("Run", new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int which) {
                             //execute the script
-                            PumiceDemonstrationUtil.executeScript(context, serviceStatusManager, script, sugiliteData, context.getLayoutInflater(), sharedPreferences, dialogManager, null, new Runnable() {
+                            PumiceDemonstrationUtil.executeScript(context, serviceStatusManager, script, sugiliteData, sharedPreferences, dialogManager, null, new Runnable() {
                                 @Override
                                 public void run() {
                                     //after execution runnable - notify the user that the script execution is completed

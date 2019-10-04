@@ -101,7 +101,7 @@ public class RecordingOverlayContextClickDialog {
                         if(true || sugiliteData.valueDemonstrationVariableName != null && sugiliteData.valueDemonstrationVariableName.length() > 0) {
                             Map<String, SugiliteEntity<Node>> textLabelEntityMap = getTextLabelNodeEntityMap();
                             //handle the selected texts
-                            PumiceValueDemonstrationSelectionDialog valueDemonstrationSelectionDialog = new PumiceValueDemonstrationSelectionDialog(context, textLabelEntityMap, uiSnapshot, parentOverlayManager, sugiliteData, tts, layoutInflater, sharedPreferences, x, y);
+                            PumiceValueDemonstrationSelectionDialog valueDemonstrationSelectionDialog = new PumiceValueDemonstrationSelectionDialog(context, textLabelEntityMap, uiSnapshot, parentOverlayManager, sugiliteData, tts, sharedPreferences, x, y);
                             valueDemonstrationSelectionDialog.show();
                         } else {
                             PumiceDemonstrationUtil.showSugiliteToast("Not in a Pumice value concept learning session!!", Toast.LENGTH_SHORT);
@@ -114,7 +114,7 @@ public class RecordingOverlayContextClickDialog {
                         if(true || sharedPreferences.getBoolean("recording_in_process", false)) {
                             Map<String, SugiliteEntity<Node>> textLabelEntityMap = getTextLabelNodeEntityMap();
                             //TODO: handle the selected texts
-                            PumiceReadOutDemonstrationSelectionDialog readOutDemonstrationSelectionDialog = new PumiceReadOutDemonstrationSelectionDialog(context, textLabelEntityMap, uiSnapshot, parentOverlayManager, sugiliteData, tts, layoutInflater, sharedPreferences, x, y);
+                            PumiceReadOutDemonstrationSelectionDialog readOutDemonstrationSelectionDialog = new PumiceReadOutDemonstrationSelectionDialog(context, textLabelEntityMap, uiSnapshot, parentOverlayManager, sugiliteData, tts, sharedPreferences, x, y);
                             readOutDemonstrationSelectionDialog.show();
                         } else {
                             PumiceDemonstrationUtil.showSugiliteToast("Not in the recording mode!!", Toast.LENGTH_SHORT);
@@ -125,7 +125,7 @@ public class RecordingOverlayContextClickDialog {
                         //send a long click to the underlying app
                         dialog.dismiss();
                         if (topLongClickableNode.getEntityValue() != null) {
-                            OverlayClickedDialog overlayClickedDialog = new OverlayClickedDialog(context, topClickableNode, uiSnapshot, x, y, parentOverlayManager, parentOverlayManager.getOverlay(), sugiliteData, layoutInflater, sharedPreferences, tts, true);
+                            OverlayClickedDialog overlayClickedDialog = new OverlayClickedDialog(context, topClickableNode, uiSnapshot, x, y, parentOverlayManager, parentOverlayManager.getOverlay(), sugiliteData, sharedPreferences, tts, true);
                             overlayClickedDialog.show();
                         }
                         /*
@@ -141,7 +141,7 @@ public class RecordingOverlayContextClickDialog {
                     case "Click on this item in the app":
                         dialog.dismiss();
                         if (topClickableNode.getEntityValue() != null) {
-                            OverlayClickedDialog overlayClickedDialog = new OverlayClickedDialog(context, topClickableNode, uiSnapshot, x, y, parentOverlayManager, parentOverlayManager.getOverlay(), sugiliteData, layoutInflater, sharedPreferences, tts, false);
+                            OverlayClickedDialog overlayClickedDialog = new OverlayClickedDialog(context, topClickableNode, uiSnapshot, x, y, parentOverlayManager, parentOverlayManager.getOverlay(), sugiliteData, sharedPreferences, tts, false);
                             overlayClickedDialog.show();
                         }
                 }

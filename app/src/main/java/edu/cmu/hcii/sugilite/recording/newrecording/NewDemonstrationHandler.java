@@ -44,16 +44,16 @@ import static edu.cmu.hcii.sugilite.Const.OVERLAY_TYPE;
 public class NewDemonstrationHandler {
     private SugiliteData sugiliteData;
     private SharedPreferences sharedPreferences;
-    private LayoutInflater layoutInflater;
     private SugiliteBlockBuildingHelper blockBuildingHelper;
     private ReadableDescriptionGenerator readableDescriptionGenerator;
     private SugiliteAccessibilityService accessibilityService;
+    private LayoutInflater layoutInflater;
 
     private static NewDemonstrationHandler instance = null;
 
-    public static NewDemonstrationHandler getInstance(SugiliteData sugiliteData, LayoutInflater layoutInflater, SharedPreferences sharedPreferences, SugiliteAccessibilityService accessibilityService){
+    public static NewDemonstrationHandler getInstance(SugiliteData sugiliteData, SharedPreferences sharedPreferences, SugiliteAccessibilityService accessibilityService){
         if (instance == null) {
-            instance = new NewDemonstrationHandler(sugiliteData, SugiliteData.getAppContext(), layoutInflater, sharedPreferences, accessibilityService);
+            instance = new NewDemonstrationHandler(sugiliteData, SugiliteData.getAppContext(), sharedPreferences, accessibilityService);
         }
         return instance;
     }
@@ -62,13 +62,13 @@ public class NewDemonstrationHandler {
         return instance;
     }
 
-    private NewDemonstrationHandler(SugiliteData sugiliteData, Context context, LayoutInflater layoutInflater, SharedPreferences sharedPreferences, SugiliteAccessibilityService accessibilityService){
+    private NewDemonstrationHandler(SugiliteData sugiliteData, Context context, SharedPreferences sharedPreferences, SugiliteAccessibilityService accessibilityService){
         this.sugiliteData = sugiliteData;
         this.accessibilityService = accessibilityService;;
         this.sharedPreferences = sharedPreferences;
-        this.layoutInflater = layoutInflater;
         this.blockBuildingHelper = new SugiliteBlockBuildingHelper(context, sugiliteData);
         this.readableDescriptionGenerator = new ReadableDescriptionGenerator(context);
+        this.layoutInflater = LayoutInflater.from(context);
     }
 
     //handles the demonstration

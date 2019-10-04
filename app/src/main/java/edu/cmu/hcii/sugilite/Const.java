@@ -112,6 +112,7 @@ public class Const {
 
     //date format
     public static final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd=HH_mm_ss-SSS");
+    public static final SimpleDateFormat dateFormat_simple = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
     public static final String[] INIT_INSTRUCTION_CONTEXT_WORDS = {"if", "when", "whenever", "order", "cold", "check", "bus", "schedule", "hotel", "room", "at least", "greater", "less", "below", "above", "cheaper", "colder", "cooler", "price", "temperature", "order"};
     public static final String[] DEMONSTRATION_CONTEXT_WORDS = {"demonstrate"};

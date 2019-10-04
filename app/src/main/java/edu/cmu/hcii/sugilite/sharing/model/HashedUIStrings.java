@@ -32,7 +32,7 @@ public class HashedUIStrings {
 
         Set<String> blacklistPackageSubjects = new HashSet<>();
         for (SugiliteSerializableTriple triple : snapshot.getTriples()) {
-            if (triple.getPredicate().equals(SugiliteRelation.HAS_PACKAGE_NAME)) {
+            if (SugiliteRelation.getRelationFromString(triple.getPredicateStringValue()).equals(SugiliteRelation.HAS_PACKAGE_NAME)) {
                 if (Arrays.stream(Const.UI_UPLOAD_PACKAGE_BLACKLIST).anyMatch(triple.getObjectStringValue()::equals)) {
                     blacklistPackageSubjects.add(triple.getSubjectId());
                 }
@@ -90,7 +90,10 @@ public class HashedUIStrings {
 
         for (SugiliteSerializableTriple triple : snapshot.getTriples()) {
             // if we can hash this kind of relation
-            if (Arrays.stream(POTENTIALLY_PRIVATE_RELATIONS).anyMatch(triple.getPredicate()::equals)) {
+
+
+
+            if (Arrays.stream(POTENTIALLY_PRIVATE_RELATIONS).anyMatch(SugiliteRelation.getRelationFromString(triple.getPredicateStringValue())::equals)) {
                 if (editTextSubjects.contains(triple.getSubjectId())) {
                     Log.v("HashedUIStrings", "Not adding EditText text : " + triple.getObjectStringValue());
                 } else if (blacklistPackageSubjects.contains(triple.getSubjectId())) {

@@ -35,18 +35,31 @@ public class SerializableUISnapshot implements Serializable {
     private String activityName;
     private String packageName;
 
-    public SerializableUISnapshot(UISnapshot uiSnapshot) {
-        this.activityName = uiSnapshot.getActivityName();
-        this.packageName = uiSnapshot.getPackageName();
+    public SerializableUISnapshot(String activityName, String packageName) {
+        this.activityName = activityName;
+        this.packageName = packageName;
+        this.triples = new HashSet<>();
+        this.subjectTriplesMap = new HashMap<>();
+        this.objectTriplesMap = new HashMap<>();
+        this.predicateTriplesMap = new HashMap<>();
+        this.sugiliteEntityIdSugiliteEntityMap = new HashMap<>();
+        this.accessibilityNodeInfoSugiliteEntityMap = new HashMap<>();
+        this.stringSugiliteEntityMap = new HashMap<>();
+        this.booleanSugiliteEntityMap = new HashMap<>();
+        this.sugiliteRelationIdSugiliteRelationMap = new HashMap<>();
+    }
 
+
+    public SerializableUISnapshot(UISnapshot uiSnapshot) {
+        this(uiSnapshot.getActivityName(), uiSnapshot.getPackageName());
+        //populate triples
         if(uiSnapshot.getTriples() != null) {
-            triples = new HashSet<>();
             for (SugiliteTriple t : uiSnapshot.getTriples()) {
                 triples.add(new SugiliteSerializableTriple(t));
             }
         }
 
-        subjectTriplesMap = new HashMap<>();
+        //populate subjectTriplesMap
         Map<Integer, Set<SugiliteTriple>> oldMap = uiSnapshot.getSubjectTriplesMap();
         for(Integer entityId : oldMap.keySet()) {
             Set<SugiliteSerializableTriple> newSet = new HashSet<>();
@@ -56,7 +69,7 @@ public class SerializableUISnapshot implements Serializable {
             subjectTriplesMap.put("@"+entityId, newSet);
         }
 
-        objectTriplesMap = new HashMap<>();
+        //populate objectTriplesMap
         Map<Integer, Set<SugiliteTriple>> oldMapO = uiSnapshot.getObjectTriplesMap();
         for(Integer entityId : oldMapO.keySet()) {
             Set<SugiliteSerializableTriple> newSet = new HashSet<>();
@@ -66,9 +79,10 @@ public class SerializableUISnapshot implements Serializable {
             objectTriplesMap.put("@"+entityId, newSet);
         }
 
-        sugiliteRelationIdSugiliteRelationMap = uiSnapshot.getSugiliteRelationIdSugiliteRelationMap();
+        //populate sugiliteRelationIdSugiliteRelationMap
+        sugiliteRelationIdSugiliteRelationMap.putAll(uiSnapshot.getSugiliteRelationIdSugiliteRelationMap());
 
-        predicateTriplesMap = new HashMap<>();
+        //populate predicateTriplesMap
         Map<Integer, Set<SugiliteTriple>> oldMapR = uiSnapshot.getPredicateTriplesMap();
         for(Integer relationId : oldMapR.keySet()) {
             Set<SugiliteSerializableTriple> newSet = new HashSet<>();
@@ -78,16 +92,16 @@ public class SerializableUISnapshot implements Serializable {
             predicateTriplesMap.put(sugiliteRelationIdSugiliteRelationMap.get(relationId).getRelationName(), newSet);
         }
 
-        //fill in the sugiliteEntityIdSugiliteEntityMap
-        sugiliteEntityIdSugiliteEntityMap = new HashMap<>();
+        //populate sugiliteEntityIdSugiliteEntityMap
         Map<Integer, SugiliteEntity> oldMapID = uiSnapshot.getSugiliteEntityIdSugiliteEntityMap();
         for(Integer i : oldMapID.keySet()) {
             sugiliteEntityIdSugiliteEntityMap.put("@"+i, new SugiliteSerializableEntity(oldMapID.get(i)));
         }
 
+        //set entityIdCounter
         entityIdCounter = uiSnapshot.getEntityIdCounter();
 
-        accessibilityNodeInfoSugiliteEntityMap = new HashMap<>();
+        //populate accessibilityNodeInfoSugiliteEntityMap
         Map<Node, SugiliteEntity<Node>> oldMapANI = uiSnapshot.getNodeSugiliteEntityMap();
         for(Node ani : oldMapANI.keySet()) {
             SugiliteEntity<Node> oldEntity = oldMapANI.get(ani);
@@ -95,13 +109,13 @@ public class SerializableUISnapshot implements Serializable {
                     new SugiliteSerializableEntity<>(oldEntity));
         }
 
-        stringSugiliteEntityMap = new HashMap<>();
+        //populate stringSugiliteEntityMap
         Map<String, SugiliteEntity<String>> oldMapString = uiSnapshot.getStringSugiliteEntityMap();
         for(String s : oldMapString.keySet()) {
             stringSugiliteEntityMap.put(s, new SugiliteSerializableEntity<>(oldMapString.get(s)));
         }
 
-        booleanSugiliteEntityMap = new HashMap<>();
+        //populate booleanSugiliteEntityMap
         Map<Boolean, SugiliteEntity<Boolean>> oldMapBool = uiSnapshot.getBooleanSugiliteEntityMap();
         for(Boolean b : oldMapBool.keySet()) {
             booleanSugiliteEntityMap.put(b, new SugiliteSerializableEntity(oldMapBool.get(b)));
@@ -172,6 +186,10 @@ public class SerializableUISnapshot implements Serializable {
 
     public Map<String, Set<SugiliteSerializableTriple>> getPredicateTriplesMap() {
         return predicateTriplesMap;
+    }
+
+    public Map<Integer, SugiliteRelation> getSugiliteRelationIdSugiliteRelationMap() {
+        return sugiliteRelationIdSugiliteRelationMap;
     }
 
     public void setSubjectTriplesMap(Map<String, Set<SugiliteSerializableTriple>> subjectTriplesMap) {

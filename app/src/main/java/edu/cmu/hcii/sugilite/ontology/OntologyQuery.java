@@ -53,7 +53,7 @@ public abstract class OntologyQuery implements Serializable {
                         q.setSubRelation(CombinedOntologyQuery.RelationType.OR);
                     } else {
                         q.setSubRelation(CombinedOntologyQuery.RelationType.PREV);
-                        q.setQueryFunction(SugiliteRelation.stringRelationMap.get(firstWord));
+                        q.setQueryFunction(SugiliteRelation.getRelationFromString(firstWord));
                     }
 
                     Set<OntologyQuery> subQ = new HashSet<>();
@@ -79,11 +79,11 @@ public abstract class OntologyQuery implements Serializable {
             else {
                 if (firstWord.equals("privateMatch")) {
                     String[] parts = s.split(" ");
-                    query = new HashedStringOntologyQuery(SugiliteRelation.stringRelationMap.get(parts[1]), HashedString.fromEncodedString(parts[2], true));
+                    query = new HashedStringOntologyQuery(SugiliteRelation.getRelationFromString(parts[1]), HashedString.fromEncodedString(parts[2], true));
                 } else if (firstWord.equals("patternMatch")) {
                     String[] parts = s.split(" ", 3);
                     StringAlternativeGenerator.StringAlternative alt = new StringAlternativeGenerator.StringAlternative(OntologyQueryUtils.removeQuoteSigns(parts[2]), -1, StringAlternativeGenerator.PATTERN_MATCH_TYPE);
-                    query = new StringAlternativeOntologyQuery(SugiliteRelation.stringRelationMap.get(parts[1]), alt);
+                    query = new StringAlternativeOntologyQuery(SugiliteRelation.getRelationFromString(parts[1]), alt);
                 } else {
                     // base case: simple relation
                     // note: the object will never be an accessbility node info (since this is directly from user)
@@ -91,7 +91,7 @@ public abstract class OntologyQuery implements Serializable {
                     String objectString = s.substring(spaceIndex + 1, s.length());
                     LeafOntologyQuery q = new LeafOntologyQuery();
 
-                    q.setQueryFunction(SugiliteRelation.stringRelationMap.get(predicateString));
+                    q.setQueryFunction(SugiliteRelation.getRelationFromString(predicateString));
                     Set<SugiliteEntity> oSet = new HashSet<SugiliteEntity>();
                     if (objectString.equalsIgnoreCase("true")) {
                         SugiliteEntity<Boolean> o = new SugiliteEntity<Boolean>(-1, Boolean.class, true);

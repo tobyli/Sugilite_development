@@ -53,11 +53,11 @@ public class OverlayClickedDialog {
     private boolean isLongClick;
 
 
-    public OverlayClickedDialog(Context context, SugiliteEntity<Node> node, UISnapshot uiSnapshot, float x, float y, FullScreenRecordingOverlayManager recordingOverlayManager, View overlay, SugiliteData sugiliteData, LayoutInflater layoutInflater, SharedPreferences sharedPreferences, TextToSpeech tts, boolean isLongClick) {
+    public OverlayClickedDialog(Context context, SugiliteEntity<Node> node, UISnapshot uiSnapshot, float x, float y, FullScreenRecordingOverlayManager recordingOverlayManager, View overlay, SugiliteData sugiliteData, SharedPreferences sharedPreferences, TextToSpeech tts, boolean isLongClick) {
         this.context = context;
         this.node = node;
         this.uiSnapshot = uiSnapshot;
-        this.layoutInflater = layoutInflater;
+        this.layoutInflater = LayoutInflater.from(context);;
         this.overlay = overlay;
         this.x = x;
         this.y = y;
@@ -158,7 +158,7 @@ public class OverlayClickedDialog {
      */
     //TODO: add support for verbal instruction here
     private void showAmbiguousPopup(List<Pair<OntologyQuery, Double>> queryScoreList, SugiliteAvailableFeaturePack featurePack, SugiliteEntity<Node> actualClickedNode) {
-        RecordingAmbiguousPopupDialog recordingAmbiguousPopupDialog = new RecordingAmbiguousPopupDialog(context, queryScoreList, featurePack, blockBuildingHelper, layoutInflater, new Runnable() {
+        RecordingAmbiguousPopupDialog recordingAmbiguousPopupDialog = new RecordingAmbiguousPopupDialog(context, queryScoreList, featurePack, blockBuildingHelper, new Runnable() {
             @Override
             public void run() {
                 recordingOverlayManager.clickNode(node.getEntityValue(), x, y, overlay, isLongClick);
@@ -182,7 +182,7 @@ public class OverlayClickedDialog {
                 recordingOverlayManager.clickNode(node.getEntityValue(), x, y, overlay, isLongClick);
             }
         };
-        SugiliteRecordingConfirmationDialog confirmationDialog = new SugiliteRecordingConfirmationDialog(context, block, featurePack, queryScoreList, clickRunnable, blockBuildingHelper, layoutInflater, uiSnapshot, node, sugiliteData, sharedPreferences, tts);
+        SugiliteRecordingConfirmationDialog confirmationDialog = new SugiliteRecordingConfirmationDialog(context, block, featurePack, queryScoreList, clickRunnable, blockBuildingHelper, uiSnapshot, node, sugiliteData, sharedPreferences, tts);
         confirmationDialog.show();
     }
 }

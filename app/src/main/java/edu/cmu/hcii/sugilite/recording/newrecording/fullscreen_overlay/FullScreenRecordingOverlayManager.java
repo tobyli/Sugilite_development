@@ -58,7 +58,6 @@ public class FullScreenRecordingOverlayManager {
     private Map<View, SugiliteEntity<Node>> overlayNodeMap;
     private Context context;
     private WindowManager windowManager;
-    private LayoutInflater layoutInflater;
     private NavigationBarUtil navigationBarUtil;
     private FullScreenRecordingOverlayManager recordingOverlayManager;
     private SugiliteData sugiliteData;
@@ -81,7 +80,6 @@ public class FullScreenRecordingOverlayManager {
         this.sugiliteAccessibilityService = sugiliteAccessibilityService;
         this.windowManager = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
         this.overlayNodeMap = new HashMap<>();
-        this.layoutInflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         this.navigationBarUtil = new NavigationBarUtil();
         this.sugiliteData = sugiliteData;
         this.sharedPreferences = sharedPreferences;
@@ -402,7 +400,7 @@ public class FullScreenRecordingOverlayManager {
                 SugiliteStudyHandler studyHandler = sugiliteAccessibilityService.getSugiliteStudyHandler();
                 studyHandler.handleEvent(new SugiliteAvailableFeaturePack(node, uiSnapshot), uiSnapshot, path, fileName);
             } else {
-                OverlayClickedDialog overlayClickedDialog = new OverlayClickedDialog(context, node, uiSnapshot, x, y, this, overlay, sugiliteData, layoutInflater, sharedPreferences, tts, false);
+                OverlayClickedDialog overlayClickedDialog = new OverlayClickedDialog(context, node, uiSnapshot, x, y, this, overlay, sugiliteData, sharedPreferences, tts, false);
                 overlayClickedDialog.show();
             }
         } else {

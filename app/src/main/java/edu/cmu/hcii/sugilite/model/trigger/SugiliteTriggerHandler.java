@@ -31,14 +31,12 @@ public class SugiliteTriggerHandler {
     private SugiliteTriggerDao sugiliteTriggerDao;
     private SugiliteScriptDao sugiliteScriptDao;
     private List<SugiliteTrigger> allTriggers;
-    private LayoutInflater layoutInflater;
     private SugiliteData sugiliteData;
     private SharedPreferences sharedPreferences;
     private String lastTriggerRan;
 
     public SugiliteTriggerHandler(Context context, SugiliteData sugiliteData, SharedPreferences sharedPreferences){
         this.context = context;
-        this.layoutInflater = LayoutInflater.from(context);
         this.sugiliteData = sugiliteData;
         this.sharedPreferences = sharedPreferences;
         lastTriggerRan = "";
@@ -85,7 +83,7 @@ public class SugiliteTriggerHandler {
                     e.printStackTrace();
                 }
                 if (script != null) {
-                    VariableSetValueDialog variableSetValueDialog = new VariableSetValueDialog(context, layoutInflater, sugiliteData, script, sharedPreferences, SugiliteData.EXECUTION_STATE, null);
+                    VariableSetValueDialog variableSetValueDialog = new VariableSetValueDialog(context, sugiliteData, script, sharedPreferences, SugiliteData.EXECUTION_STATE, null);
                     if (script.variableNameDefaultValueMap.size() > 0) {
                         //has variable
                         sugiliteData.stringVariableMap.putAll(script.variableNameDefaultValueMap);

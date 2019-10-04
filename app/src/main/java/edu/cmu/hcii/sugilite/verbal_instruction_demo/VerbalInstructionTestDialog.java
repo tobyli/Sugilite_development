@@ -70,7 +70,7 @@ public class VerbalInstructionTestDialog implements SugiliteVoiceInterface, Sugi
     public boolean isListening = false;
 
 
-    public VerbalInstructionTestDialog(SerializableUISnapshot serializableUISnapshot, Context context, LayoutInflater inflater, SugiliteData sugiliteData, SharedPreferences sharedPreferences, TextToSpeech tts){
+    public VerbalInstructionTestDialog(SerializableUISnapshot serializableUISnapshot, Context context, SugiliteData sugiliteData, SharedPreferences sharedPreferences, TextToSpeech tts){
         this.serializableUISnapshot = serializableUISnapshot;
         this.context = context;
         if (Const.SELECTED_SPEECH_RECOGNITION_TYPE == Const.SpeechRecognitionType.ANDROID) {
@@ -83,6 +83,7 @@ public class VerbalInstructionTestDialog implements SugiliteVoiceInterface, Sugi
         this.gson = new Gson();
         this.verbalInstructionTestDialog = this;
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
+        LayoutInflater inflater = LayoutInflater.from(context);
         View dialogView = inflater.inflate(R.layout.dialog_send_server_query, null);
         mainLayout = (LinearLayout)dialogView.findViewById(R.id.layout_send_server_query);
         instructionTextbox = (EditText)dialogView.findViewById(R.id.edittext_instruction_content);

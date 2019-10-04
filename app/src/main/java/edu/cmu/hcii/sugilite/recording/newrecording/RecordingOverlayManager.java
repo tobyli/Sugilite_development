@@ -39,7 +39,6 @@ import static edu.cmu.hcii.sugilite.Const.OVERLAY_TYPE;
 public class RecordingOverlayManager {
     private Context context;
     private WindowManager windowManager;
-    private LayoutInflater layoutInflater;
     private NavigationBarUtil navigationBarUtil;
     private RecordingOverlayManager recordingOverlayManager;
     private SugiliteData sugiliteData;
@@ -56,7 +55,6 @@ public class RecordingOverlayManager {
         this.windowManager = (WindowManager) context.getSystemService(context.WINDOW_SERVICE);
         this.overlays = new ArrayList<>();
         this.overlayNodeMap = new HashMap<>();
-        this.layoutInflater = (LayoutInflater) context.getSystemService( Context.LAYOUT_INFLATER_SERVICE);
         this.navigationBarUtil = new NavigationBarUtil();
         this.sugiliteData = sugiliteData;
         this.sharedPreferences = sharedPreferences;
@@ -134,7 +132,7 @@ public class RecordingOverlayManager {
                     PumiceDemonstrationUtil.showSugiliteToast("Clicked on " + entityId, Toast.LENGTH_SHORT);
 
 
-                    RecordingOverlayOnClickPopup overlayChosenPopupDialog = new RecordingOverlayOnClickPopup(context, layoutInflater, node, sugiliteData, sharedPreferences);
+                    RecordingOverlayOnClickPopup overlayChosenPopupDialog = new RecordingOverlayOnClickPopup(context, node, sugiliteData, sharedPreferences);
                     overlayChosenPopupDialog.show();
 
                     return true;

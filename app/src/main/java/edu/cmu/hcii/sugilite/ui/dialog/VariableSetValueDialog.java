@@ -74,7 +74,7 @@ public class VariableSetValueDialog extends SugiliteDialogManager implements Abs
 
 
 
-    public VariableSetValueDialog(final Context context, LayoutInflater inflater, SugiliteData sugiliteData, SugiliteStartingBlock startingBlock, SharedPreferences sharedPreferences, int state, PumiceDialogManager pumiceDialogManager){
+    public VariableSetValueDialog(final Context context, SugiliteData sugiliteData, SugiliteStartingBlock startingBlock, SharedPreferences sharedPreferences, int state, PumiceDialogManager pumiceDialogManager){
         //constructor for SugiliteDialogManager
         super(context, sugiliteData.getTTS());
 
@@ -86,6 +86,7 @@ public class VariableSetValueDialog extends SugiliteDialogManager implements Abs
         this.state = state;
         this.pumiceDialogManager = pumiceDialogManager;
 
+        LayoutInflater inflater = LayoutInflater.from(context);
         View dialogView = inflater.inflate(R.layout.dialog_variable_set_value, null);
         LinearLayout mainLayout = (LinearLayout)dialogView.findViewById(R.id.layout_variable_set_value);
         variableDefaultValueMap = startingBlock.variableNameDefaultValueMap;
@@ -241,10 +242,13 @@ public class VariableSetValueDialog extends SugiliteDialogManager implements Abs
 
         sugiliteData.logUsageData(ScriptUsageLogManager.EXECUTE_SCRIPT, startingBlock.getScriptName());
 
+        SugiliteProgressDialog progressDialog = new SugiliteProgressDialog(context, R.string.executing_script_message);
+        progressDialog.show();
 
         Runnable delayAndRunScript = new Runnable() {
             @Override
             public void run() {
+                progressDialog.dismiss();
                 sugiliteData.runScript(startingBlock, afterExecutionOperation, afterExecutionRunnable, state);
             }
         };

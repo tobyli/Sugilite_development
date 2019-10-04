@@ -3,6 +3,7 @@ package edu.cmu.hcii.sugilite.dao;
 import android.app.AlertDialog;
 import android.content.Context;
 
+import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -146,7 +147,7 @@ public class SugiliteScriptFileDao implements SugiliteScriptDao {
             SugiliteStartingBlock block = null;
             try {
                 fin = new FileInputStream(scriptDir.getPath() + "/" + key);
-                ois = new ObjectInputStream(fin);
+                ois = new ObjectInputStream(new BufferedInputStream(fin));
                 block = (SugiliteStartingBlock) ois.readObject();
             } catch (Exception e) {
                 e.printStackTrace();

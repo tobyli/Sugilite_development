@@ -52,7 +52,7 @@ public class VerbalInstructionOverlayManager {
         this.context = context;
         this.windowManager = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
         this.overlays = new ArrayList<>();
-        this.layoutInflater = (LayoutInflater) context.getSystemService( Context.LAYOUT_INFLATER_SERVICE);
+        this.layoutInflater = LayoutInflater.from(context);
         this.navigationBarUtil = new NavigationBarUtil();
         this.sugiliteData = sugiliteData;
         this.sharedPreferences = sharedPreferences;
@@ -160,7 +160,7 @@ public class VerbalInstructionOverlayManager {
                 if (gestureDetector.onTouchEvent(event)) {
                     // gesture is clicking
                     PumiceDemonstrationUtil.showSugiliteToast("Clicked on " + entityId, Toast.LENGTH_SHORT);
-                    OverlayChosenPopupDialog overlayChosenPopupDialog = new OverlayChosenPopupDialog(context, layoutInflater, verbalInstructionOverlayManager, node,  correspondingResult, allResults, serializableUISnapshot, utterance, sugiliteData, sharedPreferences);
+                    OverlayChosenPopupDialog overlayChosenPopupDialog = new OverlayChosenPopupDialog(context, verbalInstructionOverlayManager, node,  correspondingResult, allResults, serializableUISnapshot, utterance, sugiliteData, sharedPreferences);
                     overlayChosenPopupDialog.show();
                     return true;
                 }

@@ -2,6 +2,7 @@ package edu.cmu.hcii.sugilite.ui.main;
 
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -12,6 +13,7 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
@@ -33,6 +35,7 @@ import edu.cmu.hcii.sugilite.ui.RemoteScriptDetailActivity;
 import edu.cmu.hcii.sugilite.ui.dialog.SugiliteProgressDialog;
 
 import static edu.cmu.hcii.sugilite.Const.SQL_SCRIPT_DAO;
+import static edu.cmu.hcii.sugilite.Const.dateFormat_simple;
 
 public class FragmentRemoteScriptListTab extends Fragment {
     private Activity activity;
@@ -81,22 +84,15 @@ public class FragmentRemoteScriptListTab extends Fragment {
                     if (rootView != null) {
                         final ListView remoteScriptEntryList = (ListView) rootView.findViewById(R.id.remoteScriptList);
                         List<SugiliteRepoListing> remoteScriptList = sugiliteScriptSharingHTTPQueryManager.getRepoList(true);
-                        Map<Integer, SugiliteRepoListing> listPositionRepoListingMap = new HashMap<>();
-                        List<String> remoteScriptReadableNames = new ArrayList<>();
-                        for (SugiliteRepoListing repoListing : remoteScriptList) {
-                            remoteScriptReadableNames.add(PumiceDemonstrationUtil.removeScriptExtension(repoListing.getTitle()));
-                            listPositionRepoListingMap.put(remoteScriptReadableNames.size() - 1, repoListing);
-                        }
 
                         SugiliteData.runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
-                                remoteScriptEntryList.setAdapter(new ArrayAdapter<>(activity, android.R.layout.simple_list_item_1, remoteScriptReadableNames));
+                                remoteScriptEntryList.setAdapter(new SugiliteRepoListingAdapter(activity, R.layout.listitem_sugilite_repo_listing, remoteScriptList));
                                 remoteScriptEntryList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                                     @Override
                                     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-
-                                        SugiliteRepoListing repoListing = listPositionRepoListingMap.get((int) id);
+                                        SugiliteRepoListing repoListing = (SugiliteRepoListing) parent.getItemAtPosition(position);
                                         if (repoListing != null) {
                                             final Intent scriptDetailIntent = new Intent(activity, RemoteScriptDetailActivity.class);
                                             scriptDetailIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
@@ -119,6 +115,31 @@ public class FragmentRemoteScriptListTab extends Fragment {
         }).start();
 
         //TODO: enable context menu for remote script entries
+    }
+
+    public class SugiliteRepoListingAdapter extends ArrayAdapter{
+        private final int resourceId;
+
+        public SugiliteRepoListingAdapter(Context context, int textViewResourceId, List<SugiliteRepoListing> objects) {
+            super(context, textViewResourceId, objects);
+            resourceId = textViewResourceId;
+        }
+        @Override
+        public View getView(int position, View convertView, ViewGroup parent) {
+            SugiliteRepoListing repoListing = (SugiliteRepoListing) getItem(position);
+            View view = LayoutInflater.from(getContext()).inflate(resourceId, null);
+            TextView scriptName = (TextView) view.findViewById(R.id.scriptName);
+            TextView scriptAuthor = (TextView) view.findViewById(R.id.authorName);
+            TextView scriptTimeStamp = (TextView) view.findViewById(R.id.timeStamp);
+            scriptName.setText(PumiceDemonstrationUtil.removeScriptExtension(repoListing.getTitle()));
+            if (repoListing.getAuthor() != null) {
+                scriptAuthor.setText(repoListing.getAuthor());
+            }
+            if (repoListing.getUploadedTimeStamp() != null) {
+                scriptTimeStamp.setText(dateFormat_simple.format(repoListing.getUploadedTimeStamp()));
+            }
+            return view;
+        }
     }
 
 

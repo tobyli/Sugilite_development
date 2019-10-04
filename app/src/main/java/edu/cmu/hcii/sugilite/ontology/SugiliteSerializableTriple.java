@@ -9,26 +9,23 @@ import java.util.Objects;
  * @time 10:42 PM
  */
 public class SugiliteSerializableTriple implements Serializable{
-    private transient SugiliteSerializableEntity subject;
-    private transient SugiliteRelation predicate;
-    private transient SugiliteSerializableEntity object;
 
     private String subjectId;
+    private String objectId;
 //    private String objectId;
     // the id if it's a node, else: the actual string value
     private String objectStringValue;
     private String predicateStringValue;
 
-    public SugiliteSerializableTriple(String subjectId, String objectStringValue, String predicateStringValue){
+    public SugiliteSerializableTriple(String subjectId, String objectId, String objectStringValue, String predicateStringValue){
         this.subjectId = subjectId;
+        this.objectId = objectId;
         this.objectStringValue = objectStringValue;
         this.predicateStringValue = predicateStringValue;
     }
 
     public SugiliteSerializableTriple(SugiliteTriple t){
-        this.subject = new SugiliteSerializableEntity(t.getSubject());
-        this.predicate = t.getPredicate();
-        this.object = new SugiliteSerializableEntity(t.getObject());
+        this.objectId = "@" + t.getObjectId();
         this.subjectId = "@" + t.getSubjectId();
 
         if(t.getObjectStringValue() != null) {
@@ -42,9 +39,7 @@ public class SugiliteSerializableTriple implements Serializable{
         this.predicateStringValue = t.getPredicateStringValue();
     }
 
-    public SugiliteRelation getPredicate() {
-        return predicate;
-    }
+
 
     public String getPredicateStringValue() {
         return predicateStringValue;
@@ -58,42 +53,16 @@ public class SugiliteSerializableTriple implements Serializable{
         return objectStringValue;
     }
 
+    public String getObjectId() {
+        return objectId;
+    }
+
     @Override
     public boolean equals(Object obj) {
         if(obj == this){
             return true;
         }
         if(obj instanceof SugiliteSerializableTriple){
-            if(((SugiliteSerializableTriple) obj).subject != null && this.subject == null){
-                return false;
-            }
-            if(((SugiliteSerializableTriple) obj).subject == null && this.subject != null){
-                return false;
-            }
-            if(((SugiliteSerializableTriple) obj).subject != null && this.subject != null && (!((SugiliteSerializableTriple) obj).subject.equals(this.subject))){
-                return false;
-            }
-
-            if(((SugiliteSerializableTriple) obj).predicate != null && this.predicate == null){
-                return false;
-            }
-            if(((SugiliteSerializableTriple) obj).predicate == null && this.predicate != null){
-                return false;
-            }
-            if(((SugiliteSerializableTriple) obj).predicate != null && this.predicate != null && (!((SugiliteSerializableTriple) obj).predicate.equals(this.predicate))){
-                return false;
-            }
-
-            if(((SugiliteSerializableTriple) obj).object != null && this.object == null){
-                return false;
-            }
-            if(((SugiliteSerializableTriple) obj).object == null && this.object != null){
-                return false;
-            }
-            if(((SugiliteSerializableTriple) obj).object != null && this.object != null && (!((SugiliteSerializableTriple) obj).object.equals(this.object))){
-                return false;
-            }
-
             if(((SugiliteSerializableTriple) obj).subjectId != null && this.subjectId == null){
                 return false;
             }
@@ -133,9 +102,7 @@ public class SugiliteSerializableTriple implements Serializable{
 
     @Override
     public int hashCode() {
-        return Objects.hash(subject == null ? null : subject.getEntityValue(),
-                subject == null ? null : predicate.getRelationId(),
-                object == null ? null : object.getEntityValue(),
+        return Objects.hash(
                 subjectId == null ? null : subjectId,
                 predicateStringValue == null ? null : predicateStringValue,
                 objectStringValue == null ? null : objectStringValue);

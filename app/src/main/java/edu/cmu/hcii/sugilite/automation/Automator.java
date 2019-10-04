@@ -68,7 +68,6 @@ public class Automator {
     private VariableHelper variableHelper;
     //private TextToSpeech tts;
     private SugiliteScriptDao sugiliteScriptDao;
-    private LayoutInflater layoutInflater;
     private SharedPreferences sharedPreferences;
     private TextToSpeech tts = null;
     private SugiliteScreenshotManager screenshotManager;
@@ -85,7 +84,6 @@ public class Automator {
             this.sugiliteScriptDao = new SugiliteScriptSQLDao(context);
         else
             this.sugiliteScriptDao = new SugiliteScriptFileDao(context, sugiliteData);
-        this.layoutInflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         this.sharedPreferences = sharedPreferences;
 
         this.tts = tts;

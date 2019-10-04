@@ -124,7 +124,7 @@ public class LocalScriptDetailActivity extends ScriptDetailActivity implements S
                 .setPositiveButton("Run", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int which) {
                         //clear the queue first before adding new instructions
-                        PumiceDemonstrationUtil.executeScript(context, serviceStatusManager, script, sugiliteData, getLayoutInflater(), sharedPreferences, null, null, null);
+                        PumiceDemonstrationUtil.executeScript(context, serviceStatusManager, script, sugiliteData, sharedPreferences, null, null, null);
                     }
                 })
                 .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
@@ -307,7 +307,7 @@ public class LocalScriptDetailActivity extends ScriptDetailActivity implements S
                             loadOperationList(script);
                         }
                     };
-                    RecordingPopUpDialog recordingPopUpDialog = new RecordingPopUpDialog(sugiliteData, this, script, sharedPreferences, (SugiliteOperationBlock)currentBlock, LayoutInflater.from(getApplicationContext()), RecordingPopUpDialog.TRIGGERED_BY_EDIT, callback);
+                    RecordingPopUpDialog recordingPopUpDialog = new RecordingPopUpDialog(sugiliteData, this, script, sharedPreferences, (SugiliteOperationBlock)currentBlock, RecordingPopUpDialog.TRIGGERED_BY_EDIT, callback);
                     sugiliteData.initiatedExternally = false;
                     sugiliteData.logUsageData(ScriptUsageLogManager.EDIT_SCRIPT, scriptName);
                     recordingPopUpDialog.show(true);
@@ -766,7 +766,7 @@ public class LocalScriptDetailActivity extends ScriptDetailActivity implements S
                     }).show();
         }
         else {
-            VariableSetValueDialog variableSetValueDialog = new VariableSetValueDialog(this, getLayoutInflater(), sugiliteData, script, sharedPreferences, SugiliteData.REGULAR_DEBUG_STATE, pumiceDialogManager);
+            VariableSetValueDialog variableSetValueDialog = new VariableSetValueDialog(this, sugiliteData, script, sharedPreferences, SugiliteData.REGULAR_DEBUG_STATE, pumiceDialogManager);
 
             //execute the script without showing the dialog
             variableSetValueDialog.executeScript(null, pumiceDialogManager, null);

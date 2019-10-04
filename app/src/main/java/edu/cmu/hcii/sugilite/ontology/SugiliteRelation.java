@@ -5,6 +5,8 @@ import java.util.HashMap;
 import java.util.Objects;
 import java.util.Map;
 
+import edu.cmu.hcii.sugilite.sharing.model.StringInContext;
+
 /**
  * @author toby
  * @date 9/25/17
@@ -113,6 +115,16 @@ public class SugiliteRelation implements Serializable {
 
 
     public static final Map<String, SugiliteRelation> stringRelationMap;
+
+
+    public static boolean hasRelationWithName(String name) {
+        return stringRelationMap.containsKey(name);
+    }
+
+    public static SugiliteRelation getRelationFromString(String name) {
+        return stringRelationMap.get(name);
+    }
+
     static {
         stringRelationMap = new HashMap<String, SugiliteRelation>();
         stringRelationMap.put("HAS_CLASS_NAME", HAS_CLASS_NAME);

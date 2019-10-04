@@ -67,7 +67,7 @@ public class FragmentTriggerListTab extends Fragment {
             @Override
             public void onClick(final View v) {
                 try {
-                    new AddTriggerDialog(activity, getLayoutInflater(), sugiliteData, sugiliteScriptDao, activity.getPackageManager(), fragmentTriggerListTab).show();
+                    new AddTriggerDialog(activity, sugiliteData, sugiliteScriptDao, activity.getPackageManager(), fragmentTriggerListTab).show();
                 }
                 catch (Exception e){
                     e.printStackTrace();
@@ -118,6 +118,7 @@ public class FragmentTriggerListTab extends Fragment {
             if (item.getItemId() == ITEM_DELETE) {
                 if (info.targetView instanceof TextView && ((TextView) info.targetView).getText() != null) {
                     sugiliteTriggerDao.delete(((TextView) info.targetView).getText().toString());
+                    PumiceDemonstrationUtil.showSugiliteAlertDialog(String.format("Successfully deleted the trigger \"%s\"!", ((TextView) info.targetView).getText().toString()));
                     setUpTriggerList();
                 }
                 return super.onContextItemSelected(item);
@@ -159,13 +160,18 @@ public class FragmentTriggerListTab extends Fragment {
     private void triggerOnClick (String triggerName) {
         SugiliteTrigger trigger = triggerDao.read(triggerName);
         try {
-            AddTriggerDialog triggerDialog = new AddTriggerDialog(activity, getLayoutInflater(), sugiliteData, sugiliteScriptDao, activity.getPackageManager(), fragmentTriggerListTab);
+            AddTriggerDialog triggerDialog = new AddTriggerDialog(activity, sugiliteData, sugiliteScriptDao, activity.getPackageManager(), fragmentTriggerListTab);
+            String errorMsg = null;
             try {
                 triggerDialog.loadFromExistingTrigger(trigger);
             } catch (Exception e) {
-                PumiceDemonstrationUtil.showSugiliteToast(e.getMessage(), Toast.LENGTH_SHORT);
+                errorMsg = e.getMessage();
+                //PumiceDemonstrationUtil.showSugiliteToast(e.getMessage(), Toast.LENGTH_SHORT);
             } finally {
                 triggerDialog.show();
+                if (errorMsg != null) {
+                    PumiceDemonstrationUtil.showSugiliteAlertDialog(errorMsg);
+                }
             }
         } catch (Exception e) {
             e.printStackTrace();

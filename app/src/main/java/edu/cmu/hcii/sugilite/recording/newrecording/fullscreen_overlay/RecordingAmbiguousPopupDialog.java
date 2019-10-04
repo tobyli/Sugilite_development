@@ -96,7 +96,7 @@ public class RecordingAmbiguousPopupDialog extends SugiliteDialogManager impleme
     private SugiliteDialogSimpleState resultWontMatchState = new SugiliteDialogSimpleState("RESULT_WONT_MATCH_STATE", this);
 
 
-    public RecordingAmbiguousPopupDialog(Context context, List<Pair<OntologyQuery, Double>> queryScoreList, SugiliteAvailableFeaturePack featurePack, SugiliteBlockBuildingHelper blockBuildingHelper, LayoutInflater layoutInflater, Runnable clickRunnable, UISnapshot uiSnapshot, SugiliteEntity<Node> actualClickedNode, SugiliteData sugiliteData, SharedPreferences sharedPreferences, TextToSpeech tts, int errorCount) {
+    public RecordingAmbiguousPopupDialog(Context context, List<Pair<OntologyQuery, Double>> queryScoreList, SugiliteAvailableFeaturePack featurePack, SugiliteBlockBuildingHelper blockBuildingHelper, Runnable clickRunnable, UISnapshot uiSnapshot, SugiliteEntity<Node> actualClickedNode, SugiliteData sugiliteData, SharedPreferences sharedPreferences, TextToSpeech tts, int errorCount) {
         super(context, tts);
         this.queryScoreList = queryScoreList;
         this.featurePack = featurePack;
@@ -110,7 +110,7 @@ public class RecordingAmbiguousPopupDialog extends SugiliteDialogManager impleme
         this.actualClickedNode = actualClickedNode;
         this.blockBuildingHelper = blockBuildingHelper;
         this.clickRunnable = clickRunnable;
-        this.layoutInflater = layoutInflater;
+        this.layoutInflater = LayoutInflater.from(context);
         this.sugiliteData = sugiliteData;
         this.sharedPreferences = sharedPreferences;
         this.gson = new Gson();
@@ -416,7 +416,7 @@ public class RecordingAmbiguousPopupDialog extends SugiliteDialogManager impleme
             //check if this has filteredNodes.size() = 1 -- whether need to show the followup question dialog
             if(matchingQueriesMatchedNodesList.get(0).second.size() > 1) {
                 //prompt for further generalization
-                FollowUpQuestionDialog followUpQuestionDialog = new FollowUpQuestionDialog(context, tts, query, uiSnapshot, actualClickedNode, matchingQueriesMatchedNodesList.get(0).second, featurePack, queryScoreList, blockBuildingHelper, layoutInflater, clickRunnable, sugiliteData, sharedPreferences, 0);
+                FollowUpQuestionDialog followUpQuestionDialog = new FollowUpQuestionDialog(context, tts, query, uiSnapshot, actualClickedNode, matchingQueriesMatchedNodesList.get(0).second, featurePack, queryScoreList, blockBuildingHelper, clickRunnable, sugiliteData, sharedPreferences, 0);
                 followUpQuestionDialog.setNumberOfMatchedNodes(matchingQueriesMatchedNodesList.get(0).second.size());
                 followUpQuestionDialog.show();
             } else {
@@ -433,7 +433,7 @@ public class RecordingAmbiguousPopupDialog extends SugiliteDialogManager impleme
         }
 
         else if(matchingQueriesMatchedNodesList.size() > 1){
-            ChooseParsingDialog chooseParsingDialog = new ChooseParsingDialog(context, matchingQueriesMatchedNodesList.subList(0, Integer.min(matchingQueriesMatchedNodesList.size(), MAX_QUERY_CANDIDATE_NUMBER)), blockBuildingHelper, layoutInflater, clickRunnable, uiSnapshot, actualClickedNode, sugiliteData, sharedPreferences, tts, featurePack, queryScoreList);
+            ChooseParsingDialog chooseParsingDialog = new ChooseParsingDialog(context, matchingQueriesMatchedNodesList.subList(0, Integer.min(matchingQueriesMatchedNodesList.size(), MAX_QUERY_CANDIDATE_NUMBER)), blockBuildingHelper, clickRunnable, uiSnapshot, actualClickedNode, sugiliteData, sharedPreferences, tts, featurePack, queryScoreList);
             chooseParsingDialog.show();
             dialog.dismiss();
         }
@@ -470,7 +470,7 @@ public class RecordingAmbiguousPopupDialog extends SugiliteDialogManager impleme
     }
 
     private void showConfirmationDialog(SugiliteOperationBlock block, SugiliteAvailableFeaturePack featurePack, List<Pair<OntologyQuery, Double>> queryScoreList, Runnable clickRunnable) {
-        SugiliteRecordingConfirmationDialog sugiliteRecordingConfirmationDialog = new SugiliteRecordingConfirmationDialog(context, block, featurePack, queryScoreList, clickRunnable, blockBuildingHelper, layoutInflater, uiSnapshot, actualClickedNode, sugiliteData, sharedPreferences, tts);
+        SugiliteRecordingConfirmationDialog sugiliteRecordingConfirmationDialog = new SugiliteRecordingConfirmationDialog(context, block, featurePack, queryScoreList, clickRunnable, blockBuildingHelper, uiSnapshot, actualClickedNode, sugiliteData, sharedPreferences, tts);
         sugiliteRecordingConfirmationDialog.show();
     }
 

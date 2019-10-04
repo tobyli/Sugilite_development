@@ -1,5 +1,7 @@
 package edu.cmu.hcii.sugilite.sharing.model;
 
+import java.util.Date;
+
 import javax.annotation.Nullable;
 
 /**
@@ -11,15 +13,17 @@ public class SugiliteRepoListing {
     private int id;
     private String title;
     private String author;
+    private Date uploadedTimeStamp;
 
-    public SugiliteRepoListing (int id, String title, @Nullable String author) {
+    public SugiliteRepoListing (int id, String title, @Nullable String author, @Nullable Date uploadedTimeStamp) {
         this.id = id;
         this.title = title;
         this.author = author;
+        this.uploadedTimeStamp = uploadedTimeStamp;
     }
 
     public SugiliteRepoListing (int id, String title) {
-       this(id, title, null);
+       this(id, title, null, null);
     }
 
 
@@ -35,6 +39,10 @@ public class SugiliteRepoListing {
         this.author = author;
     }
 
+    public void setUploadedTimeStamp(Date uploadedTimeStamp) {
+        this.uploadedTimeStamp = uploadedTimeStamp;
+    }
+
     public int getId() {
         return id;
     }
@@ -45,5 +53,9 @@ public class SugiliteRepoListing {
 
     public String getTitle() {
         return title;
+    }
+
+    public Date getUploadedTimeStamp() {
+        return uploadedTimeStamp;
     }
 }

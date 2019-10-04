@@ -63,7 +63,7 @@ public class AddTriggerDialog implements AbstractSugiliteDialog {
     private String originalTriggerName = null;
 
 
-    public AddTriggerDialog(final Context context, LayoutInflater inflater, SugiliteData sugiliteData, SugiliteScriptDao sugiliteScriptDao, PackageManager pm, Fragment triggerListTab) throws Exception{
+    public AddTriggerDialog(final Context context, SugiliteData sugiliteData, SugiliteScriptDao sugiliteScriptDao, PackageManager pm, Fragment triggerListTab) throws Exception{
         this.context = context;
         this.sugiliteData = sugiliteData;
         this.sugiliteScriptDao = sugiliteScriptDao;
@@ -72,6 +72,8 @@ public class AddTriggerDialog implements AbstractSugiliteDialog {
         }
         sugiliteTriggerDao = new SugiliteTriggerDao(context);
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
+
+        LayoutInflater inflater = LayoutInflater.from(context);
         View dialogView = inflater.inflate(R.layout.dialog_add_trigger, null);
 
         packages = pm.getInstalledApplications(PackageManager.GET_META_DATA);
@@ -261,26 +263,26 @@ public class AddTriggerDialog implements AbstractSugiliteDialog {
             if (scriptReadableNameIndexMap.containsKey(trigger.getScriptName().replace(".SugiliteScript", ""))) {
                 chooseScriptTriggerSpinner.setSelection(scriptReadableNameIndexMap.get(trigger.getScriptName().replace(".SugiliteScript", "")));
             } else {
-                throw new Exception("Can't find the script: " + trigger.getScriptName().replace(".SugiliteScript", ""));
+                throw new Exception("Can't find the script to trigger: " + trigger.getScriptName().replace(".SugiliteScript", ""));
             }
 
             if (packageNameAppNameMap.containsKey(trigger.getAppPackageName()) && appNameIndexMap.containsKey(packageNameAppNameMap.get(trigger.getAppPackageName()))) {
                 chooseTriggerAppSpinner.setSelection(appNameIndexMap.get(packageNameAppNameMap.get(trigger.getAppPackageName())));
             }
             else {
-                throw new Exception("Can't find the trigger app: " + trigger.getAppPackageName());
+                throw new Exception("Can't find the triggering app: " + trigger.getAppPackageName());
             }
         } else if (trigger.getType() == SugiliteTrigger.NOTIFICATION_TRIGGER) {
             triggerTypeSpinner.setSelection(1);
             if (scriptReadableNameIndexMap.containsKey(trigger.getScriptName().replace(".SugiliteScript", ""))) {
                 chooseScriptTriggerSpinner.setSelection(scriptReadableNameIndexMap.get(trigger.getScriptName().replace(".SugiliteScript", "")));
             } else {
-                throw new Exception("Can't find the script: " + trigger.getScriptName().replace(".SugiliteScript", ""));
+                throw new Exception("Can't find the script to trigger: " + trigger.getScriptName().replace(".SugiliteScript", ""));
             }
             if (packageNameAppNameMap.containsKey(trigger.getAppPackageName()) && appNameIndexMap.containsKey(packageNameAppNameMap.get(trigger.getAppPackageName()))) {
                 chooseNotificationTriggerAppSpinner.setSelection(appNameIndexMap.get(packageNameAppNameMap.get(trigger.getAppPackageName())));
             } else {
-                throw new Exception("Can't find the trigger app: " + trigger.getAppPackageName());
+                throw new Exception("Can't find the triggering app: " + trigger.getAppPackageName());
             }
             notificationTriggerContentEditText.setText(trigger.getTriggerContent());
         }

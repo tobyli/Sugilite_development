@@ -47,13 +47,13 @@ public class SelectElementWithTextDialog implements AbstractSugiliteDialog {
     private WindowManager windowManager;
 
 
-    public SelectElementWithTextDialog(final Context context, final LayoutInflater inflater, final SugiliteData sugiliteData){
+    public SelectElementWithTextDialog(final Context context, final SugiliteData sugiliteData){
         if(Const.KEEP_ALL_TEXT_LABEL_LIST == false){
             PumiceDemonstrationUtil.showSugiliteToast("Getting Text Selection Failed - Feature is Turned off!", Toast.LENGTH_SHORT);
             return;
         }
         this.context = context;
-        this.inflater = inflater;
+        this.inflater = LayoutInflater.from(context);;
         this.sugiliteData = sugiliteData;
         windowManager = (WindowManager) context.getSystemService(context.WINDOW_SERVICE);
         gestureOverlayView = new GestureOverlayView(context);

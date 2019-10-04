@@ -108,7 +108,7 @@ public class PumiceDemonstrationUtil {
      * @param sharedPreferences
      * @param dialogManager
      */
-    public static void executeScript(Activity activityContext, ServiceStatusManager serviceStatusManager, SugiliteStartingBlock script, SugiliteData sugiliteData, LayoutInflater layoutInflater, SharedPreferences sharedPreferences, @Nullable PumiceDialogManager dialogManager, @Nullable SugiliteBlock afterExexecutionOperation, @Nullable Runnable afterExecutionRunnable){
+    public static void executeScript(Activity activityContext, ServiceStatusManager serviceStatusManager, SugiliteStartingBlock script, SugiliteData sugiliteData, SharedPreferences sharedPreferences, @Nullable PumiceDialogManager dialogManager, @Nullable SugiliteBlock afterExexecutionOperation, @Nullable Runnable afterExecutionRunnable){
         if(!serviceStatusManager.isRunning()){
             //prompt the user if the accessiblity service is not active
             activityContext.runOnUiThread(() -> {
@@ -143,7 +143,7 @@ public class PumiceDemonstrationUtil {
             final PumiceDialogManager finalDialogManager = dialogManager;
 
             activityContext.runOnUiThread(() -> {
-                VariableSetValueDialog variableSetValueDialog = new VariableSetValueDialog(activityContext, layoutInflater, sugiliteData, script, sharedPreferences, SugiliteData.EXECUTION_STATE, finalDialogManager);
+                VariableSetValueDialog variableSetValueDialog = new VariableSetValueDialog(activityContext, sugiliteData, script, sharedPreferences, SugiliteData.EXECUTION_STATE, finalDialogManager);
                 if(script.variableNameDefaultValueMap.size() > 0) {
 
                     //has variable

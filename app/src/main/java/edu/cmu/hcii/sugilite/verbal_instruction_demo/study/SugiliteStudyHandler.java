@@ -38,16 +38,14 @@ import edu.cmu.hcii.sugilite.verbal_instruction_demo.speech.SugiliteVoiceRecogni
 public class SugiliteStudyHandler {
     private boolean toRecordNextOperation = false;
     private Context context;
-    private LayoutInflater layoutInflater;
     private Gson gson;
     private VerbalInstructionIconManager iconManager;
     private SugiliteAccessibilityService accessibilityService;
     private SugiliteVoiceRecognitionListener sugiliteVoiceRecognitionListener;
     private SugiliteStudyHandler sugiliteStudyHandler;
 
-    public SugiliteStudyHandler(Context context, LayoutInflater layoutInflater, SugiliteAccessibilityService accessibilityService, TextToSpeech tts){
+    public SugiliteStudyHandler(Context context, SugiliteAccessibilityService accessibilityService, TextToSpeech tts){
         this.context = context;
-        this.layoutInflater = layoutInflater;
         this.accessibilityService = accessibilityService;
         if (Const.SELECTED_SPEECH_RECOGNITION_TYPE == Const.SpeechRecognitionType.ANDROID) {
             this.sugiliteVoiceRecognitionListener = new SugiliteAndroidAPIVoiceRecognitionListener(context, null, tts);
@@ -82,7 +80,7 @@ public class SugiliteStudyHandler {
             SugiliteData.runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    SugiliteVerbalInstructionStudyDialog verbalInstructionTestDialog = new SugiliteVerbalInstructionStudyDialog(serializableUISnapshot, serializableEntity, sugiliteStudyHandler, context, layoutInflater, sugiliteVoiceRecognitionListener, path, fileName);
+                    SugiliteVerbalInstructionStudyDialog verbalInstructionTestDialog = new SugiliteVerbalInstructionStudyDialog(serializableUISnapshot, serializableEntity, sugiliteStudyHandler, context, sugiliteVoiceRecognitionListener, path, fileName);
                     verbalInstructionTestDialog.show();
                 }
             });

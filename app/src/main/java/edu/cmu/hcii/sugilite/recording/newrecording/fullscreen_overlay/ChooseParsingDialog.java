@@ -65,11 +65,11 @@ public class ChooseParsingDialog extends SugiliteDialogManager {
     List<Pair<OntologyQuery, Double>> queryScoreList;
     SugiliteAvailableFeaturePack featurePack;
 
-    public ChooseParsingDialog(Context context, List<Pair<OntologyQuery, List<Node>>> matchingQueriesMatchedNodesList, SugiliteBlockBuildingHelper blockBuildingHelper, LayoutInflater layoutInflater, Runnable clickRunnable, UISnapshot uiSnapshot, SugiliteEntity<Node> actualClickedNode, SugiliteData sugiliteData, SharedPreferences sharedPreferences, TextToSpeech tts, SugiliteAvailableFeaturePack featurePack, List<Pair<OntologyQuery, Double>> queryScoreList){
+    public ChooseParsingDialog(Context context, List<Pair<OntologyQuery, List<Node>>> matchingQueriesMatchedNodesList, SugiliteBlockBuildingHelper blockBuildingHelper, Runnable clickRunnable, UISnapshot uiSnapshot, SugiliteEntity<Node> actualClickedNode, SugiliteData sugiliteData, SharedPreferences sharedPreferences, TextToSpeech tts, SugiliteAvailableFeaturePack featurePack, List<Pair<OntologyQuery, Double>> queryScoreList){
         super(context, tts);
         this.context = context;
         this.blockBuildingHelper = blockBuildingHelper;
-        this.layoutInflater = layoutInflater;
+        this.layoutInflater = LayoutInflater.from(context);
         this.clickableRunnable = clickRunnable;
         this.uiSnapshot = uiSnapshot;
         this.actualClickedNode = actualClickedNode;
@@ -145,7 +145,7 @@ public class ChooseParsingDialog extends SugiliteDialogManager {
                     OntologyQuery query = matchingQueriesMatchedNodesList.get(position).first;
                     if(matchingQueriesMatchedNodesList.get(position).second.size() > 1) {
                         //prompt for further generalization
-                        FollowUpQuestionDialog followUpQuestionDialog = new FollowUpQuestionDialog(context, tts, query, uiSnapshot, actualClickedNode, matchingQueriesMatchedNodesList.get(0).second, featurePack, queryScoreList, blockBuildingHelper, layoutInflater, clickRunnable, sugiliteData, sharedPreferences, 0);
+                        FollowUpQuestionDialog followUpQuestionDialog = new FollowUpQuestionDialog(context, tts, query, uiSnapshot, actualClickedNode, matchingQueriesMatchedNodesList.get(0).second, featurePack, queryScoreList, blockBuildingHelper, clickRunnable, sugiliteData, sharedPreferences, 0);
                         followUpQuestionDialog.setNumberOfMatchedNodes(matchingQueriesMatchedNodesList.get(0).second.size());
                         followUpQuestionDialog.show();
                     } else {
@@ -156,7 +156,7 @@ public class ChooseParsingDialog extends SugiliteDialogManager {
                         SugiliteOperationBlock block = blockBuildingHelper.getUnaryOperationBlockWithOntologyQueryFromQuery(query.clone(), SugiliteOperation.CLICK, featurePack);
 
                         //construct a confirmation dialog from the block
-                        SugiliteRecordingConfirmationDialog sugiliteRecordingConfirmationDialog = new SugiliteRecordingConfirmationDialog(context, block, featurePack, queryScoreList, clickRunnable, blockBuildingHelper, layoutInflater, uiSnapshot, actualClickedNode, sugiliteData, sharedPreferences, tts);
+                        SugiliteRecordingConfirmationDialog sugiliteRecordingConfirmationDialog = new SugiliteRecordingConfirmationDialog(context, block, featurePack, queryScoreList, clickRunnable, blockBuildingHelper, uiSnapshot, actualClickedNode, sugiliteData, sharedPreferences, tts);
                         sugiliteRecordingConfirmationDialog.show();
                     }
 

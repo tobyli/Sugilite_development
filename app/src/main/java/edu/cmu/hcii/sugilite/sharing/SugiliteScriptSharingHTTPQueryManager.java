@@ -28,6 +28,7 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -167,12 +168,21 @@ public class SugiliteScriptSharingHTTPQueryManager {
                     if (!o.get("author").isJsonNull()) {
                         listing.setAuthor(o.get("author").getAsString());
                     }
+                    if (!o.get("timestamp").isJsonNull()) {
+                        try {
+                            double epochTime = o.get("timestamp").getAsDouble();
+                            Date timeStampDate = new Date((long) (epochTime * 1000));
+                            listing.setUploadedTimeStamp(timeStampDate);
+                        } catch (Exception e2) {
+                            e2.printStackTrace();
+                        }
+                    }
                     result.add(listing);
                 }
             }
 
             if (waitForDebug) {
-                Thread.sleep(1000);
+                Thread.sleep(500);
             }
 
             return result;

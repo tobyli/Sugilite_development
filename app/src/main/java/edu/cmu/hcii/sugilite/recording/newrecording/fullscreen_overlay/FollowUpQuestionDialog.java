@@ -131,12 +131,12 @@ public class FollowUpQuestionDialog extends SugiliteDialogManager implements Sug
 
     private AlertDialog dialog;
 
-    public FollowUpQuestionDialog(Context context, TextToSpeech tts, OntologyQuery initialQuery, UISnapshot uiSnapshot, SugiliteEntity<Node> actualClickedNode, List<Node> matchedNodes, SugiliteAvailableFeaturePack featurePack, List<Pair<OntologyQuery, Double>> queryScoreList, SugiliteBlockBuildingHelper blockBuildingHelper, LayoutInflater layoutInflater, Runnable clickRunnable, SugiliteData sugiliteData, SharedPreferences sharedPreferences, int errorCount){
+    public FollowUpQuestionDialog(Context context, TextToSpeech tts, OntologyQuery initialQuery, UISnapshot uiSnapshot, SugiliteEntity<Node> actualClickedNode, List<Node> matchedNodes, SugiliteAvailableFeaturePack featurePack, List<Pair<OntologyQuery, Double>> queryScoreList, SugiliteBlockBuildingHelper blockBuildingHelper, Runnable clickRunnable, SugiliteData sugiliteData, SharedPreferences sharedPreferences, int errorCount){
         super(context, tts);
         this.previousQuery = null;
         this.currentQuery = initialQuery;
         this.clickRunnable = clickRunnable;
-        this.layoutInflater = layoutInflater;
+        this.layoutInflater = LayoutInflater.from(context);
         this.uiSnapshot = uiSnapshot;
         this.serializableUISnapshot = new SerializableUISnapshot(uiSnapshot);
         this.sugiliteVerbalInstructionHTTPQueryManager = SugiliteVerbalInstructionHTTPQueryManager.getInstance(context);
@@ -331,7 +331,7 @@ public class FollowUpQuestionDialog extends SugiliteDialogManager implements Sug
     private void backButtonOnClick(){
         if(previousQuery != null) {
             //go back to the followup question dialog with the previous query
-            FollowUpQuestionDialog followUpQuestionDialog = new FollowUpQuestionDialog(context, tts, previousQuery, uiSnapshot, actualClickedNode, previousMatchedNodes, featurePack, queryScoreList, blockBuildingHelper, layoutInflater, clickRunnable, sugiliteData, sharedPreferences, 0);
+            FollowUpQuestionDialog followUpQuestionDialog = new FollowUpQuestionDialog(context, tts, previousQuery, uiSnapshot, actualClickedNode, previousMatchedNodes, featurePack, queryScoreList, blockBuildingHelper, clickRunnable, sugiliteData, sharedPreferences, 0);
             dialog.dismiss();
             if(previousMatchedNodes != null && previousMatchedNodes.size() > 1) {
                 followUpQuestionDialog.setNumberOfMatchedNodes(previousMatchedNodes.size());
@@ -343,7 +343,7 @@ public class FollowUpQuestionDialog extends SugiliteDialogManager implements Sug
         else{
             //go back to the original ambiguous popup dialog
             dialog.dismiss();
-            RecordingAmbiguousPopupDialog ambiguousPopupDialog = new RecordingAmbiguousPopupDialog(context, queryScoreList, featurePack, blockBuildingHelper, layoutInflater, clickRunnable, uiSnapshot, actualClickedNode, sugiliteData, sharedPreferences, tts, 0);
+            RecordingAmbiguousPopupDialog ambiguousPopupDialog = new RecordingAmbiguousPopupDialog(context, queryScoreList, featurePack, blockBuildingHelper, clickRunnable, uiSnapshot, actualClickedNode, sugiliteData, sharedPreferences, tts, 0);
             ambiguousPopupDialog.show();
         }
     }
@@ -786,7 +786,7 @@ public class FollowUpQuestionDialog extends SugiliteDialogManager implements Sug
     }
 
     private void showConfirmationDialog(SugiliteOperationBlock block, SugiliteAvailableFeaturePack featurePack, List<Pair<OntologyQuery, Double>> queryScoreList, Runnable clickRunnable) {
-        SugiliteRecordingConfirmationDialog sugiliteRecordingConfirmationDialog = new SugiliteRecordingConfirmationDialog(context, block, featurePack, queryScoreList, clickRunnable, blockBuildingHelper, layoutInflater, uiSnapshot, actualClickedNode, sugiliteData, sharedPreferences, tts);
+        SugiliteRecordingConfirmationDialog sugiliteRecordingConfirmationDialog = new SugiliteRecordingConfirmationDialog(context, block, featurePack, queryScoreList, clickRunnable, blockBuildingHelper, uiSnapshot, actualClickedNode, sugiliteData, sharedPreferences, tts);
         sugiliteRecordingConfirmationDialog.show();
     }
 }

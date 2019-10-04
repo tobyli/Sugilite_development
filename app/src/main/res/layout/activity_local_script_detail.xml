@@ -21,17 +21,6 @@
             android:id="@+id/operation_list_view"/>
 
     </ScrollView>
-
-    <Button
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Back"
-        android:id="@+id/script_detail_cancel_button"
-        android:layout_alignParentBottom="true"
-        android:layout_centerHorizontal="true"
-        android:onClick="scriptDetailCancelButtonOnClick"
-        android:nestedScrollingEnabled="false" />
-
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -47,9 +36,23 @@
         android:text="Delete"
         android:id="@+id/script_detail_delete_button"
         android:layout_alignParentBottom="true"
-        android:layout_alignParentEnd="true"
+        android:layout_centerHorizontal="true"
         android:backgroundTint="#C0392B"
         android:onClick="scriptDetailDeleteButtonOnClick" />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Back"
+        android:id="@+id/script_detail_cancel_button"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentEnd="true"
+        android:onClick="scriptDetailCancelButtonOnClick"
+        android:nestedScrollingEnabled="false" />
+
+
+
+
 
     <ImageButton
         android:id="@+id/button5"

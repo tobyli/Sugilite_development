@@ -56,7 +56,7 @@ public class NewScriptDialog extends SugiliteDialogManager implements AbstractSu
     private ImageButton mySpeakButton;
     private EditText scriptNameEditText;
 
-    public NewScriptDialog(Context context, LayoutInflater layoutInflater, SugiliteScriptDao sugiliteScriptDao, ServiceStatusManager serviceStatusManager,
+    public NewScriptDialog(Context context, SugiliteScriptDao sugiliteScriptDao, ServiceStatusManager serviceStatusManager,
                            SharedPreferences sharedPreferences, SugiliteData sugiliteData, boolean isSystemAlert, final Dialog.OnClickListener positiveCallback, final Dialog.OnClickListener negativeCallback){
         super(context, sugiliteData.getTTS());
         this.tts = sugiliteData.getTTS();
@@ -68,7 +68,7 @@ public class NewScriptDialog extends SugiliteDialogManager implements AbstractSu
         this.verbalInstructionIconManager = sugiliteData.verbalInstructionIconManager;
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
         sugiliteData.clearInstructionQueue();
-
+        LayoutInflater layoutInflater = LayoutInflater.from(context);
         dialogView = layoutInflater.inflate(R.layout.dialog_new_script, null);
         scriptNameEditText = (EditText) dialogView.findViewById(R.id.edittext_instruction_content);
         scriptNameEditText.setText(sugiliteScriptDao.getNextAvailableDefaultName());

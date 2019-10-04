@@ -56,13 +56,13 @@ public class PumiceReadOutDemonstrationSelectionDialog {
     private LayoutInflater layoutInflater;
     private TextToSpeech tts;
 
-    public PumiceReadOutDemonstrationSelectionDialog(Context context, Map<String, SugiliteEntity<Node>> textLabelEntityMap, UISnapshot uiSnapshot, FullScreenRecordingOverlayManager recordingOverlayManager, SugiliteData sugiliteData, TextToSpeech tts, LayoutInflater layoutInflater, SharedPreferences sharedPreferences, float x, float y) {
+    public PumiceReadOutDemonstrationSelectionDialog(Context context, Map<String, SugiliteEntity<Node>> textLabelEntityMap, UISnapshot uiSnapshot, FullScreenRecordingOverlayManager recordingOverlayManager, SugiliteData sugiliteData, TextToSpeech tts, SharedPreferences sharedPreferences, float x, float y) {
         this.context = context;
         this.textLabelEntityMap = textLabelEntityMap;
         this.uiSnapshot = uiSnapshot;
         this.sugiliteData = sugiliteData;
         this.sharedPreferences = sharedPreferences;
-        this.layoutInflater = layoutInflater;
+        this.layoutInflater = LayoutInflater.from(context);
         this.ontologyDescriptionGenerator = new OntologyDescriptionGenerator();
         this.blockBuildingHelper = new SugiliteBlockBuildingHelper(context, sugiliteData);
         this.recordingOverlayManager = recordingOverlayManager;
@@ -143,7 +143,7 @@ public class PumiceReadOutDemonstrationSelectionDialog {
 
             }
         };
-        SugiliteRecordingConfirmationDialog confirmationDialog = new SugiliteRecordingConfirmationDialog(context, block, featurePack, queryScoreList, clickRunnable, blockBuildingHelper, layoutInflater, uiSnapshot, nodeEntity, sugiliteData, sharedPreferences, tts);
+        SugiliteRecordingConfirmationDialog confirmationDialog = new SugiliteRecordingConfirmationDialog(context, block, featurePack, queryScoreList, clickRunnable, blockBuildingHelper, uiSnapshot, nodeEntity, sugiliteData, sharedPreferences, tts);
         confirmationDialog.show();
     }
 

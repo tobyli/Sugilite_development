@@ -41,7 +41,7 @@ public class SugiliteVerbalInstructionStudyDialog implements SugiliteVoiceInterf
     public boolean isSpeaking = false;
 
 
-    public SugiliteVerbalInstructionStudyDialog(SerializableUISnapshot serializableUISnapshot, SugiliteSerializableEntity serializableEntity, SugiliteStudyHandler sugiliteStudyHandler, Context context, LayoutInflater inflater, SugiliteVoiceRecognitionListener voiceRecognitionListener, String path, String fileName){
+    public SugiliteVerbalInstructionStudyDialog(SerializableUISnapshot serializableUISnapshot, SugiliteSerializableEntity serializableEntity, SugiliteStudyHandler sugiliteStudyHandler, Context context, SugiliteVoiceRecognitionListener voiceRecognitionListener, String path, String fileName){
         this.serializableUISnapshot = serializableUISnapshot;
         this.serializableEntity = serializableEntity;
         this.sugiliteStudyHandler = sugiliteStudyHandler;
@@ -51,6 +51,7 @@ public class SugiliteVerbalInstructionStudyDialog implements SugiliteVoiceInterf
         this.fileName = fileName;
         voiceRecognitionListener.setSugiliteVoiceInterface(this);
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
+        LayoutInflater inflater = LayoutInflater.from(context);
         View dialogView = inflater.inflate(R.layout.dialog_send_server_query, null);
         mainLayout = (LinearLayout)dialogView.findViewById(R.id.layout_send_server_query);
         instructionTextbox = (EditText)dialogView.findViewById(R.id.edittext_instruction_content);

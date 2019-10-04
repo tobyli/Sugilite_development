@@ -57,12 +57,11 @@ public class SugiliteSubscriptSpecialOperationBlock extends SugiliteSpecialOpera
 
         if (script != null) {
             Handler mainHandler = new Handler(context.getMainLooper());
-            final LayoutInflater inflater = (LayoutInflater) context. getSystemService( Context. LAYOUT_INFLATER_SERVICE);
             final Context finalContext = context;
             Runnable myRunnable = new Runnable() {
                 @Override
                 public void run() {
-                    VariableSetValueDialog variableSetValueDialog = new VariableSetValueDialog(finalContext, inflater, sugiliteData, script, sharedPreferences, sugiliteData.getCurrentSystemState(), sugiliteData.pumiceDialogManager);
+                    VariableSetValueDialog variableSetValueDialog = new VariableSetValueDialog(finalContext, sugiliteData, script, sharedPreferences, sugiliteData.getCurrentSystemState(), sugiliteData.pumiceDialogManager);
                     if (script.variableNameDefaultValueMap.size() > 0) {
                         //has variable
                         sugiliteData.stringVariableMap.putAll(script.variableNameDefaultValueMap);

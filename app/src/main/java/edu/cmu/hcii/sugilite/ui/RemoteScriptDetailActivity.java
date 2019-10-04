@@ -140,7 +140,7 @@ public class RemoteScriptDetailActivity extends ScriptDetailActivity {
                         final Intent scriptDetailIntent = new Intent(context, LocalScriptDetailActivity.class);
                         scriptDetailIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
                         scriptDetailIntent.putExtra("scriptName", script.getScriptName());
-                        PumiceDemonstrationUtil.showSugiliteAlertDialog("Successfully saved the script!");
+                        PumiceDemonstrationUtil.showSugiliteAlertDialog("Successfully downloaded the script!");
                         startActivity(scriptDetailIntent);
 
                     }

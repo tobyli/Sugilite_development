@@ -47,8 +47,8 @@ public class OntologyQueryFilter implements Serializable {
     public static OntologyQueryFilter deserialize (String s){
         String s1 = new String(s);
         String[] split = s1.split(" ");
-        if(split.length == 2 && SugiliteRelation.stringRelationMap.containsKey(split[1])){
-            SugiliteRelation relation = SugiliteRelation.stringRelationMap.get(split[1]);
+        if(split.length == 2 && SugiliteRelation.hasRelationWithName(split[1])){
+            SugiliteRelation relation = SugiliteRelation.getRelationFromString(split[1]);
             switch (split[0]){
                 case "argmax":
                     return new OntologyQueryFilter(FilterType.ARG_MAX, relation);

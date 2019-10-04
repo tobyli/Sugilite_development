@@ -34,7 +34,7 @@ public class DifferentParseChooseDialog {
     private AlertDialog dialog;
     private VerbalInstructionOverlayManager overlayManager;
 
-    public DifferentParseChooseDialog(Context context, LayoutInflater inflater, VerbalInstructionOverlayManager overlayManager, List<VerbalInstructionServerResults.VerbalInstructionResult> allResults, SerializableUISnapshot serializableUISnapshot, String utterance){
+    public DifferentParseChooseDialog(Context context, VerbalInstructionOverlayManager overlayManager, List<VerbalInstructionServerResults.VerbalInstructionResult> allResults, SerializableUISnapshot serializableUISnapshot, String utterance){
         this.context = context;
         this.overlayManager = overlayManager;
         AlertDialog.Builder builder = new AlertDialog.Builder(context);

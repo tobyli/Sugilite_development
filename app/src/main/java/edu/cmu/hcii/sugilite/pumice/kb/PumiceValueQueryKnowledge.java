@@ -134,7 +134,6 @@ public class PumiceValueQueryKnowledge<T> implements Serializable {
             } else {
                 Activity context = pumiceDialogManager.getContext();
                 ServiceStatusManager serviceStatusManager = ServiceStatusManager.getInstance(context);
-                LayoutInflater layoutInflater = LayoutInflater.from(context);
                 SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
 
                 //shared variable between threads
@@ -164,7 +163,7 @@ public class PumiceValueQueryKnowledge<T> implements Serializable {
                         }
                     }
                 };
-                PumiceDemonstrationUtil.executeScript(context, serviceStatusManager, sugiliteStartingBlock, sugiliteData, layoutInflater, sharedPreferences, pumiceDialogManager, null, afterExecutionRunnable);
+                PumiceDemonstrationUtil.executeScript(context, serviceStatusManager, sugiliteStartingBlock, sugiliteData, sharedPreferences, pumiceDialogManager, null, afterExecutionRunnable);
 
                 synchronized (returnValue) {
                     try {

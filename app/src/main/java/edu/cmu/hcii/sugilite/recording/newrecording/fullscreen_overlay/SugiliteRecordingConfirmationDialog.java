@@ -69,7 +69,7 @@ public class SugiliteRecordingConfirmationDialog extends SugiliteDialogManager {
     private SugiliteDialogSimpleState detailPromptState = new SugiliteDialogSimpleState("DETAIL_PROMPT", this);
 
 
-    public SugiliteRecordingConfirmationDialog(Context context, SugiliteOperationBlock block, SugiliteAvailableFeaturePack featurePack, List<Pair<OntologyQuery, Double>> queryScoreList, Runnable clickUnderlyingButtonRunnable, SugiliteBlockBuildingHelper blockBuildingHelper, LayoutInflater layoutInflater, UISnapshot uiSnapshot, SugiliteEntity<Node> actualClickedNode, SugiliteData sugiliteData, SharedPreferences sharedPreferences, TextToSpeech tts) {
+    public SugiliteRecordingConfirmationDialog(Context context, SugiliteOperationBlock block, SugiliteAvailableFeaturePack featurePack, List<Pair<OntologyQuery, Double>> queryScoreList, Runnable clickUnderlyingButtonRunnable, SugiliteBlockBuildingHelper blockBuildingHelper, UISnapshot uiSnapshot, SugiliteEntity<Node> actualClickedNode, SugiliteData sugiliteData, SharedPreferences sharedPreferences, TextToSpeech tts) {
         super(context, tts);
         this.context = context;
         this.block = block;
@@ -77,7 +77,7 @@ public class SugiliteRecordingConfirmationDialog extends SugiliteDialogManager {
         this.queryScoreList = queryScoreList;
         this.clickUnderlyingButtonRunnable = clickUnderlyingButtonRunnable;
         this.blockBuildingHelper = blockBuildingHelper;
-        this.layoutInflater = layoutInflater;
+        this.layoutInflater = LayoutInflater.from(context);
         this.uiSnapshot = uiSnapshot;
         this.actualClickedNode = actualClickedNode;
         this.sugiliteData = sugiliteData;
@@ -234,7 +234,7 @@ public class SugiliteRecordingConfirmationDialog extends SugiliteDialogManager {
         handler.postDelayed(new Runnable() {
             @Override
             public void run() {
-                RecordingAmbiguousPopupDialog recordingAmbiguousPopupDialog = new RecordingAmbiguousPopupDialog(context, queryScoreList, featurePack, blockBuildingHelper, layoutInflater, clickUnderlyingButtonRunnable, uiSnapshot, actualClickedNode, sugiliteData, sharedPreferences, tts, 0);
+                RecordingAmbiguousPopupDialog recordingAmbiguousPopupDialog = new RecordingAmbiguousPopupDialog(context, queryScoreList, featurePack, blockBuildingHelper, clickUnderlyingButtonRunnable, uiSnapshot, actualClickedNode, sugiliteData, sharedPreferences, tts, 0);
                 recordingAmbiguousPopupDialog.show();
             }
         }, 500);

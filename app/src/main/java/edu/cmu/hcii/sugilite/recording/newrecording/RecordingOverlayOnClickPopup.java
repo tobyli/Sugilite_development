@@ -40,7 +40,7 @@ public class RecordingOverlayOnClickPopup {
     private ReadableDescriptionGenerator readableDescriptionGenerator;
 
 
-    public RecordingOverlayOnClickPopup(Context context, LayoutInflater inflater , Node node, SugiliteData sugiliteData, SharedPreferences sharedPreferences){
+    public RecordingOverlayOnClickPopup(Context context, Node node, SugiliteData sugiliteData, SharedPreferences sharedPreferences){
         this.context = context;
         this.overlayManager = overlayManager;
         this.sugiliteData = sugiliteData;

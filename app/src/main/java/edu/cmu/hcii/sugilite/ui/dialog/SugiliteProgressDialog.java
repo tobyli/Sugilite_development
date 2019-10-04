@@ -4,6 +4,9 @@ import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.widget.TextView;
 
 import edu.cmu.hcii.sugilite.R;
 import edu.cmu.hcii.sugilite.SugiliteData;
@@ -22,7 +25,13 @@ public class SugiliteProgressDialog {
         SugiliteData.runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                dialog = new AlertDialog.Builder(context).setMessage(message).create();
+                AlertDialog.Builder builder = new AlertDialog.Builder(context);
+                LayoutInflater inflater = LayoutInflater.from(context);
+                View dialogView = inflater.inflate(R.layout.dialog_progress, null);
+                TextView messageTextView = dialogView.findViewById(R.id.progress_message);
+                messageTextView.setText(message);
+                builder.setView(dialogView);
+                dialog = builder.create();
                 dialog.getWindow().setType(OVERLAY_TYPE);
                 dialog.setCanceledOnTouchOutside(false);
             }

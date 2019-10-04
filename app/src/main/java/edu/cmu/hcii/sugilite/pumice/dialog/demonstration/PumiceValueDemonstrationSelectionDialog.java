@@ -59,13 +59,13 @@ public class PumiceValueDemonstrationSelectionDialog {
 
 
 
-    public PumiceValueDemonstrationSelectionDialog(Context context, Map<String, SugiliteEntity<Node>> textLabelEntityMap, UISnapshot uiSnapshot, FullScreenRecordingOverlayManager recordingOverlayManager, SugiliteData sugiliteData, TextToSpeech tts, LayoutInflater layoutInflater, SharedPreferences sharedPreferences, float x, float y) {
+    public PumiceValueDemonstrationSelectionDialog(Context context, Map<String, SugiliteEntity<Node>> textLabelEntityMap, UISnapshot uiSnapshot, FullScreenRecordingOverlayManager recordingOverlayManager, SugiliteData sugiliteData, TextToSpeech tts, SharedPreferences sharedPreferences, float x, float y) {
         this.context = context;
         this.textLabelEntityMap = textLabelEntityMap;
         this.uiSnapshot = uiSnapshot;
         this.sugiliteData = sugiliteData;
         this.sharedPreferences = sharedPreferences;
-        this.layoutInflater = layoutInflater;
+        this.layoutInflater = LayoutInflater.from(context);
         this.ontologyDescriptionGenerator = new OntologyDescriptionGenerator();
         this.blockBuildingHelper = new SugiliteBlockBuildingHelper(context, sugiliteData);
         this.recordingOverlayManager = recordingOverlayManager;
@@ -159,7 +159,7 @@ public class PumiceValueDemonstrationSelectionDialog {
                 PumiceDemonstrationUtil.showSugiliteToast("Value query saved!", Toast.LENGTH_SHORT);
             }
         };
-        SugiliteRecordingConfirmationDialog confirmationDialog = new SugiliteRecordingConfirmationDialog(context, block, featurePack, queryScoreList, clickRunnable, blockBuildingHelper, layoutInflater, uiSnapshot, nodeEntity, sugiliteData, sharedPreferences, tts);
+        SugiliteRecordingConfirmationDialog confirmationDialog = new SugiliteRecordingConfirmationDialog(context, block, featurePack, queryScoreList, clickRunnable, blockBuildingHelper, uiSnapshot, nodeEntity, sugiliteData, sharedPreferences, tts);
         confirmationDialog.show();
     }
 

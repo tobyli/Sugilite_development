@@ -5,27 +5,13 @@ import android.util.Log;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
-import com.google.gson.Gson;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
 
-import java.io.BufferedOutputStream;
-import java.io.BufferedWriter;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.Callable;
 
-import edu.cmu.hcii.sugilite.Const;
-import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteBlockMetaInfo;
 import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
@@ -41,27 +27,21 @@ import edu.cmu.hcii.sugilite.ontology.OntologyQueryWithSubQueries;
 import edu.cmu.hcii.sugilite.ontology.SerializableUISnapshot;
 import edu.cmu.hcii.sugilite.ontology.StringAlternativeOntologyQuery;
 import edu.cmu.hcii.sugilite.ontology.SugiliteRelation;
-import edu.cmu.hcii.sugilite.recording.newrecording.SugiliteBlockBuildingHelper;
 import edu.cmu.hcii.sugilite.sharing.model.HashedString;
 import edu.cmu.hcii.sugilite.sharing.model.StringInContext;
 import edu.cmu.hcii.sugilite.sharing.model.StringInContextWithIndexAndPriority;
 
 public class SugiliteSharingScriptPreparer {
 
-    //private SugiliteBlockBuildingHelper helper;
     private SugiliteScriptSharingHTTPQueryManager sugiliteScriptSharingHTTPQueryManager;
-
+    private SugiliteUISnapshotPreparer sugiliteUISnapshotPreparer;
 
     public SugiliteSharingScriptPreparer(Context context) {
-        //this.helper = helper;
         this.sugiliteScriptSharingHTTPQueryManager = SugiliteScriptSharingHTTPQueryManager.getInstance(context);
+        this.sugiliteUISnapshotPreparer = new SugiliteUISnapshotPreparer(context);
     }
 
-    public SugiliteStartingBlock prepareScript(SugiliteStartingBlock script) throws Exception {
-        // 1. get all StringInContext in the block
-        Set<StringInContext> originalQueryStrings = getStringsFromScript(script);
-        Log.i("PrepareScriptForSharingTask", "size of query strings" + originalQueryStrings.size());
-
+    public static Map<StringInContext, StringAlternativeGenerator.StringAlternative> getReplacementsFromStringInContextSet(Set<StringInContext> originalQueryStrings, SugiliteScriptSharingHTTPQueryManager sugiliteScriptSharingHTTPQueryManager) throws Exception {
         // 2. COMPUTE ALTERNATIVE STRINGS
         Map<StringInContext, Integer> originalQueryStringsIndexMap = new HashMap<>();
         Map<Integer, StringInContext> indexOriginalQueryStringsMap = new HashMap<>();
@@ -84,27 +64,36 @@ public class SugiliteSharingScriptPreparer {
             index++;
         }
 
-        // FILTER OUT PRIVATE STRINGS
+        //3. FILTER OUT PRIVATE STRINGS
         SugiliteScriptSharingHTTPQueryManager.GetFilteredStringsTaskResult queryResult = sugiliteScriptSharingHTTPQueryManager.getFilteredStrings(queryStringSet, originalQueryStringsIndexMap, stringHashOriginalStringMap);
 
 
         Map<StringInContext, StringAlternativeGenerator.StringAlternative> replacements = new HashMap<>();
         queryResult.getIndexStringAlternativeMap().forEach((i, s) -> replacements.put(indexOriginalQueryStringsMap.get(i), s));
+        return replacements;
+    }
 
-        // REPLACE HAS_TEXT and HAS_CHILD_TEXT with hashed equivalents in queries
+    public SugiliteStartingBlock prepareScript(SugiliteStartingBlock script) throws Exception {
+        // 1. get all StringInContext in the block
+        Set<StringInContext> originalQueryStrings = getStringsFromScript(script);
+        Log.i("PrepareScriptForSharingTask", "size of query strings" + originalQueryStrings.size());
 
+
+        Map<StringInContext, StringAlternativeGenerator.StringAlternative> replacements = getReplacementsFromStringInContextSet(originalQueryStrings, sugiliteScriptSharingHTTPQueryManager);
+
+        //4. REPLACE HAS_TEXT and HAS_CHILD_TEXT with hashed equivalents in queries
         replaceStringsInScript(script, replacements);
 
         for (SugiliteBlock block : script.getFollowingBlocks()) {
             block.setDescription("this is not a trustworthy description");
             if (block instanceof SugiliteOperationBlock) {
-                // TODO REPLACE HAS_TEXT and HAS_CHILD_TEXT with hashed equivalents in graph
-                // in the meantime we'll just remove the ui snapshots
-                // SerializableUISnapshot snapshot = ((SugiliteOperationBlock) block).getSugiliteBlockMetaInfo().getUiSnapshot();
-                // UISnapshotShareUtils.prepareSnapshotForSharing(snapshot, replacements);
-
-
-                //***((SugiliteOperationBlock) block).getSugiliteBlockMetaInfo().setUiSnapshot(null);
+                //process the UI snapshot
+                if (((SugiliteOperationBlock) block).getSugiliteBlockMetaInfo() != null) {
+                    SerializableUISnapshot oldUISnapshot = ((SugiliteOperationBlock) block).getSugiliteBlockMetaInfo().getUiSnapshot();
+                    if (oldUISnapshot != null) {
+                        ((SugiliteOperationBlock) block).getSugiliteBlockMetaInfo().setUiSnapshot(sugiliteUISnapshotPreparer.prepareUISnapshot(oldUISnapshot));
+                    }
+                }
             }
         }
 

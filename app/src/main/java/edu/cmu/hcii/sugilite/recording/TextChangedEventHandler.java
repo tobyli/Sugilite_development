@@ -32,7 +32,6 @@ public class TextChangedEventHandler {
     private SharedPreferences sharedPreferences;
 
     private SugiliteAvailableFeaturePack aggregatedFeaturePack;
-    private LayoutInflater lastLayoutInflator;
     private Set<Map.Entry<String, String>> lastAvailableAlternatives;
     private android.os.Handler uiThreadHandler;
     protected static final String TAG = TextChangedEventHandler.class.getSimpleName();
@@ -45,7 +44,7 @@ public class TextChangedEventHandler {
         this.uiThreadHandler = uiThreadHandler;
     }
 
-    public void handle(SugiliteAvailableFeaturePack featurePack, Set<Map.Entry<String, String>> availableAlternatives, LayoutInflater layoutInflater){
+    public void handle(SugiliteAvailableFeaturePack featurePack, Set<Map.Entry<String, String>> availableAlternatives){
         //handle the VIEW_TEXT_CHANGED event
         if(featurePack == null)
             return;
@@ -60,7 +59,6 @@ public class TextChangedEventHandler {
                 featurePack.text = featurePack.beforeText;
             }
             aggregatedFeaturePack = featurePack;
-            lastLayoutInflator = layoutInflater;
             lastAvailableAlternatives = availableAlternatives;
         }
         else if(featurePack != null){
@@ -79,7 +77,6 @@ public class TextChangedEventHandler {
                 featurePack.text = featurePack.beforeText;
             }
             aggregatedFeaturePack = featurePack;
-            lastLayoutInflator = layoutInflater;
             lastAvailableAlternatives = availableAlternatives;
         }
 
@@ -95,7 +92,7 @@ public class TextChangedEventHandler {
                 //dirty fix
                 aggregatedFeaturePack.text = "NULL";
             }
-            RecordingPopUpDialog recordingPopUpDialog = new RecordingPopUpDialog(sugiliteData, context, aggregatedFeaturePack, sharedPreferences, lastLayoutInflator, RecordingPopUpDialog.TRIGGERED_BY_NEW_EVENT, lastAvailableAlternatives);
+            RecordingPopUpDialog recordingPopUpDialog = new RecordingPopUpDialog(sugiliteData, context, aggregatedFeaturePack, sharedPreferences, RecordingPopUpDialog.TRIGGERED_BY_NEW_EVENT, lastAvailableAlternatives);
             sugiliteData.recordingPopupDialogQueue.add(recordingPopUpDialog);
             if (!sugiliteData.recordingPopupDialogQueue.isEmpty() && sugiliteData.hasRecordingPopupActive == false) {
                 sugiliteData.hasRecordingPopupActive = true;

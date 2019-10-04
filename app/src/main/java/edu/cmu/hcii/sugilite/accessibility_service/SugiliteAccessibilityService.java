@@ -135,13 +135,13 @@ public class SugiliteAccessibilityService extends AccessibilityService {
         }
         AccessibilityManager accessibilityManager = (AccessibilityManager) this.getSystemService(Context.ACCESSIBILITY_SERVICE);
         context = this;
-        sugiliteStudyHandler = new SugiliteStudyHandler(context, LayoutInflater.from(getApplicationContext()), this, sugiliteData.getTTS());
+        sugiliteStudyHandler = new SugiliteStudyHandler(context, this, sugiliteData.getTTS());
         statusIconManager = new StatusIconManager(this, sugiliteData, sharedPreferences, accessibilityManager);
         recordingOverlayManager = new FullScreenRecordingOverlayManager(context, sugiliteData, sharedPreferences, this, sugiliteData.getTTS());
         verbalInstructionIconManager = new VerbalInstructionIconManager(this, sugiliteStudyHandler, sugiliteData, sharedPreferences, recordingOverlayManager, this, sugiliteData.getTTS());
         statusIconManager.setVerbalInstructionIconManager(verbalInstructionIconManager);
         sugiliteData.verbalInstructionIconManager = verbalInstructionIconManager;
-        newDemonstrationHandler = NewDemonstrationHandler.getInstance(sugiliteData , LayoutInflater.from(getApplicationContext()), sharedPreferences, this);
+        newDemonstrationHandler = NewDemonstrationHandler.getInstance(sugiliteData, sharedPreferences, this);
 
         screenshotManager = new SugiliteScreenshotManager(sharedPreferences, getApplicationContext());
         sugiliteTextParentAnnotator = SugiliteTextParentAnnotator.getInstance();
@@ -502,13 +502,12 @@ public class SugiliteAccessibilityService extends AccessibilityService {
 
                                 //2. send the event to recording pop up dialog
                                 SugiliteAvailableFeaturePack featurePack = generateFeaturePack(event, sourceNode, rootNodeForRecording, screenshot, availableAlternativeNodes, preOrderTraverseSourceNodeForRecording, preOrderTracerseRootNodeForRecording, preOrderTraverseSibNodeForRecording, new SerializableUISnapshot(uiSnapshot));
-                                LayoutInflater layoutInflater = LayoutInflater.from(getApplicationContext());
 
                                 if (featurePack.isEditable) {
                                     //3. handle text entry
                                     if (eventType == AccessibilityEvent.TYPE_VIEW_TEXT_CHANGED) {
                                         //TODO: add TextChangedEventHandlerHere
-                                        textChangedEventHandler.handle(featurePack, availableAlternatives, layoutInflater);
+                                        textChangedEventHandler.handle(featurePack, availableAlternatives);
                                     }
                                 } else {
                                     System.out.println("flush from service");

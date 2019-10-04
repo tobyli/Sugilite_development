@@ -35,18 +35,18 @@ import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptFileDao;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptSQLDao;
 import edu.cmu.hcii.sugilite.model.NewScriptGeneralizer;
-import edu.cmu.hcii.sugilite.model.OperationBlockDescriptionRegenerator;
-import edu.cmu.hcii.sugilite.model.ScriptQueryHasher;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.ontology.description.OntologyDescriptionGenerator;
 import edu.cmu.hcii.sugilite.pumice.PumiceDemonstrationUtil;
 import edu.cmu.hcii.sugilite.sharing.SugiliteScriptSharingHTTPQueryManager;
 import edu.cmu.hcii.sugilite.sharing.SugiliteSharingScriptPreparer;
+import edu.cmu.hcii.sugilite.sharing.TempUserAccountNameManager;
 import edu.cmu.hcii.sugilite.study.ScriptUsageLogManager;
 import edu.cmu.hcii.sugilite.ui.LocalScriptDetailActivity;
 import edu.cmu.hcii.sugilite.ui.ScriptDebuggingActivity;
 import edu.cmu.hcii.sugilite.ui.ScriptSourceActivity;
 import edu.cmu.hcii.sugilite.ui.dialog.NewScriptDialog;
+import edu.cmu.hcii.sugilite.ui.dialog.SugiliteProgressDialog;
 
 import static edu.cmu.hcii.sugilite.Const.SQL_SCRIPT_DAO;
 import static edu.cmu.hcii.sugilite.pumice.PumiceDemonstrationUtil.removeScriptExtension;
@@ -66,6 +66,7 @@ public class FragmentScriptListTab extends Fragment {
     private OntologyDescriptionGenerator ontologyDescriptionGenerator;
     private SugiliteScriptSharingHTTPQueryManager sugiliteScriptSharingHTTPQueryManager;
     private SugiliteSharingScriptPreparer sugiliteSharingScriptPreparer;
+    private TempUserAccountNameManager tempUserAccountNameManager;
 
 
     @Override
@@ -80,6 +81,7 @@ public class FragmentScriptListTab extends Fragment {
         this.ontologyDescriptionGenerator = new OntologyDescriptionGenerator();
         this.sugiliteScriptSharingHTTPQueryManager = SugiliteScriptSharingHTTPQueryManager.getInstance(activity);
         this.sugiliteSharingScriptPreparer = new SugiliteSharingScriptPreparer(activity);
+        this.tempUserAccountNameManager = new TempUserAccountNameManager(activity);
 
         if (Const.DAO_TO_USE == SQL_SCRIPT_DAO) {
             this.sugiliteScriptDao = new SugiliteScriptSQLDao(activity);
@@ -96,7 +98,7 @@ public class FragmentScriptListTab extends Fragment {
         addButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(final View v) {
-                NewScriptDialog newScriptDialog = new NewScriptDialog(v.getContext(), inflater, sugiliteScriptDao, serviceStatusManager, sharedPreferences, sugiliteData, false, new DialogInterface.OnClickListener() {
+                NewScriptDialog newScriptDialog = new NewScriptDialog(v.getContext(), sugiliteScriptDao, serviceStatusManager, sharedPreferences, sugiliteData, false, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         try {
@@ -206,13 +208,14 @@ public class FragmentScriptListTab extends Fragment {
             if (item.getItemId() == ITEM_DELETE) {
                 if (info.targetView instanceof TextView && ((TextView) info.targetView).getText() != null) {
                     sugiliteScriptDao.delete(((TextView) info.targetView).getText().toString() + ".SugiliteScript");
+                    PumiceDemonstrationUtil.showSugiliteAlertDialog(String.format("Successfully duplicated the script \"%s\"!", ((TextView) info.targetView).getText().toString()));
                     setUpScriptList();
                 }
                 return super.onContextItemSelected(item);
             }
 
             final String scriptName = ((TextView) info.targetView).getText().toString() + ".SugiliteScript";
-            final SugiliteStartingBlock script = sugiliteScriptDao.read(scriptName);
+
             switch (item.getItemId()) {
                 case ITEM_VIEW:
                     //open the view script activity
@@ -231,8 +234,12 @@ public class FragmentScriptListTab extends Fragment {
                             .setPositiveButton("Run", new DialogInterface.OnClickListener() {
                                 public void onClick(DialogInterface dialog, int which) {
                                     //clear the queue first before adding new instructions
-
-                                    PumiceDemonstrationUtil.executeScript(activity, serviceStatusManager, script, sugiliteData, activity.getLayoutInflater(), sharedPreferences, null, null, null);
+                                    try {
+                                        SugiliteStartingBlock script = sugiliteScriptDao.read(scriptName);
+                                        PumiceDemonstrationUtil.executeScript(activity, serviceStatusManager, script, sugiliteData, sharedPreferences, null, null, null);
+                                    } catch (Exception e){
+                                        e.printStackTrace();
+                                    }
 
                                 }
                             })
@@ -265,16 +272,16 @@ public class FragmentScriptListTab extends Fragment {
                                 .setPositiveButton("OK", new DialogInterface.OnClickListener() {
                                     @Override
                                     public void onClick(DialogInterface dialog, int which) {
-                                        SugiliteStartingBlock startingBlock = null;
+                                        SugiliteStartingBlock script = null;
                                         try {
-                                            startingBlock = sugiliteScriptDao.read(scriptName);
+                                            script = sugiliteScriptDao.read(scriptName);
                                         } catch (Exception e) {
                                             e.printStackTrace();
                                         }
-                                        if (startingBlock != null) {
-                                            startingBlock.setScriptName(newNameEditText.getText().toString() + ".SugiliteScript");
+                                        if (script != null) {
+                                            script.setScriptName(newNameEditText.getText().toString() + ".SugiliteScript");
                                             try {
-                                                sugiliteScriptDao.save(startingBlock);
+                                                sugiliteScriptDao.save(script);
                                                 sugiliteScriptDao.commitSave();
                                                 setUpScriptList();
                                                 sugiliteScriptDao.delete(scriptName);
@@ -300,17 +307,11 @@ public class FragmentScriptListTab extends Fragment {
                         @Override
                         public void run() {
                             try {
-                                String id = sugiliteScriptSharingHTTPQueryManager.uploadScript(scriptName, "demo", script);
+                                SugiliteStartingBlock script = sugiliteScriptDao.read(scriptName);
+                                String id = sugiliteScriptSharingHTTPQueryManager.uploadScript(scriptName, tempUserAccountNameManager.getBestUserName(), script);
                                 Log.i("Upload script", "Script shared with id : " + id);
 
                                 PumiceDemonstrationUtil.showSugiliteAlertDialog(String.format("Successfully uploaded the script \"%s\"!", removeScriptExtension(scriptName)));
-
-                                // debug - save the uploaded script locally
-                                /*
-                                script.setScriptName("UPLOADED_RAW: " + scriptName);
-                                sugiliteScriptDao.save(script);
-                                sugiliteScriptDao.commitSave();
-                                */
 
                             } catch (InterruptedException e) {
                                 e.printStackTrace();
@@ -327,19 +328,12 @@ public class FragmentScriptListTab extends Fragment {
                         @Override
                         public void run() {
                             try {
+                                SugiliteStartingBlock script = sugiliteScriptDao.read(scriptName);
                                 SugiliteStartingBlock sharable = sugiliteSharingScriptPreparer.prepareScript(script);
-                                String id = sugiliteScriptSharingHTTPQueryManager.uploadScript(scriptName, "demo", sharable);
+                                String id = sugiliteScriptSharingHTTPQueryManager.uploadScript(scriptName, tempUserAccountNameManager.getBestUserName(), sharable);
                                 Log.i("Upload script", "Script shared with id : " + id);
                                 PumiceDemonstrationUtil.showSugiliteAlertDialog(String.format("Successfully uploaded the script \"%s\"!", removeScriptExtension(scriptName)));
 
-
-                                // debug - save the uploaded script locally
-                                /*
-                                OperationBlockDescriptionRegenerator.regenerateScriptDescriptions(sharable, ontologyDescriptionGenerator);
-                                sharable.setScriptName("UPLOADED_FILTERED: " + scriptName);
-                                sugiliteScriptDao.save(sharable);
-                                sugiliteScriptDao.commitSave();
-                                */
 
                             } catch (InterruptedException e) {
                                 e.printStackTrace();
@@ -357,11 +351,11 @@ public class FragmentScriptListTab extends Fragment {
                         @Override
                         public void run() {
                             try {
+                                SugiliteStartingBlock script = sugiliteScriptDao.read(scriptName);
                                 newScriptGeneralizer.extractParameters(script, scriptName.replace(".SugiliteScript", ""));
                                 sugiliteScriptDao.save(script);
                                 sugiliteScriptDao.commitSave();
-                                PumiceDemonstrationUtil.showSugiliteToast(String.format("Successfully generalized the script \"%s\"!", scriptName), Toast.LENGTH_SHORT);
-
+                                PumiceDemonstrationUtil.showSugiliteAlertDialog(String.format("Successfully generalized the script \"%s\"!", removeScriptExtension(scriptName)));
                             } catch (Exception e) {
                                 e.printStackTrace();
                             }
@@ -382,10 +376,21 @@ public class FragmentScriptListTab extends Fragment {
                         @Override
                         public void run() {
                             try {
-                                script.setScriptName(scriptName.replace(".SugiliteScript", "") + "_copy" + ".SugiliteScript");
+                                SugiliteStartingBlock script = sugiliteScriptDao.read(scriptName);
+                                script.setScriptName("DUPLICATED: " + scriptName);
                                 sugiliteScriptDao.save(script);
                                 sugiliteScriptDao.commitSave();
-                                PumiceDemonstrationUtil.showSugiliteToast(String.format("Successfully duplicated the script \"%s\"!", scriptName), Toast.LENGTH_SHORT);
+                                SugiliteData.runOnUiThread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        try {
+                                            setUpScriptList();
+                                        } catch (Exception e){
+                                            e.printStackTrace();
+                                        }
+                                    }
+                                });
+                                PumiceDemonstrationUtil.showSugiliteAlertDialog(String.format("Successfully duplicated the script \"%s\"!", removeScriptExtension(scriptName)));
 
                             } catch (Exception e) {
                                 e.printStackTrace();

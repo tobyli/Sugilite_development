@@ -68,7 +68,6 @@ public class VerbalInstructionIconManager implements SugiliteVoiceInterface {
 
     private Context context;
     private WindowManager windowManager;
-    private LayoutInflater layoutInflater;
     private SugiliteData sugiliteData;
     private SharedPreferences sharedPreferences;
     private SugiliteVoiceRecognitionListener sugiliteVoiceRecognitionListener;
@@ -116,7 +115,7 @@ public class VerbalInstructionIconManager implements SugiliteVoiceInterface {
         this.tts = tts;
         sugiliteStudyHandler.setIconManager(this);
         windowManager = (WindowManager) context.getSystemService(context.WINDOW_SERVICE);
-        this.layoutInflater = (LayoutInflater) context.getSystemService( Context.LAYOUT_INFLATER_SERVICE);
+
 
         if (Const.SELECTED_SPEECH_RECOGNITION_TYPE == Const.SpeechRecognitionType.ANDROID) {
             this.sugiliteVoiceRecognitionListener = new SugiliteAndroidAPIVoiceRecognitionListener(context, this, tts);
@@ -398,7 +397,7 @@ public class VerbalInstructionIconManager implements SugiliteVoiceInterface {
                                         case "Send a verbal instruction":
                                             //send a verbal instruction
                                             if(finalSerializedUISnapshot != null) {
-                                                VerbalInstructionTestDialog verbalInstructionDialog = new VerbalInstructionTestDialog(finalSerializedUISnapshot, context, layoutInflater, sugiliteData, sharedPreferences, tts);
+                                                VerbalInstructionTestDialog verbalInstructionDialog = new VerbalInstructionTestDialog(finalSerializedUISnapshot, context, sugiliteData, sharedPreferences, tts);
                                                 verbalInstructionDialog.show();
                                             }
 

@@ -39,7 +39,7 @@ public class OverlayChosenPopupDialog implements SugiliteVerbalInstructionHTTPQu
     private SugiliteVerbalInstructionHTTPQueryManager httpQueryManager;
     private OverlayChosenPopupDialog overlayChosenPopupDialog;
 
-    public OverlayChosenPopupDialog(Context context, LayoutInflater inflater, VerbalInstructionOverlayManager overlayManager, Node node, VerbalInstructionServerResults.VerbalInstructionResult chosenResult, List<VerbalInstructionServerResults.VerbalInstructionResult> allResults, SerializableUISnapshot serializableUISnapshot, String utterance,  SugiliteData sugiliteData, SharedPreferences sharedPreferences){
+    public OverlayChosenPopupDialog(Context context, VerbalInstructionOverlayManager overlayManager, Node node, VerbalInstructionServerResults.VerbalInstructionResult chosenResult, List<VerbalInstructionServerResults.VerbalInstructionResult> allResults, SerializableUISnapshot serializableUISnapshot, String utterance,  SugiliteData sugiliteData, SharedPreferences sharedPreferences){
         this.context = context;
         this.overlayManager = overlayManager;
         this.sugiliteData = sugiliteData;
@@ -88,7 +88,7 @@ public class OverlayChosenPopupDialog implements SugiliteVerbalInstructionHTTPQu
                         break;
                     case 1:
                         //choose a different parse
-                        DifferentParseChooseDialog differentParseChooseDialog = new DifferentParseChooseDialog(context, inflater, overlayManager, allResults, serializableUISnapshot, utterance);
+                        DifferentParseChooseDialog differentParseChooseDialog = new DifferentParseChooseDialog(context, overlayManager, allResults, serializableUISnapshot, utterance);
                         differentParseChooseDialog.show();
                         break;
                     case 2:

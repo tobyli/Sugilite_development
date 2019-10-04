@@ -82,7 +82,6 @@ public class StatusIconManager {
     private ReadableDescriptionGenerator descriptionGenerator;
     private WindowManager.LayoutParams iconParams, textViewParams;
     private VariableHelper variableHelper;
-    private LayoutInflater layoutInflater;
     private Random random;
     private AccessibilityManager accessibilityManager;
     private CurrentStateView statusView;
@@ -109,7 +108,6 @@ public class StatusIconManager {
             sugiliteScriptDao = new SugiliteScriptFileDao(context, sugiliteData);
         this.serviceStatusManager = ServiceStatusManager.getInstance(context);
         this.screenshotManager = new SugiliteScreenshotManager(sharedPreferences, context);
-        this.layoutInflater = (LayoutInflater) context.getSystemService( Context.LAYOUT_INFLATER_SERVICE );
         this.accessibilityManager = accessibilityManager;
         variableHelper = new VariableHelper(sugiliteData.stringVariableMap);
         jsonProcessor = new SugiliteBlockJSONProcessor(context);
@@ -500,7 +498,7 @@ public class StatusIconManager {
                                     break;
                                 case "New Recording":
                                     //create a new script
-                                    NewScriptDialog newScriptDialog = new NewScriptDialog(v.getContext(), layoutInflater, sugiliteScriptDao, serviceStatusManager, sharedPreferences, sugiliteData, true, null, null);
+                                    NewScriptDialog newScriptDialog = new NewScriptDialog(v.getContext(), sugiliteScriptDao, serviceStatusManager, sharedPreferences, sugiliteData, true, null, null);
                                     newScriptDialog.show();
                                     break;
                                 case "Resume Last Recording":
@@ -704,7 +702,7 @@ public class StatusIconManager {
 
 
                                 case "Get a Text Element on the Screen":
-                                    SelectElementWithTextDialog selectElementWithTextDialog = new SelectElementWithTextDialog(context, layoutInflater, sugiliteData);
+                                    SelectElementWithTextDialog selectElementWithTextDialog = new SelectElementWithTextDialog(context, sugiliteData);
                                     selectElementWithTextDialog.show();
                                     break;
                                 case "Resume Next Step":

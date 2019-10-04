@@ -80,12 +80,7 @@ public class SugiliteStudyPacketProcessor {
             }
 
             //only add text-based relations to string entities
-            uiSnapshot.addTriple(new SugiliteSerializableTriple("@" + stringEntity.getEntityId().toString(), objectString, sugiliteRelation.getRelationName()));
-            /*
-            for (String entitySubjectId : parentNodeEntitySubjectId) {
-                uiSnapshot.addTriple(new SugiliteSerializableTriple(entitySubjectId, objectString, sugiliteRelation.getRelationName()));
-            }
-            */
+            uiSnapshot.addTriple(new SugiliteSerializableTriple("@" + stringEntity.getEntityId().toString(), null, objectString, sugiliteRelation.getRelationName()));
         }
     }
 
@@ -119,7 +114,7 @@ public class SugiliteStudyPacketProcessor {
         SugiliteNodeAnnotator nodeAnnotator = SugiliteNodeAnnotator.getInstance();
 
         for (SugiliteNodeAnnotator.NodeAnnotatingResult res : nodeAnnotator.annotate(tempNodeEntities.values(), screenWidth, screenHeight)) {
-            uiSnapshot.addTriple(new SugiliteSerializableTriple("@" + res.getSubject().getEntityId().toString(), "@" + res.getObjectEntity().getEntityId().toString(), res.getRelation().getRelationName()));
+            uiSnapshot.addTriple(new SugiliteSerializableTriple("@" + res.getSubject().getEntityId().toString(), null, "@" + res.getObjectEntity().getEntityId().toString(), res.getRelation().getRelationName()));
         }
 
         //add index-based relations
@@ -155,7 +150,7 @@ public class SugiliteStudyPacketProcessor {
                 }
 
                 if (listOrderResolver.isAList(nodeEntity.getEntityValue(), childNodes.keySet())) {
-                    uiSnapshot.addTriple(new SugiliteSerializableTriple("@" + nodeEntity.getEntityId().toString(), "true", SugiliteRelation.IS_A_LIST.getRelationName()));
+                    uiSnapshot.addTriple(new SugiliteSerializableTriple("@" + nodeEntity.getEntityId().toString(), null, "true", SugiliteRelation.IS_A_LIST.getRelationName()));
                     addOrderForChildren(childNodes, uiSnapshot, entityIdEntityMap);
                 }
             }
@@ -187,13 +182,13 @@ public class SugiliteStudyPacketProcessor {
             counter ++;
             Node childNode = entry.getKey();
             String subjectEntityId = children.get(childNode);
-            uiSnapshot.addTriple(new SugiliteSerializableTriple("@" + subjectEntityId.toString(), String.valueOf(counter), SugiliteRelation.HAS_LIST_ORDER.getRelationName()));
+            uiSnapshot.addTriple(new SugiliteSerializableTriple("@" + subjectEntityId.toString(), null, String.valueOf(counter) , SugiliteRelation.HAS_LIST_ORDER.getRelationName()));
 
             SugiliteSerializableEntity<Node> childEntity = uiSnapshot.getSugiliteEntityIdSugiliteEntityMap().get("@" + entry.getValue());
             if(childEntity != null){
                 for(String entityId : getAllChildEntityIds(childEntity, new HashSet<String>(), uiSnapshot, tempNodeEntities)){
                     //addEntityStringTriple(entity, String.valueOf(counter), SugiliteRelation.HAS_PARENT_WITH_LIST_ORDER);
-                    uiSnapshot.addTriple(new SugiliteSerializableTriple(entityId, String.valueOf(counter), SugiliteRelation.HAS_PARENT_WITH_LIST_ORDER.getRelationName()));
+                    uiSnapshot.addTriple(new SugiliteSerializableTriple(entityId, null,  String.valueOf(counter), SugiliteRelation.HAS_PARENT_WITH_LIST_ORDER.getRelationName()));
                 }
             }
         }

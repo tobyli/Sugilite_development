@@ -9,11 +9,14 @@ public class OperationBlockDescriptionRegenerator {
     public static void regenerateBlockDescription(SugiliteBlock block, OntologyDescriptionGenerator ontologyDescriptionGenerator) {
         if (block instanceof SugiliteOperationBlock) {
             SugiliteOperationBlock sob = (SugiliteOperationBlock) block;
-            block.setDescription(ontologyDescriptionGenerator.getDescriptionForOperation(sob.getOperation(), sob.getOperation().getDataDescriptionQueryIfAvailable()));
+            block.setDescription(ontologyDescriptionGenerator.getSpannedDescriptionForOperation(sob.getOperation(), sob.getOperation().getDataDescriptionQueryIfAvailable()));
+        } else if (block.getPlainDescription() != null) {
+           block.setDescription(block.getPlainDescription());
         }
     }
 
     public static void regenerateScriptDescriptions(SugiliteStartingBlock script, OntologyDescriptionGenerator ontologyDescriptionGenerator) {
+        regenerateBlockDescription(script, ontologyDescriptionGenerator);
         for (SugiliteBlock block : script.getFollowingBlocks()) {
             regenerateBlockDescription(block, ontologyDescriptionGenerator);
         }

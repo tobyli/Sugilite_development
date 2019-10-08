@@ -8,6 +8,8 @@ import android.content.SharedPreferences;
 import android.os.Handler;
 import android.speech.tts.TextToSpeech;
 import android.text.Html;
+import android.text.SpannableStringBuilder;
+import android.text.Spanned;
 import android.util.Pair;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -93,14 +95,17 @@ public class SugiliteRecordingConfirmationDialog extends SugiliteDialogManager {
 
 
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
-        String newDescription = ontologyDescriptionGenerator.getDescriptionForOperation(block.getOperation(), block.getOperation().getDataDescriptionQueryIfAvailable());
+        Spanned newDescription = ontologyDescriptionGenerator.getSpannedDescriptionForOperation(block.getOperation(), block.getOperation().getDataDescriptionQueryIfAvailable());
         builder.setTitle("Save Operation Confirmation");
 
         dialogView = layoutInflater.inflate(R.layout.dialog_confirmation_popup_spoken, null);
         confirmationPromptTextView = (TextView) dialogView.findViewById(R.id.text_confirmation_prompt);
         if(confirmationPromptTextView != null){
             //TODO: show the source code temporarily
-            confirmationPromptTextView.setText(Html.fromHtml("Are you sure you want to record the operation: " + newDescription));
+            SpannableStringBuilder text = new SpannableStringBuilder();
+            text.append("Are you sure you want to record the operation: ");
+            text.append(newDescription);
+            confirmationPromptTextView.setText(text);
             PumiceDemonstrationUtil.showSugiliteToast(block.toString(), Toast.LENGTH_SHORT);
 
             //confirmationPromptTextView.setText(Html.fromHtml("Are you sure you want to record the operation: " + block.toString()));
@@ -271,11 +276,9 @@ public class SugiliteRecordingConfirmationDialog extends SugiliteDialogManager {
     @Override
     public void initDialogManager() {
         //set the prompt
-        String newDescription = ontologyDescriptionGenerator.getDescriptionForOperation(block.getOperation(), block.getOperation().getDataDescriptionQueryIfAvailable());
-        newDescription = Html.fromHtml(context.getString(R.string.ask_if_record, newDescription)).toString();
-        askingForConfirmationState.setPrompt(newDescription);
+        Spanned newDescription = ontologyDescriptionGenerator.getSpannedDescriptionForOperation(block.getOperation(), block.getOperation().getDataDescriptionQueryIfAvailable());
+        askingForConfirmationState.setPrompt(R.string.ask_if_record + newDescription.toString());
         detailPromptState.setPrompt(context.getString(R.string.expand_ask_if_record));
-
 
         //link the states
         askingForConfirmationState.setNoASRResultState(detailPromptState);

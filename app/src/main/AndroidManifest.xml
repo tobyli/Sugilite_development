@@ -74,6 +74,9 @@
             android:name=".ui.RemoteScriptDetailActivity"
             tools:node="merge" />
         <activity
+            android:name=".sharing.SharingScriptReviewActivity"
+            tools:node="merge" />
+        <activity
             android:name=".ui.ScriptDebuggingActivity"
             tools:node="merge" />
 

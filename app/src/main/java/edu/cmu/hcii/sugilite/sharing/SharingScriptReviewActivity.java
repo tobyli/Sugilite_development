@@ -1,116 +1,104 @@
-package edu.cmu.hcii.sugilite.ui;
+package edu.cmu.hcii.sugilite.sharing;
 
-import android.app.Activity;
-import android.app.ActivityManager;
-import android.app.AlertDialog;
-import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.SharedPreferences;
-import android.net.Uri;
-import android.preference.PreferenceManager;
-import android.speech.tts.TextToSpeech;
-import android.support.v7.app.AppCompatActivity;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.text.Html;
+import android.text.SpannableString;
+import android.text.Spanned;
+import android.text.TextPaint;
+import android.text.method.LinkMovementMethod;
+import android.text.style.ClickableSpan;
+import android.util.Log;
 import android.util.TypedValue;
-import android.view.ContextMenu;
-import android.view.GestureDetector;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.MotionEvent;
 import android.view.View;
-
-import android.widget.EditText;
-import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import android.graphics.Color;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
-import java.io.File;
-import java.util.List;
-
-import edu.cmu.hcii.sugilite.Const;
 import edu.cmu.hcii.sugilite.R;
 import edu.cmu.hcii.sugilite.SugiliteData;
-import edu.cmu.hcii.sugilite.automation.AutomatorUtil;
-import edu.cmu.hcii.sugilite.automation.ServiceStatusManager;
-import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
-import edu.cmu.hcii.sugilite.dao.SugiliteScriptFileDao;
-import edu.cmu.hcii.sugilite.dao.SugiliteScriptSQLDao;
+import edu.cmu.hcii.sugilite.model.OperationBlockDescriptionRegenerator;
 import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
-import edu.cmu.hcii.sugilite.model.block.booleanexp.SugiliteBooleanExpression;
-import edu.cmu.hcii.sugilite.model.block.booleanexp.SugiliteBooleanExpressionNew;
 import edu.cmu.hcii.sugilite.model.block.SugiliteConditionBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteErrorHandlingForkBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
-import edu.cmu.hcii.sugilite.model.block.special_operation.SugiliteSpecialOperationBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
+import edu.cmu.hcii.sugilite.model.block.special_operation.SugiliteSpecialOperationBlock;
+import edu.cmu.hcii.sugilite.ontology.description.OntologyDescriptionGenerator;
 import edu.cmu.hcii.sugilite.pumice.PumiceDemonstrationUtil;
-import edu.cmu.hcii.sugilite.pumice.dialog.PumiceDialogManager;
-import edu.cmu.hcii.sugilite.recording.ReadableDescriptionGenerator;
-import edu.cmu.hcii.sugilite.recording.RecordingPopUpDialog;
-import edu.cmu.hcii.sugilite.study.ScriptUsageLogManager;
+import edu.cmu.hcii.sugilite.sharing.SugiliteScriptSharingHTTPQueryManager;
+import edu.cmu.hcii.sugilite.ui.LocalScriptDetailActivity;
+import edu.cmu.hcii.sugilite.ui.ScriptDetailActivity;
 import edu.cmu.hcii.sugilite.ui.dialog.SugiliteProgressDialog;
-import edu.cmu.hcii.sugilite.ui.dialog.VariableSetValueDialog;
 import edu.cmu.hcii.sugilite.ui.main.SugiliteMainActivity;
-import edu.cmu.hcii.sugilite.verbal_instruction_demo.speech.SugiliteAndroidAPIVoiceRecognitionListener;
-import edu.cmu.hcii.sugilite.verbal_instruction_demo.speech.SugiliteGoogleCloudVoiceRecognitionListener;
-import edu.cmu.hcii.sugilite.verbal_instruction_demo.speech.SugiliteVoiceInterface;
-import edu.cmu.hcii.sugilite.verbal_instruction_demo.speech.SugiliteVoiceRecognitionListener;
-import edu.cmu.hcii.sugilite.verbal_instruction_demo.server_comm.SugiliteVerbalInstructionHTTPQueryManager;
-import edu.cmu.hcii.sugilite.ontology.SerializableUISnapshot;
 
-import static edu.cmu.hcii.sugilite.Const.OVERLAY_TYPE;
-import static edu.cmu.hcii.sugilite.Const.SCRIPT_DELAY;
-import static edu.cmu.hcii.sugilite.Const.SQL_SCRIPT_DAO;
 import static edu.cmu.hcii.sugilite.recording.ReadableDescriptionGenerator.setConditionBlockDescription;
 
-public abstract class ScriptDetailActivity extends AppCompatActivity {
-
-    protected LinearLayout operationStepList;
-    protected SugiliteData sugiliteData;
-    protected String scriptName;
-    protected SharedPreferences sharedPreferences;
-    protected SugiliteScriptDao sugiliteScriptDao;
-    protected SugiliteStartingBlock script;
-    protected ActivityManager activityManager;
-    protected ServiceStatusManager serviceStatusManager;
-    protected Activity context;
+public class SharingScriptReviewActivity extends ScriptDetailActivity {
+    private SugiliteScriptSharingHTTPQueryManager sugiliteScriptSharingHTTPQueryManager;
+    private OntologyDescriptionGenerator ontologyDescriptionGenerator;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        this.context = this;
-        this.sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
-        this.activityManager = (ActivityManager)getSystemService(Context.ACTIVITY_SERVICE);
-        this.serviceStatusManager = ServiceStatusManager.getInstance(this);
-        this.sugiliteData = (SugiliteData)getApplication();
-        if(Const.DAO_TO_USE == SQL_SCRIPT_DAO) {
-            this.sugiliteScriptDao = new SugiliteScriptSQLDao(this);
-        }
-        else {
-            this.sugiliteScriptDao = new SugiliteScriptFileDao(this, sugiliteData);
+        setContentView(R.layout.activity_remote_script_detail);
+        this.sugiliteScriptSharingHTTPQueryManager = SugiliteScriptSharingHTTPQueryManager.getInstance(this);
+        this.ontologyDescriptionGenerator = new OntologyDescriptionGenerator();
+
+        //load the local script
+        if (savedInstanceState == null) {
+            this.scriptName = this.getIntent().getStringExtra("scriptName");
+        } else {
+            this.scriptName = savedInstanceState.getString("scriptName");
         }
 
-        //add back the duck icon
-        if(sugiliteData != null && sugiliteData.statusIconManager != null && serviceStatusManager != null){
-            if(! sugiliteData.statusIconManager.isShowingIcon() && serviceStatusManager.isRunning()){
-                sugiliteData.statusIconManager.addStatusIcon();
+        //get the script name
+        if (savedInstanceState == null) {
+            this.scriptName = this.getIntent().getStringExtra("scriptName");
+        } else {
+            this.scriptName = savedInstanceState.getString("scriptName");
+        }
+
+        //set the activity title bar
+        if(scriptName != null) {
+            setTitle("Sharing Script: " + scriptName.replace(".SugiliteScript", ""));
+        }
+
+        //load the local script
+        new Thread(new Runnable() {
+            @Override
+            public void run()
+            {
+                try {
+                    script = sugiliteScriptDao.read(scriptName);
+                }
+                catch (Exception e){
+                    e.printStackTrace();
+                }
+                loadOperationList(script);
             }
-        }
+        }).start();
+
 
     }
 
+    public void scriptDetailCancelButtonOnClick (View view) {
+        onBackPressed();
+    }
+
+    public void scriptDetailDownloadButtonOnClick (View view) {
+        downloadScriptToLocal();
+    }
+
+
+    //TODO: fix this so that textual information is clickable
     @Override
-    protected void onResume() {
-        super.onResume();
-        loadOperationList(script);
-    }
-
     public void loadOperationList(SugiliteStartingBlock script){
         SugiliteData.runOnUiThread(new Runnable() {
             @Override
@@ -153,29 +141,72 @@ public abstract class ScriptDetailActivity extends AppCompatActivity {
     }
 
 
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        menu.add(Menu.NONE, Menu.FIRST, 1, "View Information");
+        menu.add(Menu.NONE, Menu.FIRST + 1, 2, "Download Script");
+
+        return true;
+    }
+
+    public class CustomClickableSpan extends ClickableSpan {
+        @Override
+        public void onClick(View widget) {
+            Spanned s = (Spanned) ((TextView) widget).getText();
+            int start = s.getSpanStart(this);
+            int end = s.getSpanEnd(this);
+            PumiceDemonstrationUtil.showSugiliteToast("CLICKED! " + s.toString().substring(start, end) , Toast.LENGTH_SHORT);
+        }
+
+        @Override
+        public void updateDrawState(TextPaint ds) {
+            ds.bgColor = getResources().getColor(android.R.color.holo_red_dark);
+            ds.setColor(getResources().getColor(android.R.color.white));
+            ds.setUnderlineText(true);
+        }
+    }
 
     /**
      * recursively construct the list of operations
      * @param block
      * @return
      */
+    @Override
     public View getViewForBlock(SugiliteBlock block) {
         if (block instanceof SugiliteStartingBlock) {
             TextView tv = new TextView(context);
             tv.setText( block.getDescription());
             tv.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
             tv.setPadding(10, 10, 10, 10);
-            tv.setOnTouchListener(textViewOnTouchListener);
-            registerForContextMenu(tv);
+
+            //tv.setOnTouchListener(textViewOnTouchListener);
+            //registerForContextMenu(tv);
             return tv;
 
         } else if (block instanceof SugiliteOperationBlock || block instanceof SugiliteSpecialOperationBlock) {
             TextView tv = new TextView(context);
-            tv.setText(block.getDescription());
+
+            //SpannableString descriptionSpannableString = new SpannableString(Html.fromHtml(block.getDescription()));
+            Spanned descriptionSpannableString = ontologyDescriptionGenerator.getSpannedDescriptionForOperation(((SugiliteOperationBlock)block).getOperation(), ((SugiliteOperationBlock) block).getOperation().getDataDescriptionQueryIfAvailable(), true);
+
+            /*
+            Pattern pattern = Pattern.compile("\\[hashed\\].*\\[\\/hashed\\]");
+            Matcher matcher = pattern.matcher(descriptionSpannableString);
+
+            while(matcher.find()) {
+                descriptionSpannableString.setSpan(new CustomClickableSpan(), matcher.start(), matcher.end(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+            }
+            */
+
+            tv.setText(descriptionSpannableString, TextView.BufferType.SPANNABLE);
+            tv.setMovementMethod(LinkMovementMethod.getInstance());
+
             tv.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
             tv.setPadding(10, 10, 10, 10);
-            tv.setOnTouchListener(textViewOnTouchListener);
-            registerForContextMenu(tv);
+
+            //TODO: set interactive textview
+            //tv.setOnTouchListener(textViewOnTouchListener);
+            //registerForContextMenu(tv);
             return tv;
 
         } else if (block instanceof SugiliteConditionBlock) {
@@ -196,7 +227,9 @@ public abstract class ScriptDetailActivity extends AppCompatActivity {
                 tv.setBackgroundColor(Color.YELLOW);
                 //addConditionalBlock = false;
             }
-            tv.setOnTouchListener(textViewOnTouchListener);
+
+
+            //tv.setOnTouchListener(textViewOnTouchListener);
             registerForContextMenu(tv);
             return tv;
 
@@ -208,7 +241,7 @@ public abstract class ScriptDetailActivity extends AppCompatActivity {
             tv.setText(Html.fromHtml("<b>" + "TRY" + "</b>"));
             tv.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
             tv.setPadding(10, 10, 10, 10);
-            registerForContextMenu(tv);
+            //registerForContextMenu(tv);
             mainLayout.addView(tv);
             LinearLayout originalBranch = new LinearLayout(context);
             originalBranch.setOrientation(LinearLayout.VERTICAL);
@@ -238,7 +271,7 @@ public abstract class ScriptDetailActivity extends AppCompatActivity {
             tv2.setText(Html.fromHtml("<b>" + "IF FAILED" + "</b>"));
             tv2.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
             tv2.setPadding(10, 10, 10, 10);
-            registerForContextMenu(tv2);
+            //registerForContextMenu(tv2);
             mainLayout.addView(tv2);
             LinearLayout alternativeBranch = new LinearLayout(context);
             alternativeBranch.setOrientation(LinearLayout.VERTICAL);
@@ -272,6 +305,41 @@ public abstract class ScriptDetailActivity extends AppCompatActivity {
         return null;
     }
 
+    private void viewScriptInfo() {
+        PumiceDemonstrationUtil.showSugiliteToast("View script meta info", Toast.LENGTH_SHORT);
+    }
+
+    private void downloadScriptToLocal() {
+        PumiceDemonstrationUtil.showSugiliteToast("Downloading the script to local", Toast.LENGTH_SHORT);
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                // save the script locally
+                try {
+                    script.setScriptName("DOWNLOADED: " + script.getScriptName());
+                    sugiliteScriptDao.save(script);
+                    sugiliteScriptDao.commitSave();
+                } catch (Exception e){
+                    Log.e("RemoteScriptDetailActivity", "failed to save the script locally");
+                    PumiceDemonstrationUtil.showSugiliteAlertDialog("Failed to save the script locally!");
+                }
+
+                // open a new LocalScriptDetailActivitpy to view the local script
+                SugiliteData.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        final Intent scriptDetailIntent = new Intent(context, LocalScriptDetailActivity.class);
+                        scriptDetailIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                        scriptDetailIntent.putExtra("scriptName", script.getScriptName());
+                        PumiceDemonstrationUtil.showSugiliteAlertDialog("Successfully downloaded the script!");
+                        startActivity(scriptDetailIntent);
+
+                    }
+                });
+            }
+        }).start();
+    }
+
     @Override
     public void onBackPressed()
     {
@@ -281,38 +349,18 @@ public abstract class ScriptDetailActivity extends AppCompatActivity {
         startActivity(intent);
     }
 
-    //used for tracking selection gesture
-    private float lastY = 0;
-    final GestureDetector gestureDetector = new GestureDetector(context,new GestureDetector.SimpleOnGestureListener() {
-        public void onLongPress(MotionEvent e) {
-
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item){
+        switch (item.getItemId()){
+            case Menu.FIRST:
+                //resume recording
+                viewScriptInfo();
+                break;
+            case Menu.FIRST + 1:
+                //rename the script
+                downloadScriptToLocal();
+                break;
         }
-    });
-    View highlightedView = null;
-    View.OnTouchListener textViewOnTouchListener = new View.OnTouchListener() {
-        @Override
-        public boolean onTouch(View v, MotionEvent event) {
-            switch(event.getAction())
-            {
-                case MotionEvent.ACTION_DOWN:
-                    v.setBackgroundResource(android.R.color.holo_blue_light);
-                    //fix the multiple highlighting issue
-                    if(highlightedView != null && highlightedView instanceof TextView)
-                        highlightedView.setBackgroundResource(android.R.color.transparent);
-                    highlightedView = v;
-                    lastY = event.getY();
-                    break;
-                case MotionEvent.ACTION_UP:
-                    v.setBackgroundResource(android.R.color.transparent);
-                    break;
-                case MotionEvent.ACTION_MOVE:
-                    float abs = Math.abs(lastY - event.getY());
-                    if(abs > 3)
-                        v.setBackgroundResource(android.R.color.transparent);
-                    break;
-            }
-
-            return false;
-        }
-    };
+        return true;
+    }
 }

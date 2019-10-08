@@ -132,7 +132,7 @@ public class PumiceValueDemonstrationSelectionDialog {
             operationBlock.setScreenshot(featurePack.screenshot);
 
             //description is set
-            operationBlock.setDescription(ontologyDescriptionGenerator.getDescriptionForOperation(loadVariableOperation, selectedQuery));
+            operationBlock.setDescription(ontologyDescriptionGenerator.getSpannedDescriptionForOperation(loadVariableOperation, selectedQuery));
 
             //need to run on ui thread
             showConfirmation(operationBlock, featurePack, queryScoreList, nodeEntity);

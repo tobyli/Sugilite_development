@@ -164,7 +164,7 @@ public class ScriptDebuggingActivity extends AppCompatActivity {
     public View getViewForBlock(SugiliteBlock block) {
         if (block instanceof SugiliteStartingBlock) {
             TextView tv = new TextView(context);
-            tv.setText(Html.fromHtml(block.getDescription()));
+            tv.setText(block.getDescription());
             tv.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
             tv.setPadding(10, 10, 10, 10);
             tv.setOnTouchListener(textViewOnTouchListener);
@@ -491,7 +491,7 @@ public class ScriptDebuggingActivity extends AppCompatActivity {
                 break;
             if (currentBlock instanceof SugiliteOperationBlock) {
                 //TODO: check if content equals is the right method to use here
-                if (Html.fromHtml(currentBlock.getDescription()).toString().contentEquals(textView.getText().toString())) {
+                if (currentBlock.getDescription().toString().contentEquals(textView.getText().toString())) {
                     if (((SugiliteOperationBlock) currentBlock).getFeaturePack() == null) {
                         //scripts passed from external sources (via json) has no feature pack & previous block fields
                         PumiceDemonstrationUtil.showSugiliteToast("Can't view operations from external source!", Toast.LENGTH_SHORT);
@@ -512,7 +512,7 @@ public class ScriptDebuggingActivity extends AppCompatActivity {
                     currentBlock = ((SugiliteOperationBlock) currentBlock).getNextBlockToRun();
                 }
             } else if (currentBlock instanceof SugiliteStartingBlock) {
-                if (Html.fromHtml(currentBlock.getDescription()).toString().contentEquals(textView.getText().toString())) {
+                if (currentBlock.getDescription().toString().contentEquals(textView.getText().toString())) {
                     //match, can't edit starting block
                     PumiceDemonstrationUtil.showSugiliteToast("Can't view starting block", Toast.LENGTH_SHORT);
                     break;
@@ -542,7 +542,7 @@ public class ScriptDebuggingActivity extends AppCompatActivity {
                 break;
             else if(currentBlock instanceof SugiliteOperationBlock){
                 //TODO: check if content equals is the right method to use here
-                if(Html.fromHtml(currentBlock.getDescription()).toString().contentEquals(textView.getText().toString())){
+                if(currentBlock.getDescription().toString().contentEquals(textView.getText().toString())){
                     if(((SugiliteOperationBlock) currentBlock).getFeaturePack() == null){
                         //scripts passed from external sources (via json) has no feature pack & previous block fields
                         PumiceDemonstrationUtil.showSugiliteToast("Can't edit scripts from external source!", Toast.LENGTH_SHORT);
@@ -573,7 +573,7 @@ public class ScriptDebuggingActivity extends AppCompatActivity {
                 }
             }
             else if(currentBlock instanceof SugiliteStartingBlock){
-                if(Html.fromHtml(currentBlock.getDescription()).toString().contentEquals(textView.getText().toString())){
+                if(currentBlock.getDescription().toString().contentEquals(textView.getText().toString())){
                     //match, can't edit starting block
                     PumiceDemonstrationUtil.showSugiliteToast("Can't edit starting block", Toast.LENGTH_SHORT);
                     break;
@@ -649,7 +649,7 @@ public class ScriptDebuggingActivity extends AppCompatActivity {
             if(currentBlock == null)
                 break;
             else if(currentBlock instanceof SugiliteOperationBlock){
-                if(Html.fromHtml(currentBlock.getDescription()).toString().contentEquals(textView.getText().toString())){
+                if(currentBlock.getDescription().toString().contentEquals(textView.getText().toString())){
                     //scripts passed from external sources (via json) has no feature pack & previous block fields
                     if(((SugiliteOperationBlock) currentBlock).getFeaturePack() == null){
                         PumiceDemonstrationUtil.showSugiliteToast("Can't edit scripts from external source!", Toast.LENGTH_SHORT);
@@ -670,7 +670,7 @@ public class ScriptDebuggingActivity extends AppCompatActivity {
                 }
             }
             else if(currentBlock instanceof SugiliteStartingBlock){
-                if(Html.fromHtml(currentBlock.getDescription()).toString().contentEquals(textView.getText().toString())){
+                if(currentBlock.getDescription().toString().contentEquals(textView.getText().toString())){
                     //match, can't delete starting block
                     PumiceDemonstrationUtil.showSugiliteToast("Can't delete starting block", Toast.LENGTH_SHORT);
                     break;
@@ -858,7 +858,7 @@ public class ScriptDebuggingActivity extends AppCompatActivity {
         public DebuggingOperationView(Context context, SugiliteOperationBlock block){
             super(context);
             init();
-            setText(Html.fromHtml(block.getDescription()));
+            setText(block.getDescription());
             this.block = block;
         }
 

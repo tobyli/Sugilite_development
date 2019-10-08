@@ -95,7 +95,6 @@ public class RemoteScriptDetailActivity extends ScriptDetailActivity {
         } else {
             PumiceDemonstrationUtil.showSugiliteToast("Can't load the remote script -- invalid ID!", Toast.LENGTH_SHORT);
         }
-
     }
 
     public void scriptDetailCancelButtonOnClick (View view) {

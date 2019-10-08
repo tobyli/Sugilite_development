@@ -230,7 +230,7 @@ public class LocalScriptDetailActivity extends ScriptDetailActivity implements S
             if (currentBlock instanceof SugiliteOperationBlock) {
                 //view the screenshot taken during the demonstration
                 //TODO: check if content equals is the right method to use here
-                if (Html.fromHtml(currentBlock.getDescription()).toString().contentEquals(textView.getText().toString())) {
+                if (currentBlock.getDescription().toString().contentEquals(textView.getText().toString())) {
                     if (((SugiliteOperationBlock) currentBlock).getFeaturePack() == null) {
                         //scripts passed from external sources (via json) has no feature pack & previous block fields
                         PumiceDemonstrationUtil.showSugiliteToast("Can't view operations from external source!", Toast.LENGTH_SHORT);
@@ -251,7 +251,7 @@ public class LocalScriptDetailActivity extends ScriptDetailActivity implements S
                     currentBlock = ((SugiliteOperationBlock) currentBlock).getNextBlockToRun();
                 }
             } else if (currentBlock instanceof SugiliteStartingBlock) {
-                if (Html.fromHtml(currentBlock.getDescription()).toString().contentEquals(textView.getText().toString())) {
+                if (currentBlock.getDescription().toString().contentEquals(textView.getText().toString())) {
                     //match, can't edit starting block
                     PumiceDemonstrationUtil.showSugiliteToast("Can't view starting block", Toast.LENGTH_SHORT);
                     break;
@@ -288,7 +288,7 @@ public class LocalScriptDetailActivity extends ScriptDetailActivity implements S
                 break;
             else if(currentBlock instanceof SugiliteOperationBlock){
                 //TODO: check if content equals is the right method to use here
-                if(Html.fromHtml(currentBlock.getDescription()).toString().contentEquals(textView.getText().toString())){
+                if(currentBlock.getDescription().toString().contentEquals(textView.getText().toString())){
                     if(((SugiliteOperationBlock) currentBlock).getFeaturePack() == null){
                         //scripts passed from external sources (via json) has no feature pack & previous block fields
                         PumiceDemonstrationUtil.showSugiliteToast("Can't edit scripts from external source!", Toast.LENGTH_SHORT);
@@ -320,7 +320,7 @@ public class LocalScriptDetailActivity extends ScriptDetailActivity implements S
                 }
             }
             else if(currentBlock instanceof SugiliteStartingBlock){
-                if(Html.fromHtml(currentBlock.getDescription()).toString().contentEquals(textView.getText().toString())){
+                if(currentBlock.getDescription().toString().contentEquals(textView.getText().toString())){
                     //match, can't edit starting block
                     PumiceDemonstrationUtil.showSugiliteToast("Can't edit starting block", Toast.LENGTH_SHORT);
                     break;
@@ -374,7 +374,7 @@ public class LocalScriptDetailActivity extends ScriptDetailActivity implements S
             if(currentBlock == null)
                 break;
             else if(currentBlock instanceof SugiliteOperationBlock){
-                if(Html.fromHtml(currentBlock.getDescription()).toString().contentEquals(textView.getText().toString())){
+                if(currentBlock.getDescription().toString().contentEquals(textView.getText().toString())){
                     //scripts passed from external sources (via json) has no feature pack & previous block fields
                     if(((SugiliteOperationBlock) currentBlock).getFeaturePack() == null) {
                         PumiceDemonstrationUtil.showSugiliteToast("Can't edit scripts from external source!", Toast.LENGTH_SHORT);
@@ -454,7 +454,7 @@ public class LocalScriptDetailActivity extends ScriptDetailActivity implements S
                 }
             }
             else if(currentBlock instanceof SugiliteStartingBlock){
-                if(Html.fromHtml(currentBlock.getDescription()).toString().contentEquals(textView.getText().toString())){
+                if(currentBlock.getDescription().toString().contentEquals(textView.getText().toString())){
                     //match, can't delete starting block
                     PumiceDemonstrationUtil.showSugiliteToast("Can't fork starting block", Toast.LENGTH_SHORT);
                     break;
@@ -464,7 +464,7 @@ public class LocalScriptDetailActivity extends ScriptDetailActivity implements S
                 }
             }
             else if(currentBlock instanceof SugiliteConditionBlock) {
-                if(Html.fromHtml(currentBlock.getDescription()).toString().contentEquals(textView.getText().toString())){
+                if(currentBlock.getDescription().toString().contentEquals(textView.getText().toString())){
                     //match, can't delete starting block
                     PumiceDemonstrationUtil.showSugiliteToast("Can't fork forking block", Toast.LENGTH_SHORT);
                     break;
@@ -522,7 +522,7 @@ public class LocalScriptDetailActivity extends ScriptDetailActivity implements S
             if(currentBlock == null)
                 break;
             else if(currentBlock instanceof SugiliteOperationBlock){
-                if(Html.fromHtml(currentBlock.getDescription()).toString().contentEquals(textView.getText().toString())){
+                if(currentBlock.getDescription().toString().contentEquals(textView.getText().toString())){
                     //scripts passed from external sources (via json) has no feature pack & previous block fields
                     if(((SugiliteOperationBlock) currentBlock).getFeaturePack() == null){
                         PumiceDemonstrationUtil.showSugiliteToast("Can't edit scripts from external source!", Toast.LENGTH_SHORT);
@@ -543,7 +543,7 @@ public class LocalScriptDetailActivity extends ScriptDetailActivity implements S
                 }
             }
             else if(currentBlock instanceof SugiliteStartingBlock){
-                if(Html.fromHtml(currentBlock.getDescription()).toString().contentEquals(textView.getText().toString())){
+                if(currentBlock.getDescription().toString().contentEquals(textView.getText().toString())){
                     //match, can't delete starting block
                     PumiceDemonstrationUtil.showSugiliteToast("Can't delete starting block", Toast.LENGTH_SHORT);
                     break;
@@ -557,7 +557,7 @@ public class LocalScriptDetailActivity extends ScriptDetailActivity implements S
                 attemptToDelete(((SugiliteErrorHandlingForkBlock) currentBlock).getOriginalNextBlock(), textView);
                 break;
             } else if(currentBlock instanceof SugiliteConditionBlock) {
-                if (Html.fromHtml(currentBlock.getDescription()).toString().contentEquals(textView.getText().toString())) {
+                if (currentBlock.getDescription().toString().contentEquals(textView.getText().toString())) {
                     //scripts passed from external sources (via json) has no feature pack & previous block fields
                     /*if (((SugiliteConditionBlock) currentBlock).getFeaturePack() == null) {
                         Toast.makeText(this, "Can't edit scripts from external source!", Toast.LENGTH_SHORT).show();

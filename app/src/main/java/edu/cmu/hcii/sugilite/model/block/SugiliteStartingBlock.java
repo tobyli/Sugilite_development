@@ -1,5 +1,7 @@
 package edu.cmu.hcii.sugilite.model.block;
 
+import android.text.Html;
+
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -33,7 +35,7 @@ public class SugiliteStartingBlock extends SugiliteBlock implements Serializable
         variableNameDefaultValueMap = new HashMap<>();
         variableNameAlternativeValueMap = new HashMap<>();
         this.blockType = SugiliteBlock.STARTING_BLOCK;
-        this.setDescription("<b>START SCRIPT</b>");
+        this.setDescription(Html.fromHtml("<b>START SCRIPT</b>"));
     }
     public SugiliteStartingBlock(String scriptName){
         super();
@@ -42,7 +44,7 @@ public class SugiliteStartingBlock extends SugiliteBlock implements Serializable
         variableNameAlternativeValueMap = new HashMap<>();
         this.scriptName = scriptName;
         this.blockType = SugiliteBlock.STARTING_BLOCK;
-        this.setDescription("<b>START SCRIPT</b>");
+        this.setDescription(Html.fromHtml("<b>START SCRIPT</b>"));
     }
 
     public String getScriptName(){

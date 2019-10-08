@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.text.Html;
+import android.text.Spanned;
 import android.util.Pair;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -150,7 +151,7 @@ public class NewDemonstrationHandler {
         builder.setTitle("Select from disambiguation results");
         ListView mainListView = new ListView(SugiliteData.getAppContext());
         Map<TextView, SugiliteOperationBlock> textViews = new HashMap<>();
-        String[] stringArray = new String[queryScoreList.size()];
+        Spanned[] stringArray = new Spanned[queryScoreList.size()];
         SugiliteOperationBlock[] sugiliteOperationBlockArray = new SugiliteOperationBlock[queryScoreList.size()];
 
         int i = 0;
@@ -159,7 +160,7 @@ public class NewDemonstrationHandler {
             sugiliteOperationBlockArray[i++] = block;
         }
 
-        Map<SugiliteOperationBlock, String> descriptions = blockBuildingHelper.getDescriptionsInDifferences(sugiliteOperationBlockArray);
+        Map<SugiliteOperationBlock, Spanned> descriptions = blockBuildingHelper.getDescriptionsInDifferences(sugiliteOperationBlockArray);
 
         i = 0;
         for(SugiliteOperationBlock block : sugiliteOperationBlockArray){
@@ -167,7 +168,7 @@ public class NewDemonstrationHandler {
         }
 
 
-        ArrayAdapter<String> adapter = new ArrayAdapter<String>(SugiliteData.getAppContext(), android.R.layout.simple_list_item_1, stringArray)
+        ArrayAdapter<Spanned> adapter = new ArrayAdapter<Spanned>(SugiliteData.getAppContext(), android.R.layout.simple_list_item_1, stringArray)
         {
             //override the arrayadapter to show HTML-styled textviews in the listview
             @Override
@@ -180,7 +181,7 @@ public class NewDemonstrationHandler {
                     row = convertView;
                 }
                 TextView tv = (TextView) row.findViewById(android.R.id.text1);
-                tv.setText(Html.fromHtml(getItem(position)));
+                tv.setText(getItem(position));
                 textViews.put(tv, sugiliteOperationBlockArray[position]);
                 return row;
             }

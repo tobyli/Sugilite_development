@@ -1,5 +1,9 @@
 package edu.cmu.hcii.sugilite.model.block;
 
+import android.text.Html;
+import android.text.SpannableString;
+import android.text.Spanned;
+
 import java.io.File;
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -35,7 +39,8 @@ public abstract class SugiliteBlock implements Serializable{
     protected SugiliteBlock nextBlock;
 
 
-    private String description;
+    private transient Spanned description;
+    private String plainDescription;
     private File screenshot;
     private int blockId;
     private long createdTime;
@@ -46,12 +51,23 @@ public abstract class SugiliteBlock implements Serializable{
     public int getBlockId(){
         return blockId;
     }
-    public void setDescription(String description){
+    public void setDescription(Spanned description){
         this.description = description;
+        this.plainDescription = description.toString();
     }
-    public String getDescription() {
+    @Deprecated
+    public void setDescription(String htmlDescription){
+        this.description = Html.fromHtml(htmlDescription);
+        this.plainDescription = Html.fromHtml(htmlDescription).toString();
+    }
+    public Spanned getDescription() {
         return description;
     }
+
+    public String getPlainDescription() {
+        return plainDescription;
+    }
+
     public SugiliteBlock getPreviousBlock(){
         return previousBlock;
     }

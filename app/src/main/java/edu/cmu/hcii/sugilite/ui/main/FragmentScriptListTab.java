@@ -38,6 +38,7 @@ import edu.cmu.hcii.sugilite.model.NewScriptGeneralizer;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.ontology.description.OntologyDescriptionGenerator;
 import edu.cmu.hcii.sugilite.pumice.PumiceDemonstrationUtil;
+import edu.cmu.hcii.sugilite.sharing.SharingScriptReviewActivity;
 import edu.cmu.hcii.sugilite.sharing.SugiliteScriptSharingHTTPQueryManager;
 import edu.cmu.hcii.sugilite.sharing.SugiliteSharingScriptPreparer;
 import edu.cmu.hcii.sugilite.sharing.TempUserAccountNameManager;
@@ -165,10 +166,11 @@ public class FragmentScriptListTab extends Fragment {
     private static final int ITEM_RENAME = Menu.FIRST + 3;
     private static final int ITEM_SHARE_DIRECTLY = Menu.FIRST + 4;
     private static final int ITEM_SHARE_FILTERED = Menu.FIRST + 5;
-    private static final int ITEM_GENERALIZE = Menu.FIRST + 6;
-    private static final int ITEM_EDIT_SOURCE = Menu.FIRST + 7;
-    private static final int ITEM_DELETE = Menu.FIRST + 8;
-    private static final int ITEM_DUPLICATE = Menu.FIRST + 9;
+    private static final int ITEM_SHARE_TEST = Menu.FIRST + 6;
+    private static final int ITEM_GENERALIZE = Menu.FIRST + 7;
+    private static final int ITEM_EDIT_SOURCE = Menu.FIRST + 8;
+    private static final int ITEM_DELETE = Menu.FIRST + 9;
+    private static final int ITEM_DUPLICATE = Menu.FIRST + 10;
 
     //context menu are the long-click menus for each script
     @Override
@@ -190,6 +192,7 @@ public class FragmentScriptListTab extends Fragment {
         menu.add(0, ITEM_RENAME, 0, "Rename");
         menu.add(0, ITEM_SHARE_DIRECTLY, 0, "Share Raw Script");
         menu.add(0, ITEM_SHARE_FILTERED, 0, "Share Masked Script");
+        menu.add(0, ITEM_SHARE_TEST, 0, "Share Script Test");
         menu.add(0, ITEM_GENERALIZE, 0, "Generalize");
         menu.add(0, ITEM_EDIT_SOURCE, 0, "Edit Source");
         menu.add(0, ITEM_DELETE, 0, "Delete");
@@ -219,12 +222,10 @@ public class FragmentScriptListTab extends Fragment {
             switch (item.getItemId()) {
                 case ITEM_VIEW:
                     //open the view script activity
-                    if (info.targetView instanceof TextView && ((TextView) info.targetView).getText() != null) {
-                        final Intent scriptDetailIntent = new Intent(activity, LocalScriptDetailActivity.class);
-                        scriptDetailIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                        scriptDetailIntent.putExtra("scriptName", scriptName);
-                        startActivity(scriptDetailIntent);
-                    }
+                    final Intent scriptDetailIntent = new Intent(activity, LocalScriptDetailActivity.class);
+                    scriptDetailIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                    scriptDetailIntent.putExtra("scriptName", scriptName);
+                    startActivity(scriptDetailIntent);
                     break;
                 case ITEM_RUN:
                     //run the script
@@ -254,10 +255,10 @@ public class FragmentScriptListTab extends Fragment {
                 case ITEM_DEBUG:
                     //open the debug activity
                     if (info.targetView instanceof TextView && ((TextView) info.targetView).getText() != null) {
-                        final Intent scriptDetailIntent = new Intent(activity, ScriptDebuggingActivity.class);
-                        scriptDetailIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                        scriptDetailIntent.putExtra("scriptName", scriptName);
-                        startActivity(scriptDetailIntent);
+                        final Intent scriptDebugIntent = new Intent(activity, ScriptDebuggingActivity.class);
+                        scriptDebugIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                        scriptDebugIntent.putExtra("scriptName", scriptName);
+                        startActivity(scriptDebugIntent);
                     }
                     break;
                 case ITEM_RENAME:
@@ -344,6 +345,12 @@ public class FragmentScriptListTab extends Fragment {
                             }
                         }
                     }).start();
+                    break;
+                case ITEM_SHARE_TEST:
+                    final Intent scriptShareIntent = new Intent(activity, SharingScriptReviewActivity.class);
+                    scriptShareIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                    scriptShareIntent.putExtra("scriptName", scriptName);
+                    startActivity(scriptShareIntent);
                     break;
                 case ITEM_GENERALIZE:
                     //generalize

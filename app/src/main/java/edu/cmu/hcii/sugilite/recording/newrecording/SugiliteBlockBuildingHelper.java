@@ -1,6 +1,7 @@
 package edu.cmu.hcii.sugilite.recording.newrecording;
 
 import android.content.Context;
+import android.text.Spanned;
 import android.util.Pair;
 
 import com.google.gson.Gson;
@@ -89,7 +90,7 @@ public class SugiliteBlockBuildingHelper {
             operationBlock.setOperation(sugiliteOperation);
             operationBlock.setFeaturePack(featurePack);
             operationBlock.setScreenshot(featurePack.screenshot);
-            operationBlock.setDescription(ontologyDescriptionGenerator.getDescriptionForOperation(sugiliteOperation, query));
+            operationBlock.setDescription(ontologyDescriptionGenerator.getSpannedDescriptionForOperation(sugiliteOperation, query));
             return operationBlock;
         }
 
@@ -101,7 +102,7 @@ public class SugiliteBlockBuildingHelper {
             operationBlock.setOperation(sugiliteOperation);
             operationBlock.setFeaturePack(featurePack);
             operationBlock.setScreenshot(featurePack.screenshot);
-            operationBlock.setDescription(ontologyDescriptionGenerator.getDescriptionForOperation(sugiliteOperation, query));
+            operationBlock.setDescription(ontologyDescriptionGenerator.getSpannedDescriptionForOperation(sugiliteOperation, query));
             return operationBlock;
         }
 
@@ -120,7 +121,7 @@ public class SugiliteBlockBuildingHelper {
             operationBlock.setOperation(sugiliteSetTextOperation);
             operationBlock.setFeaturePack(featurePack);
             operationBlock.setScreenshot(featurePack.screenshot);
-            operationBlock.setDescription(ontologyDescriptionGenerator.getDescriptionForOperation(sugiliteSetTextOperation, query));
+            operationBlock.setDescription(ontologyDescriptionGenerator.getSpannedDescriptionForOperation(sugiliteSetTextOperation, query));
             return operationBlock;
         }
 
@@ -133,7 +134,7 @@ public class SugiliteBlockBuildingHelper {
             operationBlock.setOperation(sugiliteReadoutOperation);
             operationBlock.setFeaturePack(featurePack);
             operationBlock.setScreenshot(featurePack.screenshot);
-            operationBlock.setDescription(ontologyDescriptionGenerator.getDescriptionForOperation(sugiliteReadoutOperation, query));
+            operationBlock.setDescription(ontologyDescriptionGenerator.getSpannedDescriptionForOperation(sugiliteReadoutOperation, query));
             return operationBlock;
         }
 
@@ -520,12 +521,12 @@ public class SugiliteBlockBuildingHelper {
     }
 
 
-    public Map<SugiliteOperationBlock, String> getDescriptionsInDifferences(SugiliteOperationBlock[] blocks){
-        Map<SugiliteOperationBlock, String> results = new HashMap<>();
+    public Map<SugiliteOperationBlock, Spanned> getDescriptionsInDifferences(SugiliteOperationBlock[] blocks){
+        Map<SugiliteOperationBlock, Spanned> results = new HashMap<>();
         for(SugiliteOperationBlock operationBlock : blocks){
             OntologyQuery query = operationBlock.getOperation().getDataDescriptionQueryIfAvailable();
             if(query != null) {
-                results.put(operationBlock, ontologyDescriptionGenerator.getDescriptionForOperation(operationBlock.getOperation(), stripOntologyQuery(query)));
+                results.put(operationBlock, ontologyDescriptionGenerator.getSpannedDescriptionForOperation(operationBlock.getOperation(), stripOntologyQuery(query)));
             }
         }
         return results;

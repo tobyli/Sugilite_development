@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <string name="ask_if_record">Do you want to record the operation? %1$s</string>
+    <string name="ask_if_record">Do you want to record the operation? </string>
     <string name="expand_ask_if_record">Do you want to confirm recording, skip this recording but perform the action, modify the recording, or cancel this action?</string>
 
     <string name="disambiguation_error">Can\'t understand your description, please try to describe your action in a different way.</string>

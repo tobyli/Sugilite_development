@@ -103,7 +103,7 @@ public class ErrorHandler {
                 return false;
         }
 
-        String description = nextInstruction.getDescription();
+        String description = nextInstruction.getDescription().toString();
         if(event.getSource() != null && event.getSource().getPackageName() != null) {
             String oldPackage = lastPackageName;
             lastPackageName = event.getSource().getPackageName().toString();
@@ -120,7 +120,7 @@ public class ErrorHandler {
             if (!relevantPackages.contains(currentPackageName) &&
                     (!(excludedPackageFromWrongPackage.contains(currentPackageName) || excludedPackageFromWrongPackage.contains(event.getSource().getPackageName())))) {
                 //error
-                handleError("<b>Wrong app!</b> Current app is " + ReadableDescriptionGenerator.setColor(descriptionGenerator.getReadableName(currentPackageName), "#ff00ff") + ". <br><br> Next operation: " + description);
+                handleError("<b>Wrong app!</b> Current app is " + ReadableDescriptionGenerator.getColoredHTMLFromMessage(descriptionGenerator.getReadableName(currentPackageName), "#ff00ff") + ". <br><br> Next operation: " + description);
                 return true;
             }
         }

@@ -207,7 +207,7 @@ public class ReadableDescriptionGenerator {
             }
         }
         else if (block instanceof SugiliteSpecialOperationBlock){
-            return "<b> SPECIAL OPERATION " + setColor(((SugiliteSpecialOperationBlock) block).getDescription(), Const.SCRIPT_ACTION_PARAMETER_COLOR) + "</b>";
+            return "<b> SPECIAL OPERATION " + setColor(((SugiliteSpecialOperationBlock) block).getDescription().toString(), Const.SCRIPT_ACTION_PARAMETER_COLOR) + "</b>";
         }
         else if (block instanceof SugiliteConditionBlock) {
             return setConditionBlockDescription(((SugiliteConditionBlock) block), 0);
@@ -328,7 +328,7 @@ public class ReadableDescriptionGenerator {
         //String[] split = boolExp.split("\\(");
         //boolExp = booleanExpression.breakdown();
         /*if(!split[0].contains("&&") && !split[0].contains("||")) {
-            boolExp = ReadableDescriptionGenerator.setColor(boolExp, "#954608");
+            boolExp = ReadableDescriptionGenerator.getColoredHTMLFromMessage(boolExp, "#954608");
         }*/
 
         SugiliteBlock ifBlock = block.getThenBlock();

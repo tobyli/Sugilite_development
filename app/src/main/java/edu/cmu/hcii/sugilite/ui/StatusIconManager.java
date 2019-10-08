@@ -13,6 +13,8 @@ import android.graphics.Rect;
 import android.net.Uri;
 import android.provider.Settings;
 import android.text.Html;
+import android.text.SpannableString;
+import android.text.Spanned;
 import android.util.DisplayMetrics;
 import android.view.GestureDetector;
 import android.view.Gravity;
@@ -308,7 +310,7 @@ public class StatusIconManager {
                         }
                     }
                 } else {
-                    statusView.setCurrentStateView(sugiliteData.getCurrentSystemState(), "");
+                    statusView.setCurrentStateView(sugiliteData.getCurrentSystemState(), new SpannableString(""));
                 }
             }
 
@@ -675,7 +677,7 @@ public class StatusIconManager {
 
                                 case "Add a Delay":
                                     SugiliteDelaySpecialOperationBlock delaySpecialOperationBlock = new SugiliteDelaySpecialOperationBlock(10000);
-                                    delaySpecialOperationBlock.setDescription("Delay for 10s");
+                                    delaySpecialOperationBlock.setDescription(new SpannableString("Delay for 10s"));
 
                                     try {
                                         SugiliteBlock currentBlock = sugiliteData.getCurrentScriptBlock();
@@ -849,7 +851,7 @@ public class StatusIconManager {
             this.addView(nextOperationView);
         }
 
-        public void setCurrentStateView(int currentState, String nextOperationHTMLDescription){
+        public void setCurrentStateView(int currentState, Spanned nextOperationHTMLDescription){
             this.currentState = currentState;
             this.setOrientation(VERTICAL);
             if(currentState == SugiliteData.DEFAULT_STATE){
@@ -866,7 +868,7 @@ public class StatusIconManager {
                 nextOperationView.setBackground(null);
                 if(currentState == SugiliteData.REGULAR_DEBUG_STATE || currentState == SugiliteData.PAUSED_FOR_DUCK_MENU_IN_DEBUG_MODE || currentState == SugiliteData.PAUSED_FOR_BREAKPOINT_STATE || currentState == SugiliteData.PAUSED_FOR_DUCK_MENU_IN_REGULAR_EXECUTION_STATE) {
                     nextOperationView.setBackgroundColor(Const.SEMI_TRANSPARENT_GRAY_BACKGROUND);
-                    nextOperationView.setText(Html.fromHtml("<b>Next Operation: </b>" + nextOperationHTMLDescription));
+                    nextOperationView.setText(nextOperationHTMLDescription);
                 }
             }
         }

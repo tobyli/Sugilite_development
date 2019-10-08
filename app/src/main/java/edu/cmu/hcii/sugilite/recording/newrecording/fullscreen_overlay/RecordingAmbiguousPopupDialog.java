@@ -9,6 +9,8 @@ import android.graphics.LightingColorFilter;
 import android.speech.tts.TextToSpeech;
 import android.support.annotation.NonNull;
 import android.text.Html;
+import android.text.SpannableStringBuilder;
+import android.text.Spanned;
 import android.util.Pair;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -130,7 +132,7 @@ public class RecordingAmbiguousPopupDialog extends SugiliteDialogManager impleme
         //Map<TextView, SugiliteOperationBlock> textViews = new HashMap<>();
 
         queryScoreList = queryScoreList.subList(0, 1);
-        String[] stringArray = new String[queryScoreList.size()];
+        Spanned[] stringArray = new Spanned[queryScoreList.size()];
         SugiliteOperationBlock[] sugiliteOperationBlockArray = new SugiliteOperationBlock[queryScoreList.size()];
 
         int i = 0;
@@ -139,7 +141,7 @@ public class RecordingAmbiguousPopupDialog extends SugiliteDialogManager impleme
             sugiliteOperationBlockArray[i++] = block;
         }
 
-        Map<SugiliteOperationBlock, String> descriptions = blockBuildingHelper.getDescriptionsInDifferences(sugiliteOperationBlockArray);
+        Map<SugiliteOperationBlock, Spanned> descriptions = blockBuildingHelper.getDescriptionsInDifferences(sugiliteOperationBlockArray);
 
         i = 0;
         for (SugiliteOperationBlock block : sugiliteOperationBlockArray) {
@@ -147,7 +149,7 @@ public class RecordingAmbiguousPopupDialog extends SugiliteDialogManager impleme
         }
 
 
-        ArrayAdapter<String> adapter = new ArrayAdapter<String>(context, android.R.layout.simple_list_item_1, stringArray) {
+        ArrayAdapter<Spanned> adapter = new ArrayAdapter<Spanned>(context, android.R.layout.simple_list_item_1, stringArray) {
             //override the arrayadapter to show HTML-styled textviews in the listview
             @NonNull
             @Override
@@ -159,7 +161,7 @@ public class RecordingAmbiguousPopupDialog extends SugiliteDialogManager impleme
                     row = convertView;
                 }
                 TextView tv = (TextView) row.findViewById(android.R.id.text1);
-                tv.setText(Html.fromHtml(getItem(position)));
+                tv.setText(getItem(position));
                 //textViews.put(tv, sugiliteOperationBlockArray[position]);
                 return row;
             }
@@ -444,7 +446,7 @@ public class RecordingAmbiguousPopupDialog extends SugiliteDialogManager impleme
             setCurrentState(resultWontMatchState);
             initPrompt();
 
-            String descriptionForTopQuery = null;
+            Spanned descriptionForTopQuery = null;
             try {
                 SugiliteBlock resultBlock = sugiliteScriptParser.parseASingleBlockFromString(results.getQueries().get(0).getFormula());
                 if(resultBlock instanceof SugiliteOperationBlock && ((SugiliteOperationBlock) resultBlock).getOperation() instanceof SugiliteClickOperation) {
@@ -453,9 +455,12 @@ public class RecordingAmbiguousPopupDialog extends SugiliteDialogManager impleme
                     if (topQueryA != null) {
                         OntologyQuery topQuery = topQueryA.clone();
                         topQuery = OntologyQueryUtils.getQueryWithClassAndPackageConstraints(topQuery, actualClickedNode.getEntityValue(), false, true, true);
-                        descriptionForTopQuery = descriptionGenerator.getDescriptionForOperation(((SugiliteOperationBlock) resultBlock).getOperation(), topQuery.clone());
+                        descriptionForTopQuery = descriptionGenerator.getSpannedDescriptionForOperation(((SugiliteOperationBlock) resultBlock).getOperation(), topQuery.clone());
                         if(descriptionForTopQuery != null){
-                            textPrompt.setText(Html.fromHtml(boldify(context.getString(R.string.disambiguation_result_wont_match)) + "<br><br> Intepretation for your description: " + descriptionForTopQuery));
+                            SpannableStringBuilder text = new SpannableStringBuilder();
+                            text.append(Html.fromHtml(boldify(context.getString(R.string.disambiguation_result_wont_match)) + "<br><br> Intepretation for your description: "));
+                            text.append(descriptionForTopQuery);
+                            textPrompt.setText(text);
                         }
                     }
                 }

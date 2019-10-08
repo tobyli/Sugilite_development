@@ -107,7 +107,7 @@ public class NewScriptGeneralizer {
 
                         //edit the original data description query to reflect the new parameters
                         replaceParametersInOntologyQuery (ontologyQuery, variableName);
-                        operationBlock.setDescription(ontologyDescriptionGenerator.getDescriptionForOperation(operationBlock.getOperation(), operationBlock.getOperation().getDataDescriptionQueryIfAvailable()));
+                        operationBlock.setDescription(ontologyDescriptionGenerator.getSpannedDescriptionForOperation(operationBlock.getOperation(), operationBlock.getOperation().getDataDescriptionQueryIfAvailable()));
 
 
                         //print out the found parameters and alternative values

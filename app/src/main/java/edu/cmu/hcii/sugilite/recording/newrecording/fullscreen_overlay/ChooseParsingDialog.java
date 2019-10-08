@@ -101,7 +101,7 @@ public class ChooseParsingDialog extends SugiliteDialogManager {
 
         i = 0;
         for (OntologyQuery query : resultQueries) {
-            stringArray[i++] = ontologyDescriptionGenerator.getDescriptionForOntologyQuery(query, true);
+            stringArray[i++] = ontologyDescriptionGenerator.getDescriptionForOntologyQuery(query, true).toString();
         }
 
 

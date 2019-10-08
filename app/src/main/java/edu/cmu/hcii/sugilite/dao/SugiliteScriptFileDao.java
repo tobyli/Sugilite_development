@@ -16,8 +16,10 @@ import java.util.Map;
 
 import edu.cmu.hcii.sugilite.R;
 import edu.cmu.hcii.sugilite.SugiliteData;
+import edu.cmu.hcii.sugilite.model.OperationBlockDescriptionRegenerator;
 import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
+import edu.cmu.hcii.sugilite.ontology.description.OntologyDescriptionGenerator;
 import edu.cmu.hcii.sugilite.ui.dialog.SugiliteProgressDialog;
 
 import static edu.cmu.hcii.sugilite.Const.ENABLE_DAO_READING_CACHE;
@@ -33,10 +35,12 @@ public class SugiliteScriptFileDao implements SugiliteScriptDao {
     private Map<String, SugiliteStartingBlock> savingCache;
     private Map<String, SugiliteStartingBlock> readingCache;
 
+    private OntologyDescriptionGenerator ontologyDescriptionGenerator;
 
 
     public SugiliteScriptFileDao(Context context, SugiliteData sugiliteData){
         this.context = context;
+        this.ontologyDescriptionGenerator = new OntologyDescriptionGenerator();
 
         //NOTE: this is the one centralized buffer in SugiliteData
         savingCache = sugiliteData.sugiliteFileScriptDaoSavingCache;
@@ -160,7 +164,7 @@ public class SugiliteScriptFileDao implements SugiliteScriptDao {
                     ois.close();
             }
             readingCache.put(key, block);
-
+            OperationBlockDescriptionRegenerator.regenerateScriptDescriptions(block, ontologyDescriptionGenerator);
             progressDialog.dismiss();
             return block;
         }

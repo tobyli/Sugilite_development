@@ -469,7 +469,7 @@ public class SugiliteCommunicationController {
             try{
                 SugiliteStartingBlock script = jsonProcessor.jsonToScript(json);
                 Log.d("mtemp",script.toString());
-                Log.d("mtemp",script.getNextBlockToRun().getDescription());
+                Log.d("mtemp",script.getNextBlockToRun().getDescription().toString());
                 if(!script.getScriptName().contains(".SugiliteScript"))
                     script.setScriptName(script.getScriptName() + ".SugiliteScript");
                 sugiliteScriptDao.save(script);

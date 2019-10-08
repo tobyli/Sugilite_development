@@ -58,7 +58,7 @@ public class ScriptQueryHasher {
                         trinary.setParameter2(HashedStringOntologyQuery.hashQuery((OntologyQuery) trinary.getParameter2()));
                     }
                 }
-                operationBlock.setDescription(ontologyDescriptionGenerator.getDescriptionForOperation(operationBlock.getOperation(), operationBlock.getOperation().getDataDescriptionQueryIfAvailable()));
+                operationBlock.setDescription(ontologyDescriptionGenerator.getSpannedDescriptionForOperation(operationBlock.getOperation(), operationBlock.getOperation().getDataDescriptionQueryIfAvailable()));
             }
         }
     }

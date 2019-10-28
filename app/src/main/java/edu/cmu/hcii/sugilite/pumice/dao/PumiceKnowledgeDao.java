@@ -2,17 +2,16 @@ package edu.cmu.hcii.sugilite.pumice.dao;
 
 import android.content.Context;
 
+import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.util.Map;
 
 import edu.cmu.hcii.sugilite.R;
 import edu.cmu.hcii.sugilite.SugiliteData;
-import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.pumice.kb.PumiceKnowledgeManager;
 import edu.cmu.hcii.sugilite.ui.dialog.SugiliteProgressDialog;
 
@@ -41,7 +40,7 @@ public class PumiceKnowledgeDao {
         }
     }
 
-    public PumiceKnowledgeManager getPumiceKnowledge() throws IOException, ClassNotFoundException {
+    public PumiceKnowledgeManager getPumiceKnowledgeManagerFromFile() throws IOException, ClassNotFoundException {
         //read the script out from the file, and put it into the cache
         SugiliteProgressDialog progressDialog = new SugiliteProgressDialog(SugiliteData.getAppContext(), R.string.loading_kb_message);
         progressDialog.show();
@@ -51,7 +50,7 @@ public class PumiceKnowledgeDao {
         PumiceKnowledgeManager pumiceKnowledge = null;
         try {
             fin = new FileInputStream(knowledgeDir.getPath() + "/" + fileName);
-            ois = new ObjectInputStream(fin);
+            ois = new ObjectInputStream(new BufferedInputStream(fin));
             pumiceKnowledge = (PumiceKnowledgeManager) ois.readObject();
         } catch (IOException e) {
             e.printStackTrace();
@@ -89,7 +88,7 @@ public class PumiceKnowledgeDao {
     }
 
     public PumiceKnowledgeManager getPumiceKnowledgeOrANewInstanceIfNotAvailable(boolean toAddDefaultContentForNewInstance) throws IOException, ClassNotFoundException {
-        PumiceKnowledgeManager pumiceKnowledgeManager = getPumiceKnowledge();
+        PumiceKnowledgeManager pumiceKnowledgeManager = getPumiceKnowledgeManagerFromFile();
         if (pumiceKnowledgeManager == null){
             pumiceKnowledgeManager = new PumiceKnowledgeManager();
             if (toAddDefaultContentForNewInstance) {

@@ -70,7 +70,9 @@
 
 
 
-    <string name="loading_script_message">Loading the script...\n</string>
+    <string name="loading_script_message">Reading the script...\n</string>
+    <string name="loading_file_message">Loading the script file...\n</string>
+    <string name="loading_kb_message">Loading the KB file...\n</string>
     <string name="saving_script_message">Saving the script...\n</string>
     <string name="downloading_script_message">Downloading the script...\n</string>
     <string name="loading_remote_script_list_message">Loading the list from the server...\n</string>

@@ -104,7 +104,6 @@ public class PumiceDemonstrationUtil {
      * @param serviceStatusManager
      * @param script
      * @param sugiliteData
-     * @param layoutInflater
      * @param sharedPreferences
      * @param dialogManager
      */
@@ -127,7 +126,7 @@ public class PumiceDemonstrationUtil {
                 if (sugiliteData.pumiceDialogManager != null) {
                     dialogManager = sugiliteData.pumiceDialogManager;
                 } else {
-                    dialogManager = new PumiceDialogManager(activityContext);
+                    dialogManager = new PumiceDialogManager(activityContext, true);
                     SugiliteVoiceRecognitionListener sugiliteVoiceRecognitionListener = null;
                     TextToSpeech tts = sugiliteData.getTTS();
                     if (Const.SELECTED_SPEECH_RECOGNITION_TYPE == Const.SpeechRecognitionType.ANDROID) {

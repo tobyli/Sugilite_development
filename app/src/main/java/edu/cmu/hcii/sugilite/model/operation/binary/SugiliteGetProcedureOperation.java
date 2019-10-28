@@ -8,6 +8,8 @@ import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.model.value.SugiliteValue;
 import edu.cmu.hcii.sugilite.ontology.OntologyQuery;
+import edu.cmu.hcii.sugilite.pumice.PumiceDemonstrationUtil;
+import edu.cmu.hcii.sugilite.pumice.dao.PumiceKnowledgeDao;
 import edu.cmu.hcii.sugilite.pumice.dialog.PumiceDialogManager;
 import edu.cmu.hcii.sugilite.pumice.kb.PumiceKnowledgeManager;
 import edu.cmu.hcii.sugilite.pumice.kb.PumiceProceduralKnowledge;
@@ -37,12 +39,12 @@ public class SugiliteGetProcedureOperation extends SugiliteGetOperation<String> 
      */
     @Override
     public String evaluate(@Nullable SugiliteData sugiliteData) {
-        PumiceDialogManager pumiceDialogManager = sugiliteData.pumiceDialogManager;
-        if (pumiceDialogManager != null) {
-            PumiceKnowledgeManager pumiceKnowledgeManager = pumiceDialogManager.getPumiceKnowledgeManager();
+        PumiceKnowledgeDao pumiceKnowledgeDao = new PumiceKnowledgeDao(SugiliteData.getAppContext(), sugiliteData);
+        try {
+            PumiceKnowledgeManager pumiceKnowledgeManager = pumiceKnowledgeDao.getPumiceKnowledgeOrANewInstanceIfNotAvailable(true);
             if (pumiceKnowledgeManager != null) {
-                for (PumiceProceduralKnowledge proceduralKnowledge : pumiceKnowledgeManager.getPumiceProceduralKnowledges()){
-                    if (getName().equals(proceduralKnowledge.getProcedureName())){
+                for (PumiceProceduralKnowledge proceduralKnowledge : pumiceKnowledgeManager.getPumiceProceduralKnowledges()) {
+                    if (getName().equals(proceduralKnowledge.getProcedureName())) {
                         //found;
                         return proceduralKnowledge.getTargetScriptName(pumiceKnowledgeManager);
                     }
@@ -50,10 +52,14 @@ public class SugiliteGetProcedureOperation extends SugiliteGetOperation<String> 
             } else {
                 throw new RuntimeException("null knowledge manager!");
             }
-        } else {
-            throw new RuntimeException("null dialog manager!");
+        } catch (Exception e) {
+            e.printStackTrace();
+            //TODO: retrive the knowledge manager when sugiliteData.pumiceDialogManager is null
+            PumiceDemonstrationUtil.showSugiliteAlertDialog("Error when finding the procedure knowledge: " + getName());
+            return null;
         }
-        throw new RuntimeException("can't find the target procedure knowledge!");
+        PumiceDemonstrationUtil.showSugiliteAlertDialog("Error when finding the procedure knowledge: " + getName());
+        return null;
     }
 
     @Override

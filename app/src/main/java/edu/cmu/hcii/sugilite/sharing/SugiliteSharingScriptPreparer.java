@@ -73,6 +73,9 @@ public class SugiliteSharingScriptPreparer {
         return replacements;
     }
 
+    //TODO: create a new prepareScript method that returns the ontology queries that were replaced
+
+
     public SugiliteStartingBlock prepareScript(SugiliteStartingBlock script) throws Exception {
         // 1. get all StringInContext in the block
         Set<StringInContext> originalQueryStrings = getStringsFromScript(script);

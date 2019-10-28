@@ -7,6 +7,8 @@ import android.content.SharedPreferences;
 import android.graphics.Rect;
 import android.text.Editable;
 import android.text.Html;
+import android.text.Spanned;
+import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.util.Log;
 import android.view.ContextThemeWrapper;
@@ -434,7 +436,7 @@ public class RecordingPopUpDialog implements AbstractSugiliteDialog {
         };
         if(view == null) {
             //the main panel is skipped
-            builder.setTitle("Save Operation Confirmation").setMessage(Html.fromHtml("Are you sure you want to record the operation: " + readableDescriptionGenerator.generateReadableDescription(operationBlock)));
+            builder.setTitle("Save Operation Confirmation").setMessage((Spanned) TextUtils.concat("Are you sure you want to record the operation: ", readableDescriptionGenerator.generateReadableDescription(operationBlock)));
             builder.setPositiveButton("Yes", onClickListener)
                     .setNegativeButton("Skip", new DialogInterface.OnClickListener() {
                         @Override
@@ -1068,7 +1070,7 @@ public class RecordingPopUpDialog implements AbstractSugiliteDialog {
 
         //set up within app spinner
         List<String> withinAppSpinnerItems = new ArrayList<>();
-        withinAppSpinnerItems.add(readableDescriptionGenerator.getReadableName(featurePack.packageName));
+        withinAppSpinnerItems.add(readableDescriptionGenerator.getReadableAppNameFromPackageName(featurePack.packageName));
         withinAppSpinnerItems.add("Any app");
         ArrayAdapter<String> withInAppAdapter = new ArrayAdapter<String>(dialogRootView.getContext(), android.R.layout.simple_spinner_item, withinAppSpinnerItems);
         withInAppAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
@@ -1176,7 +1178,7 @@ public class RecordingPopUpDialog implements AbstractSugiliteDialog {
 
         //((TextView)findViewById(R.id.time)).setText("Event Time: " + dateFormat.format(c.getTime()) + "\nRecording script: " + sharedPreferences.getString("scriptName", "NULL"));
         //((TextView)findViewById(R.id.filteredNodeCount)).setText(generateFilterCount());
-        ((TextView) dialogRootView.findViewById(R.id.previewContent)).setText(Html.fromHtml(readableDescriptionGenerator.generateReadableDescription(generateBlock())));
+        ((TextView) dialogRootView.findViewById(R.id.previewContent)).setText(readableDescriptionGenerator.generateReadableDescription(generateBlock()));
 
 
     }
@@ -1297,7 +1299,7 @@ public class RecordingPopUpDialog implements AbstractSugiliteDialog {
 
         //refresh the operation preview
         SugiliteOperationBlock block = generateBlock();
-        ((TextView) dialogRootView.findViewById(R.id.previewContent)).setText(Html.fromHtml(readableDescriptionGenerator.generateReadableDescription(block)));
+        ((TextView) dialogRootView.findViewById(R.id.previewContent)).setText(readableDescriptionGenerator.generateReadableDescription(block));
 
     }
 
@@ -1493,7 +1495,7 @@ public class RecordingPopUpDialog implements AbstractSugiliteDialog {
     @Deprecated
     public UIElementMatchingFilter generateFilter(){
         UIElementMatchingFilter filter = new UIElementMatchingFilter();
-        if(withInAppSpinner.getSelectedItem().toString().contentEquals(readableDescriptionGenerator.getReadableName(featurePack.packageName))){
+        if(withInAppSpinner.getSelectedItem().toString().contentEquals(readableDescriptionGenerator.getReadableAppNameFromPackageName(featurePack.packageName))){
             filter.setPackageName(featurePack.packageName);
         }
         if(targetTypeSpinner.getSelectedItem().toString().contentEquals(featurePack.className)){
@@ -1576,7 +1578,7 @@ public class RecordingPopUpDialog implements AbstractSugiliteDialog {
     public OntologyQuery generateQuery(){
         CombinedOntologyQuery q = new CombinedOntologyQuery(CombinedOntologyQuery.RelationType.AND);
 
-        if(withInAppSpinner.getSelectedItem().toString().contentEquals(readableDescriptionGenerator.getReadableName(featurePack.packageName))){
+        if(withInAppSpinner.getSelectedItem().toString().contentEquals(readableDescriptionGenerator.getReadableAppNameFromPackageName(featurePack.packageName))){
             LeafOntologyQuery subQuery = new LeafOntologyQuery();
             Set<SugiliteEntity> object = new HashSet<>();
             object.add(new SugiliteEntity(-1, String.class, featurePack.packageName));

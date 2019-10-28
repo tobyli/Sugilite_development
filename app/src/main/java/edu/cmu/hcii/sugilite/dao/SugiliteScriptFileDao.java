@@ -142,7 +142,7 @@ public class SugiliteScriptFileDao implements SugiliteScriptDao {
         }
         else {
             //show the progress dialog when reading from the file system
-            SugiliteProgressDialog progressDialog = new SugiliteProgressDialog(SugiliteData.getAppContext(), R.string.loading_script_message);
+            SugiliteProgressDialog progressDialog = new SugiliteProgressDialog(SugiliteData.getAppContext(), R.string.loading_file_message);
             progressDialog.show();
 
             //read the script out from the file, and put it into the cache

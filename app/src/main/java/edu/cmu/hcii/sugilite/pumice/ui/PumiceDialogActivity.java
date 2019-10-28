@@ -76,7 +76,7 @@ public class PumiceDialogActivity extends AppCompatActivity implements SugiliteV
     }
 
     private void init() {
-        bindDialogManager(new PumiceDialogManager(context));
+        bindDialogManager(new PumiceDialogManager(context, true));
         //send the first prompt from the default intent handler in the dialog manager
         pumiceDialogManager.callSendPromptForTheIntentHandlerForCurrentIntentHandler();
     }

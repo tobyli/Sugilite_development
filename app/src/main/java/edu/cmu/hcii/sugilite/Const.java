@@ -67,6 +67,7 @@ public class Const {
     //switch between using SQL Dao and File Dao (SQL Dao has a max script size issue)
     public static final int FILE_SCRIPT_DAO = 1, SQL_SCRIPT_DAO = 2;
     public static final int DAO_TO_USE = FILE_SCRIPT_DAO;
+
     public static final boolean ENABLE_DAO_READING_CACHE = false;
 
     //contain package names for launchers so they won't be killed

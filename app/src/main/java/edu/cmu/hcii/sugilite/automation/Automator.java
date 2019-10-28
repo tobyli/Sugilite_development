@@ -104,12 +104,14 @@ public class Automator {
      */
     public boolean handleLiveEvent(UISnapshot uiSnapshot, Context context, List<AccessibilityNodeInfo> allNodes) {
         //TODO: fix the highlighting for matched element
-        if (sugiliteData.getInstructionQueueSize() == 0 || uiSnapshot == null)
+        if (sugiliteData.getInstructionQueueSize() == 0 || uiSnapshot == null) {
             return false;
+        }
         this.context = context;
         final SugiliteBlock blockToMatch = sugiliteData.peekInstructionQueue();
-        if (blockToMatch == null)
+        if (blockToMatch == null) {
             return false;
+        }
 
         if (!(blockToMatch instanceof SugiliteOperationBlock)) {
             //handle non Sugilite operation blocks
@@ -117,24 +119,48 @@ public class Automator {
              * nothing really special needed for starting blocks, just add the next block to the queue
              */
             if (blockToMatch instanceof SugiliteStartingBlock) {
+                synchronized (this) {
+                    synchronized (this) {
+                        if (sugiliteData.peekInstructionQueue() != null && sugiliteData.peekInstructionQueue().equals(blockToMatch)) {
+                            sugiliteData.removeInstructionQueueItem();
+                        } else {
+                            return false;
+                        }
+                    }
+                }
                 addNextBlockToQueue(blockToMatch);
-                sugiliteData.removeInstructionQueueItem();
                 return true;
             }
             /**
              * handle error handling block - "addNextBlockToQueue" will determine which block to add
              */
             else if (blockToMatch instanceof SugiliteErrorHandlingForkBlock) {
+                synchronized (this) {
+                    synchronized (this) {
+                        if (sugiliteData.peekInstructionQueue() != null && sugiliteData.peekInstructionQueue().equals(blockToMatch)) {
+                            sugiliteData.removeInstructionQueueItem();
+                        } else {
+                            return false;
+                        }
+                    }
+                }
                 addNextBlockToQueue(blockToMatch);
-                sugiliteData.removeInstructionQueueItem();
                 return true;
             }
             /**
              * nothing special needed for conditional blocks, just add next block to queue
              */
             else if (blockToMatch instanceof SugiliteConditionBlock) {///
+                synchronized (this) {
+                    synchronized (this) {
+                        if (sugiliteData.peekInstructionQueue() != null && sugiliteData.peekInstructionQueue().equals(blockToMatch)) {
+                            sugiliteData.removeInstructionQueueItem();
+                        } else {
+                            return false;
+                        }
+                    }
+                }
                 addNextBlockToQueue(blockToMatch);///
-                sugiliteData.removeInstructionQueueItem();///
                 return true;///
             }///
             /**
@@ -142,7 +168,16 @@ public class Automator {
              */
             else if (blockToMatch instanceof SugiliteSpecialOperationBlock) {
                 SugiliteSpecialOperationBlock specialOperationBlock = (SugiliteSpecialOperationBlock) blockToMatch;
-                sugiliteData.removeInstructionQueueItem();
+                synchronized (this) {
+                    synchronized (this) {
+                        if (sugiliteData.peekInstructionQueue() != null && sugiliteData.peekInstructionQueue().equals(blockToMatch)) {
+                            sugiliteData.removeInstructionQueueItem();
+                        } else {
+                            return false;
+                        }
+                    }
+                }
+
                 try {
                     specialOperationBlock.run(context, sugiliteData, sugiliteScriptDao, sharedPreferences);
                     return true;
@@ -167,6 +202,16 @@ public class Automator {
             }
 
             if (operationBlock.getOperation().containsDataDescriptionQuery() == false) {
+
+                synchronized (this) {
+                    if (sugiliteData.peekInstructionQueue() != null && sugiliteData.peekInstructionQueue().equals(blockToMatch)) {
+                        sugiliteData.removeInstructionQueueItem();
+                    } else {
+                        return false;
+                    }
+                }
+
+
                 //there is no query in the operation block
                 if (operationBlock.getOperation().getOperationType() == SugiliteOperation.SPECIAL_GO_HOME ||
                         operationBlock.getOperation().getOperationType() == SugiliteOperation.READOUT_CONST) {
@@ -176,7 +221,6 @@ public class Automator {
                     if (retVal) {
                         sugiliteData.errorHandler.reportSuccess(Calendar.getInstance().getTimeInMillis());
                         addNextBlockToQueue(operationBlock);
-                        sugiliteData.removeInstructionQueueItem();
                         if (sugiliteData.getCurrentSystemState() == SugiliteData.REGULAR_DEBUG_STATE) {
                             try {
                                 //----not taking screenshot----
@@ -200,6 +244,7 @@ public class Automator {
 
                 } else if (operationBlock.getOperation() instanceof SugiliteGetProcedureOperation) {
                     //handle "get" query for procedures
+
                     String subscriptName = ((SugiliteGetProcedureOperation) operationBlock.getOperation()).evaluate(sugiliteData);
                     SugiliteSubscriptSpecialOperationBlock subscriptBlock = new SugiliteSubscriptSpecialOperationBlock(subscriptName);
                     subscriptBlock.setParentBlock(operationBlock.getParentBlock());
@@ -208,7 +253,6 @@ public class Automator {
 
                     //add the new block to the instruction queue
                     sugiliteData.addInstruction(subscriptBlock);
-                    sugiliteData.removeInstructionQueueItem();
                     return true;
 
 
@@ -240,7 +284,13 @@ public class Automator {
                                         sugiliteData.errorHandler.reportSuccess(Calendar.getInstance().getTimeInMillis());
                                         addNextBlockToQueue(operationBlock);
                                         if (sugiliteData.getInstructionQueueSize() > 0) {
-                                            sugiliteData.removeInstructionQueueItem();
+                                            synchronized (this) {
+                                                if (sugiliteData.peekInstructionQueue() != null && sugiliteData.peekInstructionQueue().equals(blockToMatch)) {
+                                                    sugiliteData.removeInstructionQueueItem();
+                                                } else {
+                                                    return false;
+                                                }
+                                            }
                                         }
                                     }
                                     succeeded = true;
@@ -310,13 +360,19 @@ public class Automator {
                     //TODO: scrolling to find more nodes -- not only the ones displayed on the current screen
                     boolean retVal = performAction(node, operationBlock);
 
-                    if (retVal) {
+                        if (retVal) {
                         if (!succeeded) {
                             //report success
                             sugiliteData.errorHandler.reportSuccess(Calendar.getInstance().getTimeInMillis());
                             addNextBlockToQueue(operationBlock);
                             if (sugiliteData.getInstructionQueueSize() > 0) {
-                                sugiliteData.removeInstructionQueueItem();
+                                synchronized (this) {
+                                    if (sugiliteData.peekInstructionQueue() != null && sugiliteData.peekInstructionQueue().equals(blockToMatch)) {
+                                        sugiliteData.removeInstructionQueueItem();
+                                    } else {
+                                        return false;
+                                    }
+                                }
                             }
                         }
                         succeeded = true;
@@ -487,6 +543,7 @@ public class Automator {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
                             sugiliteData.addInstruction(((SugiliteErrorHandlingForkBlock) block).getAlternativeNextBlock());
+
                         }
                     });
 
@@ -508,9 +565,11 @@ public class Automator {
             SugiliteBlock b = ((SugiliteConditionBlock) block).getNextBlockToRun(sugiliteData);
             sugiliteData.addInstruction(b);
 
+
             SugiliteBlock b2 = block.getNextBlockToRun();
             if (b != b2 && b2 != null) {
                 sugiliteData.addInstruction(b2);
+
             }
         } else {
             throw new RuntimeException("Unsupported Block Type!");

@@ -226,7 +226,7 @@ public class OntologyDescriptionGenerator {
         } else {
             //TODO: handle more types of operations ***
             System.err.println("can't handle operation " + operation.getOperationType());
-            return null;
+            return new SpannableString(operation.toString());
         }
 
     }
@@ -235,7 +235,7 @@ public class OntologyDescriptionGenerator {
         return getSpannedDescriptionForOperation(operation, sq, false);
     }
 
-        // get a more viewable list order
+    // get a more viewable list order
     private static String numberToOrder(String number) {
         if (number.endsWith("1")) {
             if (number.endsWith("11"))
@@ -257,11 +257,9 @@ public class OntologyDescriptionGenerator {
         return number;
     }
 
-
     static Spanned getColoredSpannedTextFromMessage(String message, String color) {
         return Html.fromHtml(String.format("<font color=\"%s\"><b>%s</b></font>", color, message));
     }
-
 
     private static SugiliteRelation getRForQuery(OntologyQuery query) {
         if (query instanceof LeafOntologyQuery) {
@@ -271,7 +269,6 @@ public class OntologyDescriptionGenerator {
         }
         return null;
     }
-
 
     // deals with some special cases to make description more readable
     private Spanned formatting(SugiliteRelation sugiliteRelation, String[] objectString) {
@@ -430,42 +427,6 @@ public class OntologyDescriptionGenerator {
             result.append(translatedFilter);
         }
     }
-
-    /*
-    private Spanned getDescrptionForCombinedOntologyQueryWithAndRelation (OntologyQuery[] queries, OntologyQueryFilter filter) {
-        String result = "";
-        String filterClause = "";
-        SugiliteRelation filterRelation = null; // filter relation
-        boolean isListOrder = false;
-
-        //get the filterClause
-        if (filter != null) {
-            filterRelation = filter.getRelation();
-            filterClause = getColoredHTMLFromMessage(translateFilter(filter), Const.SCRIPT_ACTION_PARAMETER_COLOR);
-        }
-
-
-        if (queries[0] != null && getRForQuery(queries[0]).equals(SugiliteRelation.HAS_CLASS_NAME)) {
-            //the first relation is a HAS_CLASS_NAME relation
-            if (queries[1] != null && isListOrderRelation(getRForQuery(queries[1]))) {
-                //special case: the first relation is a HAS_CLASS_NAME relation and the second relation is list order
-                String itemDescription = getDescriptionForOntologyQuery(queries[1], false).toString().replace("item", getDescriptionForOntologyQuery(queries[0], false).toString());
-                if (queries.length == 2) {
-                    if (filter != null) {
-                        if (isListOrderRelation(filterRelation)) {
-                            result = filterListOrderTranslationWithClassName(result, filterClause, queries);
-                            isListOrder = true;
-                        }
-                        else {
-                            result = itemDescription + " with " + filterClause;
-                        }
-                    }
-                }
-            }
-        }
-
-    }
-    */
 
     private Spanned translationWithRelationshipAnd(Spanned[] descriptions, OntologyQuery[] queries, OntologyQueryFilter filter) {
         SpannableStringBuilder result = new SpannableStringBuilder();

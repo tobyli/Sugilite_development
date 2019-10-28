@@ -7,6 +7,7 @@ import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.model.block.booleanexp.SugiliteBooleanExpressionNew;
 import edu.cmu.hcii.sugilite.model.value.SugiliteValue;
 import edu.cmu.hcii.sugilite.ontology.OntologyQuery;
+import edu.cmu.hcii.sugilite.pumice.PumiceDemonstrationUtil;
 import edu.cmu.hcii.sugilite.pumice.dao.PumiceKnowledgeDao;
 import edu.cmu.hcii.sugilite.pumice.dialog.PumiceDialogManager;
 import edu.cmu.hcii.sugilite.pumice.kb.PumiceBooleanExpKnowledge;
@@ -35,33 +36,26 @@ public class SugiliteGetBoolExpOperation extends SugiliteGetOperation<Boolean> i
     public PumiceBooleanExpKnowledge retrieveBoolExpKnowledge (SugiliteData sugiliteData) {
         //retrieve the actual bool expression from the KB
         if (sugiliteData != null) {
-            PumiceDialogManager dialogManager = sugiliteData.pumiceDialogManager;
-            PumiceKnowledgeManager knowledgeManager;
-            if (dialogManager != null) {
-                knowledgeManager = dialogManager.getPumiceKnowledgeManager();
-            } else {
-                /*
-                //dialog manager is null -- recover a PumiceKnowledgeManager instance from the dao
-                PumiceKnowledgeDao pumiceKnowledgeDao = new PumiceKnowledgeDao(context, sugiliteData);
-                try {
-                    knowledgeManager = pumiceKnowledgeDao.getPumiceKnowledgeOrANewInstanceIfNotAvailable(false);
-                } catch (Exception e) {
-                    e.printStackTrace();
+            try {
+                PumiceKnowledgeDao pumiceKnowledgeDao = new PumiceKnowledgeDao(SugiliteData.getAppContext(), sugiliteData);
+                PumiceKnowledgeManager knowledgeManager = pumiceKnowledgeDao.getPumiceKnowledgeOrANewInstanceIfNotAvailable(true);
+                List<PumiceBooleanExpKnowledge> booleanExpKnowledges = knowledgeManager.getPumiceBooleanExpKnowledges();
+                for (PumiceBooleanExpKnowledge booleanExpKnowledge : booleanExpKnowledges) {
+                    //TODO: use a hashmap for faster retrieval
+                    if (booleanExpKnowledge.getExpName() != null && booleanExpKnowledge.getExpName().equals(getName())) {
+                        return booleanExpKnowledge;
+                    }
                 }
-                */
-                throw new RuntimeException("Null PumiceDialogManager");
             }
-            List<PumiceBooleanExpKnowledge> booleanExpKnowledges = knowledgeManager.getPumiceBooleanExpKnowledges();
-            for (PumiceBooleanExpKnowledge booleanExpKnowledge : booleanExpKnowledges){
-                //TODO: use a hashmap for faster retrieval
-                if(booleanExpKnowledge.getExpName() != null && booleanExpKnowledge.getExpName().equals(getName())){
-                    return booleanExpKnowledge;
-                }
+            catch (Exception e){
+                e.printStackTrace();
+                //TODO: retrive the knowledge manager when sugiliteData.pumiceDialogManager is null
+                PumiceDemonstrationUtil.showSugiliteAlertDialog("Error when finding the boolean exp knowledge: " + getName());
+                return null;
             }
         }
-
-        //TODO: retrive the knowledge manager when sugiliteData.pumiceDialogManager is null
-        throw new RuntimeException("Failed to find the boolean exp knowledge");
+        PumiceDemonstrationUtil.showSugiliteAlertDialog("Failed to find the boolean exp knowledge: " + getName());
+        return null;
     }
 
     /**
@@ -71,7 +65,13 @@ public class SugiliteGetBoolExpOperation extends SugiliteGetOperation<Boolean> i
     @Override
     public Boolean evaluate(SugiliteData sugiliteData) {
         //retrieve the actual bool expression from the KB
-        return retrieveBoolExpKnowledge(sugiliteData).evaluate(sugiliteData);
+        PumiceBooleanExpKnowledge booleanExpKnowledge = retrieveBoolExpKnowledge(sugiliteData);
+        if (booleanExpKnowledge != null) {
+            return booleanExpKnowledge.evaluate(sugiliteData);
+        } else {
+            PumiceDemonstrationUtil.showSugiliteAlertDialog("Failed to evaluate the Boolean expression: " + getName() + "\n\nReturning the default false value ...");
+            return false;
+        }
     }
 
     @Override

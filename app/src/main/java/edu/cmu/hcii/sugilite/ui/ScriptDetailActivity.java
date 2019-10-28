@@ -67,7 +67,7 @@ import edu.cmu.hcii.sugilite.ontology.SerializableUISnapshot;
 import static edu.cmu.hcii.sugilite.Const.OVERLAY_TYPE;
 import static edu.cmu.hcii.sugilite.Const.SCRIPT_DELAY;
 import static edu.cmu.hcii.sugilite.Const.SQL_SCRIPT_DAO;
-import static edu.cmu.hcii.sugilite.recording.ReadableDescriptionGenerator.setConditionBlockDescription;
+import static edu.cmu.hcii.sugilite.recording.ReadableDescriptionGenerator.getConditionBlockDescription;
 
 public abstract class ScriptDetailActivity extends AppCompatActivity {
 
@@ -105,11 +105,7 @@ public abstract class ScriptDetailActivity extends AppCompatActivity {
 
     }
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-        loadOperationList(script);
-    }
+
 
     public void loadOperationList(SugiliteStartingBlock script){
         SugiliteData.runOnUiThread(new Runnable() {
@@ -126,21 +122,27 @@ public abstract class ScriptDetailActivity extends AppCompatActivity {
                 while(iterBlock != null){
                     System.out.println("iterBlock: " + iterBlock);
                     operationStepList.addView(getViewForBlock(iterBlock));
-                    if (iterBlock instanceof SugiliteStartingBlock)
+                    if (iterBlock instanceof SugiliteStartingBlock) {
                         iterBlock = ((SugiliteStartingBlock) iterBlock).getNextBlockToRun();
-                    else if (iterBlock instanceof SugiliteOperationBlock)
+                    }
+                    else if (iterBlock instanceof SugiliteOperationBlock) {
                         iterBlock = ((SugiliteOperationBlock) iterBlock).getNextBlockToRun();
-                    else if (iterBlock instanceof SugiliteSpecialOperationBlock)
+                    }
+                    else if (iterBlock instanceof SugiliteSpecialOperationBlock) {
                         iterBlock = ((SugiliteSpecialOperationBlock) iterBlock).getNextBlockToRun();
-                    else if (iterBlock instanceof SugiliteErrorHandlingForkBlock)
+                    }
+                    else if (iterBlock instanceof SugiliteErrorHandlingForkBlock) {
                         break;
-                    else if (iterBlock instanceof SugiliteConditionBlock)
+                    }
+                    else if (iterBlock instanceof SugiliteConditionBlock) {
                         iterBlock = ((SugiliteConditionBlock) iterBlock).getNextBlockToRun();
+                    }
                     else
                         new Exception("unsupported block type").printStackTrace();
                 }
 
 
+                //add the end script line
                 TextView tv = new TextView(context);
                 tv.setText(Html.fromHtml("<b>END SCRIPT</b>"));
                 tv.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
@@ -179,9 +181,8 @@ public abstract class ScriptDetailActivity extends AppCompatActivity {
             return tv;
 
         } else if (block instanceof SugiliteConditionBlock) {
-            setConditionBlockDescription((SugiliteConditionBlock) block, 0);
             TextView tv = new TextView(context);
-            tv.setText(block.getDescription());
+            tv.setText(getConditionBlockDescription((SugiliteConditionBlock) block, 0));
             tv.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
             tv.setPadding(10, 10, 10, 10);
             if(block.inScope) {

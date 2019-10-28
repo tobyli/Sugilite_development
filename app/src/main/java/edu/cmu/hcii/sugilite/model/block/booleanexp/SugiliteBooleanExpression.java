@@ -338,20 +338,20 @@ public class SugiliteBooleanExpression implements Serializable {
                 while(count < pieces.size()) {
                     if(count == pieces.size()-1) {
                         if(pieces.size() > 2) {
-                            combined += ReadableDescriptionGenerator.setColor(",", hex);
+                            combined += ReadableDescriptionGenerator.getHTMLColor(",", hex);
                         }
-                        combined += ReadableDescriptionGenerator.setColor(" and " + pieces.get(count) + " )", hex);
+                        combined += ReadableDescriptionGenerator.getHTMLColor(" and " + pieces.get(count) + " )", hex);
                     }
                     else if(count == 0) {
-                        combined += ReadableDescriptionGenerator.setColor("( " + pieces.get(0), hex);
+                        combined += ReadableDescriptionGenerator.getHTMLColor("( " + pieces.get(0), hex);
                     }
                     else {
-                        combined += ReadableDescriptionGenerator.setColor(", ", hex);
+                        combined += ReadableDescriptionGenerator.getHTMLColor(", ", hex);
                         if(pieces.get(count).substring(0,5).equals("<font")) {
                             combined += pieces.get(count);
                         }
                         else {
-                            combined += ReadableDescriptionGenerator.setColor(pieces.get(count), hex);
+                            combined += ReadableDescriptionGenerator.getHTMLColor(pieces.get(count), hex);
                         }
                     }
                     count++;
@@ -362,27 +362,27 @@ public class SugiliteBooleanExpression implements Serializable {
                 while(count < pieces.size()) {
                     if(count == pieces.size()-1) {
                         if(pieces.size() > 2) {
-                            combined += ReadableDescriptionGenerator.setColor(",", hex);
+                            combined += ReadableDescriptionGenerator.getHTMLColor(",", hex);
                         }
-                        combined += ReadableDescriptionGenerator.setColor(" or " + pieces.get(count) + " )", hex);
+                        combined += ReadableDescriptionGenerator.getHTMLColor(" or " + pieces.get(count) + " )", hex);
                     }
                     else if(count == 0) {
-                        combined += ReadableDescriptionGenerator.setColor("( " + pieces.get(0), hex);
+                        combined += ReadableDescriptionGenerator.getHTMLColor("( " + pieces.get(0), hex);
                     }
                     else {
-                        combined += ReadableDescriptionGenerator.setColor(", ", hex);
+                        combined += ReadableDescriptionGenerator.getHTMLColor(", ", hex);
                         if(pieces.get(count).substring(0,5).equals("<font")) {
                             combined += pieces.get(count);
                         }
                         else {
-                            combined += ReadableDescriptionGenerator.setColor(pieces.get(count), hex);
+                            combined += ReadableDescriptionGenerator.getHTMLColor(pieces.get(count), hex);
                         }
                     }
                     count++;
                 }
             }
             if(not) {
-                return ReadableDescriptionGenerator.setColor("it is not true that ", hex) + combined;
+                return ReadableDescriptionGenerator.getHTMLColor("it is not true that ", hex) + combined;
             }
             return combined;
         }
@@ -438,7 +438,7 @@ public class SugiliteBooleanExpression implements Serializable {
             for (String x : s) {
                 expression1 += x + " ";
             }
-            expression1 = "the value of " + ReadableDescriptionGenerator.setColor(expression1.toLowerCase(), Const.SCRIPT_CONDITIONAL_COLOR_3);
+            expression1 = "the value of " + ReadableDescriptionGenerator.getHTMLColor(expression1.toLowerCase(), Const.SCRIPT_CONDITIONAL_COLOR_3);
         }
         if(!expression2.substring(0,1).equals("@")) {
             expression2 = "'" + expression2 + "'";
@@ -450,7 +450,7 @@ public class SugiliteBooleanExpression implements Serializable {
             for (String y : s2) {
                 expression2 += y + " ";
             }
-            expression2 = "the value of " + ReadableDescriptionGenerator.setColor(expression2.toLowerCase(), Const.SCRIPT_CONDITIONAL_COLOR_3);
+            expression2 = "the value of " + ReadableDescriptionGenerator.getHTMLColor(expression2.toLowerCase(), Const.SCRIPT_CONDITIONAL_COLOR_3);
         }
 
         if(operator.contains("stringContainsIgnoreCase")) {

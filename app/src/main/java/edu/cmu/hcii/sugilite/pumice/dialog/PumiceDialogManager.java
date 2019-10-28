@@ -77,7 +77,7 @@ public class PumiceDialogManager{
     //represents the current state of the dialog
     private PumiceDialogState pumiceDialogState;
 
-    public PumiceDialogManager(Activity context){
+    public PumiceDialogManager(Activity context, boolean toLoadKB){
         this.context = context;
         this.pumiceDialogView = new PumiceDialogView(context);
         this.pumiceDialogUIHelper = new PumiceDialogUIHelper(context);
@@ -87,7 +87,12 @@ public class PumiceDialogManager{
         this.pumiceKnowledgeDao = new PumiceKnowledgeDao(context, sugiliteData);
         try {
             // set "toAddDefaultContentForNewInstance" to true for testing purpose
-            PumiceKnowledgeManager pumiceKnowledgeManager = pumiceKnowledgeDao.getPumiceKnowledgeOrANewInstanceIfNotAvailable(true);
+            PumiceKnowledgeManager pumiceKnowledgeManager;
+            if (toLoadKB) {
+                pumiceKnowledgeManager = pumiceKnowledgeDao.getPumiceKnowledgeOrANewInstanceIfNotAvailable(true);
+            } else {
+                pumiceKnowledgeManager = new PumiceKnowledgeManager();
+            }
             this.pumiceDialogState = new PumiceDialogState(new PumiceDefaultUtteranceIntentHandler(this, context), pumiceKnowledgeManager);
 
         } catch (Exception e){

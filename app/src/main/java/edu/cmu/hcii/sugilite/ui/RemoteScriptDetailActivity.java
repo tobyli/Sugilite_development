@@ -57,12 +57,14 @@ import static edu.cmu.hcii.sugilite.Const.SCRIPT_DELAY;
 public class RemoteScriptDetailActivity extends ScriptDetailActivity {
     private Integer repoListingId;
     private SugiliteScriptSharingHTTPQueryManager sugiliteScriptSharingHTTPQueryManager;
+    private OntologyDescriptionGenerator ontologyDescriptionGenerator;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_remote_script_detail);
         this.sugiliteScriptSharingHTTPQueryManager = SugiliteScriptSharingHTTPQueryManager.getInstance(this);
+        this.ontologyDescriptionGenerator = new OntologyDescriptionGenerator();
 
         //load the local script
         if (savedInstanceState == null) {
@@ -76,7 +78,11 @@ public class RemoteScriptDetailActivity extends ScriptDetailActivity {
         if(scriptName != null) {
             setTitle("View Remote Script: " + scriptName.replace(".SugiliteScript", ""));
         }
-        OntologyDescriptionGenerator ontologyDescriptionGenerator = new OntologyDescriptionGenerator();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
         if (repoListingId != -1) {
             new Thread(new Runnable() {
                 @Override

@@ -60,6 +60,7 @@ public class LocalScriptDetailActivity extends ScriptDetailActivity implements S
     private String condition = "";
     private SugiliteBlock current;
     private int newBlockIndex;
+    private Activity activity;
 
 
     private PumiceDialogManager pumiceDialogManager;
@@ -75,13 +76,13 @@ public class LocalScriptDetailActivity extends ScriptDetailActivity implements S
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        this.activity = this;
         setContentView(R.layout.activity_local_script_detail);
+
 
         //set up the TTS and dialog manager
         tts = sugiliteData.getTTS();
-        pumiceDialogManager = new PumiceDialogManager(this);
-        pumiceDialogManager.setSpeakButtonForCallback(speakButton);
-        pumiceDialogManager.setSugiliteVoiceRecognitionListener(sugiliteVoiceRecognitionListener);
+
 
         if (Const.SELECTED_SPEECH_RECOGNITION_TYPE == Const.SpeechRecognitionType.ANDROID) {
             this.sugiliteVoiceRecognitionListener = new SugiliteAndroidAPIVoiceRecognitionListener(this, this, tts);
@@ -99,12 +100,19 @@ public class LocalScriptDetailActivity extends ScriptDetailActivity implements S
         if(scriptName != null) {
             setTitle("View Script: " + scriptName.replace(".SugiliteScript", ""));
         }
+    }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
         new Thread(new Runnable() {
             @Override
             public void run()
             {
                 try {
+                    pumiceDialogManager = new PumiceDialogManager(activity, false);
+                    pumiceDialogManager.setSpeakButtonForCallback(speakButton);
+                    pumiceDialogManager.setSugiliteVoiceRecognitionListener(sugiliteVoiceRecognitionListener);
                     script = sugiliteScriptDao.read(scriptName);
                 }
                 catch (Exception e){

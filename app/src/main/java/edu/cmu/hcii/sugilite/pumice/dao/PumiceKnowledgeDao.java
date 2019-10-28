@@ -10,9 +10,11 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.Map;
 
+import edu.cmu.hcii.sugilite.R;
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.pumice.kb.PumiceKnowledgeManager;
+import edu.cmu.hcii.sugilite.ui.dialog.SugiliteProgressDialog;
 
 /**
  * @author toby
@@ -41,6 +43,9 @@ public class PumiceKnowledgeDao {
 
     public PumiceKnowledgeManager getPumiceKnowledge() throws IOException, ClassNotFoundException {
         //read the script out from the file, and put it into the cache
+        SugiliteProgressDialog progressDialog = new SugiliteProgressDialog(SugiliteData.getAppContext(), R.string.loading_kb_message);
+        progressDialog.show();
+
         FileInputStream fin = null;
         ObjectInputStream ois = null;
         PumiceKnowledgeManager pumiceKnowledge = null;
@@ -50,6 +55,7 @@ public class PumiceKnowledgeDao {
             pumiceKnowledge = (PumiceKnowledgeManager) ois.readObject();
         } catch (IOException e) {
             e.printStackTrace();
+            progressDialog.dismiss();
             return null;
         } finally {
             if (fin != null)
@@ -57,6 +63,7 @@ public class PumiceKnowledgeDao {
             if (ois != null)
                 ois.close();
         }
+        progressDialog.dismiss();
         return pumiceKnowledge;
     }
 

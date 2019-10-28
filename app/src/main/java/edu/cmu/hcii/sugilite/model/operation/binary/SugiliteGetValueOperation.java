@@ -5,6 +5,8 @@ import java.util.List;
 
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.model.value.SugiliteValue;
+import edu.cmu.hcii.sugilite.pumice.PumiceDemonstrationUtil;
+import edu.cmu.hcii.sugilite.pumice.dao.PumiceKnowledgeDao;
 import edu.cmu.hcii.sugilite.pumice.dialog.PumiceDialogManager;
 import edu.cmu.hcii.sugilite.pumice.kb.PumiceKnowledgeManager;
 import edu.cmu.hcii.sugilite.pumice.kb.PumiceValueQueryKnowledge;
@@ -37,17 +39,26 @@ public class SugiliteGetValueOperation<T> extends SugiliteGetOperation<T> implem
         if (sugiliteData != null) {
             PumiceDialogManager dialogManager = sugiliteData.pumiceDialogManager;
             if (dialogManager != null) {
-                PumiceKnowledgeManager knowledgeManager = dialogManager.getPumiceKnowledgeManager();
-                List<PumiceValueQueryKnowledge> valueQueryKnowledges = knowledgeManager.getPumiceValueQueryKnowledges();
-                for (PumiceValueQueryKnowledge valueQueryKnowledge : valueQueryKnowledges){
-                    //TODO: use a hashmap for faster retrieval
-                    if(valueQueryKnowledge.getValueName() != null && valueQueryKnowledge.getValueName().equals(getName())){
-                        return (T)valueQueryKnowledge.evaluate(sugiliteData);
+                try {
+                    PumiceKnowledgeDao pumiceKnowledgeDao = new PumiceKnowledgeDao(SugiliteData.getAppContext(), sugiliteData);
+                    PumiceKnowledgeManager knowledgeManager = pumiceKnowledgeDao.getPumiceKnowledgeOrANewInstanceIfNotAvailable(true);
+                    List<PumiceValueQueryKnowledge> valueQueryKnowledges = knowledgeManager.getPumiceValueQueryKnowledges();
+                    for (PumiceValueQueryKnowledge valueQueryKnowledge : valueQueryKnowledges) {
+                        //TODO: use a hashmap for faster retrieval
+                        if (valueQueryKnowledge.getValueName() != null && valueQueryKnowledge.getValueName().equals(getName())) {
+                            return (T) valueQueryKnowledge.evaluate(sugiliteData);
+                        }
                     }
+                } catch (Exception e){
+                    e.printStackTrace();
+                    //TODO: retrive the knowledge manager when sugiliteData.pumiceDialogManager is null
+                    PumiceDemonstrationUtil.showSugiliteAlertDialog("Error when finding the value knowledge: " + getName());
+                    return null;
                 }
             }
         }
-        throw new RuntimeException("Failed to find the boolean exp knowledge");
+        PumiceDemonstrationUtil.showSugiliteAlertDialog("Error when finding the value knowledge: " + getName());
+        return null;
     }
 
     @Override

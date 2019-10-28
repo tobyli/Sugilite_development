@@ -3,12 +3,17 @@ package edu.cmu.hcii.sugilite.recording;
 import android.content.Context;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
+import android.text.Html;
+import android.text.SpannableString;
+import android.text.Spanned;
+import android.text.TextUtils;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
 import edu.cmu.hcii.sugilite.Const;
+import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteConditionBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
@@ -20,7 +25,6 @@ import edu.cmu.hcii.sugilite.model.operation.trinary.SugiliteLoadVariableOperati
 import edu.cmu.hcii.sugilite.model.operation.SugiliteOperation;
 import edu.cmu.hcii.sugilite.model.operation.binary.SugiliteReadoutOperation;
 import edu.cmu.hcii.sugilite.model.operation.binary.SugiliteSetTextOperation;
-import edu.cmu.hcii.sugilite.ui.ScriptDetailActivity;
 
 
 /**
@@ -29,44 +33,42 @@ import edu.cmu.hcii.sugilite.ui.ScriptDetailActivity;
  * @time 4:03 PM
  */
 public class ReadableDescriptionGenerator {
-    private Map<String, String> packageNameReadableNameMap;
-    private PackageManager packageManager;
+    private static Map<String, String> packageNameReadableNameMap;
     public ReadableDescriptionGenerator(Context applicationContext){
         packageNameReadableNameMap = new HashMap<>();
         setupPackageNameReadableNameMap();
-        packageManager = applicationContext.getPackageManager();
     }
 
     public String generateDescriptionForVerbalBlock(SugiliteOperationBlock block, String formula, String utterance){
         String message = "";
         SugiliteOperation operation = block.getOperation();
         if(utterance != null && utterance.length() > 0) {
-            message += setColor(utterance + " : ", Const.SCRIPT_ACTION_PARAMETER_COLOR);
+            message += getHTMLColor(utterance + " : ", Const.SCRIPT_ACTION_PARAMETER_COLOR);
         }
         switch (operation.getOperationType()){
             case SugiliteOperation.CLICK:
-                message += setColor("Click ", Const.SCRIPT_ACTION_COLOR) + "on ";
+                message += getHTMLColor("Click ", Const.SCRIPT_ACTION_COLOR) + "on ";
                 break;
             case SugiliteOperation.SELECT:
-                message += setColor("Select ", Const.SCRIPT_ACTION_COLOR);
+                message += getHTMLColor("Select ", Const.SCRIPT_ACTION_COLOR);
                 break;
             case SugiliteOperation.SET_TEXT:
-                message += setColor("Set Text ", Const.SCRIPT_ACTION_COLOR) + "to \"" + setColor(((SugiliteSetTextOperation)((SugiliteOperationBlock) block).getOperation()).getText(), Const.SCRIPT_ACTION_PARAMETER_COLOR) + "\" for ";
+                message += getHTMLColor("Set Text ", Const.SCRIPT_ACTION_COLOR) + "to \"" + getHTMLColor(((SugiliteSetTextOperation)((SugiliteOperationBlock) block).getOperation()).getText(), Const.SCRIPT_ACTION_PARAMETER_COLOR) + "\" for ";
                 break;
             case SugiliteOperation.LONG_CLICK:
-                message += setColor("Long click ", Const.SCRIPT_ACTION_COLOR) + "on ";
+                message += getHTMLColor("Long click ", Const.SCRIPT_ACTION_COLOR) + "on ";
                 break;
             case SugiliteOperation.READ_OUT:
-                message += setColor("Read out ", Const.SCRIPT_ACTION_COLOR) + "the " + setColor(((SugiliteReadoutOperation)(block.getOperation())).getPropertyToReadout(), Const.SCRIPT_ACTION_PARAMETER_COLOR) + " for ";
+                message += getHTMLColor("Read out ", Const.SCRIPT_ACTION_COLOR) + "the " + getHTMLColor(((SugiliteReadoutOperation)(block.getOperation())).getPropertyToReadout(), Const.SCRIPT_ACTION_PARAMETER_COLOR) + " for ";
                 break;
             case SugiliteOperation.LOAD_AS_VARIABLE:
-                message += setColor("Load the value ", Const.SCRIPT_ACTION_COLOR) + "of the" + setColor(((SugiliteLoadVariableOperation)(block.getOperation())).getPropertyToSave(), Const.SCRIPT_ACTION_PARAMETER_COLOR) + " as a variable for ";
+                message += getHTMLColor("Load the value ", Const.SCRIPT_ACTION_COLOR) + "of the" + getHTMLColor(((SugiliteLoadVariableOperation)(block.getOperation())).getPropertyToSave(), Const.SCRIPT_ACTION_PARAMETER_COLOR) + " as a variable for ";
                 break;
             case SugiliteOperation.SPECIAL_GO_HOME:
                 return "<b>GO TO HOME SCREEN</b>";
         }
 
-        message += setColor(formula, Const.SCRIPT_IDENTIFYING_FEATURE_COLOR);
+        message += getHTMLColor(formula, Const.SCRIPT_IDENTIFYING_FEATURE_COLOR);
         return message;
     }
 
@@ -76,10 +78,10 @@ public class ReadableDescriptionGenerator {
      * @param block
      * @return
      */
-    public String generateReadableDescription(SugiliteBlock block){
+    public static Spanned generateReadableDescription(SugiliteBlock block){
         String message = "";
         if(block instanceof SugiliteStartingBlock)
-            return "<b>START SCRIPT</b>";
+            return Html.fromHtml("<b>START SCRIPT</b>");
         /**
          * structure: [OPERATION] + "the button/textbox/object" + [IDENTIFIER] + "that has [VIEWID]" + at [LOCATION] + in [PACKAGE]
          */
@@ -88,25 +90,25 @@ public class ReadableDescriptionGenerator {
             //print the operation
             switch (operation.getOperationType()){
                 case SugiliteOperation.CLICK:
-                    message += setColor("Click ", Const.SCRIPT_ACTION_COLOR) + "on ";
+                    message += getHTMLColor("Click ", Const.SCRIPT_ACTION_COLOR) + "on ";
                     break;
                 case SugiliteOperation.SELECT:
-                    message += setColor("Select ", Const.SCRIPT_ACTION_COLOR);
+                    message += getHTMLColor("Select ", Const.SCRIPT_ACTION_COLOR);
                     break;
                 case SugiliteOperation.SET_TEXT:
-                    message += setColor("Set Text ", Const.SCRIPT_ACTION_COLOR) + "to \"" + setColor(((SugiliteSetTextOperation)((SugiliteOperationBlock) block).getOperation()).getText(), Const.SCRIPT_ACTION_PARAMETER_COLOR) + "\" for ";
+                    message += getHTMLColor("Set Text ", Const.SCRIPT_ACTION_COLOR) + "to \"" + getHTMLColor(((SugiliteSetTextOperation)((SugiliteOperationBlock) block).getOperation()).getText(), Const.SCRIPT_ACTION_PARAMETER_COLOR) + "\" for ";
                     break;
                 case SugiliteOperation.LONG_CLICK:
-                    message += setColor("Long click ", Const.SCRIPT_ACTION_COLOR) + "on ";
+                    message += getHTMLColor("Long click ", Const.SCRIPT_ACTION_COLOR) + "on ";
                     break;
                 case SugiliteOperation.READ_OUT:
-                    message += setColor("Read out ", Const.SCRIPT_ACTION_COLOR) + "the " + setColor(((SugiliteReadoutOperation)((SugiliteOperationBlock) block).getOperation()).getPropertyToReadout(), Const.SCRIPT_ACTION_PARAMETER_COLOR) + " for ";
+                    message += getHTMLColor("Read out ", Const.SCRIPT_ACTION_COLOR) + "the " + getHTMLColor(((SugiliteReadoutOperation)((SugiliteOperationBlock) block).getOperation()).getPropertyToReadout(), Const.SCRIPT_ACTION_PARAMETER_COLOR) + " for ";
                     break;
                 case SugiliteOperation.LOAD_AS_VARIABLE:
-                    message += setColor("Load the value ", Const.SCRIPT_ACTION_COLOR) + "of the" + setColor(((SugiliteLoadVariableOperation)((SugiliteOperationBlock) block).getOperation()).getPropertyToSave(), Const.SCRIPT_ACTION_PARAMETER_COLOR) + " as a variable for ";
+                    message += getHTMLColor("Load the value ", Const.SCRIPT_ACTION_COLOR) + "of the" + getHTMLColor(((SugiliteLoadVariableOperation)((SugiliteOperationBlock) block).getOperation()).getPropertyToSave(), Const.SCRIPT_ACTION_PARAMETER_COLOR) + " as a variable for ";
                     break;
                 case SugiliteOperation.SPECIAL_GO_HOME:
-                    return "<b>GO TO HOME SCREEN</b>";
+                    return Html.fromHtml("<b>GO TO HOME SCREEN</b>");
             }
 
             //print the object type
@@ -115,9 +117,9 @@ public class ReadableDescriptionGenerator {
                     String className = ((SugiliteOperationBlock) block).getElementMatchingFilter().getClassName();
                     int lastIndex = className.lastIndexOf('.');
                     if (lastIndex > -1)
-                        message += setColor("the " + className.substring(lastIndex + 1) + " object ", Const.SCRIPT_TARGET_TYPE_COLOR);
+                        message += getHTMLColor("the " + className.substring(lastIndex + 1) + " object ", Const.SCRIPT_TARGET_TYPE_COLOR);
                     else
-                        message += setColor("the object ", Const.SCRIPT_TARGET_TYPE_COLOR);
+                        message += getHTMLColor("the object ", Const.SCRIPT_TARGET_TYPE_COLOR);
                 }
 
                 boolean thatPrinted = false;
@@ -145,7 +147,7 @@ public class ReadableDescriptionGenerator {
                             labels.put("child content description", sContent);
                         }
                         if (sViewId != null) {
-                            message += (thatPrinted ? "" : "that ") + "has child Object ID \"" + setColor(sViewId, Const.SCRIPT_VIEW_ID_COLOR) + "\" ";
+                            message += (thatPrinted ? "" : "that ") + "has child Object ID \"" + getHTMLColor(sViewId, Const.SCRIPT_VIEW_ID_COLOR) + "\" ";
                             thatPrinted = true;
                         }
                     }
@@ -165,7 +167,7 @@ public class ReadableDescriptionGenerator {
                             labels.put("sibling content description", sContent);
                         }
                         if (sViewId != null) {
-                            message += (thatPrinted ? "" : "that ") + "has sibling Object ID \"" + setColor(sViewId, Const.SCRIPT_VIEW_ID_COLOR) + "\" ";
+                            message += (thatPrinted ? "" : "that ") + "has sibling Object ID \"" + getHTMLColor(sViewId, Const.SCRIPT_VIEW_ID_COLOR) + "\" ";
                             thatPrinted = true;
                         }
                     }
@@ -174,46 +176,46 @@ public class ReadableDescriptionGenerator {
 
                 if (labels.size() == 1) {
                     for (Map.Entry<String, String> entry : labels.entrySet()) {
-                        message += "\"" + setColor(entry.getValue(), Const.SCRIPT_IDENTIFYING_FEATURE_COLOR) + "\" ";
+                        message += "\"" + getHTMLColor(entry.getValue(), Const.SCRIPT_IDENTIFYING_FEATURE_COLOR) + "\" ";
                     }
                 } else if (labels.size() > 1) {
                     int count = 0;
                     for (Map.Entry<String, String> entry : labels.entrySet()) {
-                        message += (thatPrinted ? "" : "that ") + "has " + entry.getKey() + " \"" + setColor(entry.getValue(), Const.SCRIPT_IDENTIFYING_FEATURE_COLOR) + "\" " + (count == labels.size() - 2 ? "and " : (count == labels.size() - 1 ? ", " : " "));
+                        message += (thatPrinted ? "" : "that ") + "has " + entry.getKey() + " \"" + getHTMLColor(entry.getValue(), Const.SCRIPT_IDENTIFYING_FEATURE_COLOR) + "\" " + (count == labels.size() - 2 ? "and " : (count == labels.size() - 1 ? ", " : " "));
                         thatPrinted = true;
                         count++;
                     }
                 }
 
                 if (((SugiliteOperationBlock) block).getElementMatchingFilter().getViewId() != null) {
-                    message += (thatPrinted ? "" : "that ") + "has the Object ID \"" + setColor(((SugiliteOperationBlock) block).getElementMatchingFilter().getViewId(), Const.SCRIPT_VIEW_ID_COLOR) + "\" ";
+                    message += (thatPrinted ? "" : "that ") + "has the Object ID \"" + getHTMLColor(((SugiliteOperationBlock) block).getElementMatchingFilter().getViewId(), Const.SCRIPT_VIEW_ID_COLOR) + "\" ";
                     thatPrinted = true;
                 }
 
                 if (((SugiliteOperationBlock) block).getElementMatchingFilter().getBoundsInScreen() != null) {
-                    message += "at the screen location (" + setColor(((SugiliteOperationBlock) block).getElementMatchingFilter().getBoundsInScreen(), Const.SCRIPT_IDENTIFYING_FEATURE_COLOR) + ") ";
+                    message += "at the screen location (" + getHTMLColor(((SugiliteOperationBlock) block).getElementMatchingFilter().getBoundsInScreen(), Const.SCRIPT_IDENTIFYING_FEATURE_COLOR) + ") ";
                 }
 
                 if (((SugiliteOperationBlock) block).getElementMatchingFilter().getBoundsInParent() != null) {
-                    message += "at the parent location (" + setColor(((SugiliteOperationBlock) block).getElementMatchingFilter().getBoundsInParent(), Const.SCRIPT_IDENTIFYING_FEATURE_COLOR) + ") ";
+                    message += "at the parent location (" + getHTMLColor(((SugiliteOperationBlock) block).getElementMatchingFilter().getBoundsInParent(), Const.SCRIPT_IDENTIFYING_FEATURE_COLOR) + ") ";
                 }
 
                 if (((SugiliteOperationBlock) block).getElementMatchingFilter().getPackageName() != null) {
-                    message += "in " + setColor(getReadableName(((SugiliteOperationBlock) block).getElementMatchingFilter().getPackageName()), Const.SCRIPT_WITHIN_APP_COLOR) + " ";
+                    message += "in " + getHTMLColor(getReadableAppNameFromPackageName(((SugiliteOperationBlock) block).getElementMatchingFilter().getPackageName()), Const.SCRIPT_WITHIN_APP_COLOR) + " ";
                 }
-                return message;
+                return Html.fromHtml(message);
             } else {
-                return block.toString();
+                return new SpannableString(block.toString());
             }
         }
         else if (block instanceof SugiliteSpecialOperationBlock){
-            return "<b> SPECIAL OPERATION " + setColor(((SugiliteSpecialOperationBlock) block).getDescription().toString(), Const.SCRIPT_ACTION_PARAMETER_COLOR) + "</b>";
+            return Html.fromHtml("<b> SPECIAL OPERATION " + getHTMLColor(((SugiliteSpecialOperationBlock) block).getDescription().toString(), Const.SCRIPT_ACTION_PARAMETER_COLOR) + "</b>");
         }
         else if (block instanceof SugiliteConditionBlock) {
-            return setConditionBlockDescription(((SugiliteConditionBlock) block), 0);
+            return getConditionBlockDescription(((SugiliteConditionBlock) block), 0);
         }
 
-        return "NULL";
+        return new SpannableString("NULL");
     }
 
     public String generateObjectDescription(SugiliteOperationBlock sugiliteOperationBlock){
@@ -253,7 +255,7 @@ public class ReadableDescriptionGenerator {
                         labels.put("child content description", sContent);
                     }
                     if(sViewId != null){
-                        message += (thatPrinted ? "" : "that ") + "has child Object ID \"" + setColor(sViewId, Const.SCRIPT_VIEW_ID_COLOR) + "\" ";
+                        message += (thatPrinted ? "" : "that ") + "has child Object ID \"" + getHTMLColor(sViewId, Const.SCRIPT_VIEW_ID_COLOR) + "\" ";
                         thatPrinted = true;
                     }
                 }
@@ -273,7 +275,7 @@ public class ReadableDescriptionGenerator {
                         labels.put("sibling content description", sContent);
                     }
                     if(sViewId != null){
-                        message += (thatPrinted ? "" : "that ") + "has sibling Object ID \"" + setColor(sViewId, Const.SCRIPT_VIEW_ID_COLOR) + "\" ";
+                        message += (thatPrinted ? "" : "that ") + "has sibling Object ID \"" + getHTMLColor(sViewId, Const.SCRIPT_VIEW_ID_COLOR) + "\" ";
                         thatPrinted = true;
                     }
                 }
@@ -281,33 +283,33 @@ public class ReadableDescriptionGenerator {
 
             if(labels.size() == 1){
                 for(Map.Entry<String, String> entry : labels.entrySet()){
-                    message += "labeled \"" + setColor(entry.getValue(), Const.SCRIPT_IDENTIFYING_FEATURE_COLOR) + "\" ";
+                    message += "labeled \"" + getHTMLColor(entry.getValue(), Const.SCRIPT_IDENTIFYING_FEATURE_COLOR) + "\" ";
                 }
             }
             else if(labels.size() > 1){
                 int count = 0;
                 for(Map.Entry<String, String> entry : labels.entrySet()){
-                    message += (thatPrinted ? "" : "that ") + "has " + entry.getKey() + " \"" + setColor(entry.getValue(), Const.SCRIPT_IDENTIFYING_FEATURE_COLOR) + "\" " + (count == labels.size() - 2 ? "and " :(count == labels.size() - 1 ? ", " : " "));
+                    message += (thatPrinted ? "" : "that ") + "has " + entry.getKey() + " \"" + getHTMLColor(entry.getValue(), Const.SCRIPT_IDENTIFYING_FEATURE_COLOR) + "\" " + (count == labels.size() - 2 ? "and " :(count == labels.size() - 1 ? ", " : " "));
                     thatPrinted = true;
                     count ++;
                 }
             }
 
             if(sugiliteOperationBlock.getElementMatchingFilter().getViewId() != null){
-                message += (thatPrinted ? "" : "that ") + "has the Object ID \"" + setColor((sugiliteOperationBlock.getElementMatchingFilter().getViewId()), Const.SCRIPT_VIEW_ID_COLOR) + "\" ";
+                message += (thatPrinted ? "" : "that ") + "has the Object ID \"" + getHTMLColor((sugiliteOperationBlock.getElementMatchingFilter().getViewId()), Const.SCRIPT_VIEW_ID_COLOR) + "\" ";
                 thatPrinted = true;
             }
 
             if(sugiliteOperationBlock.getElementMatchingFilter().getBoundsInScreen() != null){
-                message += "at the screen location (" + setColor((sugiliteOperationBlock.getElementMatchingFilter().getBoundsInScreen()), Const.SCRIPT_IDENTIFYING_FEATURE_COLOR) + ") ";
+                message += "at the screen location (" + getHTMLColor((sugiliteOperationBlock.getElementMatchingFilter().getBoundsInScreen()), Const.SCRIPT_IDENTIFYING_FEATURE_COLOR) + ") ";
             }
 
             if(sugiliteOperationBlock.getElementMatchingFilter().getBoundsInParent() != null){
-                message += "at the parent location (" + setColor((sugiliteOperationBlock.getElementMatchingFilter().getBoundsInParent()), Const.SCRIPT_IDENTIFYING_FEATURE_COLOR) + ") ";
+                message += "at the parent location (" + getHTMLColor((sugiliteOperationBlock.getElementMatchingFilter().getBoundsInParent()), Const.SCRIPT_IDENTIFYING_FEATURE_COLOR) + ") ";
             }
 
             if(sugiliteOperationBlock.getElementMatchingFilter().getPackageName() != null)
-                message += "in the " + setColor(getReadableName(sugiliteOperationBlock.getElementMatchingFilter().getPackageName()), Const.SCRIPT_WITHIN_APP_COLOR) + " app ";
+                message += "in the " + getHTMLColor(getReadableAppNameFromPackageName(sugiliteOperationBlock.getElementMatchingFilter().getPackageName()), Const.SCRIPT_WITHIN_APP_COLOR) + " app ";
             return message;
 
 
@@ -321,9 +323,10 @@ public class ReadableDescriptionGenerator {
    * set description for condition block
    * @param: SugiliteConditionBlock block for which to get description, int count to keep track of how many recursive calls have been made
    */
-    public static String setConditionBlockDescription(SugiliteConditionBlock block, int tabCount) {
+    public static Spanned getConditionBlockDescription(SugiliteConditionBlock block, int tabCount) {
         SugiliteBooleanExpressionNew booleanExpression = block.getSugiliteBooleanExpressionNew();//SugiliteBooleanExpression booleanExpression = block.getSugiliteBooleanExpression();
-        String boolExp = booleanExpression.toString();
+        String booleanExpressionString = booleanExpression.toString();
+
         //boolExp = boolExp.substring(1,boolExp.length()-1).trim();
         //String[] split = boolExp.split("\\(");
         //boolExp = booleanExpression.breakdown();
@@ -331,47 +334,47 @@ public class ReadableDescriptionGenerator {
             boolExp = ReadableDescriptionGenerator.getColoredHTMLFromMessage(boolExp, "#954608");
         }*/
 
-        SugiliteBlock ifBlock = block.getThenBlock();
+        SugiliteBlock thenBlock = block.getThenBlock();
         SugiliteBlock elseBlock = block.getElseBlock();
-        if(ifBlock instanceof SugiliteConditionBlock) {
-            setConditionBlockDescription(((SugiliteConditionBlock) ifBlock), tabCount + 1);
-        }
-        if(elseBlock != null && elseBlock instanceof SugiliteConditionBlock) {
-            setConditionBlockDescription(((SugiliteConditionBlock) elseBlock), tabCount + 1);
-        }
 
         if(elseBlock != null) {
-            String t = "&nbsp;&nbsp;&nbsp;&nbsp;";
-            String tabs = "&nbsp;&nbsp;&nbsp;&nbsp;";
-            String tabs2 = "";
+            //condition with no else block
+            Spanned tab = Html.fromHtml("&nbsp;&nbsp;&nbsp;&nbsp;");
+            Spanned tabs = Html.fromHtml("&nbsp;&nbsp;&nbsp;&nbsp;");
+            Spanned tabs2 = Html.fromHtml("");
             for(int c = 0; c < tabCount; c++) {
-                tabs += t;
-                tabs2 += t;
+                tabs = (Spanned) TextUtils.concat(tabs, tab);
+                tabs2 = (Spanned) TextUtils.concat(tabs2, tab);
             }
-            String ifBlockDes = "";
-            SugiliteBlock iterBlock = ifBlock;
+            Spanned ifBlockDes = new SpannableString("");
+            SugiliteBlock iterBlock = thenBlock;
             while(iterBlock != null) {
-
-                ifBlockDes = ifBlockDes + " <br/>" + tabs + " " + iterBlock.getDescription();
-                if (iterBlock instanceof SugiliteStartingBlock)
+                ifBlockDes = (Spanned) TextUtils.concat(ifBlockDes, Html.fromHtml("<br>"), tabs, iterBlock.getDescription());
+                if (iterBlock instanceof SugiliteStartingBlock) {
                     iterBlock = ((SugiliteStartingBlock) iterBlock).getNextBlockToRun();
-                else if (iterBlock instanceof SugiliteOperationBlock)
+                }
+                else if (iterBlock instanceof SugiliteOperationBlock) {
                     iterBlock = ((SugiliteOperationBlock) iterBlock).getNextBlockToRun();
-                else if (iterBlock instanceof SugiliteSpecialOperationBlock)
+                }
+                else if (iterBlock instanceof SugiliteSpecialOperationBlock) {
                     iterBlock = ((SugiliteSpecialOperationBlock) iterBlock).getNextBlockToRun();
-                else if (iterBlock instanceof SugiliteConditionBlock)
+                }
+                else if (iterBlock instanceof SugiliteConditionBlock) {
                     iterBlock = ((SugiliteConditionBlock) iterBlock).getNextBlockToRun();
-                else
+                }
+                else {
                     new Exception("unsupported block type").printStackTrace();
+                }
             }
-            String elseBlockDes = "";
+
+            Spanned elseBlockDes = new SpannableString("");
             SugiliteBlock iterBlock2 = elseBlock;
             while(iterBlock2 != null) {
                 if (! (iterBlock2 instanceof SugiliteStartingBlock)) {
                     if (iterBlock2.getDescription() == null || iterBlock2.getDescription().length() == 0) {
                         iterBlock2.setDescription(iterBlock2.toString());
                     }
-                    elseBlockDes = elseBlockDes + " <br/>" + tabs  + " " + iterBlock2.getDescription();
+                    elseBlockDes = (Spanned) TextUtils.concat(elseBlockDes, Html.fromHtml("<br>"), tabs, generateReadableDescription(iterBlock2));
                 } else {
 
                 }
@@ -391,19 +394,26 @@ public class ReadableDescriptionGenerator {
                     new Exception("unsupported block type").printStackTrace();
                 }
             }
-            block.setDescription(ReadableDescriptionGenerator.setColor("If ", Const.SCRIPT_CONDITIONAL_COLOR) + boolExp + ReadableDescriptionGenerator.setColor(" then ", Const.SCRIPT_CONDITIONAL_COLOR)  + ifBlockDes + "<br/>" + tabs2 + ReadableDescriptionGenerator.setColor("Otherwise", Const.SCRIPT_CONDITIONAL_COLOR) + elseBlockDes);
-            return ReadableDescriptionGenerator.setColor("If ", Const.SCRIPT_CONDITIONAL_COLOR) + boolExp + ReadableDescriptionGenerator.setColor(" then ", Const.SCRIPT_CONDITIONAL_COLOR) + ifBlockDes + "<br/>" + tabs2 + ReadableDescriptionGenerator.setColor("Otherwise", Const.SCRIPT_CONDITIONAL_COLOR) + elseBlockDes;
+            return (Spanned) TextUtils.concat(ReadableDescriptionGenerator.getSpannedColor("If ", Const.SCRIPT_CONDITIONAL_COLOR),
+                    booleanExpressionString,
+                    Html.fromHtml("<br>"),
+                    ReadableDescriptionGenerator.getSpannedColor(" then ", Const.SCRIPT_CONDITIONAL_COLOR),
+                    ifBlockDes,
+                    Html.fromHtml("<br>"),
+                    tabs2,
+                    ReadableDescriptionGenerator.getSpannedColor("Otherwise", Const.SCRIPT_CONDITIONAL_COLOR),
+                    elseBlockDes);
         }
         else {
-            String t = "&nbsp;&nbsp;&nbsp;&nbsp;";
-            String tabs = "&nbsp;&nbsp;&nbsp;&nbsp;";
+            Spanned tab = Html.fromHtml("&nbsp;&nbsp;&nbsp;&nbsp;");
+            Spanned tabs = Html.fromHtml("&nbsp;&nbsp;&nbsp;&nbsp;");
             for(int c = 0; c < tabCount-1; c++) {
-                tabs += t;
+                tabs = (Spanned) TextUtils.concat(tabs, tab);
             }
-            String ifBlockDes = "";
-            SugiliteBlock iterBlock = ifBlock;
+            Spanned ifBlockDes = new SpannableString("");
+            SugiliteBlock iterBlock = thenBlock;
             while(iterBlock != null) {
-                ifBlockDes = ifBlockDes + " <br/>" + tabs + " " + iterBlock.getDescription();
+                ifBlockDes = (Spanned) TextUtils.concat(ifBlockDes, Html.fromHtml("<br>"), tabs, generateReadableDescription(iterBlock));
                 if (iterBlock instanceof SugiliteStartingBlock)
                     iterBlock = ((SugiliteStartingBlock) iterBlock).getNextBlockToRun();
                 else if (iterBlock instanceof SugiliteOperationBlock)
@@ -416,8 +426,11 @@ public class ReadableDescriptionGenerator {
                     new Exception("unsupported block type").printStackTrace();
 
             }
-            block.setDescription(ReadableDescriptionGenerator.setColor("If ", Const.SCRIPT_CONDITIONAL_COLOR) + boolExp + ReadableDescriptionGenerator.setColor(" then ", Const.SCRIPT_CONDITIONAL_COLOR) + ifBlockDes);
-            return ReadableDescriptionGenerator.setColor("If ", Const.SCRIPT_CONDITIONAL_COLOR) + boolExp + ReadableDescriptionGenerator.setColor(" then ", Const.SCRIPT_CONDITIONAL_COLOR) + ifBlockDes;
+            return (Spanned) TextUtils.concat(ReadableDescriptionGenerator.getSpannedColor("If ", Const.SCRIPT_CONDITIONAL_COLOR),
+                    booleanExpressionString,
+                    Html.fromHtml("<br>"),
+                    ReadableDescriptionGenerator.getSpannedColor(" then ", Const.SCRIPT_CONDITIONAL_COLOR),
+                    ifBlockDes);
         }
     }
 
@@ -432,8 +445,10 @@ public class ReadableDescriptionGenerator {
      * @param packageName
      * @return
      */
-    public String getReadableName(String packageName){
+    public static String getReadableAppNameFromPackageName(String packageName){
+        PackageManager packageManager = SugiliteData.getAppContext().getPackageManager();
         ApplicationInfo applicationInfo;
+
         try{
             applicationInfo = packageManager.getApplicationInfo(packageName, 0);
         }
@@ -450,28 +465,32 @@ public class ReadableDescriptionGenerator {
 
     public String getReadableClassName(String className){
         if(className.toLowerCase().contains("button")){
-            return setColor("Button", Const.SCRIPT_TARGET_TYPE_COLOR);
+            return getHTMLColor("Button", Const.SCRIPT_TARGET_TYPE_COLOR);
         }
         if(className.toLowerCase().contains("edittext")){
-            return setColor("Textbox", Const.SCRIPT_TARGET_TYPE_COLOR);
+            return getHTMLColor("Textbox", Const.SCRIPT_TARGET_TYPE_COLOR);
         }
         if(className.toLowerCase().contains("image")){
-            return setColor("Image", Const.SCRIPT_TARGET_TYPE_COLOR);
+            return getHTMLColor("Image", Const.SCRIPT_TARGET_TYPE_COLOR);
         }
         if(className.toLowerCase().contains("framelayout"))
-            return setColor("Item", Const.SCRIPT_TARGET_TYPE_COLOR);
+            return getHTMLColor("Item", Const.SCRIPT_TARGET_TYPE_COLOR);
 
         int lastIndex = className.lastIndexOf('.');
         if(lastIndex > -1) {
-            return setColor(className.substring(lastIndex + 1), Const.SCRIPT_TARGET_TYPE_COLOR);
+            return getHTMLColor(className.substring(lastIndex + 1), Const.SCRIPT_TARGET_TYPE_COLOR);
         }
         else{
-            return setColor(className, Const.SCRIPT_TARGET_TYPE_COLOR);
+            return getHTMLColor(className, Const.SCRIPT_TARGET_TYPE_COLOR);
         }
     }
 
-    static public String setColor(String message, String color){
+    static public String getHTMLColor(String message, String color){
         return "<font color=\"" + color + "\"><b>" + message + "</b></font>";
     }
+    static public Spanned getSpannedColor(String message, String color){
+        return Html.fromHtml("<font color=\"" + color + "\"><b>" + message + "</b></font>");
+    }
+
 
 }

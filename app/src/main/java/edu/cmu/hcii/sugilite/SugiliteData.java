@@ -256,8 +256,10 @@ public class SugiliteData extends Application {
     public int getInstructionQueueSize(){
         return instructionQueue.size();
     }
-    public synchronized void removeInstructionQueueItem(){
-        instructionQueue.remove();
+    public void removeInstructionQueueItem(){
+        synchronized (this) {
+            instructionQueue.remove();
+        }
         if(instructionQueue.size() == 0 && startRecordingWhenFinishExecuting){
             //start recording at the end of "resume recording" operation
             final Handler handler = new Handler(Looper.getMainLooper());

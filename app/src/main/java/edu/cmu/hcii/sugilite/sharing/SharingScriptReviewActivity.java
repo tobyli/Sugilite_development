@@ -38,11 +38,13 @@ import edu.cmu.hcii.sugilite.ui.ScriptDetailActivity;
 import edu.cmu.hcii.sugilite.ui.dialog.SugiliteProgressDialog;
 import edu.cmu.hcii.sugilite.ui.main.SugiliteMainActivity;
 
-import static edu.cmu.hcii.sugilite.recording.ReadableDescriptionGenerator.setConditionBlockDescription;
+import static edu.cmu.hcii.sugilite.recording.ReadableDescriptionGenerator.getConditionBlockDescription;
+
 
 public class SharingScriptReviewActivity extends ScriptDetailActivity {
     private SugiliteScriptSharingHTTPQueryManager sugiliteScriptSharingHTTPQueryManager;
     private OntologyDescriptionGenerator ontologyDescriptionGenerator;
+    private SugiliteSharingScriptPreparer sugiliteSharingScriptPreparer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,6 +52,7 @@ public class SharingScriptReviewActivity extends ScriptDetailActivity {
         setContentView(R.layout.activity_remote_script_detail);
         this.sugiliteScriptSharingHTTPQueryManager = SugiliteScriptSharingHTTPQueryManager.getInstance(this);
         this.ontologyDescriptionGenerator = new OntologyDescriptionGenerator();
+        this.sugiliteSharingScriptPreparer = new SugiliteSharingScriptPreparer(this);
 
         //load the local script
         if (savedInstanceState == null) {
@@ -70,13 +73,24 @@ public class SharingScriptReviewActivity extends ScriptDetailActivity {
             setTitle("Sharing Script: " + scriptName.replace(".SugiliteScript", ""));
         }
 
+
+
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
         //load the local script
         new Thread(new Runnable() {
             @Override
             public void run()
             {
                 try {
+                    //load the script
                     script = sugiliteScriptDao.read(scriptName);
+
+                    //prepare the script -- removing private information
+                    script = sugiliteSharingScriptPreparer.prepareScript(script);
                 }
                 catch (Exception e){
                     e.printStackTrace();
@@ -84,8 +98,6 @@ public class SharingScriptReviewActivity extends ScriptDetailActivity {
                 loadOperationList(script);
             }
         }).start();
-
-
     }
 
     public void scriptDetailCancelButtonOnClick (View view) {
@@ -210,9 +222,8 @@ public class SharingScriptReviewActivity extends ScriptDetailActivity {
             return tv;
 
         } else if (block instanceof SugiliteConditionBlock) {
-            setConditionBlockDescription((SugiliteConditionBlock) block, 0);
             TextView tv = new TextView(context);
-            tv.setText(block.getDescription());
+            tv.setText(getConditionBlockDescription((SugiliteConditionBlock) block, 0));
             tv.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
             tv.setPadding(10, 10, 10, 10);
             if(block.inScope) {

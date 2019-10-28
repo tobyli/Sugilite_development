@@ -277,7 +277,9 @@ public class SugiliteRecordingConfirmationDialog extends SugiliteDialogManager {
     public void initDialogManager() {
         //set the prompt
         Spanned newDescription = ontologyDescriptionGenerator.getSpannedDescriptionForOperation(block.getOperation(), block.getOperation().getDataDescriptionQueryIfAvailable());
-        askingForConfirmationState.setPrompt(R.string.ask_if_record + newDescription.toString());
+        askingForConfirmationState.setPrompt(context.getString(R.string.ask_if_record) + newDescription.toString());
+       // askingForConfirmationState.setPrompt(R.string.ask_if_record + newDescription.toString());
+
         detailPromptState.setPrompt(context.getString(R.string.expand_ask_if_record));
 
         //link the states

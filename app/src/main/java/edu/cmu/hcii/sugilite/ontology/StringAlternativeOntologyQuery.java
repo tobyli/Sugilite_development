@@ -18,7 +18,7 @@ public class StringAlternativeOntologyQuery extends OntologyQuery {
 
 
     @Override
-    protected boolean overallQueryFunction(SugiliteEntity currNode, UISnapshot graph) {
+    public boolean overallQueryFunction(SugiliteEntity currNode, UISnapshot graph) {
         Set<SugiliteTriple> sugiliteTriples = graph.getSubjectTriplesMap().get(currNode.getEntityId());
         if (sugiliteTriples != null) {
             for (SugiliteTriple triple : sugiliteTriples) {
@@ -34,6 +34,10 @@ public class StringAlternativeOntologyQuery extends OntologyQuery {
             }
         }
         return false;
+    }
+
+    public SugiliteRelation getR() {
+        return r;
     }
 
     @Override

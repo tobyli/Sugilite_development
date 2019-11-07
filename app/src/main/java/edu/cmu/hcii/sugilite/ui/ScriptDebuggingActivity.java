@@ -15,7 +15,6 @@ import android.util.AttributeSet;
 import android.util.TypedValue;
 import android.view.ContextMenu;
 import android.view.GestureDetector;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
@@ -42,7 +41,7 @@ import edu.cmu.hcii.sugilite.dao.SugiliteScriptSQLDao;
 import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteErrorHandlingForkBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
-import edu.cmu.hcii.sugilite.model.block.special_operation.SugiliteSpecialOperationBlock;
+import edu.cmu.hcii.sugilite.model.block.SugiliteSpecialOperationBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.model.variable.Variable;
 import edu.cmu.hcii.sugilite.pumice.PumiceDemonstrationUtil;
@@ -263,7 +262,7 @@ public class ScriptDebuggingActivity extends AppCompatActivity {
                                     }).show();
                         }
                         else {
-                            VariableSetValueDialog variableSetValueDialog = new VariableSetValueDialog(activityContext, sugiliteData, script, sharedPreferences, SugiliteData.REGULAR_DEBUG_STATE, null);
+                            VariableSetValueDialog variableSetValueDialog = new VariableSetValueDialog(activityContext, sugiliteData, script, sharedPreferences, SugiliteData.REGULAR_DEBUG_STATE, null, false);
                             if(script.variableNameDefaultValueMap.size() > 0) {
                                 //has variable
                                 sugiliteData.stringVariableMap.putAll(script.variableNameDefaultValueMap);
@@ -346,7 +345,7 @@ public class ScriptDebuggingActivity extends AppCompatActivity {
                                     }).show();
                         }
                         else {
-                            VariableSetValueDialog variableSetValueDialog = new VariableSetValueDialog(activityContext, sugiliteData, script, sharedPreferences, SugiliteData.REGULAR_DEBUG_STATE, null);
+                            VariableSetValueDialog variableSetValueDialog = new VariableSetValueDialog(activityContext, sugiliteData, script, sharedPreferences, SugiliteData.REGULAR_DEBUG_STATE, null, false);
                             if(script.variableNameDefaultValueMap.size() > 0) {
                                 //has variable
                                 sugiliteData.stringVariableMap.putAll(script.variableNameDefaultValueMap);
@@ -795,7 +794,7 @@ public class ScriptDebuggingActivity extends AppCompatActivity {
             for (String packageName : script.relevantPackages) {
                 AutomatorUtil.killPackage(packageName);
             }
-            sugiliteData.runScript(script, true, SugiliteData.EXECUTION_STATE);
+            sugiliteData.runScript(script, true, SugiliteData.EXECUTION_STATE, false);
             //need to have this delay to ensure that the killing has finished before we start executing
             try {
                 Thread.sleep(SCRIPT_DELAY);

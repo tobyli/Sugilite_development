@@ -163,7 +163,7 @@ public class PumiceValueQueryKnowledge<T> implements Serializable {
                         }
                     }
                 };
-                PumiceDemonstrationUtil.executeScript(context, serviceStatusManager, sugiliteStartingBlock, sugiliteData, sharedPreferences, pumiceDialogManager, null, afterExecutionRunnable);
+                PumiceDemonstrationUtil.executeScript(context, serviceStatusManager, sugiliteStartingBlock, sugiliteData, sharedPreferences, false, pumiceDialogManager, null, afterExecutionRunnable);
 
                 synchronized (returnValue) {
                     try {

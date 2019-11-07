@@ -33,7 +33,7 @@ public class StringInContext {
     public boolean equals(Object obj) {
         if (obj instanceof StringInContext) {
             StringInContext sic = (StringInContext)obj;
-            return text.equals(sic.text) && activityName.equals(sic.activityName) && packageName.equals(sic.packageName);
+            return Objects.equals(text, sic.text) && Objects.equals(activityName, sic.activityName) && Objects.equals(packageName, sic.packageName);
         }
         return false;
     }

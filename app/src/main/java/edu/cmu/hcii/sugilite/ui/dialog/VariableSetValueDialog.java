@@ -72,9 +72,10 @@ public class VariableSetValueDialog extends SugiliteDialogManager implements Abs
     private EditText firstVariableEditText;
     private String firstVariableName;
 
+    //whether this execution is for reconstructing the script
+    private boolean isForReconstructing;
 
-
-    public VariableSetValueDialog(final Context context, SugiliteData sugiliteData, SugiliteStartingBlock startingBlock, SharedPreferences sharedPreferences, int state, PumiceDialogManager pumiceDialogManager){
+    public VariableSetValueDialog(final Context context, SugiliteData sugiliteData, SugiliteStartingBlock startingBlock, SharedPreferences sharedPreferences, int state, PumiceDialogManager pumiceDialogManager, boolean isForReconstructing){
         //constructor for SugiliteDialogManager
         super(context, sugiliteData.getTTS());
 
@@ -85,6 +86,7 @@ public class VariableSetValueDialog extends SugiliteDialogManager implements Abs
         this.sugiliteData = sugiliteData;
         this.state = state;
         this.pumiceDialogManager = pumiceDialogManager;
+        this.isForReconstructing = isForReconstructing;
 
         LayoutInflater inflater = LayoutInflater.from(context);
         View dialogView = inflater.inflate(R.layout.dialog_variable_set_value, null);
@@ -249,7 +251,7 @@ public class VariableSetValueDialog extends SugiliteDialogManager implements Abs
             @Override
             public void run() {
                 progressDialog.dismiss();
-                sugiliteData.runScript(startingBlock, afterExecutionOperation, afterExecutionRunnable, state);
+                sugiliteData.runScript(startingBlock, afterExecutionOperation, afterExecutionRunnable, state, isForReconstructing);
             }
         };
         Handler handler = new Handler();

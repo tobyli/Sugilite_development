@@ -22,9 +22,9 @@ import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.model.operation.trinary.SugiliteLoadVariableOperation;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteOperation;
 import edu.cmu.hcii.sugilite.ontology.*;
-import edu.cmu.hcii.sugilite.ontology.HashedStringOntologyQuery;
+import edu.cmu.hcii.sugilite.ontology.HashedStringLeafOntologyQuery;
 import edu.cmu.hcii.sugilite.pumice.PumiceDemonstrationUtil;
-import edu.cmu.hcii.sugilite.sharing.SugiliteSharingScriptPreparer;
+import edu.cmu.hcii.sugilite.sharing.PrivateNonPrivateLeafOntologyQueryPairWrapper;
 
 import static edu.cmu.hcii.sugilite.sharing.SugiliteSharingScriptPreparer.POTENTIALLY_PRIVATE_RELATIONS;
 
@@ -59,16 +59,19 @@ public class OntologyDescriptionGenerator {
     }
 
     public Spanned getDescriptionForOntologyQuery(OntologyQuery ontologyQuery, boolean isParentQuery) {
-        return getDescriptionForOntologyQuery(ontologyQuery, isParentQuery, false);
+        return getDescriptionForOntologyQuery(ontologyQuery, isParentQuery, false, null);
     }
 
+    public Spanned getDescriptionForOntologyQuery(OntologyQuery ontologyQuery, boolean isParentQuery, boolean addClickableSpansForPrivacy) {
+        return getDescriptionForOntologyQuery(ontologyQuery, isParentQuery, addClickableSpansForPrivacy, null);
+    }
     /**
      * Get the natural language description for an OntologyQuery
      *
      * @param ontologyQuery
      * @return
      */
-    public Spanned getDescriptionForOntologyQuery(OntologyQuery ontologyQuery, boolean isParentQuery, boolean addClickableSpansForPrivacy) {
+    public Spanned getDescriptionForOntologyQuery(OntologyQuery ontologyQuery, boolean isParentQuery, boolean addClickableSpansForPrivacy, PrivateNonPrivateLeafOntologyQueryPairWrapper parentOntologyPair) {
         String postfix = ""; // pretty sure this isn't used
 
         OntologyQueryFilter filter = ontologyQuery.getOntologyQueryFilter();
@@ -99,8 +102,8 @@ public class OntologyDescriptionGenerator {
             }
 
             //process privacy
-            if (addClickableSpansForPrivacy && Arrays.stream(POTENTIALLY_PRIVATE_RELATIONS).anyMatch(loq.getR()::equals)) {
-                result.setSpan(new UnhashedOntologyQueryClickableSpan(), 0, result.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+            if (addClickableSpansForPrivacy && Arrays.stream(POTENTIALLY_PRIVATE_RELATIONS).anyMatch(loq.getR()::equals) && parentOntologyPair != null) {
+                result.setSpan(new UnhashedOntologyQueryClickableSpan(parentOntologyPair), 0, result.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
             }
             return result;
 
@@ -141,28 +144,38 @@ public class OntologyDescriptionGenerator {
             } else {
                 throw new RuntimeException("Unsupported relation type: " + coq.getSubRelation().toString());
             }
-        } else if (ontologyQuery instanceof HashedStringOntologyQuery) {
+        } else if (ontologyQuery instanceof HashedStringLeafOntologyQuery) {
             SpannableString spannableString = new SpannableString(getColoredSpannedTextFromMessage("has unknown text ", Const.SCRIPT_VIEW_ID_COLOR));
-            if (addClickableSpansForPrivacy) {
-                spannableString.setSpan(new HashedOntologyQueryClickableSpan(), 0, spannableString.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+            if (addClickableSpansForPrivacy && parentOntologyPair != null) {
+                spannableString.setSpan(new HashedOntologyQueryClickableSpan(parentOntologyPair), 0, spannableString.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
             }
             return spannableString;
         } else if (ontologyQuery instanceof PlaceholderOntologyQuery) {
             return (Spanned) TextUtils.concat(getColoredSpannedTextFromMessage("(temporary) ", Const.SCRIPT_PLACEHOLDER_COLOR), getDescriptionForOntologyQuery(((PlaceholderOntologyQuery) ontologyQuery).getInnerQuery(), true, addClickableSpansForPrivacy));
-        } else {
+        } else if (ontologyQuery instanceof PrivateNonPrivateLeafOntologyQueryPairWrapper) {
+            return getDescriptionForOntologyQuery(((PrivateNonPrivateLeafOntologyQueryPairWrapper) ontologyQuery).getQueryInUse(), isParentQuery, addClickableSpansForPrivacy, (PrivateNonPrivateLeafOntologyQueryPairWrapper) ontologyQuery);
+        }
+        else {
             // oh boy
+            PumiceDemonstrationUtil.showSugiliteAlertDialog("Failed to generate description for OntologyQuery!!");
         }
 
         return new SpannableString("NULL");
     }
 
     public class HashedOntologyQueryClickableSpan extends ClickableSpan {
+        PrivateNonPrivateLeafOntologyQueryPairWrapper privateNonPrivateLeafOntologyQueryPairWrapper;
+        public HashedOntologyQueryClickableSpan(PrivateNonPrivateLeafOntologyQueryPairWrapper privateNonPrivateLeafOntologyQueryPairWrapper) {
+            this.privateNonPrivateLeafOntologyQueryPairWrapper = privateNonPrivateLeafOntologyQueryPairWrapper;
+        }
+
+
         @Override
         public void onClick(View widget) {
             Spanned s = (Spanned) ((TextView) widget).getText();
             int start = s.getSpanStart(this);
             int end = s.getSpanEnd(this);
-            PumiceDemonstrationUtil.showSugiliteToast("CLICKED! " + s.toString().substring(start, end) , Toast.LENGTH_SHORT);
+            privateNonPrivateLeafOntologyQueryPairWrapper.flip();
         }
 
         @Override
@@ -174,12 +187,17 @@ public class OntologyDescriptionGenerator {
     }
 
     public class UnhashedOntologyQueryClickableSpan extends ClickableSpan {
+        PrivateNonPrivateLeafOntologyQueryPairWrapper privateNonPrivateLeafOntologyQueryPairWrapper;
+        public UnhashedOntologyQueryClickableSpan(PrivateNonPrivateLeafOntologyQueryPairWrapper privateNonPrivateLeafOntologyQueryPairWrapper) {
+            this.privateNonPrivateLeafOntologyQueryPairWrapper = privateNonPrivateLeafOntologyQueryPairWrapper;
+        }
+
         @Override
         public void onClick(View widget) {
             Spanned s = (Spanned) ((TextView) widget).getText();
             int start = s.getSpanStart(this);
             int end = s.getSpanEnd(this);
-            PumiceDemonstrationUtil.showSugiliteToast("CLICKED! " + s.toString().substring(start, end) , Toast.LENGTH_SHORT);
+            privateNonPrivateLeafOntologyQueryPairWrapper.flip();
         }
 
         @Override
@@ -264,8 +282,8 @@ public class OntologyDescriptionGenerator {
     private static SugiliteRelation getRForQuery(OntologyQuery query) {
         if (query instanceof LeafOntologyQuery) {
             return ((LeafOntologyQuery) query).getR();
-        } else if (query instanceof HashedStringOntologyQuery) {
-            return ((HashedStringOntologyQuery) query).getR();
+        } else if (query instanceof HashedStringLeafOntologyQuery) {
+            return ((HashedStringLeafOntologyQuery) query).getR();
         }
         return null;
     }
@@ -331,23 +349,24 @@ public class OntologyDescriptionGenerator {
             spannedTranslatedFilter = getColoredSpannedTextFromMessage(translatedFilter, Const.SCRIPT_ACTION_PARAMETER_COLOR);
             if (isListOrderRelation(filter.getRelation())) {
                 result.append(spannedTranslatedFilter);
-                result.append(" that ");
+                result.append(new SpannableString(" that "));
                 isListOrder = true;
             }
         }
         if (!isListOrder) {
-            result.append("the item that ");
+            result.append(new SpannableString("the item that "));
         }
 
         for (int i = 0; i < descriptionArrayLength - 1; i++) {
-            result.append(" ");
+            result.append(new SpannableString(" "));
+
             result.append(descriptions[i]);
-            result.append(" or ");
+            result.append(new SpannableString(" or "));
         }
-        result.append(" ");
+        result.append(new SpannableString(" "));
         result.append(descriptions[descriptionArrayLength - 1]);
         if (filter != null && !isListOrder) {
-            result.append(", with ");
+            result.append(new SpannableString(", with "));
             result.append(spannedTranslatedFilter);
         }
         return result;
@@ -369,29 +388,29 @@ public class OntologyDescriptionGenerator {
         if (lastRelation != null && lastRelation.equals(SugiliteRelation.HAS_PACKAGE_NAME)) {
             if (!needsMoreChange) // all queries before package name are taken care of
             {
-                result.append(" ");
+                result.append(new SpannableString(" "));
                 result.append(descriptions[descriptionArrayLength - 1]);
             } else {
-                result.append(" that ");
+                result.append(new SpannableString(" that "));
                 result.append(descriptions[descriptionArrayLength - 2]); // the query before package name needs to be included
-                result.append(" ");
+                result.append(new SpannableString(" "));
                 result.append(descriptions[descriptionArrayLength - 1]); // and then add package name relation
 
             }
         } else { // the last relation is not package name, so there is no package name relation in the queries
             if (!needsMoreChange) // all queries before last query are taken care of
             {
-                result.append(" that ");
+                result.append(new SpannableString(" that "));
                 result.append(descriptions[descriptionArrayLength - 1]); // add the last relation
             } else {
-                result.append(" that ");
+                result.append(new SpannableString(" that "));
                 result.append(descriptions[descriptionArrayLength - 2]);// the query before last query needs to be included
-                result.append(" and ");
+                result.append(new SpannableString(" and "));
                 result.append(descriptions[descriptionArrayLength - 1]); // and then add the last relation
             }
         }
         if (filter != null && !isListOrder) {
-            result.append(" with ");
+            result.append(new SpannableString(" with "));
             result.append(translatedFilter);
         }
     }
@@ -402,28 +421,29 @@ public class OntologyDescriptionGenerator {
         if (lastRelation != null && lastRelation.equals(SugiliteRelation.HAS_PACKAGE_NAME)) {
             for (int i = startingNumber; i < descriptionArrayLength - 2; i++) {
                 // startingNumber indicates the index of the description that should be followed with ","
-                result.append(", ");
+                result.append(new SpannableString(", "));
                 result.append(descriptions[i]);
             }
             if (startingNumber < descriptionArrayLength - 1) {
                 // only 2 descriptions, no "," needed
-                result.append(" and ");
+                result.append(new SpannableString(" and "));
                 result.append(descriptions[descriptionArrayLength - 2]);
             }
-            result.append(" ");
+            result.append(new SpannableString(" "));
             result.append(descriptions[descriptionArrayLength - 1]);
 
         } else {
             for (int i = startingNumber; i < descriptionArrayLength - 1; i++) {
-                result.append(", ");
+                result.append(new SpannableString(", "));
+
                 result.append(descriptions[i]);
             }
-            result.append(" and ");
+            result.append(new SpannableString(" and "));
             result.append(descriptions[descriptionArrayLength - 1]);
 
         }
         if (filter != null && !isListOrder) {
-            result.append(" with ");
+            result.append(new SpannableString(" with "));
             result.append(translatedFilter);
         }
     }
@@ -462,7 +482,7 @@ public class OntologyDescriptionGenerator {
                             isListOrder = true;
                         } else
                             // e.g. the 1st button with the cheapest price
-                            result.append(" with ");
+                            result.append(new SpannableString(" with "));
                             result.append(spannedTranslatedFilter);
                     }
                 }
@@ -482,7 +502,7 @@ public class OntologyDescriptionGenerator {
                     }
                     // needs for loop
                     else {
-                        result.append(" that ");
+                        result.append(new SpannableString(" that "));
                         result.append(descriptions[2]);
                         handlePackageNameWithForLoop(descriptions, filter, result, spannedTranslatedFilter, isListOrder, lastRelation, 3);
                         // startingNumber indicates the index of the description that should be followed with ","
@@ -499,12 +519,12 @@ public class OntologyDescriptionGenerator {
                         isListOrder = true;
                     } else {
                         result.clear();
-                        result.append("the ");
+                        result.append(new SpannableString("the "));
                         result.append(descriptions[0]);// e.g. the button
                     }
                 } else {
                     result.clear();
-                    result.append("the ");
+                    result.append(new SpannableString("the "));
                     result.append(descriptions[0]);
                 }
 
@@ -515,7 +535,7 @@ public class OntologyDescriptionGenerator {
                 }
                 // needs for loop
                 else {
-                    result.append(" that ");
+                    result.append(new SpannableString(" that "));
                     result.append(descriptions[1]);
                     handlePackageNameWithForLoop(descriptions, filter, result, spannedTranslatedFilter, isListOrder, lastRelation, 2);
                     // startingNumber indicates the index of the description that should be followed with ","
@@ -542,7 +562,7 @@ public class OntologyDescriptionGenerator {
             }
             // needs for loop
             else {
-                result.append(" that ");
+                result.append(new SpannableString(" that "));
                 result.append(descriptions[1]);
                 handlePackageNameWithForLoop(descriptions, filter, result, spannedTranslatedFilter, isListOrder, lastRelation, 2);
                 // startingNumber indicates the index of the description that should be followed with ","
@@ -559,17 +579,17 @@ public class OntologyDescriptionGenerator {
                     // e.g. the first item that has
                     result.clear();
                     result.append(spannedTranslatedFilter);
-                    result.append(" that ");
+                    result.append(new SpannableString(" that "));
                     isListOrder = true;
                 } else {
                     result.clear();
                     result.append(spannedTranslatedFilter);
-                    result.append("the item that ");
+                    result.append(new SpannableString("the item that "));
                 }
             } else {
                 result.clear();
                 result.append(spannedTranslatedFilter);
-                result.append("the item that ");
+                result.append(new SpannableString("the item that "));
             }
             // e.g. the item that has text hello
             result.append(descriptions[0]);
@@ -646,7 +666,7 @@ public class OntologyDescriptionGenerator {
         result.append(descriptions[0]);
 
         for (int i = 1; i < descriptions.length; i++) {
-            result.append(" and ");
+            result.append(new SpannableString(" and "));
             result.append(descriptions[i]);
         }
         return result;

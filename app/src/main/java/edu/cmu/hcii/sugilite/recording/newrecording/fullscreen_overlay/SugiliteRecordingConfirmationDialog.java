@@ -201,16 +201,19 @@ public class SugiliteRecordingConfirmationDialog extends SugiliteDialogManager {
                         catch (Exception e){
                             e.printStackTrace();
                         }
+
+                        //call the after recording callback
+                        if (sugiliteData.getScriptHead() != null && sugiliteData.afterRecordingCallback != null){
+                            //call the endRecordingCallback
+                            Runnable r = sugiliteData.afterRecordingCallback;
+                            sugiliteData.afterRecordingCallback = null;
+                            r.run();
+                        }
                     }
                 }).start();
 
 
-                if (sugiliteData.getScriptHead() != null && sugiliteData.afterRecordingCallback != null){
-                    //call the endRecordingCallback
-                    Runnable r = sugiliteData.afterRecordingCallback;
-                    sugiliteData.afterRecordingCallback = null;
-                    r.run();
-                }
+
 
                 //turn off the recording overlay if any
                 if(sugiliteData.verbalInstructionIconManager != null){

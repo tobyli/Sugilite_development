@@ -1,7 +1,6 @@
 package edu.cmu.hcii.sugilite.ui;
 
 import android.app.Activity;
-import android.app.ActivityManager;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -10,9 +9,7 @@ import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
 import android.speech.tts.TextToSpeech;
-import android.text.Html;
 import android.view.ContextMenu;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -29,15 +26,13 @@ import edu.cmu.hcii.sugilite.Const;
 import edu.cmu.hcii.sugilite.R;
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.automation.AutomatorUtil;
-import edu.cmu.hcii.sugilite.automation.ServiceStatusManager;
-import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
 import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteConditionBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteErrorHandlingForkBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.model.block.booleanexp.SugiliteBooleanExpression;
-import edu.cmu.hcii.sugilite.model.block.special_operation.SugiliteSpecialOperationBlock;
+import edu.cmu.hcii.sugilite.model.block.SugiliteSpecialOperationBlock;
 import edu.cmu.hcii.sugilite.ontology.SerializableUISnapshot;
 import edu.cmu.hcii.sugilite.pumice.PumiceDemonstrationUtil;
 import edu.cmu.hcii.sugilite.pumice.dialog.PumiceDialogManager;
@@ -132,7 +127,7 @@ public class LocalScriptDetailActivity extends ScriptDetailActivity implements S
                 .setPositiveButton("Run", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int which) {
                         //clear the queue first before adding new instructions
-                        PumiceDemonstrationUtil.executeScript(context, serviceStatusManager, script, sugiliteData, sharedPreferences, null, null, null);
+                        PumiceDemonstrationUtil.executeScript(context, serviceStatusManager, script, sugiliteData, sharedPreferences, false, null, null, null);
                     }
                 })
                 .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
@@ -146,6 +141,26 @@ public class LocalScriptDetailActivity extends ScriptDetailActivity implements S
 
     public void scriptDetailCancelButtonOnClick (View view){
         onBackPressed();
+    }
+
+    public void scriptDetailReconstructButtonOnClick (){
+        final Context activityContext = this;
+        new AlertDialog.Builder(this)
+                .setTitle("Run Script")
+                .setMessage("Are you sure you want to reconstruct this script?")
+                .setPositiveButton("Run", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        //clear the queue first before adding new instructions
+                        PumiceDemonstrationUtil.executeScript(context, serviceStatusManager, script, sugiliteData, sharedPreferences, true, null, null, null);
+                    }
+                })
+                .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        // do nothing
+                    }
+                })
+                .setIcon(android.R.drawable.ic_dialog_alert)
+                .show();
     }
 
 
@@ -595,6 +610,8 @@ public class LocalScriptDetailActivity extends ScriptDetailActivity implements S
         menu.add(Menu.NONE, Menu.FIRST + 1, 2, "Rename Script");
         menu.add(Menu.NONE, Menu.FIRST + 2, 3, "Delete Script");
         menu.add(Menu.NONE, Menu.FIRST + 3, 4, "Add Check to Script");
+        menu.add(Menu.NONE, Menu.FIRST + 4, 5, "Reconstruct the script");
+
         return true;
     }
 
@@ -669,6 +686,11 @@ public class LocalScriptDetailActivity extends ScriptDetailActivity implements S
             case Menu.FIRST + 3:
                 //edit the script
                 editScript(false);
+                break;
+            case Menu.FIRST + 4: {
+                scriptDetailReconstructButtonOnClick();
+                break;
+            }
         }
         return true;
     }
@@ -774,8 +796,7 @@ public class LocalScriptDetailActivity extends ScriptDetailActivity implements S
                     }).show();
         }
         else {
-            VariableSetValueDialog variableSetValueDialog = new VariableSetValueDialog(this, sugiliteData, script, sharedPreferences, SugiliteData.REGULAR_DEBUG_STATE, pumiceDialogManager);
-
+            VariableSetValueDialog variableSetValueDialog = new VariableSetValueDialog(this, sugiliteData, script, sharedPreferences, SugiliteData.REGULAR_DEBUG_STATE, pumiceDialogManager, false);
             //execute the script without showing the dialog
             variableSetValueDialog.executeScript(null, pumiceDialogManager, null);
         }
@@ -999,7 +1020,7 @@ public class LocalScriptDetailActivity extends ScriptDetailActivity implements S
             for (String packageName : script.relevantPackages) {
                 AutomatorUtil.killPackage(packageName);
             }
-            sugiliteData.runScript(script, true, SugiliteData.EXECUTION_STATE);
+            sugiliteData.runScript(script, true, SugiliteData.EXECUTION_STATE, false);
 
             //turn on the cat overlay to prepare for demonstration - resume recording
             if(sugiliteData.verbalInstructionIconManager != null){

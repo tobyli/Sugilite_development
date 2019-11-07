@@ -772,7 +772,7 @@ public class FollowUpQuestionDialog extends SugiliteDialogManager implements Sug
                 System.out.println("Result Query: " + query.toString());
                 //construct the block from the query formula
 
-                SugiliteOperationBlock block = blockBuildingHelper.getUnaryOperationBlockWithOntologyQueryFromQuery(query.clone(), SugiliteOperation.CLICK, featurePack);
+                SugiliteOperationBlock block = blockBuildingHelper.getUnaryOperationBlockWithOntologyQueryFromQuery(query.clone(), SugiliteOperation.CLICK, featurePack, null);
                 showConfirmationDialog(block, featurePack, queryScoreList, clickRunnable);
                 dialog.dismiss();
             }

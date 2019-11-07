@@ -128,7 +128,9 @@ public class OverlayClickedDialog {
             */
 
             //TODO: 19/03/11 temporarily disable the ambiguous pop-up for PUMICE study
-            SugiliteOperationBlock block = blockBuildingHelper.getUnaryOperationBlockWithOntologyQueryFromQuery(queryScoreList.get(0).first, isLongClick ? SugiliteOperation.LONG_CLICK : SugiliteOperation.CLICK, featurePack);
+
+            //generate alternative query
+            SugiliteOperationBlock block = blockBuildingHelper.getUnaryOperationBlockWithOntologyQueryFromQuery(queryScoreList.get(0).first, isLongClick ? SugiliteOperation.LONG_CLICK : SugiliteOperation.CLICK, featurePack, SugiliteBlockBuildingHelper.getFirstNonTextQuery(queryScoreList));
             showConfirmation(block, featurePack, queryScoreList);
         } else {
             //empty result

@@ -6,9 +6,7 @@ import edu.cmu.hcii.sugilite.sharing.model.HashedString;
 import edu.cmu.hcii.sugilite.sharing.StringAlternativeGenerator;
 
 import java.io.Serializable;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 
 public abstract class OntologyQuery implements Serializable {
@@ -79,7 +77,7 @@ public abstract class OntologyQuery implements Serializable {
             else {
                 if (firstWord.equals("privateMatch")) {
                     String[] parts = s.split(" ");
-                    query = new HashedStringOntologyQuery(SugiliteRelation.getRelationFromString(parts[1]), HashedString.fromEncodedString(parts[2], true));
+                    query = new HashedStringLeafOntologyQuery(SugiliteRelation.getRelationFromString(parts[1]), HashedString.fromEncodedString(parts[2], true));
                 } else if (firstWord.equals("patternMatch")) {
                     String[] parts = s.split(" ", 3);
                     StringAlternativeGenerator.StringAlternative alt = new StringAlternativeGenerator.StringAlternative(OntologyQueryUtils.removeQuoteSigns(parts[2]), -1, StringAlternativeGenerator.PATTERN_MATCH_TYPE);
@@ -136,7 +134,7 @@ public abstract class OntologyQuery implements Serializable {
         return ontologyQueryFilter;
     }
 
-    protected abstract boolean overallQueryFunction(SugiliteEntity currNode, UISnapshot graph);
+    public abstract boolean overallQueryFunction(SugiliteEntity currNode, UISnapshot graph);
 
     public Set<SugiliteEntity> executeOn(UISnapshot graph){
         // fetch the remote salt graph
@@ -165,9 +163,9 @@ public abstract class OntologyQuery implements Serializable {
 
     private Set<String> getStringsNeededForServerSaltedHashing (UISnapshot graph) {
         Set<String> result = new HashSet<>();
-        if (this instanceof  HashedStringOntologyQuery) {
-            if (((HashedStringOntologyQuery)this).hashedString.isServerSalted()) {
-                Set<SugiliteTriple> sugiliteTriples = graph.getPredicateTriplesMap().get(((HashedStringOntologyQuery) this).getR().getRelationId());
+        if (this instanceof HashedStringLeafOntologyQuery) {
+            if (((HashedStringLeafOntologyQuery)this).hashedString.isServerSalted()) {
+                Set<SugiliteTriple> sugiliteTriples = graph.getPredicateTriplesMap().get(((HashedStringLeafOntologyQuery) this).getR().getRelationId());
                 if (sugiliteTriples != null) {
                     for (SugiliteTriple triple : sugiliteTriples) {
                         if (SugiliteData.getScreenStringSaltedHashMap() != null && SugiliteData.getScreenStringSaltedHashMap().containsKey(new HashedString(triple.getObjectStringValue()).toString())) {

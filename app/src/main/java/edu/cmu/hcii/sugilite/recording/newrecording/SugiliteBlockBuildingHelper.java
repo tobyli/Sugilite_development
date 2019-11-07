@@ -6,8 +6,6 @@ import android.util.Pair;
 
 import com.google.gson.Gson;
 
-import org.apache.commons.collections.ArrayStack;
-
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -23,7 +21,6 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -39,7 +36,7 @@ import edu.cmu.hcii.sugilite.model.block.SugiliteConditionBlock;
 import edu.cmu.hcii.sugilite.model.block.util.SugiliteAvailableFeaturePack;
 import edu.cmu.hcii.sugilite.model.block.SugiliteErrorHandlingForkBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
-import edu.cmu.hcii.sugilite.model.block.special_operation.SugiliteSpecialOperationBlock;
+import edu.cmu.hcii.sugilite.model.block.SugiliteSpecialOperationBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteOperation;
 import edu.cmu.hcii.sugilite.model.operation.binary.SugiliteReadoutOperation;
@@ -50,6 +47,7 @@ import edu.cmu.hcii.sugilite.ontology.*;
 import edu.cmu.hcii.sugilite.ontology.description.OntologyDescriptionGenerator;
 import edu.cmu.hcii.sugilite.ontology.OntologyQueryWithSubQueries;
 import edu.cmu.hcii.sugilite.recording.ReadableDescriptionGenerator;
+import edu.cmu.hcii.sugilite.sharing.PrivateNonPrivateLeafOntologyQueryPairWrapper;
 
 import static edu.cmu.hcii.sugilite.Const.SQL_SCRIPT_DAO;
 
@@ -81,11 +79,13 @@ public class SugiliteBlockBuildingHelper {
         readableDescriptionGenerator = new ReadableDescriptionGenerator(context);
     }
 
-    public SugiliteOperationBlock getUnaryOperationBlockWithOntologyQueryFromQuery(OntologyQuery query, int opeartionType, SugiliteAvailableFeaturePack featurePack){
+    public SugiliteOperationBlock getUnaryOperationBlockWithOntologyQueryFromQuery(OntologyQuery query, int opeartionType, SugiliteAvailableFeaturePack featurePack, OntologyQuery alternativeQuery){
         if(opeartionType == SugiliteOperation.CLICK) {
             SugiliteClickOperation sugiliteOperation = new SugiliteClickOperation();
             sugiliteOperation.setQuery(query);
-
+            if (alternativeQuery != null) {
+                sugiliteOperation.setAlternativeTargetUIElementDataDescriptionQuery(alternativeQuery);
+            }
             SugiliteOperationBlock operationBlock = new SugiliteOperationBlock();
             operationBlock.setOperation(sugiliteOperation);
             operationBlock.setFeaturePack(featurePack);
@@ -97,7 +97,9 @@ public class SugiliteBlockBuildingHelper {
         else if(opeartionType == SugiliteOperation.LONG_CLICK) {
             SugiliteLongClickOperation sugiliteOperation = new SugiliteLongClickOperation();
             sugiliteOperation.setQuery(query);
-
+            if (alternativeQuery != null) {
+                sugiliteOperation.setAlternativeTargetUIElementDataDescriptionQuery(alternativeQuery);
+            }
             SugiliteOperationBlock operationBlock = new SugiliteOperationBlock();
             operationBlock.setOperation(sugiliteOperation);
             operationBlock.setFeaturePack(featurePack);
@@ -141,6 +143,75 @@ public class SugiliteBlockBuildingHelper {
         else {
             throw new RuntimeException("got an unsupported operation type: " + operationType);
         }
+    }
+    public static OntologyQuery getFirstNonTextQuery (List<Pair<OntologyQuery, Double>> list) {
+        for (Pair<OntologyQuery, Double> queryScorePair :list) {
+            OntologyQuery ontologyQuery = queryScorePair.first;
+            if (!checkIfOntologyQueryContainsRelations(ontologyQuery, SugiliteRelation.HAS_TEXT, SugiliteRelation.HAS_CHILD_TEXT, SugiliteRelation.HAS_CONTENT_DESCRIPTION)) {
+                return ontologyQuery;
+            }
+        }
+        return null;
+    }
+    public static boolean checkIfOntologyQueryContainsHashedQuery (OntologyQuery ontologyQuery) {
+        if (ontologyQuery instanceof OntologyQueryWithSubQueries) {
+            for (OntologyQuery subQuery : ((OntologyQueryWithSubQueries) ontologyQuery).getSubQueries()) {
+                if (checkIfOntologyQueryContainsHashedQuery(subQuery)) {
+                    return true;
+                }
+            }
+        }
+
+        if (ontologyQuery instanceof PrivateNonPrivateLeafOntologyQueryPairWrapper) {
+            return checkIfOntologyQueryContainsHashedQuery(((PrivateNonPrivateLeafOntologyQueryPairWrapper) ontologyQuery).getQueryInUse());
+        }
+
+        if (ontologyQuery instanceof HashedStringLeafOntologyQuery) {
+            return true;
+        }
+
+        return false;
+    }
+
+
+    public static boolean checkIfOntologyQueryContainsRelations (OntologyQuery ontologyQuery, SugiliteRelation... relations) {
+        if (ontologyQuery instanceof OntologyQueryWithSubQueries) {
+            for (OntologyQuery subQuery : ((OntologyQueryWithSubQueries) ontologyQuery).getSubQueries()) {
+                if (checkIfOntologyQueryContainsRelations(subQuery, relations)) {
+                    return true;
+                }
+            }
+        }
+
+        if (ontologyQuery instanceof LeafOntologyQuery) {
+            for (SugiliteRelation relation : relations) {
+                if (relation.equals(((LeafOntologyQuery) ontologyQuery).getR())) {
+                    return true;
+                }
+            }
+        }
+
+        if (ontologyQuery instanceof HashedStringLeafOntologyQuery) {
+            for (SugiliteRelation relation : relations) {
+                if (relation.equals(((HashedStringLeafOntologyQuery) ontologyQuery).getR())) {
+                    return true;
+                }
+            }
+        }
+
+        if (ontologyQuery instanceof StringAlternativeOntologyQuery) {
+            for (SugiliteRelation relation : relations) {
+                if (relation.equals(((StringAlternativeOntologyQuery) ontologyQuery).getR())) {
+                    return true;
+                }
+            }
+        }
+
+        if (ontologyQuery instanceof PrivateNonPrivateLeafOntologyQueryPairWrapper) {
+            return checkIfOntologyQueryContainsRelations(((PrivateNonPrivateLeafOntologyQueryPairWrapper) ontologyQuery).getQueryInUse(), relations);
+        }
+
+        return false;
     }
 
     public static List<Pair<OntologyQuery, Double>> newGenerateDefaultQueries(UISnapshot uiSnapshot, SugiliteEntity<Node> targetEntity, SugiliteRelation... relationsToExcludeArray){

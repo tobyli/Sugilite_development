@@ -3,12 +3,12 @@ package edu.cmu.hcii.sugilite.model.block.special_operation;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Handler;
-import android.view.LayoutInflater;
 
 import java.util.Map;
 
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
+import edu.cmu.hcii.sugilite.model.block.SugiliteSpecialOperationBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.model.variable.Variable;
 import edu.cmu.hcii.sugilite.ui.dialog.VariableSetValueDialog;
@@ -61,7 +61,7 @@ public class SugiliteSubscriptSpecialOperationBlock extends SugiliteSpecialOpera
             Runnable myRunnable = new Runnable() {
                 @Override
                 public void run() {
-                    VariableSetValueDialog variableSetValueDialog = new VariableSetValueDialog(finalContext, sugiliteData, script, sharedPreferences, sugiliteData.getCurrentSystemState(), sugiliteData.pumiceDialogManager);
+                    VariableSetValueDialog variableSetValueDialog = new VariableSetValueDialog(finalContext, sugiliteData, script, sharedPreferences, sugiliteData.getCurrentSystemState(), sugiliteData.pumiceDialogManager, false);
                     if (script.variableNameDefaultValueMap.size() > 0) {
                         //has variable
                         sugiliteData.stringVariableMap.putAll(script.variableNameDefaultValueMap);

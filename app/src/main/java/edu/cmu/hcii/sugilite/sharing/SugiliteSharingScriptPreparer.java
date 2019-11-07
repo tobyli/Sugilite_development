@@ -20,7 +20,7 @@ import edu.cmu.hcii.sugilite.model.operation.SugiliteOperation;
 import edu.cmu.hcii.sugilite.model.operation.binary.SugiliteBinaryOperation;
 import edu.cmu.hcii.sugilite.model.operation.trinary.SugiliteTrinaryOperation;
 import edu.cmu.hcii.sugilite.model.operation.unary.SugiliteUnaryOperation;
-import edu.cmu.hcii.sugilite.ontology.HashedStringOntologyQuery;
+import edu.cmu.hcii.sugilite.ontology.HashedStringLeafOntologyQuery;
 import edu.cmu.hcii.sugilite.ontology.LeafOntologyQuery;
 import edu.cmu.hcii.sugilite.ontology.OntologyQuery;
 import edu.cmu.hcii.sugilite.ontology.OntologyQueryWithSubQueries;
@@ -42,7 +42,7 @@ public class SugiliteSharingScriptPreparer {
     }
 
     public static Map<StringInContext, StringAlternativeGenerator.StringAlternative> getReplacementsFromStringInContextSet(Set<StringInContext> originalQueryStrings, SugiliteScriptSharingHTTPQueryManager sugiliteScriptSharingHTTPQueryManager) throws Exception {
-        // 2. COMPUTE ALTERNATIVE STRINGS
+        //COMPUTE ALTERNATIVE STRINGS
         Map<StringInContext, Integer> originalQueryStringsIndexMap = new HashMap<>();
         Map<Integer, StringInContext> indexOriginalQueryStringsMap = new HashMap<>();
         Multimap<HashedString, StringInContextWithIndexAndPriority> stringHashOriginalStringMap = HashMultimap.create();
@@ -80,13 +80,12 @@ public class SugiliteSharingScriptPreparer {
         // 1. get all StringInContext in the block
         Set<StringInContext> originalQueryStrings = getStringsFromScript(script);
         Log.i("PrepareScriptForSharingTask", "size of query strings" + originalQueryStrings.size());
-
-
         Map<StringInContext, StringAlternativeGenerator.StringAlternative> replacements = getReplacementsFromStringInContextSet(originalQueryStrings, sugiliteScriptSharingHTTPQueryManager);
 
-        //4. REPLACE HAS_TEXT and HAS_CHILD_TEXT with hashed equivalents in queries
+        // 2. REPLACE HAS_TEXT and HAS_CHILD_TEXT with hashed equivalents in queries
         replaceStringsInScript(script, replacements);
 
+        // 3. process the UI Snapshot
         for (SugiliteBlock block : script.getFollowingBlocks()) {
             block.setDescription("this is not a trustworthy description");
             if (block instanceof SugiliteOperationBlock) {
@@ -224,8 +223,12 @@ public class SugiliteSharingScriptPreparer {
             SugiliteRelation.HAS_CONTENT_DESCRIPTION
     };
     private static OntologyQuery getStringReplacementOntologyQuery(OntologyQuery oq, SugiliteBlockMetaInfo metaInfo, Map<StringInContext, StringAlternativeGenerator.StringAlternative> replacements) {
-        String activityName = metaInfo.getUiSnapshot().getActivityName();
-        String packageName = metaInfo.getUiSnapshot().getPackageName();
+        String activityName = "";
+        String packageName = "";
+        if (metaInfo != null && metaInfo.getUiSnapshot() != null) {
+            activityName = metaInfo.getUiSnapshot().getActivityName();
+            packageName = metaInfo.getUiSnapshot().getPackageName();
+        }
 
 
         if (oq instanceof LeafOntologyQuery) {
@@ -242,10 +245,10 @@ public class SugiliteSharingScriptPreparer {
                     return oq;
                 } else if (alt.type == StringAlternativeGenerator.PATTERN_MATCH_TYPE) {
                     Log.v("PrepareScriptForSharingTask", "replacing \"" + loq.getObjectAsString() + "\" with \"" + alt.altText + "\"");
-                    return new StringAlternativeOntologyQuery(loq.getR(), alt);
+                    return new PrivateNonPrivateLeafOntologyQueryPairWrapper(new StringAlternativeOntologyQuery(loq.getR(), alt), loq, PrivateNonPrivateLeafOntologyQueryPairWrapper.QueryInUse.PRIVATE);
                 } else if (alt.type == StringAlternativeGenerator.HASH_TYPE) {
                     Log.v("PrepareScriptForSharingTask", "replacing \"" + loq.getObjectAsString() + "\" with \"" + alt.altText + "\"");
-                    return new HashedStringOntologyQuery(loq.getR(), HashedString.fromEncodedString(alt.altText, true));
+                    return new PrivateNonPrivateLeafOntologyQueryPairWrapper(new HashedStringLeafOntologyQuery(loq.getR(), HashedString.fromEncodedString(alt.altText, true)), loq, PrivateNonPrivateLeafOntologyQueryPairWrapper.QueryInUse.PRIVATE);
                 }
             } else {
                 return oq;
@@ -263,11 +266,14 @@ public class SugiliteSharingScriptPreparer {
             }
             return ((OntologyQueryWithSubQueries) oq).cloneWithTheseSubQueries(newSubQs);
         }
-        if (oq instanceof HashedStringOntologyQuery) {
+        if (oq instanceof HashedStringLeafOntologyQuery) {
+            return oq;
+        }
+        if (oq instanceof PrivateNonPrivateLeafOntologyQueryPairWrapper) {
             return oq;
         }
         Log.v("PrepareScriptForSharingTask", "not sure how to replace queries in " + oq.getClass().getCanonicalName());
-        return null;
+        throw new RuntimeException("unsupported type of ontology query!");
     }
 
     /**

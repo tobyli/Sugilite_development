@@ -11,6 +11,8 @@ import static edu.cmu.hcii.sugilite.source_parsing.SugiliteScriptExpression.addQ
  */
 public class SugiliteLongClickOperation extends SugiliteUnaryOperation<OntologyQuery> {
     private OntologyQuery targetUIElementDataDescriptionQuery;
+    private OntologyQuery alternativeTargetUIElementDataDescriptionQuery;
+
     public SugiliteLongClickOperation(){
         super();
         this.setOperationType(LONG_CLICK);
@@ -18,6 +20,14 @@ public class SugiliteLongClickOperation extends SugiliteUnaryOperation<OntologyQ
 
     public void setQuery(OntologyQuery targetUIElementDataDescriptionQuery) {
         setParameter0(targetUIElementDataDescriptionQuery);
+    }
+
+    public void setAlternativeTargetUIElementDataDescriptionQuery(OntologyQuery alternativeTargetUIElementDataDescriptionQuery) {
+        this.alternativeTargetUIElementDataDescriptionQuery = alternativeTargetUIElementDataDescriptionQuery;
+    }
+
+    public OntologyQuery getAlternativeTargetUIElementDataDescriptionQuery() {
+        return alternativeTargetUIElementDataDescriptionQuery;
     }
 
     @Override

@@ -8,6 +8,8 @@ import android.content.SharedPreferences;
 import android.support.annotation.Nullable;
 import android.widget.Toast;
 
+import java.util.logging.Handler;
+
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.automation.ServiceStatusManager;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
@@ -78,7 +80,6 @@ public class PumiceValueDemonstrationDialog {
                                         if(verbalInstructionIconManager != null){
                                             verbalInstructionIconManager.turnOffCatOverlay();
                                         }
-
                                         //get the result script
                                         try {
                                             SugiliteStartingBlock script = sugiliteScriptDao.read(scriptName + ".SugiliteScript");

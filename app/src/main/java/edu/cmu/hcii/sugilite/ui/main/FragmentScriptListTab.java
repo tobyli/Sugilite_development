@@ -192,7 +192,6 @@ public class FragmentScriptListTab extends Fragment {
         menu.add(0, ITEM_RENAME, 0, "Rename");
         menu.add(0, ITEM_SHARE_DIRECTLY, 0, "Share Raw Script");
         menu.add(0, ITEM_SHARE_FILTERED, 0, "Share Masked Script");
-        menu.add(0, ITEM_SHARE_TEST, 0, "Share Script Test");
         menu.add(0, ITEM_GENERALIZE, 0, "Generalize");
         menu.add(0, ITEM_EDIT_SOURCE, 0, "Edit Source");
         menu.add(0, ITEM_DELETE, 0, "Delete");
@@ -237,7 +236,7 @@ public class FragmentScriptListTab extends Fragment {
                                     //clear the queue first before adding new instructions
                                     try {
                                         SugiliteStartingBlock script = sugiliteScriptDao.read(scriptName);
-                                        PumiceDemonstrationUtil.executeScript(activity, serviceStatusManager, script, sugiliteData, sharedPreferences, null, null, null);
+                                        PumiceDemonstrationUtil.executeScript(activity, serviceStatusManager, script, sugiliteData, sharedPreferences, false, null, null, null);
                                     } catch (Exception e){
                                         e.printStackTrace();
                                     }
@@ -325,28 +324,6 @@ public class FragmentScriptListTab extends Fragment {
                     }).start();
                     break;
                 case ITEM_SHARE_FILTERED:
-                    new Thread(new Runnable() {
-                        @Override
-                        public void run() {
-                            try {
-                                SugiliteStartingBlock script = sugiliteScriptDao.read(scriptName);
-                                SugiliteStartingBlock sharable = sugiliteSharingScriptPreparer.prepareScript(script);
-                                String id = sugiliteScriptSharingHTTPQueryManager.uploadScript(scriptName, tempUserAccountNameManager.getBestUserName(), sharable);
-                                Log.i("Upload script", "Script shared with id : " + id);
-                                PumiceDemonstrationUtil.showSugiliteAlertDialog(String.format("Successfully uploaded the script \"%s\"!", removeScriptExtension(scriptName)));
-
-
-                            } catch (InterruptedException e) {
-                                e.printStackTrace();
-                            } catch (ExecutionException e) {
-                                e.printStackTrace();
-                            } catch (Exception e) {
-                                e.printStackTrace();
-                            }
-                        }
-                    }).start();
-                    break;
-                case ITEM_SHARE_TEST:
                     final Intent scriptShareIntent = new Intent(activity, SharingScriptReviewActivity.class);
                     scriptShareIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
                     scriptShareIntent.putExtra("scriptName", scriptName);

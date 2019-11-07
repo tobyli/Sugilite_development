@@ -174,7 +174,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
                                             PumiceDemonstrationUtil.showSugiliteToast("Changed script name to " + sharedPreferences.getString("scriptName", "NULL"), Toast.LENGTH_SHORT);
                                             scriptNamePreference.setSummary(scriptName.getText().toString());
                                             //set the active script to the newly created script
-                                            sugiliteData.initiateScript(scriptName.getText().toString() + ".SugiliteScript", null);
+                                            sugiliteData.initiateScriptRecording(scriptName.getText().toString() + ".SugiliteScript", null);
                                             sugiliteData.initiatedExternally = false;
                                             sugiliteData.setCurrentSystemState(SugiliteData.RECORDING_STATE);
                                             //save the newly created script to DB

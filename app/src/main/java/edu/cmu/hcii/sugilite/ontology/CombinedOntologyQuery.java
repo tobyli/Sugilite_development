@@ -127,7 +127,7 @@ public class CombinedOntologyQuery extends OntologyQueryWithSubQueries {
      * @return
      */
     @Override
-    protected boolean overallQueryFunction(SugiliteEntity currNode, UISnapshot graph) {
+    public boolean overallQueryFunction(SugiliteEntity currNode, UISnapshot graph) {
         if(subRelation == RelationType.AND){
             for(OntologyQuery q : subQueries){
                 if(!q.overallQueryFunction(currNode, graph)){

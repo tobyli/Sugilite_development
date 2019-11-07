@@ -153,7 +153,7 @@ public class ChooseParsingDialog extends SugiliteDialogManager {
                         System.out.println("Result Query: " + query.toString());
 
                         //construct a block from the query formula
-                        SugiliteOperationBlock block = blockBuildingHelper.getUnaryOperationBlockWithOntologyQueryFromQuery(query.clone(), SugiliteOperation.CLICK, featurePack);
+                        SugiliteOperationBlock block = blockBuildingHelper.getUnaryOperationBlockWithOntologyQueryFromQuery(query.clone(), SugiliteOperation.CLICK, featurePack, null);
 
                         //construct a confirmation dialog from the block
                         SugiliteRecordingConfirmationDialog sugiliteRecordingConfirmationDialog = new SugiliteRecordingConfirmationDialog(context, block, featurePack, queryScoreList, clickRunnable, blockBuildingHelper, uiSnapshot, actualClickedNode, sugiliteData, sharedPreferences, tts);

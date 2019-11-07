@@ -83,7 +83,7 @@ public class SugiliteTriggerHandler {
                     e.printStackTrace();
                 }
                 if (script != null) {
-                    VariableSetValueDialog variableSetValueDialog = new VariableSetValueDialog(context, sugiliteData, script, sharedPreferences, SugiliteData.EXECUTION_STATE, null);
+                    VariableSetValueDialog variableSetValueDialog = new VariableSetValueDialog(context, sugiliteData, script, sharedPreferences, SugiliteData.EXECUTION_STATE, null, false);
                     if (script.variableNameDefaultValueMap.size() > 0) {
                         //has variable
                         sugiliteData.stringVariableMap.putAll(script.variableNameDefaultValueMap);

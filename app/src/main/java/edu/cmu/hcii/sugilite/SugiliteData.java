@@ -27,14 +27,18 @@ import java.util.Set;
 import edu.cmu.hcii.sugilite.automation.ErrorHandler;
 import edu.cmu.hcii.sugilite.communication.SugiliteCommunicationController;
 import edu.cmu.hcii.sugilite.communication.SugiliteEventBroadcastingActivity;
+import edu.cmu.hcii.sugilite.model.Node;
 import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.model.variable.Variable;
+import edu.cmu.hcii.sugilite.ontology.SugiliteEntity;
 import edu.cmu.hcii.sugilite.ontology.SugiliteRelation;
 import edu.cmu.hcii.sugilite.ontology.SugiliteTriple;
+import edu.cmu.hcii.sugilite.ontology.UISnapshot;
 import edu.cmu.hcii.sugilite.pumice.dialog.PumiceDialogManager;
 import edu.cmu.hcii.sugilite.recording.RecordingPopUpDialog;
+import edu.cmu.hcii.sugilite.sharing.ObfuscatedScriptReconstructor;
 import edu.cmu.hcii.sugilite.sharing.model.HashedString;
 import edu.cmu.hcii.sugilite.study.ScriptUsageLogManager;
 import edu.cmu.hcii.sugilite.ui.StatusIconManager;
@@ -56,6 +60,9 @@ public class SugiliteData extends Application {
     private SugiliteStartingBlock scriptHead, trackingHead;
     private SugiliteBlock currentScriptBlock, currentTrackingBlock;
     private ScriptUsageLogManager usageLogManager;
+
+    //used to reconstruct obfuscated scripts
+    private ObfuscatedScriptReconstructor obfuscatedScriptReconstructor;
 
     //the queue used for execution. the system should be in the execution mode whenever the queue is non-empty
     private Queue<SugiliteBlock> instructionQueue = new ArrayDeque<>();
@@ -166,6 +173,17 @@ public class SugiliteData extends Application {
         this.trackingHead = trackingHead;
     }
 
+    public void handleReconstructObfuscatedScript(SugiliteOperationBlock blockToMatch, SugiliteEntity<Node> matchedNode, UISnapshot uiSnapshot) {
+        if (obfuscatedScriptReconstructor == null) {
+            obfuscatedScriptReconstructor = new ObfuscatedScriptReconstructor(applicationContext, this);
+        }
+        obfuscatedScriptReconstructor.replaceBlockInScript(blockToMatch, matchedNode, uiSnapshot);
+    }
+
+    public ObfuscatedScriptReconstructor getObfuscatedScriptReconstructor() {
+        return obfuscatedScriptReconstructor;
+    }
+
     public void logUsageData(int type, String scriptName){
         if(usageLogManager == null)
             usageLogManager = new ScriptUsageLogManager(getBaseContext());
@@ -179,7 +197,7 @@ public class SugiliteData extends Application {
      * set the script head to a new SugiliteStartingBlock with name = scriptName, and set the current script block to that block
      * @param scriptName
      */
-    public synchronized void initiateScript(String scriptName, Runnable afterRecordingCallback){
+    public synchronized void initiateScriptRecording(String scriptName, Runnable afterRecordingCallback){
         this.instructionQueue.clear();
         this.stringVariableMap.clear();
         this.setScriptHead(new SugiliteStartingBlock(scriptName));
@@ -195,7 +213,7 @@ public class SugiliteData extends Application {
         this.trackingName = trackingName;
     }
 
-    public synchronized void runScript(SugiliteStartingBlock startingBlock, SugiliteBlock afterExecutionOperation, Runnable afterExecutionRunnable, int state){
+    public synchronized void runScript(SugiliteStartingBlock startingBlock, SugiliteBlock afterExecutionOperation, Runnable afterExecutionRunnable, int state, boolean isReconstructing){
         startRecordingWhenFinishExecuting = false;
         this.afterExecutionOperation = afterExecutionOperation;
         this.afterExecutionRunnable = afterExecutionRunnable;
@@ -205,6 +223,17 @@ public class SugiliteData extends Application {
             errorHandler.relevantPackages.addAll(startingBlock.relevantPackages);
             errorHandler.reportSuccess(Calendar.getInstance().getTimeInMillis());
         }
+
+        if (obfuscatedScriptReconstructor == null) {
+            obfuscatedScriptReconstructor = new ObfuscatedScriptReconstructor(applicationContext, this);
+        }
+        if(isReconstructing) {
+            obfuscatedScriptReconstructor.setScriptInProcess(startingBlock);
+        } else {
+            obfuscatedScriptReconstructor.setScriptInProcess(null);
+        }
+
+
         List<SugiliteBlock> blocks = traverseBlock(startingBlock);
         addInstruction(startingBlock);
 
@@ -212,8 +241,8 @@ public class SugiliteData extends Application {
         setCurrentSystemState(state);
     }
 
-    public void runScript(SugiliteStartingBlock startingBlock, boolean isForResuming, int state){
-        runScript(startingBlock, null, null, state);
+    public void runScript(SugiliteStartingBlock startingBlock, boolean isForResuming, int state, boolean isReconstructing){
+        runScript(startingBlock, null, null, state, isReconstructing);
         startRecordingWhenFinishExecuting = isForResuming;
     }
 

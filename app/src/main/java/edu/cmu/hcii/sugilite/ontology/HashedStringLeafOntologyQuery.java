@@ -1,19 +1,14 @@
 package edu.cmu.hcii.sugilite.ontology;
 
-import edu.cmu.hcii.sugilite.Const;
 import edu.cmu.hcii.sugilite.SugiliteData;
-import edu.cmu.hcii.sugilite.sharing.SugiliteScriptSharingHTTPQueryManager;
 import edu.cmu.hcii.sugilite.sharing.model.HashedString;
 
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 
 import static edu.cmu.hcii.sugilite.sharing.SugiliteSharingScriptPreparer.POTENTIALLY_PRIVATE_RELATIONS;
 
-public class HashedStringOntologyQuery extends OntologyQuery {
+public class HashedStringLeafOntologyQuery extends OntologyQuery {
 
     // the relation we want to match
     protected SugiliteRelation r = null;
@@ -21,13 +16,13 @@ public class HashedStringOntologyQuery extends OntologyQuery {
     // the hashed string we want to match
     protected HashedString hashedString;
 
-    public HashedStringOntologyQuery(SugiliteRelation r, HashedString hashedString) {
+    public HashedStringLeafOntologyQuery(SugiliteRelation r, HashedString hashedString) {
         this.r = r;
         this.hashedString = hashedString;
     }
 
     @Override
-    protected boolean overallQueryFunction(SugiliteEntity currNode, UISnapshot graph) {
+    public boolean overallQueryFunction(SugiliteEntity currNode, UISnapshot graph) {
         Set<SugiliteTriple> sugiliteTriples = graph.getSubjectTriplesMap().get(currNode.getEntityId());
 
         if (sugiliteTriples != null) {
@@ -55,7 +50,7 @@ public class HashedStringOntologyQuery extends OntologyQuery {
 
     @Override
     public OntologyQuery clone() {
-        return new HashedStringOntologyQuery(r, hashedString);
+        return new HashedStringLeafOntologyQuery(r, hashedString);
     }
 
     public SugiliteRelation getR() {
@@ -74,18 +69,18 @@ public class HashedStringOntologyQuery extends OntologyQuery {
      * @return the equivalent HashedStringOntologyQuery if an equivalent could be made, or null otherwise.
      */
     @Deprecated
-    public static HashedStringOntologyQuery hashLeafOntologyQueryIfPossible(OntologyQuery query) {
+    public static HashedStringLeafOntologyQuery hashLeafOntologyQueryIfPossible(OntologyQuery query) {
 
-        if (query instanceof HashedStringOntologyQuery) return (HashedStringOntologyQuery)query;
+        if (query instanceof HashedStringLeafOntologyQuery) return (HashedStringLeafOntologyQuery)query;
 
         if (query instanceof LeafOntologyQuery) {
             LeafOntologyQuery loq = (LeafOntologyQuery)query;
-            HashedStringOntologyQuery result = null;
+            HashedStringLeafOntologyQuery result = null;
 
             // if we can hash this kind of relation
             if (Arrays.stream(POTENTIALLY_PRIVATE_RELATIONS).anyMatch(loq.getR()::equals) && loq.getObject().size() == 1) {
                 HashedString hashedString = new HashedString(loq.getObject().toArray(new SugiliteSerializableEntity[1])[0].toString());
-                result = new HashedStringOntologyQuery(loq.getR(), hashedString);
+                result = new HashedStringLeafOntologyQuery(loq.getR(), hashedString);
             }
 
             return result;

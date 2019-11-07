@@ -349,7 +349,7 @@ public class SugiliteCommunicationController {
                                         editor.putBoolean("recording_in_process", true);
                                         editor.commit();
 
-                                        sugiliteData.initiateScript(scriptName + ".SugiliteScript", null);
+                                        sugiliteData.initiateScriptRecording(scriptName + ".SugiliteScript", null);
                                         sugiliteData.initiatedExternally = true;
 
                                         try {
@@ -580,7 +580,7 @@ public class SugiliteCommunicationController {
                         // do nothing, likely this exception is caused by non-rooted device
                     }
                 }
-                sugiliteData.runScript(script, null, null, SugiliteData.EXECUTION_STATE);
+                sugiliteData.runScript(script, null, null, SugiliteData.EXECUTION_STATE, false);
                 try {
                     Thread.sleep(Const.SCRIPT_DELAY);
                 } catch (Exception e) {
@@ -641,7 +641,7 @@ public class SugiliteCommunicationController {
                     // do nothing, likely this exception is caused by non-rooted device
                 }
             }
-            sugiliteData.runScript(script, false, SugiliteData.EXECUTION_STATE);
+            sugiliteData.runScript(script, false, SugiliteData.EXECUTION_STATE, false);
             try {
                 Thread.sleep(Const.SCRIPT_DELAY);
             } catch (Exception e) {

@@ -8,7 +8,6 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.speech.tts.TextToSpeech;
 import android.support.annotation.Nullable;
-import android.view.LayoutInflater;
 import android.widget.Toast;
 
 import java.util.Map;
@@ -73,7 +72,7 @@ public class PumiceDemonstrationUtil {
 
 
             //set the active script to the newly created script
-            sugiliteData.initiateScript(scriptName + ".SugiliteScript", afterRecordingCallback); //add the end recording callback
+            sugiliteData.initiateScriptRecording(scriptName + ".SugiliteScript", afterRecordingCallback); //add the end recording callback
             sugiliteData.initiatedExternally = false;
 
             //save the newly created script to DB
@@ -107,7 +106,7 @@ public class PumiceDemonstrationUtil {
      * @param sharedPreferences
      * @param dialogManager
      */
-    public static void executeScript(Activity activityContext, ServiceStatusManager serviceStatusManager, SugiliteStartingBlock script, SugiliteData sugiliteData, SharedPreferences sharedPreferences, @Nullable PumiceDialogManager dialogManager, @Nullable SugiliteBlock afterExexecutionOperation, @Nullable Runnable afterExecutionRunnable){
+    public static void executeScript(Activity activityContext, ServiceStatusManager serviceStatusManager, SugiliteStartingBlock script, SugiliteData sugiliteData, SharedPreferences sharedPreferences, boolean isForReconstructing, @Nullable PumiceDialogManager dialogManager, @Nullable SugiliteBlock afterExexecutionOperation, @Nullable Runnable afterExecutionRunnable){
         if(!serviceStatusManager.isRunning()){
             //prompt the user if the accessiblity service is not active
             activityContext.runOnUiThread(() -> {
@@ -142,7 +141,7 @@ public class PumiceDemonstrationUtil {
             final PumiceDialogManager finalDialogManager = dialogManager;
 
             activityContext.runOnUiThread(() -> {
-                VariableSetValueDialog variableSetValueDialog = new VariableSetValueDialog(activityContext, sugiliteData, script, sharedPreferences, SugiliteData.EXECUTION_STATE, finalDialogManager);
+                VariableSetValueDialog variableSetValueDialog = new VariableSetValueDialog(activityContext, sugiliteData, script, sharedPreferences, SugiliteData.EXECUTION_STATE, finalDialogManager, isForReconstructing);
                 if(script.variableNameDefaultValueMap.size() > 0) {
 
                     //has variable
@@ -188,34 +187,38 @@ public class PumiceDemonstrationUtil {
         prefEditor.putBoolean("recording_in_process", false);
         prefEditor.apply();
 
-        //save the script
-        if (sugiliteScriptDao != null) {
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    //commit the script through the sugiliteScriptDao
-                    try {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                //commit the script through the sugiliteScriptDao
+                try {
+                    if (sugiliteScriptDao != null) {
                         sugiliteScriptDao.commitSave();
-                    } catch (Exception e) {
-                        e.printStackTrace();
                     }
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
-            }).start();
-        }
+
+                //invoke the callback
+                if (sugiliteData.initiatedExternally && sugiliteData.getScriptHead() != null) {
+                    //return the recording to the external caller
+                    sugiliteData.communicationController.sendRecordingFinishedSignal(sugiliteData.getScriptHead().getScriptName());
+                    sugiliteData.sendCallbackMsg(SugiliteCommunicationHelper.FINISHED_RECORDING, jsonProcessor.scriptToJson(sugiliteData.getScriptHead()), sugiliteData.callbackString);
+                }
+
+                //call the after recording callback
+                if (sugiliteData.getScriptHead() != null && sugiliteData.afterRecordingCallback != null){
+                    //call the endRecordingCallback
+                    Runnable r = sugiliteData.afterRecordingCallback;
+                    sugiliteData.afterRecordingCallback = null;
+                    r.run();
+                }
+            }
+        }).start();
 
 
-        if (sugiliteData.initiatedExternally && sugiliteData.getScriptHead() != null) {
-            //return the recording to the external caller
-            sugiliteData.communicationController.sendRecordingFinishedSignal(sugiliteData.getScriptHead().getScriptName());
-            sugiliteData.sendCallbackMsg(SugiliteCommunicationHelper.FINISHED_RECORDING, jsonProcessor.scriptToJson(sugiliteData.getScriptHead()), sugiliteData.callbackString);
-        }
 
-        if (sugiliteData.getScriptHead() != null && sugiliteData.afterRecordingCallback != null){
-            //call the endRecordingCallback
-            Runnable r = sugiliteData.afterRecordingCallback;
-            sugiliteData.afterRecordingCallback = null;
-            r.run();
-        }
+
 
         //turn off the recording overlay if any
         if(sugiliteData.verbalInstructionIconManager != null){

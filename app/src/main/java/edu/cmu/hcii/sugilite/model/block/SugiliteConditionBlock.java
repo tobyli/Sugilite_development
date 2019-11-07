@@ -8,7 +8,6 @@ import edu.cmu.hcii.sugilite.SugiliteData;
 
 import edu.cmu.hcii.sugilite.model.block.booleanexp.SugiliteBooleanExpression;
 import edu.cmu.hcii.sugilite.model.block.booleanexp.SugiliteBooleanExpressionNew;
-import edu.cmu.hcii.sugilite.model.block.special_operation.SugiliteSpecialOperationBlock;
 
 /**
  * Created by toby on 8/11/16.

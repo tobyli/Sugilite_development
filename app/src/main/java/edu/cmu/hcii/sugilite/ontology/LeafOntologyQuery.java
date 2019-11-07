@@ -193,7 +193,7 @@ public class LeafOntologyQuery extends OntologyQuery {
      * @return
      */
     @Override
-    protected boolean overallQueryFunction(SugiliteEntity currNode, UISnapshot graph) {
+    public boolean overallQueryFunction(SugiliteEntity currNode, UISnapshot graph) {
         // base case, leaf node
         if(subject == null && object == null){
             // currNode can act as either subject or object

@@ -9,13 +9,14 @@ import android.graphics.Rect;
 import android.os.Bundle;
 import android.text.Html;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.WindowManager;
 import android.view.accessibility.AccessibilityNodeInfo;
 
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import edu.cmu.hcii.sugilite.Const;
@@ -29,12 +30,14 @@ import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteConditionBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteErrorHandlingForkBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
-import edu.cmu.hcii.sugilite.model.block.special_operation.SugiliteSpecialOperationBlock;
+import edu.cmu.hcii.sugilite.model.block.SugiliteSpecialOperationBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.model.block.special_operation.SugiliteSubscriptSpecialOperationBlock;
 import edu.cmu.hcii.sugilite.model.operation.binary.SugiliteGetProcedureOperation;
 import edu.cmu.hcii.sugilite.model.operation.trinary.SugiliteLoadVariableOperation;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteOperation;
+import edu.cmu.hcii.sugilite.model.operation.unary.SugiliteClickOperation;
+import edu.cmu.hcii.sugilite.model.operation.unary.SugiliteLongClickOperation;
 import edu.cmu.hcii.sugilite.model.operation.unary.SugiliteReadoutConstOperation;
 import edu.cmu.hcii.sugilite.model.operation.binary.SugiliteReadoutOperation;
 import edu.cmu.hcii.sugilite.model.operation.binary.SugiliteSetTextOperation;
@@ -324,16 +327,44 @@ public class Automator {
 
                 //execute the OntologyQuery on the current UI snapshot
                 Set<SugiliteEntity> querySet = q.executeOn(uiSnapshot);
-
+                Map<AccessibilityNodeInfo, SugiliteEntity<Node>> accessibilityNodeInfoNodeMap = new HashMap<>();
                 List<AccessibilityNodeInfo> preFilteredNodes = new ArrayList<AccessibilityNodeInfo>();
                 for (SugiliteEntity e : querySet) {
                     if (e.getEntityValue() instanceof Node) {
-                        preFilteredNodes.add(uiSnapshot.getNodeAccessibilityNodeInfoMap().get(e.getEntityValue()));
+                        AccessibilityNodeInfo accessibilityNodeInfo = uiSnapshot.getNodeAccessibilityNodeInfoMap().get(e.getEntityValue());
+                        preFilteredNodes.add(accessibilityNodeInfo);
+                        accessibilityNodeInfoNodeMap.put(accessibilityNodeInfo, e);
                     }
                 }
 
                 if (preFilteredNodes.size() == 0) {
-                    //couldn't find a matched node in the current UISnapshot
+                    //couldn't find a matched node in the current UISnapshot using the OntologyQuery
+                    //check if an alternative query is useful in reconstructing mode
+                    if (sugiliteData.getObfuscatedScriptReconstructor() != null && sugiliteData.getObfuscatedScriptReconstructor().getScriptInProcess() != null) {
+                        //in reconstructing mode
+                        OntologyQuery alternativeQuery = null;
+                        if (operationBlock.getOperation() instanceof SugiliteClickOperation) {
+                            alternativeQuery = ((SugiliteClickOperation) operationBlock.getOperation()).getAlternativeTargetUIElementDataDescriptionQuery();
+                        }
+                        if (operationBlock.getOperation() instanceof SugiliteLongClickOperation) {
+                            alternativeQuery = ((SugiliteLongClickOperation) operationBlock.getOperation()).getAlternativeTargetUIElementDataDescriptionQuery();
+                        }
+                        if (alternativeQuery != null) {
+                            alternativeQuery = alternativeQuery.clone();
+                            Set<SugiliteEntity> alternativeQuerySet = q.executeOn(uiSnapshot);
+                            for (SugiliteEntity e : alternativeQuerySet) {
+                                if (e.getEntityValue() instanceof Node) {
+                                    AccessibilityNodeInfo accessibilityNodeInfo = uiSnapshot.getNodeAccessibilityNodeInfoMap().get(e.getEntityValue());
+                                    preFilteredNodes.add(accessibilityNodeInfo);
+                                    accessibilityNodeInfoNodeMap.put(accessibilityNodeInfo, e);
+                                }
+                            }
+                        }
+                        if (preFilteredNodes.size() == 0) {
+                            //alternative query can't match anything either
+                            return false;
+                        }
+                    }
                     Log.v("Automator", "couldn't find a matched node for query " + q.toString());
                     return false;
                 }
@@ -365,6 +396,9 @@ public class Automator {
                             //report success
                             sugiliteData.errorHandler.reportSuccess(Calendar.getInstance().getTimeInMillis());
                             addNextBlockToQueue(operationBlock);
+
+                            //report ReconstructObfuscatedScript
+                            sugiliteData.handleReconstructObfuscatedScript(operationBlock, accessibilityNodeInfoNodeMap.get(node), uiSnapshot);
                             if (sugiliteData.getInstructionQueueSize() > 0) {
                                 synchronized (this) {
                                     if (sugiliteData.peekInstructionQueue() != null && sugiliteData.peekInstructionQueue().equals(blockToMatch)) {

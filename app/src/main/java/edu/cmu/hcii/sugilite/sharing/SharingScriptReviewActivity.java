@@ -4,11 +4,8 @@ import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.text.Html;
-import android.text.SpannableString;
 import android.text.Spanned;
-import android.text.TextPaint;
 import android.text.method.LinkMovementMethod;
-import android.text.style.ClickableSpan;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.Menu;
@@ -18,26 +15,22 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 import edu.cmu.hcii.sugilite.R;
 import edu.cmu.hcii.sugilite.SugiliteData;
-import edu.cmu.hcii.sugilite.model.OperationBlockDescriptionRegenerator;
 import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteConditionBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteErrorHandlingForkBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
-import edu.cmu.hcii.sugilite.model.block.special_operation.SugiliteSpecialOperationBlock;
+import edu.cmu.hcii.sugilite.model.block.SugiliteSpecialOperationBlock;
 import edu.cmu.hcii.sugilite.ontology.description.OntologyDescriptionGenerator;
 import edu.cmu.hcii.sugilite.pumice.PumiceDemonstrationUtil;
-import edu.cmu.hcii.sugilite.sharing.SugiliteScriptSharingHTTPQueryManager;
 import edu.cmu.hcii.sugilite.ui.LocalScriptDetailActivity;
 import edu.cmu.hcii.sugilite.ui.ScriptDetailActivity;
 import edu.cmu.hcii.sugilite.ui.dialog.SugiliteProgressDialog;
 import edu.cmu.hcii.sugilite.ui.main.SugiliteMainActivity;
 
+import static edu.cmu.hcii.sugilite.pumice.PumiceDemonstrationUtil.removeScriptExtension;
 import static edu.cmu.hcii.sugilite.recording.ReadableDescriptionGenerator.getConditionBlockDescription;
 
 
@@ -45,14 +38,16 @@ public class SharingScriptReviewActivity extends ScriptDetailActivity {
     private SugiliteScriptSharingHTTPQueryManager sugiliteScriptSharingHTTPQueryManager;
     private OntologyDescriptionGenerator ontologyDescriptionGenerator;
     private SugiliteSharingScriptPreparer sugiliteSharingScriptPreparer;
+    private TempUserAccountNameManager tempUserAccountNameManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_remote_script_detail);
+        setContentView(R.layout.activity_review_sharing_script);
         this.sugiliteScriptSharingHTTPQueryManager = SugiliteScriptSharingHTTPQueryManager.getInstance(this);
         this.ontologyDescriptionGenerator = new OntologyDescriptionGenerator();
         this.sugiliteSharingScriptPreparer = new SugiliteSharingScriptPreparer(this);
+        this.tempUserAccountNameManager = new TempUserAccountNameManager(this);
 
         //load the local script
         if (savedInstanceState == null) {
@@ -70,7 +65,7 @@ public class SharingScriptReviewActivity extends ScriptDetailActivity {
 
         //set the activity title bar
         if(scriptName != null) {
-            setTitle("Sharing Script: " + scriptName.replace(".SugiliteScript", ""));
+            setTitle("Review Sharing Script: " + scriptName.replace(".SugiliteScript", ""));
         }
 
 
@@ -83,12 +78,10 @@ public class SharingScriptReviewActivity extends ScriptDetailActivity {
         //load the local script
         new Thread(new Runnable() {
             @Override
-            public void run()
-            {
+            public void run() {
                 try {
                     //load the script
                     script = sugiliteScriptDao.read(scriptName);
-
                     //prepare the script -- removing private information
                     script = sugiliteSharingScriptPreparer.prepareScript(script);
                 }
@@ -104,12 +97,34 @@ public class SharingScriptReviewActivity extends ScriptDetailActivity {
         onBackPressed();
     }
 
-    public void scriptDetailDownloadButtonOnClick (View view) {
-        downloadScriptToLocal();
+    public void scriptShareButtonOnClick (View view) {
+        try {
+            //TODO: process the PrivateNonPrivateLeafOntologyQueryPairWrapper -> reduce it to queryInUse
+            String id = sugiliteScriptSharingHTTPQueryManager.uploadScript(scriptName, tempUserAccountNameManager.getBestUserName(), script);
+            Log.i("Upload script", "Script shared with id : " + id);
+            PumiceDemonstrationUtil.showSugiliteAlertDialog(String.format("Successfully uploaded the script \"%s\"!", removeScriptExtension(scriptName)));
+
+            //switch to remote script list
+            Intent intent = new Intent(this, SugiliteMainActivity.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            intent.putExtra("active_tab", "remote_scripts");
+            startActivity(intent);
+        } catch (Exception e) {
+            e.printStackTrace();
+            PumiceDemonstrationUtil.showSugiliteAlertDialog(String.format("Failed to upload the script \"%s\"!", removeScriptExtension(scriptName)));
+        }
+    }
+
+    public void reloadOperationList(){
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                loadOperationList(script);
+            }
+        }).start();
     }
 
 
-    //TODO: fix this so that textual information is clickable
     @Override
     public void loadOperationList(SugiliteStartingBlock script){
         SugiliteData.runOnUiThread(new Runnable() {
@@ -124,7 +139,7 @@ public class SharingScriptReviewActivity extends ScriptDetailActivity {
 
 
                 while(iterBlock != null){
-                    System.out.println("iterBlock: " + iterBlock);
+                    //System.out.println("iterBlock: " + iterBlock);
                     operationStepList.addView(getViewForBlock(iterBlock));
                     if (iterBlock instanceof SugiliteStartingBlock)
                         iterBlock = ((SugiliteStartingBlock) iterBlock).getNextBlockToRun();
@@ -156,27 +171,11 @@ public class SharingScriptReviewActivity extends ScriptDetailActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         menu.add(Menu.NONE, Menu.FIRST, 1, "View Information");
-        menu.add(Menu.NONE, Menu.FIRST + 1, 2, "Download Script");
+        menu.add(Menu.NONE, Menu.FIRST + 1, 2, "Refresh Script");
 
         return true;
     }
 
-    public class CustomClickableSpan extends ClickableSpan {
-        @Override
-        public void onClick(View widget) {
-            Spanned s = (Spanned) ((TextView) widget).getText();
-            int start = s.getSpanStart(this);
-            int end = s.getSpanEnd(this);
-            PumiceDemonstrationUtil.showSugiliteToast("CLICKED! " + s.toString().substring(start, end) , Toast.LENGTH_SHORT);
-        }
-
-        @Override
-        public void updateDrawState(TextPaint ds) {
-            ds.bgColor = getResources().getColor(android.R.color.holo_red_dark);
-            ds.setColor(getResources().getColor(android.R.color.white));
-            ds.setUnderlineText(true);
-        }
-    }
 
     /**
      * recursively construct the list of operations
@@ -198,17 +197,8 @@ public class SharingScriptReviewActivity extends ScriptDetailActivity {
         } else if (block instanceof SugiliteOperationBlock || block instanceof SugiliteSpecialOperationBlock) {
             TextView tv = new TextView(context);
 
-            //SpannableString descriptionSpannableString = new SpannableString(Html.fromHtml(block.getDescription()));
+            // make the spanned that represent privacy masked strings clickable
             Spanned descriptionSpannableString = ontologyDescriptionGenerator.getSpannedDescriptionForOperation(((SugiliteOperationBlock)block).getOperation(), ((SugiliteOperationBlock) block).getOperation().getDataDescriptionQueryIfAvailable(), true);
-
-            /*
-            Pattern pattern = Pattern.compile("\\[hashed\\].*\\[\\/hashed\\]");
-            Matcher matcher = pattern.matcher(descriptionSpannableString);
-
-            while(matcher.find()) {
-                descriptionSpannableString.setSpan(new CustomClickableSpan(), matcher.start(), matcher.end(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-            }
-            */
 
             tv.setText(descriptionSpannableString, TextView.BufferType.SPANNABLE);
             tv.setMovementMethod(LinkMovementMethod.getInstance());
@@ -216,9 +206,23 @@ public class SharingScriptReviewActivity extends ScriptDetailActivity {
             tv.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
             tv.setPadding(10, 10, 10, 10);
 
-            //TODO: set interactive textview
-            //tv.setOnTouchListener(textViewOnTouchListener);
-            //registerForContextMenu(tv);
+            tv.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    reloadOperationList();
+                }
+            });
+
+            /*
+            tv.setOnTouchListener(new View.OnTouchListener() {
+                @Override
+                public boolean onTouch(View v, MotionEvent event) {
+                    reloadOperationList();
+                    return false;
+                }
+            });
+            */
+
             return tv;
 
         } else if (block instanceof SugiliteConditionBlock) {
@@ -368,8 +372,7 @@ public class SharingScriptReviewActivity extends ScriptDetailActivity {
                 viewScriptInfo();
                 break;
             case Menu.FIRST + 1:
-                //rename the script
-                downloadScriptToLocal();
+                reloadOperationList();
                 break;
         }
         return true;

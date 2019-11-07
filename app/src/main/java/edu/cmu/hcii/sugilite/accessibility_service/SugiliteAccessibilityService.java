@@ -305,7 +305,8 @@ public class SugiliteAccessibilityService extends AccessibilityService {
                     currentAppActivityName = activityInfo.name;
                     currentPackageName = activityInfo.packageName;
                 } catch (PackageManager.NameNotFoundException e) {
-                    e.printStackTrace();
+                    //e.printStackTrace();
+                    Log.e(this.getClass().getName(), "Failed to get the activity name for: " + componentName);
                 }
             }
         }

@@ -1367,7 +1367,9 @@ public class RecordingPopUpDialog implements AbstractSugiliteDialog {
                 }
                 sugiliteData.setCurrentScriptBlock(operationBlock);
                 try {
-                    sugiliteData.getScriptHead().relevantPackages.add(featurePack.packageName);
+                    if (featurePack.packageName != null) {
+                        sugiliteData.getScriptHead().relevantPackages.add(featurePack.packageName);
+                    }
                     sugiliteScriptDao.save(sugiliteData.getScriptHead());
                     success = true;
                 } catch (Exception e) {
@@ -1397,7 +1399,9 @@ public class RecordingPopUpDialog implements AbstractSugiliteDialog {
                                 operationBlock.setPreviousBlock(previousBlock);
                                 operationBlock.setNextBlock(((SugiliteOperationBlock) currentBlock).getNextBlockToRun());
                                 try {
-                                    originalScript.relevantPackages.add(featurePack.packageName);
+                                    if (featurePack.packageName != null) {
+                                        originalScript.relevantPackages.add(featurePack.packageName);
+                                    }
                                     sugiliteScriptDao.save(originalScript);
                                     //commit save for triggered_by_edit
                                     new Thread(new Runnable() {

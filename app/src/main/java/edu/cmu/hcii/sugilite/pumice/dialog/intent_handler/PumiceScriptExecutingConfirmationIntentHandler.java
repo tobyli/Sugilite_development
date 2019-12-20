@@ -95,11 +95,13 @@ public class PumiceScriptExecutingConfirmationIntentHandler implements PumiceUtt
         String currentScriptDescription = "";
         if (script.getNextBlock() != null && script.getNextBlock() instanceof SugiliteConditionBlock){
             currentScriptDescription = script.getNextBlock().getPumiceUserReadableDecription();
+        } else if (script instanceof SugiliteStartingBlock && script.getNextBlock() != null && script.getNextBlock().getNextBlock() == null) {
+            currentScriptDescription = script.getNextBlock().getPumiceUserReadableDecription();
         } else {
             currentScriptDescription = script.getPumiceUserReadableDecription();
         }
         pumiceDialogManager.getSugiliteVoiceRecognitionListener().setContextPhrases(Const.CONFIRM_CONTEXT_WORDS);
-        pumiceDialogManager.sendAgentMessage(String.format("I've understood your instruction: %s Do you want me to execute it now?", currentScriptDescription), true, true);
+        pumiceDialogManager.sendAgentMessage(String.format("I've understood your instruction: %s. Do you want me to execute it now?", currentScriptDescription), true, true);
 
     }
 

@@ -240,6 +240,10 @@ public class VerbalInstructionIconManager implements SugiliteVoiceInterface {
                                     new Thread(new Runnable() {
                                         @Override
                                         public void run() {
+                                            Date time = Calendar.getInstance().getTime();
+                                            String timeString = Const.dateFormat.format(time);
+                                            //using timeString as device ID for testing purpose
+                                            //HashedUIStrings hashedUIStrings = new HashedUIStrings(latestUISnapshot.getPackageName(), latestUISnapshot.getActivityName(), new SerializableUISnapshot(latestUISnapshot), timeString, new HashedSplitStringGenerator());
                                             HashedUIStrings hashedUIStrings = new HashedUIStrings(latestUISnapshot.getPackageName(), latestUISnapshot.getActivityName(), new SerializableUISnapshot(latestUISnapshot), Settings.Secure.getString(context.getContentResolver(), Settings.Secure.ANDROID_ID), new HashedSplitStringGenerator());
                                             try {
                                                 sugiliteScriptSharingHTTPQueryManager.uploadHashedUI(hashedUIStrings);

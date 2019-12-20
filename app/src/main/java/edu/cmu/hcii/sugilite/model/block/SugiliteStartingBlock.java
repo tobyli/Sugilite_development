@@ -100,6 +100,6 @@ public class SugiliteStartingBlock extends SugiliteBlock implements Serializable
 
     @Override
     public String getPumiceUserReadableDecription() {
-        return String.format("Start the script: \"%s\"", scriptName);
+        return String.format("Start the script: \"%s\"", scriptName.replace(".SugiliteScript", ""));
     }
 }

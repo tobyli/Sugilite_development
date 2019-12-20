@@ -92,10 +92,14 @@ public class PumiceInitInstructionParsingHandler {
             e.printStackTrace();
         }
 
-        //update the original utterances for conditions and actions
-        this.originalActionUtterance = null;
-        this.originalConditionUtterance = null;
+
+
         if (script != null && script.getNextBlockToRun() != null && script.getNextBlockToRun() instanceof SugiliteConditionBlock) {
+            //when the returned script is an conditional block -- resolve the condition
+
+            //update the original utterances for conditions and actions - those are used for generating the prompts when resolving the boolExp
+            this.originalActionUtterance = null;
+            this.originalConditionUtterance = null;
             SugiliteBooleanExpressionNew condition = ((SugiliteConditionBlock) script.getNextBlockToRun()).getSugiliteBooleanExpressionNew();
             if (condition != null) {
                 if (condition.getBoolOperation() != null && condition.getBoolOperation() instanceof SugiliteResolveBoolExpOperation) {
@@ -117,7 +121,7 @@ public class PumiceInitInstructionParsingHandler {
             }
         }
 
-        //! resolve the unknown concepts in the current script
+        //! resolve all the unknown concepts, procedures, and values in the current script
         try {
             if (script != null) {
                 resolveBlock(script);

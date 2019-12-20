@@ -173,6 +173,27 @@ public class SugiliteBlockBuildingHelper {
         return false;
     }
 
+    public static Set<String> getAllResultsOfRelationTypesInOntologyQuery (OntologyQuery ontologyQuery, SugiliteRelation... relations) {
+        Set<String> result = new HashSet<>();
+        if (ontologyQuery instanceof OntologyQueryWithSubQueries) {
+            for (OntologyQuery subQuery : ((OntologyQueryWithSubQueries) ontologyQuery).getSubQueries()) {
+                result.addAll(getAllResultsOfRelationTypesInOntologyQuery(subQuery, relations));
+            }
+        }
+
+        if (ontologyQuery instanceof LeafOntologyQuery) {
+            for (SugiliteRelation relation : relations) {
+                if (relation.equals(((LeafOntologyQuery) ontologyQuery).getR())) {
+                    result.add(((LeafOntologyQuery) ontologyQuery).getObjectAsString());
+                }
+            }
+        }
+
+        if (ontologyQuery instanceof PrivateNonPrivateLeafOntologyQueryPairWrapper) {
+            result.addAll(getAllResultsOfRelationTypesInOntologyQuery(((PrivateNonPrivateLeafOntologyQueryPairWrapper) ontologyQuery).getQueryInUse(), relations));
+        }
+        return result;
+    }
 
     public static boolean checkIfOntologyQueryContainsRelations (OntologyQuery ontologyQuery, SugiliteRelation... relations) {
         if (ontologyQuery instanceof OntologyQueryWithSubQueries) {
@@ -536,7 +557,9 @@ public class SugiliteBlockBuildingHelper {
 
 
         try {
-            sugiliteData.getScriptHead().relevantPackages.add(featurePack.packageName);
+            if (featurePack.packageName != null) {
+                sugiliteData.getScriptHead().relevantPackages.add(featurePack.packageName);
+            }
             sugiliteScriptDao.save(sugiliteData.getScriptHead());
         } catch (Exception e) {
             e.printStackTrace();

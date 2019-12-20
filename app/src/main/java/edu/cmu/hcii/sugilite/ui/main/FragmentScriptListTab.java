@@ -42,6 +42,8 @@ import edu.cmu.hcii.sugilite.sharing.SharingScriptReviewActivity;
 import edu.cmu.hcii.sugilite.sharing.SugiliteScriptSharingHTTPQueryManager;
 import edu.cmu.hcii.sugilite.sharing.SugiliteSharingScriptPreparer;
 import edu.cmu.hcii.sugilite.sharing.TempUserAccountNameManager;
+import edu.cmu.hcii.sugilite.sharing.imwut_study.StudyResultForScript;
+import edu.cmu.hcii.sugilite.sharing.imwut_study.StudyScriptProcessor;
 import edu.cmu.hcii.sugilite.study.ScriptUsageLogManager;
 import edu.cmu.hcii.sugilite.ui.LocalScriptDetailActivity;
 import edu.cmu.hcii.sugilite.ui.ScriptDebuggingActivity;
@@ -171,6 +173,7 @@ public class FragmentScriptListTab extends Fragment {
     private static final int ITEM_EDIT_SOURCE = Menu.FIRST + 8;
     private static final int ITEM_DELETE = Menu.FIRST + 9;
     private static final int ITEM_DUPLICATE = Menu.FIRST + 10;
+    private static final int ITEM_IMWUT_STUDY = Menu.FIRST + 11;
 
     //context menu are the long-click menus for each script
     @Override
@@ -196,6 +199,7 @@ public class FragmentScriptListTab extends Fragment {
         menu.add(0, ITEM_EDIT_SOURCE, 0, "Edit Source");
         menu.add(0, ITEM_DELETE, 0, "Delete");
         menu.add(0, ITEM_DUPLICATE, 0, "Duplicate");
+        menu.add(0, ITEM_IMWUT_STUDY, 0, "Export IMWUT Study");
 
     }
 
@@ -381,6 +385,18 @@ public class FragmentScriptListTab extends Fragment {
                             }
                         }
                     }).start();
+                    break;
+                case ITEM_IMWUT_STUDY:
+                    try {
+                        SugiliteStartingBlock script = sugiliteScriptDao.read(scriptName);
+                        StudyScriptProcessor studyScriptProcessor = new StudyScriptProcessor(activity);
+                        StudyResultForScript result = studyScriptProcessor.process(script);
+                        //System.out.println(result);
+                        result.saveToFile();
+
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
             }
         } catch (Exception e) {
             e.printStackTrace();

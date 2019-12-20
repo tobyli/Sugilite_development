@@ -166,7 +166,9 @@ public class VerbalInstructionRecordingManager {
         }
         sugiliteData.setCurrentScriptBlock(operationBlock);
         try {
-            sugiliteData.getScriptHead().relevantPackages.add(packageName);
+            if (packageName != null) {
+                sugiliteData.getScriptHead().relevantPackages.add(packageName);
+            }
             sugiliteScriptDao.save(sugiliteData.getScriptHead());
         } catch (Exception e) {
             e.printStackTrace();

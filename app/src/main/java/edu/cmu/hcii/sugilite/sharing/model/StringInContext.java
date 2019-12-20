@@ -1,4 +1,6 @@
 package edu.cmu.hcii.sugilite.sharing.model;
+import com.google.gson.Gson;
+
 import java.util.Objects;
 
 public class StringInContext {
@@ -47,5 +49,10 @@ public class StringInContext {
         //sb.append(",\"index\": " + index);
         sb.append("}");
         return sb.toString();
+    }
+
+    @Override
+    public String toString() {
+        return new Gson().toJson(this);
     }
 }

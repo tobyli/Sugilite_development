@@ -388,7 +388,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
             //if recording is in progress
 
             //add package name to the relevant package set
-            if (sugiliteData.getScriptHead() != null && eventPackageName != null && (!exceptedPackages.contains(eventPackageName))) {
+            if (sugiliteData.getScriptHead() != null && eventPackageName != null && (!eventPackageName.equals("null")) && (!exceptedPackages.contains(eventPackageName))) {
                 sugiliteData.getScriptHead().relevantPackages.add(eventPackageName);
             }
 

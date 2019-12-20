@@ -51,7 +51,7 @@ public class OntologyDescriptionGenerator {
             } catch (final PackageManager.NameNotFoundException e) {
                 ai = null;
             }
-            final String applicationName = (String) (ai != null ? packageManager.getApplicationLabel(ai) : "(unknown)");
+            final String applicationName = (String) (ai != null ? packageManager.getApplicationLabel(ai) : "(unknown) " + packageName);
             return applicationName;
         } else {
             return packageName;
@@ -145,7 +145,7 @@ public class OntologyDescriptionGenerator {
                 throw new RuntimeException("Unsupported relation type: " + coq.getSubRelation().toString());
             }
         } else if (ontologyQuery instanceof HashedStringLeafOntologyQuery) {
-            SpannableString spannableString = new SpannableString(getColoredSpannedTextFromMessage("has unknown text ", Const.SCRIPT_VIEW_ID_COLOR));
+            SpannableString spannableString = new SpannableString(getColoredSpannedTextFromMessage("has hidden text ", Const.SCRIPT_VIEW_ID_COLOR));
             if (addClickableSpansForPrivacy && parentOntologyPair != null) {
                 spannableString.setSpan(new HashedOntologyQueryClickableSpan(parentOntologyPair), 0, spannableString.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
             }

@@ -144,7 +144,7 @@ public class PumiceInitInstructionParsingHandler {
 
 
         //ask if want to execute
-        PumiceScriptExecutingConfirmationIntentHandler pumiceScriptExecutingConfirmationIntentHandler = new PumiceScriptExecutingConfirmationIntentHandler(pumiceDialogManager, context, script, userUtterance);
+        PumiceScriptExecutingConfirmationIntentHandler pumiceScriptExecutingConfirmationIntentHandler = new PumiceScriptExecutingConfirmationIntentHandler(pumiceDialogManager, context, script, userUtterance, true);
         pumiceDialogManager.updateUtteranceIntentHandlerInANewState(pumiceScriptExecutingConfirmationIntentHandler);
         pumiceScriptExecutingConfirmationIntentHandler.sendPromptForTheIntentHandler();
     }

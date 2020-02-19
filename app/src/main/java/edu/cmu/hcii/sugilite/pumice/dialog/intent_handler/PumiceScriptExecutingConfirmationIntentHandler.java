@@ -12,6 +12,7 @@ import edu.cmu.hcii.sugilite.model.block.SugiliteConditionBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.pumice.dialog.PumiceDialogManager;
 import edu.cmu.hcii.sugilite.pumice.PumiceDemonstrationUtil;
+import edu.cmu.hcii.sugilite.source_parsing.SugiliteScriptParser;
 
 /**
  * @author toby
@@ -27,13 +28,15 @@ public class PumiceScriptExecutingConfirmationIntentHandler implements PumiceUtt
     private Activity context;
     private PumiceDialogManager pumiceDialogManager;
     private String userUtterance;
+    private boolean toAskForConfirmation;
 
 
-    public PumiceScriptExecutingConfirmationIntentHandler(PumiceDialogManager pumiceDialogManager, Activity context, SugiliteStartingBlock script, String userUtterance){
+    public PumiceScriptExecutingConfirmationIntentHandler(PumiceDialogManager pumiceDialogManager, Activity context, SugiliteStartingBlock script, String userUtterance, boolean toAskForConfirmation){
         this.pumiceDialogManager = pumiceDialogManager;
         this.context = context;
         this.script = script;
         this.userUtterance = userUtterance;
+        this.toAskForConfirmation = toAskForConfirmation;
     }
 
     @Override
@@ -91,17 +94,26 @@ public class PumiceScriptExecutingConfirmationIntentHandler implements PumiceUtt
 
     @Override
     public void sendPromptForTheIntentHandler() {
-        //pumiceDialogManager.sendAgentMessage("I've understood your instruction: " +  "\"" + userUtterance + "\"." + " Do you want me to execute it now?", true, true);
-        String currentScriptDescription = "";
-        if (script.getNextBlock() != null && script.getNextBlock() instanceof SugiliteConditionBlock){
-            currentScriptDescription = script.getNextBlock().getPumiceUserReadableDecription();
-        } else if (script instanceof SugiliteStartingBlock && script.getNextBlock() != null && script.getNextBlock().getNextBlock() == null) {
-            currentScriptDescription = script.getNextBlock().getPumiceUserReadableDecription();
+        if (toAskForConfirmation) {
+            //pumiceDialogManager.sendAgentMessage("I've understood your instruction: " +  "\"" + userUtterance + "\"." + " Do you want me to execute it now?", true, true);
+            String currentScriptDescription = "";
+            if (script.getNextBlock() != null && script.getNextBlock() instanceof SugiliteConditionBlock) {
+                currentScriptDescription = script.getNextBlock().getPumiceUserReadableDecription();
+            } else if (script instanceof SugiliteStartingBlock && script.getNextBlock() != null && script.getNextBlock().getNextBlock() == null) {
+                currentScriptDescription = script.getNextBlock().getPumiceUserReadableDecription();
+            } else {
+                currentScriptDescription = script.getPumiceUserReadableDecription();
+            }
+            pumiceDialogManager.getSugiliteVoiceRecognitionListener().setContextPhrases(Const.CONFIRM_CONTEXT_WORDS);
+            pumiceDialogManager.sendAgentMessage(String.format("I've understood your instruction: %s. Do you want me to execute it now?", currentScriptDescription), true, true);
         } else {
-            currentScriptDescription = script.getPumiceUserReadableDecription();
+            SugiliteData.runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    handleIntentWithUtterance(pumiceDialogManager, PumiceIntent.EXECUTION_POSITIVE, null);
+                }
+            });
         }
-        pumiceDialogManager.getSugiliteVoiceRecognitionListener().setContextPhrases(Const.CONFIRM_CONTEXT_WORDS);
-        pumiceDialogManager.sendAgentMessage(String.format("I've understood your instruction: %s. Do you want me to execute it now?", currentScriptDescription), true, true);
 
     }
 

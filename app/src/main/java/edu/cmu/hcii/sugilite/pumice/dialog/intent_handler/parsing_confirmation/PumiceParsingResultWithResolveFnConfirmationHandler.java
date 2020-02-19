@@ -22,6 +22,9 @@ import edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.PumiceUtteranceIntentH
 import edu.cmu.hcii.sugilite.source_parsing.SugiliteScriptParser;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.server_comm.SugiliteVerbalInstructionHTTPQueryInterface;
 
+import static edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.parsing_confirmation.PumiceChooseParsingDialogNew.getDescriptionForFormula;
+
+
 /**
  * @author toby
  * @date 2/18/19
@@ -201,20 +204,5 @@ public class PumiceParsingResultWithResolveFnConfirmationHandler implements Pumi
 
     }
 
-    private String getDescriptionForFormula(String formula, String utteranceType) {
-        switch (utteranceType) {
-            case "USER_INIT_INSTRUCTION":
-                return pumiceParsingResultDescriptionGenerator.generateForConditionBlock(formula);
-            case "BOOL_EXP_INSTRUCTION":
-                return pumiceParsingResultDescriptionGenerator.generateForBoolExp(formula);
-            case "OPERATION_INSTRUCTION":
-                return pumiceParsingResultDescriptionGenerator.generateForOperationBlock(formula);
-            case "VALUE_INSTRUCTION":
-                return pumiceParsingResultDescriptionGenerator.generateForValue(formula);
-            default:
-                throw new RuntimeException("unexpected packet type!");
-
-        }
-    }
 
 }

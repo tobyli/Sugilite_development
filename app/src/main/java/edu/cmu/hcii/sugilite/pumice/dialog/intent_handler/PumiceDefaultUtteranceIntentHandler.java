@@ -12,12 +12,14 @@ import java.util.Calendar;
 
 import edu.cmu.hcii.sugilite.Const;
 import edu.cmu.hcii.sugilite.R;
+import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.pumice.communication.PumiceInstructionPacket;
 import edu.cmu.hcii.sugilite.pumice.communication.PumiceSemanticParsingResultPacket;
 import edu.cmu.hcii.sugilite.pumice.communication.SkipPumiceJSONSerialization;
 import edu.cmu.hcii.sugilite.pumice.dialog.PumiceDialogManager;
 import edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.parsing_confirmation.PumiceParsingResultNoResolveConfirmationHandler;
 import edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.parsing_confirmation.PumiceParsingResultWithResolveFnConfirmationHandler;
+import edu.cmu.hcii.sugilite.source_parsing.SugiliteScriptParser;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.server_comm.SugiliteVerbalInstructionHTTPQueryInterface;
 
 /**
@@ -30,6 +32,7 @@ public class PumiceDefaultUtteranceIntentHandler implements PumiceUtteranceInten
     private Activity context;
     private PumiceDialogManager pumiceDialogManager;
     private Calendar calendar;
+    private SugiliteScriptParser sugiliteScriptParser;
 
     private PumiceDefaultUtteranceIntentHandler pumiceDefaultUtteranceIntentHandler;
 
@@ -38,6 +41,7 @@ public class PumiceDefaultUtteranceIntentHandler implements PumiceUtteranceInten
         this.context = context;
         this.calendar = Calendar.getInstance();
         this.pumiceDefaultUtteranceIntentHandler = this;
+        this.sugiliteScriptParser = new SugiliteScriptParser();
     }
 
     @Override
@@ -205,11 +209,25 @@ public class PumiceDefaultUtteranceIntentHandler implements PumiceUtteranceInten
                                             @Override
                                             public void run() {
                                                 //parse and process the server response
-                                                pumiceDialogManager.getPumiceInitInstructionParsingHandler().parseFromNewInitInstruction(confirmedFormula, resultPacket.userUtterance);
+                                                SugiliteStartingBlock script = null;
+                                                try {
+                                                    if (confirmedFormula.length() > 0) {
+                                                        script = sugiliteScriptParser.parseBlockFromString(confirmedFormula);
+                                                    } else {
+                                                        throw new RuntimeException("empty server result!");
+                                                    }
+                                                } catch (Exception e) {
+                                                    e.printStackTrace();
+                                                }
+
+                                                PumiceScriptExecutingConfirmationIntentHandler pumiceScriptExecutingConfirmationIntentHandler = new PumiceScriptExecutingConfirmationIntentHandler(pumiceDialogManager, context, script, resultPacket.userUtterance, false);
+                                                pumiceDialogManager.updateUtteranceIntentHandlerInANewState(pumiceScriptExecutingConfirmationIntentHandler);
+                                                pumiceScriptExecutingConfirmationIntentHandler.sendPromptForTheIntentHandler();
+
                                             }
                                         });
                                     }
-                                }, false);
+                                }, true);
                             }
 
                         } else {

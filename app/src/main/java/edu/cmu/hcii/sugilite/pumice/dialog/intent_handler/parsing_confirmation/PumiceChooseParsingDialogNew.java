@@ -196,10 +196,16 @@ public class PumiceChooseParsingDialogNew implements AbstractSugiliteDialog {
 
     }
 
-    private String getDescriptionForFormula(String formula, String utteranceType) {
+    public static String getDescriptionForFormula(String formula, String utteranceType) {
+        PumiceParsingResultDescriptionGenerator pumiceParsingResultDescriptionGenerator;
+        pumiceParsingResultDescriptionGenerator = new PumiceParsingResultDescriptionGenerator();
         switch (utteranceType) {
             case "USER_INIT_INSTRUCTION":
-                return pumiceParsingResultDescriptionGenerator.generateForConditionBlock(formula);
+                if (formula.contains("call if")) {
+                    return pumiceParsingResultDescriptionGenerator.generateForConditionBlock(formula);
+                } else {
+                    return pumiceParsingResultDescriptionGenerator.generateForOperationBlock(formula);
+                }
             case "BOOL_EXP_INSTRUCTION":
                 return pumiceParsingResultDescriptionGenerator.generateForBoolExp(formula);
             case "OPERATION_INSTRUCTION":
@@ -211,4 +217,5 @@ public class PumiceChooseParsingDialogNew implements AbstractSugiliteDialog {
 
         }
     }
+
 }

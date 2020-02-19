@@ -31,6 +31,7 @@ import edu.cmu.hcii.sugilite.ui.dialog.AbstractSugiliteDialog;
 
 
 import static edu.cmu.hcii.sugilite.Const.OVERLAY_TYPE;
+import static edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.parsing_confirmation.PumiceChooseParsingDialogNew.getDescriptionForFormula;
 
 /**
  * @author toby
@@ -45,7 +46,6 @@ public class PumiceChooseParsingDialog implements AbstractSugiliteDialog {
     private PumiceSemanticParsingResultPacket resultPacket;
     private Runnable runnableForRetry;
     private PumiceParsingResultWithResolveFnConfirmationHandler.ConfirmedParseRunnable runnableForConfirmedParse;
-    private PumiceParsingResultDescriptionGenerator pumiceParsingResultDescriptionGenerator;
 
 
     private AlertDialog dialog;
@@ -58,7 +58,6 @@ public class PumiceChooseParsingDialog implements AbstractSugiliteDialog {
         this.resultPacket = resultPacket;
         this.runnableForRetry = runnableForRetry;
         this.runnableForConfirmedParse = runnableForConfirmedParse;
-        this.pumiceParsingResultDescriptionGenerator = new PumiceParsingResultDescriptionGenerator();
 
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
 
@@ -158,19 +157,5 @@ public class PumiceChooseParsingDialog implements AbstractSugiliteDialog {
         pumiceDialogManager.sendAgentMessage("Please choose the correct one that reflects your intention, or choose \"Try Again\" to give a different instruction.", true, false);
     }
 
-    private String getDescriptionForFormula(String formula, String utteranceType) {
-        switch (utteranceType) {
-            case "USER_INIT_INSTRUCTION":
-                return pumiceParsingResultDescriptionGenerator.generateForConditionBlock(formula);
-            case "BOOL_EXP_INSTRUCTION":
-                return pumiceParsingResultDescriptionGenerator.generateForBoolExp(formula);
-            case "OPERATION_INSTRUCTION":
-                return pumiceParsingResultDescriptionGenerator.generateForOperationBlock(formula);
-            case "VALUE_INSTRUCTION":
-                return pumiceParsingResultDescriptionGenerator.generateForValue(formula);
-            default:
-                throw new RuntimeException("unexpected packet type!");
 
-        }
-    }
 }

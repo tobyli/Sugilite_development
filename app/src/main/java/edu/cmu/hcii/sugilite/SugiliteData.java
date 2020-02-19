@@ -3,11 +3,13 @@ package edu.cmu.hcii.sugilite;
 import android.app.Application;
 import android.content.Context;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.os.Handler;
 import android.os.Looper;
 import android.preference.PreferenceManager;
 import android.speech.tts.TextToSpeech;
+import android.util.Log;
 import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityNodeInfo;
 
@@ -43,7 +45,11 @@ import edu.cmu.hcii.sugilite.sharing.model.HashedString;
 import edu.cmu.hcii.sugilite.study.ScriptUsageLogManager;
 import edu.cmu.hcii.sugilite.ui.StatusIconManager;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.VerbalInstructionIconManager;
-
+import edu.cmu.hcii.sugilite.verbal_instruction_demo.speech.GoogleCloudSpeechService;
+import edu.cmu.hcii.sugilite.verbal_instruction_demo.speech.GoogleVoiceRecorder;
+import edu.cmu.hcii.sugilite.verbal_instruction_demo.speech.SugiliteAndroidAPIVoiceRecognitionListener;
+import edu.cmu.hcii.sugilite.verbal_instruction_demo.speech.SugiliteGoogleCloudVoiceRecognitionListener;
+import edu.cmu.hcii.sugilite.verbal_instruction_demo.speech.SugiliteVoiceRecognitionListener;
 
 
 /**
@@ -100,7 +106,7 @@ public class SugiliteData extends Application {
     public StatusIconManager statusIconManager = null;
     public VerbalInstructionIconManager verbalInstructionIconManager = null;
 
-    private TextToSpeech tts;
+    private static TextToSpeech tts;
 
     public boolean testing = false;
     public boolean testRun = false;
@@ -112,6 +118,11 @@ public class SugiliteData extends Application {
 
     //used to indicate the state of the sugilite system
     public static final int DEFAULT_STATE = 0, RECORDING_STATE = 1, RECORDING_FOR_ERROR_HANDLING_STATE = 2, EXECUTION_STATE = 3, REGULAR_DEBUG_STATE = 4, PAUSED_FOR_DUCK_MENU_IN_REGULAR_EXECUTION_STATE = 6, PAUSED_FOR_ERROR_HANDLING_STATE = 7, PAUSED_FOR_CRUCIAL_STEP_STATE = 8, PAUSED_FOR_BREAKPOINT_STATE = 9, PAUSED_FOR_DUCK_MENU_IN_DEBUG_MODE = 10;
+
+
+    //services for Google TTS
+    private GoogleVoiceRecorder mVoiceRecorder;
+    private GoogleCloudSpeechService mSpeechService;
 
     @Override
     public void onCreate(){
@@ -129,6 +140,8 @@ public class SugiliteData extends Application {
         });
         setTTS(tts);
     }
+
+
 
     public static Context getAppContext() {
         return SugiliteData.applicationContext;
@@ -414,12 +427,24 @@ public class SugiliteData extends Application {
 
     }
 
-    public void setTTS(TextToSpeech tts) {
-        this.tts = tts;
+    public static void setTTS(TextToSpeech newTts) {
+        tts = newTts;
     }
 
     public TextToSpeech getTTS() {
         return tts;
+    }
+
+    public static void refreshTTS(String contentToRespeak) {
+        //initiate TTS
+        Log.i("SugiliteData", "TTS REFRESHED!");
+        tts = new TextToSpeech(applicationContext, new TextToSpeech.OnInitListener() {
+            @Override
+            public void onInit(int status) {
+                tts.setLanguage(Locale.US);
+            }
+        });
+        setTTS(tts);
     }
 
 }

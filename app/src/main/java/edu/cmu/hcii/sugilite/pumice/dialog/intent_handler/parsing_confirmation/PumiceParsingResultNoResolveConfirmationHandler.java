@@ -7,27 +7,21 @@ import org.apache.commons.lang3.StringUtils;
 import java.util.HashSet;
 import java.util.Set;
 
-import edu.cmu.hcii.sugilite.model.block.SugiliteConditionBlock;
-import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
-import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
-import edu.cmu.hcii.sugilite.model.block.booleanexp.SugiliteBooleanExpressionNew;
-import edu.cmu.hcii.sugilite.model.operation.binary.SugiliteGetProcedureOperation;
-import edu.cmu.hcii.sugilite.model.operation.unary.SugiliteResolveProcedureOperation;
-import edu.cmu.hcii.sugilite.model.value.SugiliteValue;
-import edu.cmu.hcii.sugilite.pumice.communication.PumiceInstructionPacket;
 import edu.cmu.hcii.sugilite.pumice.communication.PumiceSemanticParsingResultPacket;
 import edu.cmu.hcii.sugilite.pumice.dialog.PumiceDialogManager;
 import edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.PumiceDefaultUtteranceIntentHandler;
 import edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.PumiceUtteranceIntentHandler;
 import edu.cmu.hcii.sugilite.source_parsing.SugiliteScriptParser;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.server_comm.SugiliteVerbalInstructionHTTPQueryInterface;
+import edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.parsing_confirmation.PumiceParsingResultWithResolveFnConfirmationHandler.HandleParsingResultPacket;
+import static edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.parsing_confirmation.PumiceParsingResultWithResolveFnConfirmationHandler.getTopParsing;
 
 /**
  * @author toby
  * @date 2/18/19
  * @time 12:13 AM
  */
-public class PumiceParsingConfirmationHandler implements PumiceUtteranceIntentHandler, SugiliteVerbalInstructionHTTPQueryInterface {
+public class PumiceParsingResultNoResolveConfirmationHandler implements PumiceUtteranceIntentHandler, SugiliteVerbalInstructionHTTPQueryInterface {
     //takes in 1. the original parsing query, 2. the parsing result
     private Activity context;
     private PumiceDialogManager pumiceDialogManager;
@@ -38,7 +32,7 @@ public class PumiceParsingConfirmationHandler implements PumiceUtteranceIntentHa
     private int failureCount = 0;
 
 
-    public PumiceParsingConfirmationHandler(Activity context, PumiceDialogManager pumiceDialogManager, int failureCount) {
+    public PumiceParsingResultNoResolveConfirmationHandler(Activity context, PumiceDialogManager pumiceDialogManager, int failureCount) {
         this.context = context;
         this.pumiceDialogManager = pumiceDialogManager;
         this.pumiceParsingResultDescriptionGenerator = new PumiceParsingResultDescriptionGenerator();
@@ -55,7 +49,7 @@ public class PumiceParsingConfirmationHandler implements PumiceUtteranceIntentHa
      * 2. view the candidates and choose from one
      * 3. "retry" to try giving a different instruction
      */
-    public void handleParsingResult(PumiceSemanticParsingResultPacket resultPacket, Runnable runnableForRetry, ConfirmedParseRunnable runnableForConfirmedParse, boolean toAskForConfirmation){
+    public void handleParsingResult(PumiceSemanticParsingResultPacket resultPacket, Runnable runnableForRetry, PumiceParsingResultWithResolveFnConfirmationHandler.ConfirmedParseRunnable runnableForConfirmedParse, boolean toAskForConfirmation){
         if (resultPacket.queries != null && resultPacket.queries.size() > 0) {
             //set the parsingResultsToHandle
             parsingResultsToHandle = new HandleParsingResultPacket(resultPacket, runnableForRetry, runnableForConfirmedParse);
@@ -79,38 +73,6 @@ public class PumiceParsingConfirmationHandler implements PumiceUtteranceIntentHa
 
     }
 
-    /**
-     * temporary method that prioritize results with more usage of "call get" functions
-     * @param resultPacket
-     * @return
-     */
-    private PumiceSemanticParsingResultPacket.QueryGroundingPair getTopParsing(PumiceSemanticParsingResultPacket resultPacket){
-        if (resultPacket != null && resultPacket.queries != null && resultPacket.queries.size() > 0) {
-            //default
-            Set<String> allAvailableFormula = new HashSet<>();
-            PumiceSemanticParsingResultPacket.QueryGroundingPair topScoredQueryGroundingPair = resultPacket.queries.get(0);
-
-
-            int topGetUsageCount = 0;
-
-            for (PumiceSemanticParsingResultPacket.QueryGroundingPair queryGroundingPair : resultPacket.queries) {
-                int numMatches = StringUtils.countMatches(queryGroundingPair.formula, "call get");
-                if (numMatches > topGetUsageCount){
-                    topGetUsageCount = numMatches;
-                }
-            }
-
-            for (PumiceSemanticParsingResultPacket.QueryGroundingPair queryGroundingPair : resultPacket.queries) {
-                if (StringUtils.countMatches(queryGroundingPair.formula, "call get") == topGetUsageCount){
-                    return queryGroundingPair;
-                }
-            }
-
-            return topScoredQueryGroundingPair;
-        } else {
-            throw new RuntimeException("failed to get top parsing -- empty result packet?");
-        }
-    }
 
     /**
      * detect the intent from the user utterance -> whether the user confirms the parse or not
@@ -146,8 +108,11 @@ public class PumiceParsingConfirmationHandler implements PumiceUtteranceIntentHa
             }
         }
 
+
+
         else if (pumiceIntent.equals(PumiceIntent.PARSE_CONFIRM_NEGATIVE)) {
             // parse is incorrect
+            // TODO: need to better handle negative response here
             HandleParsingResultPacket parsingResultPacket = parsingResultsToHandle;
 
             //show a popup to ask the user to choose from parsing results
@@ -164,28 +129,13 @@ public class PumiceParsingConfirmationHandler implements PumiceUtteranceIntentHa
         dialogManager.updateUtteranceIntentHandlerInANewState(new PumiceDefaultUtteranceIntentHandler(pumiceDialogManager, context));
     }
 
-    public interface ConfirmedParseRunnable {
-        void run(String confirmedFormula);
-    }
 
-    private class HandleParsingResultPacket {
-        public PumiceSemanticParsingResultPacket resultPacket;
-        public Runnable runnableForRetry;
-        public ConfirmedParseRunnable runnableForConfirmedParse;
-
-        public HandleParsingResultPacket(PumiceSemanticParsingResultPacket resultPacket, Runnable runnableForRetry, ConfirmedParseRunnable runnableForConfirmedParse) {
-            this.resultPacket = resultPacket;
-            this.runnableForRetry = runnableForRetry;
-            this.runnableForConfirmedParse = runnableForConfirmedParse;
-        }
-
-    }
 
     @Override
     public void sendPromptForTheIntentHandler() {
         PumiceSemanticParsingResultPacket.QueryGroundingPair topResult = parsingResultsToHandle.resultPacket.queries.get(0);
         String topFormula = topResult.formula;
-        pumiceDialogManager.sendAgentMessage("I think what you meant is: ", true, false);
+        pumiceDialogManager.sendAgentMessage("Here is the parsing result: ", true, false);
         pumiceDialogManager.sendAgentMessage(getDescriptionForFormula(topFormula, parsingResultsToHandle.resultPacket.utteranceType), true, false);
         pumiceDialogManager.sendAgentMessage("Is this correct?", true, true);
     }

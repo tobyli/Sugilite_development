@@ -53,7 +53,7 @@ public class PumiceDialogActivity extends AppCompatActivity implements SugiliteV
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         this.setContentView(R.layout.activity_pumice_dialog);
-        this.getSupportActionBar().setTitle("PUMICE");
+        this.getSupportActionBar().setTitle(Const.appNameUpperCase);
         this.context = this;
         this.speakButton = (ImageButton) findViewById(R.id.button3);
         this.userTextBox = (EditText) findViewById(R.id.pumice_user_textbox);

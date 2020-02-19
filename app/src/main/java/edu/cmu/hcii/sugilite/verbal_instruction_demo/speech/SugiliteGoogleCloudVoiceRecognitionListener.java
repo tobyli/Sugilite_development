@@ -21,6 +21,7 @@ import java.util.HashMap;
 import java.util.List;
 
 import edu.cmu.hcii.sugilite.SugiliteData;
+import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.pumice.PumiceDemonstrationUtil;
 
 import static android.content.Context.BIND_AUTO_CREATE;
@@ -294,6 +295,7 @@ public class SugiliteGoogleCloudVoiceRecognitionListener implements SugiliteVoic
                             e.printStackTrace();
                         }
                     }
+                    SugiliteData.refreshTTS(content);
                 }
             });
             tts.speak(content, TextToSpeech.QUEUE_ADD, params);

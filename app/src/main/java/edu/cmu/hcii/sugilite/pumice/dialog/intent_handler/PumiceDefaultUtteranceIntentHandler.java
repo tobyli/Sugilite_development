@@ -16,7 +16,8 @@ import edu.cmu.hcii.sugilite.pumice.communication.PumiceInstructionPacket;
 import edu.cmu.hcii.sugilite.pumice.communication.PumiceSemanticParsingResultPacket;
 import edu.cmu.hcii.sugilite.pumice.communication.SkipPumiceJSONSerialization;
 import edu.cmu.hcii.sugilite.pumice.dialog.PumiceDialogManager;
-import edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.parsing_confirmation.PumiceParsingConfirmationHandler;
+import edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.parsing_confirmation.PumiceParsingResultNoResolveConfirmationHandler;
+import edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.parsing_confirmation.PumiceParsingResultWithResolveFnConfirmationHandler;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.server_comm.SugiliteVerbalInstructionHTTPQueryInterface;
 
 /**
@@ -156,29 +157,60 @@ public class PumiceDefaultUtteranceIntentHandler implements PumiceUtteranceInten
                 switch (PumiceUtteranceIntentHandler.PumiceIntent.valueOf(resultPacket.utteranceType)) {
                     case USER_INIT_INSTRUCTION:
                         if (resultPacket.queries != null && resultPacket.queries.size() > 0) {
-                            // send the result to a PumiceScriptExecutingConfirmationIntentHandler
-                            PumiceParsingConfirmationHandler parsingConfirmationHandler = new PumiceParsingConfirmationHandler(context, pumiceDialogManager, 0);
-                            parsingConfirmationHandler.handleParsingResult(resultPacket, new Runnable() {
-                                @Override
-                                public void run() {
-                                    //runnable for retry
-                                    pumiceDialogManager.updateUtteranceIntentHandlerInANewState(pumiceDefaultUtteranceIntentHandler);
-                                    sendPromptForTheIntentHandler();
 
-                                }
-                            }, new PumiceParsingConfirmationHandler.ConfirmedParseRunnable() {
-                                @Override
-                                public void run(String confirmedFormula) {
-                                    //runnable for confirmed parse
-                                    pumiceDialogManager.getExecutorService().submit(new Runnable() {
-                                        @Override
-                                        public void run() {
-                                            //parse and process the server response
-                                            pumiceDialogManager.getPumiceInitInstructionParsingHandler().parseFromNewInitInstruction(confirmedFormula, resultPacket.userUtterance);
-                                        }
-                                    });
-                                }
-                            }, false);
+                            // check if the top result contains any resolve function
+                            PumiceSemanticParsingResultPacket.QueryGroundingPair topParsingResult = PumiceParsingResultWithResolveFnConfirmationHandler.getTopParsing(resultPacket);
+                            // the top formula contains a resolve Fn
+                            if (topParsingResult.formula.contains("resolve")) {
+                                // send the result to a PumiceScriptExecutingConfirmationIntentHandler
+                                PumiceParsingResultWithResolveFnConfirmationHandler parsingConfirmationHandler = new PumiceParsingResultWithResolveFnConfirmationHandler(context, pumiceDialogManager, 0);
+                                parsingConfirmationHandler.handleParsingResult(resultPacket, new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        //runnable for retry
+                                        pumiceDialogManager.updateUtteranceIntentHandlerInANewState(pumiceDefaultUtteranceIntentHandler);
+                                        sendPromptForTheIntentHandler();
+
+                                    }
+                                }, new PumiceParsingResultWithResolveFnConfirmationHandler.ConfirmedParseRunnable() {
+                                    @Override
+                                    public void run(String confirmedFormula) {
+                                        //runnable for confirmed parse
+                                        pumiceDialogManager.getExecutorService().submit(new Runnable() {
+                                            @Override
+                                            public void run() {
+                                                //parse and process the server response
+                                                pumiceDialogManager.getPumiceInitInstructionParsingHandler().parseFromNewInitInstruction(confirmedFormula, resultPacket.userUtterance);
+                                            }
+                                        });
+                                    }
+                                }, false);
+                            } else {
+                                // the top formula does not contain a resolve Fn
+                                // send the result to a PumiceScriptExecutingConfirmationIntentHandler
+                                PumiceParsingResultNoResolveConfirmationHandler parsingConfirmationHandler = new PumiceParsingResultNoResolveConfirmationHandler(context, pumiceDialogManager, 0);
+                                parsingConfirmationHandler.handleParsingResult(resultPacket, new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        //runnable for retry
+                                        pumiceDialogManager.updateUtteranceIntentHandlerInANewState(pumiceDefaultUtteranceIntentHandler);
+                                        sendPromptForTheIntentHandler();
+
+                                    }
+                                }, new PumiceParsingResultWithResolveFnConfirmationHandler.ConfirmedParseRunnable() {
+                                    @Override
+                                    public void run(String confirmedFormula) {
+                                        //runnable for confirmed parse
+                                        pumiceDialogManager.getExecutorService().submit(new Runnable() {
+                                            @Override
+                                            public void run() {
+                                                //parse and process the server response
+                                                pumiceDialogManager.getPumiceInitInstructionParsingHandler().parseFromNewInitInstruction(confirmedFormula, resultPacket.userUtterance);
+                                            }
+                                        });
+                                    }
+                                }, false);
+                            }
 
                         } else {
                             throw new RuntimeException("empty server result");

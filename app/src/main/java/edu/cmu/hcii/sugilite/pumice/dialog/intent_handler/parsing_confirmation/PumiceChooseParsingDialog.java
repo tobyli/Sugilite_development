@@ -44,7 +44,7 @@ public class PumiceChooseParsingDialog implements AbstractSugiliteDialog {
     private PumiceDialogManager pumiceDialogManager;
     private PumiceSemanticParsingResultPacket resultPacket;
     private Runnable runnableForRetry;
-    private PumiceParsingConfirmationHandler.ConfirmedParseRunnable runnableForConfirmedParse;
+    private PumiceParsingResultWithResolveFnConfirmationHandler.ConfirmedParseRunnable runnableForConfirmedParse;
     private PumiceParsingResultDescriptionGenerator pumiceParsingResultDescriptionGenerator;
 
 
@@ -52,7 +52,7 @@ public class PumiceChooseParsingDialog implements AbstractSugiliteDialog {
 
     final private static int MAX_LIST_SIZE = 4;
 
-    public PumiceChooseParsingDialog (Activity context, PumiceDialogManager pumiceDialogManager, PumiceSemanticParsingResultPacket resultPacket, Runnable runnableForRetry, PumiceParsingConfirmationHandler.ConfirmedParseRunnable runnableForConfirmedParse) {
+    public PumiceChooseParsingDialog (Activity context, PumiceDialogManager pumiceDialogManager, PumiceSemanticParsingResultPacket resultPacket, Runnable runnableForRetry, PumiceParsingResultWithResolveFnConfirmationHandler.ConfirmedParseRunnable runnableForConfirmedParse) {
         this.context = context;
         this.pumiceDialogManager = pumiceDialogManager;
         this.resultPacket = resultPacket;

@@ -22,7 +22,7 @@ import edu.cmu.hcii.sugilite.pumice.dialog.PumiceDialogManager;
 import edu.cmu.hcii.sugilite.pumice.dialog.demonstration.PumiceElseStatementDemonstrationDialog;
 import edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.PumiceDefaultUtteranceIntentHandler;
 import edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.PumiceUtteranceIntentHandler;
-import edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.parsing_confirmation.PumiceParsingConfirmationHandler;
+import edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.parsing_confirmation.PumiceParsingResultWithResolveFnConfirmationHandler;
 import edu.cmu.hcii.sugilite.pumice.kb.PumiceProceduralKnowledge;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.server_comm.SugiliteVerbalInstructionHTTPQueryInterface;
 
@@ -143,7 +143,7 @@ public class PumiceUserExplainElseStatementIntentHandler implements PumiceUttera
                         }
                         else {
                             if (resultPacket.queries != null && resultPacket.queries.size() > 0) {
-                            PumiceParsingConfirmationHandler parsingConfirmationHandler = new PumiceParsingConfirmationHandler(context, pumiceDialogManager, 0);
+                            PumiceParsingResultWithResolveFnConfirmationHandler parsingConfirmationHandler = new PumiceParsingResultWithResolveFnConfirmationHandler(context, pumiceDialogManager, 0);
                             parsingConfirmationHandler.handleParsingResult(resultPacket, new Runnable() {
                                 @Override
                                 public void run() {
@@ -152,7 +152,7 @@ public class PumiceUserExplainElseStatementIntentHandler implements PumiceUttera
                                     sendPromptForTheIntentHandler();
 
                                 }
-                            }, new PumiceParsingConfirmationHandler.ConfirmedParseRunnable() {
+                            }, new PumiceParsingResultWithResolveFnConfirmationHandler.ConfirmedParseRunnable() {
                                 @Override
                                 public void run(String confirmedFormula) {
                                     //handle confirmed

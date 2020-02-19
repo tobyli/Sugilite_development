@@ -14,11 +14,9 @@ import edu.cmu.hcii.sugilite.pumice.communication.PumiceInstructionPacket;
 import edu.cmu.hcii.sugilite.pumice.communication.PumiceSemanticParsingResultPacket;
 import edu.cmu.hcii.sugilite.pumice.communication.SkipPumiceJSONSerialization;
 import edu.cmu.hcii.sugilite.pumice.dialog.PumiceDialogManager;
-import edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.parsing_confirmation.PumiceParsingConfirmationHandler;
+import edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.parsing_confirmation.PumiceParsingResultWithResolveFnConfirmationHandler;
 import edu.cmu.hcii.sugilite.pumice.kb.PumiceBooleanExpKnowledge;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.server_comm.SugiliteVerbalInstructionHTTPQueryInterface;
-
-import static edu.cmu.hcii.sugilite.pumice.dialog.PumiceInitInstructionParsingHandler.FAILURE_COUNT_THRESHOLD;
 
 /**
  * @author toby
@@ -107,7 +105,7 @@ public class PumiceUserExplainBoolExpIntentHandler implements PumiceUtteranceInt
                 switch (resultPacket.utteranceType) {
                     case "BOOL_EXP_INSTRUCTION":
                         if (resultPacket.queries != null && resultPacket.queries.size() > 0) {
-                            PumiceParsingConfirmationHandler parsingConfirmationHandler = new PumiceParsingConfirmationHandler(context, pumiceDialogManager, failureCount);
+                            PumiceParsingResultWithResolveFnConfirmationHandler parsingConfirmationHandler = new PumiceParsingResultWithResolveFnConfirmationHandler(context, pumiceDialogManager, failureCount);
                             parsingConfirmationHandler.handleParsingResult(resultPacket, new Runnable() {
                                         @Override
                                         public void run() {
@@ -118,7 +116,7 @@ public class PumiceUserExplainBoolExpIntentHandler implements PumiceUtteranceInt
 
                                             sendPromptForTheIntentHandler();
                                         }
-                                    }, new PumiceParsingConfirmationHandler.ConfirmedParseRunnable() {
+                                    }, new PumiceParsingResultWithResolveFnConfirmationHandler.ConfirmedParseRunnable() {
                                         @Override
                                         public void run(String confirmedFormula) {
                                             //handle confirmed

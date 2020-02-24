@@ -355,7 +355,7 @@ public class FollowUpQuestionDialog extends SugiliteDialogManager implements Sug
     private void refreshPreviewTextView(){
         //TODO: show the source code temporarily
         String html = ontologyDescriptionGenerator.getDescriptionForOntologyQuery(currentQuery.clone(), true).toString();
-        PumiceDemonstrationUtil.showSugiliteToast(currentQuery.toString(), Toast.LENGTH_SHORT);
+        // PumiceDemonstrationUtil.showSugiliteToast(currentQuery.toString(), Toast.LENGTH_SHORT);
         //String html = SugiliteBlockBuildingHelper.stripSerializableOntologyQuery(new SerializableOntologyQuery(currentQuery)).toString();
         currentQueryTextView.setText(Html.fromHtml(html));
     }
@@ -768,7 +768,7 @@ public class FollowUpQuestionDialog extends SugiliteDialogManager implements Sug
             }
             else {
                 //save the block and show a confirmation dialog for the block
-                PumiceDemonstrationUtil.showSugiliteToast(query.toString(), Toast.LENGTH_SHORT);
+                // PumiceDemonstrationUtil.showSugiliteToast(query.toString(), Toast.LENGTH_SHORT);
                 System.out.println("Result Query: " + query.toString());
                 //construct the block from the query formula
 

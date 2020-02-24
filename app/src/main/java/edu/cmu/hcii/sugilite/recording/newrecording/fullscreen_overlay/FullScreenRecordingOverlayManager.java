@@ -388,6 +388,7 @@ public class FullScreenRecordingOverlayManager {
     private void handleClick(float x, float y) {
         SugiliteEntity<Node> node = null;
         UISnapshot uiSnapshot = getUiSnapshotAndAnnotateStringEntitiesIfNeeded();
+        File screenshot = getLatestScreenshot();
         if (uiSnapshot != null) {
             List<SugiliteEntity<Node>> matchedNodeEntities = getMatchedNodesFromCoordinate(x, y, uiSnapshot, true, false);
             if (matchedNodeEntities != null) {
@@ -409,7 +410,7 @@ public class FullScreenRecordingOverlayManager {
                 SugiliteStudyHandler studyHandler = sugiliteAccessibilityService.getSugiliteStudyHandler();
                 studyHandler.handleEvent(new SugiliteAvailableFeaturePack(node, uiSnapshot, getLatestScreenshot()), uiSnapshot, path, fileName);
             } else {
-                OverlayClickedDialog overlayClickedDialog = new OverlayClickedDialog(context, node, uiSnapshot, x, y, this, overlay, sugiliteData, sharedPreferences, tts, false);
+                OverlayClickedDialog overlayClickedDialog = new OverlayClickedDialog(context, node, uiSnapshot, screenshot, x, y, this, overlay, sugiliteData, sharedPreferences, tts, false);
                 overlayClickedDialog.show();
             }
         } else {
@@ -420,6 +421,7 @@ public class FullScreenRecordingOverlayManager {
 
     private void handleContextClick(float x, float y, TextToSpeech tts) {
         UISnapshot uiSnapshot = getUiSnapshotAndAnnotateStringEntitiesIfNeeded();
+        File screenshot = getLatestScreenshot();
         if (uiSnapshot != null) {
             SugiliteEntity<Node> topLongClickableNode = null;
             SugiliteEntity<Node> topClickableNode = null;
@@ -433,7 +435,7 @@ public class FullScreenRecordingOverlayManager {
             }
             List<SugiliteEntity<Node>> matchedAllNodeEntities = getMatchedNodesFromCoordinate(x, y, uiSnapshot, false, false);
             if (matchedAllNodeEntities != null) {
-                RecordingOverlayContextClickDialog recordingOverlayContextClickDialog = new RecordingOverlayContextClickDialog(context, this, topLongClickableNode, topClickableNode, matchedAllNodeEntities, uiSnapshot, sugiliteData, tts, x, y);
+                RecordingOverlayContextClickDialog recordingOverlayContextClickDialog = new RecordingOverlayContextClickDialog(context, this, topLongClickableNode, topClickableNode, matchedAllNodeEntities, uiSnapshot, screenshot, sugiliteData, tts, x, y);
                 recordingOverlayContextClickDialog.show();
             } else {
                 PumiceDemonstrationUtil.showSugiliteToast("No node matched!", Toast.LENGTH_SHORT);

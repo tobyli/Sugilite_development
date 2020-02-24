@@ -413,7 +413,7 @@ public class RecordingAmbiguousPopupDialog extends SugiliteDialogManager impleme
 
         if (matchingQueriesMatchedNodesList.size() == 1) {
             OntologyQuery query = matchingQueriesMatchedNodesList.get(0).first;
-            PumiceDemonstrationUtil.showSugiliteToast(query.toString(), Toast.LENGTH_SHORT);
+            //PumiceDemonstrationUtil.showSugiliteToast(query.toString(), Toast.LENGTH_SHORT);
 
             //check if this has filteredNodes.size() = 1 -- whether need to show the followup question dialog
             if(matchingQueriesMatchedNodesList.get(0).second.size() > 1) {

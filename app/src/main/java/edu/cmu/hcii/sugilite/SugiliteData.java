@@ -280,6 +280,7 @@ public class SugiliteData extends Application {
     public synchronized void addInstruction(SugiliteBlock block){
         if(block == null) {
             //note: nullable -> see Automator.addNextBlockToQueue
+
             if(afterExecutionOperation != null) {
                 instructionQueue.add(afterExecutionOperation);
                 afterExecutionOperation = null;

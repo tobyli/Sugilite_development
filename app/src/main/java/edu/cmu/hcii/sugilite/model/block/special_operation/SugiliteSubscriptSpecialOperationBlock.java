@@ -74,14 +74,14 @@ public class SugiliteSubscriptSpecialOperationBlock extends SugiliteSpecialOpera
                         }
                         if (needUserInput) {
                             //show the dialog to obtain user input - run getNextBlockToRun() after finish executing the current one
-                            variableSetValueDialog.show(getNextBlockToRun(), null);
+                            variableSetValueDialog.show(getNextBlockToRun(), sugiliteData.afterExecutionRunnable);
                         }
                         else {
-                            variableSetValueDialog.executeScript(getNextBlockToRun(), sugiliteData.pumiceDialogManager, null);
+                            variableSetValueDialog.executeScript(getNextBlockToRun(), sugiliteData.pumiceDialogManager, sugiliteData.afterExecutionRunnable);
                         }
                     } else {
                         //execute the script without showing the dialog - run getNextBlockToRun() after finish executing the current one
-                        variableSetValueDialog.executeScript(getNextBlockToRun(), sugiliteData.pumiceDialogManager, null);
+                        variableSetValueDialog.executeScript(getNextBlockToRun(), sugiliteData.pumiceDialogManager, sugiliteData.afterExecutionRunnable);
                     }
                 }
             };

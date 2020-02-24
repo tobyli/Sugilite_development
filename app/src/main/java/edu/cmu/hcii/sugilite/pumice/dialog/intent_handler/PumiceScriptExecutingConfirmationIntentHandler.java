@@ -84,6 +84,7 @@ public class PumiceScriptExecutingConfirmationIntentHandler implements PumiceUtt
         else if (pumiceIntent.equals(PumiceIntent.EXECUTION_NEGATIVE)) {
             dialogManager.sendAgentMessage("OK", true, false);
             dialogManager.updateUtteranceIntentHandlerInANewState(new PumiceDefaultUtteranceIntentHandler(dialogManager, context));
+            dialogManager.callSendPromptForTheIntentHandlerForCurrentIntentHandler();
         }
 
         else if (pumiceIntent.equals(PumiceIntent.UNRECOGNIZED)) {

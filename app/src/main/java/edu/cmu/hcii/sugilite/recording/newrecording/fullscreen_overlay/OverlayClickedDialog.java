@@ -12,6 +12,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Toast;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -52,12 +53,14 @@ public class OverlayClickedDialog {
     private SharedPreferences sharedPreferences;
     private SugiliteData sugiliteData;
     private boolean isLongClick;
+    private File screenshot;
 
 
-    public OverlayClickedDialog(Context context, SugiliteEntity<Node> node, UISnapshot uiSnapshot, float x, float y, FullScreenRecordingOverlayManager recordingOverlayManager, View overlay, SugiliteData sugiliteData, SharedPreferences sharedPreferences, TextToSpeech tts, boolean isLongClick) {
+    public OverlayClickedDialog(Context context, SugiliteEntity<Node> node, UISnapshot uiSnapshot, File screenshot, float x, float y, FullScreenRecordingOverlayManager recordingOverlayManager, View overlay, SugiliteData sugiliteData, SharedPreferences sharedPreferences, TextToSpeech tts, boolean isLongClick) {
         this.context = context;
         this.node = node;
         this.uiSnapshot = uiSnapshot;
+        this.screenshot = screenshot;
         this.layoutInflater = LayoutInflater.from(context);;
         this.overlay = overlay;
         this.x = x;
@@ -68,7 +71,7 @@ public class OverlayClickedDialog {
         this.sugiliteData = sugiliteData;
         this.sharedPreferences = sharedPreferences;
         this.isLongClick = isLongClick;
-        this.featurePack = new SugiliteAvailableFeaturePack(node, this.uiSnapshot, recordingOverlayManager.getLatestScreenshot());
+        this.featurePack = new SugiliteAvailableFeaturePack(node, this.uiSnapshot, screenshot);
 
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
         builder.setTitle(Const.appNameUpperCase + " Demonstration");
@@ -132,7 +135,7 @@ public class OverlayClickedDialog {
 
             //generate alternative query
             SugiliteOperationBlock block = blockBuildingHelper.getUnaryOperationBlockWithOntologyQueryFromQuery(queryScoreList.get(0).first, isLongClick ? SugiliteOperation.LONG_CLICK : SugiliteOperation.CLICK, featurePack, SugiliteBlockBuildingHelper.getFirstNonTextQuery(queryScoreList));
-            block.setScreenshot(recordingOverlayManager.getLatestScreenshot());
+            block.setScreenshot(screenshot);
             showConfirmation(block, featurePack, queryScoreList);
         } else {
             //empty result
@@ -150,8 +153,8 @@ public class OverlayClickedDialog {
         */
         //TODO: bypass the dialog
 
-        handleRecording();
-        /*
+        //handleRecording();
+
         Handler handler = new Handler();
         handler.postDelayed(new Runnable() {
             public void run() {
@@ -159,7 +162,7 @@ public class OverlayClickedDialog {
                 handleRecording();
             }
         }, 200);
-        */
+
 
 
     }

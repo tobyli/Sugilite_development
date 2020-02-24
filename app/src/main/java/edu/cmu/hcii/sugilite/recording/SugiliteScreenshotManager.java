@@ -117,7 +117,13 @@ public class SugiliteScreenshotManager {
                                 //capture the screen
                                 startCapture(imageFile);
                                 screenshotAvailable = true;
-                                releaseVirtualDisplay();
+                                handler2.postDelayed(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        releaseVirtualDisplay();
+
+                                    }
+                                }, 200);
                             }
                         }, 100);
                     } else {

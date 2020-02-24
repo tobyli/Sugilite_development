@@ -13,6 +13,7 @@ import android.widget.ListView;
 import android.widget.Toast;
 
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -44,9 +45,9 @@ public class RecordingOverlayContextClickDialog {
     private LayoutInflater layoutInflater;
     private SharedPreferences sharedPreferences;
     private List<String> supportedActions = new ArrayList<>();
+    private File screenshot;
 
-
-    public RecordingOverlayContextClickDialog(Context context, FullScreenRecordingOverlayManager parentOverlayManager, SugiliteEntity<Node> topLongClickableNode, SugiliteEntity<Node> topClickableNode, List<SugiliteEntity<Node>> matchedAllNodeEntities, UISnapshot uiSnapshot, SugiliteData sugiliteData, TextToSpeech tts, float x, float y){
+    public RecordingOverlayContextClickDialog(Context context, FullScreenRecordingOverlayManager parentOverlayManager, SugiliteEntity<Node> topLongClickableNode, SugiliteEntity<Node> topClickableNode, List<SugiliteEntity<Node>> matchedAllNodeEntities, UISnapshot uiSnapshot, File screenshot, SugiliteData sugiliteData, TextToSpeech tts, float x, float y){
         this.context = context;
         this.parentOverlayManager = parentOverlayManager;
         this.x = x;
@@ -56,6 +57,7 @@ public class RecordingOverlayContextClickDialog {
         this.matchedAllNodeEntities = matchedAllNodeEntities;
         this.layoutInflater = LayoutInflater.from(context);
         this.sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
+        this.screenshot = screenshot;
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
         ListView mainListView = new ListView(context);
 
@@ -101,7 +103,7 @@ public class RecordingOverlayContextClickDialog {
                         if(true || sugiliteData.valueDemonstrationVariableName != null && sugiliteData.valueDemonstrationVariableName.length() > 0) {
                             Map<String, SugiliteEntity<Node>> textLabelEntityMap = getTextLabelNodeEntityMap();
                             //handle the selected texts
-                            PumiceValueDemonstrationSelectionDialog valueDemonstrationSelectionDialog = new PumiceValueDemonstrationSelectionDialog(context, textLabelEntityMap, uiSnapshot, parentOverlayManager, sugiliteData, tts, sharedPreferences, x, y);
+                            PumiceValueDemonstrationSelectionDialog valueDemonstrationSelectionDialog = new PumiceValueDemonstrationSelectionDialog(context, textLabelEntityMap, uiSnapshot, screenshot, parentOverlayManager, sugiliteData, tts, sharedPreferences, x, y);
                             valueDemonstrationSelectionDialog.show();
                         } else {
                             PumiceDemonstrationUtil.showSugiliteToast("Not in a Pumice value concept learning session!!", Toast.LENGTH_SHORT);
@@ -114,7 +116,7 @@ public class RecordingOverlayContextClickDialog {
                         if(true || sharedPreferences.getBoolean("recording_in_process", false)) {
                             Map<String, SugiliteEntity<Node>> textLabelEntityMap = getTextLabelNodeEntityMap();
                             //TODO: handle the selected texts
-                            PumiceReadOutDemonstrationSelectionDialog readOutDemonstrationSelectionDialog = new PumiceReadOutDemonstrationSelectionDialog(context, textLabelEntityMap, uiSnapshot, parentOverlayManager, sugiliteData, tts, sharedPreferences, x, y);
+                            PumiceReadOutDemonstrationSelectionDialog readOutDemonstrationSelectionDialog = new PumiceReadOutDemonstrationSelectionDialog(context, textLabelEntityMap, uiSnapshot, screenshot, parentOverlayManager, sugiliteData, tts, sharedPreferences, x, y);
                             readOutDemonstrationSelectionDialog.show();
                         } else {
                             PumiceDemonstrationUtil.showSugiliteToast("Not in the recording mode!!", Toast.LENGTH_SHORT);
@@ -125,7 +127,7 @@ public class RecordingOverlayContextClickDialog {
                         //send a long click to the underlying app
                         dialog.dismiss();
                         if (topLongClickableNode.getEntityValue() != null) {
-                            OverlayClickedDialog overlayClickedDialog = new OverlayClickedDialog(context, topClickableNode, uiSnapshot, x, y, parentOverlayManager, parentOverlayManager.getOverlay(), sugiliteData, sharedPreferences, tts, true);
+                            OverlayClickedDialog overlayClickedDialog = new OverlayClickedDialog(context, topClickableNode, uiSnapshot, screenshot, x, y, parentOverlayManager, parentOverlayManager.getOverlay(), sugiliteData, sharedPreferences, tts, true);
                             overlayClickedDialog.show();
                         }
                         /*
@@ -141,7 +143,7 @@ public class RecordingOverlayContextClickDialog {
                     case "Click on this item in the app":
                         dialog.dismiss();
                         if (topClickableNode.getEntityValue() != null) {
-                            OverlayClickedDialog overlayClickedDialog = new OverlayClickedDialog(context, topClickableNode, uiSnapshot, x, y, parentOverlayManager, parentOverlayManager.getOverlay(), sugiliteData, sharedPreferences, tts, false);
+                            OverlayClickedDialog overlayClickedDialog = new OverlayClickedDialog(context, topClickableNode, uiSnapshot, screenshot, x, y, parentOverlayManager, parentOverlayManager.getOverlay(), sugiliteData, sharedPreferences, tts, false);
                             overlayClickedDialog.show();
                         }
                 }

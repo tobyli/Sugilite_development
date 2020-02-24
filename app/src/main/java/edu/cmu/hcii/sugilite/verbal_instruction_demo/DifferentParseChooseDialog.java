@@ -87,7 +87,7 @@ public class DifferentParseChooseDialog {
                         }
                         //=== done printing debug info ===
 
-                        PumiceDemonstrationUtil.showSugiliteToast(chosenResult.getFormula(), Toast.LENGTH_SHORT);
+                        //PumiceDemonstrationUtil.showSugiliteToast(chosenResult.getFormula(), Toast.LENGTH_SHORT);
                         for(Node node : filteredNodes){
                             //TODO: show overlay
 

@@ -106,7 +106,7 @@ public class SugiliteRecordingConfirmationDialog extends SugiliteDialogManager {
             text.append("Are you sure you want to record the operation: ");
             text.append(newDescription);
             confirmationPromptTextView.setText(text);
-            PumiceDemonstrationUtil.showSugiliteToast(block.toString(), Toast.LENGTH_SHORT);
+            // PumiceDemonstrationUtil.showSugiliteToast(block.toString(), Toast.LENGTH_SHORT);
 
             //confirmationPromptTextView.setText(Html.fromHtml("Are you sure you want to record the operation: " + block.toString()));
 

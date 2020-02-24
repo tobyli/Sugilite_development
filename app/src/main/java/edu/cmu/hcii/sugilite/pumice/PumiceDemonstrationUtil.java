@@ -106,7 +106,7 @@ public class PumiceDemonstrationUtil {
      * @param sharedPreferences
      * @param dialogManager
      */
-    public static void executeScript(Activity activityContext, ServiceStatusManager serviceStatusManager, SugiliteStartingBlock script, SugiliteData sugiliteData, SharedPreferences sharedPreferences, boolean isForReconstructing, @Nullable PumiceDialogManager dialogManager, @Nullable SugiliteBlock afterExexecutionOperation, @Nullable Runnable afterExecutionRunnable){
+    public static void executeScript(Activity activityContext, ServiceStatusManager serviceStatusManager, SugiliteStartingBlock script, SugiliteData sugiliteData, SharedPreferences sharedPreferences, boolean isForReconstructing, @Nullable PumiceDialogManager dialogManager, @Nullable SugiliteBlock afterExecutionOperation, @Nullable Runnable afterExecutionRunnable){
         if(!serviceStatusManager.isRunning()){
             //prompt the user if the accessiblity service is not active
             activityContext.runOnUiThread(() -> {
@@ -160,12 +160,12 @@ public class PumiceDemonstrationUtil {
                         variableSetValueDialog.show();
                     }
                     else {
-                        variableSetValueDialog.executeScript(afterExexecutionOperation, finalDialogManager, afterExecutionRunnable);
+                        variableSetValueDialog.executeScript(afterExecutionOperation, finalDialogManager, afterExecutionRunnable);
                     }
                 }
                 else{
                     //execute the script without showing the dialog
-                    variableSetValueDialog.executeScript(afterExexecutionOperation, finalDialogManager, afterExecutionRunnable);
+                    variableSetValueDialog.executeScript(afterExecutionOperation, finalDialogManager, afterExecutionRunnable);
                 }
             });
         }

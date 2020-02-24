@@ -5,8 +5,10 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
+import android.media.projection.MediaProjectionManager;
 import android.os.Handler;
 import android.os.Looper;
+import android.os.StrictMode;
 import android.preference.PreferenceManager;
 import android.speech.tts.TextToSpeech;
 import android.util.Log;
@@ -124,6 +126,12 @@ public class SugiliteData extends Application {
     private GoogleVoiceRecorder mVoiceRecorder;
     private GoogleCloudSpeechService mSpeechService;
 
+
+    //for managing screenshots
+    private int screenshotResult;
+    private Intent screenshotIntent;
+    private MediaProjectionManager screenshotMediaProjectionManager;
+
     @Override
     public void onCreate(){
         super.onCreate();
@@ -139,6 +147,10 @@ public class SugiliteData extends Application {
             }
         });
         setTTS(tts);
+
+        //disable StrictMode for file access
+        StrictMode.VmPolicy.Builder builder = new StrictMode.VmPolicy.Builder();
+        StrictMode.setVmPolicy(builder.build());
     }
 
 
@@ -447,4 +459,30 @@ public class SugiliteData extends Application {
         setTTS(tts);
     }
 
+    //managing screenshots
+
+
+    public int getScreenshotResult() {
+        return screenshotResult;
+    }
+
+    public Intent getScreenshotIntent() {
+        return screenshotIntent;
+    }
+
+    public MediaProjectionManager getScreenshotMediaProjectionManager() {
+        return screenshotMediaProjectionManager;
+    }
+
+    public void setScreenshotIntent(Intent screenshotIntent) {
+        this.screenshotIntent = screenshotIntent;
+    }
+
+    public void setScreenshotResult(int screenshotResult) {
+        this.screenshotResult = screenshotResult;
+    }
+
+    public void setScreenshotMediaProjectionManager(MediaProjectionManager screenshotMediaProjectionManager) {
+        this.screenshotMediaProjectionManager = screenshotMediaProjectionManager;
+    }
 }

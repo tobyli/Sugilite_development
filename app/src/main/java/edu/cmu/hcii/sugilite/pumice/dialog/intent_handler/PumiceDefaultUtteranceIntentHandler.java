@@ -104,8 +104,9 @@ public class PumiceDefaultUtteranceIntentHandler implements PumiceUtteranceInten
                 break;
             case TEST_WEATHER:
                 ImageView imageView = new ImageView(context);
-                imageView.setImageDrawable(context.getResources().getDrawable(R.mipmap.user_avatar));//SHOULD BE R.mipmap.demo_card
-                dialogManager.sendAgentViewMessage(imageView, "Here is the weather", true, false);
+                imageView.setImageDrawable(context.getResources().getDrawable(R.mipmap.demo_card));
+                dialogManager.sendAgentMessage("Here is the weather" + utterance.getContent(), false, false);
+                dialogManager.sendAgentViewMessage(imageView, "Here is the weather", false, false);
                 break;
             case USER_INIT_INSTRUCTION:
                 //dialogManager.sendAgentMessage("I have received your instruction: " + utterance.getTriggerContent(), true, false);

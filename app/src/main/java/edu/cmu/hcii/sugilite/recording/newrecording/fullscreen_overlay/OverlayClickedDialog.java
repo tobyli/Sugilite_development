@@ -5,6 +5,7 @@ import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
+import android.os.Handler;
 import android.speech.tts.TextToSpeech;
 import android.util.Pair;
 import android.view.LayoutInflater;
@@ -67,7 +68,7 @@ public class OverlayClickedDialog {
         this.sugiliteData = sugiliteData;
         this.sharedPreferences = sharedPreferences;
         this.isLongClick = isLongClick;
-        this.featurePack = new SugiliteAvailableFeaturePack(node, this.uiSnapshot);
+        this.featurePack = new SugiliteAvailableFeaturePack(node, this.uiSnapshot, recordingOverlayManager.getLatestScreenshot());
 
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
         builder.setTitle(Const.appNameUpperCase + " Demonstration");
@@ -131,6 +132,7 @@ public class OverlayClickedDialog {
 
             //generate alternative query
             SugiliteOperationBlock block = blockBuildingHelper.getUnaryOperationBlockWithOntologyQueryFromQuery(queryScoreList.get(0).first, isLongClick ? SugiliteOperation.LONG_CLICK : SugiliteOperation.CLICK, featurePack, SugiliteBlockBuildingHelper.getFirstNonTextQuery(queryScoreList));
+            block.setScreenshot(recordingOverlayManager.getLatestScreenshot());
             showConfirmation(block, featurePack, queryScoreList);
         } else {
             //empty result
@@ -146,10 +148,20 @@ public class OverlayClickedDialog {
         dialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_box);
         dialog.show();
         */
-
-
         //TODO: bypass the dialog
+
         handleRecording();
+        /*
+        Handler handler = new Handler();
+        handler.postDelayed(new Runnable() {
+            public void run() {
+                //capture the screen
+                handleRecording();
+            }
+        }, 200);
+        */
+
+
     }
 
     /**

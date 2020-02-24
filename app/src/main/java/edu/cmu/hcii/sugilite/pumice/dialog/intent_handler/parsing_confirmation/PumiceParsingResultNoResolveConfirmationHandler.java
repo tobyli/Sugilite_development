@@ -1,17 +1,22 @@
 package edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.parsing_confirmation;
 
 import android.app.Activity;
+import android.graphics.drawable.Drawable;
+import android.widget.ImageView;
 
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.HashSet;
 import java.util.Set;
 
+import edu.cmu.hcii.sugilite.R;
+import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.pumice.communication.PumiceSemanticParsingResultPacket;
 import edu.cmu.hcii.sugilite.pumice.dialog.PumiceDialogManager;
 import edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.PumiceDefaultUtteranceIntentHandler;
 import edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.PumiceUtteranceIntentHandler;
 import edu.cmu.hcii.sugilite.source_parsing.SugiliteScriptParser;
+import edu.cmu.hcii.sugilite.sovite.ScriptVisualThumbnailManager;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.server_comm.SugiliteVerbalInstructionHTTPQueryInterface;
 import edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.parsing_confirmation.PumiceParsingResultWithResolveFnConfirmationHandler.HandleParsingResultPacket;
 
@@ -29,6 +34,7 @@ public class PumiceParsingResultNoResolveConfirmationHandler implements PumiceUt
     private PumiceDialogManager pumiceDialogManager;
     private PumiceParsingResultDescriptionGenerator pumiceParsingResultDescriptionGenerator;
     private SugiliteScriptParser sugiliteScriptParser;
+    private ScriptVisualThumbnailManager scriptVisualThumbnailManager;
 
     private HandleParsingResultPacket parsingResultsToHandle;
     private int failureCount = 0;
@@ -40,6 +46,7 @@ public class PumiceParsingResultNoResolveConfirmationHandler implements PumiceUt
         this.pumiceParsingResultDescriptionGenerator = new PumiceParsingResultDescriptionGenerator();
         this.sugiliteScriptParser = new SugiliteScriptParser();
         this.failureCount = failureCount;
+        this.scriptVisualThumbnailManager = new ScriptVisualThumbnailManager(context);
 
         //this.parsingResultsToHandle = new Stack<>();
     }
@@ -131,14 +138,42 @@ public class PumiceParsingResultNoResolveConfirmationHandler implements PumiceUt
         dialogManager.updateUtteranceIntentHandlerInANewState(new PumiceDefaultUtteranceIntentHandler(pumiceDialogManager, context));
     }
 
+    private void sendBestExecutionConfirmation() {
+        PumiceSemanticParsingResultPacket.QueryGroundingPair topResult = parsingResultsToHandle.resultPacket.queries.get(0);
+        String topFormula = topResult.formula;
+        SugiliteStartingBlock script = null;
+        try {
+            if (topFormula.length() > 0) {
+                script = sugiliteScriptParser.parseBlockFromString(topFormula);
+            } else {
+                throw new RuntimeException("empty server result!");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+
+        boolean visualConfirmationAvailable = true;
+        if (visualConfirmationAvailable) {
+            pumiceDialogManager.sendAgentMessage("Here is the parsing result: ", true, false);
+            //test sending an image
+            ImageView imageView = new ImageView(context);
+            Drawable drawable = scriptVisualThumbnailManager.getVisualThumbnailForScript(script, parsingResultsToHandle.resultPacket.userUtterance);
+            imageView.setImageDrawable(drawable);//SHOULD BE R.mipmap.demo_card
+            String description = getDescriptionForFormula(topFormula, parsingResultsToHandle.resultPacket.utteranceType);
+            pumiceDialogManager.sendAgentViewMessage(imageView, "SCREENSHOT:" + description, false, false);
+            pumiceDialogManager.sendAgentMessage(description, true, false);
+        } else {
+            pumiceDialogManager.sendAgentMessage("Here is the parsing result: ", true, false);
+            pumiceDialogManager.sendAgentMessage(getDescriptionForFormula(topFormula, parsingResultsToHandle.resultPacket.utteranceType), true, false);
+        }
+    }
+
 
 
     @Override
     public void sendPromptForTheIntentHandler() {
-        PumiceSemanticParsingResultPacket.QueryGroundingPair topResult = parsingResultsToHandle.resultPacket.queries.get(0);
-        String topFormula = topResult.formula;
-        pumiceDialogManager.sendAgentMessage("Here is the parsing result: ", true, false);
-        pumiceDialogManager.sendAgentMessage(getDescriptionForFormula(topFormula, parsingResultsToHandle.resultPacket.utteranceType), true, false);
+        sendBestExecutionConfirmation();
         pumiceDialogManager.sendAgentMessage("Is this correct?", true, true);
     }
 

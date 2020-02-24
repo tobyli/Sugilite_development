@@ -108,7 +108,7 @@ public class StatusIconManager {
         else
             sugiliteScriptDao = new SugiliteScriptFileDao(context, sugiliteData);
         this.serviceStatusManager = ServiceStatusManager.getInstance(context);
-        this.screenshotManager = new SugiliteScreenshotManager(sharedPreferences, context);
+        this.screenshotManager = SugiliteScreenshotManager.getInstance(sharedPreferences, sugiliteData);
         this.accessibilityManager = accessibilityManager;
         variableHelper = new VariableHelper(sugiliteData.stringVariableMap);
         jsonProcessor = new SugiliteBlockJSONProcessor(context);

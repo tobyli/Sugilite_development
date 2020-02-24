@@ -242,6 +242,10 @@ public class LocalScriptDetailActivity extends ScriptDetailActivity implements S
         return super.onContextItemSelected(item);
     }
 
+    /**
+     * the option for viewing the screenshot
+     * @param item
+     */
     private void viewOperation(MenuItem item){
         TextView textView = contextTextView;
         if(textView == null)
@@ -256,13 +260,13 @@ public class LocalScriptDetailActivity extends ScriptDetailActivity implements S
                 if (currentBlock.getDescription().toString().contentEquals(textView.getText().toString())) {
                     if (((SugiliteOperationBlock) currentBlock).getFeaturePack() == null) {
                         //scripts passed from external sources (via json) has no feature pack & previous block fields
-                        PumiceDemonstrationUtil.showSugiliteToast("Can't view operations from external source!", Toast.LENGTH_SHORT);
+                        PumiceDemonstrationUtil.showSugiliteAlertDialog("Can't view operations from external source!");
                         break;
                     }
                     //match, pop up the screenshot view
                     File screenshot = currentBlock.getScreenshot();
                     if (screenshot == null) {
-                        PumiceDemonstrationUtil.showSugiliteToast("No screenshot available", Toast.LENGTH_SHORT);
+                        PumiceDemonstrationUtil.showSugiliteAlertDialog("No screenshot available");
                         return;
                     }
                     Intent intent = new Intent();
@@ -276,7 +280,7 @@ public class LocalScriptDetailActivity extends ScriptDetailActivity implements S
             } else if (currentBlock instanceof SugiliteStartingBlock) {
                 if (currentBlock.getDescription().toString().contentEquals(textView.getText().toString())) {
                     //match, can't edit starting block
-                    PumiceDemonstrationUtil.showSugiliteToast("Can't view starting block", Toast.LENGTH_SHORT);
+                    PumiceDemonstrationUtil.showSugiliteAlertDialog("Can't view starting block");
                     break;
                 } else {
                     currentBlock = ((SugiliteStartingBlock) currentBlock).getNextBlockToRun();

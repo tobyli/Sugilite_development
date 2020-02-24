@@ -19,6 +19,7 @@ import android.view.View;
 import android.view.WindowManager;
 import android.widget.Toast;
 
+import java.io.File;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -75,6 +76,7 @@ public class FullScreenRecordingOverlayManager {
     //latest UI snapshot
     private UISnapshot uiSnapshot = null;
 
+
     public FullScreenRecordingOverlayManager(Context context, SugiliteData sugiliteData, SharedPreferences sharedPreferences, SugiliteAccessibilityService sugiliteAccessibilityService, TextToSpeech tts) {
         this.context = context;
         this.sugiliteAccessibilityService = sugiliteAccessibilityService;
@@ -86,7 +88,7 @@ public class FullScreenRecordingOverlayManager {
         this.overlayFactory = new SugiliteFullScreenOverlayFactory(context);
         this.recordingOverlayManager = this;
         this.readableDescriptionGenerator = new ReadableDescriptionGenerator(context);
-        this.sugiliteScreenshotManager = new SugiliteScreenshotManager(sharedPreferences, context);
+        this.sugiliteScreenshotManager = SugiliteScreenshotManager.getInstance(sharedPreferences, sugiliteData);
         this.tts = tts;
 
         displayMetrics = new DisplayMetrics();
@@ -354,6 +356,13 @@ public class FullScreenRecordingOverlayManager {
         }
     }
 
+
+
+    public File getLatestScreenshot() {
+        File latestScreenshot = sugiliteScreenshotManager.takeScreenshot(SugiliteScreenshotManager.DIRECTORY_PATH, sugiliteScreenshotManager.getFileNameFromDate());
+        return latestScreenshot;
+    }
+
     private void checkDrawOverlayPermission() {
         /* check if we already  have permission to draw over other apps */
         int currentApiVersion = android.os.Build.VERSION.SDK_INT;
@@ -393,12 +402,12 @@ public class FullScreenRecordingOverlayManager {
                 String path = "/sdcard/Download/sugilite_study_packets";
                 String fileName = "packet_" + timeString;
                 try {
-                    sugiliteScreenshotManager.take(true, path, fileName + ".png");
+                    sugiliteScreenshotManager.takeScreenshotUsingShellCommand(true, path, fileName + ".png");
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
                 SugiliteStudyHandler studyHandler = sugiliteAccessibilityService.getSugiliteStudyHandler();
-                studyHandler.handleEvent(new SugiliteAvailableFeaturePack(node, uiSnapshot), uiSnapshot, path, fileName);
+                studyHandler.handleEvent(new SugiliteAvailableFeaturePack(node, uiSnapshot, getLatestScreenshot()), uiSnapshot, path, fileName);
             } else {
                 OverlayClickedDialog overlayClickedDialog = new OverlayClickedDialog(context, node, uiSnapshot, x, y, this, overlay, sugiliteData, sharedPreferences, tts, false);
                 overlayClickedDialog.show();

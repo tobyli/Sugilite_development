@@ -323,6 +323,7 @@ public class VerbalInstructionIconManager implements SugiliteVoiceInterface {
         recordingOverlayManager.setUiSnapshot(snapshot);
     }
 
+
     public void checkDrawOverlayPermission() {
         /** check if we already  have permission to draw over other apps */
         int currentApiVersion = android.os.Build.VERSION.SDK_INT;

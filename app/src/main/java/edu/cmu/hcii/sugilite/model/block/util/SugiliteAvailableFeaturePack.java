@@ -32,7 +32,7 @@ public class SugiliteAvailableFeaturePack implements Serializable{
         //do nothing
     }
 
-    public SugiliteAvailableFeaturePack(SugiliteEntity<Node> nodeEntity, UISnapshot uiSnapshot){
+    public SugiliteAvailableFeaturePack(SugiliteEntity<Node> nodeEntity, UISnapshot uiSnapshot, File screenshot){
         Node node = nodeEntity.getEntityValue();
         if(node.getPackageName() != null) {
             this.packageName = new String(node.getPackageName());
@@ -59,7 +59,7 @@ public class SugiliteAvailableFeaturePack implements Serializable{
         //TODO: fix timestamp
         this.time = -1;
         this.eventType = AccessibilityEvent.TYPE_VIEW_CLICKED;
-        this.screenshot = null;
+        this.screenshot = screenshot;
 
         this.parentNode = null;
         this.childNodes = new ArrayList<>();

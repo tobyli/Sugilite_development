@@ -1,11 +1,15 @@
 package edu.cmu.hcii.sugilite.ui.main;
 
 
+import android.annotation.TargetApi;
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.media.projection.MediaProjectionManager;
+import android.os.Build;
 import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.os.Bundle;
@@ -50,6 +54,7 @@ import edu.cmu.hcii.sugilite.ui.dialog.SugiliteProgressDialog;
 
 import static edu.cmu.hcii.sugilite.Const.OVERLAY_TYPE;
 import static edu.cmu.hcii.sugilite.Const.SQL_SCRIPT_DAO;
+import static edu.cmu.hcii.sugilite.recording.SugiliteScreenshotManager.REQUEST_MEDIA_PROJECTION;
 
 
 public class SugiliteMainActivity extends AppCompatActivity {
@@ -64,6 +69,7 @@ public class SugiliteMainActivity extends AppCompatActivity {
     private StudyDataUploadManager uploadManager;
     private SugiliteScriptSharingHTTPQueryManager sugiliteScriptSharingHTTPQueryManager;
     private Context context;
+    private MediaProjectionManager mMediaProjectionManager;
 
 
 
@@ -76,8 +82,11 @@ public class SugiliteMainActivity extends AppCompatActivity {
             return;
         }
 
+
         requestWindowFeature(Window.FEATURE_ACTION_BAR);
         setContentView(R.layout.activity_main);
+
+        this.mMediaProjectionManager = (MediaProjectionManager)getApplication().getSystemService(Context.MEDIA_PROJECTION_SERVICE);
         this.uploadManager = new StudyDataUploadManager(this, sugiliteData);
         this.sugiliteData = getApplication() instanceof SugiliteData? (SugiliteData)getApplication() : new SugiliteData();
         this.sugiliteScriptSharingHTTPQueryManager = SugiliteScriptSharingHTTPQueryManager.getInstance(this);
@@ -149,6 +158,12 @@ public class SugiliteMainActivity extends AppCompatActivity {
         }
         */
 
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        startScreenshotCaptureIntent();
     }
 
     @Override
@@ -326,4 +341,35 @@ public class SugiliteMainActivity extends AppCompatActivity {
         }
         return super.onOptionsItemSelected(item);
     }
+
+    private Intent screenCaptureIntent = null;
+    private int screenCaptureIntentResult = 0;
+    private void startScreenshotCaptureIntent() {
+        if (screenCaptureIntent != null && screenCaptureIntentResult != 0) {
+            sugiliteData.setScreenshotIntent(screenCaptureIntent);
+            sugiliteData.setScreenshotResult(screenCaptureIntentResult);
+        } else {
+            startActivityForResult(mMediaProjectionManager.createScreenCaptureIntent(), REQUEST_MEDIA_PROJECTION);
+            sugiliteData.setScreenshotMediaProjectionManager(mMediaProjectionManager);
+        }
+    }
+    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == REQUEST_MEDIA_PROJECTION) {
+            if (resultCode != Activity.RESULT_OK) {
+                return;
+            }else if(data != null && resultCode != 0){
+                Log.i("SugiliteMainActivity", "user agree the application to capture screen");
+                //Service1.mResultCode = resultCode;
+                //Service1.mResultData = data;
+                screenCaptureIntentResult = resultCode;
+                screenCaptureIntent = data;
+                sugiliteData.setScreenshotResult(resultCode);
+                sugiliteData.setScreenshotIntent(data);
+            }
+        }
+    }
+
+
 }

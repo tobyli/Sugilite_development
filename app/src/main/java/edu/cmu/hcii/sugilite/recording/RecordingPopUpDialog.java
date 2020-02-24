@@ -143,7 +143,7 @@ public class RecordingPopUpDialog implements AbstractSugiliteDialog {
         else {
             this.alternativeLabels = new HashSet<>();
         }
-        this.screenshotManager = new SugiliteScreenshotManager(sharedPreferences, context);
+        this.screenshotManager = SugiliteScreenshotManager.getInstance(sharedPreferences, sugiliteData);
         this.skipManager = new RecordingSkipManager();
         this.filterTester = new AlternativeNodesFilterTester();
         this.scriptName = sugiliteData.getScriptHead().getScriptName();
@@ -201,7 +201,7 @@ public class RecordingPopUpDialog implements AbstractSugiliteDialog {
             this.alternativeLabels = new HashSet<>(blockToEdit.getElementMatchingFilter().alternativeLabels);
         else
             this.alternativeLabels = new HashSet<>();
-        this.screenshotManager = new SugiliteScreenshotManager(sharedPreferences, context);
+        this.screenshotManager = SugiliteScreenshotManager.getInstance(sharedPreferences, sugiliteData);
         if(Const.DAO_TO_USE == SQL_SCRIPT_DAO)
             sugiliteScriptDao = new SugiliteScriptSQLDao(context);
         else

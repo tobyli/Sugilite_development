@@ -25,6 +25,7 @@ import java.io.*;
 import java.util.AbstractMap;
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -143,7 +144,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
         sugiliteData.verbalInstructionIconManager = verbalInstructionIconManager;
         newDemonstrationHandler = NewDemonstrationHandler.getInstance(sugiliteData, sharedPreferences, this);
 
-        screenshotManager = new SugiliteScreenshotManager(sharedPreferences, getApplicationContext());
+        screenshotManager = SugiliteScreenshotManager.getInstance(sharedPreferences, sugiliteData);
         sugiliteTextParentAnnotator = SugiliteTextParentAnnotator.getInstance();
         automator = new Automator(sugiliteData, this, statusIconManager, sharedPreferences, sugiliteTextParentAnnotator, sugiliteData.getTTS());
         sugilteTrackingHandler = new SugiliteTrackingHandler(sugiliteData, getApplicationContext());

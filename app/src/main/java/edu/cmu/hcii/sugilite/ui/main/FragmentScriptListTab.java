@@ -214,7 +214,7 @@ public class FragmentScriptListTab extends Fragment {
             if (item.getItemId() == ITEM_DELETE) {
                 if (info.targetView instanceof TextView && ((TextView) info.targetView).getText() != null) {
                     sugiliteScriptDao.delete(((TextView) info.targetView).getText().toString() + ".SugiliteScript");
-                    PumiceDemonstrationUtil.showSugiliteAlertDialog(String.format("Successfully duplicated the script \"%s\"!", ((TextView) info.targetView).getText().toString()));
+                    PumiceDemonstrationUtil.showSugiliteAlertDialog(String.format("Successfully deleted the script \"%s\"!", ((TextView) info.targetView).getText().toString()));
                     setUpScriptList();
                 }
                 return super.onContextItemSelected(item);

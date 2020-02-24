@@ -91,7 +91,7 @@ public class Automator {
 
         this.tts = tts;
         this.windowManager = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
-        screenshotManager = new SugiliteScreenshotManager(sharedPreferences, context);
+        screenshotManager = SugiliteScreenshotManager.getInstance(sharedPreferences, sugiliteData);
     }
 
     List<Node> lastTimeFailed = new ArrayList<>();

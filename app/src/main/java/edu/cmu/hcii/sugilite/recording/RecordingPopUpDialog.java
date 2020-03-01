@@ -69,6 +69,7 @@ import edu.cmu.hcii.sugilite.model.variable.StringVariable;
 import edu.cmu.hcii.sugilite.model.variable.Variable;
 import edu.cmu.hcii.sugilite.ontology.*;
 import edu.cmu.hcii.sugilite.pumice.PumiceDemonstrationUtil;
+import edu.cmu.hcii.sugilite.sovite.SoviteAppNameAppInfoManager;
 import edu.cmu.hcii.sugilite.ui.dialog.AbstractSugiliteDialog;
 import edu.cmu.hcii.sugilite.ui.dialog.ChooseVariableDialog;
 
@@ -111,6 +112,7 @@ public class RecordingPopUpDialog implements AbstractSugiliteDialog {
     private String siblingText = "";
     private String scriptName;
     private Context context;
+    private SoviteAppNameAppInfoManager soviteAppNameAppInfoManager;
     protected static final String TAG = RecordingPopUpDialog.class.getSimpleName();
 
 
@@ -137,6 +139,7 @@ public class RecordingPopUpDialog implements AbstractSugiliteDialog {
         this.triggerMode = triggerMode;
         this.layoutInflater = LayoutInflater.from(context);
         this.context = context;
+        this.soviteAppNameAppInfoManager = SoviteAppNameAppInfoManager.getInstance(SugiliteData.getAppContext());
         if(Const.KEEP_ALL_ALTERNATIVES_IN_THE_FILTER) {
             this.alternativeLabels = new HashSet<>(alternativeLabels);
         }
@@ -1070,7 +1073,7 @@ public class RecordingPopUpDialog implements AbstractSugiliteDialog {
 
         //set up within app spinner
         List<String> withinAppSpinnerItems = new ArrayList<>();
-        withinAppSpinnerItems.add(readableDescriptionGenerator.getReadableAppNameFromPackageName(featurePack.packageName));
+        withinAppSpinnerItems.add(soviteAppNameAppInfoManager.getReadableAppNameForPackageName(featurePack.packageName));
         withinAppSpinnerItems.add("Any app");
         ArrayAdapter<String> withInAppAdapter = new ArrayAdapter<String>(dialogRootView.getContext(), android.R.layout.simple_spinner_item, withinAppSpinnerItems);
         withInAppAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
@@ -1499,7 +1502,7 @@ public class RecordingPopUpDialog implements AbstractSugiliteDialog {
     @Deprecated
     public UIElementMatchingFilter generateFilter(){
         UIElementMatchingFilter filter = new UIElementMatchingFilter();
-        if(withInAppSpinner.getSelectedItem().toString().contentEquals(readableDescriptionGenerator.getReadableAppNameFromPackageName(featurePack.packageName))){
+        if(withInAppSpinner.getSelectedItem().toString().contentEquals(soviteAppNameAppInfoManager.getReadableAppNameForPackageName(featurePack.packageName))){
             filter.setPackageName(featurePack.packageName);
         }
         if(targetTypeSpinner.getSelectedItem().toString().contentEquals(featurePack.className)){
@@ -1582,7 +1585,7 @@ public class RecordingPopUpDialog implements AbstractSugiliteDialog {
     public OntologyQuery generateQuery(){
         CombinedOntologyQuery q = new CombinedOntologyQuery(CombinedOntologyQuery.RelationType.AND);
 
-        if(withInAppSpinner.getSelectedItem().toString().contentEquals(readableDescriptionGenerator.getReadableAppNameFromPackageName(featurePack.packageName))){
+        if(withInAppSpinner.getSelectedItem().toString().contentEquals(soviteAppNameAppInfoManager.getReadableAppNameForPackageName(featurePack.packageName))){
             LeafOntologyQuery subQuery = new LeafOntologyQuery();
             Set<SugiliteEntity> object = new HashSet<>();
             object.add(new SugiliteEntity(-1, String.class, featurePack.packageName));

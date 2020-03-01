@@ -75,7 +75,7 @@ public class PumiceParsingResultWithResolveFnConfirmationHandler implements Pumi
 
         else {
             //empty result -- no candidate available
-            pumiceDialogManager.sendAgentMessage("Can't understand your utterance, please try again", true, false);
+            pumiceDialogManager.sendAgentMessage("I can't understand your utterance, please try again", true, false);
             //execute the retry runnable
             runnableForRetry.run();
         }
@@ -159,7 +159,7 @@ public class PumiceParsingResultWithResolveFnConfirmationHandler implements Pumi
         }
 
         else if (pumiceIntent.equals(PumiceIntent.UNRECOGNIZED)) {
-            pumiceDialogManager.sendAgentMessage("Can't recognize your response. Please respond with \"Yes\" or \"No\".", true, false);
+            pumiceDialogManager.sendAgentMessage("I can't recognize your response. Please respond with \"Yes\" or \"No\".", true, false);
             sendPromptForTheIntentHandler();
         }
 

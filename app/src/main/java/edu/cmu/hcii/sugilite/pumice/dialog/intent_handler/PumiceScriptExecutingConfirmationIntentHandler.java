@@ -12,7 +12,6 @@ import edu.cmu.hcii.sugilite.model.block.SugiliteConditionBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.pumice.dialog.PumiceDialogManager;
 import edu.cmu.hcii.sugilite.pumice.PumiceDemonstrationUtil;
-import edu.cmu.hcii.sugilite.source_parsing.SugiliteScriptParser;
 
 /**
  * @author toby
@@ -42,7 +41,7 @@ public class PumiceScriptExecutingConfirmationIntentHandler implements PumiceUtt
     @Override
     public void handleIntentWithUtterance(PumiceDialogManager dialogManager, PumiceIntent pumiceIntent, PumiceDialogManager.PumiceUtterance utterance) {
 
-        if (pumiceIntent.equals(PumiceIntent.EXECUTION_POSITIVE)) {
+        if (pumiceIntent.equals(PumiceIntent.EXECUTION_CONFIRM_POSITIVE)) {
             dialogManager.sendAgentMessage("Executing the script...", true, false);
             ServiceStatusManager serviceStatusManager = dialogManager.getServiceStatusManager();
             SugiliteData sugiliteData = dialogManager.getSugiliteData();
@@ -81,7 +80,7 @@ public class PumiceScriptExecutingConfirmationIntentHandler implements PumiceUtt
 
         }
 
-        else if (pumiceIntent.equals(PumiceIntent.EXECUTION_NEGATIVE)) {
+        else if (pumiceIntent.equals(PumiceIntent.EXECUTION_CONFIRM_NEGATIVE)) {
             dialogManager.sendAgentMessage("OK", true, false);
             dialogManager.updateUtteranceIntentHandlerInANewState(new PumiceDefaultUtteranceIntentHandler(dialogManager, context));
             dialogManager.callSendPromptForTheIntentHandlerForCurrentIntentHandler();
@@ -111,7 +110,7 @@ public class PumiceScriptExecutingConfirmationIntentHandler implements PumiceUtt
             SugiliteData.runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    handleIntentWithUtterance(pumiceDialogManager, PumiceIntent.EXECUTION_POSITIVE, null);
+                    handleIntentWithUtterance(pumiceDialogManager, PumiceIntent.EXECUTION_CONFIRM_POSITIVE, null);
                 }
             });
         }
@@ -127,9 +126,9 @@ public class PumiceScriptExecutingConfirmationIntentHandler implements PumiceUtt
     public PumiceIntent detectIntentFromUtterance(PumiceDialogManager.PumiceUtterance utterance) {
         String utteranceContent = utterance.getContent();
         if (utteranceContent != null && (utteranceContent.toLowerCase().contains("yes") || utteranceContent.toLowerCase().toLowerCase().contains("ok") || utteranceContent.toLowerCase().contains("yeah"))){
-            return PumiceIntent.EXECUTION_POSITIVE;
+            return PumiceIntent.EXECUTION_CONFIRM_POSITIVE;
         } else if (utteranceContent != null && (utteranceContent.toLowerCase().contains("no"))) {
-            return PumiceIntent.EXECUTION_NEGATIVE;
+            return PumiceIntent.EXECUTION_CONFIRM_NEGATIVE;
         } else {
             return PumiceIntent.UNRECOGNIZED;
         }

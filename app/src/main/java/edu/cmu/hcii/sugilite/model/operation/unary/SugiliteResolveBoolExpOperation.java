@@ -44,7 +44,7 @@ public class SugiliteResolveBoolExpOperation extends SugiliteUnaryOperation<Stri
 
     @Override
     public Boolean evaluate(SugiliteData sugiliteData) {
-        //TODO: this should actually execute the query to get the result
+        //the evaluation of Resolve() functions are handled by the parser
         return null;
     }
 

@@ -49,7 +49,7 @@ public class ErrorHandler {
     private SugiliteScriptDao sugiliteScriptDao;
     private String[] excludedPackageSet = {"com.google.android.inputmethod.pinyin", "com.inMind.inMindAgent", "com.google.android.inputmethod.latin"};
 
-    static final private int LAST_WINDOW_CHANGE_TIMEOUT = 2000000, LAST_SUCCESSFUL_OPERATION = 4000000;
+    static final private int LAST_WINDOW_CHANGE_TIMEOUT = 30000, LAST_SUCCESSFUL_OPERATION = 30000;
 
     public ErrorHandler(Context context, SugiliteData sugiliteData, SharedPreferences sharedPreferences){
         this.applicationContext = context;

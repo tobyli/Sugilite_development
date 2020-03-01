@@ -53,11 +53,11 @@ public class PumiceUserExplainBoolExpIntentHandler implements PumiceUtteranceInt
 
     @Override
     public void handleIntentWithUtterance(PumiceDialogManager dialogManager, PumiceIntent pumiceIntent, PumiceDialogManager.PumiceUtterance utterance) {
-        if (pumiceIntent.equals(PumiceIntent.BOOL_EXP_INSTRUCTION)){
+        if (pumiceIntent.equals(PumiceIntent.DEFINE_BOOL_EXPRESSION_INSTRUCTION)){
             //dialogManager.sendAgentMessage("I have received your explanation: " + utterance.getTriggerContent(), true, false);
 
             //send out the server query
-            PumiceInstructionPacket pumiceInstructionPacket = new PumiceInstructionPacket(dialogManager.getPumiceKnowledgeManager(), PumiceIntent.BOOL_EXP_INSTRUCTION.name(), calendar.getTimeInMillis(), utterance.getContent(), parentKnowledgeName);
+            PumiceInstructionPacket pumiceInstructionPacket = new PumiceInstructionPacket(dialogManager.getPumiceKnowledgeManager(), "BOOL_EXP_INSTRUCTION", calendar.getTimeInMillis(), utterance.getContent(), parentKnowledgeName);
             //dialogManager.sendAgentMessage("Sending out the server query below...", true, false);
             //dialogManager.sendAgentMessage(pumiceInstructionPacket.toString(), false, false);
             try {
@@ -76,7 +76,7 @@ public class PumiceUserExplainBoolExpIntentHandler implements PumiceUtteranceInt
 
     @Override
     public PumiceIntent detectIntentFromUtterance(PumiceDialogManager.PumiceUtterance utterance) {
-        return PumiceIntent.BOOL_EXP_INSTRUCTION;
+        return PumiceIntent.DEFINE_BOOL_EXPRESSION_INSTRUCTION;
     }
 
     @Override

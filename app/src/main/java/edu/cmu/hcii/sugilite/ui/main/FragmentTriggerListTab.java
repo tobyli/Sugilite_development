@@ -67,7 +67,7 @@ public class FragmentTriggerListTab extends Fragment {
             @Override
             public void onClick(final View v) {
                 try {
-                    new AddTriggerDialog(activity, sugiliteData, sugiliteScriptDao, activity.getPackageManager(), fragmentTriggerListTab).show();
+                    new AddTriggerDialog(activity, sugiliteData, sugiliteScriptDao, fragmentTriggerListTab).show();
                 }
                 catch (Exception e){
                     e.printStackTrace();
@@ -160,7 +160,7 @@ public class FragmentTriggerListTab extends Fragment {
     private void triggerOnClick (String triggerName) {
         SugiliteTrigger trigger = triggerDao.read(triggerName);
         try {
-            AddTriggerDialog triggerDialog = new AddTriggerDialog(activity, sugiliteData, sugiliteScriptDao, activity.getPackageManager(), fragmentTriggerListTab);
+            AddTriggerDialog triggerDialog = new AddTriggerDialog(activity, sugiliteData, sugiliteScriptDao, fragmentTriggerListTab);
             String errorMsg = null;
             try {
                 triggerDialog.loadFromExistingTrigger(trigger);

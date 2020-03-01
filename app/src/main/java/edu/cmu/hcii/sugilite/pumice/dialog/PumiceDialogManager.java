@@ -227,6 +227,7 @@ public class PumiceDialogManager{
         if(stateHistoryList.size() > 0 && stateHistoryList.get(0) != null){
             revertToState(stateHistoryList.get(0));
         }
+        callSendPromptForTheIntentHandlerForCurrentIntentHandler();
     }
 
     public Activity getContext() {

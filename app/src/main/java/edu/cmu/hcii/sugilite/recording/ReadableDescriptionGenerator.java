@@ -25,6 +25,7 @@ import edu.cmu.hcii.sugilite.model.operation.trinary.SugiliteLoadVariableOperati
 import edu.cmu.hcii.sugilite.model.operation.SugiliteOperation;
 import edu.cmu.hcii.sugilite.model.operation.binary.SugiliteReadoutOperation;
 import edu.cmu.hcii.sugilite.model.operation.binary.SugiliteSetTextOperation;
+import edu.cmu.hcii.sugilite.sovite.SoviteAppNameAppInfoManager;
 
 
 /**
@@ -33,10 +34,9 @@ import edu.cmu.hcii.sugilite.model.operation.binary.SugiliteSetTextOperation;
  * @time 4:03 PM
  */
 public class ReadableDescriptionGenerator {
-    private static Map<String, String> packageNameReadableNameMap;
+    private static SoviteAppNameAppInfoManager soviteAppNameAppInfoManager;
     public ReadableDescriptionGenerator(Context applicationContext){
-        packageNameReadableNameMap = new HashMap<>();
-        setupPackageNameReadableNameMap();
+        this.soviteAppNameAppInfoManager = SoviteAppNameAppInfoManager.getInstance(SugiliteData.getAppContext());
     }
 
     public String generateDescriptionForVerbalBlock(SugiliteOperationBlock block, String formula, String utterance){
@@ -201,7 +201,7 @@ public class ReadableDescriptionGenerator {
                 }
 
                 if (((SugiliteOperationBlock) block).getElementMatchingFilter().getPackageName() != null) {
-                    message += "in " + getHTMLColor(getReadableAppNameFromPackageName(((SugiliteOperationBlock) block).getElementMatchingFilter().getPackageName()), Const.SCRIPT_WITHIN_APP_COLOR) + " ";
+                    message += "in " + getHTMLColor((((SugiliteOperationBlock) block).getElementMatchingFilter().getPackageName()), Const.SCRIPT_WITHIN_APP_COLOR) + " ";
                 }
                 return Html.fromHtml(message);
             } else {
@@ -309,7 +309,7 @@ public class ReadableDescriptionGenerator {
             }
 
             if(sugiliteOperationBlock.getElementMatchingFilter().getPackageName() != null)
-                message += "in the " + getHTMLColor(getReadableAppNameFromPackageName(sugiliteOperationBlock.getElementMatchingFilter().getPackageName()), Const.SCRIPT_WITHIN_APP_COLOR) + " app ";
+                message += "in the " + getHTMLColor(soviteAppNameAppInfoManager.getReadableAppNameForPackageName(sugiliteOperationBlock.getElementMatchingFilter().getPackageName()), Const.SCRIPT_WITHIN_APP_COLOR) + " app ";
             return message;
 
 
@@ -435,33 +435,6 @@ public class ReadableDescriptionGenerator {
     }
 
 
-
-    private void setupPackageNameReadableNameMap(){
-        packageNameReadableNameMap.put("com.google.android.googlequicksearchbox", "Home Screen");
-    }
-
-    /**
-     * get readable app name from package name
-     * @param packageName
-     * @return
-     */
-    public static String getReadableAppNameFromPackageName(String packageName){
-        PackageManager packageManager = SugiliteData.getAppContext().getPackageManager();
-        ApplicationInfo applicationInfo;
-
-        try{
-            applicationInfo = packageManager.getApplicationInfo(packageName, 0);
-        }
-        catch (Exception e){
-            applicationInfo = null;
-        }
-        if(packageNameReadableNameMap.containsKey(packageName))
-            return packageNameReadableNameMap.get(packageName);
-        else if (applicationInfo != null)
-            return (String)packageManager.getApplicationLabel(applicationInfo);
-        else
-            return packageName;
-    }
 
     public String getReadableClassName(String className){
         if(className.toLowerCase().contains("button")){

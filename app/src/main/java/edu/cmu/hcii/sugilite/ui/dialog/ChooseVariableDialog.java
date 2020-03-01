@@ -148,23 +148,26 @@ public class ChooseVariableDialog implements AbstractSugiliteDialog {
                          String variableName = newVariableNameEditText.getText().toString();
                          String defaultValue = defaultValueEditText.getText().toString();
                          defaultValueToShow = defaultValue;
-                         if(sugiliteData.stringVariableMap == null)
+                         if(sugiliteData.stringVariableMap == null) {
                              sugiliteData.stringVariableMap = new HashMap<String, Variable>();
+                         }
                          sugiliteData.stringVariableMap.put(variableName, new StringVariable(variableName, defaultValue));
                          startingBlock.variableNameDefaultValueMap.put(variableName, new StringVariable(variableName, defaultValue));
                      }
                      else {
                          //TODO: user has selected an existing variable
                          Variable defaultVariableValue = startingBlock.variableNameDefaultValueMap.get(selectedItemName);
-                         if(defaultVariableValue != null && defaultVariableValue instanceof StringVariable)
+                         if(defaultVariableValue != null && defaultVariableValue instanceof StringVariable) {
                              defaultValueToShow = ((StringVariable) defaultVariableValue).getValue();
+                         }
                      }
                      if(label.length() > 0){
                          //choosing variable for a generated checkbox row
                          editText.setText(Html.fromHtml("<b>" + label + ":</b> " + "@" + selectedItemName + ": (" + defaultValueToShow + ")"));
                      }
-                     else
-                        editText.setText("@" + selectedItemName + ": (" + defaultValueToShow + ")");
+                     else {
+                         editText.setText("@" + selectedItemName + ": (" + defaultValueToShow + ")");
+                     }
                      dialog.dismiss();
                  }
              }

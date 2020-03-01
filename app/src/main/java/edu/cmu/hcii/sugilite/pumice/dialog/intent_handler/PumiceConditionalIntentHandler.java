@@ -1,10 +1,7 @@
 package edu.cmu.hcii.sugilite.pumice.dialog.intent_handler;
 
 import android.app.Activity;
-import android.app.Dialog;
 import android.content.Context;
-import android.content.Intent;
-import android.widget.Toast;
 
 import com.google.gson.ExclusionStrategy;
 import com.google.gson.FieldAttributes;
@@ -15,20 +12,17 @@ import java.util.Calendar;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import edu.cmu.hcii.sugilite.pumice.communication.PumiceInstructionPacket;
 import edu.cmu.hcii.sugilite.pumice.communication.PumiceSemanticParsingResultPacket;
 import edu.cmu.hcii.sugilite.pumice.communication.SkipPumiceJSONSerialization;
 import edu.cmu.hcii.sugilite.pumice.dialog.PumiceDialogManager;
 import edu.cmu.hcii.sugilite.ui.LocalScriptDetailActivity;
 import edu.cmu.hcii.sugilite.model.block.SugiliteConditionBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
-import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.server_comm.SugiliteVerbalInstructionHTTPQueryInterface;
 
 import static edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.PumiceUtteranceIntentHandler.PumiceIntent.FIX_SCOPE;
-import static edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.PumiceUtteranceIntentHandler.PumiceIntent.FIX_SCOPE;
-import static edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.PumiceUtteranceIntentHandler.PumiceIntent.FIX_SCOPE;
 
+@Deprecated
 public class PumiceConditionalIntentHandler implements PumiceUtteranceIntentHandler, SugiliteVerbalInstructionHTTPQueryInterface {
     private LocalScriptDetailActivity sourceActivity;
     private PumiceDialogManager dialogManager;
@@ -220,7 +214,7 @@ public class PumiceConditionalIntentHandler implements PumiceUtteranceIntentHand
                 lastUtterance = utterance;
                 dialogManager.addElse = true;
                 dialogManager.conditionBlock = dialogManager.tResult;
-                PumiceInstructionPacket pumiceInstructionPacket4 = new PumiceInstructionPacket(dialogManager.getPumiceKnowledgeManager(), PumiceIntent.DEFINE_VALUE_EXP, calendar.getTimeInMillis(), utterance.getTriggerContent(), "");//"if it is hot" +
+                PumiceInstructionPacket pumiceInstructionPacket4 = new PumiceInstructionPacket(dialogManager.getPumiceKnowledgeManager(), PumiceIntent.DEFINE_VALUE_EXPLANATION, calendar.getTimeInMillis(), utterance.getTriggerContent(), "");//"if it is hot" +
                 dialogManager.sendAgentMessage("Let's make sure I understood what you said...", true, false);
                 dialogManager.sendAgentMessage(pumiceInstructionPacket4.toString(), false, false);
                 try {
@@ -453,7 +447,7 @@ public class PumiceConditionalIntentHandler implements PumiceUtteranceIntentHand
                             }
                         }
                         break;
-                    case DEFINE_VALUE_EXP:
+                    case DEFINE_VALUE_EXPLANATION:
                         if (resultPacket.queries != null && resultPacket.queries.size() > 0) {
                             PumiceSemanticParsingResultPacket.QueryGroundingPair topResult = resultPacket.queries.get(0);
                             if (topResult.formula != null) {

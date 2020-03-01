@@ -29,6 +29,7 @@ import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
 import edu.cmu.hcii.sugilite.dao.SugiliteTriggerDao;
 import edu.cmu.hcii.sugilite.model.trigger.SugiliteTrigger;
 import edu.cmu.hcii.sugilite.pumice.PumiceDemonstrationUtil;
+import edu.cmu.hcii.sugilite.sovite.SoviteAppNameAppInfoManager;
 import edu.cmu.hcii.sugilite.ui.main.FragmentScriptListTab;
 import edu.cmu.hcii.sugilite.ui.main.FragmentTriggerListTab;
 
@@ -47,7 +48,6 @@ public class AddTriggerDialog implements AbstractSugiliteDialog {
     private Spinner triggerTypeSpinner, chooseTriggerAppSpinner, chooseNotificationTriggerAppSpinner, chooseScriptTriggerSpinner;
     private TextView chooseTriggerAppPromptTextView, chooseNotificationTriggerAppPromptTextView, notificationTriggerContentPromptTextView;
     private EditText notificationTriggerContentEditText, triggerNameEditText;
-    private List<ApplicationInfo> packages;
     private SugiliteTriggerDao sugiliteTriggerDao;
     private FragmentTriggerListTab triggerTab;
 
@@ -63,7 +63,7 @@ public class AddTriggerDialog implements AbstractSugiliteDialog {
     private String originalTriggerName = null;
 
 
-    public AddTriggerDialog(final Context context, SugiliteData sugiliteData, SugiliteScriptDao sugiliteScriptDao, PackageManager pm, Fragment triggerListTab) throws Exception{
+    public AddTriggerDialog(final Context context, SugiliteData sugiliteData, SugiliteScriptDao sugiliteScriptDao, Fragment triggerListTab) throws Exception{
         this.context = context;
         this.sugiliteData = sugiliteData;
         this.sugiliteScriptDao = sugiliteScriptDao;
@@ -76,17 +76,17 @@ public class AddTriggerDialog implements AbstractSugiliteDialog {
         LayoutInflater inflater = LayoutInflater.from(context);
         View dialogView = inflater.inflate(R.layout.dialog_add_trigger, null);
 
-        packages = pm.getInstalledApplications(PackageManager.GET_META_DATA);
-
         //initiate appNamePackageNameMap and appNameOrderedList
         appNamePackageNameMap = new HashMap<>();
         packageNameAppNameMap = new HashMap<>();
         appNameIndexMap = new HashMap<>();
         appNameOrderedList = new ArrayList<>();
-        for(ApplicationInfo info : packages){
-            appNamePackageNameMap.put(pm.getApplicationLabel(info).toString(), info.packageName);
-            packageNameAppNameMap.put(info.packageName, pm.getApplicationLabel(info).toString());
 
+        SoviteAppNameAppInfoManager soviteAppNameAppInfoManager = SoviteAppNameAppInfoManager.getInstance(SugiliteData.getAppContext());
+        Map<String, String> allAvailableAppPackageNameReadableNameMap = soviteAppNameAppInfoManager.getAllAvailableAppPackageNameReadableNameMap(false);
+        for (Map.Entry<String, String> entry : allAvailableAppPackageNameReadableNameMap.entrySet()) {
+            packageNameAppNameMap.put(entry.getKey(), entry.getValue());
+            appNamePackageNameMap.put(entry.getValue(), entry.getKey());
         }
 
         //filter out those without a readable app name

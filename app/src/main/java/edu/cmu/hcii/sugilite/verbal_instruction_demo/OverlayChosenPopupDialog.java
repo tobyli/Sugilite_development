@@ -72,7 +72,7 @@ public class OverlayChosenPopupDialog implements SugiliteVerbalInstructionHTTPQu
                         VerbalInstructionServerResponse response = new VerbalInstructionServerResponse(chosenResult.getFormula(), chosenResult.getId());
 
                         try {
-                            httpQueryManager.sendResponseRequestOnASeparateThread(response, overlayChosenPopupDialog);
+                            httpQueryManager.sendResponseRequestOnASeparateThread(response, httpQueryManager.getSemanticParsingServerUrl(), overlayChosenPopupDialog);
                         } catch (Exception e) {
                             e.printStackTrace();
                         }

@@ -33,8 +33,10 @@ public class PumiceDefaultUtteranceIntentHandler implements PumiceUtteranceInten
     private PumiceDialogManager pumiceDialogManager;
     private Calendar calendar;
     private SugiliteScriptParser sugiliteScriptParser;
-
     private PumiceDefaultUtteranceIntentHandler pumiceDefaultUtteranceIntentHandler;
+
+
+
 
     public PumiceDefaultUtteranceIntentHandler(PumiceDialogManager pumiceDialogManager, Activity context){
         this.pumiceDialogManager = pumiceDialogManager;
@@ -73,11 +75,11 @@ public class PumiceDefaultUtteranceIntentHandler implements PumiceUtteranceInten
         }
 
         if (text.contains("show existing")) {
-            return PumiceIntent.SHOW_KNOWLEDGE;
+            return PumiceIntent.LIST_KNOWLEDGE;
         }
 
         if (text.contains("show raw")) {
-            return PumiceIntent.SHOW_RAW_KNOWLEDGE;
+            return PumiceIntent.LIST_KNOWLEDGE_IN_RAW_FORM;
         }*/
 
         else {
@@ -122,11 +124,11 @@ public class PumiceDefaultUtteranceIntentHandler implements PumiceUtteranceInten
                 }
                 System.out.println(pumiceInstructionPacket.toString());
                 break;
-            case SHOW_KNOWLEDGE:
+            case LIST_KNOWLEDGE:
                 dialogManager.sendAgentMessage("Below are the existing knowledge...", true, false);
                 dialogManager.sendAgentMessage(dialogManager.getPumiceKnowledgeManager().getKnowledgeInString(), false, false);
                 break;
-            case SHOW_RAW_KNOWLEDGE:
+            case LIST_KNOWLEDGE_IN_RAW_FORM:
                 dialogManager.sendAgentMessage("Below are the raw knowledge..." + dialogManager.getPumiceKnowledgeManager().getRawKnowledgeInString(), true, false);
                 dialogManager.sendAgentMessage(dialogManager.getPumiceKnowledgeManager().getRawKnowledgeInString(), false, false);
                 break;

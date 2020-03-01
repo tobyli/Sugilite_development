@@ -23,7 +23,7 @@ import edu.cmu.hcii.sugilite.R;
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.pumice.communication.PumiceInstructionPacket;
 import edu.cmu.hcii.sugilite.pumice.communication.SkipPumiceJSONSerialization;
-import edu.cmu.hcii.sugilite.sharing.SugiliteScriptSharingHTTPQueryManager;
+import edu.cmu.hcii.sugilite.sovite.communication.SoviteAppResolutionQueryPacket;
 import edu.cmu.hcii.sugilite.ui.dialog.SugiliteProgressDialog;
 
 /**
@@ -34,14 +34,16 @@ import edu.cmu.hcii.sugilite.ui.dialog.SugiliteProgressDialog;
 public class SugiliteVerbalInstructionHTTPQueryManager {
     private static SugiliteVerbalInstructionHTTPQueryManager instance;
 
-    private static final String DEFAULT_SERVER_URL =  "http://35.211.149.88:4567/semparse";
+    private static final String DEFAULT_SEMANTIC_PARSING_SERVER_URL =  "http://35.211.149.88:4567/semparse";
+    private static final String DEFAULT_BERT_EMBEDDING_SERVER_URL =  "http://35.207.16.161:5000/get_closest_embeddings";
     private static final String USER_AGENT = "Mozilla/5.0";
-    private static final int TIME_OUT = 3000;
+    private static final int TIME_OUT = 60000;
 
 
     private Gson gson;
     private SharedPreferences sharedPreferences;
-    private URL url;
+    private URL semanticParsingServerUrl;
+    private URL bertEmbeddingServerUrl;
 
     public static SugiliteVerbalInstructionHTTPQueryManager getInstance(Context context){
         if (instance == null) {
@@ -69,16 +71,28 @@ public class SugiliteVerbalInstructionHTTPQueryManager {
                 })
                 .create();
 
-        String urlString = "null";
+        String semanticParsingServerUrlString = "null";
+        String bertEmbeddingServerUrlString = "null";
             if (sharedPreferences != null) {
-                urlString = sharedPreferences.getString("semantic_parsing_server_address", "null");
+                semanticParsingServerUrlString = sharedPreferences.getString("semantic_parsing_server_address", "null");
+                bertEmbeddingServerUrlString = sharedPreferences.getString("bert_embedding_server_address", "null");
+            }
+
+        try {
+            if (semanticParsingServerUrlString.equals("null")) {
+                semanticParsingServerUrl = new URL(DEFAULT_SEMANTIC_PARSING_SERVER_URL);
+            } else {
+                semanticParsingServerUrl = new URL(semanticParsingServerUrlString);
+            }
+        } catch (MalformedURLException e){
+            throw new RuntimeException("malformed URL!");
         }
 
         try {
-            if (urlString.equals("null")) {
-                url = new URL(DEFAULT_SERVER_URL);
+            if (bertEmbeddingServerUrlString.equals("null")) {
+                bertEmbeddingServerUrl = new URL(DEFAULT_BERT_EMBEDDING_SERVER_URL);
             } else {
-                url = new URL(urlString);
+                bertEmbeddingServerUrl = new URL(bertEmbeddingServerUrlString);
             }
         } catch (MalformedURLException e){
             throw new RuntimeException("malformed URL!");
@@ -92,7 +106,7 @@ public class SugiliteVerbalInstructionHTTPQueryManager {
             public void run() {
                 try {
                     String content = gson.toJson(packet);
-                    sendRequest(content, caller, false);
+                    sendRequest(content, semanticParsingServerUrl, caller, false);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -101,13 +115,28 @@ public class SugiliteVerbalInstructionHTTPQueryManager {
         thread.start();
     }
 
-    public void sendQueryRequestOnASeparateThread(VerbalInstructionServerQuery query, SugiliteVerbalInstructionHTTPQueryInterface caller) throws Exception {
+    public void sendSoviteAppResolutionPacketOnASeparateThread(SoviteAppResolutionQueryPacket soviteAppResolutionQueryPacket, SugiliteVerbalInstructionHTTPQueryInterface caller) throws Exception {
+        Thread thread = new Thread() {
+            @Override
+            public void run() {
+                try {
+                    String content = gson.toJson(soviteAppResolutionQueryPacket);
+                    sendRequest(content, bertEmbeddingServerUrl, caller, true);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        };
+        thread.start();
+    }
+
+    public void sendQueryRequestOnASeparateThread(VerbalInstructionServerQuery query, URL url, SugiliteVerbalInstructionHTTPQueryInterface caller) throws Exception {
 
         Thread thread = new Thread() {
             @Override
             public void run() {
                 try {
-                    sendQueryRequest(query, caller, true);
+                    sendQueryRequest(query, url, caller, true);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -116,22 +145,22 @@ public class SugiliteVerbalInstructionHTTPQueryManager {
         thread.start();
     }
 
-    private void sendQueryRequest(VerbalInstructionServerQuery query, SugiliteVerbalInstructionHTTPQueryInterface caller, boolean toShowProgressDialog) throws Exception {
+    private void sendQueryRequest(VerbalInstructionServerQuery query, URL url, SugiliteVerbalInstructionHTTPQueryInterface caller, boolean toShowProgressDialog) throws Exception {
         String content = gson.toJson(query);
-        sendRequest(content, caller, toShowProgressDialog);
+        sendRequest(content, url, caller, toShowProgressDialog);
     }
 
-    private void sendResponseRequest(VerbalInstructionServerResponse response, SugiliteVerbalInstructionHTTPQueryInterface caller, boolean toShowProgressDialog) throws Exception {
+    private void sendResponseRequest(VerbalInstructionServerResponse response, URL url, SugiliteVerbalInstructionHTTPQueryInterface caller, boolean toShowProgressDialog) throws Exception {
         String content = gson.toJson(response);
-        sendRequest(content, caller, toShowProgressDialog);
+        sendRequest(content, url, caller, toShowProgressDialog);
     }
 
-    public void sendResponseRequestOnASeparateThread(VerbalInstructionServerResponse response, SugiliteVerbalInstructionHTTPQueryInterface caller) throws Exception {
+    public void sendResponseRequestOnASeparateThread(VerbalInstructionServerResponse response, URL url, SugiliteVerbalInstructionHTTPQueryInterface caller) throws Exception {
         Thread thread = new Thread() {
             @Override
             public void run() {
                 try {
-                    sendResponseRequest(response, caller, true);
+                    sendResponseRequest(response, url, caller, true);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -140,9 +169,15 @@ public class SugiliteVerbalInstructionHTTPQueryManager {
         thread.start();
     }
 
+    public URL getBertEmbeddingServerUrl() {
+        return bertEmbeddingServerUrl;
+    }
 
+    public URL getSemanticParsingServerUrl() {
+        return semanticParsingServerUrl;
+    }
 
-    private void sendRequest(String content, SugiliteVerbalInstructionHTTPQueryInterface caller, boolean toShowProgressDialog) throws Exception {
+    private void sendRequest(String content, URL url, SugiliteVerbalInstructionHTTPQueryInterface caller, boolean toShowProgressDialog) throws Exception {
         //progress dialog
         SugiliteProgressDialog progressDialog = null;
         if (toShowProgressDialog) {

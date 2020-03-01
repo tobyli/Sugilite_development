@@ -281,7 +281,7 @@ public class RecordingAmbiguousPopupDialog extends SugiliteDialogManager impleme
             VerbalInstructionServerQuery query = new VerbalInstructionServerQuery(userInput, serializableUISnapshot.triplesToStringWithFilter(SugiliteRelation.HAS_CHILD, SugiliteRelation.HAS_PARENT), className);
             //send the query
             try {
-                sugiliteVerbalInstructionHTTPQueryManager.sendQueryRequestOnASeparateThread(query, this);
+                sugiliteVerbalInstructionHTTPQueryManager.sendQueryRequestOnASeparateThread(query, sugiliteVerbalInstructionHTTPQueryManager.getSemanticParsingServerUrl(), this);
             } catch (Exception e){
                 e.printStackTrace();
             }

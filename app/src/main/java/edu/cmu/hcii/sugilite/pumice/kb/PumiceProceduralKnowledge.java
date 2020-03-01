@@ -20,10 +20,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.model.variable.Variable;
 import edu.cmu.hcii.sugilite.ontology.description.OntologyDescriptionGenerator;
 import edu.cmu.hcii.sugilite.pumice.communication.SkipPumiceJSONSerialization;
+import edu.cmu.hcii.sugilite.sovite.SoviteAppNameAppInfoManager;
 
 import static edu.cmu.hcii.sugilite.Const.HOME_SCREEN_PACKAGE_NAMES;
 
@@ -101,9 +103,11 @@ public class PumiceProceduralKnowledge implements Serializable {
                 involvedAppPackageNames.add(packageName);
             }
         }
+
+        SoviteAppNameAppInfoManager soviteAppNameAppInfoManager = SoviteAppNameAppInfoManager.getInstance(SugiliteData.getAppContext());
         for(String packageName : involvedAppPackageNames){
             //get app name for package name
-            involvedAppNames.add(OntologyDescriptionGenerator.getAppName(packageName));
+            involvedAppNames.add(soviteAppNameAppInfoManager.getReadableAppNameForPackageName(packageName));
         }
         //populate parameterNameParameterMap
         if(startingBlock.variableNameDefaultValueMap != null) {

@@ -44,7 +44,7 @@ public class SugiliteResolveValueQueryOperation extends SugiliteUnaryOperation<S
 
     @Override
     public String evaluate(SugiliteData sugiliteData) {
-        //TODO: this should actually execute the query to get the result
+        //the evaluation of Resolve() functions are handled by the parser
         return null;
     }
 

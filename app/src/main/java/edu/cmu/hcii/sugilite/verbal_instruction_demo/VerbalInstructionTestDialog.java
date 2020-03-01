@@ -148,7 +148,7 @@ public class VerbalInstructionTestDialog implements SugiliteVoiceInterface, Sugi
                 //send the query
 
                 try {
-                    sugiliteVerbalInstructionHTTPQueryManager.sendQueryRequestOnASeparateThread(query, verbalInstructionTestDialog);
+                    sugiliteVerbalInstructionHTTPQueryManager.sendQueryRequestOnASeparateThread(query, sugiliteVerbalInstructionHTTPQueryManager.getSemanticParsingServerUrl(), verbalInstructionTestDialog);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }

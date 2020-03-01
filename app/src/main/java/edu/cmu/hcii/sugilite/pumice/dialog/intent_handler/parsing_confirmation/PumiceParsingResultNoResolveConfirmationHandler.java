@@ -17,6 +17,7 @@ import edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.PumiceDefaultUtterance
 import edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.PumiceUtteranceIntentHandler;
 import edu.cmu.hcii.sugilite.source_parsing.SugiliteScriptParser;
 import edu.cmu.hcii.sugilite.sovite.ScriptVisualThumbnailManager;
+import edu.cmu.hcii.sugilite.sovite.dialog.intent_handler.SoviteIntentClassificationErrorIntentHandler;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.server_comm.SugiliteVerbalInstructionHTTPQueryInterface;
 import edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.parsing_confirmation.PumiceParsingResultWithResolveFnConfirmationHandler.HandleParsingResultPacket;
 
@@ -115,6 +116,8 @@ public class PumiceParsingResultNoResolveConfirmationHandler implements PumiceUt
             } catch (Exception e) {
                 e.printStackTrace();
             }
+            //set the intent handler back to the default one
+            dialogManager.updateUtteranceIntentHandlerInANewState(new PumiceDefaultUtteranceIntentHandler(pumiceDialogManager, context));
         }
 
 
@@ -124,9 +127,12 @@ public class PumiceParsingResultNoResolveConfirmationHandler implements PumiceUt
             // TODO: need to better handle negative response here
             HandleParsingResultPacket parsingResultPacket = parsingResultsToHandle;
 
+            // TODO: first try to strip the fix part from the user's utterance, and feed it back to the original parser to try again
+            dialogManager.updateUtteranceIntentHandlerInANewState(new SoviteIntentClassificationErrorIntentHandler(pumiceDialogManager, context, parsingResultPacket.resultPacket.userUtterance, parsingResultPacket.resultPacket));
+            dialogManager.callSendPromptForTheIntentHandlerForCurrentIntentHandler();
             //show a popup to ask the user to choose from parsing results
-            PumiceChooseParsingDialogNew pumiceChooseParsingDialog = new PumiceChooseParsingDialogNew(context, dialogManager, parsingResultPacket.resultPacket, parsingResultPacket.runnableForRetry, parsingResultPacket.runnableForConfirmedParse, failureCount);
-            pumiceChooseParsingDialog.show();
+            // PumiceChooseParsingDialogNew pumiceChooseParsingDialog = new PumiceChooseParsingDialogNew(context, dialogManager, parsingResultPacket.resultPacket, parsingResultPacket.runnableForRetry, parsingResultPacket.runnableForConfirmedParse, failureCount);
+            // pumiceChooseParsingDialog.show();
         }
 
         else if (pumiceIntent.equals(PumiceIntent.UNRECOGNIZED)) {
@@ -134,8 +140,7 @@ public class PumiceParsingResultNoResolveConfirmationHandler implements PumiceUt
             sendPromptForTheIntentHandler();
         }
 
-        //set the intent handler back to the default one
-        dialogManager.updateUtteranceIntentHandlerInANewState(new PumiceDefaultUtteranceIntentHandler(pumiceDialogManager, context));
+
     }
 
     private void sendBestExecutionConfirmation() {

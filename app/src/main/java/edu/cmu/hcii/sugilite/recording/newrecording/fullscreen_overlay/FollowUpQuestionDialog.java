@@ -280,7 +280,7 @@ public class FollowUpQuestionDialog extends SugiliteDialogManager implements Sug
             //send the query
 
             try {
-                sugiliteVerbalInstructionHTTPQueryManager.sendQueryRequestOnASeparateThread(query, this);
+                sugiliteVerbalInstructionHTTPQueryManager.sendQueryRequestOnASeparateThread(query, sugiliteVerbalInstructionHTTPQueryManager.getSemanticParsingServerUrl(), this);
             } catch (Exception e) {
                 e.printStackTrace();
             }

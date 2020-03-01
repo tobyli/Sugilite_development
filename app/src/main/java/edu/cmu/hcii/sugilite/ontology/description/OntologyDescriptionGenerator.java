@@ -25,6 +25,7 @@ import edu.cmu.hcii.sugilite.ontology.*;
 import edu.cmu.hcii.sugilite.ontology.HashedStringLeafOntologyQuery;
 import edu.cmu.hcii.sugilite.pumice.PumiceDemonstrationUtil;
 import edu.cmu.hcii.sugilite.sharing.PrivateNonPrivateLeafOntologyQueryPairWrapper;
+import edu.cmu.hcii.sugilite.sovite.SoviteAppNameAppInfoManager;
 
 import static edu.cmu.hcii.sugilite.sharing.SugiliteSharingScriptPreparer.POTENTIALLY_PRIVATE_RELATIONS;
 
@@ -33,30 +34,6 @@ import static edu.cmu.hcii.sugilite.sharing.SugiliteSharingScriptPreparer.POTENT
  */
 
 public class OntologyDescriptionGenerator {
-
-    public static String getAppName(String packageName) {
-        PackageManager packageManager = null;
-        if (SugiliteData.getAppContext() != null) {
-            packageManager = SugiliteData.getAppContext().getPackageManager();
-        }
-
-        if (packageName.equals("com.android.launcher3") ||
-                packageName.equals("com.google.android.googlequicksearchbox") ||
-                packageName.equals("com.google.android.apps.nexuslauncher"))
-            return "Home Screen";
-        if (packageManager != null) {
-            ApplicationInfo ai;
-            try {
-                ai = packageManager.getApplicationInfo(packageName, 0);
-            } catch (final PackageManager.NameNotFoundException e) {
-                ai = null;
-            }
-            final String applicationName = (String) (ai != null ? packageManager.getApplicationLabel(ai) : "(unknown) " + packageName);
-            return applicationName;
-        } else {
-            return packageName;
-        }
-    }
 
     public Spanned getDescriptionForOntologyQuery(OntologyQuery ontologyQuery, boolean isParentQuery) {
         return getDescriptionForOntologyQuery(ontologyQuery, isParentQuery, false, null);
@@ -606,11 +583,12 @@ public class OntologyDescriptionGenerator {
         String[] objectString = new String[1];
         SugiliteRelation sugiliteRelation = getRForQuery(ontologyQuery);
         SugiliteEntity[] objectArr = ontologyQuery.getObjectSet().toArray(new SugiliteEntity[ontologyQuery.getObjectSet().size()]);
+        SoviteAppNameAppInfoManager soviteAppNameAppInfoManager = SoviteAppNameAppInfoManager.getInstance(SugiliteData.getAppContext());
 
         if (sugiliteRelation.equals(SugiliteRelation.HAS_CLASS_NAME)) {
             objectString[0] = ObjectTranslation.getTranslation(objectArr[0].toString());
         } else if (sugiliteRelation.equals(SugiliteRelation.HAS_PACKAGE_NAME)) {
-            objectString[0] = getAppName(objectArr[0].toString());
+            objectString[0] = soviteAppNameAppInfoManager.getReadableAppNameForPackageName(objectArr[0].toString());
         } else {
             objectString[0] = objectArr[0].toString();
         }

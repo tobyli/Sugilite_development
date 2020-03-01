@@ -8,7 +8,7 @@
     <item android:id="@+id/undo_pumice" android:title="Undo"
         android:orderInCategory="3" app:showAsAction="never" />
 
-    <!--<item android:id="@+id/start_over_pumice" android:title="Start Over"
-        android:orderInCategory="4" app:showAsAction="never" />-->
+    <item android:id="@+id/start_over_pumice" android:title="Start Over"
+        android:orderInCategory="4" app:showAsAction="never" />
 
 </menu>

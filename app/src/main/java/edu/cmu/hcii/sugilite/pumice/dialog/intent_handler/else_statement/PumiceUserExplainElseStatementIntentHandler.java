@@ -62,7 +62,7 @@ public class PumiceUserExplainElseStatementIntentHandler implements PumiceUttera
     @Override
     public void handleIntentWithUtterance(PumiceDialogManager dialogManager, PumiceIntent pumiceIntent, PumiceDialogManager.PumiceUtterance utterance) {
 
-        if (pumiceIntent.equals(PumiceIntent.DEFINE_PROCEDURE_EXP)){
+        if (pumiceIntent.equals(PumiceIntent.DEFINE_PROCEDURE_EXPLANATION)){
             //for situations e.g., redirection
             //dialogManager.sendAgentMessage("I have received your explanation: " + utterance.getTriggerContent(), true, false);
             //TODO: send out an OPERATION_INSTRUCTION query to resolve the explanation
@@ -100,7 +100,7 @@ public class PumiceUserExplainElseStatementIntentHandler implements PumiceUttera
         if (utterance.getContent().contains("demonstrate")){
             return PumiceIntent.DEFINE_PROCEDURE_DEMONSTATION;
         } else {
-            return PumiceIntent.DEFINE_PROCEDURE_EXP;
+            return PumiceIntent.DEFINE_PROCEDURE_EXPLANATION;
         }
     }
 

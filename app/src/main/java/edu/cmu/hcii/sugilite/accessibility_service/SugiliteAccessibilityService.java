@@ -476,7 +476,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
                 final AccessibilityNodeInfo final_root = new_root;
 
 
-                if (sharedPreferences.getBoolean("recording_in_process", false)) {
+                if (sharedPreferences.getBoolean("recording_in_process", false) && !exceptedPackages.contains(event.getPackageName())) {
                     //==== the thread of handling recording
                     Runnable handleRecording = new Runnable() {
                         @Override
@@ -508,7 +508,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
                                 if (featurePack.isEditable) {
                                     //3. handle text entry
                                     if (eventType == AccessibilityEvent.TYPE_VIEW_TEXT_CHANGED) {
-                                        //TODO: add TextChangedEventHandlerHere
+                                        //add TextChangedEventHandlerHere
                                         textChangedEventHandler.handle(featurePack, availableAlternatives);
                                     }
                                 } else {

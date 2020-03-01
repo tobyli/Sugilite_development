@@ -211,14 +211,14 @@ public class PumiceDialogActivity extends AppCompatActivity implements SugiliteV
             return true;
         }
 
-        /*
+
         if (id == R.id.start_over_pumice) {
             stopTTSandASR();
             pumiceDialogManager.startOverState();
             //pumiceDialogManager.sendAgentMessage("Reverted to the last state", true, false);
             return true;
         }
-        */
+
 
         return super.onOptionsItemSelected(item);
     }

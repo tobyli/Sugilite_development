@@ -37,7 +37,7 @@ public class PumiceUserExplainValueIntentHandler implements PumiceUtteranceInten
 
     //need to notify this lock when the value is resolved, and return the value through this object
     private PumiceValueQueryKnowledge resolveValueLock;
-    Calendar calendar;
+    private Calendar calendar;
 
     public PumiceUserExplainValueIntentHandler(PumiceDialogManager pumiceDialogManager, Activity context, PumiceValueQueryKnowledge resolveValueLock, String parentKnowledgeName, @Nullable SugiliteRelation resolveValueQueryOperationSugiliteRelationType){
         this.pumiceDialogManager = pumiceDialogManager;
@@ -56,7 +56,7 @@ public class PumiceUserExplainValueIntentHandler implements PumiceUtteranceInten
 
     @Override
     public void handleIntentWithUtterance(PumiceDialogManager dialogManager, PumiceIntent pumiceIntent, PumiceDialogManager.PumiceUtterance utterance) {
-        if (pumiceIntent.equals(PumiceIntent.DEFINE_VALUE_EXP)){
+        if (pumiceIntent.equals(PumiceIntent.DEFINE_VALUE_EXPLANATION)){
             //branch for situations such as e.g., redirection
             //dialogManager.sendAgentMessage("I have received your explanation: " + utterance.getTriggerContent(), true, false);
             //TODO: send out an VALUE_INSTRUCTION query to resolve the explanation
@@ -96,7 +96,7 @@ public class PumiceUserExplainValueIntentHandler implements PumiceUtteranceInten
         if (utterance.getContent().contains("demonstrate")){
             return PumiceIntent.DEFINE_VALUE_DEMONSTRATION;
         } else {
-            return PumiceIntent.DEFINE_VALUE_EXP;
+            return PumiceIntent.DEFINE_VALUE_EXPLANATION;
         }
     }
 

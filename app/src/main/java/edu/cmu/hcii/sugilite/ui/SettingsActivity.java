@@ -398,6 +398,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
             // guidelines.
             bindPreferenceSummaryToValue(findPreference("scriptName"));
             bindPreferenceSummaryToValue(findPreference("semantic_parsing_server_address"));
+            bindPreferenceSummaryToValue(findPreference("bert_embedding_server_address"));
 
             findPreference("recording_in_process").setOnPreferenceChangeListener(recordingInProgressPreferenceChangeListener);
             findPreference("root_enabled").setOnPreferenceChangeListener(recordingInProgressPreferenceChangeListener);

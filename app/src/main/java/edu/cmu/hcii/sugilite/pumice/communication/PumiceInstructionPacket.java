@@ -33,6 +33,7 @@ public class PumiceInstructionPacket implements Serializable {
     private String entityClassNameFilter;
     private Long queryId;
     private List<String> variableNames;
+    private List<String> availableAppNames;
 
     private String parentKnowledgeName;
 
@@ -40,7 +41,7 @@ public class PumiceInstructionPacket implements Serializable {
 
     }
 
-    public PumiceInstructionPacket(PumiceKnowledgeManager existingKnowledge, String utteranceType, Long queryId, String userInput, String parentKnowledgeName, List<List<String>> triples, String entityClassNameFilter){
+    public PumiceInstructionPacket(PumiceKnowledgeManager existingKnowledge, String utteranceType, Long queryId, String userInput, String parentKnowledgeName, List<List<String>> triples, String entityClassNameFilter, List<String> availableAppNames){
         this.mode = "USER_COMMAND";
         this.utteranceType = utteranceType;
         this.queryId = queryId;
@@ -49,15 +50,25 @@ public class PumiceInstructionPacket implements Serializable {
         this.triples = triples;
         this.entityClassNameFilter = entityClassNameFilter;
         this.parentKnowledgeName = parentKnowledgeName;
+        this.availableAppNames = availableAppNames;
     }
 
-    public PumiceInstructionPacket(PumiceKnowledgeManager existingKnowledge, PumiceUtteranceIntentHandler.PumiceIntent pumiceIntent, Long queryId, String userInput, String parentKnowledgeName){
-        this(existingKnowledge, pumiceIntent.name(), queryId, userInput, parentKnowledgeName, new ArrayList<>(), "");
+    //used in USER_INIT_INSTRUCTION
+    public PumiceInstructionPacket(PumiceKnowledgeManager existingKnowledge, PumiceUtteranceIntentHandler.PumiceIntent pumiceIntent, Long queryId, String userInput, String parentKnowledgeName) {
+        this(existingKnowledge, pumiceIntent.name(), queryId, userInput, parentKnowledgeName, new ArrayList<>(), "", null);
     }
 
-    public PumiceInstructionPacket(PumiceKnowledgeManager existingKnowledge, String utteranceType, Long queryId, String userInput, String parentKnowledgeName){
-        this(existingKnowledge, utteranceType, queryId, userInput, parentKnowledgeName, new ArrayList<>(), "");
+    //used in DEFINE_BOOL_EXPRESSION_INSTRUCTION, DEFINE_PROCEDURE_EXPLANATION, DEFINE_VALUE_EXPLANATION
+    public PumiceInstructionPacket(PumiceKnowledgeManager existingKnowledge, String utteranceType, Long queryId, String userInput, String parentKnowledgeName) {
+        this(existingKnowledge, utteranceType, queryId, userInput, parentKnowledgeName, new ArrayList<>(), "", null);
     }
+
+    //used in APP_REFERENCE
+    public PumiceInstructionPacket(PumiceKnowledgeManager existingKnowledge, PumiceUtteranceIntentHandler.PumiceIntent pumiceIntent, Long queryId, String userInput, List<String> availableAppNames) {
+        this(existingKnowledge, pumiceIntent.name(), queryId, userInput, null, null, "", availableAppNames);
+    }
+
+
 
     public String getUserInput() {
         return userInput;

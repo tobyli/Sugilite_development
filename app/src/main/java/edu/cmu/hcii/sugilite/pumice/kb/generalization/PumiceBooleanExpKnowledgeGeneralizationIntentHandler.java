@@ -55,9 +55,9 @@ public class PumiceBooleanExpKnowledgeGeneralizationIntentHandler implements Pum
     public PumiceIntent detectIntentFromUtterance(PumiceDialogManager.PumiceUtterance utterance) {
         String utteranceContent = utterance.getContent();
         if (utteranceContent != null && (utteranceContent.toLowerCase().contains("yes") || utteranceContent.toLowerCase().toLowerCase().contains("ok") || utteranceContent.toLowerCase().contains("yeah"))){
-            return PumiceIntent.EXECUTION_POSITIVE;
+            return PumiceIntent.EXECUTION_CONFIRM_POSITIVE;
         } else {
-            return PumiceIntent.EXECUTION_NEGATIVE;
+            return PumiceIntent.EXECUTION_CONFIRM_NEGATIVE;
         }    }
 
     @Override
@@ -74,7 +74,7 @@ public class PumiceBooleanExpKnowledgeGeneralizationIntentHandler implements Pum
 
     @Override
     public void handleIntentWithUtterance(PumiceDialogManager dialogManager, PumiceIntent pumiceIntent, PumiceDialogManager.PumiceUtterance utterance) {
-        if (pumiceIntent.equals(PumiceIntent.EXECUTION_POSITIVE)) {
+        if (pumiceIntent.equals(PumiceIntent.EXECUTION_CONFIRM_POSITIVE)) {
             //keep the same
             executorServiceForReturnningResults.execute(positiveRunnable);
 

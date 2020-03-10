@@ -387,7 +387,9 @@ public class Automator {
                 Log.v("Automator", "Removed " + (preFilteredNodes.size() - filteredNodes.size()) + " nodes with remove parent heuristic");
 
                 boolean succeeded = false;
-                for (AccessibilityNodeInfo node : filteredNodes) {
+                for (AccessibilityNodeInfo node : preFilteredNodes) {
+                //Quick & dirty fix
+                //for (AccessibilityNodeInfo node : filteredNodes) {
                     //TODO: scrolling to find more nodes -- not only the ones displayed on the current screen
                     boolean retVal = performAction(node, operationBlock);
 

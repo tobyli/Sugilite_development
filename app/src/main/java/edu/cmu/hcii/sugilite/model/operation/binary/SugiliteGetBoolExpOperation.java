@@ -38,7 +38,7 @@ public class SugiliteGetBoolExpOperation extends SugiliteGetOperation<Boolean> i
         if (sugiliteData != null) {
             try {
                 PumiceKnowledgeDao pumiceKnowledgeDao = new PumiceKnowledgeDao(SugiliteData.getAppContext(), sugiliteData);
-                PumiceKnowledgeManager knowledgeManager = pumiceKnowledgeDao.getPumiceKnowledgeOrANewInstanceIfNotAvailable(true);
+                PumiceKnowledgeManager knowledgeManager = pumiceKnowledgeDao.getPumiceKnowledgeOrANewInstanceIfNotAvailable(false);
                 List<PumiceBooleanExpKnowledge> booleanExpKnowledges = knowledgeManager.getPumiceBooleanExpKnowledges();
                 for (PumiceBooleanExpKnowledge booleanExpKnowledge : booleanExpKnowledges) {
                     //TODO: use a hashmap for faster retrieval

@@ -15,12 +15,12 @@ import android.widget.ImageButton;
 import android.widget.ScrollView;
 
 import java.util.List;
-import java.util.Locale;
 
 import edu.cmu.hcii.sugilite.Const;
 import edu.cmu.hcii.sugilite.R;
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.pumice.dialog.PumiceDialogManager;
+import edu.cmu.hcii.sugilite.sovite.study.SoviteStudyDumpGenerateDialog;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.speech.SugiliteAndroidAPIVoiceRecognitionListener;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.speech.SugiliteGoogleCloudVoiceRecognitionListener;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.speech.SugiliteVoiceInterface;
@@ -217,6 +217,16 @@ public class PumiceDialogActivity extends AppCompatActivity implements SugiliteV
             pumiceDialogManager.startOverState();
             //pumiceDialogManager.sendAgentMessage("Reverted to the last state", true, false);
             return true;
+        }
+
+        if (id == R.id.dump_packet) {
+            SoviteStudyDumpGenerateDialog soviteStudyDumpGenerateDialog = new SoviteStudyDumpGenerateDialog(context, sugiliteData, pumiceDialogManager);
+            soviteStudyDumpGenerateDialog.show();
+            return true;
+        }
+
+        if (id == R.id.load_packet) {
+            //TODO: load a previously stored packet
         }
 
 

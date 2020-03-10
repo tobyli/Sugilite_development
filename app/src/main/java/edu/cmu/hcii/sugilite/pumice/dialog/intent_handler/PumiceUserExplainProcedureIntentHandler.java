@@ -1,8 +1,6 @@
 package edu.cmu.hcii.sugilite.pumice.dialog.intent_handler;
 
 import android.app.Activity;
-import android.graphics.drawable.Drawable;
-import android.widget.ImageView;
 
 import com.google.gson.ExclusionStrategy;
 import com.google.gson.FieldAttributes;
@@ -12,7 +10,6 @@ import com.google.gson.GsonBuilder;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
-import java.util.Map;
 
 import edu.cmu.hcii.sugilite.Const;
 import edu.cmu.hcii.sugilite.SugiliteData;
@@ -22,17 +19,14 @@ import edu.cmu.hcii.sugilite.pumice.communication.SkipPumiceJSONSerialization;
 import edu.cmu.hcii.sugilite.pumice.dialog.PumiceDialogManager;
 import edu.cmu.hcii.sugilite.pumice.dialog.demonstration.PumiceProcedureDemonstrationDialog;
 import edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.parsing_confirmation.PumiceParsingResultWithResolveFnConfirmationHandler;
-import edu.cmu.hcii.sugilite.pumice.kb.PumiceKnowledgeManager;
 import edu.cmu.hcii.sugilite.pumice.kb.PumiceProceduralKnowledge;
 import edu.cmu.hcii.sugilite.sovite.SoviteAppNameAppInfoManager;
-import edu.cmu.hcii.sugilite.sovite.communication.SoviteAppResolutionQueryPacket;
-import edu.cmu.hcii.sugilite.sovite.communication.SoviteAppResolutionResultPacket;
-import edu.cmu.hcii.sugilite.sovite.dialog.intent_handler.SoviteIntentClassificationErrorIntentHandler;
-import edu.cmu.hcii.sugilite.sovite.dialog.intent_handler.SoviteScriptsWithTheSameAppDisambiguationIntentHandler;
+import edu.cmu.hcii.sugilite.sovite.dialog.SoviteReturnValueCallbackInterface;
+import edu.cmu.hcii.sugilite.sovite.dialog.intent_handler.SoviteIntentClassificationErrorForProceduralKnowledgeIntentHandler;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.server_comm.SugiliteVerbalInstructionHTTPQueryInterface;
 
-import static edu.cmu.hcii.sugilite.sovite.dialog.intent_handler.SoviteIntentClassificationErrorIntentHandler.RELEVANT_APPS_FOR_UTTERANCES;
-import static edu.cmu.hcii.sugilite.sovite.dialog.intent_handler.SoviteIntentClassificationErrorIntentHandler.RELEVANT_UTTERANCES_FOR_APPS;
+import static edu.cmu.hcii.sugilite.sovite.dialog.intent_handler.SoviteIntentClassificationErrorForProceduralKnowledgeIntentHandler.RELEVANT_APPS_FOR_UTTERANCES;
+import static edu.cmu.hcii.sugilite.sovite.dialog.intent_handler.SoviteIntentClassificationErrorForProceduralKnowledgeIntentHandler.RELEVANT_UTTERANCES_FOR_APPS;
 
 /**
  * @author toby
@@ -41,7 +35,7 @@ import static edu.cmu.hcii.sugilite.sovite.dialog.intent_handler.SoviteIntentCla
  */
 
 //class used for handle utterances when the user explain a PumiceProceduralKnowledge
-public class PumiceUserExplainProcedureIntentHandler implements PumiceUtteranceIntentHandler, SugiliteVerbalInstructionHTTPQueryInterface {
+public class PumiceUserExplainProcedureIntentHandler implements PumiceUtteranceIntentHandler, SugiliteVerbalInstructionHTTPQueryInterface, SoviteReturnValueCallbackInterface<PumiceProceduralKnowledge> {
     private Activity context;
     private PumiceDialogManager pumiceDialogManager;
     private String parentKnowledgeName;
@@ -135,26 +129,26 @@ public class PumiceUserExplainProcedureIntentHandler implements PumiceUtteranceI
                     }
                 })
                 .create();
-        if (result.contains("APP_REFERENCE")) {
+        if (result.contains(PumiceIntent.APP_REFERENCE.name())) {
             try {
-                SoviteIntentClassificationErrorIntentHandler.handleAppReferenceResponse(gson, result, parentKnowledgeName, soviteAppNameAppInfoManager, context, pumiceDialogManager, this);
+                SoviteIntentClassificationErrorForProceduralKnowledgeIntentHandler.handleAppReferenceResponse(gson, result, parentKnowledgeName, soviteAppNameAppInfoManager, context, pumiceDialogManager, this, this);
             } catch (Exception e) {
-                SoviteIntentClassificationErrorIntentHandler.handleServerResponseError(e, pumiceDialogManager, this);
+                SoviteIntentClassificationErrorForProceduralKnowledgeIntentHandler.handleServerResponseError(e, pumiceDialogManager, this);
             }
         } else if (result.contains(RELEVANT_APPS_FOR_UTTERANCES)) {
             //handle queries of getting relevant apps for utterances
             try {
-                SoviteIntentClassificationErrorIntentHandler.handleRelevantAppsForUtterancesResponse(gson, result, pumiceDialogManager);
+                SoviteIntentClassificationErrorForProceduralKnowledgeIntentHandler.handleRelevantAppsForUtterancesResponse(gson, result, pumiceDialogManager);
 
             } catch (Exception e) {
-                SoviteIntentClassificationErrorIntentHandler.handleServerResponseError(e, pumiceDialogManager, this);
+                SoviteIntentClassificationErrorForProceduralKnowledgeIntentHandler.handleServerResponseError(e, pumiceDialogManager, this);
             }
         } else if (result.contains(RELEVANT_UTTERANCES_FOR_APPS)) {
             //handle queries of getting relevant utterances for apps
             try {
-                SoviteIntentClassificationErrorIntentHandler.handleRelevantUtterancesForAppsResponse(gson, result, context, pumiceDialogManager);
+                SoviteIntentClassificationErrorForProceduralKnowledgeIntentHandler.handleRelevantUtterancesForAppsResponse(gson, result, soviteAppNameAppInfoManager, parentKnowledgeName, context, pumiceDialogManager, this);
             } catch (Exception e) {
-                SoviteIntentClassificationErrorIntentHandler.handleServerResponseError(e, pumiceDialogManager, this);
+                SoviteIntentClassificationErrorForProceduralKnowledgeIntentHandler.handleServerResponseError(e, pumiceDialogManager, this);
             }
         } else {
             //handle PUMICE server response
@@ -184,7 +178,7 @@ public class PumiceUserExplainProcedureIntentHandler implements PumiceUtteranceI
                                                     //parse and process the server response
                                                     PumiceProceduralKnowledge pumiceProceduralKnowledge = pumiceDialogManager.getPumiceInitInstructionParsingHandler().parseFromProcedureInstruction(confirmedFormula, resultPacket.userUtterance, parentKnowledgeName, 0);
                                                     //notify the original thread for resolving unknown bool exp that the intent has been fulfilled
-                                                    returnUserExplainProcedureResult(pumiceProceduralKnowledge);
+                                                    callReturnValueCallback(pumiceProceduralKnowledge);
                                                 }
                                             });
                                         }
@@ -235,12 +229,11 @@ public class PumiceUserExplainProcedureIntentHandler implements PumiceUtteranceI
      *
      * @param proceduralKnowledge
      */
-    public void returnUserExplainProcedureResult(PumiceProceduralKnowledge proceduralKnowledge) {
+    @Override
+    public void callReturnValueCallback(PumiceProceduralKnowledge proceduralKnowledge) {
         synchronized (resolveProcedureLock) {
             resolveProcedureLock.copyFrom(proceduralKnowledge);
             resolveProcedureLock.notify();
         }
     }
-
-
 }

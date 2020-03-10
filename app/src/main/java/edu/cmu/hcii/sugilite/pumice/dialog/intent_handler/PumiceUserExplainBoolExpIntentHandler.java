@@ -16,6 +16,8 @@ import edu.cmu.hcii.sugilite.pumice.communication.SkipPumiceJSONSerialization;
 import edu.cmu.hcii.sugilite.pumice.dialog.PumiceDialogManager;
 import edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.parsing_confirmation.PumiceParsingResultWithResolveFnConfirmationHandler;
 import edu.cmu.hcii.sugilite.pumice.kb.PumiceBooleanExpKnowledge;
+import edu.cmu.hcii.sugilite.pumice.kb.PumiceValueQueryKnowledge;
+import edu.cmu.hcii.sugilite.sovite.dialog.SoviteReturnValueCallbackInterface;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.server_comm.SugiliteVerbalInstructionHTTPQueryInterface;
 
 /**
@@ -25,7 +27,7 @@ import edu.cmu.hcii.sugilite.verbal_instruction_demo.server_comm.SugiliteVerbalI
  */
 
 //class used for handle utterances when the user explain a PumiceBooleanExpKnowledge
-public class PumiceUserExplainBoolExpIntentHandler implements PumiceUtteranceIntentHandler, SugiliteVerbalInstructionHTTPQueryInterface {
+public class PumiceUserExplainBoolExpIntentHandler implements PumiceUtteranceIntentHandler, SugiliteVerbalInstructionHTTPQueryInterface, SoviteReturnValueCallbackInterface<PumiceBooleanExpKnowledge> {
     private Activity context;
     private PumiceDialogManager pumiceDialogManager;
     private String parentKnowledgeName;
@@ -131,7 +133,7 @@ public class PumiceUserExplainBoolExpIntentHandler implements PumiceUtteranceInt
                                                     PumiceBooleanExpKnowledge pumiceBooleanExpKnowledge = pumiceDialogManager.getPumiceInitInstructionParsingHandler().parseFromBoolExpInstruction(confirmedFormula, resultPacket.userUtterance, parentKnowledgeName);
 
                                                     //notify the original thread for resolving unknown bool exp that the intent has been fulfilled
-                                                    returnUserExplainBoolExpResult(pumiceBooleanExpKnowledge);
+                                                    callReturnValueCallback(pumiceBooleanExpKnowledge);
                                                 }
                                             });
                                         }
@@ -174,7 +176,8 @@ public class PumiceUserExplainBoolExpIntentHandler implements PumiceUtteranceInt
      * return the result PumiceBooleanExpKnowledge, and release the lock in the original PumiceInitInstructionParsingHandler
      * @param booleanExpKnowledge
      */
-    public void returnUserExplainBoolExpResult(PumiceBooleanExpKnowledge booleanExpKnowledge){
+    @Override
+    public void callReturnValueCallback(PumiceBooleanExpKnowledge booleanExpKnowledge) {
         synchronized (resolveBoolExpLock) {
             resolveBoolExpLock.copyFrom(booleanExpKnowledge);
             resolveBoolExpLock.notify();

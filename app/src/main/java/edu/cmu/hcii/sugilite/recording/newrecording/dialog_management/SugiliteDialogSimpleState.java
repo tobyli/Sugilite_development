@@ -22,12 +22,14 @@ public class SugiliteDialogSimpleState implements SugiliteDialogState {
     private Runnable onInitiatedRunnable;
     private String name;
     private List<String> asrResult;
+    private boolean toListenAfterDone;
 
-    public SugiliteDialogSimpleState(String name, SugiliteDialogManager dialogManager) {
+    public SugiliteDialogSimpleState(String name, SugiliteDialogManager dialogManager, boolean toListenAfterDone) {
         nextStateUtteranceFilterMap = new HashMap<>();
         exitRunnableUtteranceFilterMap = new HashMap<>();
         this.name = name;
         this.dialogManager = dialogManager;
+        this.toListenAfterDone = toListenAfterDone;
     }
 
     public SugiliteDialogState getNextState(List<String> utterances) {
@@ -65,12 +67,16 @@ public class SugiliteDialogSimpleState implements SugiliteDialogState {
 
     @Override
     public Runnable getPromptOnPlayingDoneRunnable() {
-        return new Runnable() {
-            @Override
-            public void run() {
-                dialogManager.startListening();
-            }
-        };
+        if (toListenAfterDone) {
+            return new Runnable() {
+                @Override
+                public void run() {
+                    dialogManager.startListening();
+                }
+            };
+        } else {
+            return null;
+        }
     }
 
     @Override

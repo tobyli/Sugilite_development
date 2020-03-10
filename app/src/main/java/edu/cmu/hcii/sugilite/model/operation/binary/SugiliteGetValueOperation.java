@@ -41,7 +41,7 @@ public class SugiliteGetValueOperation<T> extends SugiliteGetOperation<T> implem
             if (dialogManager != null) {
                 try {
                     PumiceKnowledgeDao pumiceKnowledgeDao = new PumiceKnowledgeDao(SugiliteData.getAppContext(), sugiliteData);
-                    PumiceKnowledgeManager knowledgeManager = pumiceKnowledgeDao.getPumiceKnowledgeOrANewInstanceIfNotAvailable(true);
+                    PumiceKnowledgeManager knowledgeManager = pumiceKnowledgeDao.getPumiceKnowledgeOrANewInstanceIfNotAvailable(false);
                     List<PumiceValueQueryKnowledge> valueQueryKnowledges = knowledgeManager.getPumiceValueQueryKnowledges();
                     for (PumiceValueQueryKnowledge valueQueryKnowledge : valueQueryKnowledges) {
                         //TODO: use a hashmap for faster retrieval

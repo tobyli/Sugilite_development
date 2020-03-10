@@ -463,12 +463,16 @@ public class PumiceInitInstructionParsingHandler {
                 //get the resolved procedure knowledge back
                 PumiceProceduralKnowledge proceduralKnowledge = resolveProcedureLock;
 
-                pumiceDialogManager.getPumiceKnowledgeManager().addPumiceProceduralKnowledge(proceduralKnowledge);
-                pumiceDialogManager.savePumiceKnowledgeToDao();
-                pumiceDialogManager.sendAgentMessage("OK, I learned " + proceduralKnowledge.getProcedureDescription(pumiceDialogManager.getPumiceKnowledgeManager()).toLowerCase() + ".", true, false);
+                if (proceduralKnowledge.isNewlyLearned) {
+                    pumiceDialogManager.getPumiceKnowledgeManager().addPumiceProceduralKnowledge(proceduralKnowledge);
+                    pumiceDialogManager.savePumiceKnowledgeToDao();
+                    pumiceDialogManager.sendAgentMessage("OK, I learned " + proceduralKnowledge.getProcedureDescription(pumiceDialogManager.getPumiceKnowledgeManager(), true).toLowerCase() + ".", true, false);
+                } else {
+                    pumiceDialogManager.sendAgentMessage(String.format("OK, I will invoke the existing script to %s.", proceduralKnowledge.getProcedureDescription(pumiceDialogManager.getPumiceKnowledgeManager(), false)), true, false);
+                }
 
                 //replace the orignal "resolve" call with a new "get" call
-                return new SugiliteGetProcedureOperation(procedureUtterance);
+                return new SugiliteGetProcedureOperation(proceduralKnowledge.getProcedureName());
             } else if (operation instanceof SugiliteResolveValueQueryOperation) {
                 String valueUtterance = ((SugiliteResolveValueQueryOperation) operation).getParameter0();
 

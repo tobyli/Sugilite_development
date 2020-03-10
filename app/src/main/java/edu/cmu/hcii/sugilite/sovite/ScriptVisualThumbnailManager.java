@@ -41,7 +41,7 @@ public class ScriptVisualThumbnailManager {
         }
     }
 
-    public Drawable getVisualThumbnailForScript (SugiliteStartingBlock script, String utterance) {
+    public Drawable getVisualThumbnailForScript (SugiliteBlock script, String utterance) {
         //1. get the last available screenshot (recursively expand get_procedure calls)
         File screenshotFile = null;
         try {

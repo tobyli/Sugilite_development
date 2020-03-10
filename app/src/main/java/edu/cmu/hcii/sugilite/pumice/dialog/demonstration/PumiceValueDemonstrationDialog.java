@@ -117,7 +117,7 @@ public class PumiceValueDemonstrationDialog {
         //run the returnResultCallback when the result if ready
         //TODO: determine the value type
         PumiceValueQueryKnowledge valueQueryKnowledge = new PumiceValueQueryKnowledge(context, valueKnowledgeName, PumiceValueQueryKnowledge.ValueType.NUMERICAL, script);
-        parentIntentHandler.returnUserExplainValueResult(valueQueryKnowledge);
+        parentIntentHandler.callReturnValueCallback(valueQueryKnowledge);
     }
 
     //show the dialog

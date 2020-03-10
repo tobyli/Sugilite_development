@@ -18,10 +18,11 @@ import edu.cmu.hcii.sugilite.pumice.kb.PumiceKnowledgeManager;
 import edu.cmu.hcii.sugilite.pumice.kb.PumiceProceduralKnowledge;
 import edu.cmu.hcii.sugilite.sovite.SoviteAppNameAppInfoManager;
 import edu.cmu.hcii.sugilite.sovite.communication.SoviteAppResolutionQueryPacket;
-import edu.cmu.hcii.sugilite.sovite.communication.SoviteAppResolutionResultPacket;
+import edu.cmu.hcii.sugilite.sovite.dialog.SoviteReturnValueCallbackInterface;
+import edu.cmu.hcii.sugilite.sovite.dialog.SoviteScriptsWithMatchedAppDialog;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.server_comm.SugiliteVerbalInstructionHTTPQueryInterface;
 
-import static edu.cmu.hcii.sugilite.sovite.dialog.intent_handler.SoviteIntentClassificationErrorIntentHandler.RELEVANT_UTTERANCES_FOR_APPS;
+import static edu.cmu.hcii.sugilite.sovite.dialog.intent_handler.SoviteIntentClassificationErrorForProceduralKnowledgeIntentHandler.RELEVANT_UTTERANCES_FOR_APPS;
 
 /**
  * @author toby
@@ -33,43 +34,49 @@ public class SoviteScriptsWithTheSameAppDisambiguationIntentHandler implements P
     private String appPackageName;
     private String appReadableName;
     private String originalUtterance;
-    PumiceDialogManager pumiceDialogManager;
+    private PumiceDialogManager pumiceDialogManager;
+    private SoviteReturnValueCallbackInterface<PumiceProceduralKnowledge> returnValueCallbackObject;
 
     private List<PumiceProceduralKnowledge> proceduralKnowledgesWithMatchedApps;
 
 
-    public SoviteScriptsWithTheSameAppDisambiguationIntentHandler(PumiceDialogManager pumiceDialogManager, Activity context, String appPackageName, String appReadableName, String originalUtterance, List<PumiceProceduralKnowledge> proceduralKnowledgesWithMatchedApps) {
+    public SoviteScriptsWithTheSameAppDisambiguationIntentHandler(PumiceDialogManager pumiceDialogManager, Activity context, String appPackageName, String appReadableName, String originalUtterance, List<PumiceProceduralKnowledge> proceduralKnowledgesWithMatchedApps, SoviteReturnValueCallbackInterface<PumiceProceduralKnowledge> returnValueCallbackObject) {
         this.pumiceDialogManager = pumiceDialogManager;
         this.context = context;
         this.appPackageName = appPackageName;
         this.appReadableName = appReadableName;
         this.originalUtterance = originalUtterance;
         this.proceduralKnowledgesWithMatchedApps = proceduralKnowledgesWithMatchedApps;
+        this.returnValueCallbackObject = returnValueCallbackObject;
     }
 
     @Override
     public void sendPromptForTheIntentHandler() {
-        pumiceDialogManager.sendAgentMessage(String.format("I found the following %d scripts that use %s", proceduralKnowledgesWithMatchedApps.size(), appReadableName), true, false);
-        for (PumiceProceduralKnowledge pumiceProceduralKnowledge : proceduralKnowledgesWithMatchedApps) {
-            pumiceDialogManager.sendAgentMessage(pumiceProceduralKnowledge.getProcedureName(), true, false);
+        if (proceduralKnowledgesWithMatchedApps.size() > 1) {
+            pumiceDialogManager.sendAgentMessage(String.format("I found the following %d scripts that use %s", proceduralKnowledgesWithMatchedApps.size(), appReadableName), true, false);
+            for (PumiceProceduralKnowledge pumiceProceduralKnowledge : proceduralKnowledgesWithMatchedApps) {
+                pumiceDialogManager.sendAgentMessage(pumiceProceduralKnowledge.getProcedureName(), true, false);
+            }
+            pumiceDialogManager.sendAgentMessage("Does any one of these match what you want to do? You can also say \"no\" if none of these is correct.", true, true);
+        } else {
+            //only one matched app
+            SoviteScriptRelevantToAppIntentHandler soviteScriptRelevantToAppIntentHandler = new SoviteScriptRelevantToAppIntentHandler(pumiceDialogManager, context, appPackageName, appReadableName, originalUtterance, proceduralKnowledgesWithMatchedApps, returnValueCallbackObject);
+            pumiceDialogManager.updateUtteranceIntentHandlerInANewState(soviteScriptRelevantToAppIntentHandler);
+            pumiceDialogManager.callSendPromptForTheIntentHandlerForCurrentIntentHandler();
         }
-        pumiceDialogManager.sendAgentMessage("Does any one of these match what you want to do? You can also say \"no\" if none of these is correct.", true, true);
     }
 
     @Override
     public void handleIntentWithUtterance(PumiceDialogManager dialogManager, PumiceIntent pumiceIntent, PumiceDialogManager.PumiceUtterance utterance) {
-        List<String> allAvailableScriptUtterances = new ArrayList<>();
         PumiceKnowledgeManager knowledgeManager = pumiceDialogManager.getPumiceKnowledgeManager();
-        List<PumiceProceduralKnowledge> pumiceProceduralKnowledges = knowledgeManager.getPumiceProceduralKnowledges();
+        List<String> allAvailableScriptUtterances = knowledgeManager.getAllAvailableProcedureKnowledgeUtterances(false);
 
-        for (PumiceProceduralKnowledge pumiceProceduralKnowledge : pumiceProceduralKnowledges) {
-            allAvailableScriptUtterances.add(pumiceProceduralKnowledge.getProcedureDescription(knowledgeManager));
-        }
 
 
         if (pumiceIntent.equals(PumiceIntent.PARSE_CONFIRM_POSITIVE)) {
-            //TODO: the list contains the script that the user wants to execute
             //probably use a list dialog
+            SoviteScriptsWithMatchedAppDialog soviteScriptsWithMatchedAppDialog = new SoviteScriptsWithMatchedAppDialog(context, dialogManager, proceduralKnowledgesWithMatchedApps, returnValueCallbackObject);
+            soviteScriptsWithMatchedAppDialog.show();
 
         } else if (pumiceIntent.equals(PumiceIntent.PARSE_CONFIRM_NEGATIVE)) {
             //the list does not include the script that the user wants to execute
@@ -130,16 +137,8 @@ public class SoviteScriptsWithTheSameAppDisambiguationIntentHandler implements P
                     })
                     .create();
             try {
-                SoviteAppResolutionResultPacket resultPacket = gson.fromJson(result, SoviteAppResolutionResultPacket.class);
-                Map<String, List<String>> appRelevantUtteranceMap = resultPacket.getResult_map();
-                SoviteAppNameAppInfoManager soviteAppNameAppInfoManager = SoviteAppNameAppInfoManager.getInstance(context);
-
-                for (String appPackageName : appRelevantUtteranceMap.keySet()) {
-                    String appReadableName = soviteAppNameAppInfoManager.getReadableAppNameForPackageName(appPackageName);
-                    pumiceDialogManager.sendAgentMessage(String.format("Here are the relevant scripts for the app %s:", appReadableName), true, false);
-                    pumiceDialogManager.sendAgentMessage(appRelevantUtteranceMap.get(appPackageName).toString(), false, false);
-                    //TODO: need a new intent handler here
-                }
+                //prompt the user to confirm if the top script relevant to the app
+                SoviteIntentClassificationErrorForProceduralKnowledgeIntentHandler.handleRelevantUtterancesForAppsResponse(gson, result, SoviteAppNameAppInfoManager.getInstance(context), originalUtterance, context, pumiceDialogManager, returnValueCallbackObject);
             } catch (Exception e) {
                 pumiceDialogManager.sendAgentMessage("Can't read from the server response", true, false);
                 pumiceDialogManager.sendAgentMessage("OK. Let's try again.", true, false);

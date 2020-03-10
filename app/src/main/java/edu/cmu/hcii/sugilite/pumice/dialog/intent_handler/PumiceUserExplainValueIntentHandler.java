@@ -18,7 +18,9 @@ import edu.cmu.hcii.sugilite.pumice.communication.SkipPumiceJSONSerialization;
 import edu.cmu.hcii.sugilite.pumice.dialog.PumiceDialogManager;
 import edu.cmu.hcii.sugilite.pumice.dialog.demonstration.PumiceValueDemonstrationDialog;
 import edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.parsing_confirmation.PumiceParsingResultWithResolveFnConfirmationHandler;
+import edu.cmu.hcii.sugilite.pumice.kb.PumiceProceduralKnowledge;
 import edu.cmu.hcii.sugilite.pumice.kb.PumiceValueQueryKnowledge;
+import edu.cmu.hcii.sugilite.sovite.dialog.SoviteReturnValueCallbackInterface;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.server_comm.SugiliteVerbalInstructionHTTPQueryInterface;
 
 /**
@@ -28,7 +30,7 @@ import edu.cmu.hcii.sugilite.verbal_instruction_demo.server_comm.SugiliteVerbalI
  */
 
 //class used for handle utterances when the user explain a PumiceValueQueryKnowledge
-public class PumiceUserExplainValueIntentHandler implements PumiceUtteranceIntentHandler, SugiliteVerbalInstructionHTTPQueryInterface {
+public class PumiceUserExplainValueIntentHandler implements PumiceUtteranceIntentHandler, SugiliteVerbalInstructionHTTPQueryInterface, SoviteReturnValueCallbackInterface<PumiceValueQueryKnowledge> {
     private Activity context;
     private PumiceDialogManager pumiceDialogManager;
     private String parentKnowledgeName;
@@ -147,7 +149,7 @@ public class PumiceUserExplainValueIntentHandler implements PumiceUtteranceInten
                                             //parse and process the server response
                                             PumiceValueQueryKnowledge pumiceValueQueryKnowledge = pumiceDialogManager.getPumiceInitInstructionParsingHandler().parseFromValueInstruction(confirmedFormula, resultPacket.userUtterance, parentKnowledgeName, resolveValueQueryOperationSugiliteRelationType, 0);
                                             //notify the original thread for resolving unknown bool exp that the intent has been fulfilled
-                                            returnUserExplainValueResult(pumiceValueQueryKnowledge);
+                                            callReturnValueCallback(pumiceValueQueryKnowledge);
                                         }
                                     });
                                 }
@@ -184,12 +186,11 @@ public class PumiceUserExplainValueIntentHandler implements PumiceUtteranceInten
      * return the result PumiceValueQueryKnowledge, and release the lock in the original PumiceInitInstructionParsingHandler
      * @param valueQueryKnowledge
      */
-    public void returnUserExplainValueResult(PumiceValueQueryKnowledge valueQueryKnowledge){
+    @Override
+    public void callReturnValueCallback(PumiceValueQueryKnowledge valueQueryKnowledge) {
         synchronized (resolveValueLock) {
             resolveValueLock.copyFrom(valueQueryKnowledge);
             resolveValueLock.notify();
         }
     }
-
-
 }

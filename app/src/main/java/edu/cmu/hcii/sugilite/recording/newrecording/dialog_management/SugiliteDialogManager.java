@@ -31,7 +31,6 @@ import static edu.cmu.hcii.sugilite.Const.RECORDING_WHITE_COLOR;
  */
 public abstract class SugiliteDialogManager implements SugiliteVoiceInterface {
     protected Context context;
-    protected TextToSpeech tts;
     private SugiliteVoiceRecognitionListener sugiliteVoiceRecognitionListener;
     private boolean isListening = false;
     private boolean isSpeaking = false;
@@ -41,15 +40,20 @@ public abstract class SugiliteDialogManager implements SugiliteVoiceInterface {
     protected Drawable notListeningDrawable;
     private ImageButton speakButton = null;
 
+    public SugiliteDialogManager(Context context, SugiliteVoiceRecognitionListener sugiliteVoiceRecognitionListener) {
+        this(context, sugiliteVoiceRecognitionListener.getTTS());
+    }
     public SugiliteDialogManager(Context context, TextToSpeech tts) {
         this.context = context;
-        this.tts = tts;
         if (Const.SELECTED_SPEECH_RECOGNITION_TYPE == Const.SpeechRecognitionType.ANDROID) {
             this.sugiliteVoiceRecognitionListener = new SugiliteAndroidAPIVoiceRecognitionListener(context, this, tts);
         } else if (Const.SELECTED_SPEECH_RECOGNITION_TYPE == Const.SpeechRecognitionType.GOOGLE_CLOUD) {
             this.sugiliteVoiceRecognitionListener = new SugiliteGoogleCloudVoiceRecognitionListener(context, this, tts);
         }
+        initDrawables();
+    }
 
+    private void initDrawables() {
         //initiate the drawables for the icons on the speak button
         speakingDrawable = new AnimationDrawable();
         speakingDrawable.addFrame(context.getDrawable(R.mipmap.ic_speaker0), 500);
@@ -71,11 +75,12 @@ public abstract class SugiliteDialogManager implements SugiliteVoiceInterface {
         notListeningDrawable = context.getDrawable(R.mipmap.ic_tap_to_talk_0);
     }
 
+
     /**
      * play the prompt of currentState
      */
     public void initPrompt() {
-        if (currentState.getPrompt() != null && currentState.getPromptOnPlayingDoneRunnable() != null) {
+        if (currentState.getPrompt() != null) {
             if(currentState.getOnInitiatedRunnable() != null) {
                 currentState.getOnInitiatedRunnable().run();
             }
@@ -147,7 +152,7 @@ public abstract class SugiliteDialogManager implements SugiliteVoiceInterface {
                 }
 
                 //play the prompt of the next state
-                if (currentState.getPrompt() != null && currentState.getPromptOnPlayingDoneRunnable() != null) {
+                if (currentState.getPrompt() != null) {
                     speak(currentState.getPrompt(), currentState.getPromptOnPlayingDoneRunnable());
                 }
             }
@@ -196,7 +201,7 @@ public abstract class SugiliteDialogManager implements SugiliteVoiceInterface {
     }
 
     public void speak(String utterance, Runnable runnableOnDone) {
-        if(tts != null) {
+        if(sugiliteVoiceRecognitionListener != null) {
             sugiliteVoiceRecognitionListener.speak(utterance, String.valueOf(Calendar.getInstance().getTimeInMillis()), runnableOnDone);
         }
     }
@@ -214,6 +219,10 @@ public abstract class SugiliteDialogManager implements SugiliteVoiceInterface {
     }
 
     public void onDestroy(){
-        sugiliteVoiceRecognitionListener.stopAllAndEndASRService();
+        //sugiliteVoiceRecognitionListener.stopAllAndEndASRService();
+    }
+
+    public TextToSpeech getTTS(){
+        return sugiliteVoiceRecognitionListener.getTTS();
     }
 }

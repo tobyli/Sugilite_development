@@ -48,8 +48,8 @@ public class NewScriptDialog extends SugiliteDialogManager implements AbstractSu
     private SugiliteData sugiliteData;
     private AlertDialog dialog;
     private TextToSpeech tts;
-    private SugiliteDialogSimpleState askingForScriptNameState = new SugiliteDialogSimpleState("ASKING_FOR_SCRIPT_NAME", this);
-    private SugiliteDialogSimpleState askingForScriptNameConfirmationState = new SugiliteDialogSimpleState("ASKING_FOR_SCRIPT_NAME_CONFIRMATION", this);
+    private SugiliteDialogSimpleState askingForScriptNameState = new SugiliteDialogSimpleState("ASKING_FOR_SCRIPT_NAME", this, true);
+    private SugiliteDialogSimpleState askingForScriptNameConfirmationState = new SugiliteDialogSimpleState("ASKING_FOR_SCRIPT_NAME_CONFIRMATION", this, true);
     private VerbalInstructionIconManager verbalInstructionIconManager;
     private View dialogView;
 

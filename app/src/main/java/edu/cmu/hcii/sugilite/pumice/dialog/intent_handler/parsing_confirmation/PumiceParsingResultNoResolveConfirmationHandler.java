@@ -4,20 +4,20 @@ import android.app.Activity;
 import android.graphics.drawable.Drawable;
 import android.widget.ImageView;
 
-import org.apache.commons.lang3.StringUtils;
+import java.util.List;
 
-import java.util.HashSet;
-import java.util.Set;
-
-import edu.cmu.hcii.sugilite.R;
+import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
+import edu.cmu.hcii.sugilite.model.operation.binary.SugiliteGetProcedureOperation;
 import edu.cmu.hcii.sugilite.pumice.communication.PumiceSemanticParsingResultPacket;
 import edu.cmu.hcii.sugilite.pumice.dialog.PumiceDialogManager;
 import edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.PumiceDefaultUtteranceIntentHandler;
 import edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.PumiceUtteranceIntentHandler;
+import edu.cmu.hcii.sugilite.pumice.kb.PumiceProceduralKnowledge;
 import edu.cmu.hcii.sugilite.source_parsing.SugiliteScriptParser;
 import edu.cmu.hcii.sugilite.sovite.ScriptVisualThumbnailManager;
-import edu.cmu.hcii.sugilite.sovite.dialog.intent_handler.SoviteIntentClassificationErrorIntentHandler;
+import edu.cmu.hcii.sugilite.sovite.dialog.SoviteReturnValueCallbackInterface;
+import edu.cmu.hcii.sugilite.sovite.dialog.intent_handler.SoviteIntentClassificationErrorForProceduralKnowledgeIntentHandler;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.server_comm.SugiliteVerbalInstructionHTTPQueryInterface;
 import edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.parsing_confirmation.PumiceParsingResultWithResolveFnConfirmationHandler.HandleParsingResultPacket;
 
@@ -29,7 +29,7 @@ import static edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.parsing_confirm
  * @date 2/18/19
  * @time 12:13 AM
  */
-public class PumiceParsingResultNoResolveConfirmationHandler implements PumiceUtteranceIntentHandler, SugiliteVerbalInstructionHTTPQueryInterface {
+public class PumiceParsingResultNoResolveConfirmationHandler implements PumiceUtteranceIntentHandler, SugiliteVerbalInstructionHTTPQueryInterface, SoviteReturnValueCallbackInterface<String> {
     //takes in 1. the original parsing query, 2. the parsing result
     private Activity context;
     private PumiceDialogManager pumiceDialogManager;
@@ -59,7 +59,7 @@ public class PumiceParsingResultNoResolveConfirmationHandler implements PumiceUt
      * 2. view the candidates and choose from one
      * 3. "retry" to try giving a different instruction
      */
-    public void handleParsingResult(PumiceSemanticParsingResultPacket resultPacket, Runnable runnableForRetry, PumiceParsingResultWithResolveFnConfirmationHandler.ConfirmedParseRunnable runnableForConfirmedParse, boolean toAskForConfirmation){
+    public void handleParsingResult(PumiceSemanticParsingResultPacket resultPacket, Runnable runnableForRetry, PumiceParsingResultWithResolveFnConfirmationHandler.ConfirmedParseRunnable runnableForConfirmedParse, boolean toAskForConfirmation) {
         if (resultPacket.queries != null && resultPacket.queries.size() > 0) {
             //set the parsingResultsToHandle
             parsingResultsToHandle = new HandleParsingResultPacket(resultPacket, runnableForRetry, runnableForConfirmedParse);
@@ -72,9 +72,7 @@ public class PumiceParsingResultNoResolveConfirmationHandler implements PumiceUt
                 // choose the top parse without asking
                 runnableForConfirmedParse.run(getTopParsing(resultPacket).formula);
             }
-        }
-
-        else {
+        } else {
             //empty result -- no candidate available
             pumiceDialogManager.sendAgentMessage("Can't understand your utterance, please try again", true, false);
             //execute the retry runnable
@@ -86,13 +84,14 @@ public class PumiceParsingResultNoResolveConfirmationHandler implements PumiceUt
 
     /**
      * detect the intent from the user utterance -> whether the user confirms the parse or not
+     *
      * @param utterance
      * @return
      */
     @Override
     public PumiceIntent detectIntentFromUtterance(PumiceDialogManager.PumiceUtterance utterance) {
         String utteranceContent = utterance.getContent();
-        if (utteranceContent != null && (utteranceContent.toLowerCase().contains("yes") || utteranceContent.toLowerCase().toLowerCase().contains("ok") || utteranceContent.toLowerCase().contains("yeah"))){
+        if (utteranceContent != null && (utteranceContent.toLowerCase().contains("yes") || utteranceContent.toLowerCase().toLowerCase().contains("ok") || utteranceContent.toLowerCase().contains("yeah"))) {
             return PumiceIntent.PARSE_CONFIRM_POSITIVE;
         } else if (utteranceContent != null && (utteranceContent.toLowerCase().contains("no"))) {
             return PumiceIntent.PARSE_CONFIRM_NEGATIVE;
@@ -118,24 +117,19 @@ public class PumiceParsingResultNoResolveConfirmationHandler implements PumiceUt
             }
             //set the intent handler back to the default one
             dialogManager.updateUtteranceIntentHandlerInANewState(new PumiceDefaultUtteranceIntentHandler(pumiceDialogManager, context));
-        }
-
-
-
-        else if (pumiceIntent.equals(PumiceIntent.PARSE_CONFIRM_NEGATIVE)) {
+        } else if (pumiceIntent.equals(PumiceIntent.PARSE_CONFIRM_NEGATIVE)) {
             // parse is incorrect
             // TODO: need to better handle negative response here
             HandleParsingResultPacket parsingResultPacket = parsingResultsToHandle;
 
             // TODO: first try to strip the fix part from the user's utterance, and feed it back to the original parser to try again
-            dialogManager.updateUtteranceIntentHandlerInANewState(new SoviteIntentClassificationErrorIntentHandler(pumiceDialogManager, context, parsingResultPacket.resultPacket.userUtterance, parsingResultPacket.resultPacket));
+            SoviteIntentClassificationErrorForProceduralKnowledgeIntentHandler soviteIntentClassificationErrorForProceduralKnowledgeIntentHandler = new SoviteIntentClassificationErrorForProceduralKnowledgeIntentHandler(pumiceDialogManager, context, parsingResultPacket.resultPacket.userUtterance, parsingResultPacket.resultPacket, this);
+            dialogManager.updateUtteranceIntentHandlerInANewState(soviteIntentClassificationErrorForProceduralKnowledgeIntentHandler);
             dialogManager.callSendPromptForTheIntentHandlerForCurrentIntentHandler();
             //show a popup to ask the user to choose from parsing results
             // PumiceChooseParsingDialogNew pumiceChooseParsingDialog = new PumiceChooseParsingDialogNew(context, dialogManager, parsingResultPacket.resultPacket, parsingResultPacket.runnableForRetry, parsingResultPacket.runnableForConfirmedParse, failureCount);
             // pumiceChooseParsingDialog.show();
-        }
-
-        else if (pumiceIntent.equals(PumiceIntent.UNRECOGNIZED)) {
+        } else if (pumiceIntent.equals(PumiceIntent.UNRECOGNIZED)) {
             pumiceDialogManager.sendAgentMessage("Can't recognize your response. Please respond with \"Yes\" or \"No\".", true, false);
             sendPromptForTheIntentHandler();
         }
@@ -153,27 +147,37 @@ public class PumiceParsingResultNoResolveConfirmationHandler implements PumiceUt
             } else {
                 throw new RuntimeException("empty server result!");
             }
+            if (script == null) {
+                throw new RuntimeException("null script!");
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
 
+        String description = getDescriptionForFormula(topFormula, parsingResultsToHandle.resultPacket.utteranceType);
+        pumiceDialogManager.sendAgentMessage(String.format("Here is the parsing result: %s", description), true, false);
 
-        boolean visualConfirmationAvailable = true;
-        if (visualConfirmationAvailable) {
-            pumiceDialogManager.sendAgentMessage("Here is the parsing result: ", true, false);
-            //test sending an image
+        //test sending an image
+        Drawable drawable = scriptVisualThumbnailManager.getVisualThumbnailForScript(script, parsingResultsToHandle.resultPacket.userUtterance);
+        if (drawable != null) {
             ImageView imageView = new ImageView(context);
-            Drawable drawable = scriptVisualThumbnailManager.getVisualThumbnailForScript(script, parsingResultsToHandle.resultPacket.userUtterance);
             imageView.setImageDrawable(drawable);//SHOULD BE R.mipmap.demo_card
-            String description = getDescriptionForFormula(topFormula, parsingResultsToHandle.resultPacket.utteranceType);
             pumiceDialogManager.sendAgentViewMessage(imageView, "SCREENSHOT:" + description, false, false);
-            pumiceDialogManager.sendAgentMessage(description, true, false);
-        } else {
-            pumiceDialogManager.sendAgentMessage("Here is the parsing result: ", true, false);
-            pumiceDialogManager.sendAgentMessage(getDescriptionForFormula(topFormula, parsingResultsToHandle.resultPacket.utteranceType), true, false);
+        }
+
+        if (script.getNextBlock() != null
+                && script.getNextBlock() instanceof SugiliteOperationBlock
+                && ((SugiliteOperationBlock) script.getNextBlock()).getOperation() instanceof SugiliteGetProcedureOperation) {
+            SugiliteGetProcedureOperation getProcedureOperation = (SugiliteGetProcedureOperation) ((SugiliteOperationBlock) script.getNextBlock()).getOperation();
+            List<PumiceProceduralKnowledge> pumiceProceduralKnowledges = pumiceDialogManager.getPumiceKnowledgeManager().getPumiceProceduralKnowledges();
+            for (PumiceProceduralKnowledge pumiceProceduralKnowledge : pumiceProceduralKnowledges) {
+                if (pumiceProceduralKnowledge.getProcedureName().equals(getProcedureOperation.getName())) {
+                    pumiceDialogManager.sendAgentMessage(String.format("I will %s.", pumiceProceduralKnowledge.getProcedureDescription(pumiceDialogManager.getPumiceKnowledgeManager(), false)), true, false);
+                    break;
+                }
+            }
         }
     }
-
 
 
     @Override
@@ -193,6 +197,15 @@ public class PumiceParsingResultNoResolveConfirmationHandler implements PumiceUt
 
     }
 
+    @Override
+    public void callReturnValueCallback(String confirmedFormula) {
+        try {
+            parsingResultsToHandle.runnableForConfirmedParse.run(confirmedFormula);
 
-
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        //set the intent handler back to the default one
+        pumiceDialogManager.updateUtteranceIntentHandlerInANewState(new PumiceDefaultUtteranceIntentHandler(pumiceDialogManager, context));
+    }
 }

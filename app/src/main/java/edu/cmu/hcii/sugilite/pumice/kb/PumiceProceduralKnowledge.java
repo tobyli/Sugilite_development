@@ -60,6 +60,10 @@ public class PumiceProceduralKnowledge implements Serializable {
     @Nullable
     private List<String> involvedAppNames;
 
+
+    @SkipPumiceJSONSerialization
+    public boolean isNewlyLearned = true;
+
     public PumiceProceduralKnowledge(){
 
     }
@@ -133,6 +137,7 @@ public class PumiceProceduralKnowledge implements Serializable {
         this.sugiliteStartingBlock = pumiceProceduralKnowledge.sugiliteStartingBlock;
         this.targetProcedureKnowledgeName = pumiceProceduralKnowledge.targetProcedureKnowledgeName;
         this.scriptName = pumiceProceduralKnowledge.scriptName;
+        this.isNewlyLearned = pumiceProceduralKnowledge.isNewlyLearned;
     }
 
     public void addParameter(PumiceProceduralKnowledgeParameter parameter){
@@ -214,7 +219,7 @@ public class PumiceProceduralKnowledge implements Serializable {
         throw new RuntimeException("can't find the target procedureKnowledge");
     }
 
-    public String getProcedureDescription(PumiceKnowledgeManager knowledgeManager){
+    public String getProcedureDescription(PumiceKnowledgeManager knowledgeManager, boolean addHowTo){
         String parameterizedUtterance = new String(utterance);
         Map<String, PumiceProceduralKnowledgeParameter> parameterNameParameterMap = getParameterNameParameterMap(knowledgeManager);
         if (parameterNameParameterMap != null) {
@@ -229,7 +234,11 @@ public class PumiceProceduralKnowledge implements Serializable {
             parameterizedUtterance = parameterizedUtterance + " in " + StringUtils.join(involvedAppNames, ",");
         }
 
-        return "How to " + parameterizedUtterance;
+        if (addHowTo) {
+            return "How to " + parameterizedUtterance;
+        } else {
+            return parameterizedUtterance;
+        }
     }
 
     public void setUtterance(String utterance) {

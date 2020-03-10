@@ -67,8 +67,8 @@ public class VariableSetValueDialog extends SugiliteDialogManager implements Abs
 
 
     //adding speech for VLHCC DEMO
-    private SugiliteDialogSimpleState askingForValueState = new SugiliteDialogSimpleState("ASKING_FOR_VARIABLE_VALUE", this);
-    private SugiliteDialogSimpleState askingForValueConfirmationState = new SugiliteDialogSimpleState("ASKING_FOR_VARIABLE_VALUE_CONFIRMATION_VALUE", this);
+    private SugiliteDialogSimpleState askingForValueState = new SugiliteDialogSimpleState("ASKING_FOR_VARIABLE_VALUE", this, true);
+    private SugiliteDialogSimpleState askingForValueConfirmationState = new SugiliteDialogSimpleState("ASKING_FOR_VARIABLE_VALUE_CONFIRMATION_VALUE", this, true);
     private EditText firstVariableEditText;
     private String firstVariableName;
 

@@ -113,10 +113,10 @@ public class FollowUpQuestionDialog extends SugiliteDialogManager implements Sug
 
     private Handler handler;
 
-    private SugiliteDialogSimpleState askingForVerbalInstructionFollowUpState = new SugiliteDialogSimpleState("ASKING_FOR_VERBAL_INSTRUCTION", this);
-    private SugiliteDialogSimpleState askingForInstructionConfirmationState = new SugiliteDialogSimpleState("ASKING_FOR_INSTRUCTION_CONFIRMATION", this);
-    private SugiliteDialogSimpleState emptyResultState = new SugiliteDialogSimpleState("EMPTY_RESULT_STATE", this);
-    private SugiliteDialogSimpleState resultWontMatchState = new SugiliteDialogSimpleState("RESULT_WONT_MATCH_STATE", this);
+    private SugiliteDialogSimpleState askingForVerbalInstructionFollowUpState = new SugiliteDialogSimpleState("ASKING_FOR_VERBAL_INSTRUCTION", this, true);
+    private SugiliteDialogSimpleState askingForInstructionConfirmationState = new SugiliteDialogSimpleState("ASKING_FOR_INSTRUCTION_CONFIRMATION", this, true);
+    private SugiliteDialogSimpleState emptyResultState = new SugiliteDialogSimpleState("EMPTY_RESULT_STATE", this, true);
+    private SugiliteDialogSimpleState resultWontMatchState = new SugiliteDialogSimpleState("RESULT_WONT_MATCH_STATE", this, true);
 
     //variable for saving the animation offset when the dialog is hidden
     private float prevXOffset = 0, prevYOffset = 0;
@@ -331,7 +331,7 @@ public class FollowUpQuestionDialog extends SugiliteDialogManager implements Sug
     private void backButtonOnClick(){
         if(previousQuery != null) {
             //go back to the followup question dialog with the previous query
-            FollowUpQuestionDialog followUpQuestionDialog = new FollowUpQuestionDialog(context, tts, previousQuery, uiSnapshot, actualClickedNode, previousMatchedNodes, featurePack, queryScoreList, blockBuildingHelper, clickRunnable, sugiliteData, sharedPreferences, 0);
+            FollowUpQuestionDialog followUpQuestionDialog = new FollowUpQuestionDialog(context, getTTS(), previousQuery, uiSnapshot, actualClickedNode, previousMatchedNodes, featurePack, queryScoreList, blockBuildingHelper, clickRunnable, sugiliteData, sharedPreferences, 0);
             dialog.dismiss();
             if(previousMatchedNodes != null && previousMatchedNodes.size() > 1) {
                 followUpQuestionDialog.setNumberOfMatchedNodes(previousMatchedNodes.size());
@@ -343,7 +343,7 @@ public class FollowUpQuestionDialog extends SugiliteDialogManager implements Sug
         else{
             //go back to the original ambiguous popup dialog
             dialog.dismiss();
-            RecordingAmbiguousPopupDialog ambiguousPopupDialog = new RecordingAmbiguousPopupDialog(context, queryScoreList, featurePack, blockBuildingHelper, clickRunnable, uiSnapshot, actualClickedNode, sugiliteData, sharedPreferences, tts, 0);
+            RecordingAmbiguousPopupDialog ambiguousPopupDialog = new RecordingAmbiguousPopupDialog(context, queryScoreList, featurePack, blockBuildingHelper, clickRunnable, uiSnapshot, actualClickedNode, sugiliteData, sharedPreferences, getTTS(), 0);
             ambiguousPopupDialog.show();
         }
     }
@@ -786,7 +786,7 @@ public class FollowUpQuestionDialog extends SugiliteDialogManager implements Sug
     }
 
     private void showConfirmationDialog(SugiliteOperationBlock block, SugiliteAvailableFeaturePack featurePack, List<Pair<OntologyQuery, Double>> queryScoreList, Runnable clickRunnable) {
-        SugiliteRecordingConfirmationDialog sugiliteRecordingConfirmationDialog = new SugiliteRecordingConfirmationDialog(context, block, featurePack, queryScoreList, clickRunnable, blockBuildingHelper, uiSnapshot, actualClickedNode, sugiliteData, sharedPreferences, tts);
+        SugiliteRecordingConfirmationDialog sugiliteRecordingConfirmationDialog = new SugiliteRecordingConfirmationDialog(context, block, featurePack, queryScoreList, clickRunnable, blockBuildingHelper, uiSnapshot, actualClickedNode, sugiliteData, sharedPreferences, getTTS());
         sugiliteRecordingConfirmationDialog.show();
     }
 }

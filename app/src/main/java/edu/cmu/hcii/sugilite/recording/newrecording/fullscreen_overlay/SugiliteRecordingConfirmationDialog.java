@@ -67,8 +67,8 @@ public class SugiliteRecordingConfirmationDialog extends SugiliteDialogManager {
 
 
     //construct the 2 states
-    private SugiliteDialogSimpleState askingForConfirmationState = new SugiliteDialogSimpleState("ASKING_FOR_CONFIRMATION", this);
-    private SugiliteDialogSimpleState detailPromptState = new SugiliteDialogSimpleState("DETAIL_PROMPT", this);
+    private SugiliteDialogSimpleState askingForConfirmationState = new SugiliteDialogSimpleState("ASKING_FOR_CONFIRMATION", this, true);
+    private SugiliteDialogSimpleState detailPromptState = new SugiliteDialogSimpleState("DETAIL_PROMPT", this, true);
 
 
     public SugiliteRecordingConfirmationDialog(Context context, SugiliteOperationBlock block, SugiliteAvailableFeaturePack featurePack, List<Pair<OntologyQuery, Double>> queryScoreList, Runnable clickUnderlyingButtonRunnable, SugiliteBlockBuildingHelper blockBuildingHelper, UISnapshot uiSnapshot, SugiliteEntity<Node> actualClickedNode, SugiliteData sugiliteData, SharedPreferences sharedPreferences, TextToSpeech tts) {
@@ -242,7 +242,7 @@ public class SugiliteRecordingConfirmationDialog extends SugiliteDialogManager {
         handler.postDelayed(new Runnable() {
             @Override
             public void run() {
-                RecordingAmbiguousPopupDialog recordingAmbiguousPopupDialog = new RecordingAmbiguousPopupDialog(context, queryScoreList, featurePack, blockBuildingHelper, clickUnderlyingButtonRunnable, uiSnapshot, actualClickedNode, sugiliteData, sharedPreferences, tts, 0);
+                RecordingAmbiguousPopupDialog recordingAmbiguousPopupDialog = new RecordingAmbiguousPopupDialog(context, queryScoreList, featurePack, blockBuildingHelper, clickUnderlyingButtonRunnable, uiSnapshot, actualClickedNode, sugiliteData, sharedPreferences, getTTS(), 0);
                 recordingAmbiguousPopupDialog.show();
             }
         }, 500);

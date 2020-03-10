@@ -31,4 +31,5 @@ public interface SugiliteVoiceRecognitionListener {
     void stopTTS();
     void stopAllAndEndASRService();
     void setContextPhrases(String... contextPhrases);
+    TextToSpeech getTTS();
 }

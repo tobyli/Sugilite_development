@@ -14,6 +14,8 @@ import android.view.accessibility.AccessibilityNodeInfo;
 
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -332,6 +334,25 @@ public class Automator {
                 for (SugiliteEntity e : querySet) {
                     if (e.getEntityValue() instanceof Node) {
                         AccessibilityNodeInfo accessibilityNodeInfo = uiSnapshot.getNodeAccessibilityNodeInfoMap().get(e.getEntityValue());
+
+                        if (operationBlock.getOperation() instanceof SugiliteClickOperation) {
+                            if (!accessibilityNodeInfo.isClickable()) {
+                                continue;
+                            }
+                        }
+
+                        if (operationBlock.getOperation() instanceof SugiliteLongClickOperation) {
+                            if (!accessibilityNodeInfo.isLongClickable()) {
+                                continue;
+                            }
+                        }
+
+                        if (operationBlock.getOperation() instanceof SugiliteSetTextOperation) {
+                            if (!accessibilityNodeInfo.isEditable()) {
+                                continue;
+                            }
+                        }
+
                         preFilteredNodes.add(accessibilityNodeInfo);
                         accessibilityNodeInfoNodeMap.put(accessibilityNodeInfo, e);
                     }
@@ -373,6 +394,7 @@ public class Automator {
 
                 // remove direct parents of matched nodes
                 // this would likely remove grandparents if they are incorrectly matched as well?
+
                 List<AccessibilityNodeInfo> filteredNodes = new ArrayList<>();
                 filteredNodes.addAll(preFilteredNodes);
 
@@ -387,39 +409,75 @@ public class Automator {
                 Log.v("Automator", "Removed " + (preFilteredNodes.size() - filteredNodes.size()) + " nodes with remove parent heuristic");
 
                 boolean succeeded = false;
+
+                //sort filteredNodes by z-index
+
+                Collections.sort(filteredNodes, new Comparator<AccessibilityNodeInfo>() {
+                    @Override
+                    public int compare(AccessibilityNodeInfo o1, AccessibilityNodeInfo o2) {
+                        int zIndex1 = Integer.MAX_VALUE;
+                        int zIndex2 = Integer.MAX_VALUE;
+                        if (o1.getWindow() != null) {
+                            zIndex1 = o1.getDrawingOrder();
+                        }
+                        if (o2.getWindow() != null) {
+                            zIndex2 = o2.getDrawingOrder();
+                        }
+                        return zIndex2 - zIndex1;
+                    }
+                });
+
+
+                //sort filteredNodes by size
+                /*
+                Collections.sort(filteredNodes, new Comparator<AccessibilityNodeInfo>() {
+                    @Override
+                    public int compare(AccessibilityNodeInfo o1, AccessibilityNodeInfo o2) {
+                        Rect bounds1 = new Rect(0,0,9999,9999);
+                        Rect bounds2 = new Rect(0,0,9999,9999);
+                        o1.getBoundsInScreen(bounds1);
+                        o2.getBoundsInScreen(bounds2);
+                        return (bounds1.right - bounds1.left) * (bounds1.bottom - bounds1.top) -
+                                (bounds2.right - bounds2.left) * (bounds2.bottom - bounds2.top);
+                    }
+                });
+                */
+
+
                 for (AccessibilityNodeInfo node : filteredNodes) {
                     //TODO: scrolling to find more nodes -- not only the ones displayed on the current screen
                     boolean retVal = performAction(node, operationBlock);
-
                         if (retVal) {
-                        if (!succeeded) {
-                            //report success
-                            sugiliteData.errorHandler.reportSuccess(Calendar.getInstance().getTimeInMillis());
-                            addNextBlockToQueue(operationBlock);
+                            if (!succeeded) {
+                                //report success
+                                sugiliteData.errorHandler.reportSuccess(Calendar.getInstance().getTimeInMillis());
+                                addNextBlockToQueue(operationBlock);
 
-                            //report ReconstructObfuscatedScript
-                            sugiliteData.handleReconstructObfuscatedScript(operationBlock, accessibilityNodeInfoNodeMap.get(node), uiSnapshot);
-                            if (sugiliteData.getInstructionQueueSize() > 0) {
-                                synchronized (this) {
-                                    if (sugiliteData.peekInstructionQueue() != null && sugiliteData.peekInstructionQueue().equals(blockToMatch)) {
-                                        sugiliteData.removeInstructionQueueItem();
-                                    } else {
-                                        return false;
+                                //report ReconstructObfuscatedScript
+                                sugiliteData.handleReconstructObfuscatedScript(operationBlock, accessibilityNodeInfoNodeMap.get(node), uiSnapshot);
+                                if (sugiliteData.getInstructionQueueSize() > 0) {
+                                    synchronized (this) {
+                                        if (sugiliteData.peekInstructionQueue() != null && sugiliteData.peekInstructionQueue().equals(blockToMatch)) {
+                                            sugiliteData.removeInstructionQueueItem();
+                                        } else {
+                                            return false;
+                                        }
                                     }
                                 }
                             }
-                        }
-                        succeeded = true;
+                            succeeded = true;
 
-                        try {
-                            //delay delay/2 length after successfuly performing the action
-                            if (sugiliteData.getCurrentSystemState() == SugiliteData.DEFAULT_STATE)
-                                Thread.sleep(DEBUG_DELAY / 2);
-                            else
-                                Thread.sleep(DELAY / 2);
-                        } catch (Exception e) {
-                            // do nothing
-                        }
+                            try {
+                                //delay delay/2 length after successfuly performing the action
+                                if (sugiliteData.getCurrentSystemState() == SugiliteData.DEFAULT_STATE)
+                                    Thread.sleep(DEBUG_DELAY / 2);
+                                else
+                                    Thread.sleep(DELAY / 2);
+                            } catch (Exception e) {
+                                // do nothing
+                            }
+
+                            break;
                     }
                 }
 

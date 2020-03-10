@@ -265,7 +265,9 @@ public class SugiliteGoogleCloudVoiceRecognitionListener implements SugiliteVoic
                 public void onDone(String utteranceId) {
                     if (utteranceId.equals(originalUtteranceId)) {
                         try {
-                            SugiliteData.runOnUiThread(onDone);
+                            if (onDone != null) {
+                                SugiliteData.runOnUiThread(onDone);
+                            }
                             if (sugiliteVoiceInterface != null) {
                                 SugiliteData.runOnUiThread(new Runnable() {
                                     @Override
@@ -328,7 +330,10 @@ public class SugiliteGoogleCloudVoiceRecognitionListener implements SugiliteVoic
         }
     }
 
-
+    @Override
+    public TextToSpeech getTTS() {
+        return tts;
+    }
 
 
     /**
@@ -365,7 +370,7 @@ public class SugiliteGoogleCloudVoiceRecognitionListener implements SugiliteVoic
         stopTTS();
 
         // stop Cloud Speech API
-        if (mSpeechServiceListener != null) {
+        if (mSpeechServiceListener != null && mSpeechService != null) {
             mSpeechService.removeListener(mSpeechServiceListener);
         }
 

@@ -108,7 +108,9 @@ public class SugiliteAndroidAPIVoiceRecognitionListener implements SugiliteVoice
                 public void onDone(String utteranceId) {
                     if (utteranceId.equals(originalUtteranceId)) {
                         try {
-                            SugiliteData.runOnUiThread(onDone);
+                            if (onDone != null) {
+                                SugiliteData.runOnUiThread(onDone);
+                            }
                             if (sugiliteVoiceInterface != null) {
                                 SugiliteData.runOnUiThread(new Runnable() {
                                     @Override
@@ -277,6 +279,11 @@ public class SugiliteAndroidAPIVoiceRecognitionListener implements SugiliteVoice
             }
         }
         return false;
+    }
+
+    @Override
+    public TextToSpeech getTTS() {
+        return tts;
     }
 
     @Override

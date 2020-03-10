@@ -42,28 +42,28 @@ import static edu.cmu.hcii.sugilite.Const.OVERLAY_TYPE;
  * @time 1:00 PM
  */
 public class ChooseParsingDialog extends SugiliteDialogManager {
+    //skip the dialog and choose the top item by default if TO_SKIP is true
     private static final boolean TO_SKIP = true;
 
-
-
-    Context context;
-    SugiliteBlockBuildingHelper blockBuildingHelper;
-    LayoutInflater layoutInflater;
-    Runnable clickableRunnable;
-    UISnapshot uiSnapshot;
-    SugiliteEntity<Node> actualClickedNode;
-    SugiliteData sugiliteData;
-    SharedPreferences sharedPreferences;
-    OntologyDescriptionGenerator ontologyDescriptionGenerator;
+    private Context context;
+    private SugiliteBlockBuildingHelper blockBuildingHelper;
+    private LayoutInflater layoutInflater;
+    private Runnable clickableRunnable;
+    private UISnapshot uiSnapshot;
+    private SugiliteEntity<Node> actualClickedNode;
+    private SugiliteData sugiliteData;
+    private SharedPreferences sharedPreferences;
+    private OntologyDescriptionGenerator ontologyDescriptionGenerator;
 
     private View dialogView;
     private ListView mainListView;
     private List<Pair<OntologyQuery, List<Node>>> matchingQueriesMatchedNodesList;
     private List<OntologyQuery> resultQueries;
     private Dialog dialog;
-    private SugiliteDialogSimpleState askingForChoosingParsingState = new SugiliteDialogSimpleState("ASKING_FOR_CHOOSING_PARSING", this);
-    List<Pair<OntologyQuery, Double>> queryScoreList;
-    SugiliteAvailableFeaturePack featurePack;
+    private SugiliteDialogSimpleState askingForChoosingParsingState = new SugiliteDialogSimpleState("ASKING_FOR_CHOOSING_PARSING", this, true);
+
+    private List<Pair<OntologyQuery, Double>> queryScoreList;
+    private SugiliteAvailableFeaturePack featurePack;
 
     public ChooseParsingDialog(Context context, List<Pair<OntologyQuery, List<Node>>> matchingQueriesMatchedNodesList, SugiliteBlockBuildingHelper blockBuildingHelper, Runnable clickRunnable, UISnapshot uiSnapshot, SugiliteEntity<Node> actualClickedNode, SugiliteData sugiliteData, SharedPreferences sharedPreferences, TextToSpeech tts, SugiliteAvailableFeaturePack featurePack, List<Pair<OntologyQuery, Double>> queryScoreList){
         super(context, tts);

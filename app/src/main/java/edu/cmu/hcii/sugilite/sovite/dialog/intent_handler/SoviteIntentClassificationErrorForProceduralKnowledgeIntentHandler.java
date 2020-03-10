@@ -15,6 +15,8 @@ import java.util.List;
 import java.util.Map;
 
 import edu.cmu.hcii.sugilite.SugiliteData;
+import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
+import edu.cmu.hcii.sugilite.model.operation.binary.SugiliteGetProcedureOperation;
 import edu.cmu.hcii.sugilite.pumice.communication.PumiceInstructionPacket;
 import edu.cmu.hcii.sugilite.pumice.communication.PumiceSemanticParsingResultPacket;
 import edu.cmu.hcii.sugilite.pumice.communication.SkipPumiceJSONSerialization;
@@ -25,6 +27,7 @@ import edu.cmu.hcii.sugilite.pumice.kb.PumiceProceduralKnowledge;
 import edu.cmu.hcii.sugilite.sovite.SoviteAppNameAppInfoManager;
 import edu.cmu.hcii.sugilite.sovite.communication.SoviteAppResolutionQueryPacket;
 import edu.cmu.hcii.sugilite.sovite.communication.SoviteAppResolutionResultPacket;
+import edu.cmu.hcii.sugilite.sovite.dialog.SoviteReturnValueCallbackInterface;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.server_comm.SugiliteVerbalInstructionHTTPQueryInterface;
 
 /**
@@ -32,7 +35,7 @@ import edu.cmu.hcii.sugilite.verbal_instruction_demo.server_comm.SugiliteVerbalI
  * @date 2/24/20
  * @time 3:11 PM
  */
-public class SoviteIntentClassificationErrorIntentHandler implements PumiceUtteranceIntentHandler, SugiliteVerbalInstructionHTTPQueryInterface {
+public class SoviteIntentClassificationErrorForProceduralKnowledgeIntentHandler implements PumiceUtteranceIntentHandler, SugiliteVerbalInstructionHTTPQueryInterface, SoviteReturnValueCallbackInterface<PumiceProceduralKnowledge> {
 
     private PumiceDialogManager pumiceDialogManager;
     private Activity context;
@@ -40,17 +43,19 @@ public class SoviteIntentClassificationErrorIntentHandler implements PumiceUtter
     private PumiceSemanticParsingResultPacket originalSemanticParsingResult;
     private SoviteAppNameAppInfoManager soviteAppNameAppInfoManager;
     private Calendar calendar;
+    private SoviteReturnValueCallbackInterface<String> returnValueCallbackObject;
 
     public final static String RELEVANT_APPS_FOR_UTTERANCES = "RELEVANT_APPS_FOR_UTTERANCES";
     public final static String RELEVANT_UTTERANCES_FOR_APPS = "RELEVANT_UTTERANCES_FOR_APPS";
 
-    public SoviteIntentClassificationErrorIntentHandler(PumiceDialogManager pumiceDialogManager, Activity context, String originalUtterance, PumiceSemanticParsingResultPacket originalSemanticParsingResult) {
+    public SoviteIntentClassificationErrorForProceduralKnowledgeIntentHandler(PumiceDialogManager pumiceDialogManager, Activity context, String originalUtterance, PumiceSemanticParsingResultPacket originalSemanticParsingResult, SoviteReturnValueCallbackInterface<String> returnValueCallbackObject) {
         this.pumiceDialogManager = pumiceDialogManager;
         this.context = context;
         this.calendar = Calendar.getInstance();
         this.originalUtterance = originalUtterance;
         this.originalSemanticParsingResult = originalSemanticParsingResult;
         this.soviteAppNameAppInfoManager = SoviteAppNameAppInfoManager.getInstance(SugiliteData.getAppContext());
+        this.returnValueCallbackObject = returnValueCallbackObject;
     }
 
     @Override
@@ -92,7 +97,7 @@ public class SoviteIntentClassificationErrorIntentHandler implements PumiceUtter
     }
 
 
-    public static void handleAppReferenceResponse(Gson gson, String result, String originalIntentUtterance, SoviteAppNameAppInfoManager soviteAppNameAppInfoManager, Activity context, PumiceDialogManager pumiceDialogManager, SugiliteVerbalInstructionHTTPQueryInterface caller) throws Exception {
+    public static void handleAppReferenceResponse(Gson gson, String result, String originalIntentUtterance, SoviteAppNameAppInfoManager soviteAppNameAppInfoManager, Activity context, PumiceDialogManager pumiceDialogManager, SugiliteVerbalInstructionHTTPQueryInterface caller, SoviteReturnValueCallbackInterface<PumiceProceduralKnowledge> returnValueCallbackObject) throws Exception {
         PumiceSemanticParsingResultPacket resultPacket = gson.fromJson(result, PumiceSemanticParsingResultPacket.class);
         resultPacket.cleanFormula();
         if (resultPacket.utteranceType != null) {
@@ -122,7 +127,7 @@ public class SoviteIntentClassificationErrorIntentHandler implements PumiceUtter
                                 List<String> allAvailableScriptUtterances = new ArrayList<>();
 
                                 for (PumiceProceduralKnowledge pumiceProceduralKnowledge : pumiceProceduralKnowledges) {
-                                    allAvailableScriptUtterances.add(pumiceProceduralKnowledge.getProcedureDescription(knowledgeManager));
+                                    allAvailableScriptUtterances.add(pumiceProceduralKnowledge.getProcedureDescription(knowledgeManager, false));
                                     List<String> involvedAppNames = pumiceProceduralKnowledge.getInvolvedAppNames(knowledgeManager);
                                     if (involvedAppNames != null && involvedAppNames.contains(appName)) {
                                         proceduralKnowledgesWithMatchedApps.add(pumiceProceduralKnowledge);
@@ -131,7 +136,7 @@ public class SoviteIntentClassificationErrorIntentHandler implements PumiceUtter
                                 if (proceduralKnowledgesWithMatchedApps.size() > 0) {
                                     // able to find other procedures that use this app
                                     //use a new handler to handle
-                                    SoviteScriptsWithTheSameAppDisambiguationIntentHandler soviteScriptsWithTheSameAppDisambiguationIntentHandler = new SoviteScriptsWithTheSameAppDisambiguationIntentHandler(pumiceDialogManager, context, packageName, appName, originalIntentUtterance, proceduralKnowledgesWithMatchedApps);
+                                    SoviteScriptsWithTheSameAppDisambiguationIntentHandler soviteScriptsWithTheSameAppDisambiguationIntentHandler = new SoviteScriptsWithTheSameAppDisambiguationIntentHandler(pumiceDialogManager, context, packageName, appName, originalIntentUtterance, proceduralKnowledgesWithMatchedApps, returnValueCallbackObject);
                                     pumiceDialogManager.updateUtteranceIntentHandlerInANewState(soviteScriptsWithTheSameAppDisambiguationIntentHandler);
                                     pumiceDialogManager.callSendPromptForTheIntentHandlerForCurrentIntentHandler();
 
@@ -176,17 +181,26 @@ public class SoviteIntentClassificationErrorIntentHandler implements PumiceUtter
         pumiceDialogManager.sendAgentMessage("Here are the relevant apps for your utterance", false, false);
         pumiceDialogManager.sendAgentMessage(resultPacket.getResult_map().toString(), false, false);
     }
-    public static void handleRelevantUtterancesForAppsResponse(Gson gson, String result, Activity context, PumiceDialogManager pumiceDialogManager) {
+    public static void handleRelevantUtterancesForAppsResponse(Gson gson, String result, SoviteAppNameAppInfoManager soviteAppNameAppInfoManager, String originalUtterance, Activity context, PumiceDialogManager pumiceDialogManager, SoviteReturnValueCallbackInterface<PumiceProceduralKnowledge> returnValueCallbackObject) {
         SoviteAppResolutionResultPacket resultPacket = gson.fromJson(result, SoviteAppResolutionResultPacket.class);
         Map<String, List<String>> appRelevantUtteranceMap = resultPacket.getResult_map();
-        SoviteAppNameAppInfoManager soviteAppNameAppInfoManager = SoviteAppNameAppInfoManager.getInstance(context);
+        List<PumiceProceduralKnowledge> relevantProceduralKnowledgeList = new ArrayList<>();
 
-        for (String appPackageName : appRelevantUtteranceMap.keySet()) {
-            String appReadableName = soviteAppNameAppInfoManager.getReadableAppNameForPackageName(appPackageName);
-            pumiceDialogManager.sendAgentMessage(String.format("Here are the relevant scripts for the app %s:", appReadableName), true, false);
-            pumiceDialogManager.sendAgentMessage(appRelevantUtteranceMap.get(appPackageName).toString(), false, false);
-            //TODO: need a new intent handler here
+        Map<String, PumiceProceduralKnowledge> procedureKnowledgeUtteranceProcedureKnowledgeMap = pumiceDialogManager.getPumiceKnowledgeManager().getProcedureKnowledgeUtteranceProcedureKnowledgeMap(false);
+        String appPackageName = null;
+        for (String packageName : appRelevantUtteranceMap.keySet()) {
+            appPackageName = packageName;
+            List<String> relevantProceduralKnowledgeUtteranceList = appRelevantUtteranceMap.get(packageName);
+            for (String utterance : relevantProceduralKnowledgeUtteranceList) {
+                if (procedureKnowledgeUtteranceProcedureKnowledgeMap.containsKey(utterance)) {
+                    relevantProceduralKnowledgeList.add(procedureKnowledgeUtteranceProcedureKnowledgeMap.get(utterance));
+                }
+            }
         }
+        String appReadableName = soviteAppNameAppInfoManager.getReadableAppNameForPackageName(appPackageName);
+        SoviteScriptRelevantToAppIntentHandler soviteScriptRelevantToAppIntentHandler = new SoviteScriptRelevantToAppIntentHandler(pumiceDialogManager, context, appPackageName, appReadableName, originalUtterance, relevantProceduralKnowledgeList, returnValueCallbackObject);
+        pumiceDialogManager.updateUtteranceIntentHandlerInANewState(soviteScriptRelevantToAppIntentHandler);
+        pumiceDialogManager.callSendPromptForTheIntentHandlerForCurrentIntentHandler();
     }
     public static void handleServerResponseError(Exception e, PumiceDialogManager pumiceDialogManager, PumiceUtteranceIntentHandler intentHandler) {
         //error handling
@@ -217,9 +231,9 @@ public class SoviteIntentClassificationErrorIntentHandler implements PumiceUtter
                     }
                 })
                 .create();
-        if (result.contains("APP_REFERENCE")) {
+        if (result.contains(PumiceIntent.APP_REFERENCE.name())) {
             try {
-                handleAppReferenceResponse(gson, result, originalUtterance, soviteAppNameAppInfoManager, context, pumiceDialogManager, this);
+                handleAppReferenceResponse(gson, result, originalUtterance, soviteAppNameAppInfoManager, context, pumiceDialogManager, this, this);
             } catch (Exception e) {
                handleServerResponseError(e, pumiceDialogManager, this);
             }
@@ -233,11 +247,17 @@ public class SoviteIntentClassificationErrorIntentHandler implements PumiceUtter
         } else if (result.contains(RELEVANT_UTTERANCES_FOR_APPS)) {
             //handle queries of getting relevant utterances for apps
             try {
-               handleRelevantUtterancesForAppsResponse(gson, result, context, pumiceDialogManager);
+               handleRelevantUtterancesForAppsResponse(gson, result, soviteAppNameAppInfoManager, originalUtterance, context, pumiceDialogManager, this);
             } catch (Exception e) {
                 handleServerResponseError(e, pumiceDialogManager, this);
             }
         }
+    }
 
+    @Override
+    public void callReturnValueCallback(PumiceProceduralKnowledge proceduralKnowledge) {
+        SugiliteOperationBlock operationBlock = new SugiliteOperationBlock();
+        operationBlock.setOperation(new SugiliteGetProcedureOperation(proceduralKnowledge.getProcedureName()));
+        returnValueCallbackObject.callReturnValueCallback(operationBlock.toString());
     }
 }

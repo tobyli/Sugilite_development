@@ -409,7 +409,6 @@ public class Automator {
                 Log.v("Automator", "Removed " + (preFilteredNodes.size() - filteredNodes.size()) + " nodes with remove parent heuristic");
 
                 boolean succeeded = false;
-
                 //sort filteredNodes by z-index
 
                 Collections.sort(filteredNodes, new Comparator<AccessibilityNodeInfo>() {
@@ -447,37 +446,37 @@ public class Automator {
                 for (AccessibilityNodeInfo node : filteredNodes) {
                     //TODO: scrolling to find more nodes -- not only the ones displayed on the current screen
                     boolean retVal = performAction(node, operationBlock);
-                        if (retVal) {
-                            if (!succeeded) {
-                                //report success
-                                sugiliteData.errorHandler.reportSuccess(Calendar.getInstance().getTimeInMillis());
-                                addNextBlockToQueue(operationBlock);
+                    if (retVal) {
+                        if (!succeeded) {
+                            //report success
+                            sugiliteData.errorHandler.reportSuccess(Calendar.getInstance().getTimeInMillis());
+                            addNextBlockToQueue(operationBlock);
 
-                                //report ReconstructObfuscatedScript
-                                sugiliteData.handleReconstructObfuscatedScript(operationBlock, accessibilityNodeInfoNodeMap.get(node), uiSnapshot);
-                                if (sugiliteData.getInstructionQueueSize() > 0) {
-                                    synchronized (this) {
-                                        if (sugiliteData.peekInstructionQueue() != null && sugiliteData.peekInstructionQueue().equals(blockToMatch)) {
-                                            sugiliteData.removeInstructionQueueItem();
-                                        } else {
-                                            return false;
-                                        }
+                            //report ReconstructObfuscatedScript
+                            sugiliteData.handleReconstructObfuscatedScript(operationBlock, accessibilityNodeInfoNodeMap.get(node), uiSnapshot);
+                            if (sugiliteData.getInstructionQueueSize() > 0) {
+                                synchronized (this) {
+                                    if (sugiliteData.peekInstructionQueue() != null && sugiliteData.peekInstructionQueue().equals(blockToMatch)) {
+                                        sugiliteData.removeInstructionQueueItem();
+                                    } else {
+                                        return false;
                                     }
                                 }
                             }
-                            succeeded = true;
+                        }
+                        succeeded = true;
 
-                            try {
-                                //delay delay/2 length after successfuly performing the action
-                                if (sugiliteData.getCurrentSystemState() == SugiliteData.DEFAULT_STATE)
-                                    Thread.sleep(DEBUG_DELAY / 2);
-                                else
-                                    Thread.sleep(DELAY / 2);
-                            } catch (Exception e) {
-                                // do nothing
-                            }
+                        try {
+                            //delay delay/2 length after successfuly performing the action
+                            if (sugiliteData.getCurrentSystemState() == SugiliteData.DEFAULT_STATE)
+                                Thread.sleep(DEBUG_DELAY / 2);
+                            else
+                                Thread.sleep(DELAY / 2);
+                        } catch (Exception e) {
+                            // do nothing
+                        }
 
-                            break;
+                        break;
                     }
                 }
 
@@ -639,16 +638,16 @@ public class Automator {
                         }
                     });
 
-                SugiliteData.runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        AlertDialog dialog = builder.create();
-                        if (dialog.getWindow() != null) {
-                            dialog.getWindow().setType(OVERLAY_TYPE);
-                        }
-                        dialog.show();
+            SugiliteData.runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    AlertDialog dialog = builder.create();
+                    if (dialog.getWindow() != null) {
+                        dialog.getWindow().setType(OVERLAY_TYPE);
                     }
-                });
+                    dialog.show();
+                }
+            });
 
         } else if (block instanceof SugiliteSpecialOperationBlock) {
             sugiliteData.addInstruction(block.getNextBlockToRun());

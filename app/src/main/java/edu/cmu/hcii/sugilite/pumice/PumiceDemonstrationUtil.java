@@ -78,7 +78,7 @@ public class PumiceDemonstrationUtil {
             //save the newly created script to DB
             try {
                 sugiliteScriptDao.save(sugiliteData.getScriptHead());
-                sugiliteScriptDao.commitSave();
+                sugiliteScriptDao.commitSave(null);
             }
             catch (Exception e){
                 e.printStackTrace();
@@ -193,25 +193,28 @@ public class PumiceDemonstrationUtil {
                 //commit the script through the sugiliteScriptDao
                 try {
                     if (sugiliteScriptDao != null) {
-                        sugiliteScriptDao.commitSave();
+                        sugiliteScriptDao.commitSave(new Runnable() {
+                            @Override
+                            public void run() {
+                                //invoke the callback
+                                if (sugiliteData.initiatedExternally && sugiliteData.getScriptHead() != null) {
+                                    //return the recording to the external caller
+                                    sugiliteData.communicationController.sendRecordingFinishedSignal(sugiliteData.getScriptHead().getScriptName());
+                                    sugiliteData.sendCallbackMsg(SugiliteCommunicationHelper.FINISHED_RECORDING, jsonProcessor.scriptToJson(sugiliteData.getScriptHead()), sugiliteData.callbackString);
+                                }
+
+                                //call the after recording callback
+                                if (sugiliteData.getScriptHead() != null && sugiliteData.afterRecordingCallback != null){
+                                    //call the endRecordingCallback
+                                    Runnable r = sugiliteData.afterRecordingCallback;
+                                    sugiliteData.afterRecordingCallback = null;
+                                    r.run();
+                                }
+                            }
+                        });
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
-                }
-
-                //invoke the callback
-                if (sugiliteData.initiatedExternally && sugiliteData.getScriptHead() != null) {
-                    //return the recording to the external caller
-                    sugiliteData.communicationController.sendRecordingFinishedSignal(sugiliteData.getScriptHead().getScriptName());
-                    sugiliteData.sendCallbackMsg(SugiliteCommunicationHelper.FINISHED_RECORDING, jsonProcessor.scriptToJson(sugiliteData.getScriptHead()), sugiliteData.callbackString);
-                }
-
-                //call the after recording callback
-                if (sugiliteData.getScriptHead() != null && sugiliteData.afterRecordingCallback != null){
-                    //call the endRecordingCallback
-                    Runnable r = sugiliteData.afterRecordingCallback;
-                    sugiliteData.afterRecordingCallback = null;
-                    r.run();
                 }
             }
         }).start();

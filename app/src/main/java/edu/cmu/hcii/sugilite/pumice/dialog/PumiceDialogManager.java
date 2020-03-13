@@ -238,6 +238,15 @@ public class PumiceDialogManager{
         return pumiceDialogState.getPumiceKnowledgeManager();
     }
 
+    public void setPumiceKnowledgeManager(PumiceKnowledgeManager pumiceKnowledgeManager) {
+        try {
+            pumiceKnowledgeDao.savePumiceKnowledge(pumiceKnowledgeManager);
+            pumiceDialogState.setPumiceKnowledgeManager(pumiceKnowledgeManager);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     private void handleSpeakingAndUserResponse(String utterance, boolean isSpokenMessage, boolean requireUserResponse){
         if(isSpokenMessage && sugiliteVoiceRecognitionListener != null) {
             sugiliteVoiceRecognitionListener.speak(utterance, String.valueOf(Calendar.getInstance().getTimeInMillis()), new Runnable() {

@@ -9,6 +9,7 @@ import android.view.View;
 import android.view.WindowManager;
 import android.widget.EditText;
 
+import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 
@@ -50,12 +51,23 @@ public class SoviteStudyDumpGenerateDialog {
                         String dumpFileName = dumpNameEditText.getText().toString();
                         SugiliteProgressDialog progressDialog = new SugiliteProgressDialog(SugiliteData.getAppContext(), R.string.saving_sovite_dump_message);
                         progressDialog.show();
-                        try {
-                            soviteStudyDumpManager.saveSoviteStudyDumpPacketToFile(dumpFileName);
-                        } catch (Exception e){
-                            e.printStackTrace();
-                        }
-                        progressDialog.dismiss();                    }
+                        new Thread(new Runnable() {
+                            @Override
+                            public void run() {
+                                try {
+                                    File path = null;
+                                    path = soviteStudyDumpManager.saveSoviteStudyDumpPacketToFile(dumpFileName);
+                                    if (path != null) {
+                                        PumiceDemonstrationUtil.showSugiliteAlertDialog("The Sovite dump file has been saved to " + path.getCanonicalPath() + ".");
+                                    }
+                                } catch (Exception e){
+                                    e.printStackTrace();
+                                }
+                                progressDialog.dismiss();
+                            }
+                        }).start();
+
+                    }
                 })
                 .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
                     @Override
@@ -75,7 +87,7 @@ public class SoviteStudyDumpGenerateDialog {
 
     private String getDefaultName() {
         Calendar calendar = Calendar.getInstance();
-        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy_MM_dd_hh_mm_ss");
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         String strDate = dateFormat.format(calendar.getTime());
         return "SoviteDump_" + strDate;
     }

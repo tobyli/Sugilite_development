@@ -81,7 +81,7 @@ public class ObfuscatedScriptReconstructor {
         //save the block
         try {
             sugiliteScriptDao.save(scriptInProcess);
-            sugiliteScriptDao.commitSave();
+            sugiliteScriptDao.commitSave(null);
         } catch (Exception e) {
             e.printStackTrace();
         }

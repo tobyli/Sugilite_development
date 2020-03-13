@@ -190,7 +190,7 @@ public class PumiceValueQueryKnowledge<T> implements Serializable {
         }
     }
 
-    String getValueDescription(){
+    public String getValueDescription(){
         String description = "How to get the value of " + valueName;
         if (sugiliteValue != null && sugiliteValue instanceof SugiliteGetValueOperation){
             description = description + ", which is the value of " + ((SugiliteGetValueOperation) sugiliteValue).getName();

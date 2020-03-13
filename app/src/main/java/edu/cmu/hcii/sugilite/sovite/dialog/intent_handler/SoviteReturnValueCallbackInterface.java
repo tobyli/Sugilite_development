@@ -1,4 +1,4 @@
-package edu.cmu.hcii.sugilite.sovite.dialog;
+package edu.cmu.hcii.sugilite.sovite.dialog.intent_handler;
 
 /**
  * @author toby

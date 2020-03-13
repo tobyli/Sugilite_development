@@ -151,7 +151,7 @@ public class ScriptSourceActivity extends AppCompatActivity {
             SugiliteStartingBlock newScript = sugiliteScriptParser.parseBlockFromString(input);
             newScript.setScriptName("EDITED: " + scriptName);
             sugiliteScriptDao.save(newScript);
-            sugiliteScriptDao.commitSave();
+            sugiliteScriptDao.commitSave(null);
             return newScript;
         } catch (Exception e){
             e.printStackTrace();

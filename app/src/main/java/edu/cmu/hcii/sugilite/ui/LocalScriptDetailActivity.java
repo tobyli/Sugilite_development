@@ -1,6 +1,7 @@
 package edu.cmu.hcii.sugilite.ui;
 
 import android.app.Activity;
+import android.app.ActivityManager;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -456,7 +457,7 @@ public class LocalScriptDetailActivity extends ScriptDetailActivity implements S
                                 try {
                                     sugiliteScriptDao.save(script);
                                     System.out.println("before commit : " + script.getTail());
-                                    sugiliteScriptDao.commitSave();
+                                    sugiliteScriptDao.commitSave(null);
                                     System.out.println("after commit : " + script.getTail());
                                 }
                                 catch (Exception e){
@@ -558,7 +559,7 @@ public class LocalScriptDetailActivity extends ScriptDetailActivity implements S
                     ((SugiliteOperationBlock) currentBlock).delete();
                     try {
                         sugiliteScriptDao.save(script);
-                        sugiliteScriptDao.commitSave();
+                        sugiliteScriptDao.commitSave(null);
                     }
                     catch (Exception e){
                         e.printStackTrace();
@@ -593,7 +594,7 @@ public class LocalScriptDetailActivity extends ScriptDetailActivity implements S
                     ((SugiliteConditionBlock) currentBlock).delete();
                     try {
                         sugiliteScriptDao.save(script);
-                        sugiliteScriptDao.commitSave();
+                        sugiliteScriptDao.commitSave(null);
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
@@ -646,7 +647,7 @@ public class LocalScriptDetailActivity extends ScriptDetailActivity implements S
                                 try {
                                     sugiliteScriptDao.save(startingBlock);
                                     sugiliteScriptDao.delete(scriptName);
-                                    sugiliteScriptDao.commitSave();
+                                    sugiliteScriptDao.commitSave(null);
                                     Intent intent = new Intent(context, LocalScriptDetailActivity.class);
                                     intent.putExtra("scriptName", startingBlock.getScriptName());
                                     intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
@@ -1022,7 +1023,7 @@ public class LocalScriptDetailActivity extends ScriptDetailActivity implements S
             sugiliteData.setCurrentScriptBlock(blockToResumeRecordingFrom);
             //force stop all the relevant packages
             for (String packageName : script.relevantPackages) {
-                AutomatorUtil.killPackage(packageName);
+                AutomatorUtil.killPackage(packageName, (ActivityManager) getSystemService(ACTIVITY_SERVICE));
             }
             sugiliteData.runScript(script, true, SugiliteData.EXECUTION_STATE, false);
 

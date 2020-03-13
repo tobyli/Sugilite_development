@@ -73,18 +73,28 @@ public class SugiliteScriptFileDao implements SugiliteScriptDao {
      *
      * @throws Exception
      */
-    public void commitSave() throws Exception{
+    public void commitSave(Runnable runOnDone) throws Exception{
         SugiliteProgressDialog progressDialog = new SugiliteProgressDialog(SugiliteData.getAppContext(), R.string.saving_script_message);
         progressDialog.show();
-
-
-        int number = savingCache.size();
-        for(Map.Entry<String, SugiliteStartingBlock> entry : savingCache.entrySet()){
-            commitSaveForASingleScript(entry.getValue());
-        }
-        invalidateCache();
-        System.out.println("COMMIT SAVE: SAVED " + number + " SCRIPTS");
-        progressDialog.dismiss();
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                int number = savingCache.size();
+                for(Map.Entry<String, SugiliteStartingBlock> entry : savingCache.entrySet()){
+                    try {
+                        commitSaveForASingleScript(entry.getValue());
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+                invalidateCache();
+                System.out.println("COMMIT SAVE: SAVED " + number + " SCRIPTS");
+                progressDialog.dismiss();
+                if (runOnDone != null) {
+                    runOnDone.run();
+                }
+            }
+        }).start();
     }
 
     private void commitSaveForASingleScript(SugiliteStartingBlock sugiliteBlock) throws Exception{

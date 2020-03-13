@@ -7,6 +7,8 @@ package edu.cmu.hcii.sugilite.ontology.helper.annotator.util;
  */
 
 
+import android.graphics.Rect;
+
 import java.io.PrintWriter;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;

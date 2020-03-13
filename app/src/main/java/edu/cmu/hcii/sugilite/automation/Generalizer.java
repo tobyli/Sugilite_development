@@ -168,7 +168,7 @@ public class Generalizer {
             script.setScriptName(fileName + "_generalized" + ".SugiliteScript");
             try {
                 sugiliteScriptDao.save(script);
-                sugiliteScriptDao.commitSave();
+                sugiliteScriptDao.commitSave(null);
                 builder.setMessage("Generalization successful!");
             } catch (Exception e) {
                 e.printStackTrace();

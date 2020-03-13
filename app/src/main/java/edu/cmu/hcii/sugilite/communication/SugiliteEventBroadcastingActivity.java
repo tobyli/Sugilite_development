@@ -90,7 +90,7 @@ public class SugiliteEventBroadcastingActivity extends AppCompatActivity {
                     break;
             }
             Calendar calendar = Calendar.getInstance();
-            SimpleDateFormat format = new SimpleDateFormat("dd-M-yyyy hh:mm:ss");
+            SimpleDateFormat format = new SimpleDateFormat("dd-M-yyyy HH:mm:ss");
             time = format.format(calendar.getTime());
             //time
             AccessibilityNodeInfo node = event.getSource();

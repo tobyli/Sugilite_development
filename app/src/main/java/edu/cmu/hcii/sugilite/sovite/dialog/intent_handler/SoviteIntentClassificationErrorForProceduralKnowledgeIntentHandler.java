@@ -27,7 +27,6 @@ import edu.cmu.hcii.sugilite.pumice.kb.PumiceProceduralKnowledge;
 import edu.cmu.hcii.sugilite.sovite.SoviteAppNameAppInfoManager;
 import edu.cmu.hcii.sugilite.sovite.communication.SoviteAppResolutionQueryPacket;
 import edu.cmu.hcii.sugilite.sovite.communication.SoviteAppResolutionResultPacket;
-import edu.cmu.hcii.sugilite.sovite.dialog.SoviteReturnValueCallbackInterface;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.server_comm.SugiliteVerbalInstructionHTTPQueryInterface;
 
 /**

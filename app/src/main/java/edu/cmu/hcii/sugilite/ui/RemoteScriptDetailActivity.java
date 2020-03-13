@@ -94,7 +94,7 @@ public class RemoteScriptDetailActivity extends ScriptDetailActivity {
                 try {
                     script.setScriptName("DOWNLOADED: " + script.getScriptName());
                     sugiliteScriptDao.save(script);
-                    sugiliteScriptDao.commitSave();
+                    sugiliteScriptDao.commitSave(null);
                 } catch (Exception e){
                     Log.e("RemoteScriptDetailActivity", "failed to save the script locally");
                     PumiceDemonstrationUtil.showSugiliteAlertDialog("Failed to save the script locally!");

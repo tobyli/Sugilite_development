@@ -1,6 +1,7 @@
 package edu.cmu.hcii.sugilite.ui.dialog;
 
 import android.app.Activity;
+import android.app.ActivityManager;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -39,6 +40,7 @@ import edu.cmu.hcii.sugilite.recording.newrecording.dialog_management.SugiliteDi
 import edu.cmu.hcii.sugilite.recording.newrecording.dialog_management.SugiliteDialogUtteranceFilter;
 import edu.cmu.hcii.sugilite.study.ScriptUsageLogManager;
 
+import static android.content.Context.ACTIVITY_SERVICE;
 import static edu.cmu.hcii.sugilite.Const.SCRIPT_DELAY;
 
 /**
@@ -239,7 +241,7 @@ public class VariableSetValueDialog extends SugiliteDialogManager implements Abs
         prefEditor.apply();
         //kill all the relevant packages
         for (String packageName : startingBlock.relevantPackages) {
-            AutomatorUtil.killPackage(packageName);
+            AutomatorUtil.killPackage(packageName, (ActivityManager) context.getSystemService(ACTIVITY_SERVICE));
         }
 
         sugiliteData.logUsageData(ScriptUsageLogManager.EXECUTE_SCRIPT, startingBlock.getScriptName());

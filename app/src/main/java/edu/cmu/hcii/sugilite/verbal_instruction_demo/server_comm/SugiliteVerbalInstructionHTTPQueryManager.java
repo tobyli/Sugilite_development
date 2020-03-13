@@ -34,7 +34,7 @@ import edu.cmu.hcii.sugilite.ui.dialog.SugiliteProgressDialog;
 public class SugiliteVerbalInstructionHTTPQueryManager {
     private static SugiliteVerbalInstructionHTTPQueryManager instance;
 
-    private static final String DEFAULT_SEMANTIC_PARSING_SERVER_URL =  "http://35.211.149.88:4567/semparse";
+    private static final String DEFAULT_SEMANTIC_PARSING_SERVER_URL =  "http://35.207.16.161:4567/semparse";
     private static final String DEFAULT_BERT_EMBEDDING_SERVER_URL =  "http://35.207.16.161:5000/get_closest_embeddings";
     private static final String USER_AGENT = "Mozilla/5.0";
     private static final int TIME_OUT = 60000;

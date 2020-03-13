@@ -22,7 +22,7 @@ public interface SugiliteScriptDao {
      * write the changes to the disk
      * @throws Exception
      */
-    void commitSave() throws Exception;
+    void commitSave(Runnable runOnDone) throws Exception;
 
     /**
      * @return the number of total scripts

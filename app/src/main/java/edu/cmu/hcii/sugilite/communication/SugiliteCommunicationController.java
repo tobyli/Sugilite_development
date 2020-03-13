@@ -354,7 +354,7 @@ public class SugiliteCommunicationController {
 
                                         try {
                                             sugiliteScriptDao.save(sugiliteData.getScriptHead());
-                                            sugiliteScriptDao.commitSave();
+                                            sugiliteScriptDao.commitSave(null);
                                         } catch (Exception e) {
                                             e.printStackTrace();
                                         }
@@ -473,7 +473,7 @@ public class SugiliteCommunicationController {
                 if(!script.getScriptName().contains(".SugiliteScript"))
                     script.setScriptName(script.getScriptName() + ".SugiliteScript");
                 sugiliteScriptDao.save(script);
-                sugiliteScriptDao.commitSave();
+                sugiliteScriptDao.commitSave(null);
                 return script;
             }
             catch (Exception e){

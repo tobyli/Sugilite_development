@@ -91,6 +91,8 @@ public class PumiceKnowledgeDao {
         PumiceKnowledgeManager pumiceKnowledgeManager = getPumiceKnowledgeManagerFromFile();
         if (pumiceKnowledgeManager == null){
             pumiceKnowledgeManager = new PumiceKnowledgeManager();
+
+            //add the default test content
             if (toAddDefaultContentForNewInstance) {
                 pumiceKnowledgeManager.initForTesting();
             }

@@ -196,18 +196,21 @@ public class SugiliteRecordingConfirmationDialog extends SugiliteDialogManager {
                     {
                         //commit the script
                         try {
-                            sugiliteScriptDao.commitSave();
+                            sugiliteScriptDao.commitSave(new Runnable() {
+                                @Override
+                                public void run() {
+                                    //call the after recording callback
+                                    if (sugiliteData.getScriptHead() != null && sugiliteData.afterRecordingCallback != null){
+                                        //call the endRecordingCallback
+                                        Runnable r = sugiliteData.afterRecordingCallback;
+                                        sugiliteData.afterRecordingCallback = null;
+                                        r.run();
+                                    }
+                                }
+                            });
                         }
                         catch (Exception e){
                             e.printStackTrace();
-                        }
-
-                        //call the after recording callback
-                        if (sugiliteData.getScriptHead() != null && sugiliteData.afterRecordingCallback != null){
-                            //call the endRecordingCallback
-                            Runnable r = sugiliteData.afterRecordingCallback;
-                            sugiliteData.afterRecordingCallback = null;
-                            r.run();
                         }
                     }
                 }).start();

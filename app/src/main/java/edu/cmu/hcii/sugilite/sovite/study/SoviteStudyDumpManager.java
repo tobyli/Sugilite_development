@@ -9,6 +9,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -62,14 +63,21 @@ public class SoviteStudyDumpManager {
             //TODO: error handling
         }
     }
+    public void deleteSoviteStudyDumpPacketFromFile(String packetFileName) throws Exception {
+        File f = new File(studyDumpPackageDir.getPath() + "/" + packetFileName + ".sovitedump");
+        if (f.exists()) {
+            f.delete();
+        }
+    }
 
     // save file
-    public void saveSoviteStudyDumpPacketToFile(String packetFileName) throws Exception {
+    public File saveSoviteStudyDumpPacketToFile(String packetFileName) throws Exception {
         SoviteStudyDumpPacket studyDumpPacket = generateSoviteStudyDumpPacket(packetFileName);
+        File f = new File(studyDumpPackageDir.getPath() + "/" + packetFileName + ".sovitedump");
         ObjectOutputStream oos = null;
         FileOutputStream fout = null;
         try {
-            fout = new FileOutputStream(studyDumpPackageDir.getPath() + "/" + packetFileName + ".sovitedump");
+            fout = new FileOutputStream(f);
             oos = new ObjectOutputStream(fout);
             oos.writeObject(studyDumpPacket);
         } catch (Exception e) {
@@ -82,6 +90,8 @@ public class SoviteStudyDumpManager {
             if (fout != null)
                 fout.close();
         }
+        return f;
+
     }
 
     public List<SoviteStudyDumpPacket> getAllStoredSoviteStudyDumpPacket() {
@@ -100,13 +110,13 @@ public class SoviteStudyDumpManager {
                     fin = new FileInputStream(file);
                     ois = new ObjectInputStream(new BufferedInputStream(fin));
                     packet = (SoviteStudyDumpPacket) ois.readObject();
-                    for (SugiliteStartingBlock script : packet.scripts) {
+                    for (SugiliteStartingBlock script : packet.getScripts()) {
                         OperationBlockDescriptionRegenerator.regenerateScriptDescriptions(script, ontologyDescriptionGenerator);
                     }
                     results.add(packet);
                 } catch (Exception e) {
                     e.printStackTrace();
-                    throw e;
+                    //throw e;
                     //TODO: error handling
                 } finally {
                     if (fin != null)
@@ -122,35 +132,20 @@ public class SoviteStudyDumpManager {
         return results;
     }
 
+    public void loadDump(SoviteStudyDumpPacket dump) throws Exception {
+        //step 1: load all scripts
+        for (SugiliteStartingBlock script : dump.getScripts()) {
+            sugiliteScriptDao.save(script);
+        }
+        sugiliteScriptDao.commitSave(null);
+
+        //step 2: load knowledge
+        pumiceDialogManager.setPumiceKnowledgeManager(dump.getPumiceKnowledgeManager());
+    }
+
     private SoviteStudyDumpPacket generateSoviteStudyDumpPacket(String name) throws Exception {
         return new SoviteStudyDumpPacket(pumiceKnowledgeManager, sugiliteScriptDao.getAllScripts(), name);
     }
 
-    public class SoviteStudyDumpPacket {
-        private PumiceKnowledgeManager pumiceKnowledgeManager;
-        private List<SugiliteStartingBlock> scripts;
-        private String name;
 
-        public SoviteStudyDumpPacket(PumiceKnowledgeManager pumiceKnowledgeManager, List<SugiliteStartingBlock> scripts, String name) {
-            this.pumiceKnowledgeManager = pumiceKnowledgeManager;
-            this.scripts = scripts;
-            this.name = name;
-        }
-
-        public List<SugiliteStartingBlock> getScripts() {
-            return scripts;
-        }
-
-        public PumiceKnowledgeManager getPumiceKnowledgeManager() {
-            return pumiceKnowledgeManager;
-        }
-
-        public String getName() {
-            return name;
-        }
-
-        public void setName(String name) {
-            this.name = name;
-        }
-    }
 }

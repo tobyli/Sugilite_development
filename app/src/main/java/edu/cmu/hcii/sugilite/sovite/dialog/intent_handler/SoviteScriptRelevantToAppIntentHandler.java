@@ -12,7 +12,6 @@ import edu.cmu.hcii.sugilite.pumice.dialog.PumiceDialogManager;
 import edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.PumiceUtteranceIntentHandler;
 import edu.cmu.hcii.sugilite.pumice.kb.PumiceProceduralKnowledge;
 import edu.cmu.hcii.sugilite.sovite.ScriptVisualThumbnailManager;
-import edu.cmu.hcii.sugilite.sovite.dialog.SoviteReturnValueCallbackInterface;
 
 /**
  * @author toby
@@ -90,16 +89,17 @@ public class SoviteScriptRelevantToAppIntentHandler implements PumiceUtteranceIn
 
     @Override
     public void handleIntentWithUtterance(PumiceDialogManager dialogManager, PumiceIntent pumiceIntent, PumiceDialogManager.PumiceUtterance utterance) {
+        //return the matched procedural knowledge
         if (pumiceIntent.equals(PumiceIntent.EXECUTION_CONFIRM_POSITIVE)) {
             topMatchedKnowledge.isNewlyLearned = false;
             returnValueCallbackObject.callReturnValueCallback(topMatchedKnowledge);
         }
-
         else if (pumiceIntent.equals(PumiceIntent.EXECUTION_CONFIRM_NEGATIVE)) {
+            //ask for demonstration instead
             dialogManager.sendAgentMessage("OK", true, false);
-            //TODO: ask for demonstration
-
-
+            SoviteDemonstrateRelevantScreenIntentHandler soviteDemonstrateRelevantScreenIntentHandler = new SoviteDemonstrateRelevantScreenIntentHandler(pumiceDialogManager, context, originalUtterance, appPackageName, appReadableName, returnValueCallbackObject);
+            pumiceDialogManager.updateUtteranceIntentHandlerInANewState(soviteDemonstrateRelevantScreenIntentHandler);
+            pumiceDialogManager.callSendPromptForTheIntentHandlerForCurrentIntentHandler();
         }
 
         else if (pumiceIntent.equals(PumiceIntent.UNRECOGNIZED)) {

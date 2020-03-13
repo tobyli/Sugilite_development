@@ -4,7 +4,9 @@ import com.google.gson.annotations.Expose;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -40,14 +42,17 @@ public class PumiceKnowledgeManager implements Serializable {
     }
 
     public void addPumiceBooleanExpKnowledge(PumiceBooleanExpKnowledge pumiceBooleanExpKnowledge) {
+        removePumiceBooleanExpKnowledgesByName(pumiceBooleanExpKnowledge.getExpName());
         this.pumiceBooleanExpKnowledges.add(pumiceBooleanExpKnowledge);
     }
 
     public void addPumiceProceduralKnowledge(PumiceProceduralKnowledge pumiceProceduralKnowledge) {
+        removePumiceProceduralKnowledgeByName(pumiceProceduralKnowledge.getProcedureName());
         this.pumiceProceduralKnowledges.add(pumiceProceduralKnowledge);
     }
 
     public void addPumiceValueQueryKnowledge(PumiceValueQueryKnowledge pumiceValueQueryKnowledge) {
+        removepumiceValueQueryKnowledgeByName(pumiceValueQueryKnowledge.getValueName());
         this.pumiceValueQueryKnowledges.add(pumiceValueQueryKnowledge);
     }
 
@@ -127,6 +132,18 @@ public class PumiceKnowledgeManager implements Serializable {
         }
         return procedureKnowledgeUtteranceProcedureKnowledgeMap;
 
+    }
+
+    public void removePumiceProceduralKnowledgeByName (String name) {
+        pumiceProceduralKnowledges.removeIf(proceduralKnowledge -> proceduralKnowledge.getProcedureName().equals(name));
+    }
+
+    public void removePumiceBooleanExpKnowledgesByName (String name) {
+        pumiceBooleanExpKnowledges.removeIf(booleanExpKnowledge -> booleanExpKnowledge.getExpName().equals(name));
+    }
+
+    public void removepumiceValueQueryKnowledgeByName (String name) {
+        pumiceValueQueryKnowledges.removeIf(valueQueryKnowledge -> valueQueryKnowledge.getValueName().equals(name));
     }
 
 }

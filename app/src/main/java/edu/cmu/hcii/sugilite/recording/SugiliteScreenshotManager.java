@@ -96,7 +96,7 @@ public class SugiliteScreenshotManager {
     }
 
     public String getFileNameFromDate() {
-        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy_MM_dd_hh_mm_ss");
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy_MM_dd_HH_mm_ss");
         String strDate = dateFormat.format(new java.util.Date());
         return "Screenshot_" + strDate + ".png";
     }

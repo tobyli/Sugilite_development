@@ -286,7 +286,7 @@ public class FragmentScriptListTab extends Fragment {
                                             script.setScriptName(newNameEditText.getText().toString() + ".SugiliteScript");
                                             try {
                                                 sugiliteScriptDao.save(script);
-                                                sugiliteScriptDao.commitSave();
+                                                sugiliteScriptDao.commitSave(null);
                                                 setUpScriptList();
                                                 sugiliteScriptDao.delete(scriptName);
                                                 setUpScriptList();
@@ -342,7 +342,7 @@ public class FragmentScriptListTab extends Fragment {
                                 SugiliteStartingBlock script = sugiliteScriptDao.read(scriptName);
                                 newScriptGeneralizer.extractParameters(script, scriptName.replace(".SugiliteScript", ""));
                                 sugiliteScriptDao.save(script);
-                                sugiliteScriptDao.commitSave();
+                                sugiliteScriptDao.commitSave(null);
                                 PumiceDemonstrationUtil.showSugiliteAlertDialog(String.format("Successfully generalized the script \"%s\"!", removeScriptExtension(scriptName)));
                             } catch (Exception e) {
                                 e.printStackTrace();
@@ -367,7 +367,7 @@ public class FragmentScriptListTab extends Fragment {
                                 SugiliteStartingBlock script = sugiliteScriptDao.read(scriptName);
                                 script.setScriptName("DUPLICATED: " + scriptName);
                                 sugiliteScriptDao.save(script);
-                                sugiliteScriptDao.commitSave();
+                                sugiliteScriptDao.commitSave(null);
                                 SugiliteData.runOnUiThread(new Runnable() {
                                     @Override
                                     public void run() {

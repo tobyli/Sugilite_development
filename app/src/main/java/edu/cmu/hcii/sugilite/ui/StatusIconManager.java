@@ -529,7 +529,7 @@ public class StatusIconManager {
                                             public void run()
                                             {
                                                 try {
-                                                    sugiliteScriptDao.commitSave();
+                                                    sugiliteScriptDao.commitSave(null);
                                                 }
                                                 catch (Exception e){
                                                     e.printStackTrace();

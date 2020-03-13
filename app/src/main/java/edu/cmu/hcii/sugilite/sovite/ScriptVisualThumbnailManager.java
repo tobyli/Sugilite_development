@@ -16,6 +16,8 @@ import edu.cmu.hcii.sugilite.model.block.SugiliteConditionBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.model.operation.binary.SugiliteGetProcedureOperation;
+import edu.cmu.hcii.sugilite.ontology.SerializableUISnapshot;
+import edu.cmu.hcii.sugilite.ontology.UISnapshot;
 
 import static edu.cmu.hcii.sugilite.Const.SQL_SCRIPT_DAO;
 
@@ -45,7 +47,7 @@ public class ScriptVisualThumbnailManager {
         //1. get the last available screenshot (recursively expand get_procedure calls)
         File screenshotFile = null;
         try {
-            screenshotFile = getLastAvailableScreenshotInSubsequentScript(script);
+            screenshotFile = getLastAvailableScreenshotInSubsequentScript(script, null);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -59,36 +61,77 @@ public class ScriptVisualThumbnailManager {
         return null;
     }
 
-    private File getLastAvailableScreenshotInSubsequentScript (SugiliteBlock script) throws Exception {
+    public SerializableUISnapshot getLastAvailableUISnapshotInSubsequentScript (SugiliteBlock script, SerializableUISnapshot lastAvailableUISnapshot) {
         if (script == null) {
-            return null;
+            return lastAvailableUISnapshot;
         }
-        File currentLastAvailableScreenshotInSubsequentScript = null;
+
+        if (script instanceof SugiliteOperationBlock) {
+            if (((SugiliteOperationBlock) script).getSugiliteBlockMetaInfo() != null && ((SugiliteOperationBlock) script).getSugiliteBlockMetaInfo().getUiSnapshot() != null) {
+                lastAvailableUISnapshot = ((SugiliteOperationBlock) script).getSugiliteBlockMetaInfo().getUiSnapshot();
+            }
+        }
+
+        if (script instanceof SugiliteConditionBlock) {
+            // handle condition block
+            SerializableUISnapshot currentLastAvailableUISnapshotInThenBlock = getLastAvailableUISnapshotInSubsequentScript(((SugiliteConditionBlock) script).getThenBlock(), lastAvailableUISnapshot);
+            if (currentLastAvailableUISnapshotInThenBlock != null) {
+                lastAvailableUISnapshot = currentLastAvailableUISnapshotInThenBlock;
+            }
+        }
+
+        if (script instanceof SugiliteOperationBlock && ((SugiliteOperationBlock) script).getOperation() instanceof SugiliteGetProcedureOperation) {
+            // handle get_procedure calls
+            String subScriptName = ((SugiliteGetProcedureOperation) ((SugiliteOperationBlock) script).getOperation()).evaluate(sugiliteData);
+            try {
+                SugiliteStartingBlock subScript = sugiliteScriptDao.read(subScriptName);
+                SerializableUISnapshot currentLastAvailableUISnapshotInSubBlock = getLastAvailableUISnapshotInSubsequentScript(subScript, lastAvailableUISnapshot);
+                if (lastAvailableUISnapshot != null) {
+                    lastAvailableUISnapshot = currentLastAvailableUISnapshotInSubBlock;
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+        }
+
+        SerializableUISnapshot currentLastAvailableUISnapshotInNextBlock = getLastAvailableUISnapshotInSubsequentScript(script.getNextBlock(), lastAvailableUISnapshot);
+        if (currentLastAvailableUISnapshotInNextBlock != null) {
+            lastAvailableUISnapshot = currentLastAvailableUISnapshotInNextBlock;
+        }
+
+        return lastAvailableUISnapshot;
+    }
+
+    private File getLastAvailableScreenshotInSubsequentScript (SugiliteBlock script, File lastAvailableScreenshot) throws Exception {
+        if (script == null) {
+            return lastAvailableScreenshot;
+        }
         if (script.getScreenshot() != null) {
             // update the screenshot if available
-            currentLastAvailableScreenshotInSubsequentScript = script.getScreenshot();
+            lastAvailableScreenshot = script.getScreenshot();
         }
         if (script instanceof SugiliteConditionBlock) {
             // handle condition block
-            File currentLastAvailableScreenshotInThenBlock = getLastAvailableScreenshotInSubsequentScript(((SugiliteConditionBlock) script).getThenBlock());
+            File currentLastAvailableScreenshotInThenBlock = getLastAvailableScreenshotInSubsequentScript(((SugiliteConditionBlock) script).getThenBlock(), lastAvailableScreenshot);
             if (currentLastAvailableScreenshotInThenBlock != null) {
-                currentLastAvailableScreenshotInSubsequentScript = currentLastAvailableScreenshotInThenBlock;
+                lastAvailableScreenshot = currentLastAvailableScreenshotInThenBlock;
             }
         }
         if (script instanceof SugiliteOperationBlock && ((SugiliteOperationBlock) script).getOperation() instanceof SugiliteGetProcedureOperation) {
             // handle get_procedure calls
             String subScriptName = ((SugiliteGetProcedureOperation) ((SugiliteOperationBlock) script).getOperation()).evaluate(sugiliteData);
             SugiliteStartingBlock subScript = sugiliteScriptDao.read(subScriptName);
-            File currentLastAvailableScreenshotInSubBlock = getLastAvailableScreenshotInSubsequentScript(subScript);
+            File currentLastAvailableScreenshotInSubBlock = getLastAvailableScreenshotInSubsequentScript(subScript, lastAvailableScreenshot);
             if (currentLastAvailableScreenshotInSubBlock != null) {
-                currentLastAvailableScreenshotInSubsequentScript = currentLastAvailableScreenshotInSubBlock;
+                lastAvailableScreenshot = currentLastAvailableScreenshotInSubBlock;
             }
 
         }
-        File currentLastAvailableScreenshotInNextBlock = getLastAvailableScreenshotInSubsequentScript(script.getNextBlock());
+        File currentLastAvailableScreenshotInNextBlock = getLastAvailableScreenshotInSubsequentScript(script.getNextBlock(), lastAvailableScreenshot);
         if (currentLastAvailableScreenshotInNextBlock != null) {
-            currentLastAvailableScreenshotInSubsequentScript = currentLastAvailableScreenshotInNextBlock;
+            lastAvailableScreenshot = currentLastAvailableScreenshotInNextBlock;
         }
-        return currentLastAvailableScreenshotInSubsequentScript;
+        return lastAvailableScreenshot;
     }
 }

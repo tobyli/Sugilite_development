@@ -657,7 +657,7 @@ public class ScriptDebuggingActivity extends AppCompatActivity {
                     ((SugiliteOperationBlock) currentBlock).delete();
                     try {
                         sugiliteScriptDao.save(script);
-                        sugiliteScriptDao.commitSave();
+                        sugiliteScriptDao.commitSave(null);
                     }
                     catch (Exception e){
                         e.printStackTrace();
@@ -722,7 +722,7 @@ public class ScriptDebuggingActivity extends AppCompatActivity {
                                 try {
                                     sugiliteScriptDao.save(startingBlock);
                                     sugiliteScriptDao.delete(scriptName);
-                                    sugiliteScriptDao.commitSave();
+                                    sugiliteScriptDao.commitSave(null);
                                     Intent intent = new Intent(context, ScriptDebuggingActivity.class);
                                     intent.putExtra("scriptName", startingBlock.getScriptName());
                                     intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
@@ -792,7 +792,7 @@ public class ScriptDebuggingActivity extends AppCompatActivity {
             sugiliteData.setCurrentScriptBlock(script.getTail());
             //force stop all the relevant packages
             for (String packageName : script.relevantPackages) {
-                AutomatorUtil.killPackage(packageName);
+                AutomatorUtil.killPackage(packageName, (ActivityManager) getSystemService(ACTIVITY_SERVICE));
             }
             sugiliteData.runScript(script, true, SugiliteData.EXECUTION_STATE, false);
             //need to have this delay to ensure that the killing has finished before we start executing

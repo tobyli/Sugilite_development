@@ -6,9 +6,9 @@ import android.util.Pair;
 import java.util.ArrayList;
 import java.util.List;
 
-import edu.cmu.hcii.sugilite.pumice.PumiceDemonstrationUtil;
 import edu.cmu.hcii.sugilite.pumice.dialog.PumiceDialogManager;
 import edu.cmu.hcii.sugilite.pumice.kb.PumiceProceduralKnowledge;
+import edu.cmu.hcii.sugilite.sovite.dialog.intent_handler.SoviteReturnValueCallbackInterface;
 
 /**
  * @author toby
@@ -33,6 +33,6 @@ public class SoviteScriptsWithMatchedAppDialog extends SoviteItemSelectionDialog
             }));
         }
         //TODO: to skip if only one item
-        initDialog(listItemLabelRunnableList, "Please select the script you want to execute.", false);
+        initDialog(listItemLabelRunnableList, null, null, "Select the script to execute", "Please select the script you want to execute.", false);
     }
 }

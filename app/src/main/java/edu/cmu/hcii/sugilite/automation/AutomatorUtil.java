@@ -1,5 +1,6 @@
 package edu.cmu.hcii.sugilite.automation;
 
+import android.app.ActivityManager;
 import android.graphics.Rect;
 import android.view.accessibility.AccessibilityNodeInfo;
 import android.view.accessibility.AccessibilityWindowInfo;
@@ -29,10 +30,12 @@ public class AutomatorUtil {
      */
     static private Set<String> homeScreenPackageNameSet = new HashSet<>(Arrays.asList(HOME_SCREEN_PACKAGE_NAMES));
 
-    static public void killPackage(String packageName){
+    static public void killPackage(String packageName, ActivityManager am){
         //don't kill the home screen
-        if(homeScreenPackageNameSet.contains(packageName))
+        if(homeScreenPackageNameSet.contains(packageName)) {
             return;
+        }
+
         try {
             Process sh = Runtime.getRuntime().exec("su", null, null);
             OutputStream os = sh.getOutputStream();
@@ -41,10 +44,11 @@ public class AutomatorUtil {
             os.close();
             System.out.println("KILLING: " + packageName);
         } catch (Exception e) {
-            System.out.println("FAILED TO KILL RELEVANT PACKAGES (permission denied)");
+            System.out.println("FAILED TO KILL RELEVANT PACKAGES");
             e.printStackTrace();
             // do nothing, likely this exception is caused by running Sugilite on a non-rooted device
         }
+
     }
 
     public static List<AccessibilityNodeInfo> preOrderTraverseSiblings(AccessibilityNodeInfo node){

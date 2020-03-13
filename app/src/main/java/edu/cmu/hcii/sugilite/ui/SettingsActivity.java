@@ -180,7 +180,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
                                             //save the newly created script to DB
                                             try {
                                                 sugiliteScriptDao.save((SugiliteStartingBlock) sugiliteData.getScriptHead());
-                                                sugiliteScriptDao.commitSave();
+                                                sugiliteScriptDao.commitSave(null);
                                             } catch (Exception e) {
                                                 e.printStackTrace();
                                             }

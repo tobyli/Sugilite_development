@@ -5,6 +5,7 @@ import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.graphics.drawable.Drawable;
 import android.support.annotation.NonNull;
 import android.text.Html;
 import android.util.Pair;
@@ -13,10 +14,13 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 
 import java.util.List;
+import java.util.Map;
+
 import edu.cmu.hcii.sugilite.R;
 import edu.cmu.hcii.sugilite.pumice.dialog.PumiceDialogManager;
 import edu.cmu.hcii.sugilite.recording.newrecording.dialog_management.SugiliteDialogManager;
@@ -35,8 +39,8 @@ public class SoviteItemSelectionDialog extends SugiliteDialogManager {
     private LayoutInflater layoutInflater;
 
     private View dialogView;
-    private ListView mainListView;
-    private Dialog dialog;
+    protected ListView mainListView;
+    protected Dialog soviteItemSelectionDialog;
     private SugiliteDialogSimpleState promptState;
     private List<Pair<String, Runnable>> listItemLabelRunnableList;
     private boolean toSkipIfOnlyOneItem = false;
@@ -46,12 +50,12 @@ public class SoviteItemSelectionDialog extends SugiliteDialogManager {
         this.layoutInflater = LayoutInflater.from(context);
     }
 
-    public SoviteItemSelectionDialog(Activity context, PumiceDialogManager pumiceDialogManager, List<Pair<String, Runnable>> listItemLabelRunnableList, String prompt, boolean toSkipIfOnlyOneItem) {
+    public SoviteItemSelectionDialog(Activity context, PumiceDialogManager pumiceDialogManager, List<Pair<String, Runnable>> listItemLabelRunnableList, Drawable iconDrawable, Map<String, Runnable> listItemLabelIconRunnableMap, String prompt, String dialogTitle, boolean toSkipIfOnlyOneItem) {
         this(context, pumiceDialogManager);
-        initDialog(listItemLabelRunnableList, prompt, toSkipIfOnlyOneItem);
+        initDialog(listItemLabelRunnableList, iconDrawable, listItemLabelIconRunnableMap, dialogTitle, prompt, toSkipIfOnlyOneItem);
     }
 
-    public void initDialog(List<Pair<String, Runnable>> listItemLabelRunnableList, String prompt, boolean toSkipIfOnlyOneItem) {
+    public void initDialog(List<Pair<String, Runnable>> listItemLabelRunnableList, Drawable iconDrawable, Map<String, Runnable> listItemLabelIconRunnableMap, String dialogTitle, String prompt, boolean toSkipIfOnlyOneItem) {
         this.promptState = new SugiliteDialogSimpleState("CHOOSE_BETWEEN_SCRIPT_DISAMBIGUATIONS", this, false);
         this.promptState.setPrompt(prompt);
         this.listItemLabelRunnableList = listItemLabelRunnableList;
@@ -61,6 +65,10 @@ public class SoviteItemSelectionDialog extends SugiliteDialogManager {
 
 
         dialogView = layoutInflater.inflate(R.layout.dialog_choosing_parsing, null);
+        TextView titleTextView = dialogView.findViewById(R.id.textview_title_dialog_choosing_parsing);
+        titleTextView.setText(dialogTitle);
+
+
         mainListView = dialogView.findViewById(R.id.listview_query_candidates);
 
 
@@ -74,19 +82,33 @@ public class SoviteItemSelectionDialog extends SugiliteDialogManager {
             i++;
         }
 
-        ArrayAdapter<String> adapter = new ArrayAdapter<String>(context, android.R.layout.simple_list_item_2, stringArray) {
+        int layoutToUse = iconDrawable == null ? android.R.layout.simple_list_item_1 : R.layout.simple_list_item_with_icon;
+        ArrayAdapter<String> adapter = new ArrayAdapter<String>(context, layoutToUse, stringArray) {
             //override the arrayadapter to show HTML-styled textviews in the listview
             @NonNull
             @Override
             public View getView(int position, View convertView, @NonNull ViewGroup parent) {
                 View row;
                 if (null == convertView) {
-                    row = layoutInflater.inflate(android.R.layout.simple_list_item_1, null);
+                    row = layoutInflater.inflate(layoutToUse, null);
                 } else {
                     row = convertView;
                 }
+                String text = getItem(position);
                 TextView tv1 = (TextView) row.findViewById(android.R.id.text1);
-                tv1.setText(Html.fromHtml(getItem(position)));
+                tv1.setText(Html.fromHtml(text));
+                if (iconDrawable != null && listItemLabelIconRunnableMap.containsKey(text)) {
+                    ImageView iv1 = row.findViewById(android.R.id.icon1);
+                    if (iv1 != null) {
+                        iv1.setImageDrawable(iconDrawable);
+                    }
+                    iv1.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            listItemLabelIconRunnableMap.get(text).run();
+                        }
+                    });
+                }
                 //textViews.put(tv1, ontologyQueryArray[position]);
                 return row;
             }
@@ -105,8 +127,8 @@ public class SoviteItemSelectionDialog extends SugiliteDialogManager {
             }
         });
 
-        dialog = builder.create();
-        dialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
+        soviteItemSelectionDialog = builder.create();
+        soviteItemSelectionDialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
             @Override
             public void onDismiss(DialogInterface dialogInterface) {
                 stopASRandTTS();
@@ -116,11 +138,11 @@ public class SoviteItemSelectionDialog extends SugiliteDialogManager {
     }
 
     public void show() {
-        if(dialog != null) {
-            if (dialog.getWindow() != null) {
-                dialog.getWindow().setType(OVERLAY_TYPE);
+        if(soviteItemSelectionDialog != null) {
+            if (soviteItemSelectionDialog.getWindow() != null) {
+                soviteItemSelectionDialog.getWindow().setType(OVERLAY_TYPE);
             }
-            dialog.show();
+            soviteItemSelectionDialog.show();
         }
         //initiate the dialog manager when the dialog is shown
         initDialogManager();
@@ -134,8 +156,8 @@ public class SoviteItemSelectionDialog extends SugiliteDialogManager {
     }
 
     public void dismiss() {
-        if (dialog != null && dialog.isShowing()) {
-            dialog.dismiss();
+        if (soviteItemSelectionDialog != null && soviteItemSelectionDialog.isShowing()) {
+            soviteItemSelectionDialog.dismiss();
         }
     }
 

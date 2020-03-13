@@ -21,7 +21,7 @@ import edu.cmu.hcii.sugilite.pumice.dialog.demonstration.PumiceProcedureDemonstr
 import edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.parsing_confirmation.PumiceParsingResultWithResolveFnConfirmationHandler;
 import edu.cmu.hcii.sugilite.pumice.kb.PumiceProceduralKnowledge;
 import edu.cmu.hcii.sugilite.sovite.SoviteAppNameAppInfoManager;
-import edu.cmu.hcii.sugilite.sovite.dialog.SoviteReturnValueCallbackInterface;
+import edu.cmu.hcii.sugilite.sovite.dialog.intent_handler.SoviteReturnValueCallbackInterface;
 import edu.cmu.hcii.sugilite.sovite.dialog.intent_handler.SoviteIntentClassificationErrorForProceduralKnowledgeIntentHandler;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.server_comm.SugiliteVerbalInstructionHTTPQueryInterface;
 

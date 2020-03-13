@@ -638,7 +638,7 @@ public class PumiceInitInstructionParsingHandler {
         currentScript.setScriptName(scriptName + ".SugiliteScript");
         try {
             sugiliteScriptDao.save(currentScript);
-            sugiliteScriptDao.commitSave();
+            sugiliteScriptDao.commitSave(null);
         } catch (Exception e) {
             e.printStackTrace();
         }

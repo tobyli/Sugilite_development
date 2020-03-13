@@ -20,7 +20,9 @@ import edu.cmu.hcii.sugilite.Const;
 import edu.cmu.hcii.sugilite.R;
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.pumice.dialog.PumiceDialogManager;
+import edu.cmu.hcii.sugilite.sovite.dialog.SoviteKnowledgeManagementDialog;
 import edu.cmu.hcii.sugilite.sovite.study.SoviteStudyDumpGenerateDialog;
+import edu.cmu.hcii.sugilite.sovite.study.SoviteStudyDumpLoadDialog;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.speech.SugiliteAndroidAPIVoiceRecognitionListener;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.speech.SugiliteGoogleCloudVoiceRecognitionListener;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.speech.SugiliteVoiceInterface;
@@ -192,8 +194,12 @@ public class PumiceDialogActivity extends AppCompatActivity implements SugiliteV
         //noinspection SimplifiableIfStatement
         if (id == R.id.show_knowledge) {
             stopTTSandASR();
+            SoviteKnowledgeManagementDialog soviteKnowledgeManagementDialog = new SoviteKnowledgeManagementDialog(context, pumiceDialogManager.getPumiceKnowledgeManager(), pumiceDialogManager, sugiliteData);
+            soviteKnowledgeManagementDialog.show();
+            /*
             pumiceDialogManager.sendAgentMessage("Below are the current knowledge...", true, false);
             pumiceDialogManager.sendAgentMessage(pumiceDialogManager.getPumiceKnowledgeManager().getKnowledgeInString(), false, false);
+            */
             return true;
         }
         if (id == R.id.clear_knowledge) {
@@ -220,13 +226,17 @@ public class PumiceDialogActivity extends AppCompatActivity implements SugiliteV
         }
 
         if (id == R.id.dump_packet) {
+            stopTTSandASR();
             SoviteStudyDumpGenerateDialog soviteStudyDumpGenerateDialog = new SoviteStudyDumpGenerateDialog(context, sugiliteData, pumiceDialogManager);
             soviteStudyDumpGenerateDialog.show();
             return true;
         }
 
         if (id == R.id.load_packet) {
+            stopTTSandASR();
             //TODO: load a previously stored packet
+            SoviteStudyDumpLoadDialog soviteStudyDumpLoadDialog = new SoviteStudyDumpLoadDialog(context, sugiliteData, pumiceDialogManager);
+            soviteStudyDumpLoadDialog.show();
         }
 
 

@@ -2,12 +2,8 @@ package edu.cmu.hcii.sugilite.sovite.study;
 
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.util.Pair;
-import android.view.ContextMenu;
-import android.view.View;
-import android.widget.AdapterView;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -18,8 +14,7 @@ import edu.cmu.hcii.sugilite.R;
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.pumice.PumiceDemonstrationUtil;
 import edu.cmu.hcii.sugilite.pumice.dialog.PumiceDialogManager;
-import edu.cmu.hcii.sugilite.pumice.kb.PumiceKnowledgeManager;
-import edu.cmu.hcii.sugilite.sovite.dialog.SoviteItemSelectionDialog;
+import edu.cmu.hcii.sugilite.sovite.conversation.dialog.SoviteItemSelectionDialog;
 import edu.cmu.hcii.sugilite.ui.dialog.SugiliteProgressDialog;
 
 import static edu.cmu.hcii.sugilite.Const.OVERLAY_TYPE;

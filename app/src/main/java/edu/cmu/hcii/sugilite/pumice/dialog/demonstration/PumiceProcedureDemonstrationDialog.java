@@ -108,7 +108,9 @@ public class PumiceProcedureDemonstrationDialog {
         //construct the procedure knowledge
 
         //run the returnResultCallback when the result if ready
-        parentIntentHandler.callReturnValueCallback(new PumiceProceduralKnowledge(context, procedureKnowledgeName, procedureKnowledgeName, script));
+        PumiceProceduralKnowledge newKnowledge = new PumiceProceduralKnowledge(context, procedureKnowledgeName, procedureKnowledgeName, script);
+        newKnowledge.isNewlyLearned = true;
+        parentIntentHandler.callReturnValueCallback(newKnowledge);
     }
 
     //show the dialog

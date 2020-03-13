@@ -46,10 +46,14 @@ public class ScriptVisualThumbnailManager {
     public Drawable getVisualThumbnailForScript (SugiliteBlock script, String utterance) {
         //1. get the last available screenshot (recursively expand get_procedure calls)
         File screenshotFile = null;
-        try {
-            screenshotFile = getLastAvailableScreenshotInSubsequentScript(script, null);
-        } catch (Exception e) {
-            e.printStackTrace();
+        if (script instanceof SugiliteStartingBlock && ((SugiliteStartingBlock) script).screenshotOnEnd != null) {
+            screenshotFile = ((SugiliteStartingBlock) script).screenshotOnEnd;
+        } else {
+            try {
+                screenshotFile = getLastAvailableScreenshotInSubsequentScript(script, null);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
         if (screenshotFile != null) {
             // there is screenshot available, get the Drawable from File
@@ -62,6 +66,10 @@ public class ScriptVisualThumbnailManager {
     }
 
     public SerializableUISnapshot getLastAvailableUISnapshotInSubsequentScript (SugiliteBlock script, SerializableUISnapshot lastAvailableUISnapshot) {
+        if (script instanceof SugiliteStartingBlock && ((SugiliteStartingBlock) script).uiSnapshotOnEnd != null) {
+            return ((SugiliteStartingBlock) script).uiSnapshotOnEnd;
+        }
+
         if (script == null) {
             return lastAvailableUISnapshot;
         }

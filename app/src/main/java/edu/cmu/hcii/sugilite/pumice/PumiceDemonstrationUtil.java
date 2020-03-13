@@ -21,7 +21,9 @@ import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
 import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.model.variable.Variable;
+import edu.cmu.hcii.sugilite.ontology.SerializableUISnapshot;
 import edu.cmu.hcii.sugilite.pumice.dialog.PumiceDialogManager;
+import edu.cmu.hcii.sugilite.recording.SugiliteScreenshotManager;
 import edu.cmu.hcii.sugilite.ui.dialog.VariableSetValueDialog;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.VerbalInstructionIconManager;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.speech.SugiliteAndroidAPIVoiceRecognitionListener;
@@ -193,6 +195,14 @@ public class PumiceDemonstrationUtil {
                 //commit the script through the sugiliteScriptDao
                 try {
                     if (sugiliteScriptDao != null) {
+                        if (sugiliteData.getScriptHead() != null) {
+                            if (sugiliteData.verbalInstructionIconManager != null) {
+                                SugiliteScreenshotManager sugiliteScreenshotManager = SugiliteScreenshotManager.getInstance(sharedPreferences, sugiliteData);
+                                sugiliteData.getScriptHead().uiSnapshotOnEnd = new SerializableUISnapshot(sugiliteData.verbalInstructionIconManager.getLatestUISnapshot());
+                                sugiliteData.getScriptHead().screenshotOnEnd = sugiliteScreenshotManager.takeScreenshot(SugiliteScreenshotManager.DIRECTORY_PATH, sugiliteScreenshotManager.getFileNameFromDate());
+                            }
+                            sugiliteScriptDao.save(sugiliteData.getScriptHead());
+                        }
                         sugiliteScriptDao.commitSave(new Runnable() {
                             @Override
                             public void run() {

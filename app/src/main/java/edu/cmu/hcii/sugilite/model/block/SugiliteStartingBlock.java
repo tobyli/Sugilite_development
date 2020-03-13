@@ -2,6 +2,7 @@ package edu.cmu.hcii.sugilite.model.block;
 
 import android.text.Html;
 
+import java.io.File;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -9,6 +10,7 @@ import java.util.Map;
 import java.util.Set;
 
 import edu.cmu.hcii.sugilite.model.variable.Variable;
+import edu.cmu.hcii.sugilite.ontology.SerializableUISnapshot;
 
 import static edu.cmu.hcii.sugilite.source_parsing.SugiliteScriptExpression.addQuoteToTokenIfNeeded;
 
@@ -27,6 +29,10 @@ public class SugiliteStartingBlock extends SugiliteBlock implements Serializable
     //persistent across launches, used to store the list of names for variables
     public Map<String, Variable> variableNameDefaultValueMap;
     public Map<String, Set<String>> variableNameAlternativeValueMap;
+
+    public SerializableUISnapshot uiSnapshotOnEnd;
+    public File screenshotOnEnd;
+
 
     public SugiliteStartingBlock(){
         super();

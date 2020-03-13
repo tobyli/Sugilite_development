@@ -20,7 +20,7 @@ import edu.cmu.hcii.sugilite.Const;
 import edu.cmu.hcii.sugilite.R;
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.pumice.dialog.PumiceDialogManager;
-import edu.cmu.hcii.sugilite.sovite.dialog.SoviteKnowledgeManagementDialog;
+import edu.cmu.hcii.sugilite.sovite.conversation.dialog.SoviteKnowledgeManagementDialog;
 import edu.cmu.hcii.sugilite.sovite.study.SoviteStudyDumpGenerateDialog;
 import edu.cmu.hcii.sugilite.sovite.study.SoviteStudyDumpLoadDialog;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.speech.SugiliteAndroidAPIVoiceRecognitionListener;

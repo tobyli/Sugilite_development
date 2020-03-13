@@ -12,8 +12,10 @@ public class SoviteAppResolutionResultPacket {
     private String dataset;
     private String type;
     private List<String> available_apps;
-    private Map<String, List<String>> result_map;
+    private Map<String, List<ResultScorePair>> result_map;
     private String query_type;
+    private String activity_name;
+    private String package_name;
 
     public String getDataset() {
         return dataset;
@@ -27,11 +29,16 @@ public class SoviteAppResolutionResultPacket {
         return available_apps;
     }
 
-    public Map<String, List<String>> getResult_map() {
+    public Map<String, List<ResultScorePair>> getResult_map() {
         return result_map;
     }
 
     public String getQuery_type() {
         return query_type;
+    }
+
+    public class ResultScorePair {
+        public String result_string;
+        public Double score;
     }
 }

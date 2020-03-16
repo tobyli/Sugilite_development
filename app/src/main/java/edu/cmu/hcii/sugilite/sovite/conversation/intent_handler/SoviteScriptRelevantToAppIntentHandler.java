@@ -66,13 +66,12 @@ public class SoviteScriptRelevantToAppIntentHandler implements PumiceUtteranceIn
                 imageView.setImageDrawable(drawable);//SHOULD BE R.mipmap.demo_card
                 pumiceDialogManager.sendAgentViewMessage(imageView, "SCREENSHOT:" + topMatchedKnowledge.getProcedureDescription(pumiceDialogManager.getPumiceKnowledgeManager(), false), false, false);
             }
-
-
-
             pumiceDialogManager.sendAgentMessage("Is this what you want to do?", true, true);
         } else {
             pumiceDialogManager.sendAgentMessage(String.format("Can't find any script relevant to %s.", appReadableName), true, false);
-            //TODO: should be the same as EXECUTION_CONFIRM_NEGATIVE - ask for demonstration
+
+            //should be the same as EXECUTION_CONFIRM_NEGATIVE - ask for demonstration
+            handleIntentWithUtterance(pumiceDialogManager, PumiceIntent.EXECUTION_CONFIRM_NEGATIVE, null);
         }
     }
 

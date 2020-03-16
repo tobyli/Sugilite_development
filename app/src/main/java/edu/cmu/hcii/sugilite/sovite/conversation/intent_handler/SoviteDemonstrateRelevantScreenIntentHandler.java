@@ -41,6 +41,7 @@ public class SoviteDemonstrateRelevantScreenIntentHandler implements PumiceUtter
 
     private ScriptVisualThumbnailManager scriptVisualThumbnailManager;
     private SoviteReturnValueCallbackInterface<PumiceProceduralKnowledge> returnValueCallbackObject;
+    private SugiliteStartingBlock appReferenceScript;
 
     public final static String RELEVANT_UTTERANCES_FOR_UI_SNAPSHOT = "RELEVANT_UTTERANCES_FOR_UI_SNAPSHOT";
 
@@ -84,6 +85,7 @@ public class SoviteDemonstrateRelevantScreenIntentHandler implements PumiceUtter
     //call back for SoviteDisambiguationDemonstrationDialog
     public void onDemonstrationReady (SugiliteStartingBlock script) {
         //extract the last screen in the script
+        appReferenceScript = script;
         Drawable lastScreenshot = scriptVisualThumbnailManager.getVisualThumbnailForScript(script, originalUtterance);
         SerializableUISnapshot lastScreenUISnapshot = scriptVisualThumbnailManager.getLastAvailableUISnapshotInSubsequentScript(script, null);
         List<String> allAvailableScriptUtterances = pumiceDialogManager.getPumiceKnowledgeManager().getAllAvailableProcedureKnowledgeUtterances(false);
@@ -151,7 +153,7 @@ public class SoviteDemonstrateRelevantScreenIntentHandler implements PumiceUtter
                     }
                 }
 
-                SoviteScriptMatchedFromScreenIntentHandler scriptMatchedFromScreenIntentHandler = new SoviteScriptMatchedFromScreenIntentHandler(pumiceDialogManager, context, matchedAppPackageName, matchedAppReadableName, appActivityName, originalUtterance, relevantProceduralKnowledgeList, returnValueCallbackObject);
+                SoviteScriptMatchedFromScreenIntentHandler scriptMatchedFromScreenIntentHandler = new SoviteScriptMatchedFromScreenIntentHandler(pumiceDialogManager, context, appReferenceScript, matchedAppPackageName, matchedAppReadableName, appActivityName, originalUtterance, relevantProceduralKnowledgeList, returnValueCallbackObject);
                 pumiceDialogManager.updateUtteranceIntentHandlerInANewState(scriptMatchedFromScreenIntentHandler);
                 pumiceDialogManager.callSendPromptForTheIntentHandlerForCurrentIntentHandler();
 

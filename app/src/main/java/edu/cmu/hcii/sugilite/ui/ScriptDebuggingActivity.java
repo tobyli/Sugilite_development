@@ -98,7 +98,7 @@ public class ScriptDebuggingActivity extends AppCompatActivity {
         }
         this.context = this;
         if(scriptName != null)
-            setTitle("View Script: " + scriptName.replace(".SugiliteScript", ""));
+            setTitle("View Script: " + PumiceDemonstrationUtil.removeScriptExtension(scriptName));
 
         new Thread(new Runnable() {
             @Override
@@ -718,7 +718,7 @@ public class ScriptDebuggingActivity extends AppCompatActivity {
                                 catch (Exception e){
                                     e.printStackTrace();
                                 }
-                                startingBlock.setScriptName(newName.getText().toString() + ".SugiliteScript");
+                                startingBlock.setScriptName(PumiceDemonstrationUtil.addScriptExtension(newName.getText().toString()));
                                 try {
                                     sugiliteScriptDao.save(startingBlock);
                                     sugiliteScriptDao.delete(scriptName);
@@ -785,7 +785,7 @@ public class ScriptDebuggingActivity extends AppCompatActivity {
             SharedPreferences.Editor prefEditor = sharedPreferences.edit();
             //turn off the recording before executing
             prefEditor.putBoolean("recording_in_process", false);
-            prefEditor.putString("scriptName", script.getScriptName().replace(".SugiliteScript", ""));
+            prefEditor.putString("scriptName", PumiceDemonstrationUtil.removeScriptExtension(script.getScriptName()));
             prefEditor.commit();
             sugiliteData.initiatedExternally = false;
             sugiliteData.setScriptHead(script);

@@ -22,6 +22,7 @@ import edu.cmu.hcii.sugilite.model.block.util.UIElementMatchingFilter;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteOperation;
 import edu.cmu.hcii.sugilite.model.operation.binary.SugiliteSetTextOperation;
 import edu.cmu.hcii.sugilite.model.variable.StringVariable;
+import edu.cmu.hcii.sugilite.pumice.PumiceDemonstrationUtil;
 import edu.cmu.hcii.sugilite.recording.ReadableDescriptionGenerator;
 
 import static edu.cmu.hcii.sugilite.Const.SQL_SCRIPT_DAO;
@@ -164,8 +165,8 @@ public class Generalizer {
                 });
         if(modified) {
             String fileName = new String(command);
-            fileName = fileName.replace(".SugiliteScript", "");
-            script.setScriptName(fileName + "_generalized" + ".SugiliteScript");
+            fileName = PumiceDemonstrationUtil.removeScriptExtension(fileName);
+            script.setScriptName(PumiceDemonstrationUtil.addScriptExtension(fileName + "_generalized"));
             try {
                 sugiliteScriptDao.save(script);
                 sugiliteScriptDao.commitSave(null);

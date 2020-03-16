@@ -38,7 +38,7 @@ public class RemoteScriptDetailActivity extends ScriptDetailActivity {
         }
 
         if(scriptName != null) {
-            setTitle("View Remote Script: " + scriptName.replace(".SugiliteScript", ""));
+            setTitle("View Remote Script: " + PumiceDemonstrationUtil.removeScriptExtension(scriptName));
         }
     }
 

@@ -6,9 +6,6 @@ import com.google.gson.ExclusionStrategy;
 import com.google.gson.FieldAttributes;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.gson.annotations.Expose;
-
-import org.apache.commons.lang3.StringUtils;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -23,7 +20,7 @@ import java.util.Set;
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.model.variable.Variable;
-import edu.cmu.hcii.sugilite.ontology.description.OntologyDescriptionGenerator;
+import edu.cmu.hcii.sugilite.pumice.PumiceDemonstrationUtil;
 import edu.cmu.hcii.sugilite.pumice.communication.SkipPumiceJSONSerialization;
 import edu.cmu.hcii.sugilite.sovite.SoviteAppNameAppInfoManager;
 
@@ -231,7 +228,7 @@ public class PumiceProceduralKnowledge implements Serializable {
             parameterizedUtterance = parameterizedUtterance + ", which is to " + targetProcedureKnowledgeName;
         }
         else if (involvedAppNames != null && involvedAppNames.size() > 0) {
-            parameterizedUtterance = parameterizedUtterance + " in " + StringUtils.join(involvedAppNames, ",");
+            parameterizedUtterance = parameterizedUtterance + " in " + PumiceDemonstrationUtil.joinListGrammatically(involvedAppNames, "and");
         }
 
         if (addHowTo) {

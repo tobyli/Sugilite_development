@@ -1,7 +1,6 @@
 package edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.parsing_confirmation;
 
 import android.app.Activity;
-import android.content.Context;
 import android.support.annotation.Nullable;
 import android.util.Pair;
 
@@ -19,6 +18,7 @@ import java.util.Map;
 
 import edu.cmu.hcii.sugilite.model.block.booleanexp.SugiliteBooleanExpressionNew;
 import edu.cmu.hcii.sugilite.model.value.SugiliteValue;
+import edu.cmu.hcii.sugilite.pumice.PumiceDemonstrationUtil;
 import edu.cmu.hcii.sugilite.pumice.dialog.PumiceDialogManager;
 import edu.cmu.hcii.sugilite.source_parsing.SugiliteScriptParser;
 
@@ -259,7 +259,7 @@ public class PumiceParsingDifferenceProcessor {
 
         //don't know the bool operator
         output.append(String.format("I understand that you are comparing %s to %s. ", arg0Representation, arg1Representation));
-        output.append(String.format("Should %s be %s %s?", arg0Representation, separateWordsBy(candidateStrings, "or") , arg1Representation));
+        output.append(String.format("Should %s be %s %s?", arg0Representation, PumiceDemonstrationUtil.joinListGrammatically(candidateStrings, "or") , arg1Representation));
         return output.toString();
     }
 
@@ -274,7 +274,7 @@ public class PumiceParsingDifferenceProcessor {
         if (arg0 == null || arg1 == null) {
             //don't know arg0 or arg1
             output.append(String.format("I understand that you are comparing if %s is %s %s. ", arg0Representation, booleanOperatorRepresentation, arg1Representation));
-            output.append(String.format("Are you comparing with %s?", separateWordsBy(candidateStrings, "or")));
+            output.append(String.format("Are you comparing with %s?", PumiceDemonstrationUtil.joinListGrammatically(candidateStrings, "or")));
             return output.toString();
 
         } else {
@@ -287,18 +287,10 @@ public class PumiceParsingDifferenceProcessor {
 
         List<String> candidateStrings = new ArrayList<>();
         candidates.subList(1, candidates.size()).forEach(candidate -> candidateStrings.add(candidate.getReadableDescription()));
-        output.append(String.format("Do you mean %s?", separateWordsBy(candidateStrings, "or")));
+        output.append(String.format("Do you mean %s?", PumiceDemonstrationUtil.joinListGrammatically(candidateStrings, "or")));
         return output.toString();
     }
 
-
-    public static String separateWordsBy(List<String> words, String lastWordSeparator){
-        String result = StringUtils.join(words, ", ");
-        if (words.size() >= 2) {
-            result = replaceLast(result, ", ", String.format(", %s ", lastWordSeparator));
-        }
-        return result;
-    }
 
     private static String replaceLast(String str, String oldValue, String newValue) {
         str = StringUtils.reverse(str);

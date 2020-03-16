@@ -1,7 +1,10 @@
 package edu.cmu.hcii.sugilite;
 
+import android.app.AlertDialog;
 import android.app.Application;
+import android.app.Dialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
@@ -52,6 +55,8 @@ import edu.cmu.hcii.sugilite.verbal_instruction_demo.speech.GoogleVoiceRecorder;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.speech.SugiliteAndroidAPIVoiceRecognitionListener;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.speech.SugiliteGoogleCloudVoiceRecognitionListener;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.speech.SugiliteVoiceRecognitionListener;
+
+import static edu.cmu.hcii.sugilite.Const.OVERLAY_TYPE;
 
 
 /**
@@ -317,17 +322,31 @@ public class SugiliteData extends Application {
         }
         if(instructionQueue.size() == 0 && startRecordingWhenFinishExecuting){
             //start recording at the end of "resume recording" operation
-            final Handler handler = new Handler(Looper.getMainLooper());
             final SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
-            handler.postDelayed(new Runnable() {
-                //1.5 sec delay to start recording -> to avoid catching operations from automation execution
+            AlertDialog.Builder builder = new AlertDialog.Builder(applicationContext);
+            builder.setMessage("Please start demonstrating now.");
+            builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
                 @Override
-                public void run() {
+                public void onClick(DialogInterface dialog, int which) {
                     System.out.println("Turning on recording - resuming");
                     SharedPreferences.Editor prefEditor = sharedPreferences.edit();
                     prefEditor.putBoolean("recording_in_process", true);
                     prefEditor.commit();
                     setCurrentSystemState(RECORDING_STATE);
+                }
+            });
+            Dialog resumeRecordingDialog = builder.create();
+            if (resumeRecordingDialog.getWindow() != null) {
+                resumeRecordingDialog.getWindow().setType(OVERLAY_TYPE);
+            }
+            final Handler handler = new Handler(Looper.getMainLooper());
+
+
+            handler.postDelayed(new Runnable() {
+                //1.5 sec delay to start recording -> to avoid catching operations from automation execution
+                @Override
+                public void run() {
+                    resumeRecordingDialog.show();
                 }
             }, 1500);
         }

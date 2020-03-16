@@ -232,7 +232,7 @@ public class SugiliteCommunicationHelper {
                                         editor.putBoolean("recording_in_process", true);
                                         editor.commit();
 
-                                        sugiliteData.initiateScriptRecording(arg1 + ".SugiliteScript", null);
+                                        sugiliteData.initiateScriptRecording(PumiceDemonstrationUtil.addScriptExtension(arg1), null);
                                         sugiliteData.initiatedExternally = true;
                                         sugiliteData.setCurrentSystemState(SugiliteData.RECORDING_STATE);
 
@@ -280,7 +280,7 @@ public class SugiliteCommunicationHelper {
             {
                 SugiliteStartingBlock script = null;
                 try {
-                    script = sugiliteScriptDao.read(arg1 + ".SugiliteScript");
+                    script = sugiliteScriptDao.read(PumiceDemonstrationUtil.addScriptExtension(arg1));
                 }
                 catch (Exception e){
                     e.printStackTrace();
@@ -306,7 +306,7 @@ public class SugiliteCommunicationHelper {
                 }
                 List<String> retVal = new ArrayList<>();
                 for(String name : allNames)
-                    retVal.add(name.replace(".SugiliteScript", ""));
+                    retVal.add(PumiceDemonstrationUtil.removeScriptExtension(name));
 
                 setReturnValue(new Gson().toJson(retVal));
                 return(resultIntent);
@@ -316,8 +316,8 @@ public class SugiliteCommunicationHelper {
                 if(arg1 != null){
                     try{
                         SugiliteStartingBlock script = jsonProcessor.jsonToScript(arg1);
-                        if(!script.getScriptName().contains(".SugiliteScript"))
-                            script.setScriptName(script.getScriptName() + ".SugiliteScript");
+                        script.setScriptName(PumiceDemonstrationUtil.addScriptExtension(script.getScriptName()));
+
                         sugiliteScriptDao.save(script);
                     }
                     catch (Exception e){
@@ -349,7 +349,7 @@ public class SugiliteCommunicationHelper {
                     //run the script
                     SugiliteStartingBlock script = null;
                     try {
-                        script = sugiliteScriptDao.read(arg1 + ".SugiliteScript");
+                        script = sugiliteScriptDao.read(PumiceDemonstrationUtil.addScriptExtension(arg1));
                     }
                     catch (Exception e){
                         e.printStackTrace();
@@ -389,7 +389,7 @@ public class SugiliteCommunicationHelper {
                     //run the script
                     try {
                         RunScriptWithParametersWrapper parametersWrapper = gson.fromJson(arg1, RunScriptWithParametersWrapper.class);
-                        SugiliteStartingBlock script = sugiliteScriptDao.read(parametersWrapper.scriptName + ".SugiliteScript");
+                        SugiliteStartingBlock script = sugiliteScriptDao.read(PumiceDemonstrationUtil.addScriptExtension(parametersWrapper.scriptName));
 
                         if (script == null) {
                             sugiliteData.sendCallbackMsg(RUN_SCRIPT_EXCEPTION, "null script", arg2);

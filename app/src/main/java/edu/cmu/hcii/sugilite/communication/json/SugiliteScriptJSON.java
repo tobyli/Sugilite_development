@@ -11,6 +11,7 @@ import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.model.variable.StringVariable;
 import edu.cmu.hcii.sugilite.model.variable.Variable;
+import edu.cmu.hcii.sugilite.pumice.PumiceDemonstrationUtil;
 
 /**
  * Created by toby on 7/14/16.
@@ -18,7 +19,7 @@ import edu.cmu.hcii.sugilite.model.variable.Variable;
 public class SugiliteScriptJSON {
     public SugiliteScriptJSON(SugiliteStartingBlock startingBlock){
         this.scriptName = new String(startingBlock.getScriptName());
-        this.scriptName.replace(".SugiliteScript", "");
+        this.scriptName = PumiceDemonstrationUtil.removeScriptExtension(scriptName);
         variableDefaultValues = new HashMap<>();
         variableAlternativeValues = new HashMap<>();
 

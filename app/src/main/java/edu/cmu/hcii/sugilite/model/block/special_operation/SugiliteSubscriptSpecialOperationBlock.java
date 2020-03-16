@@ -11,6 +11,7 @@ import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
 import edu.cmu.hcii.sugilite.model.block.SugiliteSpecialOperationBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.model.variable.Variable;
+import edu.cmu.hcii.sugilite.pumice.PumiceDemonstrationUtil;
 import edu.cmu.hcii.sugilite.ui.dialog.VariableSetValueDialog;
 
 import static edu.cmu.hcii.sugilite.source_parsing.SugiliteScriptExpression.addQuoteToTokenIfNeeded;
@@ -52,7 +53,7 @@ public class SugiliteSubscriptSpecialOperationBlock extends SugiliteSpecialOpera
 
         //send an agent message through pumiceDialogManager if one is available
         if (sugiliteData.pumiceDialogManager != null){
-            sugiliteData.pumiceDialogManager.sendAgentMessage("Executing the procedure: " + subscriptName.replace(".SugiliteScript", " ").replace("Procedure_", ""), true, false);
+            sugiliteData.pumiceDialogManager.sendAgentMessage("Executing the procedure: " + PumiceDemonstrationUtil.removeScriptExtension(subscriptName).replace("Procedure_", ""), true, false);
         }
 
         if (script != null) {

@@ -253,7 +253,7 @@ public class SugiliteCommunicationController {
     public SugiliteStartingBlock getRecordingScript(String scriptName){
         Log.d(TAG, "Request received: getRecordingScript");
         try {
-            return sugiliteScriptDao.read(scriptName + ".SugiliteScript");
+            return sugiliteScriptDao.read(PumiceDemonstrationUtil.addScriptExtension(scriptName));
         }
         catch (Exception e){
             e.printStackTrace();
@@ -349,7 +349,7 @@ public class SugiliteCommunicationController {
                                         editor.putBoolean("recording_in_process", true);
                                         editor.commit();
 
-                                        sugiliteData.initiateScriptRecording(scriptName + ".SugiliteScript", null);
+                                        sugiliteData.initiateScriptRecording(PumiceDemonstrationUtil.addScriptExtension(scriptName), null);
                                         sugiliteData.initiatedExternally = true;
 
                                         try {
@@ -470,8 +470,8 @@ public class SugiliteCommunicationController {
                 SugiliteStartingBlock script = jsonProcessor.jsonToScript(json);
                 Log.d("mtemp",script.toString());
                 Log.d("mtemp",script.getNextBlockToRun().getDescription().toString());
-                if(!script.getScriptName().contains(".SugiliteScript"))
-                    script.setScriptName(script.getScriptName() + ".SugiliteScript");
+                script.setScriptName(PumiceDemonstrationUtil.addScriptExtension(script.getScriptName()));
+
                 sugiliteScriptDao.save(script);
                 sugiliteScriptDao.commitSave(null);
                 return script;
@@ -524,8 +524,7 @@ public class SugiliteCommunicationController {
         else {
             SugiliteStartingBlock script = null;
             try {
-                script = sugiliteScriptDao.read(scriptName +
-                        ".SugiliteScript");
+                script = sugiliteScriptDao.read(PumiceDemonstrationUtil.addScriptExtension(scriptName));
             }
             catch (Exception e){
                 e.printStackTrace();

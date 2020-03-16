@@ -66,7 +66,7 @@ public class ScriptSourceActivity extends AppCompatActivity {
             sugiliteScriptDao = new SugiliteScriptFileDao(this, sugiliteData);
         this.context = this;
         if (scriptName != null) {
-            setTitle("Edit Source: " + scriptName.replace(".SugiliteScript", ""));
+            setTitle("Edit Source: " + PumiceDemonstrationUtil.removeScriptExtension(scriptName));
         }
 
         new Thread(new Runnable() {

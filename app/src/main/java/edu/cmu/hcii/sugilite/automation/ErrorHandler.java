@@ -262,7 +262,7 @@ public class ErrorHandler {
         SharedPreferences.Editor prefEditor = sharedPreferences.edit();
         //resume recording
         prefEditor.putBoolean("recording_in_process", true);
-        prefEditor.putString("scriptName", startingBlock.getScriptName().replace(".SugiliteScript", ""));
+        prefEditor.putString("scriptName", PumiceDemonstrationUtil.removeScriptExtension(startingBlock.getScriptName()));
         prefEditor.commit();
         PumiceDemonstrationUtil.showSugiliteToast("resuming recording", Toast.LENGTH_SHORT);
 
@@ -308,7 +308,7 @@ public class ErrorHandler {
         SharedPreferences.Editor prefEditor = sharedPreferences.edit();
         //resume recording
         prefEditor.putBoolean("recording_in_process", true);
-        prefEditor.putString("scriptName", startingBlock.getScriptName().replace(".SugiliteScript", ""));
+        prefEditor.putString("scriptName", PumiceDemonstrationUtil.removeScriptExtension(startingBlock.getScriptName()));
         prefEditor.commit();
         PumiceDemonstrationUtil.showSugiliteToast("resuming recording", Toast.LENGTH_SHORT);
 

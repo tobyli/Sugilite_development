@@ -50,7 +50,7 @@ public class ReadableDescriptionGenerator {
                 message += getHTMLColor("Click ", Const.SCRIPT_ACTION_COLOR) + "on ";
                 break;
             case SugiliteOperation.SELECT:
-                message += getHTMLColor("Select ", Const.SCRIPT_ACTION_COLOR);
+                message += getHTMLColor("Select ", Const.SCRIPT_ACTION_COLOR) + " ";
                 break;
             case SugiliteOperation.SET_TEXT:
                 message += getHTMLColor("Set Text ", Const.SCRIPT_ACTION_COLOR) + "to \"" + getHTMLColor(((SugiliteSetTextOperation)((SugiliteOperationBlock) block).getOperation()).getText(), Const.SCRIPT_ACTION_PARAMETER_COLOR) + "\" for ";
@@ -63,6 +63,9 @@ public class ReadableDescriptionGenerator {
                 break;
             case SugiliteOperation.LOAD_AS_VARIABLE:
                 message += getHTMLColor("Load the value ", Const.SCRIPT_ACTION_COLOR) + "of the" + getHTMLColor(((SugiliteLoadVariableOperation)(block.getOperation())).getPropertyToSave(), Const.SCRIPT_ACTION_PARAMETER_COLOR) + " as a variable for ";
+                break;
+            case SugiliteOperation.LAUNCH_APP:
+                message += getHTMLColor("Launch the app ", Const.SCRIPT_ACTION_COLOR) + " ";
                 break;
             case SugiliteOperation.SPECIAL_GO_HOME:
                 return "<b>GO TO HOME SCREEN</b>";
@@ -93,7 +96,7 @@ public class ReadableDescriptionGenerator {
                     message += getHTMLColor("Click ", Const.SCRIPT_ACTION_COLOR) + "on ";
                     break;
                 case SugiliteOperation.SELECT:
-                    message += getHTMLColor("Select ", Const.SCRIPT_ACTION_COLOR);
+                    message += getHTMLColor("Select ", Const.SCRIPT_ACTION_COLOR + " ");
                     break;
                 case SugiliteOperation.SET_TEXT:
                     message += getHTMLColor("Set Text ", Const.SCRIPT_ACTION_COLOR) + "to \"" + getHTMLColor(((SugiliteSetTextOperation)((SugiliteOperationBlock) block).getOperation()).getText(), Const.SCRIPT_ACTION_PARAMETER_COLOR) + "\" for ";
@@ -106,6 +109,9 @@ public class ReadableDescriptionGenerator {
                     break;
                 case SugiliteOperation.LOAD_AS_VARIABLE:
                     message += getHTMLColor("Load the value ", Const.SCRIPT_ACTION_COLOR) + "of the" + getHTMLColor(((SugiliteLoadVariableOperation)((SugiliteOperationBlock) block).getOperation()).getPropertyToSave(), Const.SCRIPT_ACTION_PARAMETER_COLOR) + " as a variable for ";
+                    break;
+                case SugiliteOperation.LAUNCH_APP:
+                    message += getHTMLColor("Launch the app ", Const.SCRIPT_ACTION_COLOR) + "on ";
                     break;
                 case SugiliteOperation.SPECIAL_GO_HOME:
                     return Html.fromHtml("<b>GO TO HOME SCREEN</b>");

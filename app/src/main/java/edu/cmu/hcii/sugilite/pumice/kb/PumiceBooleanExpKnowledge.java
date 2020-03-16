@@ -13,8 +13,8 @@ import java.util.Map;
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.model.block.booleanexp.SugiliteBooleanExpressionNew;
 import edu.cmu.hcii.sugilite.model.value.SugiliteValue;
+import edu.cmu.hcii.sugilite.pumice.PumiceDemonstrationUtil;
 import edu.cmu.hcii.sugilite.pumice.communication.SkipPumiceJSONSerialization;
-import edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.parsing_confirmation.PumiceParsingDifferenceProcessor;
 
 /**
  * @author toby
@@ -107,7 +107,7 @@ public class PumiceBooleanExpKnowledge implements Serializable {
             individualScenarios.add(utterance);
         }
 
-        description = description + PumiceParsingDifferenceProcessor.separateWordsBy(individualScenarios, "and");
+        description = description + PumiceDemonstrationUtil.joinListGrammatically(individualScenarios, "and");
 
         return description;
     }

@@ -65,7 +65,7 @@ public class SharingScriptReviewActivity extends ScriptDetailActivity {
 
         //set the activity title bar
         if(scriptName != null) {
-            setTitle("Review Sharing Script: " + scriptName.replace(".SugiliteScript", ""));
+            setTitle("Review Sharing Script: " + PumiceDemonstrationUtil.removeScriptExtension(scriptName));
         }
 
 

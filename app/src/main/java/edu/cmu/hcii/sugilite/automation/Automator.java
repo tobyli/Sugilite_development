@@ -39,6 +39,7 @@ import edu.cmu.hcii.sugilite.model.operation.binary.SugiliteGetProcedureOperatio
 import edu.cmu.hcii.sugilite.model.operation.trinary.SugiliteLoadVariableOperation;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteOperation;
 import edu.cmu.hcii.sugilite.model.operation.unary.SugiliteClickOperation;
+import edu.cmu.hcii.sugilite.model.operation.unary.SugiliteLaunchAppOperation;
 import edu.cmu.hcii.sugilite.model.operation.unary.SugiliteLongClickOperation;
 import edu.cmu.hcii.sugilite.model.operation.unary.SugiliteReadoutConstOperation;
 import edu.cmu.hcii.sugilite.model.operation.binary.SugiliteReadoutOperation;
@@ -50,11 +51,13 @@ import edu.cmu.hcii.sugilite.ontology.OntologyQuery;
 import edu.cmu.hcii.sugilite.ontology.SugiliteEntity;
 import edu.cmu.hcii.sugilite.ontology.UISnapshot;
 import edu.cmu.hcii.sugilite.ontology.helper.annotator.SugiliteTextParentAnnotator;
+import edu.cmu.hcii.sugilite.pumice.PumiceDemonstrationUtil;
 import edu.cmu.hcii.sugilite.recording.SugiliteScreenshotManager;
 import edu.cmu.hcii.sugilite.ui.BoundingBoxManager;
 import edu.cmu.hcii.sugilite.ui.StatusIconManager;
 
 import android.speech.tts.TextToSpeech;
+import android.widget.Toast;
 
 import static edu.cmu.hcii.sugilite.Const.DEBUG_DELAY;
 import static edu.cmu.hcii.sugilite.Const.DELAY;
@@ -219,7 +222,8 @@ public class Automator {
 
                 //there is no query in the operation block
                 if (operationBlock.getOperation().getOperationType() == SugiliteOperation.SPECIAL_GO_HOME ||
-                        operationBlock.getOperation().getOperationType() == SugiliteOperation.READOUT_CONST) {
+                        operationBlock.getOperation().getOperationType() == SugiliteOperation.READOUT_CONST ||
+                        operationBlock.getOperation().getOperationType() == SugiliteOperation.LAUNCH_APP) {
 
                     //** perform the operation with node = null - because the special_go_home operation and readout_const operations will have a null filter
                     boolean retVal = performAction(null, operationBlock);
@@ -528,6 +532,20 @@ public class Automator {
             startMain.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             context.startActivity(startMain);
             return true;
+        }
+
+        if (block.getOperation().getOperationType() == SugiliteOperation.LAUNCH_APP) {
+            if (block.getOperation() instanceof SugiliteLaunchAppOperation && ((SugiliteLaunchAppOperation) block.getOperation()).getAppPackageName() != null) {
+                Intent launchIntent = context.getPackageManager().getLaunchIntentForPackage(((SugiliteLaunchAppOperation) block.getOperation()).getAppPackageName());
+                if (launchIntent != null) {
+                    context.startActivity(launchIntent);
+                } else {
+                    PumiceDemonstrationUtil.showSugiliteToast("There is no package available in android", Toast.LENGTH_SHORT);
+                }
+                return true;
+            } else {
+                throw new RuntimeException("Wrong type of opearation! SugiliteLaunchAppOperation is expected.");
+            }
         }
 
         if (block.getOperation().getOperationType() == SugiliteOperation.READ_OUT) {

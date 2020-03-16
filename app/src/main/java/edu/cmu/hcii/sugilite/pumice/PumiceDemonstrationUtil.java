@@ -10,6 +10,9 @@ import android.speech.tts.TextToSpeech;
 import android.support.annotation.Nullable;
 import android.widget.Toast;
 
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.List;
 import java.util.Map;
 
 import edu.cmu.hcii.sugilite.Const;
@@ -22,6 +25,7 @@ import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.model.variable.Variable;
 import edu.cmu.hcii.sugilite.ontology.SerializableUISnapshot;
+import edu.cmu.hcii.sugilite.ontology.UISnapshot;
 import edu.cmu.hcii.sugilite.pumice.dialog.PumiceDialogManager;
 import edu.cmu.hcii.sugilite.recording.SugiliteScreenshotManager;
 import edu.cmu.hcii.sugilite.ui.dialog.VariableSetValueDialog;
@@ -74,7 +78,7 @@ public class PumiceDemonstrationUtil {
 
 
             //set the active script to the newly created script
-            sugiliteData.initiateScriptRecording(scriptName + ".SugiliteScript", afterRecordingCallback); //add the end recording callback
+            sugiliteData.initiateScriptRecording(PumiceDemonstrationUtil.addScriptExtension(scriptName), afterRecordingCallback); //add the end recording callback
             sugiliteData.initiatedExternally = false;
 
             //save the newly created script to DB
@@ -143,7 +147,7 @@ public class PumiceDemonstrationUtil {
             final PumiceDialogManager finalDialogManager = dialogManager;
 
             activityContext.runOnUiThread(() -> {
-                VariableSetValueDialog variableSetValueDialog = new VariableSetValueDialog(activityContext, sugiliteData, script, sharedPreferences, SugiliteData.EXECUTION_STATE, finalDialogManager, isForReconstructing);
+                VariableSetValueDialog variableSetValueDialog = new VariableSetValueDialog(sugiliteData.getApplicationContext(), sugiliteData, script, sharedPreferences, SugiliteData.EXECUTION_STATE, finalDialogManager, isForReconstructing);
                 if(script.variableNameDefaultValueMap.size() > 0) {
 
                     //has variable
@@ -198,7 +202,11 @@ public class PumiceDemonstrationUtil {
                         if (sugiliteData.getScriptHead() != null) {
                             if (sugiliteData.verbalInstructionIconManager != null) {
                                 SugiliteScreenshotManager sugiliteScreenshotManager = SugiliteScreenshotManager.getInstance(sharedPreferences, sugiliteData);
-                                sugiliteData.getScriptHead().uiSnapshotOnEnd = new SerializableUISnapshot(sugiliteData.verbalInstructionIconManager.getLatestUISnapshot());
+                                UISnapshot latestUISnapshot = sugiliteData.verbalInstructionIconManager.getLatestUISnapshot();
+                                if (latestUISnapshot != null) {
+                                    latestUISnapshot.annotateStringEntitiesIfNeeded();
+                                }
+                                sugiliteData.getScriptHead().uiSnapshotOnEnd = new SerializableUISnapshot(latestUISnapshot);
                                 sugiliteData.getScriptHead().screenshotOnEnd = sugiliteScreenshotManager.takeScreenshot(SugiliteScreenshotManager.DIRECTORY_PATH, sugiliteScreenshotManager.getFileNameFromDate());
                             }
                             sugiliteScriptDao.save(sugiliteData.getScriptHead());
@@ -284,6 +292,17 @@ public class PumiceDemonstrationUtil {
         } else {
             return scriptName + ".SugiliteScript";
         }
+    }
+
+    public static String joinListGrammatically(final List<String> list, String lastWordSeparator) {
+        if (list.size() == 0) {
+            return "";
+        }
+        return list.size() > 1
+                ? StringUtils.join(list.subList(0, list.size() - 1), ", ")
+                .concat(String.format("%s %s ", list.size() > 2 ? "," : "", lastWordSeparator))
+                .concat(list.get(list.size() - 1))
+                : list.get(0);
     }
 
     public static String boldify(String string){

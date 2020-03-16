@@ -19,8 +19,12 @@ import java.util.Arrays;
 
 import edu.cmu.hcii.sugilite.Const;
 import edu.cmu.hcii.sugilite.SugiliteData;
+import edu.cmu.hcii.sugilite.model.operation.binary.SugiliteBinaryOperation;
+import edu.cmu.hcii.sugilite.model.operation.binary.SugiliteGetProcedureOperation;
 import edu.cmu.hcii.sugilite.model.operation.trinary.SugiliteLoadVariableOperation;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteOperation;
+import edu.cmu.hcii.sugilite.model.operation.unary.SugiliteLaunchAppOperation;
+import edu.cmu.hcii.sugilite.model.operation.unary.SugiliteUnaryOperation;
 import edu.cmu.hcii.sugilite.ontology.*;
 import edu.cmu.hcii.sugilite.ontology.HashedStringLeafOntologyQuery;
 import edu.cmu.hcii.sugilite.pumice.PumiceDemonstrationUtil;
@@ -185,6 +189,25 @@ public class OntologyDescriptionGenerator {
         }
     }
 
+    public Spanned getSpannedDescriptionForOperationWithoutOntologyQuery(SugiliteOperation operation) {
+        String prefix = "";
+        if (operation instanceof SugiliteUnaryOperation) {
+            if (operation instanceof SugiliteLaunchAppOperation) {
+                return (Spanned) TextUtils.concat(prefix, getColoredSpannedTextFromMessage("Launch the app ", Const.SCRIPT_ACTION_COLOR), getColoredSpannedTextFromMessage(((SugiliteLaunchAppOperation) operation).getAppPackageName(), Const.SCRIPT_ACTION_PARAMETER_COLOR));
+            }
+        }
+        if (operation instanceof SugiliteBinaryOperation) {
+            if (operation instanceof SugiliteGetProcedureOperation) {
+                return (Spanned) TextUtils.concat(prefix, getColoredSpannedTextFromMessage("Execute the procedure ", Const.SCRIPT_ACTION_COLOR), getColoredSpannedTextFromMessage(((SugiliteGetProcedureOperation) operation).getName(), Const.SCRIPT_ACTION_PARAMETER_COLOR));
+            }
+        }
+
+        //TODO: handle more types of operations ***
+        System.err.println("can't handle operation " + operation.getOperationType());
+        return new SpannableString(operation.toString());
+
+    }
+
     /**
      * Get the natural language description for a SugiliteOperation
      *
@@ -217,8 +240,9 @@ public class OntologyDescriptionGenerator {
                 variables.append(" ");
             }
             return (Spanned) TextUtils.concat(prefix,
-                    getDescriptionForOperation((Spanned) TextUtils.concat(getColoredSpannedTextFromMessage("Set value of ", Const.SCRIPT_ACTION_COLOR), getColoredSpannedTextFromMessage(((SugiliteLoadVariableOperation) operation).getVariableName(), Const.SCRIPT_CONDITIONAL_COLOR_3), getColoredSpannedTextFromMessage(" to the following: ", Const.SCRIPT_ACTION_COLOR), "the ", getColoredSpannedTextFromMessage(((SugiliteLoadVariableOperation) operation).getPropertyToSave(), Const.SCRIPT_CONDITIONAL_COLOR_3), " property in "), sq, addClickableSpansForPrivacy));
-        } else {
+                    getDescriptionForOperation((Spanned) TextUtils.concat(getColoredSpannedTextFromMessage("Set value of ", Const.SCRIPT_ACTION_COLOR), getColoredSpannedTextFromMessage(((SugiliteLoadVariableOperation) operation).getVariableName(), Const.SCRIPT_CONDITIONAL_COLOR_3), getColoredSpannedTextFromMessage(" to the following: ", Const.SCRIPT_ACTION_COLOR), " the ", getColoredSpannedTextFromMessage(((SugiliteLoadVariableOperation) operation).getPropertyToSave(), Const.SCRIPT_CONDITIONAL_COLOR_3), " property in "), sq, addClickableSpansForPrivacy));
+        }
+        else {
             //TODO: handle more types of operations ***
             System.err.println("can't handle operation " + operation.getOperationType());
             return new SpannableString(operation.toString());

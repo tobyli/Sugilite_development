@@ -11,6 +11,7 @@ import java.util.Set;
 
 import edu.cmu.hcii.sugilite.model.variable.Variable;
 import edu.cmu.hcii.sugilite.ontology.SerializableUISnapshot;
+import edu.cmu.hcii.sugilite.pumice.PumiceDemonstrationUtil;
 
 import static edu.cmu.hcii.sugilite.source_parsing.SugiliteScriptExpression.addQuoteToTokenIfNeeded;
 
@@ -106,6 +107,6 @@ public class SugiliteStartingBlock extends SugiliteBlock implements Serializable
 
     @Override
     public String getPumiceUserReadableDecription() {
-        return String.format("Start the script: \"%s\"", scriptName.replace(".SugiliteScript", ""));
+        return String.format("Start the script: \"%s\"", PumiceDemonstrationUtil.removeScriptExtension(scriptName));
     }
 }

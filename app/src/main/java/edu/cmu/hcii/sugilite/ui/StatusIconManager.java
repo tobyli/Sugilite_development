@@ -364,7 +364,7 @@ public class StatusIconManager {
                     final boolean recordingInProcess = sharedPreferences.getBoolean("recording_in_process", false);
                     final SugiliteStartingBlock startingBlock = (SugiliteStartingBlock) sugiliteData.getScriptHead();
                     String scriptName = (startingBlock == null ? "" : startingBlock.getScriptName());
-                    final String scriptDefinedName = scriptName.replace(".SugiliteScript", "");
+                    final String scriptDefinedName = PumiceDemonstrationUtil.removeScriptExtension(scriptName);
                     //set pop up title
                     if(recordingInProcess){
                         textDialogBuilder.setTitle("RECORDING: " + scriptDefinedName);

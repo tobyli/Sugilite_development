@@ -38,6 +38,7 @@ import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.communication.SugiliteCommunicationController;
 import edu.cmu.hcii.sugilite.communication.SugiliteEventBroadcastingActivity;
 import edu.cmu.hcii.sugilite.dao.SugiliteAppVocabularyDao;
+import edu.cmu.hcii.sugilite.model.Node;
 import edu.cmu.hcii.sugilite.ontology.SerializableUISnapshot;
 import edu.cmu.hcii.sugilite.ontology.UISnapshot;
 import edu.cmu.hcii.sugilite.ontology.helper.annotator.SugiliteTextParentAnnotator;
@@ -747,7 +748,19 @@ public class SugiliteAccessibilityService extends AccessibilityService {
                                 // currentAppActivityName might not be correct at this point in time?
                                 try {
                                     UISnapshot uiSnapshot = new UISnapshot(windowManager.getDefaultDisplay(), windows, true, sugiliteTextParentAnnotator, false, currentPackageName, currentAppActivityName);
-                                    if (uiSnapshot.getNodeAccessibilityNodeInfoMap().size() >= 5) {
+                                    //TODO don't update UI on Sugilite Interfaces
+                                    int sugiliteNodeCount = 0;
+                                    int systemNodeCount = 0;
+                                    for (Node node : uiSnapshot.getNodeAccessibilityNodeInfoMap().keySet()) {
+                                        if (node.getPackageName().contains("sugilite")) {
+                                            sugiliteNodeCount ++;
+                                        }
+                                        if (node.getPackageName().contains("com.android.systemui")) {
+                                            systemNodeCount ++;
+                                        }
+                                    }
+                                    boolean shouldRecord = ((double) (sugiliteNodeCount + systemNodeCount)) / uiSnapshot.getNodeAccessibilityNodeInfoMap().size() <= 0.5;
+                                    if (uiSnapshot.getNodeAccessibilityNodeInfoMap().size() >= 5 && shouldRecord) {
                                         //filter out (mostly) empty ui snapshots
                                         verbalInstructionIconManager.setLatestUISnapshot(uiSnapshot);
                                         long stopTime = System.currentTimeMillis();

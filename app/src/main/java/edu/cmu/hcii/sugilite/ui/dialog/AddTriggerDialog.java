@@ -168,7 +168,7 @@ public class AddTriggerDialog implements AbstractSugiliteDialog {
         scriptReadableNameOrderedList = new ArrayList<>();
         //remove the suffix in the script name
         for(String name : allScriptNameList){
-            scriptReadableNameOrderedList.add(name.replace(".SugiliteScript", ""));
+            scriptReadableNameOrderedList.add(PumiceDemonstrationUtil.removeScriptExtension(name));
         }
         Collections.sort(scriptReadableNameOrderedList);
         scriptReadableNameIndexMap = new HashMap<>();
@@ -202,7 +202,7 @@ public class AddTriggerDialog implements AbstractSugiliteDialog {
         if (triggerTypeSpinner.getSelectedItemPosition() == 0) {
             //app launch trigger selected
             String triggerName = triggerNameEditText.getText().toString();
-            String scriptName = chooseScriptTriggerSpinner.getSelectedItem().toString().concat(".SugiliteScript");
+            String scriptName = PumiceDemonstrationUtil.addScriptExtension(chooseScriptTriggerSpinner.getSelectedItem().toString());
             String packageName = appNamePackageNameMap.get(chooseTriggerAppSpinner.getSelectedItem().toString());
             if(scriptName != null && scriptName.length() > 0 && packageName != null && packageName.length() > 0 && triggerName.length() > 0) {
                 SugiliteTrigger trigger = new SugiliteTrigger(triggerName, scriptName, "", packageName, SugiliteTrigger.APP_LAUNCH_TRIGGER);
@@ -225,7 +225,7 @@ public class AddTriggerDialog implements AbstractSugiliteDialog {
             //notification trigger selected
             String triggerName = triggerNameEditText.getText().toString();
             String notificationContent = notificationTriggerContentEditText.getText().toString();
-            String scriptName = chooseScriptTriggerSpinner.getSelectedItem().toString().concat(".SugiliteScript");
+            String scriptName = PumiceDemonstrationUtil.addScriptExtension(chooseScriptTriggerSpinner.getSelectedItem().toString());
             String packageName = appNamePackageNameMap.get(chooseNotificationTriggerAppSpinner.getSelectedItem().toString());
             if(scriptName != null && scriptName.length() > 0 && packageName != null && packageName.length() > 0 && triggerName.length() > 0 && notificationContent.length() > 0) {
                 SugiliteTrigger trigger = new SugiliteTrigger(triggerName, scriptName, notificationContent, packageName, SugiliteTrigger.NOTIFICATION_TRIGGER);
@@ -260,10 +260,10 @@ public class AddTriggerDialog implements AbstractSugiliteDialog {
         if (trigger.getType() == SugiliteTrigger.APP_LAUNCH_TRIGGER) {
             triggerTypeSpinner.setSelection(0);
 
-            if (scriptReadableNameIndexMap.containsKey(trigger.getScriptName().replace(".SugiliteScript", ""))) {
-                chooseScriptTriggerSpinner.setSelection(scriptReadableNameIndexMap.get(trigger.getScriptName().replace(".SugiliteScript", "")));
+            if (scriptReadableNameIndexMap.containsKey(PumiceDemonstrationUtil.removeScriptExtension(trigger.getScriptName()))) {
+                chooseScriptTriggerSpinner.setSelection(scriptReadableNameIndexMap.get(PumiceDemonstrationUtil.removeScriptExtension(trigger.getScriptName())));
             } else {
-                throw new Exception("Can't find the script to trigger: " + trigger.getScriptName().replace(".SugiliteScript", ""));
+                throw new Exception("Can't find the script to trigger: " + PumiceDemonstrationUtil.removeScriptExtension(trigger.getScriptName()));
             }
 
             if (packageNameAppNameMap.containsKey(trigger.getAppPackageName()) && appNameIndexMap.containsKey(packageNameAppNameMap.get(trigger.getAppPackageName()))) {
@@ -274,10 +274,10 @@ public class AddTriggerDialog implements AbstractSugiliteDialog {
             }
         } else if (trigger.getType() == SugiliteTrigger.NOTIFICATION_TRIGGER) {
             triggerTypeSpinner.setSelection(1);
-            if (scriptReadableNameIndexMap.containsKey(trigger.getScriptName().replace(".SugiliteScript", ""))) {
-                chooseScriptTriggerSpinner.setSelection(scriptReadableNameIndexMap.get(trigger.getScriptName().replace(".SugiliteScript", "")));
+            if (scriptReadableNameIndexMap.containsKey(PumiceDemonstrationUtil.removeScriptExtension(trigger.getScriptName()))) {
+                chooseScriptTriggerSpinner.setSelection(scriptReadableNameIndexMap.get(PumiceDemonstrationUtil.removeScriptExtension(trigger.getScriptName())));
             } else {
-                throw new Exception("Can't find the script to trigger: " + trigger.getScriptName().replace(".SugiliteScript", ""));
+                throw new Exception("Can't find the script to trigger: " + PumiceDemonstrationUtil.removeScriptExtension(trigger.getScriptName()));
             }
             if (packageNameAppNameMap.containsKey(trigger.getAppPackageName()) && appNameIndexMap.containsKey(packageNameAppNameMap.get(trigger.getAppPackageName()))) {
                 chooseNotificationTriggerAppSpinner.setSelection(appNameIndexMap.get(packageNameAppNameMap.get(trigger.getAppPackageName())));

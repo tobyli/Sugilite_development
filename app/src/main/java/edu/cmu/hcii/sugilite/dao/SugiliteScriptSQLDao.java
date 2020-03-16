@@ -17,6 +17,7 @@ import java.util.List;
 import edu.cmu.hcii.sugilite.dao.db.SugiliteScriptDbContract;
 import edu.cmu.hcii.sugilite.dao.db.SugiliteScriptDBHelper;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
+import edu.cmu.hcii.sugilite.pumice.PumiceDemonstrationUtil;
 
 /**
  * @author toby
@@ -245,7 +246,7 @@ public class SugiliteScriptSQLDao implements SugiliteScriptDao {
         List<String> allNames = getAllNames();
         while(true){
             String scriptName = prefix + String.valueOf(i);
-            if(allNames.contains(scriptName + ".SugiliteScript")){
+            if(allNames.contains(PumiceDemonstrationUtil.addScriptExtension(scriptName))){
                 i++;
                 continue;
             }

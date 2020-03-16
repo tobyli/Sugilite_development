@@ -1,5 +1,6 @@
 package edu.cmu.hcii.sugilite.source_parsing;
 
+import edu.cmu.hcii.sugilite.model.operation.unary.SugiliteLaunchAppOperation;
 import edu.cmu.hcii.sugilite.ontology.*;
 import org.apache.commons.lang3.StringUtils;
 
@@ -284,6 +285,9 @@ public class SugiliteScriptExpression<T> {
                     operation = new SugiliteResolveValueQueryOperation();
                     ((SugiliteResolveValueQueryOperation) operation).setText(stringArg);
                     break;
+                case "launch_app":
+                    operation = new SugiliteLaunchAppOperation();
+                    ((SugiliteLaunchAppOperation) operation).setAppPackageName(stringArg);
             }
             operationBlock.setOperation(operation);
             OntologyQuery query = OntologyQuery.deserialize(arguments.get(0).get(0).getScriptContent());

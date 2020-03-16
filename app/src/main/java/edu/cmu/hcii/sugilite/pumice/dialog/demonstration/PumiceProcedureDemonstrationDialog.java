@@ -76,7 +76,7 @@ public class PumiceProcedureDemonstrationDialog {
 
                                         //get the result script
                                         try {
-                                            SugiliteStartingBlock script = sugiliteScriptDao.read(scriptName + ".SugiliteScript");
+                                            SugiliteStartingBlock script = sugiliteScriptDao.read(PumiceDemonstrationUtil.addScriptExtension(scriptName));
                                             if (script != null) {
                                                 onDemonstrationReady(script);
                                             } else {

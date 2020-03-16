@@ -31,11 +31,13 @@ public class SoviteScriptMatchedFromScreenIntentHandler implements PumiceUtteran
     private SoviteReturnValueCallbackInterface<PumiceProceduralKnowledge> returnValueCallbackObject;
     private ScriptVisualThumbnailManager scriptVisualThumbnailManager;
 
+    private SugiliteStartingBlock appReferenceScript;
     private List<PumiceProceduralKnowledge> relevantProceduralKnowledgesToTargetApp;
     private PumiceProceduralKnowledge topMatchedKnowledge;
 
-    public SoviteScriptMatchedFromScreenIntentHandler(PumiceDialogManager pumiceDialogManager, Activity context, String appPackageName, String appReadableName, String activityName, String originalUtterance, List<PumiceProceduralKnowledge> relevantProceduralKnowledgesToTargetApp, SoviteReturnValueCallbackInterface<PumiceProceduralKnowledge> returnValueCallbackObject) {
+    public SoviteScriptMatchedFromScreenIntentHandler(PumiceDialogManager pumiceDialogManager, Activity context, SugiliteStartingBlock appReferenceScript, String appPackageName, String appReadableName, String activityName, String originalUtterance, List<PumiceProceduralKnowledge> relevantProceduralKnowledgesToTargetApp, SoviteReturnValueCallbackInterface<PumiceProceduralKnowledge> returnValueCallbackObject) {
         this.context = context;
+        this.appReferenceScript = appReferenceScript;
         this.appPackageName = appPackageName;
         this.appReadableName = appReadableName;
         this.activityName = activityName;
@@ -69,7 +71,8 @@ public class SoviteScriptMatchedFromScreenIntentHandler implements PumiceUtteran
             pumiceDialogManager.sendAgentMessage("Is this what you want to do?", true, true);
         } else {
             pumiceDialogManager.sendAgentMessage("Can't find any script relevant to the screen you showed", true, false);
-            //TODO: should be the same as EXECUTION_CONFIRM_NEGATIVE - ask for demonstration
+            //should be the same as EXECUTION_CONFIRM_NEGATIVE - ask for demonstration
+            handleIntentWithUtterance(pumiceDialogManager, PumiceUtteranceIntentHandler.PumiceIntent.EXECUTION_CONFIRM_NEGATIVE, null);
         }
     }
 
@@ -93,7 +96,7 @@ public class SoviteScriptMatchedFromScreenIntentHandler implements PumiceUtteran
             returnValueCallbackObject.callReturnValueCallback(topMatchedKnowledge);
         } else if (pumiceIntent.equals(PumiceUtteranceIntentHandler.PumiceIntent.EXECUTION_CONFIRM_NEGATIVE)) {
             //have the user to continue demonstrating
-            SoviteNewScriptDemonstrationDialog soviteNewScriptDemonstrationDialog = new SoviteNewScriptDemonstrationDialog(context, pumiceDialogManager, originalUtterance, originalUtterance, appPackageName, appReadableName, returnValueCallbackObject, this);
+            SoviteNewScriptDemonstrationDialog soviteNewScriptDemonstrationDialog = new SoviteNewScriptDemonstrationDialog(context, pumiceDialogManager, appReferenceScript, originalUtterance, originalUtterance, appPackageName, appReadableName, returnValueCallbackObject, this);
             soviteNewScriptDemonstrationDialog.show();
 
         } else if (pumiceIntent.equals(PumiceUtteranceIntentHandler.PumiceIntent.UNRECOGNIZED)) {

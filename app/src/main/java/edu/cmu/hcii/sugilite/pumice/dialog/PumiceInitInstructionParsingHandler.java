@@ -29,6 +29,7 @@ import edu.cmu.hcii.sugilite.model.value.SugiliteSimpleConstant;
 import edu.cmu.hcii.sugilite.model.value.SugiliteValue;
 import edu.cmu.hcii.sugilite.ontology.SugiliteRelation;
 import edu.cmu.hcii.sugilite.ontology.helper.annotator.SugiliteTextParentAnnotator;
+import edu.cmu.hcii.sugilite.pumice.PumiceDemonstrationUtil;
 import edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.PumiceScriptExecutingConfirmationIntentHandler;
 import edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.PumiceUserExplainBoolExpIntentHandler;
 import edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.else_statement.PumiceAskIfNeedElseStatementHandler;
@@ -635,7 +636,7 @@ public class PumiceInitInstructionParsingHandler {
     }
 
     private void storeScript(SugiliteStartingBlock currentScript, String scriptName) {
-        currentScript.setScriptName(scriptName + ".SugiliteScript");
+        currentScript.setScriptName(PumiceDemonstrationUtil.addScriptExtension(scriptName));
         try {
             sugiliteScriptDao.save(currentScript);
             sugiliteScriptDao.commitSave(null);

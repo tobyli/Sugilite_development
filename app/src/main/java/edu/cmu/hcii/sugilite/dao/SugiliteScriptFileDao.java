@@ -20,6 +20,7 @@ import edu.cmu.hcii.sugilite.model.OperationBlockDescriptionRegenerator;
 import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.ontology.description.OntologyDescriptionGenerator;
+import edu.cmu.hcii.sugilite.pumice.PumiceDemonstrationUtil;
 import edu.cmu.hcii.sugilite.ui.dialog.SugiliteProgressDialog;
 
 import static edu.cmu.hcii.sugilite.Const.ENABLE_DAO_READING_CACHE;
@@ -255,7 +256,7 @@ public class SugiliteScriptFileDao implements SugiliteScriptDao {
         List<String> allNames = getAllNames();
         while(true){
             String scriptName = prefix + String.valueOf(i);
-            if(allNames.contains(scriptName + ".SugiliteScript")){
+            if(allNames.contains(PumiceDemonstrationUtil.addScriptExtension(scriptName))){
                 i++;
                 continue;
             }

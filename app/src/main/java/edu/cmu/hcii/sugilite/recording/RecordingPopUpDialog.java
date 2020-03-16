@@ -397,8 +397,8 @@ public class RecordingPopUpDialog implements AbstractSugiliteDialog {
         //add head if no one is present && this popup is triggered by new event
         if(triggerMode == TRIGGERED_BY_NEW_EVENT &&
                 (sugiliteData.getScriptHead() == null ||
-                        (!(sugiliteData.getScriptHead()).getScriptName().contentEquals(sharedPreferences.getString("scriptName", "defaultScript") + ".SugiliteScript")))){
-            sugiliteData.setScriptHead(new SugiliteStartingBlock(sharedPreferences.getString("scriptName", "defaultScript") + ".SugiliteScript"));
+                        (!(sugiliteData.getScriptHead()).getScriptName().contentEquals(PumiceDemonstrationUtil.addScriptExtension(sharedPreferences.getString("scriptName", "defaultScript")))))){
+            sugiliteData.setScriptHead(new SugiliteStartingBlock(PumiceDemonstrationUtil.addScriptExtension(sharedPreferences.getString("scriptName", "defaultScript"))));
             sugiliteData.setCurrentScriptBlock(sugiliteData.getScriptHead());
         }
 

@@ -144,7 +144,7 @@ public class FragmentScriptListTab extends Fragment {
         List<String> names = sugiliteScriptDao.getAllNames();
         List<String> displayNames = new ArrayList<>();
         for (String name : names) {
-            displayNames.add(new String(name).replace(".SugiliteScript", ""));
+            displayNames.add(PumiceDemonstrationUtil.removeScriptExtension(new String(name)));
         }
         System.out.println("showing " + names.size() + " scripts: " + displayNames);
         scriptList.setAdapter(new ArrayAdapter<String>(activity, android.R.layout.simple_list_item_1, displayNames));
@@ -152,7 +152,7 @@ public class FragmentScriptListTab extends Fragment {
         scriptList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                String scriptName = (String) scriptList.getItemAtPosition(position) + ".SugiliteScript";
+                String scriptName = PumiceDemonstrationUtil.addScriptExtension((String) scriptList.getItemAtPosition(position));
                 final Intent scriptDetailIntent = new Intent(activityContext, LocalScriptDetailActivity.class);
                 scriptDetailIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
                 scriptDetailIntent.putExtra("scriptName", scriptName);
@@ -213,14 +213,14 @@ public class FragmentScriptListTab extends Fragment {
             // this should allow us to delete broken scripts
             if (item.getItemId() == ITEM_DELETE) {
                 if (info.targetView instanceof TextView && ((TextView) info.targetView).getText() != null) {
-                    sugiliteScriptDao.delete(((TextView) info.targetView).getText().toString() + ".SugiliteScript");
+                    sugiliteScriptDao.delete(PumiceDemonstrationUtil.addScriptExtension(((TextView) info.targetView).getText().toString()));
                     PumiceDemonstrationUtil.showSugiliteAlertDialog(String.format("Successfully deleted the script \"%s\"!", ((TextView) info.targetView).getText().toString()));
                     setUpScriptList();
                 }
                 return super.onContextItemSelected(item);
             }
 
-            final String scriptName = ((TextView) info.targetView).getText().toString() + ".SugiliteScript";
+            final String scriptName = PumiceDemonstrationUtil.addScriptExtension(((TextView) info.targetView).getText().toString());
 
             switch (item.getItemId()) {
                 case ITEM_VIEW:
@@ -283,7 +283,7 @@ public class FragmentScriptListTab extends Fragment {
                                             e.printStackTrace();
                                         }
                                         if (script != null) {
-                                            script.setScriptName(newNameEditText.getText().toString() + ".SugiliteScript");
+                                            script.setScriptName(PumiceDemonstrationUtil.addScriptExtension(newNameEditText.getText().toString()));
                                             try {
                                                 sugiliteScriptDao.save(script);
                                                 sugiliteScriptDao.commitSave(null);
@@ -340,7 +340,7 @@ public class FragmentScriptListTab extends Fragment {
                         public void run() {
                             try {
                                 SugiliteStartingBlock script = sugiliteScriptDao.read(scriptName);
-                                newScriptGeneralizer.extractParameters(script, scriptName.replace(".SugiliteScript", ""));
+                                newScriptGeneralizer.extractParameters(script, PumiceDemonstrationUtil.removeScriptExtension(scriptName));
                                 sugiliteScriptDao.save(script);
                                 sugiliteScriptDao.commitSave(null);
                                 PumiceDemonstrationUtil.showSugiliteAlertDialog(String.format("Successfully generalized the script \"%s\"!", removeScriptExtension(scriptName)));

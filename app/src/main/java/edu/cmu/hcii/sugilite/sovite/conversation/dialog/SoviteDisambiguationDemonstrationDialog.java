@@ -13,7 +13,9 @@ import edu.cmu.hcii.sugilite.automation.AutomatorUtil;
 import edu.cmu.hcii.sugilite.automation.ServiceStatusManager;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptFileDao;
+import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
+import edu.cmu.hcii.sugilite.model.operation.unary.SugiliteLaunchAppOperation;
 import edu.cmu.hcii.sugilite.pumice.PumiceDemonstrationUtil;
 import edu.cmu.hcii.sugilite.pumice.dialog.PumiceDialogManager;
 import edu.cmu.hcii.sugilite.pumice.kb.PumiceProceduralKnowledge;
@@ -88,7 +90,7 @@ public class SoviteDisambiguationDemonstrationDialog {
 
                                         //get the result script
                                         try {
-                                            SugiliteStartingBlock script = sugiliteScriptDao.read(scriptName + ".SugiliteScript");
+                                            SugiliteStartingBlock script = sugiliteScriptDao.read(PumiceDemonstrationUtil.addScriptExtension(scriptName));
                                             if (script != null) {
                                                 onDemonstrationReady(script);
                                             } else {
@@ -103,6 +105,15 @@ public class SoviteDisambiguationDemonstrationDialog {
                             }
                         };
                         PumiceDemonstrationUtil.initiateDemonstration(context, serviceStatusManager, sharedPreferences, scriptName, sugiliteData, onFinishDemonstrationCallback, sugiliteScriptDao, verbalInstructionIconManager);
+
+                        //add a new LaunchApp block
+                        SugiliteLaunchAppOperation sugiliteLaunchAppOperation = new SugiliteLaunchAppOperation(appPackageName);
+                        SugiliteOperationBlock sugiliteOperationBlock = new SugiliteOperationBlock();
+                        sugiliteOperationBlock.setOperation(sugiliteLaunchAppOperation);
+                        sugiliteOperationBlock.setPreviousBlock(sugiliteData.getCurrentScriptBlock());
+                        sugiliteData.getCurrentScriptBlock().setNextBlock(sugiliteOperationBlock);
+                        sugiliteData.setCurrentScriptBlock(sugiliteOperationBlock);
+
                         //launch the underlying app
                         Intent launchIntent = context.getPackageManager().getLaunchIntentForPackage(appPackageName);
                         if (launchIntent != null) {

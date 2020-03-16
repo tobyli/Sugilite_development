@@ -46,15 +46,13 @@ public class ScriptVisualThumbnailManager {
     public Drawable getVisualThumbnailForScript (SugiliteBlock script, String utterance) {
         //1. get the last available screenshot (recursively expand get_procedure calls)
         File screenshotFile = null;
-        if (script instanceof SugiliteStartingBlock && ((SugiliteStartingBlock) script).screenshotOnEnd != null) {
-            screenshotFile = ((SugiliteStartingBlock) script).screenshotOnEnd;
-        } else {
-            try {
-                screenshotFile = getLastAvailableScreenshotInSubsequentScript(script, null);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+
+        try {
+            screenshotFile = getLastAvailableScreenshotInSubsequentScript(script, null);
+        } catch (Exception e) {
+            e.printStackTrace();
         }
+
         if (screenshotFile != null) {
             // there is screenshot available, get the Drawable from File
             String path = screenshotFile.getAbsolutePath();
@@ -115,10 +113,16 @@ public class ScriptVisualThumbnailManager {
         if (script == null) {
             return lastAvailableScreenshot;
         }
+
+        if (script instanceof SugiliteStartingBlock && ((SugiliteStartingBlock) script).screenshotOnEnd != null) {
+            return ((SugiliteStartingBlock) script).screenshotOnEnd;
+        }
+
         if (script.getScreenshot() != null) {
             // update the screenshot if available
             lastAvailableScreenshot = script.getScreenshot();
         }
+
         if (script instanceof SugiliteConditionBlock) {
             // handle condition block
             File currentLastAvailableScreenshotInThenBlock = getLastAvailableScreenshotInSubsequentScript(((SugiliteConditionBlock) script).getThenBlock(), lastAvailableScreenshot);

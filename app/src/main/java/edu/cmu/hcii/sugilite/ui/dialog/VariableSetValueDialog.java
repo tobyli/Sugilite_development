@@ -41,6 +41,7 @@ import edu.cmu.hcii.sugilite.recording.newrecording.dialog_management.SugiliteDi
 import edu.cmu.hcii.sugilite.study.ScriptUsageLogManager;
 
 import static android.content.Context.ACTIVITY_SERVICE;
+import static edu.cmu.hcii.sugilite.Const.OVERLAY_TYPE;
 import static edu.cmu.hcii.sugilite.Const.SCRIPT_DELAY;
 
 /**
@@ -174,6 +175,7 @@ public class VariableSetValueDialog extends SugiliteDialogManager implements Abs
                 });
 
         dialog = builder.create();
+
         dialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
             @Override
             public void onDismiss(DialogInterface dialog) {
@@ -190,6 +192,11 @@ public class VariableSetValueDialog extends SugiliteDialogManager implements Abs
     }
 
     public void show(SugiliteBlock afterExecutionOperation, Runnable afterExecutionRunnable){
+        if (dialog != null) {
+            if (dialog.getWindow() != null) {
+                dialog.getWindow().setType(OVERLAY_TYPE);
+            }
+        }
         dialog.show();
         dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(new View.OnClickListener() {
             @Override

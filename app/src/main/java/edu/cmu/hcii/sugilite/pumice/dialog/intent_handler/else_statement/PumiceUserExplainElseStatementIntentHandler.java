@@ -10,6 +10,7 @@ import com.google.gson.GsonBuilder;
 import java.util.Calendar;
 
 import edu.cmu.hcii.sugilite.Const;
+import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteConditionBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
@@ -38,16 +39,17 @@ public class PumiceUserExplainElseStatementIntentHandler implements PumiceUttera
     private PumiceDialogManager pumiceDialogManager;
     private String boolExpReadableName;
     private PumiceUserExplainElseStatementIntentHandler pumiceUserExplainElseStatementIntentHandler;
-
+    private SugiliteData sugiliteData;
 
     //need to notify this lock when the else statement is resolved, and return the value through this object
     private SugiliteConditionBlock originalConditionBlock;
     Calendar calendar;
 
 
-    public PumiceUserExplainElseStatementIntentHandler(PumiceDialogManager pumiceDialogManager, Activity context, SugiliteConditionBlock originalConditionBlock, String boolExpReadableName){
+    public PumiceUserExplainElseStatementIntentHandler(PumiceDialogManager pumiceDialogManager, Activity context, SugiliteData sugiliteData, SugiliteConditionBlock originalConditionBlock, String boolExpReadableName){
         this.pumiceDialogManager = pumiceDialogManager;
         this.context = context;
+        this.sugiliteData = sugiliteData;
         this.calendar = Calendar.getInstance();
         this.originalConditionBlock = originalConditionBlock;
         this.boolExpReadableName = boolExpReadableName;
@@ -92,7 +94,7 @@ public class PumiceUserExplainElseStatementIntentHandler implements PumiceUttera
             dialogManager.sendAgentMessage("Please start demonstrating what to do when " + boolExpReadableName +  " is not true. " + "Click OK to continue.",true, false);
         }
         //set the intent handler back to the default one
-        dialogManager.updateUtteranceIntentHandlerInANewState(new PumiceDefaultUtteranceIntentHandler(pumiceDialogManager, context));
+        dialogManager.updateUtteranceIntentHandlerInANewState(new PumiceDefaultUtteranceIntentHandler(pumiceDialogManager, context, sugiliteData));
     }
 
     @Override
@@ -143,7 +145,7 @@ public class PumiceUserExplainElseStatementIntentHandler implements PumiceUttera
                         }
                         else {
                             if (resultPacket.queries != null && resultPacket.queries.size() > 0) {
-                            PumiceParsingResultWithResolveFnConfirmationHandler parsingConfirmationHandler = new PumiceParsingResultWithResolveFnConfirmationHandler(context, pumiceDialogManager, 0);
+                            PumiceParsingResultWithResolveFnConfirmationHandler parsingConfirmationHandler = new PumiceParsingResultWithResolveFnConfirmationHandler(context, sugiliteData, pumiceDialogManager, 0);
                             parsingConfirmationHandler.handleParsingResult(resultPacket, new Runnable() {
                                 @Override
                                 public void run() {

@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.ontology.SerializableUISnapshot;
 import edu.cmu.hcii.sugilite.pumice.communication.SkipPumiceJSONSerialization;
@@ -38,6 +39,7 @@ public class SoviteDemonstrateRelevantScreenIntentHandler implements PumiceUtter
     private String originalUtterance;
     private String matchedAppPackageName;
     private String matchedAppReadableName;
+    private SugiliteData sugiliteData;
 
     private ScriptVisualThumbnailManager scriptVisualThumbnailManager;
     private SoviteReturnValueCallbackInterface<PumiceProceduralKnowledge> returnValueCallbackObject;
@@ -45,9 +47,10 @@ public class SoviteDemonstrateRelevantScreenIntentHandler implements PumiceUtter
 
     public final static String RELEVANT_UTTERANCES_FOR_UI_SNAPSHOT = "RELEVANT_UTTERANCES_FOR_UI_SNAPSHOT";
 
-    public SoviteDemonstrateRelevantScreenIntentHandler (PumiceDialogManager pumiceDialogManager, Activity context, String originalUtterance, String matchedAppPackageName, String matchedAppReadableName, SoviteReturnValueCallbackInterface<PumiceProceduralKnowledge> returnValueCallbackObject) {
+    public SoviteDemonstrateRelevantScreenIntentHandler (PumiceDialogManager pumiceDialogManager, Activity context, SugiliteData sugiliteData, String originalUtterance, String matchedAppPackageName, String matchedAppReadableName, SoviteReturnValueCallbackInterface<PumiceProceduralKnowledge> returnValueCallbackObject) {
         this.pumiceDialogManager = pumiceDialogManager;
         this.context = context;
+        this.sugiliteData = sugiliteData;
         this.scriptVisualThumbnailManager = new ScriptVisualThumbnailManager(context);
         this.originalUtterance = originalUtterance;
         this.matchedAppPackageName = matchedAppPackageName;
@@ -153,7 +156,7 @@ public class SoviteDemonstrateRelevantScreenIntentHandler implements PumiceUtter
                     }
                 }
 
-                SoviteScriptMatchedFromScreenIntentHandler scriptMatchedFromScreenIntentHandler = new SoviteScriptMatchedFromScreenIntentHandler(pumiceDialogManager, context, appReferenceScript, matchedAppPackageName, matchedAppReadableName, appActivityName, originalUtterance, relevantProceduralKnowledgeList, returnValueCallbackObject);
+                SoviteScriptMatchedFromScreenIntentHandler scriptMatchedFromScreenIntentHandler = new SoviteScriptMatchedFromScreenIntentHandler(pumiceDialogManager, context, sugiliteData, appReferenceScript, matchedAppPackageName, matchedAppReadableName, appActivityName, originalUtterance, relevantProceduralKnowledgeList, returnValueCallbackObject);
                 pumiceDialogManager.updateUtteranceIntentHandlerInANewState(scriptMatchedFromScreenIntentHandler);
                 pumiceDialogManager.callSendPromptForTheIntentHandlerForCurrentIntentHandler();
 

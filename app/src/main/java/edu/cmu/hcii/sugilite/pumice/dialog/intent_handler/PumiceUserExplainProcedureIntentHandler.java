@@ -41,15 +41,17 @@ public class PumiceUserExplainProcedureIntentHandler implements PumiceUtteranceI
     private String parentKnowledgeName;
     private PumiceUserExplainProcedureIntentHandler pumiceUserExplainProcedureIntentHandler;
     private SoviteAppNameAppInfoManager soviteAppNameAppInfoManager;
+    private SugiliteData sugiliteData;
 
     //need to notify this lock when the procedure is resolved, and return the value through this object
     private PumiceProceduralKnowledge resolveProcedureLock;
     Calendar calendar;
 
 
-    public PumiceUserExplainProcedureIntentHandler(PumiceDialogManager pumiceDialogManager, Activity context, PumiceProceduralKnowledge resolveProcedureLock, String parentKnowledgeName) {
+    public PumiceUserExplainProcedureIntentHandler(PumiceDialogManager pumiceDialogManager, Activity context, SugiliteData sugiliteData, PumiceProceduralKnowledge resolveProcedureLock, String parentKnowledgeName) {
         this.pumiceDialogManager = pumiceDialogManager;
         this.context = context;
+        this.sugiliteData = sugiliteData;
         this.calendar = Calendar.getInstance();
         this.resolveProcedureLock = resolveProcedureLock;
         this.parentKnowledgeName = parentKnowledgeName;
@@ -94,7 +96,7 @@ public class PumiceUserExplainProcedureIntentHandler implements PumiceUtteranceI
             dialogManager.sendAgentMessage("Please start demonstrating how to " + parentKnowledgeName + ". " + "Click OK to continue.", true, false);
         }
         //set the intent handler back to the default one
-        dialogManager.updateUtteranceIntentHandlerInANewState(new PumiceDefaultUtteranceIntentHandler(pumiceDialogManager, context));
+        dialogManager.updateUtteranceIntentHandlerInANewState(new PumiceDefaultUtteranceIntentHandler(pumiceDialogManager, context, sugiliteData));
     }
 
     @Override
@@ -131,7 +133,7 @@ public class PumiceUserExplainProcedureIntentHandler implements PumiceUtteranceI
                 .create();
         if (result.contains(PumiceIntent.APP_REFERENCE.name())) {
             try {
-                SoviteIntentClassificationErrorForProceduralKnowledgeIntentHandler.handleAppReferenceResponse(gson, result, parentKnowledgeName, soviteAppNameAppInfoManager, context, pumiceDialogManager, this, this);
+                SoviteIntentClassificationErrorForProceduralKnowledgeIntentHandler.handleAppReferenceResponse(sugiliteData, gson, result, parentKnowledgeName, soviteAppNameAppInfoManager, context, pumiceDialogManager, this, this);
             } catch (Exception e) {
                 SoviteIntentClassificationErrorForProceduralKnowledgeIntentHandler.handleServerResponseError(e, pumiceDialogManager, this);
             }
@@ -146,7 +148,7 @@ public class PumiceUserExplainProcedureIntentHandler implements PumiceUtteranceI
         } else if (result.contains(RELEVANT_UTTERANCES_FOR_APPS)) {
             //handle queries of getting relevant utterances for apps
             try {
-                SoviteIntentClassificationErrorForProceduralKnowledgeIntentHandler.handleRelevantUtterancesForAppsResponse(gson, result, soviteAppNameAppInfoManager, parentKnowledgeName, context, pumiceDialogManager, this);
+                SoviteIntentClassificationErrorForProceduralKnowledgeIntentHandler.handleRelevantUtterancesForAppsResponse(gson, result, sugiliteData, soviteAppNameAppInfoManager, parentKnowledgeName, context, pumiceDialogManager, this);
             } catch (Exception e) {
                 SoviteIntentClassificationErrorForProceduralKnowledgeIntentHandler.handleServerResponseError(e, pumiceDialogManager, this);
             }
@@ -160,7 +162,7 @@ public class PumiceUserExplainProcedureIntentHandler implements PumiceUtteranceI
                         case "OPERATION_INSTRUCTION":
                             if (resultPacket.queries != null && resultPacket.queries.size() > 0) {
                                 if (resultPacket.queries.get(0).formula.contains("get")) {
-                                    PumiceParsingResultWithResolveFnConfirmationHandler parsingConfirmationHandler = new PumiceParsingResultWithResolveFnConfirmationHandler(context, pumiceDialogManager, 0);
+                                    PumiceParsingResultWithResolveFnConfirmationHandler parsingConfirmationHandler = new PumiceParsingResultWithResolveFnConfirmationHandler(context, sugiliteData, pumiceDialogManager, 0);
                                     parsingConfirmationHandler.handleParsingResult(resultPacket, new Runnable() {
                                         @Override
                                         public void run() {

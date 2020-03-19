@@ -6,6 +6,7 @@ import android.widget.ImageView;
 
 import java.util.List;
 
+import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.model.operation.binary.SugiliteGetProcedureOperation;
@@ -36,13 +37,15 @@ public class PumiceParsingResultNoResolveConfirmationHandler implements PumiceUt
     private PumiceParsingResultDescriptionGenerator pumiceParsingResultDescriptionGenerator;
     private SugiliteScriptParser sugiliteScriptParser;
     private ScriptVisualThumbnailManager scriptVisualThumbnailManager;
+    private SugiliteData sugiliteData;
 
     private HandleParsingResultPacket parsingResultsToHandle;
     private int failureCount = 0;
 
 
-    public PumiceParsingResultNoResolveConfirmationHandler(Activity context, PumiceDialogManager pumiceDialogManager, int failureCount) {
+    public PumiceParsingResultNoResolveConfirmationHandler(Activity context, SugiliteData sugiliteData, PumiceDialogManager pumiceDialogManager, int failureCount) {
         this.context = context;
+        this.sugiliteData = sugiliteData;
         this.pumiceDialogManager = pumiceDialogManager;
         this.pumiceParsingResultDescriptionGenerator = new PumiceParsingResultDescriptionGenerator();
         this.sugiliteScriptParser = new SugiliteScriptParser();
@@ -116,14 +119,14 @@ public class PumiceParsingResultNoResolveConfirmationHandler implements PumiceUt
                 e.printStackTrace();
             }
             //set the intent handler back to the default one
-            dialogManager.updateUtteranceIntentHandlerInANewState(new PumiceDefaultUtteranceIntentHandler(pumiceDialogManager, context));
+            dialogManager.updateUtteranceIntentHandlerInANewState(new PumiceDefaultUtteranceIntentHandler(pumiceDialogManager, context, sugiliteData));
         } else if (pumiceIntent.equals(PumiceIntent.PARSE_CONFIRM_NEGATIVE)) {
             // parse is incorrect
             // TODO: need to better handle negative response here
             HandleParsingResultPacket parsingResultPacket = parsingResultsToHandle;
 
             // TODO: first try to strip the fix part from the user's utterance, and feed it back to the original parser to try again
-            SoviteIntentClassificationErrorForProceduralKnowledgeIntentHandler soviteIntentClassificationErrorForProceduralKnowledgeIntentHandler = new SoviteIntentClassificationErrorForProceduralKnowledgeIntentHandler(pumiceDialogManager, context, parsingResultPacket.resultPacket.userUtterance, parsingResultPacket.resultPacket, this);
+            SoviteIntentClassificationErrorForProceduralKnowledgeIntentHandler soviteIntentClassificationErrorForProceduralKnowledgeIntentHandler = new SoviteIntentClassificationErrorForProceduralKnowledgeIntentHandler(pumiceDialogManager, context, sugiliteData, parsingResultPacket.resultPacket.userUtterance, parsingResultPacket.resultPacket, this);
             dialogManager.updateUtteranceIntentHandlerInANewState(soviteIntentClassificationErrorForProceduralKnowledgeIntentHandler);
             dialogManager.callSendPromptForTheIntentHandlerForCurrentIntentHandler();
             //show a popup to ask the user to choose from parsing results
@@ -206,6 +209,6 @@ public class PumiceParsingResultNoResolveConfirmationHandler implements PumiceUt
             e.printStackTrace();
         }
         //set the intent handler back to the default one
-        pumiceDialogManager.updateUtteranceIntentHandlerInANewState(new PumiceDefaultUtteranceIntentHandler(pumiceDialogManager, context));
+        pumiceDialogManager.updateUtteranceIntentHandlerInANewState(new PumiceDefaultUtteranceIntentHandler(pumiceDialogManager, context, sugiliteData));
     }
 }

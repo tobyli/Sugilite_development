@@ -6,6 +6,7 @@ import android.widget.ImageView;
 
 import java.util.List;
 
+import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
 import edu.cmu.hcii.sugilite.model.operation.binary.SugiliteGetProcedureOperation;
 import edu.cmu.hcii.sugilite.pumice.dialog.PumiceDialogManager;
@@ -27,12 +28,14 @@ public class SoviteScriptRelevantToAppIntentHandler implements PumiceUtteranceIn
     private PumiceDialogManager pumiceDialogManager;
     private SoviteReturnValueCallbackInterface<PumiceProceduralKnowledge> returnValueCallbackObject;
     private ScriptVisualThumbnailManager scriptVisualThumbnailManager;
+    private SugiliteData sugiliteData;
 
     private List<PumiceProceduralKnowledge> relevantProceduralKnowledgesToTargetApp;
     private PumiceProceduralKnowledge topMatchedKnowledge;
 
-    public SoviteScriptRelevantToAppIntentHandler(PumiceDialogManager pumiceDialogManager, Activity context, String appPackageName, String appReadableName, String originalUtterance, List<PumiceProceduralKnowledge> relevantProceduralKnowledgesToTargetApp, SoviteReturnValueCallbackInterface<PumiceProceduralKnowledge> returnValueCallbackObject) {
+    public SoviteScriptRelevantToAppIntentHandler(PumiceDialogManager pumiceDialogManager, Activity context, SugiliteData sugiliteData, String appPackageName, String appReadableName, String originalUtterance, List<PumiceProceduralKnowledge> relevantProceduralKnowledgesToTargetApp, SoviteReturnValueCallbackInterface<PumiceProceduralKnowledge> returnValueCallbackObject) {
         this.context = context;
+        this.sugiliteData = sugiliteData;
         this.appPackageName = appPackageName;
         this.appReadableName = appReadableName;
         this.originalUtterance = originalUtterance;
@@ -97,7 +100,7 @@ public class SoviteScriptRelevantToAppIntentHandler implements PumiceUtteranceIn
         else if (pumiceIntent.equals(PumiceIntent.EXECUTION_CONFIRM_NEGATIVE)) {
             //ask for demonstration instead
             dialogManager.sendAgentMessage("OK", true, false);
-            SoviteDemonstrateRelevantScreenIntentHandler soviteDemonstrateRelevantScreenIntentHandler = new SoviteDemonstrateRelevantScreenIntentHandler(pumiceDialogManager, context, originalUtterance, appPackageName, appReadableName, returnValueCallbackObject);
+            SoviteDemonstrateRelevantScreenIntentHandler soviteDemonstrateRelevantScreenIntentHandler = new SoviteDemonstrateRelevantScreenIntentHandler(pumiceDialogManager, context, sugiliteData, originalUtterance, appPackageName, appReadableName, returnValueCallbackObject);
             pumiceDialogManager.updateUtteranceIntentHandlerInANewState(soviteDemonstrateRelevantScreenIntentHandler);
             pumiceDialogManager.callSendPromptForTheIntentHandlerForCurrentIntentHandler();
         }

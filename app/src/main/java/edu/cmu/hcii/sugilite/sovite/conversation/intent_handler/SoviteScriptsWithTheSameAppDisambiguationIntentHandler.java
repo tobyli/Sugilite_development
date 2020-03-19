@@ -10,6 +10,7 @@ import com.google.gson.GsonBuilder;
 import java.util.ArrayList;
 import java.util.List;
 
+import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.pumice.communication.SkipPumiceJSONSerialization;
 import edu.cmu.hcii.sugilite.pumice.dialog.PumiceDialogManager;
 import edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.PumiceUtteranceIntentHandler;
@@ -35,13 +36,15 @@ public class SoviteScriptsWithTheSameAppDisambiguationIntentHandler implements P
     private String originalUtterance;
     private PumiceDialogManager pumiceDialogManager;
     private SoviteReturnValueCallbackInterface<PumiceProceduralKnowledge> returnValueCallbackObject;
+    private SugiliteData sugiliteData;
 
     private List<PumiceProceduralKnowledge> proceduralKnowledgesWithMatchedApps;
 
 
-    public SoviteScriptsWithTheSameAppDisambiguationIntentHandler(PumiceDialogManager pumiceDialogManager, Activity context, String appPackageName, String appReadableName, String originalUtterance, List<PumiceProceduralKnowledge> proceduralKnowledgesWithMatchedApps, SoviteReturnValueCallbackInterface<PumiceProceduralKnowledge> returnValueCallbackObject) {
+    public SoviteScriptsWithTheSameAppDisambiguationIntentHandler(PumiceDialogManager pumiceDialogManager, Activity context, SugiliteData sugiliteData, String appPackageName, String appReadableName, String originalUtterance, List<PumiceProceduralKnowledge> proceduralKnowledgesWithMatchedApps, SoviteReturnValueCallbackInterface<PumiceProceduralKnowledge> returnValueCallbackObject) {
         this.pumiceDialogManager = pumiceDialogManager;
         this.context = context;
+        this.sugiliteData = sugiliteData;
         this.appPackageName = appPackageName;
         this.appReadableName = appReadableName;
         this.originalUtterance = originalUtterance;
@@ -59,7 +62,7 @@ public class SoviteScriptsWithTheSameAppDisambiguationIntentHandler implements P
             pumiceDialogManager.sendAgentMessage("Does any one of these match what you want to do? You can also say \"no\" if none of these is correct.", true, true);
         } else {
             //only one matched app
-            SoviteScriptRelevantToAppIntentHandler soviteScriptRelevantToAppIntentHandler = new SoviteScriptRelevantToAppIntentHandler(pumiceDialogManager, context, appPackageName, appReadableName, originalUtterance, proceduralKnowledgesWithMatchedApps, returnValueCallbackObject);
+            SoviteScriptRelevantToAppIntentHandler soviteScriptRelevantToAppIntentHandler = new SoviteScriptRelevantToAppIntentHandler(pumiceDialogManager, context, sugiliteData, appPackageName, appReadableName, originalUtterance, proceduralKnowledgesWithMatchedApps, returnValueCallbackObject);
             pumiceDialogManager.updateUtteranceIntentHandlerInANewState(soviteScriptRelevantToAppIntentHandler);
             pumiceDialogManager.callSendPromptForTheIntentHandlerForCurrentIntentHandler();
         }
@@ -137,7 +140,7 @@ public class SoviteScriptsWithTheSameAppDisambiguationIntentHandler implements P
                     .create();
             try {
                 //prompt the user to confirm if the top script relevant to the app
-                SoviteIntentClassificationErrorForProceduralKnowledgeIntentHandler.handleRelevantUtterancesForAppsResponse(gson, result, SoviteAppNameAppInfoManager.getInstance(context), originalUtterance, context, pumiceDialogManager, returnValueCallbackObject);
+                SoviteIntentClassificationErrorForProceduralKnowledgeIntentHandler.handleRelevantUtterancesForAppsResponse(gson, result, sugiliteData, SoviteAppNameAppInfoManager.getInstance(context), originalUtterance, context, pumiceDialogManager, returnValueCallbackObject);
             } catch (Exception e) {
                 pumiceDialogManager.sendAgentMessage("Can't read from the server response", true, false);
                 pumiceDialogManager.sendAgentMessage("OK. Let's try again.", true, false);

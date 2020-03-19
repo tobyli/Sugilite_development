@@ -57,6 +57,8 @@ public class NewScriptGeneralizer {
          */
     public void extractParameters (SugiliteStartingBlock sugiliteStartingBlock, String userUtterance) {
 
+        int parameterNumberCounter = 1;
+
         //clear the existing variable maps
         if (sugiliteStartingBlock.variableNameDefaultValueMap == null) {
             sugiliteStartingBlock.variableNameDefaultValueMap = new HashMap<>();
@@ -89,13 +91,14 @@ public class NewScriptGeneralizer {
 
                     if (userUtterance.contains(textLabel.toLowerCase())) {
                         //matched
-                        System.out.printf("Found parameter: \"%s\" in the utterance was found in the operation %s\n", textLabel, operationBlock.toString());
+                        int parameterNumber = parameterNumberCounter ++;
+                        System.out.printf("Found parameter %d: \"%s\" in the utterance was found in the operation %s\n", parameterNumber, textLabel, operationBlock.toString());
 
                         //extract possible values from uiSnapshot
                         Map<SugiliteSerializableEntity<Node>, List<String>> alternativeNodeTextLabelsMap = getPossibleValueForParameter(blockMetaInfo.getTargetEntity(), blockMetaInfo.getUiSnapshot(), relation, depthLimit );
 
                         //construct the Variable object
-                        String variableName = textLabel;
+                        String variableName = String.format("[parameter_%d]", parameterNumber);
                         Variable variable = new StringVariable(variableName, variableName);
                         Set<String> alternativeValue = new HashSet<>();
                         alternativeNodeTextLabelsMap.forEach((x, y) -> alternativeValue.addAll(y));

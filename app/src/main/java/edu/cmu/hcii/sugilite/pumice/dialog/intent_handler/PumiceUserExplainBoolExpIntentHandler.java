@@ -10,6 +10,7 @@ import com.google.gson.GsonBuilder;
 import java.util.Calendar;
 
 import edu.cmu.hcii.sugilite.Const;
+import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.pumice.communication.PumiceInstructionPacket;
 import edu.cmu.hcii.sugilite.pumice.communication.PumiceSemanticParsingResultPacket;
 import edu.cmu.hcii.sugilite.pumice.communication.SkipPumiceJSONSerialization;
@@ -31,15 +32,18 @@ public class PumiceUserExplainBoolExpIntentHandler implements PumiceUtteranceInt
     private PumiceDialogManager pumiceDialogManager;
     private String parentKnowledgeName;
     private PumiceUserExplainBoolExpIntentHandler pumiceUserExplainBoolExpIntentHandler;
+    private SugiliteData sugiliteData;
     private int failureCount = 0;
+
 
     //need to notify this lock when the bool expression is resolved, and return the value through this object
     PumiceBooleanExpKnowledge resolveBoolExpLock;
     Calendar calendar;
 
-    public PumiceUserExplainBoolExpIntentHandler(PumiceDialogManager pumiceDialogManager, Activity context, PumiceBooleanExpKnowledge resolveBoolExpLock, String parentKnowledgeName, int failureCount){
+    public PumiceUserExplainBoolExpIntentHandler(PumiceDialogManager pumiceDialogManager, Activity context, SugiliteData sugiliteData, PumiceBooleanExpKnowledge resolveBoolExpLock, String parentKnowledgeName, int failureCount){
         this.pumiceDialogManager = pumiceDialogManager;
         this.context = context;
+        this.sugiliteData = sugiliteData;
         this.calendar = Calendar.getInstance();
         this.resolveBoolExpLock = resolveBoolExpLock;
         this.parentKnowledgeName = parentKnowledgeName;
@@ -72,7 +76,7 @@ public class PumiceUserExplainBoolExpIntentHandler implements PumiceUtteranceInt
         }
 
         //set the intent handler back to the default one
-        dialogManager.updateUtteranceIntentHandlerInANewState(new PumiceDefaultUtteranceIntentHandler(dialogManager, context));
+        dialogManager.updateUtteranceIntentHandlerInANewState(new PumiceDefaultUtteranceIntentHandler(dialogManager, context, sugiliteData));
     }
 
     @Override
@@ -106,7 +110,7 @@ public class PumiceUserExplainBoolExpIntentHandler implements PumiceUtteranceInt
                 switch (resultPacket.utteranceType) {
                     case "BOOL_EXP_INSTRUCTION":
                         if (resultPacket.queries != null && resultPacket.queries.size() > 0) {
-                            PumiceParsingResultWithResolveFnConfirmationHandler parsingConfirmationHandler = new PumiceParsingResultWithResolveFnConfirmationHandler(context, pumiceDialogManager, failureCount);
+                            PumiceParsingResultWithResolveFnConfirmationHandler parsingConfirmationHandler = new PumiceParsingResultWithResolveFnConfirmationHandler(context, sugiliteData, pumiceDialogManager, failureCount);
                             parsingConfirmationHandler.handleParsingResult(resultPacket, new Runnable() {
                                         @Override
                                         public void run() {

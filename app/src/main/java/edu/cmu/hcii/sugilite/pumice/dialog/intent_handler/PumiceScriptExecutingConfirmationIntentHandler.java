@@ -28,11 +28,13 @@ public class PumiceScriptExecutingConfirmationIntentHandler implements PumiceUtt
     private PumiceDialogManager pumiceDialogManager;
     private String userUtterance;
     private boolean toAskForConfirmation;
+    private SugiliteData sugiliteData;
 
 
-    public PumiceScriptExecutingConfirmationIntentHandler(PumiceDialogManager pumiceDialogManager, Activity context, SugiliteStartingBlock script, String userUtterance, boolean toAskForConfirmation){
+    public PumiceScriptExecutingConfirmationIntentHandler(PumiceDialogManager pumiceDialogManager, Activity context, SugiliteData sugiliteData, SugiliteStartingBlock script, String userUtterance, boolean toAskForConfirmation){
         this.pumiceDialogManager = pumiceDialogManager;
         this.context = context;
+        this.sugiliteData = sugiliteData;
         this.script = script;
         this.userUtterance = userUtterance;
         this.toAskForConfirmation = toAskForConfirmation;
@@ -44,7 +46,6 @@ public class PumiceScriptExecutingConfirmationIntentHandler implements PumiceUtt
         if (pumiceIntent.equals(PumiceIntent.EXECUTION_CONFIRM_POSITIVE)) {
             dialogManager.sendAgentMessage("Executing the script...", true, false);
             ServiceStatusManager serviceStatusManager = dialogManager.getServiceStatusManager();
-            SugiliteData sugiliteData = dialogManager.getSugiliteData();
             SharedPreferences sharedPreferences = dialogManager.getSharedPreferences();
 
             //load the knowledge manager into SugiliteData
@@ -76,13 +77,13 @@ public class PumiceScriptExecutingConfirmationIntentHandler implements PumiceUtt
 
 
             //go back to the default intent handler
-            dialogManager.updateUtteranceIntentHandlerInANewState(new PumiceDefaultUtteranceIntentHandler(dialogManager, context));
+            dialogManager.updateUtteranceIntentHandlerInANewState(new PumiceDefaultUtteranceIntentHandler(dialogManager, context, sugiliteData));
 
         }
 
         else if (pumiceIntent.equals(PumiceIntent.EXECUTION_CONFIRM_NEGATIVE)) {
             dialogManager.sendAgentMessage("OK", true, false);
-            dialogManager.updateUtteranceIntentHandlerInANewState(new PumiceDefaultUtteranceIntentHandler(dialogManager, context));
+            dialogManager.updateUtteranceIntentHandlerInANewState(new PumiceDefaultUtteranceIntentHandler(dialogManager, context, sugiliteData));
             dialogManager.callSendPromptForTheIntentHandlerForCurrentIntentHandler();
         }
 

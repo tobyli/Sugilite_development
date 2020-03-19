@@ -6,15 +6,24 @@ import android.widget.ImageView;
 
 import java.util.List;
 
+import edu.cmu.hcii.sugilite.Const;
+import edu.cmu.hcii.sugilite.SugiliteData;
+import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
+import edu.cmu.hcii.sugilite.dao.SugiliteScriptFileDao;
+import edu.cmu.hcii.sugilite.dao.SugiliteScriptSQLDao;
+import edu.cmu.hcii.sugilite.model.NewScriptGeneralizer;
 import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.model.operation.binary.SugiliteGetProcedureOperation;
+import edu.cmu.hcii.sugilite.pumice.PumiceDemonstrationUtil;
 import edu.cmu.hcii.sugilite.pumice.dialog.PumiceDialogManager;
 import edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.PumiceUtteranceIntentHandler;
 import edu.cmu.hcii.sugilite.pumice.kb.PumiceProceduralKnowledge;
 import edu.cmu.hcii.sugilite.sovite.ScriptVisualThumbnailManager;
 import edu.cmu.hcii.sugilite.sovite.conversation.SoviteReturnValueCallbackInterface;
 import edu.cmu.hcii.sugilite.sovite.conversation.dialog.SoviteNewScriptDemonstrationDialog;
+
+import static edu.cmu.hcii.sugilite.Const.SQL_SCRIPT_DAO;
 
 /**
  * @author toby
@@ -30,12 +39,14 @@ public class SoviteScriptMatchedFromScreenIntentHandler implements PumiceUtteran
     private PumiceDialogManager pumiceDialogManager;
     private SoviteReturnValueCallbackInterface<PumiceProceduralKnowledge> returnValueCallbackObject;
     private ScriptVisualThumbnailManager scriptVisualThumbnailManager;
+    private NewScriptGeneralizer newScriptGeneralizer;
+    private SugiliteScriptDao sugiliteScriptDao;
 
     private SugiliteStartingBlock appReferenceScript;
     private List<PumiceProceduralKnowledge> relevantProceduralKnowledgesToTargetApp;
     private PumiceProceduralKnowledge topMatchedKnowledge;
 
-    public SoviteScriptMatchedFromScreenIntentHandler(PumiceDialogManager pumiceDialogManager, Activity context, SugiliteStartingBlock appReferenceScript, String appPackageName, String appReadableName, String activityName, String originalUtterance, List<PumiceProceduralKnowledge> relevantProceduralKnowledgesToTargetApp, SoviteReturnValueCallbackInterface<PumiceProceduralKnowledge> returnValueCallbackObject) {
+    public SoviteScriptMatchedFromScreenIntentHandler(PumiceDialogManager pumiceDialogManager, Activity context, SugiliteData sugiliteData, SugiliteStartingBlock appReferenceScript, String appPackageName, String appReadableName, String activityName, String originalUtterance, List<PumiceProceduralKnowledge> relevantProceduralKnowledgesToTargetApp, SoviteReturnValueCallbackInterface<PumiceProceduralKnowledge> returnValueCallbackObject) {
         this.context = context;
         this.appReferenceScript = appReferenceScript;
         this.appPackageName = appPackageName;
@@ -46,6 +57,13 @@ public class SoviteScriptMatchedFromScreenIntentHandler implements PumiceUtteran
         this.returnValueCallbackObject = returnValueCallbackObject;
         this.relevantProceduralKnowledgesToTargetApp = relevantProceduralKnowledgesToTargetApp;
         this.scriptVisualThumbnailManager = new ScriptVisualThumbnailManager(context);
+        this.newScriptGeneralizer = new NewScriptGeneralizer(context);
+        if (Const.DAO_TO_USE == SQL_SCRIPT_DAO) {
+            this.sugiliteScriptDao = new SugiliteScriptSQLDao(context);
+        } else {
+            this.sugiliteScriptDao = new SugiliteScriptFileDao(context, sugiliteData);
+        }
+
         if (relevantProceduralKnowledgesToTargetApp != null && relevantProceduralKnowledgesToTargetApp.size() > 0) {
             this.topMatchedKnowledge = relevantProceduralKnowledgesToTargetApp.get(0);
         } else {
@@ -111,11 +129,24 @@ public class SoviteScriptMatchedFromScreenIntentHandler implements PumiceUtteran
     }
 
     public void onDemonstrationReady(SugiliteStartingBlock script) {
-        //construct the procedure knowledge
-        PumiceProceduralKnowledge newKnowledge = new PumiceProceduralKnowledge(context, originalUtterance, originalUtterance, script);
+        //generalize the script
+        newScriptGeneralizer.extractParameters(script, PumiceDemonstrationUtil.removeScriptExtension(script.getScriptName()));
 
-        //run the returnResultCallback when the result if ready
-        newKnowledge.isNewlyLearned = true;
-        returnValueCallbackObject.callReturnValueCallback(newKnowledge);
+        try {
+            sugiliteScriptDao.save(script);
+            sugiliteScriptDao.commitSave(new Runnable() {
+                @Override
+                public void run() {
+                    //construct the procedure knowledge
+                    PumiceProceduralKnowledge newKnowledge = new PumiceProceduralKnowledge(context, originalUtterance, originalUtterance, script);
+
+                    //run the returnResultCallback when the result if ready
+                    newKnowledge.isNewlyLearned = true;
+                    returnValueCallbackObject.callReturnValueCallback(newKnowledge);
+                }
+            });
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }

@@ -69,7 +69,7 @@ public class PumiceBooleanExpKnowledgeGeneralizationTask implements Callable<Sug
 
             //TODO: put a lock here
 
-            PumiceBooleanExpKnowledgeGeneralizationIntentHandler pumiceBooleanExpKnowledgeGeneralizationIntentHandler = new PumiceBooleanExpKnowledgeGeneralizationIntentHandler(dialogManager, context, matchedBooleanExpKnowledge, newProcedureScenario,
+            PumiceBooleanExpKnowledgeGeneralizationIntentHandler pumiceBooleanExpKnowledgeGeneralizationIntentHandler = new PumiceBooleanExpKnowledgeGeneralizationIntentHandler(dialogManager, context, sugiliteData, matchedBooleanExpKnowledge, newProcedureScenario,
                     new Runnable() {
                         @Override
                         public void run() {
@@ -128,7 +128,7 @@ public class PumiceBooleanExpKnowledgeGeneralizationTask implements Callable<Sug
         String valueUtterance = String.format("new threshold for \"%s\"", matchedBooleanExpKnowledge.getExpName());
 
         //update the dialog manager with a new intent handler
-        PumiceUserExplainValueIntentHandler pumiceUserExplainValueIntentHandler = new PumiceUserExplainValueIntentHandler(dialogManager, context, resolveValueLock, valueUtterance, null);
+        PumiceUserExplainValueIntentHandler pumiceUserExplainValueIntentHandler = new PumiceUserExplainValueIntentHandler(dialogManager, context, sugiliteData, resolveValueLock, valueUtterance, null);
         dialogManager.updateUtteranceIntentHandlerInANewState(pumiceUserExplainValueIntentHandler);
         dialogManager.sendAgentMessage(String.format("What's the new threshold for determining whether %s to %s? You can explain, or say \"demonstrate\" to demonstrate", matchedBooleanExpKnowledge.getExpName(), newProcedureScenario), true, true);
         //pumiceUserExplainValueIntentHandler.sendPromptForTheIntentHandler();

@@ -38,7 +38,7 @@ public class PumiceAskIfNeedElseStatementHandler implements PumiceUtteranceInten
     public void handleIntentWithUtterance(PumiceDialogManager dialogManager, PumiceIntent pumiceIntent, PumiceDialogManager.PumiceUtterance utterance) {
         if (pumiceIntent.equals(PumiceIntent.PARSE_CONFIRM_POSITIVE)) {
             // else statement needed
-            PumiceUserExplainElseStatementIntentHandler pumiceUserExplainElseStatementIntentHandler = new PumiceUserExplainElseStatementIntentHandler(pumiceDialogManager, context, originalConditionBlock, boolExpReadableName);
+            PumiceUserExplainElseStatementIntentHandler pumiceUserExplainElseStatementIntentHandler = new PumiceUserExplainElseStatementIntentHandler(pumiceDialogManager, context, sugiliteData, originalConditionBlock, boolExpReadableName);
             dialogManager.updateUtteranceIntentHandlerInANewState(pumiceUserExplainElseStatementIntentHandler);
             pumiceUserExplainElseStatementIntentHandler.sendPromptForTheIntentHandler();
         }
@@ -49,7 +49,7 @@ public class PumiceAskIfNeedElseStatementHandler implements PumiceUtteranceInten
                 originalConditionBlock.notify();
             }
             //set the intent handler back to the default one
-            dialogManager.updateUtteranceIntentHandlerInANewState(new PumiceDefaultUtteranceIntentHandler(pumiceDialogManager, context));
+            dialogManager.updateUtteranceIntentHandlerInANewState(new PumiceDefaultUtteranceIntentHandler(pumiceDialogManager, context, sugiliteData));
         }
 
         else if (pumiceIntent.equals(PumiceIntent.UNRECOGNIZED)) {

@@ -727,7 +727,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
             //for profiling purpose
             long startTime = System.currentTimeMillis();
             List<AccessibilityWindowInfo> windows = getWindows();
-            verbalInstructionIconManager.rotateStatusIcon();
+
 
             if (windows.size() > 0) {
                 Set<String> rootNodePackageNames = new HashSet<>();
@@ -759,11 +759,12 @@ public class SugiliteAccessibilityService extends AccessibilityService {
                                             systemNodeCount ++;
                                         }
                                     }
-                                    boolean shouldRecord = ((double) (sugiliteNodeCount + systemNodeCount)) / uiSnapshot.getNodeAccessibilityNodeInfoMap().size() <= 0.5;
+                                    boolean shouldRecord = ((double) (sugiliteNodeCount + systemNodeCount)) / uiSnapshot.getNodeAccessibilityNodeInfoMap().size() <= 0.9;
                                     if (uiSnapshot.getNodeAccessibilityNodeInfoMap().size() >= 5 && shouldRecord) {
                                         //filter out (mostly) empty ui snapshots
                                         verbalInstructionIconManager.setLatestUISnapshot(uiSnapshot);
                                         long stopTime = System.currentTimeMillis();
+                                        verbalInstructionIconManager.rotateStatusIcon();
                                         Log.v(TAG, "Updated UI Snapshot! -- Takes " + String.valueOf(stopTime - startTime) + "ms");
                                         if (runnableOnUpdateFinishesOnUIThread != null) {
                                             SugiliteData.runOnUiThread(runnableOnUpdateFinishesOnUIThread);

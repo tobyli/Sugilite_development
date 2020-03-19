@@ -7,16 +7,21 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.widget.Toast;
 
+import edu.cmu.hcii.sugilite.Const;
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.automation.ServiceStatusManager;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptFileDao;
+import edu.cmu.hcii.sugilite.dao.SugiliteScriptSQLDao;
+import edu.cmu.hcii.sugilite.model.NewScriptGeneralizer;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.pumice.PumiceDemonstrationUtil;
 import edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.PumiceUserExplainProcedureIntentHandler;
 import edu.cmu.hcii.sugilite.pumice.kb.PumiceProceduralKnowledge;
 import edu.cmu.hcii.sugilite.pumice.ui.PumiceDialogActivity;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.VerbalInstructionIconManager;
+
+import static edu.cmu.hcii.sugilite.Const.SQL_SCRIPT_DAO;
 
 /**
  * @author toby
@@ -38,6 +43,7 @@ public class PumiceProcedureDemonstrationDialog {
     private SugiliteData sugiliteData;
     private ServiceStatusManager serviceStatusManager;
     private VerbalInstructionIconManager verbalInstructionIconManager;
+    private NewScriptGeneralizer newScriptGeneralizer;
 
     public PumiceProcedureDemonstrationDialog(Activity context, String procedureKnowledgeName, String userUtterance, SharedPreferences sharedPreferences, SugiliteData sugiliteData, ServiceStatusManager serviceStatusManager, PumiceUserExplainProcedureIntentHandler parentIntentHandler){
         this.context = context;
@@ -48,7 +54,11 @@ public class PumiceProcedureDemonstrationDialog {
         this.sugiliteData = sugiliteData;
         this.verbalInstructionIconManager = sugiliteData.verbalInstructionIconManager;
         this.serviceStatusManager = serviceStatusManager;
-        this.sugiliteScriptDao = new SugiliteScriptFileDao(context, sugiliteData);
+        if (Const.DAO_TO_USE == SQL_SCRIPT_DAO) {
+            this.sugiliteScriptDao = new SugiliteScriptSQLDao(context);
+        } else {
+            this.sugiliteScriptDao = new SugiliteScriptFileDao(context, sugiliteData);
+        }        this.newScriptGeneralizer = new NewScriptGeneralizer(context);
         constructDialog();
     }
 
@@ -103,14 +113,23 @@ public class PumiceProcedureDemonstrationDialog {
         context.startActivityIfNeeded(resumeActivity, 0);
 
         PumiceDemonstrationUtil.showSugiliteToast("Demonstration Ready!", Toast.LENGTH_SHORT);
+        newScriptGeneralizer.extractParameters(script, PumiceDemonstrationUtil.removeScriptExtension(script.getScriptName()));
+        try {
+            sugiliteScriptDao.save(script);
+            sugiliteScriptDao.commitSave(new Runnable() {
+                @Override
+                public void run() {
+                    //construct the procedure knowledge
+                    PumiceProceduralKnowledge newKnowledge = new PumiceProceduralKnowledge(context, procedureKnowledgeName, procedureKnowledgeName, script);
 
-
-        //construct the procedure knowledge
-
-        //run the returnResultCallback when the result if ready
-        PumiceProceduralKnowledge newKnowledge = new PumiceProceduralKnowledge(context, procedureKnowledgeName, procedureKnowledgeName, script);
-        newKnowledge.isNewlyLearned = true;
-        parentIntentHandler.callReturnValueCallback(newKnowledge);
+                    //run the returnResultCallback when the result if ready
+                    newKnowledge.isNewlyLearned = true;
+                    parentIntentHandler.callReturnValueCallback(newKnowledge);
+                }
+            });
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     //show the dialog

@@ -114,6 +114,7 @@ public class PumiceProceduralKnowledge implements Serializable {
         if(startingBlock.variableNameDefaultValueMap != null) {
             for (Map.Entry<String, Variable> variableNameVariable : startingBlock.variableNameDefaultValueMap.entrySet()) {
                 if (variableNameVariable.getValue().type == Variable.USER_INPUT){
+                    //only deal with USER_INPUT type of parameters
                     String parameterName = variableNameVariable.getValue().getName();
                     String defaultValue = variableNameVariable.getValue().getName();
                     List<String> alternativeValues = new ArrayList<>();
@@ -216,12 +217,42 @@ public class PumiceProceduralKnowledge implements Serializable {
         throw new RuntimeException("can't find the target procedureKnowledge");
     }
 
+    public Map<String, String> getParameterNameParameterDefaultValueMap(PumiceKnowledgeManager knowledgeManager){
+        Map<String, String> parameterNameParameterDefaultValueMap = new HashMap<>();
+        if (parameterNameParameterMap != null) {
+            for (Map.Entry<String, PumiceProceduralKnowledgeParameter> parameterNameParameterEntry : parameterNameParameterMap.entrySet()) {
+                parameterNameParameterDefaultValueMap.put(parameterNameParameterEntry.getKey(), parameterNameParameterEntry.getValue().parameterDefaultValue.toString());
+            }
+            return parameterNameParameterDefaultValueMap;
+        } else if (targetProcedureKnowledgeName != null && (!targetProcedureKnowledgeName.equals(procedureName))) {
+            //look up in PumiceKnowledgeManager
+            for(PumiceProceduralKnowledge proceduralKnowledge : knowledgeManager.getPumiceProceduralKnowledges()){
+                if (targetProcedureKnowledgeName.equals(proceduralKnowledge.procedureName)){
+                    Map<String, PumiceProceduralKnowledgeParameter> newParameterNameParameterMap = proceduralKnowledge.getParameterNameParameterMap(knowledgeManager);
+                    if (newParameterNameParameterMap != null) {
+                        for (Map.Entry<String, PumiceProceduralKnowledgeParameter> parameterNameParameterEntry : newParameterNameParameterMap.entrySet()) {
+                            parameterNameParameterDefaultValueMap.put(parameterNameParameterEntry.getKey(), parameterNameParameterEntry.getValue().parameterDefaultValue.toString());
+                        }
+                        return parameterNameParameterDefaultValueMap;
+                    }
+                }
+            }
+        } else {
+            throw new RuntimeException("not valid scriptName or targetProcedureKnowledgeName");
+        }
+        throw new RuntimeException("can't find the target procedureKnowledge");
+    }
+
     public String getProcedureDescription(PumiceKnowledgeManager knowledgeManager, boolean addHowTo){
         String parameterizedUtterance = new String(utterance);
         Map<String, PumiceProceduralKnowledgeParameter> parameterNameParameterMap = getParameterNameParameterMap(knowledgeManager);
+        Map<String, String> parameterNameParameterDefaultValueMap = getParameterNameParameterDefaultValueMap(knowledgeManager);
         if (parameterNameParameterMap != null) {
-            for (String parameter : parameterNameParameterMap.keySet()) {
-                parameterizedUtterance = parameterizedUtterance.replace(parameter, "something");
+            for (String parameterName : parameterNameParameterMap.keySet()) {
+                String parameterDefaultValue = parameterNameParameterDefaultValueMap.get(parameterName);
+                if (parameterDefaultValue != null) {
+                    parameterizedUtterance = parameterizedUtterance.toLowerCase().replace(parameterDefaultValue.toLowerCase(), String.format("[%s]", parameterName));
+                }
             }
         }
         if (targetProcedureKnowledgeName != null)     {

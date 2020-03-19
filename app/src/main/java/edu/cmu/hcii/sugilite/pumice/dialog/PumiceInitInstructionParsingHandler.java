@@ -145,7 +145,7 @@ public class PumiceInitInstructionParsingHandler {
 
 
         //ask if want to execute
-        PumiceScriptExecutingConfirmationIntentHandler pumiceScriptExecutingConfirmationIntentHandler = new PumiceScriptExecutingConfirmationIntentHandler(pumiceDialogManager, context, script, userUtterance, true);
+        PumiceScriptExecutingConfirmationIntentHandler pumiceScriptExecutingConfirmationIntentHandler = new PumiceScriptExecutingConfirmationIntentHandler(pumiceDialogManager, context, sugiliteData, script, userUtterance, true);
         pumiceDialogManager.updateUtteranceIntentHandlerInANewState(pumiceScriptExecutingConfirmationIntentHandler);
         pumiceScriptExecutingConfirmationIntentHandler.sendPromptForTheIntentHandler();
     }
@@ -445,7 +445,7 @@ public class PumiceInitInstructionParsingHandler {
                 PumiceProceduralKnowledge resolveProcedureLock = new PumiceProceduralKnowledge();
 
                 //update the dialog manager with a new intent handler
-                PumiceUserExplainProcedureIntentHandler pumiceUserExplainProcedureIntentHandler = new PumiceUserExplainProcedureIntentHandler(pumiceDialogManager, context, resolveProcedureLock, procedureUtterance);
+                PumiceUserExplainProcedureIntentHandler pumiceUserExplainProcedureIntentHandler = new PumiceUserExplainProcedureIntentHandler(pumiceDialogManager, context, sugiliteData, resolveProcedureLock, procedureUtterance);
                 pumiceDialogManager.updateUtteranceIntentHandlerInANewState(pumiceUserExplainProcedureIntentHandler);
                 pumiceUserExplainProcedureIntentHandler.sendPromptForTheIntentHandler();
 
@@ -481,7 +481,7 @@ public class PumiceInitInstructionParsingHandler {
                 PumiceValueQueryKnowledge resolveValueLock = new PumiceValueQueryKnowledge();
 
                 //update the dialog manager with a new intent handler
-                PumiceUserExplainValueIntentHandler pumiceUserExplainValueIntentHandler = new PumiceUserExplainValueIntentHandler(pumiceDialogManager, context, resolveValueLock, valueUtterance, resolveValueQueryOperationSugiliteRelationType);
+                PumiceUserExplainValueIntentHandler pumiceUserExplainValueIntentHandler = new PumiceUserExplainValueIntentHandler(pumiceDialogManager, context, sugiliteData, resolveValueLock, valueUtterance, resolveValueQueryOperationSugiliteRelationType);
                 pumiceDialogManager.updateUtteranceIntentHandlerInANewState(pumiceUserExplainValueIntentHandler);
                 pumiceUserExplainValueIntentHandler.sendPromptForTheIntentHandler();
 
@@ -514,7 +514,7 @@ public class PumiceInitInstructionParsingHandler {
 
 
                 //update the dialog manager with a new intent handler
-                PumiceUserExplainBoolExpIntentHandler pumiceUserExplainBoolExpIntentHandler = new PumiceUserExplainBoolExpIntentHandler(pumiceDialogManager, context, resolveBoolExpLock, boolUtterance, failureCount);
+                PumiceUserExplainBoolExpIntentHandler pumiceUserExplainBoolExpIntentHandler = new PumiceUserExplainBoolExpIntentHandler(pumiceDialogManager, context, sugiliteData, resolveBoolExpLock, boolUtterance, failureCount);
                 pumiceDialogManager.updateUtteranceIntentHandlerInANewState(pumiceUserExplainBoolExpIntentHandler);
                 pumiceUserExplainBoolExpIntentHandler.sendPromptForTheIntentHandler();
 

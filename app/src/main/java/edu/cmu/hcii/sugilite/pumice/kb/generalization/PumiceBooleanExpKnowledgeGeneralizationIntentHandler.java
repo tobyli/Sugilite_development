@@ -5,6 +5,7 @@ import android.app.Activity;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 
+import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.model.value.SugiliteValue;
 import edu.cmu.hcii.sugilite.pumice.dialog.PumiceDialogManager;
 import edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.PumiceDefaultUtteranceIntentHandler;
@@ -22,6 +23,7 @@ public class PumiceBooleanExpKnowledgeGeneralizationIntentHandler implements Pum
     private PumiceDialogManager pumiceDialogManager;
     private String userUtteranceForNewScenario;
     private PumiceBooleanExpKnowledge pumiceBooleanExpKnowledge;
+    private SugiliteData sugiliteData;
 
     private String oldScenarioDescrption = null;
     private SugiliteValue oldScenarioArg1Value = null;
@@ -32,9 +34,10 @@ public class PumiceBooleanExpKnowledgeGeneralizationIntentHandler implements Pum
     private ExecutorService executorServiceForReturnningResults;
 
 
-    public PumiceBooleanExpKnowledgeGeneralizationIntentHandler(PumiceDialogManager pumiceDialogManager, Activity context, PumiceBooleanExpKnowledge pumiceBooleanExpKnowledge, String userUtteranceForNewScenario, Runnable postiveRunnable, Runnable negativeRunnable, ExecutorService executorService){
+    public PumiceBooleanExpKnowledgeGeneralizationIntentHandler(PumiceDialogManager pumiceDialogManager, Activity context, SugiliteData sugiliteData, PumiceBooleanExpKnowledge pumiceBooleanExpKnowledge, String userUtteranceForNewScenario, Runnable postiveRunnable, Runnable negativeRunnable, ExecutorService executorService){
         this.pumiceDialogManager = pumiceDialogManager;
         this.context = context;
+        this.sugiliteData = sugiliteData;
         this.pumiceBooleanExpKnowledge = pumiceBooleanExpKnowledge;
         this.userUtteranceForNewScenario = userUtteranceForNewScenario;
         this.positiveRunnable = postiveRunnable;
@@ -81,6 +84,6 @@ public class PumiceBooleanExpKnowledgeGeneralizationIntentHandler implements Pum
         } else {
             executorServiceForReturnningResults.execute(negativeRunnable);
         }
-        dialogManager.updateUtteranceIntentHandlerInANewState(new PumiceDefaultUtteranceIntentHandler(dialogManager, context));
+        dialogManager.updateUtteranceIntentHandlerInANewState(new PumiceDefaultUtteranceIntentHandler(dialogManager, context, sugiliteData));
     }
 }

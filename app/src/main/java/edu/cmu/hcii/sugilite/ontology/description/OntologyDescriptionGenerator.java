@@ -38,6 +38,7 @@ import static edu.cmu.hcii.sugilite.sharing.SugiliteSharingScriptPreparer.POTENT
  */
 
 public class OntologyDescriptionGenerator {
+    private SoviteAppNameAppInfoManager appNameAppInfoManager = SoviteAppNameAppInfoManager.getInstance(SugiliteData.getAppContext());
 
     public Spanned getDescriptionForOntologyQuery(OntologyQuery ontologyQuery, boolean isParentQuery) {
         return getDescriptionForOntologyQuery(ontologyQuery, isParentQuery, false, null);
@@ -193,7 +194,7 @@ public class OntologyDescriptionGenerator {
         String prefix = "";
         if (operation instanceof SugiliteUnaryOperation) {
             if (operation instanceof SugiliteLaunchAppOperation) {
-                return (Spanned) TextUtils.concat(prefix, getColoredSpannedTextFromMessage("Launch the app ", Const.SCRIPT_ACTION_COLOR), getColoredSpannedTextFromMessage(((SugiliteLaunchAppOperation) operation).getAppPackageName(), Const.SCRIPT_ACTION_PARAMETER_COLOR));
+                return (Spanned) TextUtils.concat(prefix, getColoredSpannedTextFromMessage("Launch the app ", Const.SCRIPT_ACTION_COLOR), getColoredSpannedTextFromMessage(appNameAppInfoManager.getReadableAppNameForPackageName(((SugiliteLaunchAppOperation) operation).getAppPackageName()), Const.SCRIPT_ACTION_PARAMETER_COLOR));
             }
         }
         if (operation instanceof SugiliteBinaryOperation) {

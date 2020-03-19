@@ -7,6 +7,7 @@ import org.apache.commons.lang3.StringUtils;
 import java.util.HashSet;
 import java.util.Set;
 
+import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.model.block.SugiliteConditionBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
@@ -36,13 +37,15 @@ public class PumiceParsingResultWithResolveFnConfirmationHandler implements Pumi
     private PumiceDialogManager pumiceDialogManager;
     private PumiceParsingResultDescriptionGenerator pumiceParsingResultDescriptionGenerator;
     private SugiliteScriptParser sugiliteScriptParser;
+    private SugiliteData sugiliteData;
 
     private HandleParsingResultPacket parsingResultsToHandle;
     private int failureCount = 0;
 
 
-    public PumiceParsingResultWithResolveFnConfirmationHandler(Activity context, PumiceDialogManager pumiceDialogManager, int failureCount) {
+    public PumiceParsingResultWithResolveFnConfirmationHandler(Activity context, SugiliteData sugiliteData, PumiceDialogManager pumiceDialogManager, int failureCount) {
         this.context = context;
+        this.sugiliteData = sugiliteData;
         this.pumiceDialogManager = pumiceDialogManager;
         this.pumiceParsingResultDescriptionGenerator = new PumiceParsingResultDescriptionGenerator();
         this.sugiliteScriptParser = new SugiliteScriptParser();
@@ -164,7 +167,7 @@ public class PumiceParsingResultWithResolveFnConfirmationHandler implements Pumi
         }
 
         //set the intent handler back to the default one
-        dialogManager.updateUtteranceIntentHandlerInANewState(new PumiceDefaultUtteranceIntentHandler(pumiceDialogManager, context));
+        dialogManager.updateUtteranceIntentHandlerInANewState(new PumiceDefaultUtteranceIntentHandler(pumiceDialogManager, context, sugiliteData));
     }
 
     public interface ConfirmedParseRunnable {

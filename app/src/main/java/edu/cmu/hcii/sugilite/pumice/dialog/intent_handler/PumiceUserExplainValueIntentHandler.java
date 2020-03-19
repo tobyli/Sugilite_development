@@ -11,6 +11,7 @@ import com.google.gson.GsonBuilder;
 import java.util.Calendar;
 
 import edu.cmu.hcii.sugilite.Const;
+import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.ontology.SugiliteRelation;
 import edu.cmu.hcii.sugilite.pumice.communication.PumiceInstructionPacket;
 import edu.cmu.hcii.sugilite.pumice.communication.PumiceSemanticParsingResultPacket;
@@ -35,14 +36,16 @@ public class PumiceUserExplainValueIntentHandler implements PumiceUtteranceInten
     private String parentKnowledgeName;
     private PumiceUserExplainValueIntentHandler pumiceUserExplainValueIntentHandler;
     private SugiliteRelation resolveValueQueryOperationSugiliteRelationType;
+    private SugiliteData sugiliteData;
 
     //need to notify this lock when the value is resolved, and return the value through this object
     private PumiceValueQueryKnowledge resolveValueLock;
     private Calendar calendar;
 
-    public PumiceUserExplainValueIntentHandler(PumiceDialogManager pumiceDialogManager, Activity context, PumiceValueQueryKnowledge resolveValueLock, String parentKnowledgeName, @Nullable SugiliteRelation resolveValueQueryOperationSugiliteRelationType){
+    public PumiceUserExplainValueIntentHandler(PumiceDialogManager pumiceDialogManager, Activity context, SugiliteData sugiliteData, PumiceValueQueryKnowledge resolveValueLock, String parentKnowledgeName, @Nullable SugiliteRelation resolveValueQueryOperationSugiliteRelationType){
         this.pumiceDialogManager = pumiceDialogManager;
         this.context = context;
+        this.sugiliteData = sugiliteData;
         this.calendar = Calendar.getInstance();
         this.resolveValueLock = resolveValueLock;
         this.parentKnowledgeName = parentKnowledgeName;
@@ -89,7 +92,7 @@ public class PumiceUserExplainValueIntentHandler implements PumiceUtteranceInten
         }
 
         //set the intent handler back to the default one
-        dialogManager.updateUtteranceIntentHandlerInANewState(new PumiceDefaultUtteranceIntentHandler(pumiceDialogManager, context));
+        dialogManager.updateUtteranceIntentHandlerInANewState(new PumiceDefaultUtteranceIntentHandler(pumiceDialogManager, context, sugiliteData));
     }
 
     @Override
@@ -130,7 +133,7 @@ public class PumiceUserExplainValueIntentHandler implements PumiceUtteranceInten
                 switch (resultPacket.utteranceType) {
                     case "VALUE_INSTRUCTION":
                         if (resultPacket.queries != null && resultPacket.queries.size() > 0) {
-                            PumiceParsingResultWithResolveFnConfirmationHandler parsingConfirmationHandler = new PumiceParsingResultWithResolveFnConfirmationHandler(context, pumiceDialogManager, 0);
+                            PumiceParsingResultWithResolveFnConfirmationHandler parsingConfirmationHandler = new PumiceParsingResultWithResolveFnConfirmationHandler(context, sugiliteData, pumiceDialogManager, 0);
                             parsingConfirmationHandler.handleParsingResult(resultPacket, new Runnable() {
                                 @Override
                                 public void run() {

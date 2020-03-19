@@ -93,7 +93,7 @@ public class PumiceDialogManager{
             } else {
                 pumiceKnowledgeManager = new PumiceKnowledgeManager();
             }
-            this.pumiceDialogState = new PumiceDialogState(new PumiceDefaultUtteranceIntentHandler(this, context), pumiceKnowledgeManager);
+            this.pumiceDialogState = new PumiceDialogState(new PumiceDefaultUtteranceIntentHandler(this, context, sugiliteData), pumiceKnowledgeManager);
 
         } catch (Exception e){
             e.printStackTrace();

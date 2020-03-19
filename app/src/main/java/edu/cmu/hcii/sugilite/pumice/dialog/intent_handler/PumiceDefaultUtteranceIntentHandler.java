@@ -12,6 +12,7 @@ import java.util.Calendar;
 
 import edu.cmu.hcii.sugilite.Const;
 import edu.cmu.hcii.sugilite.R;
+import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.pumice.communication.PumiceInstructionPacket;
 import edu.cmu.hcii.sugilite.pumice.communication.PumiceSemanticParsingResultPacket;
@@ -34,13 +35,13 @@ public class PumiceDefaultUtteranceIntentHandler implements PumiceUtteranceInten
     private Calendar calendar;
     private SugiliteScriptParser sugiliteScriptParser;
     private PumiceDefaultUtteranceIntentHandler pumiceDefaultUtteranceIntentHandler;
+    private SugiliteData sugiliteData;
 
 
-
-
-    public PumiceDefaultUtteranceIntentHandler(PumiceDialogManager pumiceDialogManager, Activity context){
+    public PumiceDefaultUtteranceIntentHandler(PumiceDialogManager pumiceDialogManager, Activity context, SugiliteData sugiliteData){
         this.pumiceDialogManager = pumiceDialogManager;
         this.context = context;
+        this.sugiliteData = sugiliteData;
         this.calendar = Calendar.getInstance();
         this.pumiceDefaultUtteranceIntentHandler = this;
         this.sugiliteScriptParser = new SugiliteScriptParser();
@@ -170,7 +171,7 @@ public class PumiceDefaultUtteranceIntentHandler implements PumiceUtteranceInten
                             // the top formula contains a resolve Fn
                             if (topParsingResult.formula.contains("resolve")) {
                                 // send the result to a PumiceScriptExecutingConfirmationIntentHandler
-                                PumiceParsingResultWithResolveFnConfirmationHandler parsingConfirmationHandler = new PumiceParsingResultWithResolveFnConfirmationHandler(context, pumiceDialogManager, 0);
+                                PumiceParsingResultWithResolveFnConfirmationHandler parsingConfirmationHandler = new PumiceParsingResultWithResolveFnConfirmationHandler(context, sugiliteData, pumiceDialogManager, 0);
                                 parsingConfirmationHandler.handleParsingResult(resultPacket, new Runnable() {
                                     @Override
                                     public void run() {
@@ -195,7 +196,7 @@ public class PumiceDefaultUtteranceIntentHandler implements PumiceUtteranceInten
                             } else {
                                 // the top formula does not contain a resolve Fn
                                 // send the result to a PumiceScriptExecutingConfirmationIntentHandler
-                                PumiceParsingResultNoResolveConfirmationHandler parsingConfirmationHandler = new PumiceParsingResultNoResolveConfirmationHandler(context, pumiceDialogManager, 0);
+                                PumiceParsingResultNoResolveConfirmationHandler parsingConfirmationHandler = new PumiceParsingResultNoResolveConfirmationHandler(context, sugiliteData, pumiceDialogManager, 0);
                                 parsingConfirmationHandler.handleParsingResult(resultPacket, new Runnable() {
                                     @Override
                                     public void run() {
@@ -223,7 +224,7 @@ public class PumiceDefaultUtteranceIntentHandler implements PumiceUtteranceInten
                                                     e.printStackTrace();
                                                 }
 
-                                                PumiceScriptExecutingConfirmationIntentHandler pumiceScriptExecutingConfirmationIntentHandler = new PumiceScriptExecutingConfirmationIntentHandler(pumiceDialogManager, context, script, resultPacket.userUtterance, false);
+                                                PumiceScriptExecutingConfirmationIntentHandler pumiceScriptExecutingConfirmationIntentHandler = new PumiceScriptExecutingConfirmationIntentHandler(pumiceDialogManager, context, sugiliteData, script, resultPacket.userUtterance, false);
                                                 pumiceDialogManager.updateUtteranceIntentHandlerInANewState(pumiceScriptExecutingConfirmationIntentHandler);
                                                 pumiceScriptExecutingConfirmationIntentHandler.sendPromptForTheIntentHandler();
 

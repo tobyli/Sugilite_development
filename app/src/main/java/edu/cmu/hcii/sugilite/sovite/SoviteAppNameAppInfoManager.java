@@ -92,7 +92,7 @@ public class SoviteAppNameAppInfoManager {
 
         for (ApplicationInfo applicationInfo : applicationInfoList) {
             if (toSkipSystemApps && (!(allowPackages.contains(applicationInfo.packageName)))) {
-                //TODO: check what apps are considered system
+                //check what apps are considered system
                 continue;
             }
             String packageName = applicationInfo.packageName;

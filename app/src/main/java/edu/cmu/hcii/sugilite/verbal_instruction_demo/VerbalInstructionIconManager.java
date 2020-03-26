@@ -272,7 +272,12 @@ public class VerbalInstructionIconManager implements SugiliteVoiceInterface {
 
         //rotate the duck
         synchronized (this) {
-            statusIcon.setRotation(rotation);
+            SugiliteData.runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    statusIcon.setRotation(rotation);
+                }
+            });
         }
     }
 

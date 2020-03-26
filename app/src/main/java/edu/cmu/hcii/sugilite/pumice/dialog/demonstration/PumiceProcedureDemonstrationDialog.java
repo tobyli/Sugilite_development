@@ -7,6 +7,8 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.widget.Toast;
 
+import com.google.errorprone.annotations.Var;
+
 import edu.cmu.hcii.sugilite.Const;
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.automation.ServiceStatusManager;
@@ -15,6 +17,8 @@ import edu.cmu.hcii.sugilite.dao.SugiliteScriptFileDao;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptSQLDao;
 import edu.cmu.hcii.sugilite.model.NewScriptGeneralizer;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
+import edu.cmu.hcii.sugilite.model.variable.StringVariable;
+import edu.cmu.hcii.sugilite.model.variable.Variable;
 import edu.cmu.hcii.sugilite.pumice.PumiceDemonstrationUtil;
 import edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.PumiceUserExplainProcedureIntentHandler;
 import edu.cmu.hcii.sugilite.pumice.kb.PumiceProceduralKnowledge;
@@ -114,13 +118,27 @@ public class PumiceProcedureDemonstrationDialog {
 
         PumiceDemonstrationUtil.showSugiliteToast("Demonstration Ready!", Toast.LENGTH_SHORT);
         newScriptGeneralizer.extractParameters(script, PumiceDemonstrationUtil.removeScriptExtension(script.getScriptName()));
+
+        String parameterizedProcedureKnowledgeName = procedureKnowledgeName;
+        String parameterizedProcedureKnowledgeUtterance = procedureKnowledgeName;
+        for (Variable defaultVariable : script.variableNameDefaultValueMap.values()) {
+            if (defaultVariable instanceof StringVariable) {
+                String defaultVariableString = ((StringVariable) defaultVariable).getValue();
+                parameterizedProcedureKnowledgeName = parameterizedProcedureKnowledgeName.toLowerCase().replace(defaultVariableString.toLowerCase(), "[" + defaultVariable.getName() + "]");
+                parameterizedProcedureKnowledgeUtterance = parameterizedProcedureKnowledgeUtterance.toLowerCase().replace(defaultVariableString.toLowerCase(), "something");
+            }
+        }
+
+        final String finalParameterizedProcedureKnowledgeName = parameterizedProcedureKnowledgeName;
+        final String finalParameterizedProcedureKnowledgeUtterance = parameterizedProcedureKnowledgeUtterance;
+
         try {
             sugiliteScriptDao.save(script);
             sugiliteScriptDao.commitSave(new Runnable() {
                 @Override
                 public void run() {
                     //construct the procedure knowledge
-                    PumiceProceduralKnowledge newKnowledge = new PumiceProceduralKnowledge(context, procedureKnowledgeName, procedureKnowledgeName, script);
+                    PumiceProceduralKnowledge newKnowledge = new PumiceProceduralKnowledge(context, finalParameterizedProcedureKnowledgeName, finalParameterizedProcedureKnowledgeUtterance, script);
 
                     //run the returnResultCallback when the result if ready
                     newKnowledge.isNewlyLearned = true;

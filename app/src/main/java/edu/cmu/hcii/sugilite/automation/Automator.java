@@ -256,6 +256,7 @@ public class Automator {
 
                     String subscriptName = ((SugiliteGetProcedureOperation) operationBlock.getOperation()).evaluate(sugiliteData);
                     SugiliteSubscriptSpecialOperationBlock subscriptBlock = new SugiliteSubscriptSpecialOperationBlock(subscriptName);
+                    subscriptBlock.setVariableValues(((SugiliteGetProcedureOperation) operationBlock.getOperation()).getVariableValues());
                     subscriptBlock.setParentBlock(operationBlock.getParentBlock());
                     subscriptBlock.setPreviousBlock(operationBlock.getPreviousBlock());
                     subscriptBlock.setNextBlock(operationBlock.getNextBlockToRun());

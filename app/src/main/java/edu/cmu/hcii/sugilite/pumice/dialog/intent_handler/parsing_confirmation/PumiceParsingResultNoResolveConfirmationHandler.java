@@ -175,8 +175,7 @@ public class PumiceParsingResultNoResolveConfirmationHandler implements PumiceUt
             List<PumiceProceduralKnowledge> pumiceProceduralKnowledges = pumiceDialogManager.getPumiceKnowledgeManager().getPumiceProceduralKnowledges();
             for (PumiceProceduralKnowledge pumiceProceduralKnowledge : pumiceProceduralKnowledges) {
                 if (pumiceProceduralKnowledge.getProcedureName().equals(getProcedureOperation.getName())) {
-                    pumiceDialogManager.sendAgentMessage(String.format("I will %s.", pumiceProceduralKnowledge.getProcedureDescription(pumiceDialogManager.getPumiceKnowledgeManager(), false)), true, false);
-                    break;
+                    pumiceDialogManager.sendAgentMessage(String.format("I will %s.", getProcedureOperation.getParameterValueReplacedDescription()), true, false);
                 }
             }
         }

@@ -98,10 +98,14 @@ public class NewScriptGeneralizer {
                         Map<SugiliteSerializableEntity<Node>, List<String>> alternativeNodeTextLabelsMap = getPossibleValueForParameter(blockMetaInfo.getTargetEntity(), blockMetaInfo.getUiSnapshot(), relation, depthLimit );
 
                         //construct the Variable object
-                        String variableName = String.format("[parameter_%d]", parameterNumber);
-                        Variable variable = new StringVariable(variableName, variableName);
+                        String variableName = String.format("parameter%d", parameterNumber);
+                        Variable variable = new StringVariable(variableName, textLabel);
+
                         Set<String> alternativeValue = new HashSet<>();
                         alternativeNodeTextLabelsMap.forEach((x, y) -> alternativeValue.addAll(y));
+
+                        //add the default value to the set of alternative value too
+                        alternativeValue.add(textLabel);
 
 
                         //fill the results back to the SugiliteStartingBlock
@@ -109,9 +113,11 @@ public class NewScriptGeneralizer {
                         sugiliteStartingBlock.variableNameAlternativeValueMap.put(variableName, alternativeValue);
 
                         //edit the original data description query to reflect the new parameters
-                        replaceParametersInOntologyQuery (ontologyQuery, variableName);
+                        replaceParametersInOntologyQuery (ontologyQuery, textLabel, variableName);
                         operationBlock.setDescription(ontologyDescriptionGenerator.getSpannedDescriptionForOperation(operationBlock.getOperation(), operationBlock.getOperation().getDataDescriptionQueryIfAvailable()));
 
+                        //replace the occurrence of parameter default values in the script name
+                        sugiliteStartingBlock.setScriptName(sugiliteStartingBlock.getScriptName().replace(textLabel.toLowerCase(), "[" + variableName + "]"));
 
                         //print out the found parameters and alternative values
                         List<String> alternativeTextLabels = new ArrayList<>();
@@ -132,13 +138,13 @@ public class NewScriptGeneralizer {
         }
     }
 
-    private void replaceParametersInOntologyQuery (OntologyQuery ontologyQuery, String parameter) {
+    private void replaceParametersInOntologyQuery (OntologyQuery ontologyQuery, String parameterDefaultValue, String parameterName) {
         if (ontologyQuery instanceof LeafOntologyQuery) {
             LeafOntologyQuery loq = (LeafOntologyQuery)ontologyQuery;
             if (loq.getObject() != null) {
                 for (SugiliteSerializableEntity objectEntity : loq.getObject()) {
-                    if (objectEntity.getEntityValue() instanceof String && parameter.equals(objectEntity.getEntityValue())) {
-                        objectEntity.setEntityValue("@" + objectEntity.getEntityValue());
+                    if (objectEntity.getEntityValue() instanceof String && parameterDefaultValue.equals(objectEntity.getEntityValue())) {
+                        objectEntity.setEntityValue("[" + parameterName + "]");
                     }
                 }
             }
@@ -146,7 +152,7 @@ public class NewScriptGeneralizer {
 
         if (ontologyQuery instanceof OntologyQueryWithSubQueries) {
             for (OntologyQuery subQuery : ((OntologyQueryWithSubQueries)ontologyQuery).getSubQueries()) {
-                replaceParametersInOntologyQuery(subQuery, parameter);
+                replaceParametersInOntologyQuery(subQuery, parameterDefaultValue, parameterName);
             }
         }
     }

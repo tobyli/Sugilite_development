@@ -9,6 +9,7 @@ import java.io.Serializable;
  */
 public class StringVariable extends Variable implements Serializable {
     private String value;
+
     public StringVariable(){
         super();
     }

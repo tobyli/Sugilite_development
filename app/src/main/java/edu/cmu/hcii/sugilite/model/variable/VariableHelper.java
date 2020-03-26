@@ -21,7 +21,7 @@ public class VariableHelper {
         String currentText = new String(text);
         for(Map.Entry<String, Variable> entry : stringVariableMap.entrySet()){
             if(entry.getValue() instanceof StringVariable)
-                currentText = currentText.replace("@" + entry.getKey(), ((StringVariable) entry.getValue()).getValue());
+                currentText = currentText.replace("[" + entry.getKey() + "]", ((StringVariable) entry.getValue()).getValue());
         }
         return currentText;
     }

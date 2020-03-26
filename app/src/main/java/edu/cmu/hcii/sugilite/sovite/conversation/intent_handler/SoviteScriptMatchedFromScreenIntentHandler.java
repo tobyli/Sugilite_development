@@ -15,6 +15,8 @@ import edu.cmu.hcii.sugilite.model.NewScriptGeneralizer;
 import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.model.operation.binary.SugiliteGetProcedureOperation;
+import edu.cmu.hcii.sugilite.model.variable.StringVariable;
+import edu.cmu.hcii.sugilite.model.variable.Variable;
 import edu.cmu.hcii.sugilite.pumice.PumiceDemonstrationUtil;
 import edu.cmu.hcii.sugilite.pumice.dialog.PumiceDialogManager;
 import edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.PumiceUtteranceIntentHandler;
@@ -132,13 +134,26 @@ public class SoviteScriptMatchedFromScreenIntentHandler implements PumiceUtteran
         //generalize the script
         newScriptGeneralizer.extractParameters(script, PumiceDemonstrationUtil.removeScriptExtension(script.getScriptName()));
 
+        String parameterizedProcedureKnowledgeName = originalUtterance;
+        String parameterizedProcedureKnowledgeUtterance = originalUtterance;
+        for (Variable defaultVariable : script.variableNameDefaultValueMap.values()) {
+            if (defaultVariable instanceof StringVariable) {
+                String defaultVariableString = ((StringVariable) defaultVariable).getValue();
+                parameterizedProcedureKnowledgeName = parameterizedProcedureKnowledgeName.toLowerCase().replace(defaultVariableString.toLowerCase(), "[" + defaultVariable.getName() + "]");
+                parameterizedProcedureKnowledgeUtterance = parameterizedProcedureKnowledgeName.toLowerCase().replace(defaultVariableString.toLowerCase(), "something");
+            }
+        }
+
+        final String finalParameterizedProcedureKnowledgeName = parameterizedProcedureKnowledgeName;
+        final String finalParameterizedProcedureKnowledgeUtterance = parameterizedProcedureKnowledgeUtterance;
+
         try {
             sugiliteScriptDao.save(script);
             sugiliteScriptDao.commitSave(new Runnable() {
                 @Override
                 public void run() {
                     //construct the procedure knowledge
-                    PumiceProceduralKnowledge newKnowledge = new PumiceProceduralKnowledge(context, originalUtterance, originalUtterance, script);
+                    PumiceProceduralKnowledge newKnowledge = new PumiceProceduralKnowledge(context, finalParameterizedProcedureKnowledgeName, finalParameterizedProcedureKnowledgeUtterance, script);
 
                     //run the returnResultCallback when the result if ready
                     newKnowledge.isNewlyLearned = true;

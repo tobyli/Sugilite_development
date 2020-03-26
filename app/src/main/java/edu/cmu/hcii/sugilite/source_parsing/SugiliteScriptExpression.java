@@ -308,8 +308,8 @@ public class SugiliteScriptExpression<T> {
                 operationBlock.setDescription(operationBlock.toString());
             }
             return operationBlock;
-        } else if (SugiliteBinaryOperation.isBinaryOperation(operationName) && arguments.size() == 2) {
-            //is a binary operation
+        } else if (SugiliteBinaryOperation.isBinaryOperation(operationName) && (arguments.size() == 2 || operationName.equals("get"))) {
+            //is a binary operation -> NOTE: "get" operaitons may have additional arguments
             SugiliteBinaryOperation operation = null;
             SugiliteOperationBlock operationBlock = new SugiliteOperationBlock();
             //full binary operation with a query included
@@ -348,12 +348,27 @@ public class SugiliteScriptExpression<T> {
 
                     if (parameter11.equals(SugiliteGetOperation.PROCEDURE_NAME)) {
                         operation = new SugiliteGetProcedureOperation();
+                        List<List<SugiliteScriptExpression>> procedureParameterArguments = arguments.subList(2, arguments.size());
+                        for (List<SugiliteScriptExpression> procedureParameterArgument : procedureParameterArguments) {
+                            SugiliteScriptExpression expression = procedureParameterArgument.get(0);
+                            if (expression != null && expression.getOperationName().equals("set_param")) {
+                                List<List<SugiliteScriptExpression>> setParamArgs = expression.getArguments();
+                                assert setParamArgs.size() == 2;
+                                String paramName = ((SugiliteSimpleConstant<String>)setParamArgs.get(0).get(0).constantValue).evaluate(null);
+                                String valueName = ((SugiliteSimpleConstant<String>)setParamArgs.get(1).get(0).constantValue).evaluate(null);
+                                ((SugiliteGetProcedureOperation) operation).getVariableValues().add(
+                                        new StringVariable(Variable.USER_INPUT, paramName, valueName));
+                            } else {
+                                throw new RuntimeException("Failed to parse the parameters in SugiliteGetProcedureOperation");
+                            }
+                        }
+
                     } else if (parameter11.equals(SugiliteGetOperation.BOOL_FUNCTION_NAME)) {
                         operation = new SugiliteGetBoolExpOperation();
                     } else if (parameter11.equals(SugiliteGetOperation.VALUE_QUERY_NAME)) {
                         operation = new SugiliteGetValueOperation();
                     } else {
-                        throw new RuntimeException("Unknown Get Operation Type");
+                        throw new RuntimeException("Unknown get operation type");
                     }
 
                     String parameter00 = arguments.get(0).get(0).getConstantValue().toString();

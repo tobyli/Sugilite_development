@@ -32,7 +32,6 @@ public class SoviteScriptsWithMatchedAppDialog extends SoviteItemSelectionDialog
                 }
             }));
         }
-        //TODO: to skip if only one item
         initDialog(listItemLabelRunnableList, null, null, "Select the script to execute", "Please select the script you want to execute.", false);
     }
 }

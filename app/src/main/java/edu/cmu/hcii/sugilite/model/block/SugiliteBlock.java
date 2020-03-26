@@ -56,9 +56,13 @@ public abstract class SugiliteBlock implements Serializable{
         this.plainDescription = description.toString();
     }
     @Deprecated
-    public void setDescription(String htmlDescription){
-        this.description = Html.fromHtml(htmlDescription);
-        this.plainDescription = Html.fromHtml(htmlDescription).toString();
+    public void setDescription(String description){
+        try {
+            this.description = new SpannableString(description);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        this.plainDescription = description;
     }
     public Spanned getDescription() {
         return description;

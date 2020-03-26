@@ -19,6 +19,7 @@ import java.util.Set;
 
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
+import edu.cmu.hcii.sugilite.model.variable.StringVariable;
 import edu.cmu.hcii.sugilite.model.variable.Variable;
 import edu.cmu.hcii.sugilite.pumice.PumiceDemonstrationUtil;
 import edu.cmu.hcii.sugilite.pumice.communication.SkipPumiceJSONSerialization;
@@ -113,10 +114,10 @@ public class PumiceProceduralKnowledge implements Serializable {
         //populate parameterNameParameterMap
         if(startingBlock.variableNameDefaultValueMap != null) {
             for (Map.Entry<String, Variable> variableNameVariable : startingBlock.variableNameDefaultValueMap.entrySet()) {
-                if (variableNameVariable.getValue().type == Variable.USER_INPUT){
+                if (variableNameVariable.getValue().type == Variable.USER_INPUT && variableNameVariable.getValue() instanceof StringVariable){
                     //only deal with USER_INPUT type of parameters
                     String parameterName = variableNameVariable.getValue().getName();
-                    String defaultValue = variableNameVariable.getValue().getName();
+                    String defaultValue = ((StringVariable)variableNameVariable.getValue()).getValue();
                     List<String> alternativeValues = new ArrayList<>();
                     if (startingBlock.variableNameAlternativeValueMap.containsKey(parameterName)){
                         alternativeValues.addAll(startingBlock.variableNameAlternativeValueMap.get(parameterName));
@@ -251,7 +252,7 @@ public class PumiceProceduralKnowledge implements Serializable {
             for (String parameterName : parameterNameParameterMap.keySet()) {
                 String parameterDefaultValue = parameterNameParameterDefaultValueMap.get(parameterName);
                 if (parameterDefaultValue != null) {
-                    parameterizedUtterance = parameterizedUtterance.toLowerCase().replace(parameterDefaultValue.toLowerCase(), String.format("[%s]", parameterName));
+                    parameterizedUtterance = parameterizedUtterance.toLowerCase().replace(parameterDefaultValue.toLowerCase(), "[" + parameterName + "]");
                 }
             }
         }

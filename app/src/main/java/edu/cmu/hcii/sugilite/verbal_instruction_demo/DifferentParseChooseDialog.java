@@ -89,7 +89,6 @@ public class DifferentParseChooseDialog {
 
                         //PumiceDemonstrationUtil.showSugiliteToast(chosenResult.getFormula(), Toast.LENGTH_SHORT);
                         for(Node node : filteredNodes){
-                            //TODO: show overlay
 
                             //node, nodeId, corresponding VerbalInstructionResult, VerbalInstructionResults
                             overlayManager.addOverlay(node, filteredNodeNodeIdMap.get(node), chosenResult, allResults, serializableUISnapshot, utterance);

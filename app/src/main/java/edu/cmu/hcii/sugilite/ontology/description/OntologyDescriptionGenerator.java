@@ -310,20 +310,20 @@ public class OntologyDescriptionGenerator {
             return new SpannableString("NULL");
         }
         if (sugiliteRelation.equals(SugiliteRelation.HAS_SCREEN_LOCATION) || sugiliteRelation.equals(SugiliteRelation.HAS_PARENT_LOCATION))
-            return (Spanned) TextUtils.concat(SugiliteRelationDescriptionGenerator.getDescription(sugiliteRelation), getColoredSpannedTextFromMessage("(" + objectString[0] + ")", Const.SCRIPT_IDENTIFYING_FEATURE_COLOR));
+            return (Spanned) TextUtils.concat(SugiliteRelationDescriptionGenerator.getDescriptionOfSugiliteRelation(sugiliteRelation), getColoredSpannedTextFromMessage("(" + objectString[0] + ")", Const.SCRIPT_IDENTIFYING_FEATURE_COLOR));
 
         else if (sugiliteRelation.equals(SugiliteRelation.HAS_TEXT) ||
                 sugiliteRelation.equals(SugiliteRelation.HAS_CONTENT_DESCRIPTION) ||
                 sugiliteRelation.equals(SugiliteRelation.HAS_CHILD_TEXT) ||
                 sugiliteRelation.equals(SugiliteRelation.HAS_SIBLING_TEXT) ||
                 sugiliteRelation.equals(SugiliteRelation.HAS_VIEW_ID)) {
-            return (Spanned) TextUtils.concat(SugiliteRelationDescriptionGenerator.getDescription(sugiliteRelation), getColoredSpannedTextFromMessage("\"" + objectString[0] + "\"", Const.SCRIPT_IDENTIFYING_FEATURE_COLOR));
+            return (Spanned) TextUtils.concat(SugiliteRelationDescriptionGenerator.getDescriptionOfSugiliteRelation(sugiliteRelation), getColoredSpannedTextFromMessage("\"" + objectString[0] + "\"", Const.SCRIPT_IDENTIFYING_FEATURE_COLOR));
         } else if (sugiliteRelation.equals(SugiliteRelation.HAS_LIST_ORDER) || sugiliteRelation.equals(SugiliteRelation.HAS_PARENT_WITH_LIST_ORDER)) {
             objectString[0] = numberToOrder(objectString[0]);
-            return new SpannableString(String.format(SugiliteRelationDescriptionGenerator.getDescription(sugiliteRelation).toString(), getColoredSpannedTextFromMessage(objectString[0], Const.SCRIPT_IDENTIFYING_FEATURE_COLOR)));
+            return new SpannableString(String.format(SugiliteRelationDescriptionGenerator.getDescriptionOfSugiliteRelation(sugiliteRelation).toString(), getColoredSpannedTextFromMessage(objectString[0], Const.SCRIPT_IDENTIFYING_FEATURE_COLOR)));
         }
 
-        return (Spanned) TextUtils.concat(SugiliteRelationDescriptionGenerator.getDescription(sugiliteRelation), getColoredSpannedTextFromMessage(objectString[0], Const.SCRIPT_IDENTIFYING_FEATURE_COLOR));
+        return (Spanned) TextUtils.concat(SugiliteRelationDescriptionGenerator.getDescriptionOfSugiliteRelation(sugiliteRelation), getColoredSpannedTextFromMessage(objectString[0], Const.SCRIPT_IDENTIFYING_FEATURE_COLOR));
     }
 
     // determines if the relation is about list order
@@ -346,9 +346,9 @@ public class OntologyDescriptionGenerator {
         String translation = "";
         filterRelation = filter.getRelation();
         if (isListOrderRelation(filterRelation)) {
-            translation = String.format(SugiliteRelationDescriptionGenerator.getDescription(filterRelation).toString(), FilterTranslation.getFilterTranslation(filter));
+            translation = String.format(SugiliteRelationDescriptionGenerator.getDescriptionOfSugiliteRelation(filterRelation).toString(), FilterTranslation.getFilterTranslation(filter));
         } else {
-            translation = ("the " + FilterTranslation.getFilterTranslation(filter) + " " + SugiliteRelationDescriptionGenerator.getDescription(filterRelation)).replace("contains the ", "").trim();
+            translation = ("the " + FilterTranslation.getFilterTranslation(filter) + " " + SugiliteRelationDescriptionGenerator.getDescriptionOfSugiliteRelation(filterRelation)).replace("contains the ", "").trim();
         }
         return translation;
     }
@@ -679,7 +679,7 @@ public class OntologyDescriptionGenerator {
     //return string that starts with "has" or "is"
     private SpannableStringBuilder translationWithRelationshipPrev(Spanned[] descriptions, SugiliteRelation sugiliteRelation) {
         SpannableStringBuilder result = new SpannableStringBuilder("");
-        result.append(SugiliteRelationDescriptionGenerator.getDescription(sugiliteRelation));
+        result.append(SugiliteRelationDescriptionGenerator.getDescriptionOfSugiliteRelation(sugiliteRelation));
         result.append(descriptions[0]);
 
         for (int i = 1; i < descriptions.length; i++) {

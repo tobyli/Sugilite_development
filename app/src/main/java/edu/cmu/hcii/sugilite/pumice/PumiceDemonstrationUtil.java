@@ -9,12 +9,16 @@ import android.content.SharedPreferences;
 import android.content.res.Resources;
 import android.speech.tts.TextToSpeech;
 import android.support.annotation.Nullable;
+import android.util.ArraySet;
 import android.widget.Toast;
 
 import org.apache.commons.lang3.StringUtils;
 
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import edu.cmu.hcii.sugilite.Const;
 import edu.cmu.hcii.sugilite.SugiliteData;
@@ -316,5 +320,9 @@ public class PumiceDemonstrationUtil {
 
     public static int pxToDp(int px) {
         return (int) (px / Resources.getSystem().getDisplayMetrics().density);
+    }
+    public static boolean isInputMethodPackageName (String packageName) {
+        Set<String> inputMethodNames = new HashSet<>(Arrays.asList(Const.INPUT_METHOD_PACKAGE_NAMES));
+        return inputMethodNames.contains(packageName);
     }
 }

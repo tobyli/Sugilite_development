@@ -18,6 +18,10 @@ import edu.cmu.hcii.sugilite.model.block.SugiliteBlockMetaInfo;
 import edu.cmu.hcii.sugilite.model.block.SugiliteConditionBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
+import edu.cmu.hcii.sugilite.model.operation.SugiliteOperation;
+import edu.cmu.hcii.sugilite.model.operation.binary.SugiliteReadoutOperation;
+import edu.cmu.hcii.sugilite.model.operation.binary.SugiliteSetTextOperation;
+import edu.cmu.hcii.sugilite.model.operation.unary.SugiliteReadoutConstOperation;
 import edu.cmu.hcii.sugilite.model.variable.Variable;
 import edu.cmu.hcii.sugilite.model.variable.VariableContext;
 import edu.cmu.hcii.sugilite.model.variable.VariableValue;
@@ -84,7 +88,7 @@ public class NewScriptGeneralizer {
             List<Pair<SugiliteRelation, String>> allStringsUsedInTheDataDescriptionQuery = getAllStringsUsedInTheDataDescriptionQuery(ontologyQuery);
             SugiliteBlockMetaInfo blockMetaInfo = operationBlock.getSugiliteBlockMetaInfo();
 
-            if (blockMetaInfo.getUiSnapshot() != null && blockMetaInfo.getTargetEntity() != null) {
+            if (blockMetaInfo != null && blockMetaInfo.getUiSnapshot() != null && blockMetaInfo.getTargetEntity() != null) {
 
                 //ignore parameters found in the home screen
                 String packageName = blockMetaInfo.getUiSnapshot().getPackageName();
@@ -100,7 +104,7 @@ public class NewScriptGeneralizer {
 
                     if (userUtterance.contains(textLabel.toLowerCase())) {
                         //matched
-                        int parameterNumber = parameterNumberCounter ++;
+                        int parameterNumber = parameterNumberCounter++;
                         System.out.printf("Found parameter %d: \"%s\" in the utterance was found in the operation %s\n", parameterNumber, textLabel, operationBlock.toString());
 
                         //extract possible values from uiSnapshot
@@ -118,9 +122,10 @@ public class NewScriptGeneralizer {
                         VariableValue<String> defaultVariableValue = new VariableValue<String>(variableName, textLabel);
                         VariableContext defaultVariableValueContext = VariableContext.fromOperationBlockAndItsTargetNode(operationBlock);
                         defaultVariableValue.setVariableValueContext(defaultVariableValueContext);
-                        Set<VariableValue> alternativeValues = new HashSet<>();
+
 
                         //construct the alternative values for the variable
+                        Set<VariableValue> alternativeValues = new HashSet<>();
                         for (Map.Entry<SugiliteSerializableEntity<Node>, List<String>> entry : alternativeNodeTextLabelsMap.entrySet()) {
                             for (String altTextLabel : entry.getValue()) {
                                 VariableValue<String> alternativeVariableValue = new VariableValue<>(variableName, altTextLabel);
@@ -138,7 +143,7 @@ public class NewScriptGeneralizer {
                         sugiliteStartingBlock.variableNameVariableObjectMap.put(variableName, variableObject);
 
                         //edit the original data description query to reflect the new parameters
-                        replaceParametersInOntologyQuery (ontologyQuery, textLabel, variableName);
+                        replaceParametersInOntologyQuery(ontologyQuery, textLabel, variableName);
                         operationBlock.setDescription(ontologyDescriptionGenerator.getSpannedDescriptionForOperation(operationBlock.getOperation(), operationBlock.getOperation().getDataDescriptionQueryIfAvailable()));
 
                         //replace the occurrence of parameter default values in the script name
@@ -154,11 +159,56 @@ public class NewScriptGeneralizer {
                                 PumiceDemonstrationUtil.showSugiliteToast(String.format("Found %d alternative options for the parameter \"%s\": %s", alternativeNodeTextLabelsMap.size(), textLabel, alternativeTextLabels.toString()), Toast.LENGTH_SHORT);
                             }
                         });
-                        //TODO: add the parameter back to SugiliteStartingBlock
                     }
                 }
             } else {
                 continue;
+            }
+        }
+
+        //go through all operation blocks to check if * the action parameter * of any clicked entity matches the user utterance e.g., SET_TEXT and READ_OUT
+        for (SugiliteOperationBlock operationBlock : getAllOperationBlocks(sugiliteStartingBlock)) {
+            SugiliteOperation operation = operationBlock.getOperation();
+            if (operation instanceof SugiliteSetTextOperation || operation instanceof SugiliteReadoutConstOperation) {
+                String textParam = ((SugiliteSetTextOperation) operation).getParameter0();
+                if (userUtterance.contains(textParam.toLowerCase())) {
+                    //matched
+                    int parameterNumber = parameterNumberCounter++;
+                    System.out.printf("Found parameter %d: \"%s\" in the utterance was found in the operation %s\n", parameterNumber, textParam, operationBlock.toString());
+
+                    Node editTextNode = null;
+                    if (operationBlock.getSugiliteBlockMetaInfo() != null && operationBlock.getSugiliteBlockMetaInfo().getTargetEntity() != null) {
+                        editTextNode = operationBlock.getSugiliteBlockMetaInfo().getTargetEntity().getEntityValue();
+                    }
+
+                    //construct the Variable object
+                    String variableName = String.format("parameter%d", parameterNumber);
+                    Variable variableObject = new Variable(Variable.USER_INPUT, variableName);
+                    VariableContext variableContext = VariableContext.fromOperationBlockAndAlternativeNode(operationBlock, editTextNode);
+                    variableObject.setVariableContext(variableContext);
+
+                    //construct the default value of the variable
+                    VariableValue<String> defaultVariableValue = new VariableValue<String>(variableName, textParam);
+                    VariableContext defaultVariableValueContext = VariableContext.fromOperationBlockAndItsTargetNode(operationBlock);
+                    defaultVariableValue.setVariableValueContext(defaultVariableValueContext);
+
+                    //fill the results back to the SugiliteStartingBlock
+                    sugiliteStartingBlock.variableNameDefaultValueMap.put(variableName, defaultVariableValue);
+                    sugiliteStartingBlock.variableNameVariableObjectMap.put(variableName, variableObject);
+
+                    //edit the original parameter in the SugiliteOperation to reflect the new parameters
+                    ((SugiliteSetTextOperation) operation).setParameter0("[" + variableName + "]");
+
+                    //replace the occurrence of parameter default values in the script name
+                    sugiliteStartingBlock.setScriptName(sugiliteStartingBlock.getScriptName().replace(textParam.toLowerCase(), "[" + variableName + "]"));
+
+                    context.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            PumiceDemonstrationUtil.showSugiliteToast(String.format("Found a parameter named %s, whose default value is \"%s\"", variableName, textParam), Toast.LENGTH_SHORT);
+                        }
+                    });
+                }
             }
         }
     }

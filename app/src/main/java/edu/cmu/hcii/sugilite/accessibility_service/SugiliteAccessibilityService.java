@@ -388,10 +388,10 @@ public class SugiliteAccessibilityService extends AccessibilityService {
                 sugiliteData.getScriptHead().relevantPackages.add(eventPackageName);
             }
 
+
             //if the event is to be recorded, process it
             if (accessibilityEventSetToSend.contains(eventType) &&
-                    (!exceptedPackages.contains(eventPackageName)) &&
-                    (!recordingOverlayManager.isShowingOverlay())) {
+                    (!exceptedPackages.contains(eventPackageName))) {
                 //ignore events if the recording overlay is on
 
                 rootNode = getRootInActiveWindow();
@@ -470,8 +470,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
                 }
                 final AccessibilityNodeInfo final_root = new_root;
 
-
-                if (sharedPreferences.getBoolean("recording_in_process", false) && !exceptedPackages.contains(event.getPackageName())) {
+                if (!recordingOverlayManager.isShowingOverlay()) {
                     //==== the thread of handling recording
                     Runnable handleRecording = new Runnable() {
                         @Override
@@ -481,16 +480,16 @@ public class SugiliteAccessibilityService extends AccessibilityService {
                             System.out.printf("UI Snapshot Constructed for Recording!");
                             //temp hack for ViewGroup in Google Now Launcher
                             if (sourceNode != null && sourceNode.getClassName() != null && sourceNode.getPackageName() != null && sourceNode.getClassName().toString().contentEquals("android.view.ViewGroup") && AutomatorUtil.isHomeScreenPackage(sourceNode.getPackageName().toString())) {
-                                /*do nothing (don't show popup for ViewGroup in home screen)*/
+                            /*do nothing (don't show popup for ViewGroup in home screen)*/
                             } else {
                                 File screenshot = null;
                                 if (sharedPreferences.getBoolean("root_enabled", false)) {
                                     //1. take screenshot
                                     try {
-                                    /*
-                                    System.out.println("taking screen shot");
-                                    screenshot = screenshotManager.take(false);
-                                    */
+                                /*
+                                System.out.println("taking screen shot");
+                                screenshot = screenshotManager.take(false);
+                                */
                                     } catch (Exception e) {
                                         e.printStackTrace();
                                     }
@@ -557,23 +556,55 @@ public class SugiliteAccessibilityService extends AccessibilityService {
                         executor.execute(handleRecording);
                         //new Thread(handleRecording).run();
                     }
-                }
-                /*
-                else if(sugiliteStudyHandler.isToRecordNextOperation()){
-                    executor.execute(new Runnable() {
-                        @Override
-                        public void run() {
-                            UISnapshot uiSnapshot = new UISnapshot(final_root, true, sugiliteTextAnnotator);
-                            SugiliteAvailableFeaturePack featurePack = generateFeaturePack(event, sourceNode, rootNodeForRecording, null, availableAlternativeNodes, preOrderTraverseSourceNodeForRecording, preOrderTracerseRootNodeForRecording, preOrderTraverseSibNodeForRecording);
-                            sugiliteStudyHandler.handleEventInOldAccessiblityRecording(featurePack, uiSnapshot);
+                } else {
+                    if (eventType == AccessibilityEvent.TYPE_VIEW_TEXT_CHANGED) {
+                        Runnable handleTextChangeRecording = new Runnable() {
+                            @Override
+                            public void run() {
+                                UISnapshot uiSnapshot = new UISnapshot(windowManager.getDefaultDisplay(), final_root, true, sugiliteTextParentAnnotator, true, currentPackageName, currentAppActivityName);
+                                File screenshot = null;
+                                SugiliteAvailableFeaturePack featurePack = generateFeaturePack(event, sourceNode, rootNodeForRecording, screenshot, availableAlternativeNodes, preOrderTraverseSourceNodeForRecording, preOrderTracerseRootNodeForRecording, preOrderTraverseSibNodeForRecording, new SerializableUISnapshot(uiSnapshot));
+                                if (featurePack.isEditable) {
+                                    //3. handle text entry
+                                    if (eventType == AccessibilityEvent.TYPE_VIEW_TEXT_CHANGED) {
+                                        //add TextChangedEventHandlerHere
+                                        textChangedEventHandler.handle(featurePack, availableAlternatives);
+                                    }
+                                } else {
+                                    System.out.println("flush textChangedEventHandler from service");
+                                    //flush the text changed event handler
+                                    SugiliteData.runOnUiThread(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            textChangedEventHandler.flush();
+                                        }
+                                    });
+                                }
+                            }
+                        };
+                        if (!toSkipRecording) {
+                            executor.execute(handleTextChangeRecording);
                         }
-                    });
-                }
-                */
+                    }
 
+                }
             }
+            /*
+            else if(sugiliteStudyHandler.isToRecordNextOperation()){
+                executor.execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        UISnapshot uiSnapshot = new UISnapshot(final_root, true, sugiliteTextAnnotator);
+                        SugiliteAvailableFeaturePack featurePack = generateFeaturePack(event, sourceNode, rootNodeForRecording, null, availableAlternativeNodes, preOrderTraverseSourceNodeForRecording, preOrderTracerseRootNodeForRecording, preOrderTraverseSibNodeForRecording);
+                        sugiliteStudyHandler.handleEventInOldAccessiblityRecording(featurePack, uiSnapshot);
+                    }
+                });
+            }
+            */
 
         }
+
+
 
         if (sharedPreferences.getBoolean("broadcasting_enabled", false)) {
             if (accessibilityEventSetToTrack.contains(eventType) && (!trackingExcludedPackages.contains(eventPackageName))) {
@@ -723,14 +754,23 @@ public class SugiliteAccessibilityService extends AccessibilityService {
             long startTime = System.currentTimeMillis();
             List<AccessibilityWindowInfo> windows = getWindows();
 
+            boolean windowsContainsInputMethod = false;
+            Rect inputMethodWindowRect = new Rect(0, 0, 0, 0);
 
             if (windows.size() > 0) {
                 Set<String> rootNodePackageNames = new HashSet<>();
                 for (AccessibilityWindowInfo window : windows) {
                     if (window.getRoot() != null && window.getRoot().getPackageName() != null) {
-                        rootNodePackageNames.add(window.getRoot().getPackageName().toString());
+                        AccessibilityNodeInfo rootViewNode = window.getRoot();
+                        rootNodePackageNames.add(rootViewNode.getPackageName().toString());
+                        if (PumiceDemonstrationUtil.isInputMethodPackageName(rootViewNode.getPackageName().toString())) {
+                            windowsContainsInputMethod = true;
+                            window.getBoundsInScreen(inputMethodWindowRect);
+                        }
                     }
                 }
+
+                final boolean finalWindowsContainsInputMethod = windowsContainsInputMethod;
                 long finishGettingWindowsTime = System.currentTimeMillis();
                 Log.v(TAG, String.format("Finished getting windows -- Takes %s ms.", String.valueOf(finishGettingWindowsTime - startTime)));
 
@@ -743,27 +783,33 @@ public class SugiliteAccessibilityService extends AccessibilityService {
                                 // currentAppActivityName might not be correct at this point in time?
                                 try {
                                     UISnapshot uiSnapshot = new UISnapshot(windowManager.getDefaultDisplay(), windows, true, sugiliteTextParentAnnotator, false, currentPackageName, currentAppActivityName);
-                                    //TODO don't update UI on Sugilite Interfaces
+                                    //don't update UI on Sugilite Interfaces
                                     int sugiliteNodeCount = 0;
                                     int systemNodeCount = 0;
                                     for (Node node : uiSnapshot.getNodeAccessibilityNodeInfoMap().keySet()) {
-                                        if (node.getPackageName().contains("sugilite")) {
+                                        if (node.getPackageName().contains("edu.cmu.hcii.sugilite")) {
                                             sugiliteNodeCount ++;
                                         }
                                         if (node.getPackageName().contains("com.android.systemui")) {
                                             systemNodeCount ++;
                                         }
                                     }
-                                    boolean shouldRecord = ((double) (sugiliteNodeCount + systemNodeCount)) / uiSnapshot.getNodeAccessibilityNodeInfoMap().size() <= 0.9;
+                                    double shouldRecordScore = ((double) (sugiliteNodeCount + systemNodeCount)) / uiSnapshot.getNodeAccessibilityNodeInfoMap().size();
+                                    boolean shouldRecord = shouldRecordScore <= 0.9;
                                     if (uiSnapshot.getNodeAccessibilityNodeInfoMap().size() >= 5 && shouldRecord) {
                                         //filter out (mostly) empty ui snapshots
                                         verbalInstructionIconManager.setLatestUISnapshot(uiSnapshot);
+                                        recordingOverlayManager.updateRecordingOverlaySizeBasedOnInputMethod(finalWindowsContainsInputMethod, inputMethodWindowRect, textChangedEventHandler);
+                                        //TODO: update the size of overlay based on whether input method is present
+
                                         long stopTime = System.currentTimeMillis();
                                         verbalInstructionIconManager.rotateStatusIcon();
-                                        Log.v(TAG, "Updated UI Snapshot! -- Takes " + String.valueOf(stopTime - startTime) + "ms");
+                                        Log.v(TAG, "Updated UI Snapshot! -- Takes " + String.valueOf(stopTime - startTime) + "ms" + " ShouldRecord = " + shouldRecordScore);
                                         if (runnableOnUpdateFinishesOnUIThread != null) {
                                             SugiliteData.runOnUiThread(runnableOnUpdateFinishesOnUIThread);
                                         }
+                                    } else {
+                                        Log.v(TAG, "Ignored Updating the UI Snapshot!" + "ShouldRecord = " + shouldRecordScore);
                                     }
                                 } catch (Exception e) {
                                     //do nothing

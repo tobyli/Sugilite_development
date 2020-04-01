@@ -71,16 +71,17 @@ public class SugiliteRelationDescriptionGenerator {
 
     }
 
-    public static Spanned getDescription(SugiliteRelation r) {
+    public static Spanned getDescriptionOfSugiliteRelation(SugiliteRelation r) {
         return descriptionMap.get(r);
     }
 
+    @Override
     public String toString() {
-        String result = "";
+        StringBuilder result = new StringBuilder();
         for (SugiliteRelation r : descriptionMap.keySet()) {
-            result += r.getRelationName() + " " + descriptionMap.get(r) + "\n";
+            result.append(r.getRelationName() + " " + descriptionMap.get(r) + "\n");
         }
-        return result;
+        return result.toString();
     }
 
 

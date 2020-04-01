@@ -42,6 +42,7 @@ import edu.cmu.hcii.sugilite.ontology.*;
 import edu.cmu.hcii.sugilite.pumice.PumiceDemonstrationUtil;
 import edu.cmu.hcii.sugilite.recording.ReadableDescriptionGenerator;
 import edu.cmu.hcii.sugilite.recording.SugiliteScreenshotManager;
+import edu.cmu.hcii.sugilite.recording.TextChangedEventHandler;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.study.SugiliteStudyHandler;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.util.NavigationBarUtil;
 
@@ -76,6 +77,10 @@ public class FullScreenRecordingOverlayManager {
     //latest UI snapshot
     private UISnapshot uiSnapshot = null;
 
+    private int overlayCurrentHeight;
+    private int overlayCurrentWidth;
+
+    private int overlayCurrentFlag;
 
     public FullScreenRecordingOverlayManager(Context context, SugiliteData sugiliteData, SharedPreferences sharedPreferences, SugiliteAccessibilityService sugiliteAccessibilityService, TextToSpeech tts) {
         this.context = context;
@@ -93,8 +98,239 @@ public class FullScreenRecordingOverlayManager {
 
         displayMetrics = new DisplayMetrics();
         windowManager.getDefaultDisplay().getMetrics(displayMetrics);
+        this.overlayCurrentHeight = displayMetrics.heightPixels;
+        //hack -- leave 1px at the right end of the screen so the input method window becomes visible
+        this.overlayCurrentWidth = displayMetrics.widthPixels - 1;
+        this.overlayCurrentFlag = WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE;
         initOverlay();
     }
+
+
+    public boolean isShowingOverlay() {
+        return showingOverlay;
+    }
+
+
+    public void updateRecordingOverlaySizeBasedOnInputMethod(boolean windowsContainsInputMethod, Rect inputMethodWindowBoundsInScreen, TextChangedEventHandler textChangedEventHandler) {
+        SugiliteData.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                int newHeightPixels = displayMetrics.heightPixels - inputMethodWindowBoundsInScreen.height() - navigationBarUtil.getStatusBarHeight(context);
+                if (newHeightPixels > overlayCurrentHeight && windowsContainsInputMethod == false) {
+                    textChangedEventHandler.flush();
+                }
+                overlayCurrentHeight = newHeightPixels;
+                if (overlay.isShown()) {
+                    try {
+                        windowManager.updateViewLayout(overlay, updateLayoutParams(overlayCurrentFlag, overlayCurrentWidth, overlayCurrentHeight));
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        });
+    }
+
+
+    public void enableOverlay() {
+        removeOverlays();
+        //enable overlay
+        overlayCurrentFlag = WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE;
+        WindowManager.LayoutParams layoutParams = updateLayoutParams(overlayCurrentFlag, overlayCurrentWidth, overlayCurrentHeight);
+
+        //NEEDED TO BE CONFIGURED AT APPS->SETTINGS-DRAW OVER OTHER APPS on API>=23
+        int currentApiVersion = android.os.Build.VERSION.SDK_INT;
+        if (currentApiVersion >= 23) {
+            checkDrawOverlayPermission();
+            System.out.println("ADDING OVERLAY TO WINDOW MANAGER");
+            windowManager.addView(overlay, layoutParams);
+        } else {
+            windowManager.addView(overlay, layoutParams);
+        }
+        // set the listener
+        setOverlayOnTouchListener(true);
+
+        // set the flag
+        showingOverlay = true;
+    }
+
+    public View getOverlay() {
+        return overlay;
+    }
+
+    /**
+     * remove all overlays from the window manager
+     */
+    public void removeOverlays() {
+        try {
+            if (overlay != null && overlay.getWindowToken() != null) {
+                windowManager.removeView(overlay);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            showingOverlay = false;
+        }
+    }
+
+    public void setUiSnapshot(UISnapshot uiSnapshot) {
+        synchronized (this) {
+            this.uiSnapshot = uiSnapshot;
+        }
+    }
+
+
+    private void initOverlay() {
+        overlay = overlayFactory.getFullScreenOverlay(displayMetrics);
+    }
+
+    private WindowManager.LayoutParams updateLayoutParams(int flag, int width, int height) {
+        WindowManager.LayoutParams layoutParams = new WindowManager.LayoutParams(
+                WindowManager.LayoutParams.WRAP_CONTENT,
+                WindowManager.LayoutParams.WRAP_CONTENT,
+                OVERLAY_TYPE,
+                flag,
+                PixelFormat.TRANSLUCENT);
+
+        DisplayMetrics displaymetrics = new DisplayMetrics();
+        windowManager.getDefaultDisplay().getMetrics(displaymetrics);
+        int real_y = 0;
+        int statusBarHeight = navigationBarUtil.getStatusBarHeight(context);
+        real_y -= statusBarHeight;
+
+        layoutParams.gravity = Gravity.TOP | Gravity.LEFT;
+        layoutParams.x = 0;
+        layoutParams.y = real_y;
+        layoutParams.width = width;
+        layoutParams.height = height;
+        return layoutParams;
+    }
+
+    /**
+     * set view to be not touchble (so it will pass through touch events)
+     *
+     *
+     */
+    private void setPassThroughOnTouchListener() {
+        overlay.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                return false;
+            }
+        });
+        overlay.setBackgroundColor(Const.RECORDING_OVERLAY_COLOR_STOP);
+        overlay.invalidate();
+        try {
+            overlayCurrentFlag = WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE;
+            windowManager.updateViewLayout(overlay, updateLayoutParams(overlayCurrentFlag, overlayCurrentWidth, overlayCurrentHeight));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    private void setOverlayOnTouchListener(final boolean toConsumeEvent) {
+        try {
+            overlayCurrentFlag = WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE;
+            windowManager.updateViewLayout(overlay, updateLayoutParams(overlayCurrentFlag, overlayCurrentWidth, overlayCurrentHeight));
+            overlay.setBackgroundColor(Const.RECORDING_OVERLAY_COLOR);
+            overlay.invalidate();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        overlay.setOnTouchListener(new View.OnTouchListener() {
+            GestureDetector myGestureDetector = new GestureDetector(context, new MyGestureDetector());
+            ;
+
+            @Override
+            public boolean onTouch(final View v, MotionEvent event) {
+                return myGestureDetector.onTouchEvent(event);
+            }
+
+            class MyGestureDetector extends GestureDetector.SimpleOnGestureListener {
+                @Override
+                public boolean onSingleTapConfirmed(MotionEvent event) {
+                    //single tap up detected
+                    System.out.println("Single tap detected");
+                    float rawX = event.getRawX();
+                    float rawY = event.getRawY();
+                    handleClick(rawX, rawY);
+                    return true;
+                }
+
+                @Override
+                public void onLongPress(MotionEvent event) {
+                    System.out.println("Context click detected");
+                    float rawX = event.getRawX();
+                    float rawY = event.getRawY();
+                    handleContextClick(rawX, rawY, tts);
+                    return;
+                }
+
+                @Override
+                public boolean onContextClick(MotionEvent e) {
+                    System.out.println("Context click detected");
+                    return super.onContextClick(e);
+                }
+
+                @Override
+                public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
+                    if (Const.ROOT_ENABLED) {
+                        recordingOverlayManager.setPassThroughOnTouchListener();
+                        try {
+                            recordingOverlayManager.performFlingWithRootPermission(e1, e2, new Runnable() {
+                                @Override
+                                public void run() {
+                                    //allow the overlay to get touch event after finishing the simulated gesture
+                                    recordingOverlayManager.setOverlayOnTouchListener(true);
+                                }
+                            });
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+                    return true;
+                }
+            }
+
+            /*
+            class Scroll extends GestureDetector.SimpleOnGestureListener {
+                @Override
+                public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
+                    if (Const.ROOT_ENABLED) {
+                        recordingOverlayManager.setPassThroughOnTouchListener(overlay);
+                        try {
+                            recordingOverlayManager.performFlingWithRootPermission(e1, e2, new Runnable() {
+                                @Override
+                                public void run() {
+                                    //allow the overlay to get touch event after finishing the simulated gesture
+                                    recordingOverlayManager.setOverlayOnTouchListener(overlay, true);
+                                }
+                            });
+                        }
+                        catch (Exception e){
+                            e.printStackTrace();
+                        }
+                    }
+                    return true;
+                }
+            }
+            */
+
+        });
+    }
+
+
+
+    private UISnapshot getUiSnapshotAndAnnotateStringEntitiesIfNeeded() {
+        synchronized (this) {
+            //annotate string entities in the ui snapshot if needed
+            uiSnapshot.annotateStringEntitiesIfNeeded();
+            return uiSnapshot;
+        }
+    }
+
 
     private static List<SugiliteEntity<Node>> getMatchedNodesFromCoordinate(float x, float y, UISnapshot uiSnapshot, boolean getClickableNodeOnly, boolean getLongClickableNodeOnly) {
         List<SugiliteEntity<Node>> matchedNodeEntities = new ArrayList<>();
@@ -162,203 +398,8 @@ public class FullScreenRecordingOverlayManager {
         }
     }
 
-    public boolean isShowingOverlay() {
-        return showingOverlay;
-    }
 
-    private void initOverlay() {
-        overlay = overlayFactory.getFullScreenOverlay(displayMetrics);
-    }
-
-
-    public void enableOverlay() {
-        removeOverlays();
-        //enable overlay
-        WindowManager.LayoutParams layoutParams = updateLayoutParams(WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE);
-
-        //NEEDED TO BE CONFIGURED AT APPS->SETTINGS-DRAW OVER OTHER APPS on API>=23
-        int currentApiVersion = android.os.Build.VERSION.SDK_INT;
-        if (currentApiVersion >= 23) {
-            checkDrawOverlayPermission();
-            System.out.println("ADDING OVERLAY TO WINDOW MANAGER");
-            windowManager.addView(overlay, layoutParams);
-        } else {
-            windowManager.addView(overlay, layoutParams);
-        }
-        // set the listener
-        setOverlayOnTouchListener(overlay, true);
-
-        // set the flag
-        showingOverlay = true;
-    }
-
-    private WindowManager.LayoutParams updateLayoutParams(int flag) {
-        WindowManager.LayoutParams layoutParams = new WindowManager.LayoutParams(
-                WindowManager.LayoutParams.WRAP_CONTENT,
-                WindowManager.LayoutParams.WRAP_CONTENT,
-                OVERLAY_TYPE,
-                flag,
-                PixelFormat.TRANSLUCENT);
-
-        DisplayMetrics displaymetrics = new DisplayMetrics();
-        windowManager.getDefaultDisplay().getMetrics(displaymetrics);
-        int real_y = 0;
-        int statusBarHeight = navigationBarUtil.getStatusBarHeight(context);
-        real_y -= statusBarHeight;
-
-        layoutParams.gravity = Gravity.TOP | Gravity.LEFT;
-        layoutParams.x = 0;
-        layoutParams.y = real_y;
-        layoutParams.width = displayMetrics.widthPixels;
-        layoutParams.height = displayMetrics.heightPixels;
-        return layoutParams;
-    }
-
-    /**
-     * set view to be not touchble (so it will pass through touch events)
-     *
-     * @param view
-     */
-    private void setPassThroughOnTouchListener(final View view) {
-        view.setOnTouchListener(new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View v, MotionEvent event) {
-                return false;
-            }
-        });
-        view.setBackgroundColor(Const.RECORDING_OVERLAY_COLOR_STOP);
-        view.invalidate();
-        try {
-            windowManager.updateViewLayout(view, updateLayoutParams(WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE));
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-    }
-
-    private void setOverlayOnTouchListener(final View view, final boolean toConsumeEvent) {
-        try {
-            windowManager.updateViewLayout(view, updateLayoutParams(WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE));
-            view.setBackgroundColor(Const.RECORDING_OVERLAY_COLOR);
-            view.invalidate();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        view.setOnTouchListener(new View.OnTouchListener() {
-            GestureDetector myGestureDetector = new GestureDetector(context, new MyGestureDetector());
-            ;
-
-            @Override
-            public boolean onTouch(final View v, MotionEvent event) {
-                return myGestureDetector.onTouchEvent(event);
-            }
-
-            class MyGestureDetector extends GestureDetector.SimpleOnGestureListener {
-                @Override
-                public boolean onSingleTapConfirmed(MotionEvent event) {
-                    //single tap up detected
-                    System.out.println("Single tap detected");
-                    float rawX = event.getRawX();
-                    float rawY = event.getRawY();
-                    handleClick(rawX, rawY);
-                    return true;
-                }
-
-                @Override
-                public void onLongPress(MotionEvent event) {
-                    System.out.println("Context click detected");
-                    float rawX = event.getRawX();
-                    float rawY = event.getRawY();
-                    handleContextClick(rawX, rawY, tts);
-                    return;
-                }
-
-                @Override
-                public boolean onContextClick(MotionEvent e) {
-                    System.out.println("Context click detected");
-                    return super.onContextClick(e);
-                }
-
-                @Override
-                public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
-                    if (Const.ROOT_ENABLED) {
-                        recordingOverlayManager.setPassThroughOnTouchListener(overlay);
-                        try {
-                            recordingOverlayManager.performFlingWithRootPermission(e1, e2, new Runnable() {
-                                @Override
-                                public void run() {
-                                    //allow the overlay to get touch event after finishing the simulated gesture
-                                    recordingOverlayManager.setOverlayOnTouchListener(overlay, true);
-                                }
-                            });
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
-                    }
-                    return true;
-                }
-            }
-
-            /*
-            class Scroll extends GestureDetector.SimpleOnGestureListener {
-                @Override
-                public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
-                    if (Const.ROOT_ENABLED) {
-                        recordingOverlayManager.setPassThroughOnTouchListener(overlay);
-                        try {
-                            recordingOverlayManager.performFlingWithRootPermission(e1, e2, new Runnable() {
-                                @Override
-                                public void run() {
-                                    //allow the overlay to get touch event after finishing the simulated gesture
-                                    recordingOverlayManager.setOverlayOnTouchListener(overlay, true);
-                                }
-                            });
-                        }
-                        catch (Exception e){
-                            e.printStackTrace();
-                        }
-                    }
-                    return true;
-                }
-            }
-            */
-
-        });
-    }
-
-    /**
-     * remove all overlays from the window manager
-     */
-    public void removeOverlays() {
-        try {
-            if (overlay != null && overlay.getWindowToken() != null) {
-                windowManager.removeView(overlay);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-            showingOverlay = false;
-        }
-    }
-
-    private UISnapshot getUiSnapshotAndAnnotateStringEntitiesIfNeeded() {
-        synchronized (this) {
-            //annotate string entities in the ui snapshot if needed
-            uiSnapshot.annotateStringEntitiesIfNeeded();
-            return uiSnapshot;
-        }
-    }
-
-    public void setUiSnapshot(UISnapshot uiSnapshot) {
-        synchronized (this) {
-            this.uiSnapshot = uiSnapshot;
-        }
-    }
-
-
-
-    public File getLatestScreenshot() {
+    private File getLatestScreenshot() {
         File latestScreenshot = sugiliteScreenshotManager.takeScreenshot(SugiliteScreenshotManager.DIRECTORY_PATH, sugiliteScreenshotManager.getFileNameFromDate());
         return latestScreenshot;
     }
@@ -576,11 +617,9 @@ public class FullScreenRecordingOverlayManager {
         });
     }
 
-    public View getOverlay() {
-        return overlay;
-    }
 
-    void addSugiliteOperationBlockBasedOnNode(Node node, boolean isLongClick) {
+
+    private void addSugiliteOperationBlockBasedOnNode(Node node, boolean isLongClick) {
         if (node.getBoundsInScreen() != null) {
             CombinedOntologyQuery parentQuery = new CombinedOntologyQuery(CombinedOntologyQuery.RelationType.AND);
             LeafOntologyQuery screenBoundsQuery = new LeafOntologyQuery();
@@ -634,13 +673,13 @@ public class FullScreenRecordingOverlayManager {
     void clickNode(Node node, float x, float y, View overlay, boolean isLongClick) {
         if (Const.ROOT_ENABLED) {
             //on a rooted phone, should directly simulate the click itself
-            recordingOverlayManager.setPassThroughOnTouchListener(overlay);
+            recordingOverlayManager.setPassThroughOnTouchListener();
             try {
                 recordingOverlayManager.clickWithRootPermission(x, y, new Runnable() {
                     @Override
                     public void run() {
                         //allow the overlay to get touch event after finishing the simulated click
-                        recordingOverlayManager.setOverlayOnTouchListener(overlay, true);
+                        recordingOverlayManager.setOverlayOnTouchListener(true);
                     }
                 }, node, isLongClick);
             } catch (Exception e) {

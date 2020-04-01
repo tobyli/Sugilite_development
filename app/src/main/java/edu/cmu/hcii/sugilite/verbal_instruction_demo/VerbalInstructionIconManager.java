@@ -7,6 +7,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.PixelFormat;
+import android.graphics.Rect;
 import android.net.Uri;
 import android.provider.Settings;
 import android.speech.tts.TextToSpeech;
@@ -327,6 +328,8 @@ public class VerbalInstructionIconManager implements SugiliteVoiceInterface {
         //also update the uisnapshot for the testing full screen overlay
         recordingOverlayManager.setUiSnapshot(snapshot);
     }
+
+
 
 
     public void checkDrawOverlayPermission() {

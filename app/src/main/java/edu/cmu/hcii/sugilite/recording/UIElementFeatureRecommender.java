@@ -75,14 +75,14 @@ public class UIElementFeatureRecommender {
     public boolean chooseBoundsInScreen(){
         if(boundsInScreen.contentEquals("NULL"))
             return false;
-        if(contentDescription.contentEquals("NULL") && text.contentEquals("NULL") && allChildFeatures.size() == 0)
+        if(contentDescription.contentEquals("NULL") && text.contentEquals("NULL") && viewId.contentEquals("NULL") &&  allChildFeatures.size() == 0)
             return true;
         else
             return false;
     }
 
     public boolean chooseBoundsInParent(){
-        if(contentDescription.contentEquals("NULL") && (text.contentEquals("NULL") || text.contentEquals("")) && isEditable)
+        if(contentDescription.contentEquals("NULL") && (text.contentEquals("NULL") || text.contentEquals("")) && viewId.contentEquals("NULL") && isEditable)
             return true;
         else
             return false;

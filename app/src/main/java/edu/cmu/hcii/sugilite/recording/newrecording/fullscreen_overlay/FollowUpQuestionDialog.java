@@ -354,7 +354,7 @@ public class FollowUpQuestionDialog extends SugiliteDialogManager implements Sug
      */
     private void refreshPreviewTextView(){
         //TODO: show the source code temporarily
-        String html = ontologyDescriptionGenerator.getDescriptionForOntologyQuery(currentQuery.clone(), true).toString();
+        String html = ontologyDescriptionGenerator.getSpannedDescriptionForOntologyQuery(currentQuery.clone(), true).toString();
         // PumiceDemonstrationUtil.showSugiliteToast(currentQuery.toString(), Toast.LENGTH_SHORT);
         //String html = SugiliteBlockBuildingHelper.stripSerializableOntologyQuery(new SerializableOntologyQuery(currentQuery)).toString();
         currentQueryTextView.setText(Html.fromHtml(html));

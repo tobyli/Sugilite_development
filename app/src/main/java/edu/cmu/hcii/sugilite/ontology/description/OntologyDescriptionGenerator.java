@@ -1,7 +1,5 @@
 package edu.cmu.hcii.sugilite.ontology.description;
 
-import android.content.pm.ApplicationInfo;
-import android.content.pm.PackageManager;
 import android.text.Html;
 import android.text.SpannableString;
 import android.text.SpannableStringBuilder;
@@ -11,7 +9,6 @@ import android.text.TextUtils;
 import android.text.style.ClickableSpan;
 import android.view.View;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -21,6 +18,7 @@ import edu.cmu.hcii.sugilite.Const;
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.model.operation.binary.SugiliteBinaryOperation;
 import edu.cmu.hcii.sugilite.model.operation.binary.SugiliteGetProcedureOperation;
+import edu.cmu.hcii.sugilite.model.operation.binary.SugiliteSetTextOperation;
 import edu.cmu.hcii.sugilite.model.operation.trinary.SugiliteLoadVariableOperation;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteOperation;
 import edu.cmu.hcii.sugilite.model.operation.unary.SugiliteLaunchAppOperation;
@@ -40,20 +38,147 @@ import static edu.cmu.hcii.sugilite.sharing.SugiliteSharingScriptPreparer.POTENT
 public class OntologyDescriptionGenerator {
     private SoviteAppNameAppInfoManager appNameAppInfoManager = SoviteAppNameAppInfoManager.getInstance(SugiliteData.getAppContext());
 
-    public Spanned getDescriptionForOntologyQuery(OntologyQuery ontologyQuery, boolean isParentQuery) {
-        return getDescriptionForOntologyQuery(ontologyQuery, isParentQuery, false, null);
+    public Spanned getSpannedDescriptionForOntologyQuery(OntologyQuery ontologyQuery, boolean isParentQuery) {
+        return getSpannedDescriptionForOntologyQuery(ontologyQuery, isParentQuery, false, null);
     }
 
-    public Spanned getDescriptionForOntologyQuery(OntologyQuery ontologyQuery, boolean isParentQuery, boolean addClickableSpansForPrivacy) {
-        return getDescriptionForOntologyQuery(ontologyQuery, isParentQuery, addClickableSpansForPrivacy, null);
+    public Spanned getSpannedDescriptionForOperationTypesWithoutOntologyQuery(SugiliteOperation operation) {
+        String prefix = "";
+        if (operation instanceof SugiliteUnaryOperation) {
+            if (operation instanceof SugiliteLaunchAppOperation) {
+                return (Spanned) TextUtils.concat(prefix, getColoredSpannedTextFromMessage("Launch the app ", Const.SCRIPT_ACTION_COLOR), getColoredSpannedTextFromMessage(appNameAppInfoManager.getReadableAppNameForPackageName(((SugiliteLaunchAppOperation) operation).getAppPackageName()), Const.SCRIPT_ACTION_PARAMETER_COLOR));
+            }
+        }
+        if (operation instanceof SugiliteBinaryOperation) {
+            if (operation instanceof SugiliteGetProcedureOperation) {
+                return (Spanned) TextUtils.concat(prefix, getColoredSpannedTextFromMessage("Execute the procedure ", Const.SCRIPT_ACTION_COLOR), getColoredSpannedTextFromMessage(((SugiliteGetProcedureOperation) operation).getName(), Const.SCRIPT_ACTION_PARAMETER_COLOR));
+            }
+        }
+
+        //TODO: handle more types of operations ***
+        System.err.println("can't handle operation " + operation.getOperationType());
+        return new SpannableString(operation.toString());
+
     }
+
+    /**
+     * Get the natural language description for a SugiliteOperation
+     *
+     * @param operation
+     * @param sq
+     * @return
+     */
+    public Spanned getSpannedDescriptionForOperation(SugiliteOperation operation, OntologyQuery sq, boolean addClickableSpansForPrivacy) {
+        //TODO: temporily disable because of crashes due to unable to handle filters
+        //return sq.toString();
+        String prefix = "";
+
+        if (operation.getOperationType() == SugiliteOperation.CLICK) {
+            return (Spanned) TextUtils.concat(prefix,
+                    getDescriptionForOperation(getColoredSpannedTextFromMessage("Click on ", Const.SCRIPT_ACTION_COLOR),
+                            sq,
+                            addClickableSpansForPrivacy));
+        } else if (operation.getOperationType() == SugiliteOperation.LONG_CLICK) {
+            return (Spanned) TextUtils.concat(prefix,
+                    getDescriptionForOperation(getColoredSpannedTextFromMessage("Long click on ", Const.SCRIPT_ACTION_COLOR),
+                            sq,
+                            addClickableSpansForPrivacy));
+        } else if (operation.getOperationType() == SugiliteOperation.READ_OUT) {
+            return (Spanned) TextUtils.concat(prefix,
+                    getDescriptionForOperation(getColoredSpannedTextFromMessage("Read out ", Const.SCRIPT_ACTION_COLOR),
+                            sq,
+                            addClickableSpansForPrivacy));
+        } else if (operation.getOperationType() == SugiliteOperation.SET_TEXT) {
+            return (Spanned) TextUtils.concat(prefix,
+                    getDescriptionForOperation((Spanned) TextUtils.concat(getColoredSpannedTextFromMessage("Set text ", Const.SCRIPT_ACTION_COLOR),
+                            new SpannableString("to "),
+                            getColoredSpannedTextFromMessage("\"" + ((SugiliteSetTextOperation)operation).getText() + "\"", Const.SCRIPT_ACTION_PARAMETER_COLOR),
+                            new SpannableString(" for ")),
+                            sq,
+                            addClickableSpansForPrivacy));
+        } else if (operation.getOperationType() == SugiliteOperation.READOUT_CONST) {
+            return (Spanned) TextUtils.concat(prefix,
+                    getDescriptionForOperation(getColoredSpannedTextFromMessage("Read out constant ", Const.SCRIPT_ACTION_COLOR),
+                            sq,
+                            addClickableSpansForPrivacy));
+        } else if (operation.getOperationType() == SugiliteOperation.LOAD_AS_VARIABLE) {
+            return (Spanned) TextUtils.concat(prefix,
+                    getDescriptionForOperation((Spanned) TextUtils.concat(getColoredSpannedTextFromMessage("Set value of ", Const.SCRIPT_ACTION_COLOR),
+                            getColoredSpannedTextFromMessage(((SugiliteLoadVariableOperation) operation).getVariableName(), Const.SCRIPT_CONDITIONAL_COLOR_3),
+                            getColoredSpannedTextFromMessage(" to the following: ", Const.SCRIPT_ACTION_COLOR), " the ",
+                            getColoredSpannedTextFromMessage(((SugiliteLoadVariableOperation) operation).getPropertyToSave(), Const.SCRIPT_CONDITIONAL_COLOR_3), " property in "),
+                            sq,
+                            addClickableSpansForPrivacy));
+        } else {
+            //TODO: handle more types of operations ***
+            System.err.println("can't handle operation " + operation.getOperationType());
+            return new SpannableString(operation.toString());
+        }
+
+    }
+
+    public Spanned getSpannedDescriptionForOperation(SugiliteOperation operation, OntologyQuery sq) {
+        return getSpannedDescriptionForOperation(operation, sq, false);
+    }
+
+    public class HashedOntologyQueryClickableSpan extends ClickableSpan {
+        PrivateNonPrivateLeafOntologyQueryPairWrapper privateNonPrivateLeafOntologyQueryPairWrapper;
+
+        HashedOntologyQueryClickableSpan(PrivateNonPrivateLeafOntologyQueryPairWrapper privateNonPrivateLeafOntologyQueryPairWrapper) {
+            this.privateNonPrivateLeafOntologyQueryPairWrapper = privateNonPrivateLeafOntologyQueryPairWrapper;
+        }
+
+
+        @Override
+        public void onClick(View widget) {
+            Spanned s = (Spanned) ((TextView) widget).getText();
+            int start = s.getSpanStart(this);
+            int end = s.getSpanEnd(this);
+            privateNonPrivateLeafOntologyQueryPairWrapper.flip();
+        }
+
+        @Override
+        public void updateDrawState(TextPaint ds) {
+            ds.bgColor = SugiliteData.getAppContext().getResources().getColor(android.R.color.holo_red_dark);
+            ds.setColor(SugiliteData.getAppContext().getResources().getColor(android.R.color.white));
+            ds.setUnderlineText(true);
+        }
+    }
+
+    public class UnhashedOntologyQueryClickableSpan extends ClickableSpan {
+        PrivateNonPrivateLeafOntologyQueryPairWrapper privateNonPrivateLeafOntologyQueryPairWrapper;
+
+        public UnhashedOntologyQueryClickableSpan(PrivateNonPrivateLeafOntologyQueryPairWrapper privateNonPrivateLeafOntologyQueryPairWrapper) {
+            this.privateNonPrivateLeafOntologyQueryPairWrapper = privateNonPrivateLeafOntologyQueryPairWrapper;
+        }
+
+        @Override
+        public void onClick(View widget) {
+            Spanned s = (Spanned) ((TextView) widget).getText();
+            int start = s.getSpanStart(this);
+            int end = s.getSpanEnd(this);
+            privateNonPrivateLeafOntologyQueryPairWrapper.flip();
+        }
+
+        @Override
+        public void updateDrawState(TextPaint ds) {
+            ds.bgColor = SugiliteData.getAppContext().getResources().getColor(android.R.color.holo_blue_dark);
+            ds.setColor(SugiliteData.getAppContext().getResources().getColor(android.R.color.white));
+            ds.setUnderlineText(true);
+        }
+    }
+
+    private Spanned getSpannedDescriptionForOntologyQuery(OntologyQuery ontologyQuery, boolean isParentQuery, boolean addClickableSpansForPrivacy) {
+        return getSpannedDescriptionForOntologyQuery(ontologyQuery, isParentQuery, addClickableSpansForPrivacy, null);
+    }
+
     /**
      * Get the natural language description for an OntologyQuery
      *
      * @param ontologyQuery
      * @return
      */
-    public Spanned getDescriptionForOntologyQuery(OntologyQuery ontologyQuery, boolean isParentQuery, boolean addClickableSpansForPrivacy, PrivateNonPrivateLeafOntologyQueryPairWrapper parentOntologyPair) {
+    private Spanned getSpannedDescriptionForOntologyQuery(OntologyQuery ontologyQuery, boolean isParentQuery, boolean addClickableSpansForPrivacy, PrivateNonPrivateLeafOntologyQueryPairWrapper parentOntologyPair) {
         String postfix = ""; // pretty sure this isn't used
 
         OntologyQueryFilter filter = ontologyQuery.getOntologyQueryFilter();
@@ -113,7 +238,7 @@ public class OntologyDescriptionGenerator {
                 //generate descriptions for subQueries
                 Spanned[] arr = new Spanned[size];
                 for (int i = 0; i < size; i++) {
-                    arr[i] = getDescriptionForOntologyQuery(subQueryArray[i], false, addClickableSpansForPrivacy);
+                    arr[i] = getSpannedDescriptionForOntologyQuery(subQueryArray[i], false, addClickableSpansForPrivacy);
                 }
 
                 if (coq.getSubRelation() == CombinedOntologyQuery.RelationType.AND) {
@@ -133,126 +258,15 @@ public class OntologyDescriptionGenerator {
             }
             return spannableString;
         } else if (ontologyQuery instanceof PlaceholderOntologyQuery) {
-            return (Spanned) TextUtils.concat(getColoredSpannedTextFromMessage("(temporary) ", Const.SCRIPT_PLACEHOLDER_COLOR), getDescriptionForOntologyQuery(((PlaceholderOntologyQuery) ontologyQuery).getInnerQuery(), true, addClickableSpansForPrivacy));
+            return (Spanned) TextUtils.concat(getColoredSpannedTextFromMessage("(temporary) ", Const.SCRIPT_PLACEHOLDER_COLOR), getSpannedDescriptionForOntologyQuery(((PlaceholderOntologyQuery) ontologyQuery).getInnerQuery(), true, addClickableSpansForPrivacy));
         } else if (ontologyQuery instanceof PrivateNonPrivateLeafOntologyQueryPairWrapper) {
-            return getDescriptionForOntologyQuery(((PrivateNonPrivateLeafOntologyQueryPairWrapper) ontologyQuery).getQueryInUse(), isParentQuery, addClickableSpansForPrivacy, (PrivateNonPrivateLeafOntologyQueryPairWrapper) ontologyQuery);
-        }
-        else {
+            return getSpannedDescriptionForOntologyQuery(((PrivateNonPrivateLeafOntologyQueryPairWrapper) ontologyQuery).getQueryInUse(), isParentQuery, addClickableSpansForPrivacy, (PrivateNonPrivateLeafOntologyQueryPairWrapper) ontologyQuery);
+        } else {
             // oh boy
             PumiceDemonstrationUtil.showSugiliteAlertDialog("Failed to generate description for OntologyQuery!!");
         }
 
         return new SpannableString("NULL");
-    }
-
-    public class HashedOntologyQueryClickableSpan extends ClickableSpan {
-        PrivateNonPrivateLeafOntologyQueryPairWrapper privateNonPrivateLeafOntologyQueryPairWrapper;
-        public HashedOntologyQueryClickableSpan(PrivateNonPrivateLeafOntologyQueryPairWrapper privateNonPrivateLeafOntologyQueryPairWrapper) {
-            this.privateNonPrivateLeafOntologyQueryPairWrapper = privateNonPrivateLeafOntologyQueryPairWrapper;
-        }
-
-
-        @Override
-        public void onClick(View widget) {
-            Spanned s = (Spanned) ((TextView) widget).getText();
-            int start = s.getSpanStart(this);
-            int end = s.getSpanEnd(this);
-            privateNonPrivateLeafOntologyQueryPairWrapper.flip();
-        }
-
-        @Override
-        public void updateDrawState(TextPaint ds) {
-            ds.bgColor = SugiliteData.getAppContext().getResources().getColor(android.R.color.holo_red_dark);
-            ds.setColor(SugiliteData.getAppContext().getResources().getColor(android.R.color.white));
-            ds.setUnderlineText(true);
-        }
-    }
-
-    public class UnhashedOntologyQueryClickableSpan extends ClickableSpan {
-        PrivateNonPrivateLeafOntologyQueryPairWrapper privateNonPrivateLeafOntologyQueryPairWrapper;
-        public UnhashedOntologyQueryClickableSpan(PrivateNonPrivateLeafOntologyQueryPairWrapper privateNonPrivateLeafOntologyQueryPairWrapper) {
-            this.privateNonPrivateLeafOntologyQueryPairWrapper = privateNonPrivateLeafOntologyQueryPairWrapper;
-        }
-
-        @Override
-        public void onClick(View widget) {
-            Spanned s = (Spanned) ((TextView) widget).getText();
-            int start = s.getSpanStart(this);
-            int end = s.getSpanEnd(this);
-            privateNonPrivateLeafOntologyQueryPairWrapper.flip();
-        }
-
-        @Override
-        public void updateDrawState(TextPaint ds) {
-            ds.bgColor = SugiliteData.getAppContext().getResources().getColor(android.R.color.holo_blue_dark);
-            ds.setColor(SugiliteData.getAppContext().getResources().getColor(android.R.color.white));
-            ds.setUnderlineText(true);
-        }
-    }
-
-    public Spanned getSpannedDescriptionForOperationWithoutOntologyQuery(SugiliteOperation operation) {
-        String prefix = "";
-        if (operation instanceof SugiliteUnaryOperation) {
-            if (operation instanceof SugiliteLaunchAppOperation) {
-                return (Spanned) TextUtils.concat(prefix, getColoredSpannedTextFromMessage("Launch the app ", Const.SCRIPT_ACTION_COLOR), getColoredSpannedTextFromMessage(appNameAppInfoManager.getReadableAppNameForPackageName(((SugiliteLaunchAppOperation) operation).getAppPackageName()), Const.SCRIPT_ACTION_PARAMETER_COLOR));
-            }
-        }
-        if (operation instanceof SugiliteBinaryOperation) {
-            if (operation instanceof SugiliteGetProcedureOperation) {
-                return (Spanned) TextUtils.concat(prefix, getColoredSpannedTextFromMessage("Execute the procedure ", Const.SCRIPT_ACTION_COLOR), getColoredSpannedTextFromMessage(((SugiliteGetProcedureOperation) operation).getName(), Const.SCRIPT_ACTION_PARAMETER_COLOR));
-            }
-        }
-
-        //TODO: handle more types of operations ***
-        System.err.println("can't handle operation " + operation.getOperationType());
-        return new SpannableString(operation.toString());
-
-    }
-
-    /**
-     * Get the natural language description for a SugiliteOperation
-     *
-     * @param operation
-     * @param sq
-     * @return
-     */
-    public Spanned getSpannedDescriptionForOperation(SugiliteOperation operation, OntologyQuery sq, boolean addClickableSpansForPrivacy) {
-        //TODO: temporily disable because of crashes due to unable to handle filters
-        //return sq.toString();
-        String prefix = "";
-
-        if (operation.getOperationType() == SugiliteOperation.CLICK) {
-            return (Spanned) TextUtils.concat(prefix, getDescriptionForOperation(getColoredSpannedTextFromMessage("Click on ", Const.SCRIPT_ACTION_COLOR), sq, addClickableSpansForPrivacy));
-        } else if (operation.getOperationType() == SugiliteOperation.LONG_CLICK) {
-            return (Spanned) TextUtils.concat(prefix, getDescriptionForOperation(getColoredSpannedTextFromMessage("Long click on ", Const.SCRIPT_ACTION_COLOR), sq, addClickableSpansForPrivacy));
-        } else if (operation.getOperationType() == SugiliteOperation.READ_OUT) {
-            return (Spanned) TextUtils.concat(prefix, getDescriptionForOperation(getColoredSpannedTextFromMessage("Read out ", Const.SCRIPT_ACTION_COLOR), sq, addClickableSpansForPrivacy));
-        } else if (operation.getOperationType() == SugiliteOperation.SET_TEXT) {
-            return (Spanned) TextUtils.concat(prefix, getDescriptionForOperation(getColoredSpannedTextFromMessage("Set text ", Const.SCRIPT_ACTION_COLOR), sq, addClickableSpansForPrivacy));
-        } else if (operation.getOperationType() == SugiliteOperation.READOUT_CONST) {
-            return (Spanned) TextUtils.concat(prefix, getDescriptionForOperation(getColoredSpannedTextFromMessage("Read out constant ", Const.SCRIPT_ACTION_COLOR), sq, addClickableSpansForPrivacy));
-        } else if (operation.getOperationType() == SugiliteOperation.LOAD_AS_VARIABLE) {
-            System.out.println("HERE");
-            String vari = ((SugiliteLoadVariableOperation) operation).getParameter1();
-            String[] s = vari.split("(?=\\p{Upper})");
-            StringBuilder variables = new StringBuilder();
-            for (String x : s) {
-                variables.append(x);
-                variables.append(" ");
-            }
-            return (Spanned) TextUtils.concat(prefix,
-                    getDescriptionForOperation((Spanned) TextUtils.concat(getColoredSpannedTextFromMessage("Set value of ", Const.SCRIPT_ACTION_COLOR), getColoredSpannedTextFromMessage(((SugiliteLoadVariableOperation) operation).getVariableName(), Const.SCRIPT_CONDITIONAL_COLOR_3), getColoredSpannedTextFromMessage(" to the following: ", Const.SCRIPT_ACTION_COLOR), " the ", getColoredSpannedTextFromMessage(((SugiliteLoadVariableOperation) operation).getPropertyToSave(), Const.SCRIPT_CONDITIONAL_COLOR_3), " property in "), sq, addClickableSpansForPrivacy));
-        }
-        else {
-            //TODO: handle more types of operations ***
-            System.err.println("can't handle operation " + operation.getOperationType());
-            return new SpannableString(operation.toString());
-        }
-
-    }
-
-    public Spanned getSpannedDescriptionForOperation(SugiliteOperation operation, OntologyQuery sq) {
-        return getSpannedDescriptionForOperation(operation, sq, false);
     }
 
     // get a more viewable list order
@@ -277,7 +291,7 @@ public class OntologyDescriptionGenerator {
         return number;
     }
 
-    public static Spanned getColoredSpannedTextFromMessage(String message, String color) {
+    static Spanned getColoredSpannedTextFromMessage(String message, String color) {
         return Html.fromHtml(String.format("<font color=\"%s\"><b>%s</b></font>", color, message));
     }
 
@@ -323,7 +337,7 @@ public class OntologyDescriptionGenerator {
     }
 
     private Spanned getDescriptionForOperation(Spanned verb, OntologyQuery q, boolean addClickableSpansForPrivacy) {
-        return (Spanned) TextUtils.concat(verb, getDescriptionForOntologyQuery(q, true, addClickableSpansForPrivacy));
+        return (Spanned) TextUtils.concat(verb, getSpannedDescriptionForOntologyQuery(q, true, addClickableSpansForPrivacy));
     }
 
     // translates the filters
@@ -485,7 +499,7 @@ public class OntologyDescriptionGenerator {
                         } else
                             // e.g. the 1st button with the cheapest price
                             result.append(new SpannableString(" with "));
-                            result.append(spannedTranslatedFilter);
+                        result.append(spannedTranslatedFilter);
                     }
                 }
                 // there is other relation besides class name and list order

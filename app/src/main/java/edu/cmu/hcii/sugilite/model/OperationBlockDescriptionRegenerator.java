@@ -8,13 +8,13 @@ import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.ontology.description.OntologyDescriptionGenerator;
 
 public class OperationBlockDescriptionRegenerator {
-    public static void regenerateBlockDescription(SugiliteBlock block, OntologyDescriptionGenerator ontologyDescriptionGenerator) {
+    private static void regenerateBlockDescription(SugiliteBlock block, OntologyDescriptionGenerator ontologyDescriptionGenerator) {
         if (block instanceof SugiliteOperationBlock) {
             SugiliteOperationBlock sob = (SugiliteOperationBlock) block;
             if (sob.getOperation().getDataDescriptionQueryIfAvailable() != null) {
                 block.setDescription(ontologyDescriptionGenerator.getSpannedDescriptionForOperation(sob.getOperation(), sob.getOperation().getDataDescriptionQueryIfAvailable()));
             } else {
-                block.setDescription(ontologyDescriptionGenerator.getSpannedDescriptionForOperationWithoutOntologyQuery(sob.getOperation()));
+                block.setDescription(ontologyDescriptionGenerator.getSpannedDescriptionForOperationTypesWithoutOntologyQuery(sob.getOperation()));
             }
         } else if (block instanceof SugiliteStartingBlock) {
           block.setDescription(Html.fromHtml("<b>START SCRIPT</b>"));

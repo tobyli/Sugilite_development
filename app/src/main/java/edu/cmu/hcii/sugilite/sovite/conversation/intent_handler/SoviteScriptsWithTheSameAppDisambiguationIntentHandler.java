@@ -108,7 +108,7 @@ public class SoviteScriptsWithTheSameAppDisambiguationIntentHandler implements P
 
     @Override
     public PumiceIntent detectIntentFromUtterance(PumiceDialogManager.PumiceUtterance utterance) {
-        String utteranceContent = utterance.getContent();
+        String utteranceContent = utterance.getContent().toString();
         if (utteranceContent != null && (utteranceContent.toLowerCase().contains("no"))) {
             return PumiceIntent.PARSE_CONFIRM_NEGATIVE;
         } else {

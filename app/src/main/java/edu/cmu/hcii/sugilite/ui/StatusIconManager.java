@@ -110,7 +110,7 @@ public class StatusIconManager {
         this.serviceStatusManager = ServiceStatusManager.getInstance(context);
         this.screenshotManager = SugiliteScreenshotManager.getInstance(sharedPreferences, sugiliteData);
         this.accessibilityManager = accessibilityManager;
-        variableHelper = new VariableHelper(sugiliteData.stringVariableMap);
+        variableHelper = new VariableHelper(sugiliteData.variableNameVariableValueMap);
         jsonProcessor = new SugiliteBlockJSONProcessor(context);
         descriptionGenerator = new ReadableDescriptionGenerator(context);
         random = new Random();

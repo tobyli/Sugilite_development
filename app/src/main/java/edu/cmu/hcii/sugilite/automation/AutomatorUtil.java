@@ -13,8 +13,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import edu.cmu.hcii.sugilite.model.variable.StringVariable;
 import edu.cmu.hcii.sugilite.model.variable.Variable;
+import edu.cmu.hcii.sugilite.model.variable.VariableValue;
 
 import static edu.cmu.hcii.sugilite.Const.HOME_SCREEN_PACKAGE_NAMES;
 
@@ -30,7 +30,11 @@ public class AutomatorUtil {
      */
     static private Set<String> homeScreenPackageNameSet = new HashSet<>(Arrays.asList(HOME_SCREEN_PACKAGE_NAMES));
 
-    static public void killPackage(String packageName, ActivityManager am){
+    public static boolean isHomeScreenPackage (String packageName) {
+        return homeScreenPackageNameSet.contains(packageName);
+    }
+
+    public static void killPackage(String packageName, ActivityManager am){
         //don't kill the home screen
         if(homeScreenPackageNameSet.contains(packageName)) {
             return;
@@ -159,15 +163,15 @@ public class AutomatorUtil {
         return retList;
     }
 
-    public static String textVariableParse (String text, Set<String> variableSet, Map<String, Variable> variableValueMap){
+    public static String textVariableParse (String text, Set<String> variableSet, Map<String, VariableValue> variableValueMap){
         if(variableSet == null || variableValueMap == null)
             return text;
         String currentText = new String(text);
-        for(Map.Entry<String, Variable> entry : variableValueMap.entrySet()){
+        for(Map.Entry<String, VariableValue> entry : variableValueMap.entrySet()){
             if(!variableSet.contains(entry.getKey()))
                 continue;
-            if(entry.getValue() instanceof StringVariable)
-                currentText = currentText.replace("@" + entry.getKey(), ((StringVariable) entry.getValue()).getValue());
+            if(entry.getValue().getVariableValue() instanceof String)
+                currentText = currentText.replace("[" + entry.getKey() +"]", (entry.getValue().getVariableValue().toString()));
         }
         return currentText;
     }

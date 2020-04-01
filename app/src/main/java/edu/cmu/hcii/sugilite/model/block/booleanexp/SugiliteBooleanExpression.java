@@ -143,9 +143,9 @@ public class SugiliteBooleanExpression implements Serializable {
             exp1 = split[1];
             exp2 = split[2];
 
-            VariableHelper variableHelper = new VariableHelper(sugiliteData.stringVariableMap);
-            expression1 = variableHelper.parse(expression1);
-            expression2 = variableHelper.parse(expression2);
+            VariableHelper variableHelper = new VariableHelper(sugiliteData.variableNameVariableValueMap);
+            expression1 = variableHelper.replaceVariableReferencesWithTheirValues(expression1);
+            expression2 = variableHelper.replaceVariableReferencesWithTheirValues(expression2);
 
             //need to check if want to annotate b/c if don't, might still be annotatable and mess things up. (ex.: (stringContains 100ml 0ml)
             // if annotated would produce expressions 100 and 0, while the user wants to compare expressions 100ml and 0ml)

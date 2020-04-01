@@ -17,8 +17,8 @@ import edu.cmu.hcii.sugilite.dao.SugiliteScriptFileDao;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptSQLDao;
 import edu.cmu.hcii.sugilite.model.NewScriptGeneralizer;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
-import edu.cmu.hcii.sugilite.model.variable.StringVariable;
 import edu.cmu.hcii.sugilite.model.variable.Variable;
+import edu.cmu.hcii.sugilite.model.variable.VariableValue;
 import edu.cmu.hcii.sugilite.pumice.PumiceDemonstrationUtil;
 import edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.PumiceUserExplainProcedureIntentHandler;
 import edu.cmu.hcii.sugilite.pumice.kb.PumiceProceduralKnowledge;
@@ -121,10 +121,10 @@ public class PumiceProcedureDemonstrationDialog {
 
         String parameterizedProcedureKnowledgeName = procedureKnowledgeName;
         String parameterizedProcedureKnowledgeUtterance = procedureKnowledgeName;
-        for (Variable defaultVariable : script.variableNameDefaultValueMap.values()) {
-            if (defaultVariable instanceof StringVariable) {
-                String defaultVariableString = ((StringVariable) defaultVariable).getValue();
-                parameterizedProcedureKnowledgeName = parameterizedProcedureKnowledgeName.toLowerCase().replace(defaultVariableString.toLowerCase(), "[" + defaultVariable.getName() + "]");
+        for (VariableValue defaultVariable : script.variableNameDefaultValueMap.values()) {
+            if (defaultVariable.getVariableValue() instanceof String) {
+                String defaultVariableString = (String) defaultVariable.getVariableValue();
+                parameterizedProcedureKnowledgeName = parameterizedProcedureKnowledgeName.toLowerCase().replace(defaultVariableString.toLowerCase(), "[" + defaultVariable.getVariableName() + "]");
                 parameterizedProcedureKnowledgeUtterance = parameterizedProcedureKnowledgeUtterance.toLowerCase().replace(defaultVariableString.toLowerCase(), "something");
             }
         }

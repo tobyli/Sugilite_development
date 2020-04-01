@@ -65,7 +65,7 @@ public class PumiceUserExplainValueIntentHandler implements PumiceUtteranceInten
             //dialogManager.sendAgentMessage("I have received your explanation: " + utterance.getTriggerContent(), true, false);
             //TODO: send out an VALUE_INSTRUCTION query to resolve the explanation
             //send out the server query
-            PumiceInstructionPacket pumiceInstructionPacket = new PumiceInstructionPacket(dialogManager.getPumiceKnowledgeManager(), "VALUE_INSTRUCTION", calendar.getTimeInMillis(), utterance.getContent(), parentKnowledgeName);
+            PumiceInstructionPacket pumiceInstructionPacket = new PumiceInstructionPacket(dialogManager.getPumiceKnowledgeManager(), "VALUE_INSTRUCTION", calendar.getTimeInMillis(), utterance.getContent().toString(), parentKnowledgeName);
             //dialogManager.sendAgentMessage("Sending out the server query below...", true, false);
             //dialogManager.sendAgentMessage(pumiceInstructionPacket.toString(), false, false);
             try {
@@ -79,7 +79,7 @@ public class PumiceUserExplainValueIntentHandler implements PumiceUtteranceInten
 
         else if (pumiceIntent.equals(PumiceIntent.DEFINE_VALUE_DEMONSTRATION)){
             //branch for when the user wants to DEMONSTRATE how to find out the value
-            PumiceValueDemonstrationDialog valueDemonstrationDialog = new PumiceValueDemonstrationDialog(context, parentKnowledgeName, utterance.getContent(), dialogManager.getSharedPreferences(), dialogManager.getSugiliteData(), dialogManager.getServiceStatusManager(), resolveValueQueryOperationSugiliteRelationType, this);
+            PumiceValueDemonstrationDialog valueDemonstrationDialog = new PumiceValueDemonstrationDialog(context, parentKnowledgeName, utterance.getContent().toString(), dialogManager.getSharedPreferences(), dialogManager.getSugiliteData(), dialogManager.getServiceStatusManager(), resolveValueQueryOperationSugiliteRelationType, this);
             dialogManager.runOnMainThread(new Runnable() {
                 @Override
                 public void run() {
@@ -97,7 +97,7 @@ public class PumiceUserExplainValueIntentHandler implements PumiceUtteranceInten
 
     @Override
     public PumiceIntent detectIntentFromUtterance(PumiceDialogManager.PumiceUtterance utterance) {
-        if (utterance.getContent().contains("demonstrate")){
+        if (utterance.getContent().toString().contains("demonstrate")){
             return PumiceIntent.DEFINE_VALUE_DEMONSTRATION;
         } else {
             return PumiceIntent.DEFINE_VALUE_EXPLANATION;

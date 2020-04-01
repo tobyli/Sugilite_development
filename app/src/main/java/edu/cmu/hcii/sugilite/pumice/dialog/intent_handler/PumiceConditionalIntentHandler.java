@@ -52,7 +52,7 @@ public class PumiceConditionalIntentHandler implements PumiceUtteranceIntentHand
 
     @Override
     public PumiceIntent detectIntentFromUtterance(PumiceDialogManager.PumiceUtterance utterance) {
-        String text = utterance.getContent().toLowerCase();
+        String text = utterance.getContent().toString().toLowerCase();
         System.out.println("last " + lastIntent);
         if(lastIntent == PumiceIntent.TELL_ELSE) {
             return PumiceIntent.ADD_TELL_ELSE;
@@ -66,10 +66,10 @@ public class PumiceConditionalIntentHandler implements PumiceUtteranceIntentHand
         if(text.contains("explain") && lastIntent == PumiceIntent.TELL_IF) {
             return PumiceIntent.ADD_TELL_IF;
         }
-        if(lastIntent == PumiceIntent.CHECKING_LOC && lastUtterance.getContent().contains("no")) {
+        if(lastIntent == PumiceIntent.CHECKING_LOC && lastUtterance.getContent().toString().contains("no")) {
             return PumiceIntent.TELL_IF;
         }
-        if(lastIntent == PumiceIntent.CHECKING_LOC0 && lastUtterance.getContent().contains("yes")) {
+        if(lastIntent == PumiceIntent.CHECKING_LOC0 && lastUtterance.getContent().toString().contains("yes")) {
             return PumiceIntent.CHECKING_LOC;
         }
         if((lastIntent == PumiceIntent.FIX_SCRIPT2 && !moving)) {
@@ -78,10 +78,10 @@ public class PumiceConditionalIntentHandler implements PumiceUtteranceIntentHand
         if(lastIntent == PumiceIntent.FIX_SCRIPT || (moving && text.contains("yes") && lastIntent == PumiceIntent.MOVE_STEP)) {
             return PumiceIntent.FIX_SCRIPT2;
         }
-        if(lastIntent == PumiceIntent.RUN_THROUGH2 && (utterance.getContent().contains("pause") || utterance.getContent().contains("no"))) {
+        if(lastIntent == PumiceIntent.RUN_THROUGH2 && (utterance.getContent().toString().contains("pause") || utterance.getContent().toString().contains("no"))) {
             return PumiceIntent.FIX_SCRIPT;
         }
-        if(lastIntent == PumiceIntent.RUN_THROUGH && lastUtterance.getContent().contains("yes")) {
+        if(lastIntent == PumiceIntent.RUN_THROUGH && lastUtterance.getContent().toString().contains("yes")) {
             return PumiceIntent.RUN_THROUGH2;
         }
         if(lastIntent == PumiceIntent.ADD_CONDITIONAL_2 && text.contains("yes")) {
@@ -93,7 +93,7 @@ public class PumiceConditionalIntentHandler implements PumiceUtteranceIntentHand
         if(lastIntent == PumiceIntent.GET_SCOPE) {
             return PumiceIntent.ADD_ELSE;
         }
-        if(lastUtterance != null && lastUtterance.getContent().contains("yes") && lastIntent == PumiceIntent.CHECKING_LOC) {
+        if(lastUtterance != null && lastUtterance.getContent().toString().contains("yes") && lastIntent == PumiceIntent.CHECKING_LOC) {
             return PumiceIntent.GET_SCOPE;
         }
         if((text.contains("before") || text.contains("after")) && lastIntent == PumiceIntent.ADD_TO_SCRIPT) {
@@ -102,13 +102,13 @@ public class PumiceConditionalIntentHandler implements PumiceUtteranceIntentHand
         if(text.contains("if") || text.contains("when") || text.contains("unless")) { //will need more
             return PumiceIntent.ADD_CONDITIONAL;
         }
-        if(((text.contains("yes") || text.contains("no")) && (lastIntent == PumiceIntent.SCRIPT_ADD_TELL_IF || lastIntent == PumiceIntent.SCRIPT_ADD_TELL_ELSE)) || (lastIntent == PumiceIntent.ADD_ELSE && lastUtterance.getContent().contains("no"))) {
+        if(((text.contains("yes") || text.contains("no")) && (lastIntent == PumiceIntent.SCRIPT_ADD_TELL_IF || lastIntent == PumiceIntent.SCRIPT_ADD_TELL_ELSE)) || (lastIntent == PumiceIntent.ADD_ELSE && lastUtterance.getContent().toString().contains("no"))) {
             return PumiceIntent.RUN_THROUGH;
         }
         if(((text.contains("yes") || text.contains("no")) && (lastIntent == PumiceIntent.ADD_TO_SCRIPT) || (lastIntent == PumiceIntent.MOVE_STEP) && text.contains("yes"))) {
             return PumiceIntent.CHECKING_LOC0;
         }
-        if(lastIntent == PumiceIntent.CHECKING_LOC0 || moving || ((text.contains("no") && lastIntent == PumiceIntent.ADD_CONDITIONAL_2) || ((lastIntent == PumiceIntent.CHECKING_LOC2) && lastUtterance.getContent().contains("no"))) || (lastIntent == PumiceIntent.MOVE_STEP && !lastUtterance.getContent().matches(".*\\d+.*")) || (lastIntent == PumiceIntent.MOVE_STEP && text.contains("no"))) {
+        if(lastIntent == PumiceIntent.CHECKING_LOC0 || moving || ((text.contains("no") && lastIntent == PumiceIntent.ADD_CONDITIONAL_2) || ((lastIntent == PumiceIntent.CHECKING_LOC2) && lastUtterance.getContent().toString().contains("no"))) || (lastIntent == PumiceIntent.MOVE_STEP && !lastUtterance.getContent().toString().matches(".*\\d+.*")) || (lastIntent == PumiceIntent.MOVE_STEP && text.contains("no"))) {
             return PumiceIntent.MOVE_STEP;
         }
         if((text.contains("yes")) || text.contains("no")) {

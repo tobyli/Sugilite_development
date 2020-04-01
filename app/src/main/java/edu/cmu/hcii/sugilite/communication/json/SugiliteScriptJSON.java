@@ -4,13 +4,14 @@ import android.content.Context;
 
 import java.util.Calendar;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
 import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
-import edu.cmu.hcii.sugilite.model.variable.StringVariable;
 import edu.cmu.hcii.sugilite.model.variable.Variable;
+import edu.cmu.hcii.sugilite.model.variable.VariableValue;
 import edu.cmu.hcii.sugilite.pumice.PumiceDemonstrationUtil;
 
 /**
@@ -23,14 +24,17 @@ public class SugiliteScriptJSON {
         variableDefaultValues = new HashMap<>();
         variableAlternativeValues = new HashMap<>();
 
-        for(Map.Entry<String, Variable> entry : startingBlock.variableNameDefaultValueMap.entrySet()){
-            if(entry.getValue() instanceof StringVariable)
-                this.variableDefaultValues.put(entry.getKey(), ((StringVariable) entry.getValue()).getValue());
+        for(Map.Entry<String, VariableValue> entry : startingBlock.variableNameDefaultValueMap.entrySet()){
+            if(entry.getValue().getVariableValue() instanceof String)
+                this.variableDefaultValues.put(entry.getKey(), ((String) entry.getValue().getVariableValue()));
         }
 
-        for(Map.Entry<String, Set<String>> entry : startingBlock.variableNameAlternativeValueMap.entrySet()){
-            if(entry.getValue() != null)
-                this.variableAlternativeValues.put(entry.getKey(), entry.getValue());
+        for(Map.Entry<String, Set<VariableValue>> entry : startingBlock.variableNameAlternativeValueMap.entrySet()){
+            if(entry.getValue() != null) {
+                Set<String> alternativeValueStringSet = new HashSet<>();
+                entry.getValue().forEach(variableValue -> alternativeValueStringSet.add(variableValue.getVariableValue().toString()));
+                this.variableAlternativeValues.put(entry.getKey(), alternativeValueStringSet);
+            }
         }
 
         if(startingBlock.getNextBlockToRun() != null && startingBlock.getNextBlockToRun() instanceof SugiliteOperationBlock)

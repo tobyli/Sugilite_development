@@ -1,8 +1,7 @@
 package edu.cmu.hcii.sugilite.sovite.conversation.intent_handler;
 
 import android.app.Activity;
-import android.graphics.drawable.Drawable;
-import android.widget.ImageView;
+import android.view.View;
 
 import java.util.List;
 
@@ -15,15 +14,15 @@ import edu.cmu.hcii.sugilite.model.NewScriptGeneralizer;
 import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.model.operation.binary.SugiliteGetProcedureOperation;
-import edu.cmu.hcii.sugilite.model.variable.StringVariable;
-import edu.cmu.hcii.sugilite.model.variable.Variable;
+import edu.cmu.hcii.sugilite.model.variable.VariableValue;
 import edu.cmu.hcii.sugilite.pumice.PumiceDemonstrationUtil;
 import edu.cmu.hcii.sugilite.pumice.dialog.PumiceDialogManager;
 import edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.PumiceUtteranceIntentHandler;
 import edu.cmu.hcii.sugilite.pumice.kb.PumiceProceduralKnowledge;
-import edu.cmu.hcii.sugilite.sovite.ScriptVisualThumbnailManager;
+import edu.cmu.hcii.sugilite.sovite.visual.ScriptVisualThumbnailManager;
 import edu.cmu.hcii.sugilite.sovite.conversation.SoviteReturnValueCallbackInterface;
 import edu.cmu.hcii.sugilite.sovite.conversation.dialog.SoviteNewScriptDemonstrationDialog;
+import edu.cmu.hcii.sugilite.sovite.visual.SoviteVariableUpdateCallback;
 
 import static edu.cmu.hcii.sugilite.Const.SQL_SCRIPT_DAO;
 
@@ -32,7 +31,7 @@ import static edu.cmu.hcii.sugilite.Const.SQL_SCRIPT_DAO;
  * @date 3/13/20
  * @time 1:42 PM
  */
-public class SoviteScriptMatchedFromScreenIntentHandler implements PumiceUtteranceIntentHandler {
+public class SoviteScriptMatchedFromScreenIntentHandler implements PumiceUtteranceIntentHandler, SoviteVariableUpdateCallback {
     private Activity context;
     private String appPackageName;
     private String appReadableName;
@@ -82,11 +81,12 @@ public class SoviteScriptMatchedFromScreenIntentHandler implements PumiceUtteran
             SugiliteOperationBlock sugiliteOperationBlock = new SugiliteOperationBlock();
             sugiliteOperationBlock.setOperation(sugiliteGetProcedureOperation);
             //test sending an image
-            Drawable drawable = scriptVisualThumbnailManager.getVisualThumbnailForScript(sugiliteOperationBlock, originalUtterance);
-            if (drawable != null) {
-                ImageView imageView = new ImageView(context);
-                imageView.setImageDrawable(drawable);//SHOULD BE R.mipmap.demo_card
-                pumiceDialogManager.sendAgentViewMessage(imageView, "SCREENSHOT:" + topMatchedKnowledge.getProcedureDescription(pumiceDialogManager.getPumiceKnowledgeManager(), false), false, false);
+
+            List<View> screenshotViews = scriptVisualThumbnailManager.getVisualThumbnailViewsForBlock(sugiliteOperationBlock, this, this.pumiceDialogManager);
+            if (screenshotViews != null) {
+                for (View screenshotView : screenshotViews) {
+                    pumiceDialogManager.sendAgentViewMessage(screenshotView, "SCREENSHOT:" + topMatchedKnowledge.getProcedureDescription(pumiceDialogManager.getPumiceKnowledgeManager(), false), false, false);
+                }
             }
             pumiceDialogManager.sendAgentMessage("Is this what you want to do?", true, true);
         } else {
@@ -98,7 +98,7 @@ public class SoviteScriptMatchedFromScreenIntentHandler implements PumiceUtteran
 
     @Override
     public PumiceUtteranceIntentHandler.PumiceIntent detectIntentFromUtterance(PumiceDialogManager.PumiceUtterance utterance) {
-        String utteranceContent = utterance.getContent();
+        String utteranceContent = utterance.getContent().toString();
         if (utteranceContent != null && (utteranceContent.toLowerCase().contains("yes") || utteranceContent.toLowerCase().toLowerCase().contains("ok") || utteranceContent.toLowerCase().contains("yeah"))) {
             return PumiceUtteranceIntentHandler.PumiceIntent.EXECUTION_CONFIRM_POSITIVE;
         } else if (utteranceContent != null && (utteranceContent.toLowerCase().contains("no"))) {
@@ -130,17 +130,22 @@ public class SoviteScriptMatchedFromScreenIntentHandler implements PumiceUtteran
         this.context = context;
     }
 
+    @Override
+    public void onGetProcedureOperationUpdated(SugiliteGetProcedureOperation sugiliteGetProcedureOperation, VariableValue changedNewVariableValue) {
+        //TODO: implement
+    }
+
     public void onDemonstrationReady(SugiliteStartingBlock script) {
         //generalize the script
         newScriptGeneralizer.extractParameters(script, PumiceDemonstrationUtil.removeScriptExtension(script.getScriptName()));
 
         String parameterizedProcedureKnowledgeName = originalUtterance;
         String parameterizedProcedureKnowledgeUtterance = originalUtterance;
-        for (Variable defaultVariable : script.variableNameDefaultValueMap.values()) {
-            if (defaultVariable instanceof StringVariable) {
-                String defaultVariableString = ((StringVariable) defaultVariable).getValue();
-                parameterizedProcedureKnowledgeName = parameterizedProcedureKnowledgeName.toLowerCase().replace(defaultVariableString.toLowerCase(), "[" + defaultVariable.getName() + "]");
-                parameterizedProcedureKnowledgeUtterance = parameterizedProcedureKnowledgeName.toLowerCase().replace(defaultVariableString.toLowerCase(), "something");
+        for (VariableValue defaultVariable : script.variableNameDefaultValueMap.values()) {
+            if (defaultVariable.getVariableValue() instanceof String) {
+                String defaultVariableString = (String) defaultVariable.getVariableValue();
+                parameterizedProcedureKnowledgeName = parameterizedProcedureKnowledgeName.toLowerCase().replace(defaultVariableString.toLowerCase(), "[" + defaultVariable.getVariableName() + "]");
+                parameterizedProcedureKnowledgeUtterance = parameterizedProcedureKnowledgeName.toLowerCase().replace(defaultVariableString.toLowerCase(), " ");
             }
         }
 

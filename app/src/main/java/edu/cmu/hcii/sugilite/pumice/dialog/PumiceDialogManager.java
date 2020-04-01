@@ -4,6 +4,8 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
+import android.text.SpannableString;
+import android.text.Spanned;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.LinearLayout;
@@ -170,6 +172,16 @@ public class PumiceDialogManager{
      * @param requireUserResponse
      */
     public void sendAgentMessage(String message, boolean isSpokenMessage, boolean requireUserResponse){
+        sendAgentMessage(new SpannableString(message), isSpokenMessage, requireUserResponse);
+    }
+
+    /**
+     * send a message from the agent that contains a Spanned -- add the alttext to the utterance history
+     * @param message
+     * @param isSpokenMessage
+     * @param requireUserResponse
+     */
+    public void sendAgentMessage(CharSequence message, boolean isSpokenMessage, boolean requireUserResponse){
         runOnMainThread(new Runnable() {
             @Override
             public void run() {
@@ -179,10 +191,11 @@ public class PumiceDialogManager{
                 PumiceUtterance utterance = new PumiceUtterance(Sender.AGENT, message, Calendar.getInstance().getTimeInMillis(), isSpokenMessage, requireUserResponse);
                 pumiceDialogState.getUtteranceHistory().add(utterance);
                 pumiceDialogView.addMessage(utterance);
-                handleSpeakingAndUserResponse(message, isSpokenMessage, requireUserResponse);
+                handleSpeakingAndUserResponse(message.toString(), isSpokenMessage, requireUserResponse);
             }
         });
     }
+
     public void revertToLastState(){
         if(pumiceDialogState.getPreviousState() != null && pumiceDialogState.getPreviousState().getPreviousState() != null) {
             revertToState(pumiceDialogState.getPreviousState().getPreviousState());
@@ -295,12 +308,12 @@ public class PumiceDialogManager{
 
     public class PumiceUtterance {
         private Sender sender;
-        private String content;
+        private CharSequence content;
         private long timeStamp;
         private boolean requireUserResponse;
         private boolean isSpoken;
 
-        public String getContent() {
+        public CharSequence getContent() {
             return content;
         }
 
@@ -323,6 +336,14 @@ public class PumiceDialogManager{
         //if set to true, this utterance will trigger a recording of user input
 
         public PumiceUtterance(Sender sender, String content, long timeStamp, boolean isSpoken, boolean requireUserResponse){
+            this.sender = sender;
+            this.content = new SpannableString(content);
+            this.timeStamp = timeStamp;
+            this.isSpoken = isSpoken;
+            this.requireUserResponse = requireUserResponse;
+        }
+
+        public PumiceUtterance(Sender sender, CharSequence content, long timeStamp, boolean isSpoken, boolean requireUserResponse){
             this.sender = sender;
             this.content = content;
             this.timeStamp = timeStamp;

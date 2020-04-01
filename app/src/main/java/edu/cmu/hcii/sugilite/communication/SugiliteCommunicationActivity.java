@@ -30,7 +30,6 @@ import edu.cmu.hcii.sugilite.dao.SugiliteAppVocabularyDao;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
 import edu.cmu.hcii.sugilite.dao.SugiliteTrackingDao;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
-import edu.cmu.hcii.sugilite.model.variable.StringVariable;
 import edu.cmu.hcii.sugilite.model.variable.Variable;
 
 import static edu.cmu.hcii.sugilite.Const.SCRIPT_DELAY;

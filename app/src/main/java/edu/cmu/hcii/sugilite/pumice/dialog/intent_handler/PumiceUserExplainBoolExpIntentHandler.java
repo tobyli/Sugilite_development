@@ -62,7 +62,7 @@ public class PumiceUserExplainBoolExpIntentHandler implements PumiceUtteranceInt
             //dialogManager.sendAgentMessage("I have received your explanation: " + utterance.getTriggerContent(), true, false);
 
             //send out the server query
-            PumiceInstructionPacket pumiceInstructionPacket = new PumiceInstructionPacket(dialogManager.getPumiceKnowledgeManager(), "BOOL_EXP_INSTRUCTION", calendar.getTimeInMillis(), utterance.getContent(), parentKnowledgeName);
+            PumiceInstructionPacket pumiceInstructionPacket = new PumiceInstructionPacket(dialogManager.getPumiceKnowledgeManager(), "BOOL_EXP_INSTRUCTION", calendar.getTimeInMillis(), utterance.getContent().toString(), parentKnowledgeName);
             //dialogManager.sendAgentMessage("Sending out the server query below...", true, false);
             //dialogManager.sendAgentMessage(pumiceInstructionPacket.toString(), false, false);
             try {

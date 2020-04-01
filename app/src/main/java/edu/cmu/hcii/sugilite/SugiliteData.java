@@ -6,7 +6,6 @@ import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.media.projection.MediaProjectionManager;
 import android.os.Handler;
@@ -38,10 +37,9 @@ import edu.cmu.hcii.sugilite.model.Node;
 import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
-import edu.cmu.hcii.sugilite.model.variable.Variable;
+import edu.cmu.hcii.sugilite.model.variable.VariableValue;
 import edu.cmu.hcii.sugilite.ontology.SugiliteEntity;
 import edu.cmu.hcii.sugilite.ontology.SugiliteRelation;
-import edu.cmu.hcii.sugilite.ontology.SugiliteTriple;
 import edu.cmu.hcii.sugilite.ontology.UISnapshot;
 import edu.cmu.hcii.sugilite.pumice.dialog.PumiceDialogManager;
 import edu.cmu.hcii.sugilite.recording.RecordingPopUpDialog;
@@ -52,9 +50,6 @@ import edu.cmu.hcii.sugilite.ui.StatusIconManager;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.VerbalInstructionIconManager;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.speech.GoogleCloudSpeechService;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.speech.GoogleVoiceRecorder;
-import edu.cmu.hcii.sugilite.verbal_instruction_demo.speech.SugiliteAndroidAPIVoiceRecognitionListener;
-import edu.cmu.hcii.sugilite.verbal_instruction_demo.speech.SugiliteGoogleCloudVoiceRecognitionListener;
-import edu.cmu.hcii.sugilite.verbal_instruction_demo.speech.SugiliteVoiceRecognitionListener;
 
 import static edu.cmu.hcii.sugilite.Const.OVERLAY_TYPE;
 
@@ -84,7 +79,7 @@ public class SugiliteData extends Application {
 
     public Queue<Map.Entry<String, Long>> NodeToIgnoreRecordingBoundsInScreenTimeStampQueue = new ArrayDeque<>();
 
-    public Map<String, Variable> stringVariableMap = new HashMap<>();
+    public Map<String, VariableValue> variableNameVariableValueMap = new HashMap<>();
     public Set<String> registeredBroadcastingListener = new HashSet<>();
     public SugiliteBlock afterExecutionOperation = null;
     public Runnable afterExecutionRunnable = null;
@@ -229,7 +224,7 @@ public class SugiliteData extends Application {
      */
     public synchronized void initiateScriptRecording(String scriptName, Runnable afterRecordingCallback){
         this.instructionQueue.clear();
-        this.stringVariableMap.clear();
+        this.variableNameVariableValueMap.clear();
         this.setScriptHead(new SugiliteStartingBlock(scriptName));
         this.setCurrentScriptBlock(scriptHead);
         this.afterRecordingCallback = afterRecordingCallback;

@@ -25,7 +25,7 @@ package edu.cmu.hcii.sugilite.communication;
         import edu.cmu.hcii.sugilite.dao.SugiliteScriptSQLDao;
         import edu.cmu.hcii.sugilite.dao.SugiliteTrackingDao;
         import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
-        import edu.cmu.hcii.sugilite.model.variable.StringVariable;
+        import edu.cmu.hcii.sugilite.model.variable.VariableValue;
         import edu.cmu.hcii.sugilite.pumice.PumiceDemonstrationUtil;
 
         import static edu.cmu.hcii.sugilite.Const.OVERLAY_TYPE;
@@ -545,13 +545,13 @@ public class SugiliteCommunicationHelper {
             dialog.show();
         }
         else {
-            sugiliteData.stringVariableMap.putAll(script.variableNameDefaultValueMap);
+            sugiliteData.variableNameVariableValueMap.putAll(script.variableNameDefaultValueMap);
 
             if(variables != null){
                 //put in the values for the variables
                 for(VariableWrapper variable: variables){
-                    if(sugiliteData.stringVariableMap.containsKey(variable.name)){
-                        sugiliteData.stringVariableMap.put(variable.name, new StringVariable(variable.name, variable.value));
+                    if(sugiliteData.variableNameVariableValueMap.containsKey(variable.name)){
+                        sugiliteData.variableNameVariableValueMap.put(variable.name, new VariableValue<>(variable.name, variable.value));
                     }
                 }
             }

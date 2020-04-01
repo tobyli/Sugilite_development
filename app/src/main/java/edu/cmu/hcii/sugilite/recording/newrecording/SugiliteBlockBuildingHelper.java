@@ -26,6 +26,7 @@ import java.util.Map;
 import java.util.Set;
 
 import edu.cmu.hcii.sugilite.Const;
+import edu.cmu.hcii.sugilite.automation.AutomatorUtil;
 import edu.cmu.hcii.sugilite.model.Node;
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
@@ -458,7 +459,6 @@ public class SugiliteBlockBuildingHelper {
             if (childTexts != null && childTexts.size() > 0) {
                 int count = 0;
                 double score = 2.01 + (((double) (count++)) / (double) childTexts.size());
-                Set<String> homeScreenPackageNames = new HashSet<>(Arrays.asList(Const.HOME_SCREEN_PACKAGE_NAMES));
                 //TODO: in case of multiple childText queries, get all possible combinations
 
                 for (String childText : childTexts) {
@@ -472,7 +472,7 @@ public class SugiliteBlockBuildingHelper {
                         clonedQuery.addSubQuery(subQuery);
                         double newScore = score;
                         if (getValueIfOnlyOneObject(uiSnapshot.getStringValuesForObjectEntityAndRelation(targetEntity, SugiliteRelation.HAS_PACKAGE_NAME)) != null
-                                && homeScreenPackageNames.contains(getValueIfOnlyOneObject(uiSnapshot.getStringValuesForObjectEntityAndRelation(targetEntity, SugiliteRelation.HAS_PACKAGE_NAME)))) {
+                                && AutomatorUtil.isHomeScreenPackage(getValueIfOnlyOneObject(uiSnapshot.getStringValuesForObjectEntityAndRelation(targetEntity, SugiliteRelation.HAS_PACKAGE_NAME)))) {
                             newScore = score - 1;
                         }
                         queries.add(Pair.create(clonedQuery, newScore));

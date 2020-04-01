@@ -277,7 +277,7 @@ public class OntologyDescriptionGenerator {
         return number;
     }
 
-    static Spanned getColoredSpannedTextFromMessage(String message, String color) {
+    public static Spanned getColoredSpannedTextFromMessage(String message, String color) {
         return Html.fromHtml(String.format("<font color=\"%s\"><b>%s</b></font>", color, message));
     }
 

@@ -11,7 +11,7 @@ import java.util.List;
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.model.value.SugiliteValue;
-import edu.cmu.hcii.sugilite.model.variable.StringVariable;
+import edu.cmu.hcii.sugilite.model.variable.VariableValue;
 import edu.cmu.hcii.sugilite.ontology.OntologyQuery;
 import edu.cmu.hcii.sugilite.pumice.PumiceDemonstrationUtil;
 import edu.cmu.hcii.sugilite.pumice.dao.PumiceKnowledgeDao;
@@ -36,7 +36,7 @@ public class SugiliteGetProcedureOperation extends SugiliteGetOperation<String> 
         super();
         this.variableValues = new ArrayList<>();
     }
-    private List<StringVariable> variableValues;
+    private List<VariableValue<String>> variableValues;
 
 
     public SugiliteGetProcedureOperation(String name){
@@ -75,14 +75,14 @@ public class SugiliteGetProcedureOperation extends SugiliteGetOperation<String> 
     /**
      * @return the variable values of the get procedure operation
      */
-    public List<StringVariable> getVariableValues() {
+    public List<VariableValue<String>> getVariableValues() {
         return variableValues;
     }
 
     @Override
     public String getPumiceUserReadableDecription() {
         List<String> parameterStringList = new ArrayList<>();
-        variableValues.forEach(stringVariable -> parameterStringList.add(String.format("the value of %s is %s", addQuoteToTokenIfNeeded(stringVariable.getName()), addQuoteToTokenIfNeeded(stringVariable.getValue()))));
+        variableValues.forEach(stringVariable -> parameterStringList.add(String.format("the value of %s is %s", addQuoteToTokenIfNeeded(stringVariable.getVariableName()), addQuoteToTokenIfNeeded(stringVariable.getVariableValue()))));
         String parameters = PumiceDemonstrationUtil.joinListGrammatically(parameterStringList, "and");
         if (variableValues.size() > 0) {
             return String.format("perform the action \"%s\", where %s", getName(), parameters);
@@ -93,8 +93,8 @@ public class SugiliteGetProcedureOperation extends SugiliteGetOperation<String> 
 
     public String getParameterValueReplacedDescription() {
         String description = getName();
-        for (StringVariable stringVariable : variableValues) {
-            description = description.replace("[" + stringVariable.getName() + "]", "[" + stringVariable.getValue() + "]");
+        for (VariableValue<String> stringVariable : variableValues) {
+            description = description.replace("[" + stringVariable.getVariableName() + "]", "[" + stringVariable.getVariableValue() + "]");
         }
         return description;
     }
@@ -102,7 +102,7 @@ public class SugiliteGetProcedureOperation extends SugiliteGetOperation<String> 
     @Override
     public String toString() {
         List<String> parameterStringList = new ArrayList<>();
-        variableValues.forEach(stringVariable -> parameterStringList.add(addQuoteToTokenIfNeeded((String.format("(call set_param %s %s)", addQuoteToTokenIfNeeded(stringVariable.getName()), addQuoteToTokenIfNeeded(stringVariable.getValue()))))));
+        variableValues.forEach(stringVariable -> parameterStringList.add(addQuoteToTokenIfNeeded((String.format("(call set_param %s %s)", addQuoteToTokenIfNeeded(stringVariable.getVariableName()), addQuoteToTokenIfNeeded(stringVariable.getVariableValue()))))));
         String parameters = StringUtils.join(parameterStringList, " ");
         if (variableValues.size() > 0) {
             return "(" + "call get " + addQuoteToTokenIfNeeded(getParameter0()) + " " + addQuoteToTokenIfNeeded(getParameter1()) + " " + parameters + ")";

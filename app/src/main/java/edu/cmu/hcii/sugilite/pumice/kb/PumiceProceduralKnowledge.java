@@ -18,15 +18,13 @@ import java.util.Map;
 import java.util.Set;
 
 import edu.cmu.hcii.sugilite.SugiliteData;
+import edu.cmu.hcii.sugilite.automation.AutomatorUtil;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
-import edu.cmu.hcii.sugilite.model.variable.StringVariable;
 import edu.cmu.hcii.sugilite.model.variable.Variable;
+import edu.cmu.hcii.sugilite.model.variable.VariableValue;
 import edu.cmu.hcii.sugilite.pumice.PumiceDemonstrationUtil;
 import edu.cmu.hcii.sugilite.pumice.communication.SkipPumiceJSONSerialization;
 import edu.cmu.hcii.sugilite.sovite.SoviteAppNameAppInfoManager;
-
-import static edu.cmu.hcii.sugilite.Const.HOME_SCREEN_PACKAGE_NAMES;
-
 /**
  * @author toby
  * @date 10/29/18
@@ -99,9 +97,8 @@ public class PumiceProceduralKnowledge implements Serializable {
 
         //populate involvedAppNames
         Set<String> involvedAppPackageNames = new HashSet<>();
-        Set<String> homeScreenPackageNameSet = new HashSet<>(Arrays.asList(HOME_SCREEN_PACKAGE_NAMES));
         for(String packageName : startingBlock.relevantPackages){
-            if (! homeScreenPackageNameSet.contains(packageName)){
+            if (!AutomatorUtil.isHomeScreenPackage(packageName)){
                 involvedAppPackageNames.add(packageName);
             }
         }
@@ -113,14 +110,17 @@ public class PumiceProceduralKnowledge implements Serializable {
         }
         //populate parameterNameParameterMap
         if(startingBlock.variableNameDefaultValueMap != null) {
-            for (Map.Entry<String, Variable> variableNameVariable : startingBlock.variableNameDefaultValueMap.entrySet()) {
-                if (variableNameVariable.getValue().type == Variable.USER_INPUT && variableNameVariable.getValue() instanceof StringVariable){
+            for (Map.Entry<String, Variable> variableNameVariableObject : startingBlock.variableNameVariableObjectMap.entrySet()) {
+                if (variableNameVariableObject.getValue().getVariableType() == Variable.USER_INPUT){
                     //only deal with USER_INPUT type of parameters
-                    String parameterName = variableNameVariable.getValue().getName();
-                    String defaultValue = ((StringVariable)variableNameVariable.getValue()).getValue();
+
+                    VariableValue defaultValueObject = startingBlock.variableNameDefaultValueMap.get(variableNameVariableObject.getKey());
+                    String parameterName = defaultValueObject.getVariableName();
+                    String defaultValue = defaultValueObject.getVariableValue().toString();
                     List<String> alternativeValues = new ArrayList<>();
                     if (startingBlock.variableNameAlternativeValueMap.containsKey(parameterName)){
-                        alternativeValues.addAll(startingBlock.variableNameAlternativeValueMap.get(parameterName));
+                        Set<VariableValue> alternativeValueObjcets = startingBlock.variableNameAlternativeValueMap.get(parameterName);
+                        alternativeValueObjcets.forEach(alternativeValue -> alternativeValues.add(alternativeValue.getVariableValue().toString()));
                     }
                     parameterNameParameterMap.put(parameterName, new PumiceProceduralKnowledgeParameter(parameterName, defaultValue, alternativeValues));
                 }

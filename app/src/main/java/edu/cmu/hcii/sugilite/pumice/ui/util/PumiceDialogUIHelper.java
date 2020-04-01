@@ -2,7 +2,9 @@ package edu.cmu.hcii.sugilite.pumice.ui.util;
 
 import android.content.Context;
 import android.graphics.Color;
+import android.text.method.LinkMovementMethod;
 import android.util.DisplayMetrics;
+import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
@@ -40,49 +42,55 @@ public class PumiceDialogUIHelper {
         RelativeLayout relativeLayout = new RelativeLayout(context);
         //linearLayout.setOrientation(LinearLayout.HORIZONTAL);
 
-        ImageView imageView = new ImageView(context);
-        imageView.setMaxWidth(convertDpToPixel(48));
-        imageView.setMaxHeight(convertDpToPixel(48));
-        imageView.setLayoutParams(new LinearLayout.LayoutParams(convertDpToPixel(48), convertDpToPixel(48)));
-        imageView.setAdjustViewBounds(true);
+        ImageView avatarImageView = new ImageView(context);
+        avatarImageView.setMaxWidth(convertDpToPixel(48));
+        avatarImageView.setMaxHeight(convertDpToPixel(48));
+        avatarImageView.setLayoutParams(new LinearLayout.LayoutParams(convertDpToPixel(48), convertDpToPixel(48)));
+        avatarImageView.setAdjustViewBounds(true);
 
         RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         params.setMargins(convertDpToPixel(8), convertDpToPixel(8), convertDpToPixel(8), convertDpToPixel(8));
 
         //set the gravity of text based on the sender
         if (sender == PumiceDialogManager.Sender.AGENT) {
-            imageView.setPadding(convertDpToPixel(0), convertDpToPixel(0), convertDpToPixel(8), convertDpToPixel(0));
-            imageView.setImageDrawable(context.getResources().getDrawable(R.mipmap.bot_avatar));//SHOULD BE R.mipmap.bot_avatar
-            relativeLayout.addView(imageView, 0);
+            avatarImageView.setPadding(convertDpToPixel(0), convertDpToPixel(0), convertDpToPixel(8), convertDpToPixel(0));
+            avatarImageView.setImageDrawable(context.getResources().getDrawable(R.mipmap.bot_avatar));//SHOULD BE R.mipmap.bot_avatar
+            relativeLayout.addView(avatarImageView, 0);
             relativeLayout.addView(contentView, 1);
-            imageView.setId(View.generateViewId());
+            avatarImageView.setId(View.generateViewId());
             contentView.setId(View.generateViewId());
 
-            RelativeLayout.LayoutParams imageParams = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-            imageParams.addRule(RelativeLayout.ALIGN_PARENT_LEFT);
+            RelativeLayout.LayoutParams avatarImageParams = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            avatarImageParams.addRule(RelativeLayout.ALIGN_PARENT_LEFT);
+            avatarImageView.setLayoutParams(avatarImageParams);
 
             RelativeLayout.LayoutParams contentParams = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-            contentParams.addRule(RelativeLayout.RIGHT_OF, imageView.getId());
+            contentParams.addRule(RelativeLayout.ALIGN_PARENT_TOP);
+            contentParams.addRule(RelativeLayout.RIGHT_OF, avatarImageView.getId());
             contentView.setLayoutParams(contentParams);
+            contentView.setForegroundGravity(Gravity.TOP | Gravity.LEFT);
 
-            imageView.setLayoutParams(imageParams);
+
+
 
         } else if (sender == PumiceDialogManager.Sender.USER) {
-            imageView.setPadding(convertDpToPixel(8), convertDpToPixel(0), convertDpToPixel(0), convertDpToPixel(0));
-            imageView.setImageDrawable(context.getResources().getDrawable(R.mipmap.user_avatar));
-            relativeLayout.addView(imageView, 0);
+            avatarImageView.setPadding(convertDpToPixel(8), convertDpToPixel(0), convertDpToPixel(0), convertDpToPixel(0));
+            avatarImageView.setImageDrawable(context.getResources().getDrawable(R.mipmap.user_avatar));
+            relativeLayout.addView(avatarImageView, 0);
             relativeLayout.addView(contentView, 1);
-            imageView.setId(View.generateViewId());
+            avatarImageView.setId(View.generateViewId());
             contentView.setId(View.generateViewId());
 
-            RelativeLayout.LayoutParams imageParams = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-            imageParams.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
+            RelativeLayout.LayoutParams avatarImageParams = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            avatarImageParams.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
+            avatarImageView.setLayoutParams(avatarImageParams);
 
             RelativeLayout.LayoutParams contentParams = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-            contentParams.addRule(RelativeLayout.LEFT_OF, imageView.getId());
+            contentParams.addRule(RelativeLayout.ALIGN_PARENT_TOP);
+            contentParams.addRule(RelativeLayout.LEFT_OF, avatarImageView.getId());
             contentView.setLayoutParams(contentParams);
+            contentView.setForegroundGravity(Gravity.TOP | Gravity.LEFT);
 
-            imageView.setLayoutParams(imageParams);
         }
         relativeLayout.setLayoutParams(params);
 
@@ -96,6 +104,7 @@ public class PumiceDialogUIHelper {
         TextView textView = new TextView(context);
         textView.setText(utterance.getContent());
         textView.setTextSize(14);
+        textView.setMovementMethod(LinkMovementMethod.getInstance());
         if (utterance.getSender() == PumiceDialogManager.Sender.AGENT) {
             textView.setTextColor(Color.BLACK);
         } else if (utterance.getSender() == PumiceDialogManager.Sender.USER) {

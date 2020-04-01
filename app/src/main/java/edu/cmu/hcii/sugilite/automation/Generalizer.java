@@ -21,7 +21,8 @@ import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.model.block.util.UIElementMatchingFilter;
 import edu.cmu.hcii.sugilite.model.operation.SugiliteOperation;
 import edu.cmu.hcii.sugilite.model.operation.binary.SugiliteSetTextOperation;
-import edu.cmu.hcii.sugilite.model.variable.StringVariable;
+import edu.cmu.hcii.sugilite.model.variable.Variable;
+import edu.cmu.hcii.sugilite.model.variable.VariableValue;
 import edu.cmu.hcii.sugilite.pumice.PumiceDemonstrationUtil;
 import edu.cmu.hcii.sugilite.recording.ReadableDescriptionGenerator;
 
@@ -59,17 +60,19 @@ public class Generalizer {
             if(block instanceof SugiliteOperationBlock){
                 UIElementMatchingFilter filter = ((SugiliteOperationBlock) block).getElementMatchingFilter();
                 if(filter.getText() != null && command.toLowerCase().contains(filter.getText().toLowerCase())){
-                    script.variableNameDefaultValueMap.put(filter.getText(), new StringVariable(filter.getText(), filter.getText()));
+                    script.variableNameDefaultValueMap.put(filter.getText(), new VariableValue<>(filter.getText(), filter.getText()));
+                    script.variableNameVariableObjectMap.put(filter.getText(), new Variable(Variable.USER_INPUT, filter.getText()));
                     addVariableAlternatives(filter.getText(), "text", script, (SugiliteOperationBlock) block);
-                    filter.setText("@" + filter.getText());
+                    filter.setText("[" + filter.getText() + "]");
                     ((SugiliteOperationBlock) block).setElementMatchingFilter(filter);
                     block.setDescription(descriptionGenerator.generateReadableDescription(block));
                     modified = true;
                 }
                 if(filter.getContentDescription() != null && command.toLowerCase().contains(filter.getContentDescription().toLowerCase())){
-                    script.variableNameDefaultValueMap.put(filter.getContentDescription(), new StringVariable(filter.getContentDescription(), filter.getContentDescription()));
+                    script.variableNameDefaultValueMap.put(filter.getContentDescription(), new VariableValue<>(filter.getContentDescription(), filter.getContentDescription()));
+                    script.variableNameVariableObjectMap.put(filter.getContentDescription(), new Variable(Variable.USER_INPUT, filter.getContentDescription()));
                     addVariableAlternatives(filter.getContentDescription(), "contentDescription", script, (SugiliteOperationBlock) block);
-                    filter.setContentDescription("@" + filter.getContentDescription());
+                    filter.setContentDescription("[" + filter.getContentDescription() + "]");
                     ((SugiliteOperationBlock) block).setElementMatchingFilter(filter);
                     block.setDescription(descriptionGenerator.generateReadableDescription(block));
                     modified = true;
@@ -82,9 +85,10 @@ public class Generalizer {
                         String sContent = cf.getContentDescription();
 
                         if (sText != null && command.toLowerCase().contains(sText.toLowerCase())) {
-                            script.variableNameDefaultValueMap.put(sText, new StringVariable(sText, sText));
+                            script.variableNameDefaultValueMap.put(sText, new VariableValue<>(sText, sText));
+                            script.variableNameVariableObjectMap.put(sText, new Variable(Variable.USER_INPUT, sText));
                             addVariableAlternatives(sText, "childText", script, (SugiliteOperationBlock) block);
-                            cf.setText("@" + sText);
+                            cf.setText("[" + sText + "]");
                             // don't have to reset cf here because we are changing the text of the object so it should be updated automatically in the set
                             ((SugiliteOperationBlock) block).setElementMatchingFilter(filter);
                             block.setDescription(descriptionGenerator.generateReadableDescription(block));
@@ -92,9 +96,10 @@ public class Generalizer {
                         }
 
                         if (sContent != null && command.toLowerCase().contains(sContent.toLowerCase())) {
-                            script.variableNameDefaultValueMap.put(sContent, new StringVariable(sContent, sContent));
+                            script.variableNameDefaultValueMap.put(sContent, new VariableValue<>(sContent, sContent));
+                            script.variableNameVariableObjectMap.put(sContent, new Variable(Variable.USER_INPUT, sContent));
                             addVariableAlternatives(sContent, "childContentDescription", script, (SugiliteOperationBlock) block);
-                            cf.setContentDescription("@" + sContent);
+                            cf.setContentDescription("[" + sContent + "]");
                             // don't have to reset cf here because we are changing the text of the object so it should be updated automatically in the set
                             ((SugiliteOperationBlock) block).setElementMatchingFilter(filter);
                             block.setDescription(descriptionGenerator.generateReadableDescription(block));
@@ -110,9 +115,10 @@ public class Generalizer {
                         String sContent = sf.getContentDescription();
 
                         if (sText != null && command.toLowerCase().contains(sText.toLowerCase())) {
-                            script.variableNameDefaultValueMap.put(sText, new StringVariable(sText, sText));
+                            script.variableNameDefaultValueMap.put(sText, new VariableValue<>(sText, sText));
+                            script.variableNameVariableObjectMap.put(sText, new Variable(Variable.USER_INPUT, sText));
                             addVariableAlternatives(sText, "siblingText", script, (SugiliteOperationBlock) block);
-                            sf.setText("@" + sText);
+                            sf.setText("[" + sText + "]");
                             // don't have to reset cf here because we are changing the text of the object so it should be updated automatically in the set
                             ((SugiliteOperationBlock) block).setElementMatchingFilter(filter);
                             block.setDescription(descriptionGenerator.generateReadableDescription(block));
@@ -120,9 +126,10 @@ public class Generalizer {
                         }
 
                         if (sContent != null && command.toLowerCase().contains(sContent.toLowerCase())) {
-                            script.variableNameDefaultValueMap.put(sContent, new StringVariable(sContent, sContent));
+                            script.variableNameDefaultValueMap.put(sContent, new VariableValue<>(sContent, sContent));
+                            script.variableNameVariableObjectMap.put(sContent, new Variable(Variable.USER_INPUT, sContent));
                             addVariableAlternatives(sContent, "siblingContentDescription", script, (SugiliteOperationBlock) block);
-                            sf.setContentDescription("@" + sContent);
+                            sf.setContentDescription("[" + sContent + "]");
                             // don't have to reset cf here because we are changing the text of the object so it should be updated automatically in the set
                             ((SugiliteOperationBlock) block).setElementMatchingFilter(filter);
                             block.setDescription(descriptionGenerator.generateReadableDescription(block));
@@ -134,8 +141,9 @@ public class Generalizer {
                 if(operation instanceof SugiliteSetTextOperation && ((SugiliteSetTextOperation) operation).getText() != null && ((SugiliteSetTextOperation) operation).getText().length() > 0){
                     if(command.toLowerCase().contains(((SugiliteSetTextOperation) operation).getText().toLowerCase())){
                         String originalText = ((SugiliteSetTextOperation) operation).getText();
-                        ((SugiliteSetTextOperation) operation).setText("@" + originalText);
-                        script.variableNameDefaultValueMap.put(originalText, new StringVariable(originalText, originalText));
+                        ((SugiliteSetTextOperation) operation).setText("[" + originalText + "]");
+                        script.variableNameDefaultValueMap.put(originalText, new VariableValue<>(originalText, originalText));
+                        script.variableNameVariableObjectMap.put(originalText, new Variable(Variable.USER_INPUT, originalText));
                         ((SugiliteOperationBlock) block).setOperation(operation);
                         block.setDescription(descriptionGenerator.generateReadableDescription(block));
                         modified = true;
@@ -198,11 +206,11 @@ public class Generalizer {
                 case "text":
                     if(node.text != null){
                         if(script.variableNameAlternativeValueMap.containsKey(variableName)){
-                            script.variableNameAlternativeValueMap.get(variableName).add(node.text);
+                            script.variableNameAlternativeValueMap.get(variableName).add(new VariableValue<>(variableName, node.text));
                         }
                         else {
-                            Set<String> stringSet = new HashSet<>();
-                            stringSet.add(node.text);
+                            Set<VariableValue> stringSet = new HashSet<>();
+                            stringSet.add(new VariableValue<>(variableName, node.text));
                             script.variableNameAlternativeValueMap.put(variableName, stringSet);
                         }
                     }
@@ -210,37 +218,34 @@ public class Generalizer {
                 case "contentDescription":
                     if(node.contentDescription != null){
                         if(script.variableNameAlternativeValueMap.containsKey(variableName)){
-                            script.variableNameAlternativeValueMap.get(variableName).add(node.contentDescription);
+                            script.variableNameAlternativeValueMap.get(variableName).add(new VariableValue<>(variableName, node.contentDescription));
                         }
                         else {
-                            Set<String> stringSet = new HashSet<>();
-                            stringSet.add(node.contentDescription);
+                            Set<VariableValue> stringSet = new HashSet<>();
+                            stringSet.add(new VariableValue<>(variableName, node.contentDescription));
                             script.variableNameAlternativeValueMap.put(variableName, stringSet);
                         }
                     }
                     break;
                 case "childText":
                     if(node.childText != null){
-                        if(script.variableNameAlternativeValueMap.containsKey(variableName)){
-                            script.variableNameAlternativeValueMap.get(variableName).addAll(node.childText);
+                        if (! script.variableNameAlternativeValueMap.containsKey(variableName)) {
+                            script.variableNameAlternativeValueMap.put(variableName, new HashSet<>());
                         }
-                        else {
-                            Set<String> stringSet = new HashSet<>();
-                            stringSet.addAll(node.childText);
-                            script.variableNameAlternativeValueMap.put(variableName, stringSet);
-                        }
+                        Set<VariableValue> stringSet = new HashSet<>();
+                        node.childText.forEach(text -> stringSet.add(new VariableValue<>(variableName, text)));
+                        script.variableNameAlternativeValueMap.put(variableName, stringSet);
+
                     }
                     break;
                 case "childContentDescription":
                     if(node.childContentDescription != null){
-                        if(script.variableNameAlternativeValueMap.containsKey(variableName)){
-                            script.variableNameAlternativeValueMap.get(variableName).addAll(node.childContentDescription);
+                        if (! script.variableNameAlternativeValueMap.containsKey(variableName)) {
+                            script.variableNameAlternativeValueMap.put(variableName, new HashSet<>());
                         }
-                        else {
-                            Set<String> stringSet = new HashSet<>();
-                            stringSet.addAll(node.childContentDescription);
-                            script.variableNameAlternativeValueMap.put(variableName, stringSet);
-                        }
+                        Set<VariableValue> stringSet = new HashSet<>();
+                        node.childContentDescription.forEach(text -> stringSet.add(new VariableValue<>(variableName, text)));
+                        script.variableNameAlternativeValueMap.put(variableName, stringSet);
                     }
                     break;
             }

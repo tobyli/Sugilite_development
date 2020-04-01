@@ -17,20 +17,20 @@ import java.util.List;
 import java.util.Set;
 
 import edu.cmu.hcii.sugilite.SugiliteData;
+import edu.cmu.hcii.sugilite.automation.AutomatorUtil;
 import edu.cmu.hcii.sugilite.automation.ServiceStatusManager;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.model.operation.binary.SugiliteGetOperation;
 import edu.cmu.hcii.sugilite.model.operation.binary.SugiliteGetValueOperation;
 import edu.cmu.hcii.sugilite.model.value.SugiliteSimpleConstant;
 import edu.cmu.hcii.sugilite.model.value.SugiliteValue;
-import edu.cmu.hcii.sugilite.model.variable.StringVariable;
 import edu.cmu.hcii.sugilite.model.variable.Variable;
+import edu.cmu.hcii.sugilite.model.variable.VariableValue;
 import edu.cmu.hcii.sugilite.pumice.communication.SkipPumiceJSONSerialization;
 import edu.cmu.hcii.sugilite.pumice.dialog.PumiceDialogManager;
 import edu.cmu.hcii.sugilite.pumice.PumiceDemonstrationUtil;
 import edu.cmu.hcii.sugilite.sovite.SoviteAppNameAppInfoManager;
 
-import static edu.cmu.hcii.sugilite.Const.HOME_SCREEN_PACKAGE_NAMES;
 
 /**
  * @author toby
@@ -77,9 +77,8 @@ public class PumiceValueQueryKnowledge<T> implements Serializable {
         this.userUtterance = "demonstrate";
         //populate involvedAppNames
         Set<String> involvedAppPackageNames = new HashSet<>();
-        Set<String> homeScreenPackageNameSet = new HashSet<>(Arrays.asList(HOME_SCREEN_PACKAGE_NAMES));
         for(String packageName : sugiliteStartingBlock.relevantPackages){
-            if (! homeScreenPackageNameSet.contains(packageName)){
+            if (! AutomatorUtil.isHomeScreenPackage(packageName)){
                 involvedAppPackageNames.add(packageName);
             }
         }
@@ -142,12 +141,12 @@ public class PumiceValueQueryKnowledge<T> implements Serializable {
                     @Override
                     public void run() {
                         try {
-                            System.out.println(sugiliteData.stringVariableMap);
-                            if (sugiliteData.stringVariableMap.containsKey(valueName)) {
-                                Variable returnVariable = sugiliteData.stringVariableMap.get(valueName);
-                                if (returnVariable instanceof StringVariable) {
+                            System.out.println(sugiliteData.variableNameVariableValueMap);
+                            if (sugiliteData.variableNameVariableValueMap.containsKey(valueName)) {
+                                VariableValue returnVariable = sugiliteData.variableNameVariableValueMap.get(valueName);
+                                if (returnVariable.getVariableValue() instanceof String) {
                                     synchronized (returnValue) {
-                                        returnValue.append(((StringVariable) returnVariable).getValue());
+                                        returnValue.append((String)returnVariable.getVariableValue());
                                         returnValue.notify();
                                     }
                                 } else {

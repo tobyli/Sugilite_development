@@ -1,26 +1,27 @@
 package edu.cmu.hcii.sugilite.sovite.conversation.intent_handler;
 
 import android.app.Activity;
-import android.graphics.drawable.Drawable;
-import android.widget.ImageView;
+import android.view.View;
 
 import java.util.List;
 
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
 import edu.cmu.hcii.sugilite.model.operation.binary.SugiliteGetProcedureOperation;
+import edu.cmu.hcii.sugilite.model.variable.VariableValue;
 import edu.cmu.hcii.sugilite.pumice.dialog.PumiceDialogManager;
 import edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.PumiceUtteranceIntentHandler;
 import edu.cmu.hcii.sugilite.pumice.kb.PumiceProceduralKnowledge;
-import edu.cmu.hcii.sugilite.sovite.ScriptVisualThumbnailManager;
+import edu.cmu.hcii.sugilite.sovite.visual.ScriptVisualThumbnailManager;
 import edu.cmu.hcii.sugilite.sovite.conversation.SoviteReturnValueCallbackInterface;
+import edu.cmu.hcii.sugilite.sovite.visual.SoviteVariableUpdateCallback;
 
 /**
  * @author toby
  * @date 3/3/20
  * @time 8:46 PM
  */
-public class SoviteScriptRelevantToAppIntentHandler implements PumiceUtteranceIntentHandler {
+public class SoviteScriptRelevantToAppIntentHandler implements PumiceUtteranceIntentHandler, SoviteVariableUpdateCallback {
     private Activity context;
     private String appPackageName;
     private String appReadableName;
@@ -51,6 +52,11 @@ public class SoviteScriptRelevantToAppIntentHandler implements PumiceUtteranceIn
     }
 
     @Override
+    public void onGetProcedureOperationUpdated(SugiliteGetProcedureOperation sugiliteGetProcedureOperation, VariableValue changedNewVariableValue) {
+        //TODO: implement
+    }
+
+    @Override
     public void sendPromptForTheIntentHandler() {
         if (topMatchedKnowledge != null) {
             if (topMatchedKnowledge.getInvolvedAppNames(pumiceDialogManager.getPumiceKnowledgeManager()).contains(appReadableName)) {
@@ -63,11 +69,11 @@ public class SoviteScriptRelevantToAppIntentHandler implements PumiceUtteranceIn
             SugiliteOperationBlock sugiliteOperationBlock = new SugiliteOperationBlock();
             sugiliteOperationBlock.setOperation(sugiliteGetProcedureOperation);
             //test sending an image
-            Drawable drawable = scriptVisualThumbnailManager.getVisualThumbnailForScript(sugiliteOperationBlock, originalUtterance);
-            if (drawable != null) {
-                ImageView imageView = new ImageView(context);
-                imageView.setImageDrawable(drawable);//SHOULD BE R.mipmap.demo_card
-                pumiceDialogManager.sendAgentViewMessage(imageView, "SCREENSHOT:" + topMatchedKnowledge.getProcedureDescription(pumiceDialogManager.getPumiceKnowledgeManager(), false), false, false);
+            List<View> screenshotViews = scriptVisualThumbnailManager.getVisualThumbnailViewsForBlock(sugiliteOperationBlock, this, this.pumiceDialogManager);
+            if (screenshotViews != null) {
+                for (View screenshotView : screenshotViews) {
+                    pumiceDialogManager.sendAgentViewMessage(screenshotView, "SCREENSHOT:" + topMatchedKnowledge.getProcedureDescription(pumiceDialogManager.getPumiceKnowledgeManager(), false), false, false);
+                }
             }
             pumiceDialogManager.sendAgentMessage("Is this what you want to do?", true, true);
         } else {
@@ -80,7 +86,7 @@ public class SoviteScriptRelevantToAppIntentHandler implements PumiceUtteranceIn
 
     @Override
     public PumiceIntent detectIntentFromUtterance(PumiceDialogManager.PumiceUtterance utterance) {
-        String utteranceContent = utterance.getContent();
+        String utteranceContent = utterance.getContent().toString();
         if (utteranceContent != null && (utteranceContent.toLowerCase().contains("yes") || utteranceContent.toLowerCase().toLowerCase().contains("ok") || utteranceContent.toLowerCase().contains("yeah"))){
             return PumiceIntent.EXECUTION_CONFIRM_POSITIVE;
         } else if (utteranceContent != null && (utteranceContent.toLowerCase().contains("no"))) {

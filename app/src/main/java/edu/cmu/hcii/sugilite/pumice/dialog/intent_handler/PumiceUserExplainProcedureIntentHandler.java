@@ -73,7 +73,7 @@ public class PumiceUserExplainProcedureIntentHandler implements PumiceUtteranceI
             //dialogManager.sendAgentMessage("I have received your explanation: " + utterance.getTriggerContent(), true, false);
             //TODO: send out an OPERATION_INSTRUCTION query to resolve the explanation
             //send out the server query
-            PumiceInstructionPacket pumiceInstructionPacket = new PumiceInstructionPacket(dialogManager.getPumiceKnowledgeManager(), "OPERATION_INSTRUCTION", calendar.getTimeInMillis(), utterance.getContent(), parentKnowledgeName);
+            PumiceInstructionPacket pumiceInstructionPacket = new PumiceInstructionPacket(dialogManager.getPumiceKnowledgeManager(), "OPERATION_INSTRUCTION", calendar.getTimeInMillis(), utterance.getContent().toString(), parentKnowledgeName);
             //dialogManager.sendAgentMessage("Sending out the server query below...", true, false);
             //dialogManager.sendAgentMessage(pumiceInstructionPacket.toString(), false, false);
             try {
@@ -84,7 +84,7 @@ public class PumiceUserExplainProcedureIntentHandler implements PumiceUtteranceI
                 pumiceDialogManager.sendAgentMessage("Failed to send the query", true, false);
             }
         } else if (pumiceIntent.equals(PumiceIntent.DEFINE_PROCEDURE_DEMONSTATION)) {
-            PumiceProcedureDemonstrationDialog procedureDemonstrationDialog = new PumiceProcedureDemonstrationDialog(context, parentKnowledgeName, utterance.getContent(), dialogManager.getSharedPreferences(), dialogManager.getSugiliteData(), dialogManager.getServiceStatusManager(), this);
+            PumiceProcedureDemonstrationDialog procedureDemonstrationDialog = new PumiceProcedureDemonstrationDialog(context, parentKnowledgeName, utterance.getContent().toString(), dialogManager.getSharedPreferences(), dialogManager.getSugiliteData(), dialogManager.getServiceStatusManager(), this);
             dialogManager.runOnMainThread(new Runnable() {
                 @Override
                 public void run() {
@@ -101,7 +101,7 @@ public class PumiceUserExplainProcedureIntentHandler implements PumiceUtteranceI
 
     @Override
     public PumiceIntent detectIntentFromUtterance(PumiceDialogManager.PumiceUtterance utterance) {
-        if (utterance.getContent().contains("demonstrate")) {
+        if (utterance.getContent().toString().contains("demonstrate")) {
             return PumiceIntent.DEFINE_PROCEDURE_DEMONSTATION;
         } else {
             return PumiceIntent.DEFINE_PROCEDURE_EXPLANATION;

@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.res.Resources;
 import android.speech.tts.TextToSpeech;
 import android.support.annotation.Nullable;
 import android.widget.Toast;
@@ -151,12 +152,12 @@ public class PumiceDemonstrationUtil {
                 if(script.variableNameDefaultValueMap.size() > 0) {
 
                     //has variable
-                    sugiliteData.stringVariableMap.putAll(script.variableNameDefaultValueMap);
+                    sugiliteData.variableNameVariableValueMap.putAll(script.variableNameDefaultValueMap);
                     boolean needUserInput = false;
 
                     //check if any of the variables needs user input
-                    for(Map.Entry<String, Variable> entry : script.variableNameDefaultValueMap.entrySet()){
-                        if(entry.getValue().type == Variable.USER_INPUT){
+                    for(Map.Entry<String, Variable> entry : script.variableNameVariableObjectMap.entrySet()){
+                        if(entry.getValue().getVariableType() == Variable.USER_INPUT){
                             needUserInput = true;
                             break;
                         }
@@ -307,5 +308,13 @@ public class PumiceDemonstrationUtil {
 
     public static String boldify(String string){
         return "<b>" + string + "</b>";
+    }
+
+    public static int dpToPx(int dp) {
+        return (int) (dp * Resources.getSystem().getDisplayMetrics().density);
+    }
+
+    public static int pxToDp(int px) {
+        return (int) (px / Resources.getSystem().getDisplayMetrics().density);
     }
 }

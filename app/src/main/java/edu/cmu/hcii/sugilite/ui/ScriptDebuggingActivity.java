@@ -265,10 +265,10 @@ public class ScriptDebuggingActivity extends AppCompatActivity {
                             VariableSetValueDialog variableSetValueDialog = new VariableSetValueDialog(activityContext, sugiliteData, script, sharedPreferences, SugiliteData.REGULAR_DEBUG_STATE, null, false);
                             if(script.variableNameDefaultValueMap.size() > 0) {
                                 //has variable
-                                sugiliteData.stringVariableMap.putAll(script.variableNameDefaultValueMap);
+                                sugiliteData.variableNameVariableValueMap.putAll(script.variableNameDefaultValueMap);
                                 boolean needUserInput = false;
-                                for(Map.Entry<String, Variable> entry : script.variableNameDefaultValueMap.entrySet()){
-                                    if(entry.getValue().type == Variable.USER_INPUT){
+                                for(Map.Entry<String, Variable> entry : script.variableNameVariableObjectMap.entrySet()){
+                                    if(entry.getValue().getVariableType() == Variable.USER_INPUT){
                                         needUserInput = true;
                                         break;
                                     }
@@ -348,10 +348,10 @@ public class ScriptDebuggingActivity extends AppCompatActivity {
                             VariableSetValueDialog variableSetValueDialog = new VariableSetValueDialog(activityContext, sugiliteData, script, sharedPreferences, SugiliteData.REGULAR_DEBUG_STATE, null, false);
                             if(script.variableNameDefaultValueMap.size() > 0) {
                                 //has variable
-                                sugiliteData.stringVariableMap.putAll(script.variableNameDefaultValueMap);
+                                sugiliteData.variableNameVariableValueMap.putAll(script.variableNameDefaultValueMap);
                                 boolean needUserInput = false;
-                                for(Map.Entry<String, Variable> entry : script.variableNameDefaultValueMap.entrySet()){
-                                    if(entry.getValue().type == Variable.USER_INPUT){
+                                for(Map.Entry<String, Variable> entry : script.variableNameVariableObjectMap.entrySet()){
+                                    if(entry.getValue().getVariableType() == Variable.USER_INPUT){
                                         needUserInput = true;
                                         break;
                                     }

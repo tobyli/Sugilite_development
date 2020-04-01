@@ -26,8 +26,8 @@ import edu.cmu.hcii.sugilite.Const;
 import edu.cmu.hcii.sugilite.R;
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
-import edu.cmu.hcii.sugilite.model.variable.StringVariable;
 import edu.cmu.hcii.sugilite.model.variable.Variable;
+import edu.cmu.hcii.sugilite.model.variable.VariableValue;
 import edu.cmu.hcii.sugilite.pumice.PumiceDemonstrationUtil;
 
 import static edu.cmu.hcii.sugilite.Const.OVERLAY_TYPE;
@@ -53,9 +53,9 @@ public class ChooseVariableDialog implements AbstractSugiliteDialog {
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
         View dialogView = inflater.inflate(R.layout.dialog_choose_variable, null);
         List<String> existingVariables = new ArrayList<>();
-        for(Map.Entry<String, Variable> entry : startingBlock.variableNameDefaultValueMap.entrySet()){
-            if(entry.getValue() instanceof StringVariable){
-                existingVariables.add(entry.getKey() + ": (" + ((StringVariable) entry.getValue()).getValue() + ")");
+        for(Map.Entry<String, VariableValue> entry : startingBlock.variableNameDefaultValueMap.entrySet()){
+            if(entry.getValue().getVariableValue() instanceof String){
+                existingVariables.add(entry.getKey() + ": (" + (String) entry.getValue().getVariableValue() + ")");
             }
         }
         final ListView variableList = (ListView)dialogView.findViewById(R.id.existing_variable_list);
@@ -148,25 +148,25 @@ public class ChooseVariableDialog implements AbstractSugiliteDialog {
                          String variableName = newVariableNameEditText.getText().toString();
                          String defaultValue = defaultValueEditText.getText().toString();
                          defaultValueToShow = defaultValue;
-                         if(sugiliteData.stringVariableMap == null) {
-                             sugiliteData.stringVariableMap = new HashMap<String, Variable>();
+                         if(sugiliteData.variableNameVariableValueMap == null) {
+                             sugiliteData.variableNameVariableValueMap = new HashMap<String, VariableValue>();
                          }
-                         sugiliteData.stringVariableMap.put(variableName, new StringVariable(variableName, defaultValue));
-                         startingBlock.variableNameDefaultValueMap.put(variableName, new StringVariable(variableName, defaultValue));
+                         sugiliteData.variableNameVariableValueMap.put(variableName, new VariableValue(variableName, defaultValue));
+                         startingBlock.variableNameDefaultValueMap.put(variableName, new VariableValue(variableName, defaultValue));
                      }
                      else {
                          //TODO: user has selected an existing variable
-                         Variable defaultVariableValue = startingBlock.variableNameDefaultValueMap.get(selectedItemName);
-                         if(defaultVariableValue != null && defaultVariableValue instanceof StringVariable) {
-                             defaultValueToShow = ((StringVariable) defaultVariableValue).getValue();
+                         VariableValue defaultVariableValue = startingBlock.variableNameDefaultValueMap.get(selectedItemName);
+                         if(defaultVariableValue != null && defaultVariableValue.getVariableValue() instanceof String) {
+                             defaultValueToShow = (String) defaultVariableValue.getVariableValue();
                          }
                      }
                      if(label.length() > 0){
                          //choosing variable for a generated checkbox row
-                         editText.setText(Html.fromHtml("<b>" + label + ":</b> " + "@" + selectedItemName + ": (" + defaultValueToShow + ")"));
+                         editText.setText(Html.fromHtml("<b>" + label + ":</b> " + "[" + selectedItemName + "]" + ": (" + defaultValueToShow + ")"));
                      }
                      else {
-                         editText.setText("@" + selectedItemName + ": (" + defaultValueToShow + ")");
+                         editText.setText("[" + selectedItemName + "]" + ": (" + defaultValueToShow + ")");
                      }
                      dialog.dismiss();
                  }

@@ -462,15 +462,15 @@ public class UIElementMatchingFilter implements Serializable {
     public boolean filter (AccessibilityNodeInfo nodeInfo, VariableHelper helper) {
         if (nodeInfo == null)
             return false;
-        if (text != null && (nodeInfo.getText() == null || (!helper.parse(text).equalsIgnoreCase(nodeInfo.getText().toString()))))
+        if (text != null && (nodeInfo.getText() == null || (!helper.replaceVariableReferencesWithTheirValues(text).equalsIgnoreCase(nodeInfo.getText().toString()))))
             return false;
-        if (contentDescription != null && (nodeInfo.getContentDescription() == null || (!helper.parse(contentDescription).equalsIgnoreCase(nodeInfo.getContentDescription().toString()))))
+        if (contentDescription != null && (nodeInfo.getContentDescription() == null || (!helper.replaceVariableReferencesWithTheirValues(contentDescription).equalsIgnoreCase(nodeInfo.getContentDescription().toString()))))
             return false;
-        if (packageName != null && (nodeInfo.getPackageName() == null || !helper.parse(packageName).contentEquals(nodeInfo.getPackageName().toString())))
+        if (packageName != null && (nodeInfo.getPackageName() == null || !helper.replaceVariableReferencesWithTheirValues(packageName).contentEquals(nodeInfo.getPackageName().toString())))
             return false;
-        if (className != null && (nodeInfo.getClassName() == null || !helper.parse(className).contentEquals(nodeInfo.getClassName().toString())))
+        if (className != null && (nodeInfo.getClassName() == null || !helper.replaceVariableReferencesWithTheirValues(className).contentEquals(nodeInfo.getClassName().toString())))
             return false;
-        if (viewId != null && (nodeInfo.getViewIdResourceName() == null || (!helper.parse(viewId).equalsIgnoreCase(nodeInfo.getViewIdResourceName().toString()))))
+        if (viewId != null && (nodeInfo.getViewIdResourceName() == null || (!helper.replaceVariableReferencesWithTheirValues(viewId).equalsIgnoreCase(nodeInfo.getViewIdResourceName().toString()))))
             return false;
         if (parentFilter != null && (!parentFilter.filter(nodeInfo.getParent(), helper)))
             return false;
@@ -485,17 +485,17 @@ public class UIElementMatchingFilter implements Serializable {
         if (this.boundsInScreen != null && (boundsInScreen == null || (!this.boundsInScreen.contentEquals(boundsInScreen.flattenToString()))))
             return false;
 
-        if (textOrChildTextOrContentDescription != null && (! (equalsToIgnoreCaseTrimSymbols(helper.parse(textOrChildTextOrContentDescription), nodeInfo.getText()) || equalsToIgnoreCaseTrimSymbols(helper.parse(textOrChildTextOrContentDescription), nodeInfo.getContentDescription())))){
+        if (textOrChildTextOrContentDescription != null && (! (equalsToIgnoreCaseTrimSymbols(helper.replaceVariableReferencesWithTheirValues(textOrChildTextOrContentDescription), nodeInfo.getText()) || equalsToIgnoreCaseTrimSymbols(helper.replaceVariableReferencesWithTheirValues(textOrChildTextOrContentDescription), nodeInfo.getContentDescription())))){
             boolean matchedChild = false;
             boolean matchedSibling = false;
             for (AccessibilityNodeInfo childNode : AutomatorUtil.preOrderTraverse(nodeInfo)) {
                 if (childNode == null)
                     continue;
-                if (equalsToIgnoreCaseTrimSymbols(helper.parse(textOrChildTextOrContentDescription), childNode.getText())) {
+                if (equalsToIgnoreCaseTrimSymbols(helper.replaceVariableReferencesWithTheirValues(textOrChildTextOrContentDescription), childNode.getText())) {
                     matchedChild = true;
                     break;
                 }
-                if (equalsToIgnoreCaseTrimSymbols(helper.parse(textOrChildTextOrContentDescription), childNode.getContentDescription())) {
+                if (equalsToIgnoreCaseTrimSymbols(helper.replaceVariableReferencesWithTheirValues(textOrChildTextOrContentDescription), childNode.getContentDescription())) {
                     matchedChild = true;
                     break;
                 }
@@ -504,11 +504,11 @@ public class UIElementMatchingFilter implements Serializable {
             for(AccessibilityNodeInfo node : AutomatorUtil.preOrderTraverseSiblings(nodeInfo)) {
                 if (node == null)
                     continue;
-                if (equalsToIgnoreCaseTrimSymbols(helper.parse(textOrChildTextOrContentDescription), node.getText())) {
+                if (equalsToIgnoreCaseTrimSymbols(helper.replaceVariableReferencesWithTheirValues(textOrChildTextOrContentDescription), node.getText())) {
                     matchedSibling = true;
                     break;
                 }
-                if (equalsToIgnoreCaseTrimSymbols(helper.parse(textOrChildTextOrContentDescription), node.getContentDescription())) {
+                if (equalsToIgnoreCaseTrimSymbols(helper.replaceVariableReferencesWithTheirValues(textOrChildTextOrContentDescription), node.getContentDescription())) {
                     matchedSibling = true;
                     break;
                 }

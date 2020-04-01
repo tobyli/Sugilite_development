@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.Set;
 
 import edu.cmu.hcii.sugilite.model.variable.Variable;
+import edu.cmu.hcii.sugilite.model.variable.VariableValue;
 import edu.cmu.hcii.sugilite.ontology.SerializableUISnapshot;
 import edu.cmu.hcii.sugilite.pumice.PumiceDemonstrationUtil;
 
@@ -29,8 +30,9 @@ public class SugiliteStartingBlock extends SugiliteBlock implements Serializable
     public Set<String> relevantPackages;
 
     //persistent across launches, used to store the list of names for variables
-    public Map<String, Variable> variableNameDefaultValueMap;
-    public Map<String, Set<String>> variableNameAlternativeValueMap;
+    public Map<String, Variable> variableNameVariableObjectMap;
+    public Map<String, VariableValue> variableNameDefaultValueMap;
+    public Map<String, Set<VariableValue>> variableNameAlternativeValueMap;
 
     public SerializableUISnapshot uiSnapshotOnEnd;
     public File screenshotOnEnd;
@@ -39,6 +41,7 @@ public class SugiliteStartingBlock extends SugiliteBlock implements Serializable
     public SugiliteStartingBlock(){
         super();
         relevantPackages = new HashSet<>();
+        variableNameVariableObjectMap = new HashMap<>();
         variableNameDefaultValueMap = new HashMap<>();
         variableNameAlternativeValueMap = new HashMap<>();
         this.blockType = SugiliteBlock.STARTING_BLOCK;
@@ -52,6 +55,7 @@ public class SugiliteStartingBlock extends SugiliteBlock implements Serializable
     public SugiliteStartingBlock(String scriptName){
         super();
         relevantPackages = new HashSet<>();
+        variableNameVariableObjectMap = new HashMap<>();
         variableNameDefaultValueMap = new HashMap<>();
         variableNameAlternativeValueMap = new HashMap<>();
         this.scriptName = scriptName;

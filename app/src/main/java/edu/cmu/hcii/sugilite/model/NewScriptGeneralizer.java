@@ -12,13 +12,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import edu.cmu.hcii.sugilite.automation.AutomatorUtil;
 import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteBlockMetaInfo;
 import edu.cmu.hcii.sugilite.model.block.SugiliteConditionBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
-import edu.cmu.hcii.sugilite.model.variable.StringVariable;
 import edu.cmu.hcii.sugilite.model.variable.Variable;
+import edu.cmu.hcii.sugilite.model.variable.VariableContext;
+import edu.cmu.hcii.sugilite.model.variable.VariableValue;
 import edu.cmu.hcii.sugilite.ontology.*;
 import edu.cmu.hcii.sugilite.ontology.description.OntologyDescriptionGenerator;
 import edu.cmu.hcii.sugilite.pumice.PumiceDemonstrationUtil;
@@ -83,6 +85,13 @@ public class NewScriptGeneralizer {
             SugiliteBlockMetaInfo blockMetaInfo = operationBlock.getSugiliteBlockMetaInfo();
 
             if (blockMetaInfo.getUiSnapshot() != null && blockMetaInfo.getTargetEntity() != null) {
+
+                //ignore parameters found in the home screen
+                String packageName = blockMetaInfo.getUiSnapshot().getPackageName();
+                if (packageName != null && AutomatorUtil.isHomeScreenPackage(packageName)) {
+                    continue;
+                }
+
                 for (Pair<SugiliteRelation, String> sugiliteRelationTextLabelPair : allStringsUsedInTheDataDescriptionQuery) {
                     //TODO: support more complex matching method than exact string matching
 
@@ -95,22 +104,38 @@ public class NewScriptGeneralizer {
                         System.out.printf("Found parameter %d: \"%s\" in the utterance was found in the operation %s\n", parameterNumber, textLabel, operationBlock.toString());
 
                         //extract possible values from uiSnapshot
-                        Map<SugiliteSerializableEntity<Node>, List<String>> alternativeNodeTextLabelsMap = getPossibleValueForParameter(blockMetaInfo.getTargetEntity(), blockMetaInfo.getUiSnapshot(), relation, depthLimit );
+                        Pair<SugiliteSerializableEntity<Node>, Map<SugiliteSerializableEntity<Node>, List<String>>> result = getPossibleValueForParameter(blockMetaInfo.getTargetEntity(), blockMetaInfo.getUiSnapshot(), relation, depthLimit);
+                        Map<SugiliteSerializableEntity<Node>, List<String>> alternativeNodeTextLabelsMap = result.second;
+                        SugiliteSerializableEntity<Node> parentNode = result.first;
 
                         //construct the Variable object
                         String variableName = String.format("parameter%d", parameterNumber);
-                        Variable variable = new StringVariable(variableName, textLabel);
+                        Variable variableObject = new Variable(Variable.USER_INPUT, variableName);
+                        VariableContext variableContext = VariableContext.fromOperationBlockAndAlternativeNode(operationBlock, parentNode.getEntityValue());
+                        variableObject.setVariableContext(variableContext);
 
-                        Set<String> alternativeValue = new HashSet<>();
-                        alternativeNodeTextLabelsMap.forEach((x, y) -> alternativeValue.addAll(y));
+                        //construct the default value of the variable
+                        VariableValue<String> defaultVariableValue = new VariableValue<String>(variableName, textLabel);
+                        VariableContext defaultVariableValueContext = VariableContext.fromOperationBlockAndItsTargetNode(operationBlock);
+                        defaultVariableValue.setVariableValueContext(defaultVariableValueContext);
+                        Set<VariableValue> alternativeValues = new HashSet<>();
 
+                        //construct the alternative values for the variable
+                        for (Map.Entry<SugiliteSerializableEntity<Node>, List<String>> entry : alternativeNodeTextLabelsMap.entrySet()) {
+                            for (String altTextLabel : entry.getValue()) {
+                                VariableValue<String> alternativeVariableValue = new VariableValue<>(variableName, altTextLabel);
+                                VariableContext alternativeVariableValueContext = VariableContext.fromOperationBlockAndAlternativeNode(operationBlock, entry.getKey().getEntityValue());
+                                alternativeVariableValue.setVariableValueContext(alternativeVariableValueContext);
+                                alternativeValues.add(alternativeVariableValue);
+                            }
+                        }
                         //add the default value to the set of alternative value too
-                        alternativeValue.add(textLabel);
-
+                        alternativeValues.add(defaultVariableValue);
 
                         //fill the results back to the SugiliteStartingBlock
-                        sugiliteStartingBlock.variableNameDefaultValueMap.put(variableName, variable);
-                        sugiliteStartingBlock.variableNameAlternativeValueMap.put(variableName, alternativeValue);
+                        sugiliteStartingBlock.variableNameDefaultValueMap.put(variableName, defaultVariableValue);
+                        sugiliteStartingBlock.variableNameAlternativeValueMap.put(variableName, alternativeValues);
+                        sugiliteStartingBlock.variableNameVariableObjectMap.put(variableName, variableObject);
 
                         //edit the original data description query to reflect the new parameters
                         replaceParametersInOntologyQuery (ontologyQuery, textLabel, variableName);
@@ -183,21 +208,32 @@ public class NewScriptGeneralizer {
     }
 
 
-    private Map<SugiliteSerializableEntity<Node>, List<String>> getPossibleValueForParameter(SugiliteSerializableEntity<Node> nodeEntity, SerializableUISnapshot uiSnapshot, SugiliteRelation relation, int depthLimit) {
+    /**
+     *
+     * @param nodeEntity
+     * @param uiSnapshot
+     * @param relation
+     * @param depthLimit
+     * @return
+     *
+     * a Pair with (topParentNode, Map<node, list of text labels on the node>)
+     */
+    private Pair<SugiliteSerializableEntity<Node>, Map<SugiliteSerializableEntity<Node>, List<String>>> getPossibleValueForParameter(SugiliteSerializableEntity<Node> nodeEntity, SerializableUISnapshot uiSnapshot, SugiliteRelation relation, int depthLimit) {
         Map<SugiliteSerializableEntity<Node>, List<String>> alternativeNodeTextLabelsMap = new HashMap<>();
         SugiliteSerializableEntity<Node> currentEntity = nodeEntity;
         String nodeEntityClassName = getUISnapshotRelationValue(nodeEntity, HAS_CLASS_NAME, uiSnapshot);
+        SugiliteSerializableEntity<Node> topParentEntity = null;
         if (nodeEntityClassName != null) {
             while (getParentNodeEntity(currentEntity, uiSnapshot) != null) {
                 //trying going up in the UI tree
                 SugiliteSerializableEntity<Node> parentEntity = getParentNodeEntity(currentEntity, uiSnapshot);
+                topParentEntity = parentEntity;
                 List<SugiliteSerializableEntity<Node>> immediateChildNodeEntities = getAllChildNodeEntity(parentEntity, uiSnapshot, true, currentEntity);
                 boolean foundAtThisLevel = false;
                 for (SugiliteSerializableEntity<Node> sibling : immediateChildNodeEntities) {
                     if (sibling.getEntityValue().getBoundsInScreen() != null && nodeEntity.getEntityValue().getBoundsInScreen() != null && sibling.getEntityValue().getBoundsInScreen().equals(nodeEntity.getEntityValue().getBoundsInScreen())) {
                         continue;
                     }
-
                     String siblingIsClickable = getUISnapshotRelationValue(sibling, IS_CLICKABLE, uiSnapshot);
                     String siblingClassName = getUISnapshotRelationValue(sibling, HAS_CLASS_NAME, uiSnapshot);
 
@@ -221,7 +257,7 @@ public class NewScriptGeneralizer {
                 }
             }
         }
-        return alternativeNodeTextLabelsMap;
+        return new Pair<SugiliteSerializableEntity<Node>, Map<SugiliteSerializableEntity<Node>, List<String>>>(topParentEntity, alternativeNodeTextLabelsMap);
     }
 
     private String getUISnapshotRelationValue(SugiliteSerializableEntity<Node> subject, SugiliteRelation relation, SerializableUISnapshot uiSnapshot) {

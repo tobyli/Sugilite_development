@@ -1,8 +1,7 @@
 package edu.cmu.hcii.sugilite.sovite.conversation.intent_handler;
 
 import android.app.Activity;
-import android.graphics.drawable.Drawable;
-import android.widget.ImageView;
+import android.view.View;
 
 import com.google.gson.ExclusionStrategy;
 import com.google.gson.FieldAttributes;
@@ -20,7 +19,7 @@ import edu.cmu.hcii.sugilite.pumice.communication.SkipPumiceJSONSerialization;
 import edu.cmu.hcii.sugilite.pumice.dialog.PumiceDialogManager;
 import edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.PumiceUtteranceIntentHandler;
 import edu.cmu.hcii.sugilite.pumice.kb.PumiceProceduralKnowledge;
-import edu.cmu.hcii.sugilite.sovite.ScriptVisualThumbnailManager;
+import edu.cmu.hcii.sugilite.sovite.visual.ScriptVisualThumbnailManager;
 import edu.cmu.hcii.sugilite.sovite.communication.SoviteAppResolutionQueryPacket;
 import edu.cmu.hcii.sugilite.sovite.communication.SoviteAppResolutionResultPacket;
 import edu.cmu.hcii.sugilite.sovite.conversation.dialog.SoviteDisambiguationDemonstrationDialog;
@@ -89,17 +88,19 @@ public class SoviteDemonstrateRelevantScreenIntentHandler implements PumiceUtter
     public void onDemonstrationReady (SugiliteStartingBlock script) {
         //extract the last screen in the script
         appReferenceScript = script;
-        Drawable lastScreenshot = scriptVisualThumbnailManager.getVisualThumbnailForScript(script, originalUtterance);
+        //no variable here
+        List<View> scriptScreenshots = scriptVisualThumbnailManager.getVisualThumbnailViewsForBlock(script, this.pumiceDialogManager);
         SerializableUISnapshot lastScreenUISnapshot = scriptVisualThumbnailManager.getLastAvailableUISnapshotInSubsequentScript(script, null);
         List<String> allAvailableScriptUtterances = pumiceDialogManager.getPumiceKnowledgeManager().getAllAvailableProcedureKnowledgeUtterances(false);
 
 
         //prompt the user of the screen
-        ImageView imageView = new ImageView(context);
-        imageView.setImageDrawable(lastScreenshot);
-        pumiceDialogManager.sendAgentMessage(String.format("I've learned about the relevant screen in %s", matchedAppReadableName), true, false);
-        pumiceDialogManager.sendAgentViewMessage(imageView, String.format("Relevant screen in %s", matchedAppReadableName), false, false);
-
+        if (scriptScreenshots != null) {
+            for (View scriptScreenshotView : scriptScreenshots) {
+                pumiceDialogManager.sendAgentMessage(String.format("I've learned about the relevant screen in %s", matchedAppReadableName), true, false);
+                pumiceDialogManager.sendAgentViewMessage(scriptScreenshotView, String.format("Relevant screen in %s", matchedAppReadableName), false, false);
+            }
+        }
 
         //send out a packet to the embedding server
         SoviteAppResolutionQueryPacket queryPacket = new SoviteAppResolutionQueryPacket(RELEVANT_UTTERANCES_FOR_UI_SNAPSHOT);

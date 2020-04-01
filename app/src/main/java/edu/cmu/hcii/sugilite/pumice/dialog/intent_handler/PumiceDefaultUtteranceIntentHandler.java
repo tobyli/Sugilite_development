@@ -59,7 +59,7 @@ public class PumiceDefaultUtteranceIntentHandler implements PumiceUtteranceInten
      */
     @Override
     public PumiceIntent detectIntentFromUtterance(PumiceDialogManager.PumiceUtterance utterance){
-        String text = utterance.getContent().toLowerCase();
+        String text = utterance.getContent().toString().toLowerCase();
 
         //**test***
         /*
@@ -113,7 +113,7 @@ public class PumiceDefaultUtteranceIntentHandler implements PumiceUtteranceInten
                 break;
             case USER_INIT_INSTRUCTION:
                 //dialogManager.sendAgentMessage("I have received your instruction: " + utterance.getTriggerContent(), true, false);
-                PumiceInstructionPacket pumiceInstructionPacket = new PumiceInstructionPacket(dialogManager.getPumiceKnowledgeManager(), PumiceIntent.USER_INIT_INSTRUCTION, calendar.getTimeInMillis(), utterance.getContent(), "ROOT");
+                PumiceInstructionPacket pumiceInstructionPacket = new PumiceInstructionPacket(dialogManager.getPumiceKnowledgeManager(), PumiceIntent.USER_INIT_INSTRUCTION, calendar.getTimeInMillis(), utterance.getContent().toString(), "ROOT");
                 //dialogManager.sendAgentMessage("Sending out the server query below...", true, false);
                 //dialogManager.sendAgentMessage(pumiceInstructionPacket.toString(), false, false);
                 try {

@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
+import android.graphics.Point;
 import android.hardware.display.DisplayManager;
 import android.hardware.display.VirtualDisplay;
 import android.media.Image;
@@ -87,8 +88,10 @@ public class SugiliteScreenshotManager {
         //create the virtual environment
         mMediaProjectionManager = (MediaProjectionManager)sugiliteData.getSystemService(Context.MEDIA_PROJECTION_SERVICE);
         mWindowManager = (WindowManager)sugiliteData.getSystemService(Context.WINDOW_SERVICE);
-        windowWidth = mWindowManager.getDefaultDisplay().getWidth();
-        windowHeight = mWindowManager.getDefaultDisplay().getHeight();
+        Point realSize = new Point();
+        mWindowManager.getDefaultDisplay().getRealSize(realSize);
+        windowWidth = realSize.x;
+        windowHeight = realSize.y;
         metrics = new DisplayMetrics();
         mWindowManager.getDefaultDisplay().getMetrics(metrics);
         mScreenDensity = metrics.densityDpi;

@@ -56,7 +56,7 @@ public class PumiceBooleanExpKnowledgeGeneralizationIntentHandler implements Pum
 
     @Override
     public PumiceIntent detectIntentFromUtterance(PumiceDialogManager.PumiceUtterance utterance) {
-        String utteranceContent = utterance.getContent();
+        String utteranceContent = utterance.getContent().toString();
         if (utteranceContent != null && (utteranceContent.toLowerCase().contains("yes") || utteranceContent.toLowerCase().toLowerCase().contains("ok") || utteranceContent.toLowerCase().contains("yeah"))){
             return PumiceIntent.EXECUTION_CONFIRM_POSITIVE;
         } else {

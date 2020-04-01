@@ -44,9 +44,8 @@ import edu.cmu.hcii.sugilite.model.operation.unary.SugiliteLongClickOperation;
 import edu.cmu.hcii.sugilite.model.operation.unary.SugiliteReadoutConstOperation;
 import edu.cmu.hcii.sugilite.model.operation.binary.SugiliteReadoutOperation;
 import edu.cmu.hcii.sugilite.model.operation.binary.SugiliteSetTextOperation;
-import edu.cmu.hcii.sugilite.model.variable.StringVariable;
-import edu.cmu.hcii.sugilite.model.variable.Variable;
 import edu.cmu.hcii.sugilite.model.variable.VariableHelper;
+import edu.cmu.hcii.sugilite.model.variable.VariableValue;
 import edu.cmu.hcii.sugilite.ontology.OntologyQuery;
 import edu.cmu.hcii.sugilite.ontology.SugiliteEntity;
 import edu.cmu.hcii.sugilite.ontology.UISnapshot;
@@ -272,7 +271,7 @@ public class Automator {
                 }
             } else {
                 //the operation has a query, try to use the query to match a node
-                variableHelper = new VariableHelper(sugiliteData.stringVariableMap);
+                variableHelper = new VariableHelper(sugiliteData.variableNameVariableValueMap);
 
                 //try to perform operations that have failed last time
                 if (/*has last time failed*/ lastTimeFailed != null && lastTimeFailed.size() > 0) {
@@ -330,7 +329,7 @@ public class Automator {
                 OntologyQuery q = operationBlock.getOperation().getDataDescriptionQueryIfAvailable().clone();
 
                 //replace variables in the query
-                q = OntologyQuery.deserialize(variableHelper.parse(q.toString()));
+                q = OntologyQuery.deserialize(variableHelper.replaceVariableReferencesWithTheirValues(q.toString()));
 
                 //execute the OntologyQuery on the current UI snapshot
                 Set<SugiliteEntity> querySet = q.executeOn(uiSnapshot);
@@ -510,8 +509,8 @@ public class Automator {
         if (block.getOperation().getOperationType() == SugiliteOperation.SET_TEXT) {
 
             //variable helper helps parse variables in the argument
-            variableHelper = new VariableHelper(sugiliteData.stringVariableMap);
-            String text = variableHelper.parse(((SugiliteSetTextOperation) block.getOperation()).getText());
+            variableHelper = new VariableHelper(sugiliteData.variableNameVariableValueMap);
+            String text = variableHelper.replaceVariableReferencesWithTheirValues(((SugiliteSetTextOperation) block.getOperation()).getText());
             Bundle arguments = new Bundle();
             arguments.putCharSequence(AccessibilityNodeInfo
                     .ACTION_ARGUMENT_SET_TEXT_CHARSEQUENCE, text);
@@ -580,8 +579,8 @@ public class Automator {
 
         if (block.getOperation().getOperationType() == SugiliteOperation.READOUT_CONST) {
             if (tts != null && block.getOperation() instanceof SugiliteReadoutConstOperation) {
-                variableHelper = new VariableHelper(sugiliteData.stringVariableMap);
-                String text = variableHelper.parse(((SugiliteReadoutConstOperation) block.getOperation()).getTextToReadout());
+                variableHelper = new VariableHelper(sugiliteData.variableNameVariableValueMap);
+                String text = variableHelper.replaceVariableReferencesWithTheirValues(((SugiliteReadoutConstOperation) block.getOperation()).getTextToReadout());
                 tts.speak(text, TextToSpeech.QUEUE_ADD, null);
             } else {
                 System.out.println("TTS Failed!");
@@ -594,12 +593,11 @@ public class Automator {
             if (block.getOperation() instanceof SugiliteLoadVariableOperation) {
                 String variableName = ((SugiliteLoadVariableOperation) block.getOperation()).getVariableName();
                 //create a new variable
-                StringVariable stringVariable = new StringVariable(variableName);
-                stringVariable.type = Variable.LOAD_RUNTIME;
+                VariableValue<String> stringVariable = new VariableValue<>(variableName);
 
                 if (((SugiliteLoadVariableOperation) (block.getOperation())).getPropertyToSave().contentEquals("hasText")) {
                     if (node.getText() != null) {
-                        stringVariable.setValue(node.getText().toString());
+                        stringVariable.setVariableValue(node.getText().toString());
                     }
                 } else if (((SugiliteLoadVariableOperation) (block.getOperation())).getPropertyToSave().contentEquals("HAS_CHILD_TEXT")) {
                     List<AccessibilityNodeInfo> children = AutomatorUtil.preOrderTraverse(node);
@@ -610,17 +608,17 @@ public class Automator {
                                 childText += childNode.getText();
                         }
                         if (childText.length() > 0) {
-                            stringVariable.setValue(childText);
+                            stringVariable.setVariableValue(childText);
                         }
                     }
                 } else if (((SugiliteLoadVariableOperation) (block.getOperation())).getPropertyToSave().contentEquals("HAS_CONTENT_DESCRIPTION")) {
                     if (node.getContentDescription() != null) {
-                        stringVariable.setValue(node.getContentDescription().toString());
+                        stringVariable.setVariableValue(node.getContentDescription().toString());
                     }
                 }
-                if (stringVariable.getValue() != null && stringVariable.getValue().length() > 0) {
+                if (stringVariable.getVariableValue() != null && stringVariable.getVariableValue().length() > 0) {
                     //save the string variable to run time symbol table
-                    sugiliteData.stringVariableMap.put(stringVariable.getName(), stringVariable);
+                    sugiliteData.variableNameVariableValueMap.put(stringVariable.getVariableName(), stringVariable);
                     return true;
                 } else
                     return false;

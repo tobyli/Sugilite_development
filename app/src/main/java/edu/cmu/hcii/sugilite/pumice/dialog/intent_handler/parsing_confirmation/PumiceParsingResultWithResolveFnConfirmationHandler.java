@@ -125,7 +125,7 @@ public class PumiceParsingResultWithResolveFnConfirmationHandler implements Pumi
      */
     @Override
     public PumiceIntent detectIntentFromUtterance(PumiceDialogManager.PumiceUtterance utterance) {
-        String utteranceContent = utterance.getContent();
+        String utteranceContent = utterance.getContent().toString();
         if (utteranceContent != null && (utteranceContent.toLowerCase().contains("yes") || utteranceContent.toLowerCase().toLowerCase().contains("ok") || utteranceContent.toLowerCase().contains("yeah"))){
             return PumiceIntent.PARSE_CONFIRM_POSITIVE;
         } else if (utteranceContent != null && (utteranceContent.toLowerCase().contains("no"))) {

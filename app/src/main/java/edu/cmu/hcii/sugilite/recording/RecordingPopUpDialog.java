@@ -65,8 +65,9 @@ import edu.cmu.hcii.sugilite.model.operation.binary.SugiliteSetTextOperation;
 import edu.cmu.hcii.sugilite.model.operation.unary.SugiliteClickOperation;
 import edu.cmu.hcii.sugilite.model.operation.unary.SugiliteLongClickOperation;
 import edu.cmu.hcii.sugilite.model.operation.unary.SugiliteSelectOperation;
-import edu.cmu.hcii.sugilite.model.variable.StringVariable;
 import edu.cmu.hcii.sugilite.model.variable.Variable;
+import edu.cmu.hcii.sugilite.model.variable.VariableHelper;
+import edu.cmu.hcii.sugilite.model.variable.VariableValue;
 import edu.cmu.hcii.sugilite.ontology.*;
 import edu.cmu.hcii.sugilite.pumice.PumiceDemonstrationUtil;
 import edu.cmu.hcii.sugilite.sovite.SoviteAppNameAppInfoManager;
@@ -660,11 +661,12 @@ public class RecordingPopUpDialog implements AbstractSugiliteDialog {
             if(triggerMode == TRIGGERED_BY_EDIT){
                 if(existingFilter.getText() != null) {
                     textCheckbox.setChecked(true);
-                    if(existingFilter.getText().contains("@")){
-                        Variable defaultVariable = originalScript.variableNameDefaultValueMap.get(existingFilter.getText().substring(existingFilter.getText().indexOf("@") + 1));
+                    if(VariableHelper.isAVariable(existingFilter.getText())) {
+                        VariableValue<String> defaultVariable = originalScript.variableNameDefaultValueMap.get(VariableHelper.getVariableName(existingFilter.getText()));
                         String defaultVariableValue = null;
-                        if(defaultVariable != null && defaultVariable instanceof StringVariable)
-                            defaultVariableValue = ((StringVariable)defaultVariable).getValue();
+                        if(defaultVariable != null && defaultVariable.getVariableValue() instanceof String) {
+                            defaultVariableValue = defaultVariable.getVariableValue();
+                        }
                         textCheckbox.setText(Html.fromHtml(boldify("Text Label: ") + existingFilter.getText() + (defaultVariableValue != null ? ": (" + defaultVariableValue + ")" : "")));
                     }
                 }
@@ -686,11 +688,12 @@ public class RecordingPopUpDialog implements AbstractSugiliteDialog {
             if(triggerMode == TRIGGERED_BY_EDIT){
                 if(existingFilter.getContentDescription() != null) {
                     contentDescriptionCheckbox.setChecked(true);
-                    if(existingFilter.getContentDescription().contains("@")){
-                        Variable defaultVariable = originalScript.variableNameDefaultValueMap.get(existingFilter.getContentDescription().substring(existingFilter.getContentDescription().indexOf("@") + 1));
+                    if(VariableHelper.isAVariable(existingFilter.getContentDescription())) {
+                        VariableValue<String> defaultVariable = originalScript.variableNameDefaultValueMap.get(VariableHelper.getVariableName(existingFilter.getContentDescription()));
                         String defaultVariableValue = null;
-                        if(defaultVariable != null && defaultVariable instanceof StringVariable)
-                            defaultVariableValue = ((StringVariable)defaultVariable).getValue();
+                        if(defaultVariable != null && defaultVariable.getVariableValue() instanceof String) {
+                            defaultVariableValue = defaultVariable.getVariableValue();
+                        }
                         textCheckbox.setText(Html.fromHtml(boldify("ContentDescription: ") + existingFilter.getContentDescription() + (defaultVariableValue != null ? ": (" + defaultVariableValue + ")" : "")));
                     }
                 }
@@ -711,11 +714,12 @@ public class RecordingPopUpDialog implements AbstractSugiliteDialog {
             if(triggerMode == TRIGGERED_BY_EDIT){
                 if(existingFilter.getViewId() != null) {
                     viewIdCheckbox.setChecked(true);
-                    if(existingFilter.getViewId().contains("@")){
-                        Variable defaultVariable = originalScript.variableNameDefaultValueMap.get(existingFilter.getViewId().substring(existingFilter.getViewId().indexOf("@") + 1));
+                    if(VariableHelper.isAVariable(existingFilter.getViewId())) {
+                        VariableValue<String> defaultVariable = originalScript.variableNameDefaultValueMap.get(VariableHelper.getVariableName(existingFilter.getViewId()));
                         String defaultVariableValue = null;
-                        if(defaultVariable != null && defaultVariable instanceof StringVariable)
-                            defaultVariableValue = ((StringVariable) defaultVariable).getValue();
+                        if(defaultVariable != null && defaultVariable.getVariableValue() instanceof String) {
+                            defaultVariableValue = defaultVariable.getVariableValue();
+                        }
                         textCheckbox.setText(Html.fromHtml(boldify("Object ID: ") + existingFilter.getViewId() + (defaultVariableValue != null ? ": (" + defaultVariableValue + ")" : "")));
                     }
                 }
@@ -803,13 +807,13 @@ public class RecordingPopUpDialog implements AbstractSugiliteDialog {
                     if(triggerMode == TRIGGERED_BY_EDIT){
                         //handle editing child feature with parameters
                         for(Map.Entry<String, String> selectedFeature: selectedChildFeatures){
-                            if(selectedFeature.getValue().contains("@")){
-                                Variable defaultValue = originalScript.variableNameDefaultValueMap.get(selectedFeature.getValue().substring(1));
-                                if(defaultValue != null && defaultValue instanceof StringVariable){
-                                    AbstractMap.SimpleEntry<String, String> parsedFeature = new AbstractMap.SimpleEntry<String, String>(selectedFeature.getKey(), ((StringVariable)defaultValue).getValue());
+                            if(VariableHelper.isAVariable(selectedFeature.getValue())) {
+                                VariableValue<String> defaultVariable = originalScript.variableNameDefaultValueMap.get(VariableHelper.getVariableName(selectedFeature.getValue()));
+                                if(defaultVariable != null && defaultVariable.getVariableValue() instanceof String){
+                                    AbstractMap.SimpleEntry<String, String> parsedFeature = new AbstractMap.SimpleEntry<String, String>(selectedFeature.getKey(), defaultVariable.getVariableValue());
                                     if (parsedFeature.equals(feature)){
                                         childCheckBox.setChecked(true);
-                                        childCheckBox.setText(Html.fromHtml(boldify("" + feature.getKey() + ": ") + selectedFeature.getValue() + ": (" + ((StringVariable)defaultValue).getValue() + ")"));
+                                        childCheckBox.setText(Html.fromHtml(boldify("" + feature.getKey() + ": ") + selectedFeature.getValue() + ": (" + defaultVariable.getVariableValue() + ")"));
                                     }
                                 }
                             }
@@ -842,13 +846,13 @@ public class RecordingPopUpDialog implements AbstractSugiliteDialog {
                     if(triggerMode == TRIGGERED_BY_EDIT){
                         //handle editing sibling feature with parameters
                         for(Map.Entry<String, String> selectedFeature: selectedSiblingFeatures){
-                            if(selectedFeature.getValue().contains("@")){
-                                Variable defaultValue = originalScript.variableNameDefaultValueMap.get(selectedFeature.getValue().substring(1));
-                                if(defaultValue != null && defaultValue instanceof StringVariable){
-                                    AbstractMap.SimpleEntry<String, String> parsedFeature = new AbstractMap.SimpleEntry<String, String>(selectedFeature.getKey(), ((StringVariable)defaultValue).getValue());
+                            if(VariableHelper.isAVariable(selectedFeature.getValue())) {
+                                VariableValue<String> defaultVariable = originalScript.variableNameDefaultValueMap.get(VariableHelper.getVariableName(selectedFeature.getValue()));
+                                if(defaultVariable != null && defaultVariable.getVariableValue() instanceof String){
+                                    AbstractMap.SimpleEntry<String, String> parsedFeature = new AbstractMap.SimpleEntry<String, String>(selectedFeature.getKey(), defaultVariable.getVariableValue());
                                     if (parsedFeature.equals(feature)){
                                         siblingCheckBox.setChecked(true);
-                                        siblingCheckBox.setText(Html.fromHtml(boldify("" + feature.getKey() + ": ") + selectedFeature.getValue() + ": (" + ((StringVariable)defaultValue).getValue() + ")"));
+                                        siblingCheckBox.setText(Html.fromHtml(boldify("" + feature.getKey() + ": ") + selectedFeature.getValue() + ": (" + defaultVariable.getVariableValue() + ")"));
                                     }
                                 }
                             }
@@ -1041,9 +1045,10 @@ public class RecordingPopUpDialog implements AbstractSugiliteDialog {
             if(variableName != null){
                 loadVariableVariableName.setText(variableName);
                 if(originalScript.variableNameDefaultValueMap.containsKey(variableName)){
-                    Variable defaultVariable = originalScript.variableNameDefaultValueMap.get(variableName);
-                    if(defaultVariable != null)
-                        loadVariableVariableDefaultValue.setText(defaultVariable instanceof StringVariable ? ((StringVariable) defaultVariable).getValue() : "");
+                    VariableValue<String> defaultVariable = originalScript.variableNameDefaultValueMap.get(variableName);
+                    if(defaultVariable != null) {
+                        loadVariableVariableDefaultValue.setText(defaultVariable.getVariableValue());
+                    }
                 }
             }
 
@@ -1188,7 +1193,7 @@ public class RecordingPopUpDialog implements AbstractSugiliteDialog {
 
     private void refreshAfterChange(){
         //collapse and expand the action parameter
-        Map<String, Variable> variableDefaultValueMap = null;
+        Map<String, VariableValue> variableDefaultValueMap = null;
         switch (triggerMode) {
             case TRIGGERED_BY_NEW_EVENT:
                 variableDefaultValueMap = sugiliteData.getScriptHead().variableNameDefaultValueMap;
@@ -1238,8 +1243,8 @@ public class RecordingPopUpDialog implements AbstractSugiliteDialog {
             Map.Entry<String, String> featureToAdd = new AbstractMap.SimpleEntry<String, String>(feature);
             if(checkBox != null && checkBox.isChecked()) {
                 String childCheckboxLabel = extractParameter(checkBox.getText().toString());
-                if(childCheckboxLabel.contains("@") && variableDefaultValueMap != null && variableDefaultValueMap.keySet().contains(childCheckboxLabel.substring(childCheckboxLabel.indexOf("@") + 1))){
-                    featureToAdd.setValue(childCheckboxLabel.substring(childCheckboxLabel.indexOf("@")));
+                if(VariableHelper.isAVariable(childCheckboxLabel) && variableDefaultValueMap != null && variableDefaultValueMap.keySet().contains(VariableHelper.getVariableName(childCheckboxLabel))){
+                    featureToAdd.setValue(VariableHelper.getVariableName(childCheckboxLabel));
                 }
                 selectedChildFeatures.add(featureToAdd);
             }
@@ -1249,8 +1254,8 @@ public class RecordingPopUpDialog implements AbstractSugiliteDialog {
             Map.Entry<String, String> featureToAdd = new AbstractMap.SimpleEntry<String, String>(feature);
             if(checkBox != null && checkBox.isChecked()) {
                 String siblingCheckboxLabel = extractParameter(checkBox.getText().toString());
-                if(siblingCheckboxLabel.contains("@") && variableDefaultValueMap != null && variableDefaultValueMap.keySet().contains(siblingCheckboxLabel.substring(siblingCheckboxLabel.indexOf("@") + 1))){
-                    featureToAdd.setValue(siblingCheckboxLabel.substring(siblingCheckboxLabel.indexOf("@")));
+                if(VariableHelper.isAVariable(siblingCheckboxLabel) && variableDefaultValueMap != null && variableDefaultValueMap.keySet().contains(VariableHelper.getVariableName(siblingCheckboxLabel))){
+                    featureToAdd.setValue(VariableHelper.getVariableName(siblingCheckboxLabel));
                 }
                 selectedSiblingFeatures.add(featureToAdd);
             }
@@ -1269,8 +1274,8 @@ public class RecordingPopUpDialog implements AbstractSugiliteDialog {
 
         if(textCheckbox != null && textCheckbox.getText() != null) {
             String textCheckboxLabel = extractParameter(textCheckbox.getText().toString());
-            if (textCheckboxLabel.contains("@") && variableDefaultValueMap != null && variableDefaultValueMap.keySet().contains(textCheckboxLabel.substring(textCheckboxLabel.indexOf("@") + 1))) {
-                textContent = textCheckboxLabel.substring(textCheckboxLabel.indexOf("@"));
+            if (VariableHelper.isAVariable(textCheckboxLabel) && variableDefaultValueMap != null && variableDefaultValueMap.keySet().contains(VariableHelper.getVariableName(textCheckboxLabel))) {
+                textContent = VariableHelper.getVariableName(textCheckboxLabel);
             } else {
                 textContent = featurePack.text;
             }
@@ -1278,8 +1283,8 @@ public class RecordingPopUpDialog implements AbstractSugiliteDialog {
 
         if(contentDescriptionCheckbox != null && contentDescriptionCheckbox.getText() != null) {
             String contentDescriptionCheckboxLabel = extractParameter(contentDescriptionCheckbox.getText().toString());
-            if (contentDescriptionCheckboxLabel.contains("@") && variableDefaultValueMap != null && variableDefaultValueMap.keySet().contains(contentDescriptionCheckboxLabel.substring(contentDescriptionCheckboxLabel.indexOf("@") + 1))) {
-                contentDescriptionContent = contentDescriptionCheckboxLabel.substring(contentDescriptionCheckboxLabel.indexOf("@"));
+            if (VariableHelper.isAVariable(contentDescriptionCheckboxLabel) && variableDefaultValueMap != null && variableDefaultValueMap.keySet().contains(VariableHelper.getVariableName(contentDescriptionCheckboxLabel))) {
+                contentDescriptionContent = VariableHelper.getVariableName(contentDescriptionCheckboxLabel);
             } else {
                 contentDescriptionContent = featurePack.contentDescription;
             }
@@ -1287,8 +1292,8 @@ public class RecordingPopUpDialog implements AbstractSugiliteDialog {
 
         if(viewIdCheckbox != null && viewIdCheckbox.getText() != null) {
             String viewIdCheckboxLabel = extractParameter(viewIdCheckbox.getText().toString());
-            if (viewIdCheckboxLabel.contains("@") && variableDefaultValueMap != null && variableDefaultValueMap.keySet().contains(viewIdCheckboxLabel.substring(viewIdCheckboxLabel.indexOf("@") + 1))) {
-                viewIdContent = viewIdCheckboxLabel.substring(viewIdCheckboxLabel.indexOf("@"));
+            if (VariableHelper.isAVariable(viewIdCheckboxLabel) && variableDefaultValueMap != null && variableDefaultValueMap.keySet().contains(VariableHelper.getVariableName(viewIdCheckboxLabel))) {
+                viewIdContent = VariableHelper.getVariableName(viewIdCheckboxLabel);
             } else {
                 viewIdContent = featurePack.viewId;
             }
@@ -1321,26 +1326,26 @@ public class RecordingPopUpDialog implements AbstractSugiliteDialog {
         if(operationBlock.getOperation().getOperationType() == SugiliteOperation.LOAD_AS_VARIABLE){
             //add the variable to the symbol table
             String variableName = loadVariableVariableName.getText().toString();
-            StringVariable stringVariable = new StringVariable(variableName);
-            stringVariable.type = Variable.LOAD_RUNTIME;
+            VariableValue stringVariable = new VariableValue<String>(variableName);
             String selectedTarget = loadVariableParameterSpinner.getSelectedItem().toString();
             if(loadVariableVariableDefaultValue.getText().toString().length() > 0) {
                 //TODO: this need to be modified if we are to change the labels
                 if (selectedTarget.contains("Text")) {
-                    stringVariable.setValue(featurePack.text);
+                    stringVariable.setVariableValue(featurePack.text);
                 } else if (selectedTarget.contains("Content Description")) {
-                    stringVariable.setValue(featurePack.contentDescription);
+                    stringVariable.setVariableValue(featurePack.contentDescription);
                 } else if (selectedTarget.contains("Child Text")) {
-                    stringVariable.setValue(childText);
+                    stringVariable.setVariableValue(childText);
                 } else if(selectedTarget.contains("Sibling Text")) {
-                    stringVariable.setValue(siblingText);
+                    stringVariable.setVariableValue(siblingText);
                 }
             }
 
-            if(sugiliteData.stringVariableMap == null)
-                sugiliteData.stringVariableMap = new HashMap<String, Variable>();
+            if(sugiliteData.variableNameVariableValueMap == null) {
+                sugiliteData.variableNameVariableValueMap = new HashMap<>();
+            }
 
-            sugiliteData.stringVariableMap.put(variableName, stringVariable);
+            sugiliteData.variableNameVariableValueMap.put(variableName, stringVariable);
 
             if(triggerMode == TRIGGERED_BY_EDIT) {
                 originalScript.variableNameDefaultValueMap.put(variableName, stringVariable);
@@ -1484,15 +1489,19 @@ public class RecordingPopUpDialog implements AbstractSugiliteDialog {
        */
 
     }
+
     private String extractParameter(String content){
-        if(content.contains(":") && content.contains("@")){
-            if(content.lastIndexOf(":") > content.indexOf("@"))
-                return content.substring(content.indexOf("@"), content.lastIndexOf(":"));
-            else
-                return content.substring(content.indexOf("@"));
+        if(content.contains("[") && content.contains("]") && content.contains(":")) {
+            if(content.lastIndexOf(":") > content.indexOf("]")) {
+                return content.substring(content.indexOf("["), content.lastIndexOf(":")).trim();
+            }
+            else {
+                return content.substring(content.indexOf("[")).trim();
+            }
         }
-        else
-            return content;
+        else {
+            return content.trim();
+        }
     }
 
     /**
@@ -1717,10 +1726,10 @@ public class RecordingPopUpDialog implements AbstractSugiliteDialog {
 
             switch (triggerMode) {
                 case TRIGGERED_BY_NEW_EVENT:
-                    ((SugiliteSetTextOperation)sugiliteOperation).setText(textVariableParse(rawText, sugiliteData.getScriptHead().variableNameSet, sugiliteData.stringVariableMap));
+                    ((SugiliteSetTextOperation)sugiliteOperation).setText(textVariableParse(rawText, sugiliteData.getScriptHead().variableNameSet, sugiliteData.variableNameVariableValueMap));
                     break;
                 case TRIGGERED_BY_EDIT:
-                    ((SugiliteSetTextOperation)sugiliteOperation).setText(textVariableParse(rawText, originalScript.variableNameSet, sugiliteData.stringVariableMap));
+                    ((SugiliteSetTextOperation)sugiliteOperation).setText(textVariableParse(rawText, originalScript.variableNameSet, sugiliteData.variableNameVariableValueMap));
                     break;
             }
             */

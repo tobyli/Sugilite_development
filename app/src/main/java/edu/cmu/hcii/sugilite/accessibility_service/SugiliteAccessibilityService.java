@@ -61,7 +61,6 @@ import edu.cmu.hcii.sugilite.verbal_instruction_demo.study.SugiliteStudyHandler;
 
 import static edu.cmu.hcii.sugilite.Const.BROADCASTING_ACCESSIBILITY_EVENT;
 import static edu.cmu.hcii.sugilite.Const.BUILDING_VOCAB;
-import static edu.cmu.hcii.sugilite.Const.HOME_SCREEN_PACKAGE_NAMES;
 import static edu.cmu.hcii.sugilite.Const.INTERVAL_ERROR_CHECKING_ACCESSIBILITY_SERVICE;
 import static edu.cmu.hcii.sugilite.Const.INTERVAL_REFRESH_SUGILITE_ICON;
 import static edu.cmu.hcii.sugilite.Const.KEEP_ALL_TEXT_LABEL_LIST;
@@ -95,7 +94,6 @@ public class SugiliteAccessibilityService extends AccessibilityService {
     private TextChangedEventHandler textChangedEventHandler;
     private String lastPackageName = "";
     private NewDemonstrationHandler newDemonstrationHandler;
-    private static Set<String> homeScreenPackageNameSet;
     private SugiliteTextParentAnnotator sugiliteTextParentAnnotator;
     private FullScreenRecordingOverlayManager recordingOverlayManager;
 
@@ -158,8 +156,6 @@ public class SugiliteAccessibilityService extends AccessibilityService {
         triggerHandler = new SugiliteTriggerHandler(context, sugiliteData, sharedPreferences);
         textChangedEventHandler = new TextChangedEventHandler(sugiliteData, context, sharedPreferences, new Handler());
 
-        homeScreenPackageNameSet = new HashSet<>();
-        homeScreenPackageNameSet.addAll(Arrays.asList(HOME_SCREEN_PACKAGE_NAMES));
 
         try {
             //initiate the InMind communication controller
@@ -294,6 +290,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
             return;
         }
 
+        //update currentAppActivityName and currentPackageName on TYPE_WINDOW_STATE_CHANGED events
         if (event.getEventType() == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) {
             if (event.getPackageName() != null && event.getClassName() != null) {
                 ComponentName componentName = new ComponentName(
@@ -314,7 +311,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
         }
 
 
-        //check for the trigger, see if an app launch trigger should be triggered
+        //check for the app launch trigger, see if an app launch trigger should be triggered
         if (eventType == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) {
             if (sourceNode != null && sourceNode.getPackageName() != null && (!lastPackageName.contentEquals(sourceNode.getPackageName()))) {
                 triggerHandler.checkForAppLaunchTrigger(eventPackageName);
@@ -379,16 +376,13 @@ public class SugiliteAccessibilityService extends AccessibilityService {
             }
         }
 
-
+        //if the script running is in progress, invoke the error handler
         if (sugiliteData.getInstructionQueueSize() > 0 && !sharedPreferences.getBoolean("recording_in_process", true) && !exceptedPackages.contains(event.getPackageName()) && sugiliteData.errorHandler != null) {
-            //if the script running is in progress, invoke the error handler
             sugiliteData.errorHandler.checkError(event, sugiliteData.peekInstructionQueue(), Calendar.getInstance().getTimeInMillis());
         }
 
-
+        //if recording is in progress
         if (sharedPreferences.getBoolean("recording_in_process", false)) {
-            //if recording is in progress
-
             //add package name to the relevant package set
             if (sugiliteData.getScriptHead() != null && eventPackageName != null && (!eventPackageName.equals("null")) && (!exceptedPackages.contains(eventPackageName))) {
                 sugiliteData.getScriptHead().relevantPackages.add(eventPackageName);
@@ -486,7 +480,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
                             UISnapshot uiSnapshot = new UISnapshot(windowManager.getDefaultDisplay(), final_root, true, sugiliteTextParentAnnotator, true, currentPackageName, currentAppActivityName);
                             System.out.printf("UI Snapshot Constructed for Recording!");
                             //temp hack for ViewGroup in Google Now Launcher
-                            if (sourceNode != null && sourceNode.getClassName() != null && sourceNode.getPackageName() != null && sourceNode.getClassName().toString().contentEquals("android.view.ViewGroup") && homeScreenPackageNameSet.contains(sourceNode.getPackageName().toString())) {
+                            if (sourceNode != null && sourceNode.getClassName() != null && sourceNode.getPackageName() != null && sourceNode.getClassName().toString().contentEquals("android.view.ViewGroup") && AutomatorUtil.isHomeScreenPackage(sourceNode.getPackageName().toString())) {
                                 /*do nothing (don't show popup for ViewGroup in home screen)*/
                             } else {
                                 File screenshot = null;
@@ -506,6 +500,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
                                 //2. send the event to recording pop up dialog
                                 SugiliteAvailableFeaturePack featurePack = generateFeaturePack(event, sourceNode, rootNodeForRecording, screenshot, availableAlternativeNodes, preOrderTraverseSourceNodeForRecording, preOrderTracerseRootNodeForRecording, preOrderTraverseSibNodeForRecording, new SerializableUISnapshot(uiSnapshot));
 
+                                //handle TYPE_VIEW_TEXT_CHANGED events
                                 if (featurePack.isEditable) {
                                     //3. handle text entry
                                     if (eventType == AccessibilityEvent.TYPE_VIEW_TEXT_CHANGED) {
@@ -513,7 +508,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
                                         textChangedEventHandler.handle(featurePack, availableAlternatives);
                                     }
                                 } else {
-                                    System.out.println("flush from service");
+                                    System.out.println("flush textChangedEventHandler from service");
                                     //flush the text changed event handler
                                     SugiliteData.runOnUiThread(new Runnable() {
                                         @Override

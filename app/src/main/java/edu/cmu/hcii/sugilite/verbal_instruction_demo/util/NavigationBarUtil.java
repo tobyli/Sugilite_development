@@ -39,7 +39,8 @@ public class NavigationBarUtil {
         }
     }
 
-    public int getNavigationBarHeight(WindowManager windowManager, Context context) {
+    public int getNavigationBarHeight(Context context) {
+        WindowManager windowManager = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
         if (!isNavigationBarShow(windowManager, context)){
             return 0;
         }

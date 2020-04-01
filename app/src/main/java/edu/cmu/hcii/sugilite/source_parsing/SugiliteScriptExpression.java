@@ -1,6 +1,8 @@
 package edu.cmu.hcii.sugilite.source_parsing;
 
 import edu.cmu.hcii.sugilite.model.operation.unary.SugiliteLaunchAppOperation;
+import edu.cmu.hcii.sugilite.model.variable.VariableHelper;
+import edu.cmu.hcii.sugilite.model.variable.VariableValue;
 import edu.cmu.hcii.sugilite.ontology.*;
 import org.apache.commons.lang3.StringUtils;
 
@@ -35,7 +37,6 @@ import edu.cmu.hcii.sugilite.model.operation.unary.SugiliteResolveValueQueryOper
 import edu.cmu.hcii.sugilite.model.operation.unary.SugiliteSelectOperation;
 import edu.cmu.hcii.sugilite.model.operation.unary.SugiliteUnaryOperation;
 import edu.cmu.hcii.sugilite.model.value.SugiliteSimpleConstant;
-import edu.cmu.hcii.sugilite.model.variable.StringVariable;
 import edu.cmu.hcii.sugilite.model.variable.Variable;
 import edu.cmu.hcii.sugilite.ontology.description.OntologyDescriptionGenerator;
 
@@ -213,11 +214,12 @@ public class SugiliteScriptExpression<T> {
             if (loq.getObjectSet() != null) {
                 for (SugiliteEntity sugiliteEntity : loq.getObjectSet()) {
                     if (sugiliteEntity.getEntityValue() instanceof String) {
-                        if (((String) sugiliteEntity.getEntityValue()).startsWith("@")) {
-                            String variableName = sugiliteEntity.getEntityValue().toString().substring(1);
+                        if (VariableHelper.isAVariable((String) sugiliteEntity.getEntityValue())) {
+                            String variableName = VariableHelper.getVariableName((String) sugiliteEntity.getEntityValue());
                             if (!startingBlock.variableNameDefaultValueMap.containsKey(variableName)) {
                                 //need to add to the variable map
-                                startingBlock.variableNameDefaultValueMap.put(variableName, new StringVariable(Variable.USER_INPUT, variableName, ""));
+                                startingBlock.variableNameDefaultValueMap.put(variableName, new VariableValue<>(variableName, ""));
+                                startingBlock.variableNameVariableObjectMap.put(variableName, new Variable(Variable.USER_INPUT, variableName));
                             }
                         }
                     }
@@ -331,12 +333,13 @@ public class SugiliteScriptExpression<T> {
                     }
                     operation.setParameter0(text);
                     ((SugiliteSetTextOperation) operation).setQuery(OntologyQuery.deserialize(arguments.get(1).get(0).getScriptContent()));
-                    if (text.startsWith("@") && text.length() > 1) {
+                    if (VariableHelper.isAVariable(text)) {
                         //is a variable
-                        String variableName = text.substring(1);
+                        String variableName = VariableHelper.getVariableName(text);
                         if (!startingBlock.variableNameDefaultValueMap.containsKey(variableName)) {
                             //need to add to the variable map
-                            startingBlock.variableNameDefaultValueMap.put(variableName, new StringVariable(Variable.USER_INPUT, variableName, ""));
+                            startingBlock.variableNameDefaultValueMap.put(variableName, new VariableValue<>(variableName, ""));
+                            startingBlock.variableNameVariableObjectMap.put(variableName, new Variable(Variable.USER_INPUT, variableName));
                         }
                     }
                     break;
@@ -357,7 +360,7 @@ public class SugiliteScriptExpression<T> {
                                 String paramName = ((SugiliteSimpleConstant<String>)setParamArgs.get(0).get(0).constantValue).evaluate(null);
                                 String valueName = ((SugiliteSimpleConstant<String>)setParamArgs.get(1).get(0).constantValue).evaluate(null);
                                 ((SugiliteGetProcedureOperation) operation).getVariableValues().add(
-                                        new StringVariable(Variable.USER_INPUT, paramName, valueName));
+                                        new VariableValue<>(paramName, valueName));
                             } else {
                                 throw new RuntimeException("Failed to parse the parameters in SugiliteGetProcedureOperation");
                             }
@@ -414,7 +417,8 @@ public class SugiliteScriptExpression<T> {
                     //the query is the parameter 2
                     ((SugiliteLoadVariableOperation) operation).setQuery(OntologyQuery.deserialize(arguments.get(2).get(0).getScriptContent()));
                     //add the variable to the variable map in the starting block
-                    startingBlock.variableNameDefaultValueMap.put(parameter0, new StringVariable(Variable.LOAD_RUNTIME, parameter0, ""));
+                    startingBlock.variableNameVariableObjectMap.put(parameter0, new Variable(Variable.LOAD_RUNTIME, parameter0));
+                    startingBlock.variableNameDefaultValueMap.put(parameter0, new VariableValue<>(parameter0, ""));
                     break;
             }
             operationBlock.setOperation(operation);

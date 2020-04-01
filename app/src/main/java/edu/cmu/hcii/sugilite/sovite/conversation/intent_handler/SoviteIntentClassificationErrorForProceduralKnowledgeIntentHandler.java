@@ -71,7 +71,7 @@ public class SoviteIntentClassificationErrorForProceduralKnowledgeIntentHandler 
         if (pumiceIntent.equals(PumiceIntent.APP_REFERENCE)) {
             // the user has provided an app name
             List<String> availableAppNames = new ArrayList<>(soviteAppNameAppInfoManager.getAllAvailableAppPackageNameReadableNameMap(true).values());
-            PumiceInstructionPacket pumiceInstructionPacket = new PumiceInstructionPacket(dialogManager.getPumiceKnowledgeManager(), PumiceIntent.APP_REFERENCE, calendar.getTimeInMillis(), utterance.getContent(), availableAppNames);
+            PumiceInstructionPacket pumiceInstructionPacket = new PumiceInstructionPacket(dialogManager.getPumiceKnowledgeManager(), PumiceIntent.APP_REFERENCE, calendar.getTimeInMillis(), utterance.getContent().toString(), availableAppNames);
             try {
                 dialogManager.getHttpQueryManager().sendPumiceInstructionPacketOnASeparateThread(pumiceInstructionPacket, this);
             } catch (Exception e) {

@@ -8,6 +8,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Handler;
+import android.text.Html;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.ArrayAdapter;
@@ -15,7 +16,6 @@ import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import org.apache.commons.lang3.text.WordUtils;
 
@@ -31,10 +31,11 @@ import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.automation.AutomatorUtil;
 import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
-import edu.cmu.hcii.sugilite.model.variable.StringVariable;
 import edu.cmu.hcii.sugilite.model.variable.Variable;
+import edu.cmu.hcii.sugilite.model.variable.VariableValue;
 import edu.cmu.hcii.sugilite.pumice.PumiceDemonstrationUtil;
 import edu.cmu.hcii.sugilite.pumice.dialog.PumiceDialogManager;
+import edu.cmu.hcii.sugilite.recording.ReadableDescriptionGenerator;
 import edu.cmu.hcii.sugilite.recording.newrecording.dialog_management.SugiliteDialogManager;
 import edu.cmu.hcii.sugilite.recording.newrecording.dialog_management.SugiliteDialogSimpleState;
 import edu.cmu.hcii.sugilite.recording.newrecording.dialog_management.SugiliteDialogUtteranceFilter;
@@ -58,8 +59,9 @@ public class VariableSetValueDialog extends SugiliteDialogManager implements Abs
 
     private Context context;
     private AlertDialog dialog;
-    private Map<String, Variable> variableDefaultValueMap, stringVariableMap;
-    private Map<String, Set<String>> variableNameAlternativeValueMap;
+    private Map<String, VariableValue> variableNameDefaultValueMap;
+    private Map<String, Variable> variableNameVariableObjectMap;
+    private Map<String, Set<VariableValue>> variableNameAlternativeValueMap;
     private Map<String, View> variableSelectionViewMap;
     private SharedPreferences sharedPreferences;
     private SugiliteStartingBlock startingBlock;
@@ -67,7 +69,7 @@ public class VariableSetValueDialog extends SugiliteDialogManager implements Abs
     private int state;
 
     private PumiceDialogManager pumiceDialogManager;
-    private Map<String, StringVariable> alreadyLoadedVariableMap;
+    private Map<String, VariableValue> alreadyLoadedVariableMap;
 
 
     //adding speech for VLHCC DEMO
@@ -83,7 +85,6 @@ public class VariableSetValueDialog extends SugiliteDialogManager implements Abs
         //constructor for SugiliteDialogManager
         super(context, sugiliteData.getTTS());
 
-        AlertDialog.Builder builder = new AlertDialog.Builder(context);
         this.context = context;
         this.sharedPreferences = sharedPreferences;
         this.startingBlock = startingBlock;
@@ -91,18 +92,26 @@ public class VariableSetValueDialog extends SugiliteDialogManager implements Abs
         this.state = state;
         this.pumiceDialogManager = pumiceDialogManager;
         this.isForReconstructing = isForReconstructing;
+    }
 
+    private void initDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(context);
         LayoutInflater inflater = LayoutInflater.from(context);
         View dialogView = inflater.inflate(R.layout.dialog_variable_set_value, null);
         LinearLayout mainLayout = (LinearLayout) dialogView.findViewById(R.id.layout_variable_set_value);
-        variableDefaultValueMap = startingBlock.variableNameDefaultValueMap;
+
+        variableNameDefaultValueMap = startingBlock.variableNameDefaultValueMap;
         variableNameAlternativeValueMap = startingBlock.variableNameAlternativeValueMap;
-        stringVariableMap = sugiliteData.stringVariableMap;
+        variableNameVariableObjectMap = startingBlock.variableNameVariableObjectMap;
         variableSelectionViewMap = new HashMap<>();
 
 
-        for (Map.Entry<String, Variable> entry : variableDefaultValueMap.entrySet()) {
-            if (entry.getValue().type == Variable.LOAD_RUNTIME) {
+        for (Map.Entry<String, VariableValue> entry : variableNameDefaultValueMap.entrySet()) {
+            Variable variableObject = variableNameVariableObjectMap.get(entry.getKey());
+            if (variableObject == null) {
+                continue;
+            }
+            if (variableObject.getVariableType() == Variable.LOAD_RUNTIME) {
                 // only ask the values for those that need to be loaded as a user input
                 continue;
             }
@@ -120,16 +129,18 @@ public class VariableSetValueDialog extends SugiliteDialogManager implements Abs
             variableName.setText(entry.getKey());
             linearLayout.addView(variableName);
             //use a spinner if alternatives can be found
-            if (variableNameAlternativeValueMap != null && variableNameAlternativeValueMap.containsKey(entry.getKey())) {
+            if (variableNameAlternativeValueMap != null && variableNameAlternativeValueMap.containsKey(entry.getKey()) && variableNameAlternativeValueMap.get(entry.getKey()).size() >= 1) {
                 //has alternative values stored
                 Spinner alternativeValueSpinner = new Spinner(context);
                 List<String> spinnerItemList = new ArrayList<>();
-                if (entry.getValue() instanceof StringVariable)
-                    spinnerItemList.add(((StringVariable) entry.getValue()).getValue());
-                for (String alternative : variableNameAlternativeValueMap.get(entry.getKey())) {
-                    if (alternative.equals(((StringVariable) entry.getValue()).getValue()))
+                if (entry.getValue().getVariableValue() instanceof String) {
+                    spinnerItemList.add((String) entry.getValue().getVariableValue());
+                }
+                for (VariableValue alternative : variableNameAlternativeValueMap.get(entry.getKey())) {
+                    if (alternative.getVariableValue().equals(entry.getValue().getVariableValue())) {
                         continue;
-                    spinnerItemList.add(alternative);
+                    }
+                    spinnerItemList.add(alternative.getVariableValue().toString());
                 }
                 ArrayAdapter<String> spinnerAdapter = new ArrayAdapter<>(context, android.R.layout.simple_spinner_item, spinnerItemList);
                 spinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
@@ -147,11 +158,12 @@ public class VariableSetValueDialog extends SugiliteDialogManager implements Abs
                 variableValue.setWidth(0);
             /*
             this part save the state of the last variable setting
-            if(stringVariableMap.containsKey(entry.getKey()) && stringVariableMap.get(entry.getKey()) instanceof StringVariable)
-                variableValue.setText(((StringVariable) stringVariableMap.get(entry.getKey())).getValue());
+            if(variableNameVariableValueMap.containsKey(entry.getKey()) && variableNameVariableValueMap.get(entry.getKey()) instanceof StringVariable)
+                variableValue.setText(((StringVariable) variableNameVariableValueMap.get(entry.getKey())).getValue());
             */
-                if (entry.getValue() instanceof StringVariable)
-                    variableValue.setText(((StringVariable) entry.getValue()).getValue());
+                if (entry.getValue().getVariableValue() instanceof String) {
+                    variableValue.setText((String) entry.getValue().getVariableValue());
+                }
                 linearLayout.addView(variableValue);
                 variableSelectionViewMap.put(entry.getKey(), variableValue);
 
@@ -165,7 +177,7 @@ public class VariableSetValueDialog extends SugiliteDialogManager implements Abs
         }
 
         builder.setView(dialogView)
-                .setTitle(Const.appNameUpperCase + " Parameter Settings")
+                //.setTitle(Const.appNameUpperCase + " Parameter Settings")
                 .setPositiveButton("OK", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
@@ -193,47 +205,49 @@ public class VariableSetValueDialog extends SugiliteDialogManager implements Abs
 
     @Override
     public void show() {
+        initDialog();
         show(null, null);
     }
 
     public void show(SugiliteBlock afterExecutionOperation, Runnable afterExecutionRunnable) {
+        initDialog();
         if (dialog != null) {
             if (dialog.getWindow() != null) {
                 dialog.getWindow().setType(OVERLAY_TYPE);
             }
-        }
-        dialog.show();
-        dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                //check if all fields have been set
-                boolean allReady = true;
+            dialog.show();
+            dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    //check if all fields have been set
+                    boolean allReady = true;
 
-                for (Map.Entry<String, View> entry : variableSelectionViewMap.entrySet()) {
-                    if (entry.getValue() instanceof TextView) {
-                        if (((TextView) entry.getValue()).getText().toString().length() < 1) {
-                            allReady = false;
-                            break;
-                        }
-                    }
-                }
-
-                if (allReady) {
-                    //update all
                     for (Map.Entry<String, View> entry : variableSelectionViewMap.entrySet()) {
-                        if (entry.getValue() instanceof TextView)
-                            stringVariableMap.put(entry.getKey(), new StringVariable(entry.getKey(), ((TextView) entry.getValue()).getText().toString()));
-                        else if (entry.getValue() instanceof Spinner) {
-                            stringVariableMap.put(entry.getKey(), new StringVariable(entry.getKey(), ((Spinner) entry.getValue()).getSelectedItem().toString()));
+                        if (entry.getValue() instanceof TextView) {
+                            if (((TextView) entry.getValue()).getText().toString().length() < 1) {
+                                allReady = false;
+                                break;
+                            }
                         }
                     }
-                    executeScript(afterExecutionOperation, pumiceDialogManager, afterExecutionRunnable);
-                    dialog.dismiss();
-                } else {
-                    PumiceDemonstrationUtil.showSugiliteAlertDialog("Please complete all fields");
+
+                    if (allReady) {
+                        //update all
+                        for (Map.Entry<String, View> entry : variableSelectionViewMap.entrySet()) {
+                            if (entry.getValue() instanceof TextView)
+                                sugiliteData.variableNameVariableValueMap.put(entry.getKey(), new VariableValue<>(entry.getKey(), ((TextView) entry.getValue()).getText().toString()));
+                            else if (entry.getValue() instanceof Spinner) {
+                                sugiliteData.variableNameVariableValueMap.put(entry.getKey(), new VariableValue<>(entry.getKey(), ((Spinner) entry.getValue()).getSelectedItem().toString()));
+                            }
+                        }
+                        executeScript(afterExecutionOperation, pumiceDialogManager, afterExecutionRunnable);
+                        dialog.dismiss();
+                    } else {
+                        PumiceDemonstrationUtil.showSugiliteAlertDialog("Please complete all fields");
+                    }
                 }
-            }
-        });
+            });
+        }
         if (firstVariableEditText != null && firstVariableName != null) {
             initDialogManager();
         }
@@ -288,7 +302,7 @@ public class VariableSetValueDialog extends SugiliteDialogManager implements Abs
         context.startActivity(startMain);
     }
 
-    public void setAlreadyLoadedVariableMap(Map<String, StringVariable> alreadyLoadedVariableMap) {
+    public void setAlreadyLoadedVariableMap(Map<String, VariableValue> alreadyLoadedVariableMap) {
         this.alreadyLoadedVariableMap = alreadyLoadedVariableMap;
     }
 

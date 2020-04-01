@@ -563,7 +563,7 @@ public class SugiliteCommunicationController {
                 });
             }
             else if( script != null ){
-                sugiliteData.stringVariableMap.putAll(script.variableNameDefaultValueMap);
+                sugiliteData.variableNameVariableValueMap.putAll(script.variableNameDefaultValueMap);
 
                 //kill all the relevant packages
                 for (String packageName : script.relevantPackages) {
@@ -624,7 +624,7 @@ public class SugiliteCommunicationController {
             });
         }
         else {
-            sugiliteData.stringVariableMap.putAll(script.variableNameDefaultValueMap);
+            sugiliteData.variableNameVariableValueMap.putAll(script.variableNameDefaultValueMap);
 
             //kill all the relevant packages
             for (String packageName : script.relevantPackages) {

@@ -7,6 +7,7 @@ import android.content.SharedPreferences;
 import android.graphics.PixelFormat;
 import android.graphics.Rect;
 import android.net.Uri;
+import android.os.Handler;
 import android.os.SystemClock;
 import android.provider.Settings;
 import android.speech.tts.TextToSpeech;
@@ -71,6 +72,7 @@ public class FullScreenRecordingOverlayManager {
     private SugiliteAccessibilityService sugiliteAccessibilityService;
     private SugiliteScreenshotManager sugiliteScreenshotManager;
     private TextToSpeech tts;
+    private TextChangedEventHandler textChangedEventHandler;
     //whether overlays are currently shown
     private boolean showingOverlay = false;
 
@@ -112,6 +114,7 @@ public class FullScreenRecordingOverlayManager {
 
 
     public void updateRecordingOverlaySizeBasedOnInputMethod(boolean windowsContainsInputMethod, Rect inputMethodWindowBoundsInScreen, TextChangedEventHandler textChangedEventHandler) {
+        this.textChangedEventHandler = textChangedEventHandler;
         SugiliteData.runOnUiThread(new Runnable() {
             @Override
             public void run() {
@@ -326,7 +329,9 @@ public class FullScreenRecordingOverlayManager {
     private UISnapshot getUiSnapshotAndAnnotateStringEntitiesIfNeeded() {
         synchronized (this) {
             //annotate string entities in the ui snapshot if needed
-            uiSnapshot.annotateStringEntitiesIfNeeded();
+            if (uiSnapshot != null) {
+                uiSnapshot.annotateStringEntitiesIfNeeded();
+            }
             return uiSnapshot;
         }
     }
@@ -453,6 +458,17 @@ public class FullScreenRecordingOverlayManager {
             } else {
                 OverlayClickedDialog overlayClickedDialog = new OverlayClickedDialog(context, node, uiSnapshot, screenshot, x, y, this, overlay, sugiliteData, sharedPreferences, tts, false);
                 overlayClickedDialog.show();
+
+                //flush the textChangedEventHandler
+                if (textChangedEventHandler != null) {
+                    Handler handler = new Handler();
+                    handler.postDelayed(new Runnable() {
+                        public void run() {
+                            //capture the screen
+                            textChangedEventHandler.flush();
+                        }
+                    }, 500);
+                }
             }
         } else {
             PumiceDemonstrationUtil.showSugiliteToast("No node matched!", Toast.LENGTH_SHORT);
@@ -478,6 +494,17 @@ public class FullScreenRecordingOverlayManager {
             if (matchedAllNodeEntities != null) {
                 RecordingOverlayContextClickDialog recordingOverlayContextClickDialog = new RecordingOverlayContextClickDialog(context, this, topLongClickableNode, topClickableNode, matchedAllNodeEntities, uiSnapshot, screenshot, sugiliteData, tts, x, y);
                 recordingOverlayContextClickDialog.show();
+
+                //flush the textChangedEventHandler
+                if (textChangedEventHandler != null) {
+                    Handler handler = new Handler();
+                    handler.postDelayed(new Runnable() {
+                        public void run() {
+                            //capture the screen
+                            textChangedEventHandler.flush();
+                        }
+                    }, 500);
+                }
             } else {
                 PumiceDemonstrationUtil.showSugiliteToast("No node matched!", Toast.LENGTH_SHORT);
             }

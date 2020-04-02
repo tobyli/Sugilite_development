@@ -8,7 +8,6 @@ import android.text.style.ClickableSpan;
 import android.view.View;
 import android.widget.TextView;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -23,17 +22,15 @@ import edu.cmu.hcii.sugilite.dao.SugiliteScriptSQLDao;
 import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
-import edu.cmu.hcii.sugilite.model.operation.SugiliteOperation;
 import edu.cmu.hcii.sugilite.model.operation.binary.SugiliteGetProcedureOperation;
 import edu.cmu.hcii.sugilite.model.variable.VariableValue;
-import edu.cmu.hcii.sugilite.pumice.PumiceDemonstrationUtil;
 import edu.cmu.hcii.sugilite.pumice.communication.PumiceSemanticParsingResultPacket;
 import edu.cmu.hcii.sugilite.pumice.dialog.PumiceDialogManager;
 import edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.PumiceDefaultUtteranceIntentHandler;
 import edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.PumiceUtteranceIntentHandler;
 import edu.cmu.hcii.sugilite.pumice.kb.PumiceProceduralKnowledge;
 import edu.cmu.hcii.sugilite.source_parsing.SugiliteScriptParser;
-import edu.cmu.hcii.sugilite.sovite.visual.ScriptVisualThumbnailManager;
+import edu.cmu.hcii.sugilite.sovite.visual.SoviteScriptVisualThumbnailManager;
 import edu.cmu.hcii.sugilite.sovite.conversation.SoviteReturnValueCallbackInterface;
 import edu.cmu.hcii.sugilite.sovite.conversation.intent_handler.SoviteIntentClassificationErrorForProceduralKnowledgeIntentHandler;
 import edu.cmu.hcii.sugilite.sovite.visual.SoviteVariableUpdateCallback;
@@ -57,7 +54,7 @@ public class PumiceParsingResultNoResolveConfirmationHandler implements PumiceUt
     private PumiceDialogManager pumiceDialogManager;
     private PumiceParsingResultDescriptionGenerator pumiceParsingResultDescriptionGenerator;
     private SugiliteScriptParser sugiliteScriptParser;
-    private ScriptVisualThumbnailManager scriptVisualThumbnailManager;
+    private SoviteScriptVisualThumbnailManager soviteScriptVisualThumbnailManager;
     private SugiliteData sugiliteData;
     private SugiliteScriptDao sugiliteScriptDao;
 
@@ -76,7 +73,7 @@ public class PumiceParsingResultNoResolveConfirmationHandler implements PumiceUt
         this.pumiceParsingResultDescriptionGenerator = new PumiceParsingResultDescriptionGenerator();
         this.sugiliteScriptParser = new SugiliteScriptParser();
         this.failureCount = failureCount;
-        this.scriptVisualThumbnailManager = new ScriptVisualThumbnailManager(context);
+        this.soviteScriptVisualThumbnailManager = new SoviteScriptVisualThumbnailManager(context);
         this.existingVisualViews = new HashSet<>();
 
         if (Const.DAO_TO_USE == SQL_SCRIPT_DAO) {
@@ -174,9 +171,9 @@ public class PumiceParsingResultNoResolveConfirmationHandler implements PumiceUt
         if (toSendImage) {
             List<View> views;
             if (block.getNextBlock() != null && block.getNextBlock() instanceof SugiliteOperationBlock && ((SugiliteOperationBlock) block.getNextBlock()).getOperation() instanceof SugiliteGetProcedureOperation) {
-                views = scriptVisualThumbnailManager.getVisualThumbnailViewsForBlock(block.getNextBlock(), this, this.pumiceDialogManager);
+                views = soviteScriptVisualThumbnailManager.getVisualThumbnailViewsForBlock(block.getNextBlock(), this, this.pumiceDialogManager);
             } else {
-                views = scriptVisualThumbnailManager.getVisualThumbnailViewsForBlock(block, this, this.pumiceDialogManager);
+                views = soviteScriptVisualThumbnailManager.getVisualThumbnailViewsForBlock(block, this, this.pumiceDialogManager);
             }
 
             if (views != null) {
@@ -269,7 +266,7 @@ public class PumiceParsingResultNoResolveConfirmationHandler implements PumiceUt
 
 
     @Override
-    public void onGetProcedureOperationUpdated(SugiliteGetProcedureOperation sugiliteGetProcedureOperation, VariableValue changedNewVariableValue) {
+    public void onGetProcedureOperationUpdated(SugiliteGetProcedureOperation sugiliteGetProcedureOperation, VariableValue changedNewVariableValue, boolean toShowNewScreenshot) {
         //the get procedure operation is updated externally using the dialog -- need to reconfirm
 
         //1. update topFormula
@@ -278,11 +275,13 @@ public class PumiceParsingResultNoResolveConfirmationHandler implements PumiceUt
         operationBlock.setOperation(sugiliteGetProcedureOperation);
 
         //2. show new image
-        List<View> views = scriptVisualThumbnailManager.getVisualThumbnailViewsForBlock(operationBlock, this, this.pumiceDialogManager, changedNewVariableValue.getVariableName());
-        if (views != null) {
-            for (View view : views) {
-                pumiceDialogManager.sendAgentViewMessage(view, "SCREENSHOT", false, false);
-                existingVisualViews.add(view);
+        if (toShowNewScreenshot) {
+            List<View> views = soviteScriptVisualThumbnailManager.getVisualThumbnailViewsForBlock(operationBlock, this, this.pumiceDialogManager, changedNewVariableValue.getVariableName());
+            if (views != null) {
+                for (View view : views) {
+                    pumiceDialogManager.sendAgentViewMessage(view, "SCREENSHOT", false, false);
+                    existingVisualViews.add(view);
+                }
             }
         }
 

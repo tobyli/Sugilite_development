@@ -535,4 +535,9 @@ public class PumiceDialogManager{
         return pumiceInitInstructionParsingHandler;
     }
 
+    public ScrollView getScrollView() {
+        return (ScrollView) context.findViewById(R.id.pumice_dialog_scrollLayout);
+    }
+
+
 }

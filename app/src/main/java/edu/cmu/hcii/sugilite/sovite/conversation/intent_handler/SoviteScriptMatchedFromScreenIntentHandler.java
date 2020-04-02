@@ -19,7 +19,7 @@ import edu.cmu.hcii.sugilite.pumice.PumiceDemonstrationUtil;
 import edu.cmu.hcii.sugilite.pumice.dialog.PumiceDialogManager;
 import edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.PumiceUtteranceIntentHandler;
 import edu.cmu.hcii.sugilite.pumice.kb.PumiceProceduralKnowledge;
-import edu.cmu.hcii.sugilite.sovite.visual.ScriptVisualThumbnailManager;
+import edu.cmu.hcii.sugilite.sovite.visual.SoviteScriptVisualThumbnailManager;
 import edu.cmu.hcii.sugilite.sovite.conversation.SoviteReturnValueCallbackInterface;
 import edu.cmu.hcii.sugilite.sovite.conversation.dialog.SoviteNewScriptDemonstrationDialog;
 import edu.cmu.hcii.sugilite.sovite.visual.SoviteVariableUpdateCallback;
@@ -39,7 +39,7 @@ public class SoviteScriptMatchedFromScreenIntentHandler implements PumiceUtteran
     private String originalUtterance;
     private PumiceDialogManager pumiceDialogManager;
     private SoviteReturnValueCallbackInterface<PumiceProceduralKnowledge> returnValueCallbackObject;
-    private ScriptVisualThumbnailManager scriptVisualThumbnailManager;
+    private SoviteScriptVisualThumbnailManager soviteScriptVisualThumbnailManager;
     private NewScriptGeneralizer newScriptGeneralizer;
     private SugiliteScriptDao sugiliteScriptDao;
 
@@ -57,7 +57,7 @@ public class SoviteScriptMatchedFromScreenIntentHandler implements PumiceUtteran
         this.pumiceDialogManager = pumiceDialogManager;
         this.returnValueCallbackObject = returnValueCallbackObject;
         this.relevantProceduralKnowledgesToTargetApp = relevantProceduralKnowledgesToTargetApp;
-        this.scriptVisualThumbnailManager = new ScriptVisualThumbnailManager(context);
+        this.soviteScriptVisualThumbnailManager = new SoviteScriptVisualThumbnailManager(context);
         this.newScriptGeneralizer = new NewScriptGeneralizer(context);
         if (Const.DAO_TO_USE == SQL_SCRIPT_DAO) {
             this.sugiliteScriptDao = new SugiliteScriptSQLDao(context);
@@ -82,7 +82,7 @@ public class SoviteScriptMatchedFromScreenIntentHandler implements PumiceUtteran
             sugiliteOperationBlock.setOperation(sugiliteGetProcedureOperation);
             //test sending an image
 
-            List<View> screenshotViews = scriptVisualThumbnailManager.getVisualThumbnailViewsForBlock(sugiliteOperationBlock, this, this.pumiceDialogManager);
+            List<View> screenshotViews = soviteScriptVisualThumbnailManager.getVisualThumbnailViewsForBlock(sugiliteOperationBlock, this, this.pumiceDialogManager);
             if (screenshotViews != null) {
                 for (View screenshotView : screenshotViews) {
                     pumiceDialogManager.sendAgentViewMessage(screenshotView, "SCREENSHOT:" + topMatchedKnowledge.getProcedureDescription(pumiceDialogManager.getPumiceKnowledgeManager(), false), false, false);
@@ -131,7 +131,7 @@ public class SoviteScriptMatchedFromScreenIntentHandler implements PumiceUtteran
     }
 
     @Override
-    public void onGetProcedureOperationUpdated(SugiliteGetProcedureOperation sugiliteGetProcedureOperation, VariableValue changedNewVariableValue) {
+    public void onGetProcedureOperationUpdated(SugiliteGetProcedureOperation sugiliteGetProcedureOperation, VariableValue changedNewVariableValue, boolean toShowNewScreenshot) {
         //TODO: implement
     }
 

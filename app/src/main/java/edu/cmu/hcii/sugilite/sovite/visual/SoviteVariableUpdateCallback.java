@@ -9,5 +9,5 @@ import edu.cmu.hcii.sugilite.model.variable.VariableValue;
  * @time 12:35 PM
  */
 public interface SoviteVariableUpdateCallback {
-    void onGetProcedureOperationUpdated (SugiliteGetProcedureOperation sugiliteGetProcedureOperation, VariableValue changedNewVariableValue);
+    void onGetProcedureOperationUpdated (SugiliteGetProcedureOperation sugiliteGetProcedureOperation, VariableValue changedNewVariableValue, boolean toShowNewScreenshot);
 }

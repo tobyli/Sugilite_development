@@ -12,7 +12,7 @@ import edu.cmu.hcii.sugilite.model.variable.VariableValue;
 import edu.cmu.hcii.sugilite.pumice.dialog.PumiceDialogManager;
 import edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.PumiceUtteranceIntentHandler;
 import edu.cmu.hcii.sugilite.pumice.kb.PumiceProceduralKnowledge;
-import edu.cmu.hcii.sugilite.sovite.visual.ScriptVisualThumbnailManager;
+import edu.cmu.hcii.sugilite.sovite.visual.SoviteScriptVisualThumbnailManager;
 import edu.cmu.hcii.sugilite.sovite.conversation.SoviteReturnValueCallbackInterface;
 import edu.cmu.hcii.sugilite.sovite.visual.SoviteVariableUpdateCallback;
 
@@ -28,7 +28,7 @@ public class SoviteScriptRelevantToAppIntentHandler implements PumiceUtteranceIn
     private String originalUtterance;
     private PumiceDialogManager pumiceDialogManager;
     private SoviteReturnValueCallbackInterface<PumiceProceduralKnowledge> returnValueCallbackObject;
-    private ScriptVisualThumbnailManager scriptVisualThumbnailManager;
+    private SoviteScriptVisualThumbnailManager soviteScriptVisualThumbnailManager;
     private SugiliteData sugiliteData;
 
     private List<PumiceProceduralKnowledge> relevantProceduralKnowledgesToTargetApp;
@@ -43,7 +43,7 @@ public class SoviteScriptRelevantToAppIntentHandler implements PumiceUtteranceIn
         this.pumiceDialogManager = pumiceDialogManager;
         this.returnValueCallbackObject = returnValueCallbackObject;
         this.relevantProceduralKnowledgesToTargetApp = relevantProceduralKnowledgesToTargetApp;
-        this.scriptVisualThumbnailManager = new ScriptVisualThumbnailManager(context);
+        this.soviteScriptVisualThumbnailManager = new SoviteScriptVisualThumbnailManager(context);
         if (relevantProceduralKnowledgesToTargetApp != null && relevantProceduralKnowledgesToTargetApp.size() > 0) {
             this.topMatchedKnowledge = relevantProceduralKnowledgesToTargetApp.get(0);
         } else {
@@ -52,7 +52,7 @@ public class SoviteScriptRelevantToAppIntentHandler implements PumiceUtteranceIn
     }
 
     @Override
-    public void onGetProcedureOperationUpdated(SugiliteGetProcedureOperation sugiliteGetProcedureOperation, VariableValue changedNewVariableValue) {
+    public void onGetProcedureOperationUpdated(SugiliteGetProcedureOperation sugiliteGetProcedureOperation, VariableValue changedNewVariableValue, boolean toShowNewScreenshot) {
         //TODO: implement
     }
 
@@ -69,7 +69,7 @@ public class SoviteScriptRelevantToAppIntentHandler implements PumiceUtteranceIn
             SugiliteOperationBlock sugiliteOperationBlock = new SugiliteOperationBlock();
             sugiliteOperationBlock.setOperation(sugiliteGetProcedureOperation);
             //test sending an image
-            List<View> screenshotViews = scriptVisualThumbnailManager.getVisualThumbnailViewsForBlock(sugiliteOperationBlock, this, this.pumiceDialogManager);
+            List<View> screenshotViews = soviteScriptVisualThumbnailManager.getVisualThumbnailViewsForBlock(sugiliteOperationBlock, this, this.pumiceDialogManager);
             if (screenshotViews != null) {
                 for (View screenshotView : screenshotViews) {
                     pumiceDialogManager.sendAgentViewMessage(screenshotView, "SCREENSHOT:" + topMatchedKnowledge.getProcedureDescription(pumiceDialogManager.getPumiceKnowledgeManager(), false), false, false);

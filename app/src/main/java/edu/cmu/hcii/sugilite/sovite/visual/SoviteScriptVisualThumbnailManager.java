@@ -9,15 +9,12 @@ import android.graphics.Rect;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.LayerDrawable;
-import android.graphics.drawable.ScaleDrawable;
 import android.graphics.drawable.ShapeDrawable;
 import android.graphics.drawable.shapes.RectShape;
 import android.util.DisplayMetrics;
 import android.view.Gravity;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.ImageView;
-import android.widget.RelativeLayout;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -38,10 +35,8 @@ import edu.cmu.hcii.sugilite.model.block.SugiliteConditionBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.model.operation.binary.SugiliteGetProcedureOperation;
-import edu.cmu.hcii.sugilite.model.variable.Variable;
 import edu.cmu.hcii.sugilite.model.variable.VariableValue;
 import edu.cmu.hcii.sugilite.ontology.SerializableUISnapshot;
-import edu.cmu.hcii.sugilite.pumice.PumiceDemonstrationUtil;
 import edu.cmu.hcii.sugilite.pumice.dialog.PumiceDialogManager;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.util.NavigationBarUtil;
 
@@ -53,15 +48,17 @@ import static edu.cmu.hcii.sugilite.Const.SQL_SCRIPT_DAO;
  * @time 8:31 PM
  */
 
-public class ScriptVisualThumbnailManager {
+public class SoviteScriptVisualThumbnailManager {
     private SugiliteData sugiliteData;
     private SugiliteScriptDao sugiliteScriptDao;
     private Context context;
+    private SoviteInteractiveVariableHighlightManager soviteInteractiveVariableHighlightManager;
     final static double SCREENSHOT_SCALE = 1.5;
 
-    public ScriptVisualThumbnailManager(Activity context) {
+    public SoviteScriptVisualThumbnailManager(Activity context) {
         this.sugiliteData = (SugiliteData) context.getApplication();
         this.context = context;
+        this.soviteInteractiveVariableHighlightManager = new SoviteInteractiveVariableHighlightManager(context);
         if (Const.DAO_TO_USE == SQL_SCRIPT_DAO) {
             this.sugiliteScriptDao = new SugiliteScriptSQLDao(context);
         } else {
@@ -69,15 +66,7 @@ public class ScriptVisualThumbnailManager {
         }
     }
 
-    private Drawable getScaledDrawable(Drawable drawable, int width, int height) {
-        //scale the drawable so it fits into the dialog
-        // Read your drawable from somewhere
-        Bitmap bitmap = ((BitmapDrawable) drawable).getBitmap();
-        // Scale it to 50 x 50
-        Drawable d = new BitmapDrawable(context.getResources(), Bitmap.createScaledBitmap(bitmap, width, height, true));
-        // Set your new, scaled drawable "d"
-        return d;
-    }
+
     public List<View> getVisualThumbnailViewsForBlock(SugiliteBlock block, @Nullable PumiceDialogManager pumiceDialogManager) {
         return getVisualThumbnailViewsForBlock (block, null, pumiceDialogManager, null);
     }
@@ -164,97 +153,6 @@ public class ScriptVisualThumbnailManager {
         return null;
     }
 
-    private View getInteractiveViewForVariableValueAndScreenshotDrawable(VariableValue variableValue, Drawable screenshot, SugiliteStartingBlock subScript, SugiliteGetProcedureOperation getProcedureOperation, SoviteVariableUpdateCallback soviteVariableUpdateCallback, PumiceDialogManager pumiceDialogManager) {
-        if (variableValue.getVariableValueContext() == null || variableValue.getVariableValueContext().getTargetNode() == null) {
-            return null;
-        }
-        RelativeLayout parentLayout = new RelativeLayout(context);
-        parentLayout.setGravity(Gravity.TOP | Gravity.LEFT);
-
-        int strokeWidth = 20;
-        int halfStrokeWidth = strokeWidth / 2;
-        Node node = variableValue.getVariableValueContext().getTargetNode();
-        Rect screenBounding = Rect.unflattenFromString(node.getBoundsInScreen());
-        screenBounding.set(getScaledCoordinate(screenBounding.left), getScaledCoordinate(screenBounding.top), getScaledCoordinate(screenBounding.right), getScaledCoordinate(screenBounding.bottom));
-
-        ImageView screenshotImageView = new ImageView(context);
-        Drawable scaleDrawable = getScaledDrawable(screenshot, getScaledCoordinate(screenshot.getIntrinsicWidth()), getScaledCoordinate(screenshot.getIntrinsicHeight()));
-        screenshotImageView.setImageDrawable(scaleDrawable);
-        RelativeLayout.LayoutParams imageViewParams = new RelativeLayout.LayoutParams(scaleDrawable.getIntrinsicWidth(), scaleDrawable.getIntrinsicHeight());
-        imageViewParams.setMargins(0, 0, 0, 0);
-        imageViewParams.addRule(RelativeLayout.ALIGN_PARENT_LEFT, RelativeLayout.TRUE);
-        imageViewParams.addRule(RelativeLayout.ALIGN_PARENT_TOP, RelativeLayout.TRUE);
-        imageViewParams.alignWithParent = true;
-        screenshotImageView.setForegroundGravity(Gravity.TOP | Gravity.LEFT);
-        parentLayout.addView(screenshotImageView, imageViewParams);
-
-
-        //add stroke
-        RectShape strokeRectShape = new RectShape();
-        ShapeDrawable strokeShapeDrawable = new ShapeDrawable(strokeRectShape);
-        strokeShapeDrawable.getPaint().setColor(0x8CFF0000);
-        strokeShapeDrawable.getPaint().setStyle(Paint.Style.STROKE);
-        strokeShapeDrawable.setIntrinsicHeight(screenBounding.height() - strokeWidth);
-        strokeShapeDrawable.setIntrinsicWidth(screenBounding.width() - strokeWidth);
-        strokeShapeDrawable.getPaint().setStrokeWidth(strokeWidth);
-        ImageView strokeshapeView = new ImageView(context);
-        strokeshapeView.setImageDrawable(strokeShapeDrawable);
-        RelativeLayout.LayoutParams strokeShapeViewParams = new RelativeLayout.LayoutParams(strokeShapeDrawable.getIntrinsicWidth(), strokeShapeDrawable.getIntrinsicHeight());
-        strokeShapeViewParams.setMargins(screenBounding.left + halfStrokeWidth, screenBounding.top + halfStrokeWidth, 0, 0);
-        strokeShapeViewParams.alignWithParent = true;
-        strokeShapeViewParams.addRule(RelativeLayout.ALIGN_PARENT_LEFT, RelativeLayout.TRUE);
-        strokeShapeViewParams.addRule(RelativeLayout.ALIGN_PARENT_TOP, RelativeLayout.TRUE);
-        parentLayout.addView(strokeshapeView, strokeShapeViewParams);
-
-
-        //add highlight
-        RectShape fillRectShape = new RectShape();
-        ShapeDrawable fillShapeDrawable = new ShapeDrawable(fillRectShape);
-        fillShapeDrawable.getPaint().setColor(0x8CFFFF00);
-        fillShapeDrawable.getPaint().setStyle(Paint.Style.FILL);
-        fillShapeDrawable.setIntrinsicHeight(screenBounding.height() - 2 * strokeWidth);
-        fillShapeDrawable.setIntrinsicWidth(screenBounding.width() - 2 * strokeWidth);
-        ImageView fillShapeView = new ImageView(context);
-        fillShapeView.setImageDrawable(fillShapeDrawable);
-        RelativeLayout.LayoutParams fillShapeViewParams = new RelativeLayout.LayoutParams(fillShapeDrawable.getIntrinsicWidth(), fillShapeDrawable.getIntrinsicHeight());
-        fillShapeViewParams.setMargins(screenBounding.left + strokeWidth, screenBounding.top + strokeWidth, 0, 0);
-        fillShapeViewParams.alignWithParent = true;
-        fillShapeViewParams.addRule(RelativeLayout.ALIGN_PARENT_LEFT, RelativeLayout.TRUE);
-        fillShapeViewParams.addRule(RelativeLayout.ALIGN_PARENT_TOP, RelativeLayout.TRUE);
-        //add onClick listener for the highlight
-        addOnClickListenerForVariableHighlight(fillShapeView, variableValue, subScript, getProcedureOperation, soviteVariableUpdateCallback, pumiceDialogManager, parentLayout);
-        parentLayout.addView(fillShapeView, fillShapeViewParams);
-
-
-        return parentLayout;
-    }
-
-    private void addOnClickListenerForVariableHighlight (View highlightView, VariableValue variableValue, SugiliteStartingBlock subScript, SugiliteGetProcedureOperation getProcedureOperation, SoviteVariableUpdateCallback soviteVariableUpdateCallback, @Nullable PumiceDialogManager pumiceDialogManager, @Nullable View originalScreenshotView) {
-        highlightView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                String variableName = variableValue.getVariableName();
-                String currentVariableValueString = variableValue.getVariableValue().toString();
-                Set<VariableValue> alternativeValues = subScript.variableNameAlternativeValueMap.get(variableName);
-                List<String> alternativeValueStrings = new ArrayList<>();
-                if (alternativeValues != null) {
-                    alternativeValues.forEach(alternativeVariableValue -> alternativeValueStrings.add(alternativeVariableValue.getVariableValue().toString()));
-                }
-                highlightView.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        SoviteVisualVariableOnClickDialog soviteVisualVariableOnClickDialog = new SoviteVisualVariableOnClickDialog(context, variableValue, subScript, getProcedureOperation, soviteVariableUpdateCallback, originalScreenshotView, false);
-                        soviteVisualVariableOnClickDialog.show();
-                        if (pumiceDialogManager != null) {
-                            pumiceDialogManager.stopTalking();
-                            pumiceDialogManager.stopListening();
-                        }
-                        //PumiceDemonstrationUtil.showSugiliteAlertDialog(String.format("Clicked on the variable: \"%s\", whose current value is \"%s\".\n\nIt's alternative values are %s.", variableName, currentVariableValueString, PumiceDemonstrationUtil.joinListGrammatically(alternativeValueStrings, "and")));
-                    }
-                });
-            }
-        });
-    }
 
     private View getPlainViewForDrawable(Drawable drawable) {
         ImageView imageView = new ImageView(context);
@@ -269,7 +167,7 @@ public class ScriptVisualThumbnailManager {
                     File screenshotFile = variableValue.getVariableValueContext().getScreenshot();
                     Drawable screenshotDrawable = getDrawableFromFile(screenshotFile);
                     // add highlights of target node to the screenshot drawable
-                    View screenshotWithHighlightView = getInteractiveViewForVariableValueAndScreenshotDrawable(variableValue, screenshotDrawable, subScript, getProcedureOperation, soviteVariableUpdateCallback, pumiceDialogManager);
+                    View screenshotWithHighlightView = soviteInteractiveVariableHighlightManager.generateInteractiveViewForVariableValueAndScreenshotDrawable(variableValue, screenshotDrawable, subScript, getProcedureOperation, soviteVariableUpdateCallback, pumiceDialogManager);
                     return screenshotWithHighlightView;
                 }
             }
@@ -389,9 +287,6 @@ public class ScriptVisualThumbnailManager {
         return lastAvailableUISnapshot;
     }
 
-    private int getScaledCoordinate (int coordinate) {
-        return (int) (coordinate/SCREENSHOT_SCALE);
-    }
 
     @Deprecated
     public List<Drawable> getVisualThumbnailDrawablesForBlock(SugiliteBlock block) {

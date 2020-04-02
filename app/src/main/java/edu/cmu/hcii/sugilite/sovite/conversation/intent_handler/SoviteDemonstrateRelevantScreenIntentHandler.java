@@ -19,7 +19,7 @@ import edu.cmu.hcii.sugilite.pumice.communication.SkipPumiceJSONSerialization;
 import edu.cmu.hcii.sugilite.pumice.dialog.PumiceDialogManager;
 import edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.PumiceUtteranceIntentHandler;
 import edu.cmu.hcii.sugilite.pumice.kb.PumiceProceduralKnowledge;
-import edu.cmu.hcii.sugilite.sovite.visual.ScriptVisualThumbnailManager;
+import edu.cmu.hcii.sugilite.sovite.visual.SoviteScriptVisualThumbnailManager;
 import edu.cmu.hcii.sugilite.sovite.communication.SoviteAppResolutionQueryPacket;
 import edu.cmu.hcii.sugilite.sovite.communication.SoviteAppResolutionResultPacket;
 import edu.cmu.hcii.sugilite.sovite.conversation.dialog.SoviteDisambiguationDemonstrationDialog;
@@ -40,7 +40,7 @@ public class SoviteDemonstrateRelevantScreenIntentHandler implements PumiceUtter
     private String matchedAppReadableName;
     private SugiliteData sugiliteData;
 
-    private ScriptVisualThumbnailManager scriptVisualThumbnailManager;
+    private SoviteScriptVisualThumbnailManager soviteScriptVisualThumbnailManager;
     private SoviteReturnValueCallbackInterface<PumiceProceduralKnowledge> returnValueCallbackObject;
     private SugiliteStartingBlock appReferenceScript;
 
@@ -50,7 +50,7 @@ public class SoviteDemonstrateRelevantScreenIntentHandler implements PumiceUtter
         this.pumiceDialogManager = pumiceDialogManager;
         this.context = context;
         this.sugiliteData = sugiliteData;
-        this.scriptVisualThumbnailManager = new ScriptVisualThumbnailManager(context);
+        this.soviteScriptVisualThumbnailManager = new SoviteScriptVisualThumbnailManager(context);
         this.originalUtterance = originalUtterance;
         this.matchedAppPackageName = matchedAppPackageName;
         this.matchedAppReadableName = matchedAppReadableName;
@@ -89,8 +89,8 @@ public class SoviteDemonstrateRelevantScreenIntentHandler implements PumiceUtter
         //extract the last screen in the script
         appReferenceScript = script;
         //no variable here
-        List<View> scriptScreenshots = scriptVisualThumbnailManager.getVisualThumbnailViewsForBlock(script, this.pumiceDialogManager);
-        SerializableUISnapshot lastScreenUISnapshot = scriptVisualThumbnailManager.getLastAvailableUISnapshotInSubsequentScript(script, null);
+        List<View> scriptScreenshots = soviteScriptVisualThumbnailManager.getVisualThumbnailViewsForBlock(script, this.pumiceDialogManager);
+        SerializableUISnapshot lastScreenUISnapshot = soviteScriptVisualThumbnailManager.getLastAvailableUISnapshotInSubsequentScript(script, null);
         List<String> allAvailableScriptUtterances = pumiceDialogManager.getPumiceKnowledgeManager().getAllAvailableProcedureKnowledgeUtterances(false);
 
 

@@ -51,7 +51,7 @@ public class UIElementFeatureRecommender {
     }
 
     public boolean chooseText(){
-        if(text.contentEquals("NULL"))
+        if(text.contentEquals("NULL") || isEditable)
             return false;
         else
             return true;
@@ -94,7 +94,7 @@ public class UIElementFeatureRecommender {
 
     public Set<Map.Entry<String, String>> chooseChildFeatures(){
         Set<Map.Entry<String, String>> retSet = new HashSet<>();
-        if(!(contentDescription.contentEquals("NULL") && text.contentEquals("NULL")))
+        if(!(contentDescription.contentEquals("NULL") && text.contentEquals("NULL") && viewId.contentEquals("NULL")))
             return retSet;
         for(Map.Entry<String, String> entry : allChildFeatures){
             if(entry.getValue().length() > 3 && scriptName.toLowerCase().contains(entry.getValue().toLowerCase())){

@@ -114,10 +114,11 @@ public class PumiceDialogActivity extends AppCompatActivity implements SugiliteV
 
         if (isListening) {
             sugiliteVoiceRecognitionListener.stopListening();
-        }
-
-        else {
+        } else {
             sugiliteVoiceRecognitionListener.startListening();
+        }
+        if (isSpeaking) {
+            sugiliteVoiceRecognitionListener.stopTTS();
         }
 
         /*

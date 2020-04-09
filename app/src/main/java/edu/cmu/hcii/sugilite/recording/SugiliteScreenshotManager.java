@@ -107,6 +107,9 @@ public class SugiliteScreenshotManager {
     private Boolean screenshotAvailable = true;
     private Handler handler2 = new Handler();
     public File takeScreenshot(String directoryPath, String fileName) {
+        return takeScreenshot(directoryPath, fileName, 100);
+    }
+    public File takeScreenshot(String directoryPath, String fileName, long delay) {
         String imagePath = directoryPath + fileName;
         File imageFile = new File(imagePath);
         new Thread(new Runnable() {
@@ -128,7 +131,7 @@ public class SugiliteScreenshotManager {
                                     }
                                 }, 200);
                             }
-                        }, 100);
+                        }, delay);
                     } else {
                         PumiceDemonstrationUtil.showSugiliteToast("Media Projection Manager is not running!", Toast.LENGTH_SHORT);
                         screenshotAvailable = false;

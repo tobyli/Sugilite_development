@@ -69,7 +69,7 @@ public class SoviteScriptRelevantToAppIntentHandler implements PumiceUtteranceIn
             SugiliteOperationBlock sugiliteOperationBlock = new SugiliteOperationBlock();
             sugiliteOperationBlock.setOperation(sugiliteGetProcedureOperation);
             //test sending an image
-            List<View> screenshotViews = soviteScriptVisualThumbnailManager.getVisualThumbnailViewsForBlock(sugiliteOperationBlock, this, this.pumiceDialogManager);
+            List<View> screenshotViews = soviteScriptVisualThumbnailManager.getVisualThumbnailViewsForBlock(sugiliteOperationBlock, this, originalUtterance, this.pumiceDialogManager);
             if (screenshotViews != null) {
                 for (View screenshotView : screenshotViews) {
                     pumiceDialogManager.sendAgentViewMessage(screenshotView, "SCREENSHOT:" + topMatchedKnowledge.getProcedureDescription(pumiceDialogManager.getPumiceKnowledgeManager(), false), false, false);

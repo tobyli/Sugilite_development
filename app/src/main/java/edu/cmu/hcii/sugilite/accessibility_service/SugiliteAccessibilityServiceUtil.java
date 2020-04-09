@@ -15,9 +15,11 @@ import java.util.Set;
 
 import edu.cmu.hcii.sugilite.automation.AutomatorUtil;
 import edu.cmu.hcii.sugilite.model.AccessibilityNodeInfoList;
+import edu.cmu.hcii.sugilite.model.Node;
 import edu.cmu.hcii.sugilite.model.block.util.SerializableNodeInfo;
 import edu.cmu.hcii.sugilite.model.block.util.SugiliteAvailableFeaturePack;
 import edu.cmu.hcii.sugilite.ontology.SerializableUISnapshot;
+import edu.cmu.hcii.sugilite.ontology.SugiliteSerializableEntity;
 
 /**
  * @author toby
@@ -125,10 +127,15 @@ class SugiliteAccessibilityServiceUtil {
         }
 
         featurePack.serializableUISnapshot = uiSnapshot;
+        for (SugiliteSerializableEntity<Node> node : uiSnapshot.getAccessibilityNodeInfoSugiliteEntityMap().values()) {
+            if (node.getEntityValue() instanceof Node &&
+                    node.getEntityValue().getClassName().equals(featurePack.className) &&
+                    node.getEntityValue().getBoundsInScreen().equals(featurePack.boundsInScreen)) {
+                featurePack.targetNodeEntity = node;
+            }
+        }
 
         return featurePack;
-
-
     }
 
     static List<AccessibilityNodeInfo> getAllNodesWithText(AccessibilityNodeInfo rootNode, List<AccessibilityNodeInfo> preOderTraverseRootNode) {

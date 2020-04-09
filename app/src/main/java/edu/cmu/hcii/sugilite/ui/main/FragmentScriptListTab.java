@@ -183,8 +183,7 @@ public class FragmentScriptListTab extends Fragment {
                 ((AdapterView.AdapterContextMenuInfo) info).targetView instanceof TextView &&
                 ((TextView) ((AdapterView.AdapterContextMenuInfo) info).targetView).getText() != null) {
             menu.setHeaderTitle(((TextView) ((AdapterView.AdapterContextMenuInfo) info).targetView).getText());
-        }
-        else {
+        } else {
             menu.setHeaderTitle("Sugilite Operation Menu");
         }
 
@@ -241,7 +240,7 @@ public class FragmentScriptListTab extends Fragment {
                                     try {
                                         SugiliteStartingBlock script = sugiliteScriptDao.read(scriptName);
                                         PumiceDemonstrationUtil.executeScript(activity, serviceStatusManager, script, sugiliteData, sharedPreferences, false, null, null, null);
-                                    } catch (Exception e){
+                                    } catch (Exception e) {
                                         e.printStackTrace();
                                     }
 
@@ -342,7 +341,21 @@ public class FragmentScriptListTab extends Fragment {
                                 SugiliteStartingBlock script = sugiliteScriptDao.read(scriptName);
                                 newScriptGeneralizer.extractParameters(script, PumiceDemonstrationUtil.removeScriptExtension(scriptName));
                                 sugiliteScriptDao.save(script);
-                                sugiliteScriptDao.commitSave(null);
+                                sugiliteScriptDao.commitSave(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        SugiliteData.runOnUiThread(new Runnable() {
+                                            @Override
+                                            public void run() {
+                                                try {
+                                                    setUpScriptList();
+                                                } catch (Exception e) {
+                                                    e.printStackTrace();
+                                                }
+                                            }
+                                        });
+                                    }
+                                });
                                 PumiceDemonstrationUtil.showSugiliteAlertDialog(String.format("Successfully generalized the script \"%s\"!", removeScriptExtension(scriptName)));
                             } catch (Exception e) {
                                 e.printStackTrace();
@@ -373,7 +386,7 @@ public class FragmentScriptListTab extends Fragment {
                                     public void run() {
                                         try {
                                             setUpScriptList();
-                                        } catch (Exception e){
+                                        } catch (Exception e) {
                                             e.printStackTrace();
                                         }
                                     }

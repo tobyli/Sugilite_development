@@ -40,11 +40,14 @@ import edu.cmu.hcii.sugilite.dao.SugiliteScriptSQLDao;
 import edu.cmu.hcii.sugilite.dao.SugiliteTriggerDao;
 import edu.cmu.hcii.sugilite.model.OperationBlockDescriptionRegenerator;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
+import edu.cmu.hcii.sugilite.model.variable.Variable;
+import edu.cmu.hcii.sugilite.model.variable.VariableValue;
 import edu.cmu.hcii.sugilite.ontology.description.OntologyDescriptionGenerator;
 import edu.cmu.hcii.sugilite.pumice.PumiceDemonstrationUtil;
 import edu.cmu.hcii.sugilite.pumice.ui.PumiceDialogActivity;
 import edu.cmu.hcii.sugilite.sharing.SugiliteScriptSharingHTTPQueryManager;
 import edu.cmu.hcii.sugilite.sharing.model.SugiliteRepoListing;
+import edu.cmu.hcii.sugilite.sovite.visual.text_selection.SoviteSetTextParameterDialog;
 import edu.cmu.hcii.sugilite.study.ScriptUsageLogManager;
 import edu.cmu.hcii.sugilite.study.StudyConst;
 import edu.cmu.hcii.sugilite.study.StudyDataUploadManager;
@@ -328,8 +331,11 @@ public class SugiliteMainActivity extends AppCompatActivity {
             return true;
         }
 
-        if(id == R.id.clear_usage_log){
-            new ScriptUsageLogManager(context).clearLog();
+        if(id == R.id.test_feature){
+            SoviteSetTextParameterDialog soviteSetTextParameterDialog = new SoviteSetTextParameterDialog(context, sugiliteData, new VariableValue<>("parameter1", "chicken sandwich"), "can you help me order a chicken sandwich from KFC", null, null, null, false);
+            //SoviteSetTextParameterDialog soviteSetTextParameterDialog = new SoviteSetTextParameterDialog(context, new Variable("parameter1"),"world", "hello world");
+            soviteSetTextParameterDialog.show();
+            //new ScriptUsageLogManager(context).clearLog();
             return true;
         }
         if(id == R.id.launch_pumice){

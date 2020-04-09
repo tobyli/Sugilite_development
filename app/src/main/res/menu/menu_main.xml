@@ -11,7 +11,7 @@
         android:orderInCategory="4" app:showAsAction="never" />
     <item android:id="@+id/upload_scripts" android:title="Upload Study Scripts"
         android:orderInCategory="5" app:showAsAction="never" />
-    <item android:id="@+id/clear_usage_log" android:title="Clear All Study Logs"
+    <item android:id="@+id/test_feature" android:title="Test Feature"
         android:orderInCategory="6" app:showAsAction="never" />
     <item android:id="@+id/clear_hash_cache" android:title="Clear Hash Cache"
         android:orderInCategory="7" app:showAsAction="never" />

@@ -38,7 +38,7 @@ public abstract class SugiliteDialogManager implements SugiliteVoiceInterface {
     protected AnimationDrawable speakingDrawable;
     protected AnimationDrawable listeningDrawable;
     protected Drawable notListeningDrawable;
-    private ImageButton speakButton = null;
+    protected ImageButton speakButton = null;
 
     public SugiliteDialogManager(Context context, SugiliteVoiceRecognitionListener sugiliteVoiceRecognitionListener) {
         this(context, sugiliteVoiceRecognitionListener.getTTS());

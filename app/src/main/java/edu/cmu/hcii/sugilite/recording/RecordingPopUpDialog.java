@@ -50,6 +50,7 @@ import edu.cmu.hcii.sugilite.communication.SugiliteBlockJSONProcessor;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptFileDao;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptSQLDao;
+import edu.cmu.hcii.sugilite.model.block.SugiliteBlockMetaInfo;
 import edu.cmu.hcii.sugilite.model.block.util.SerializableNodeInfo;
 import edu.cmu.hcii.sugilite.model.block.util.SugiliteAvailableFeaturePack;
 import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
@@ -129,6 +130,7 @@ public class RecordingPopUpDialog implements AbstractSugiliteDialog {
     private SugiliteOperationBlock blockToEdit;
 
     private AlertDialog dialog;
+    private File screenshot = null;
 
     public static final int TRIGGERED_BY_NEW_EVENT = 1;
     public static final int TRIGGERED_BY_EDIT = 2;
@@ -241,7 +243,6 @@ public class RecordingPopUpDialog implements AbstractSugiliteDialog {
     }
 
     public void show(boolean doNotSkip){
-
         //show() needs to be on the UI Thread.
         Runnable runnable = new Runnable() {
             @Override
@@ -1321,6 +1322,17 @@ public class RecordingPopUpDialog implements AbstractSugiliteDialog {
      */
     private void saveBlock(SugiliteOperationBlock operationBlock, Context activityContext){
         boolean success = false;
+
+        //add SugiliteBlockMetaInfo if not available
+        if (operationBlock.getSugiliteBlockMetaInfo() == null && operationBlock.getFeaturePack() != null) {
+            SugiliteBlockMetaInfo sugiliteBlockMetaInfo = new SugiliteBlockMetaInfo(operationBlock, operationBlock.getFeaturePack().serializableUISnapshot, operationBlock.getFeaturePack().targetNodeEntity);
+            operationBlock.setSugiliteBlockMetaInfo(sugiliteBlockMetaInfo);
+        }
+
+        //add screenshot if not available
+        if (operationBlock.getScreenshot() == null) {
+            operationBlock.setScreenshot(screenshot);
+        }
 
         //save the variable to the symbol table if the operation is LOAD_AS_VARIABLE
         if(operationBlock.getOperation().getOperationType() == SugiliteOperation.LOAD_AS_VARIABLE){

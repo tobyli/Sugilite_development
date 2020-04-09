@@ -7,13 +7,21 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.LightingColorFilter;
+import android.graphics.drawable.Drawable;
 import android.os.Handler;
+import android.speech.tts.TextToSpeech;
 import android.text.Html;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
+import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
 
@@ -42,7 +50,10 @@ import edu.cmu.hcii.sugilite.recording.newrecording.dialog_management.SugiliteDi
 import edu.cmu.hcii.sugilite.study.ScriptUsageLogManager;
 
 import static android.content.Context.ACTIVITY_SERVICE;
+import static edu.cmu.hcii.sugilite.Const.MUL_ZEROS;
 import static edu.cmu.hcii.sugilite.Const.OVERLAY_TYPE;
+import static edu.cmu.hcii.sugilite.Const.RECORDING_DARK_GRAY_COLOR;
+import static edu.cmu.hcii.sugilite.Const.RECORDING_OFF_BUTTON_COLOR;
 import static edu.cmu.hcii.sugilite.Const.SCRIPT_DELAY;
 
 /**
@@ -67,6 +78,7 @@ public class VariableSetValueDialog extends SugiliteDialogManager implements Abs
     private SugiliteStartingBlock startingBlock;
     private SugiliteData sugiliteData;
     private int state;
+    private TextToSpeech tts;
 
     private PumiceDialogManager pumiceDialogManager;
     private Map<String, VariableValue> alreadyLoadedVariableMap;
@@ -77,6 +89,9 @@ public class VariableSetValueDialog extends SugiliteDialogManager implements Abs
     private SugiliteDialogSimpleState askingForValueConfirmationState = new SugiliteDialogSimpleState("ASKING_FOR_VARIABLE_VALUE_CONFIRMATION_VALUE", this, true);
     private EditText firstVariableEditText;
     private String firstVariableName;
+    private String firstVariableDefaultValue;
+    private ImageButton speakButton;
+    private LinearLayout mainLayout;
 
     //whether this execution is for reconstructing the script
     private boolean isForReconstructing;
@@ -90,6 +105,7 @@ public class VariableSetValueDialog extends SugiliteDialogManager implements Abs
         this.startingBlock = startingBlock;
         this.sugiliteData = sugiliteData;
         this.state = state;
+        this.tts = sugiliteData.getTTS();
         this.pumiceDialogManager = pumiceDialogManager;
         this.isForReconstructing = isForReconstructing;
     }
@@ -99,6 +115,7 @@ public class VariableSetValueDialog extends SugiliteDialogManager implements Abs
         LayoutInflater inflater = LayoutInflater.from(context);
         View dialogView = inflater.inflate(R.layout.dialog_variable_set_value, null);
         LinearLayout mainLayout = (LinearLayout) dialogView.findViewById(R.id.layout_variable_set_value);
+        this.mainLayout = mainLayout;
 
         variableNameDefaultValueMap = startingBlock.variableNameDefaultValueMap;
         variableNameAlternativeValueMap = startingBlock.variableNameAlternativeValueMap;
@@ -108,9 +125,11 @@ public class VariableSetValueDialog extends SugiliteDialogManager implements Abs
 
         for (Map.Entry<String, VariableValue> entry : variableNameDefaultValueMap.entrySet()) {
             Variable variableObject = variableNameVariableObjectMap.get(entry.getKey());
+
             if (variableObject == null) {
                 continue;
             }
+
             if (variableObject.getVariableType() == Variable.LOAD_RUNTIME) {
                 // only ask the values for those that need to be loaded as a user input
                 continue;
@@ -122,12 +141,13 @@ public class VariableSetValueDialog extends SugiliteDialogManager implements Abs
             }
             LinearLayout linearLayout = new LinearLayout(context);
             linearLayout.setOrientation(LinearLayout.HORIZONTAL);
-            linearLayout.setWeightSum(3);
+            linearLayout.setWeightSum(4);
             TextView variableName = new TextView(context);
             variableName.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT, 1));
             variableName.setWidth(0);
             variableName.setText(entry.getKey());
             linearLayout.addView(variableName);
+
             //use a spinner if alternatives can be found
             if (variableNameAlternativeValueMap != null && variableNameAlternativeValueMap.containsKey(entry.getKey()) && variableNameAlternativeValueMap.get(entry.getKey()).size() >= 1) {
                 //has alternative values stored
@@ -146,30 +166,32 @@ public class VariableSetValueDialog extends SugiliteDialogManager implements Abs
                 spinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
                 alternativeValueSpinner.setAdapter(spinnerAdapter);
 
-                alternativeValueSpinner.setLayoutParams(new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 2));
+                alternativeValueSpinner.setLayoutParams(new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 3));
                 linearLayout.addView(alternativeValueSpinner);
                 alternativeValueSpinner.setSelection(0);
                 variableSelectionViewMap.put(entry.getKey(), alternativeValueSpinner);
 
             } else {
                 //has no alternative values stored - show edit text to prompt the user to enter value
-                EditText variableValue = new EditText(context);
-                variableValue.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT, 2));
-                variableValue.setWidth(0);
-            /*
-            this part save the state of the last variable setting
-            if(variableNameVariableValueMap.containsKey(entry.getKey()) && variableNameVariableValueMap.get(entry.getKey()) instanceof StringVariable)
-                variableValue.setText(((StringVariable) variableNameVariableValueMap.get(entry.getKey())).getValue());
-            */
+                EditText variableValueEditText = new EditText(context);
+                variableValueEditText.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT, 3));
+                variableValueEditText.setWidth(0);
+                /*
+                this part save the state of the last variable setting
+                if(variableNameVariableValueMap.containsKey(entry.getKey()) && variableNameVariableValueMap.get(entry.getKey()) instanceof StringVariable)
+                    variableValue.setText(((StringVariable) variableNameVariableValueMap.get(entry.getKey())).getValue());
+                */
                 if (entry.getValue().getVariableValue() instanceof String) {
-                    variableValue.setText((String) entry.getValue().getVariableValue());
+                    variableValueEditText.setText((String) entry.getValue().getVariableValue());
                 }
-                linearLayout.addView(variableValue);
-                variableSelectionViewMap.put(entry.getKey(), variableValue);
+                linearLayout.addView(variableValueEditText);
+                variableSelectionViewMap.put(entry.getKey(), variableValueEditText);
 
+                //set firstVariableName, firstVariableEditText and firstVariableDefaultValue for setting variables by speech
                 if (firstVariableName == null && firstVariableEditText == null) {
                     firstVariableName = entry.getKey();
-                    firstVariableEditText = variableValue;
+                    firstVariableDefaultValue = entry.getValue().getVariableValue().toString();
+                    firstVariableEditText = variableValueEditText;
                 }
 
             }
@@ -205,7 +227,6 @@ public class VariableSetValueDialog extends SugiliteDialogManager implements Abs
 
     @Override
     public void show() {
-        initDialog();
         show(null, null);
     }
 
@@ -250,8 +271,40 @@ public class VariableSetValueDialog extends SugiliteDialogManager implements Abs
         }
         if (firstVariableEditText != null && firstVariableName != null) {
             initDialogManager();
+            addSpeakButton();
+            refreshSpeakButtonStyle(speakButton);
         }
 
+    }
+
+    private void addSpeakButton() {
+        ImageButton speakButton = new ImageButton(context);
+        if (firstVariableEditText.getParent() instanceof LinearLayout) {
+            speakButton.setLayoutParams(new LinearLayout.LayoutParams(0, PumiceDemonstrationUtil.dpToPx(48), (float)0.75));
+            firstVariableEditText.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT, (float)2.25));
+            ((LinearLayout) firstVariableEditText.getParent()).addView(speakButton);
+            this.speakButton = speakButton;
+            speakButton.setElevation(PumiceDemonstrationUtil.dpToPx(2));
+            speakButton.setScaleType(ImageView.ScaleType.FIT_CENTER);
+            speakButton.setCropToPadding(true);
+            speakButton.getBackground().setColorFilter(new LightingColorFilter(MUL_ZEROS, RECORDING_OFF_BUTTON_COLOR));
+            speakButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    // speak button
+                    if (tts != null) {
+                        if (isListening() || tts.isSpeaking()) {
+                            stopASRandTTS();
+                        } else {
+                            initDialogManager();
+                        }
+                    }
+                }
+            });
+            speakButton.setImageDrawable(notListeningDrawable);
+            speakButton.getDrawable().setColorFilter(new LightingColorFilter(MUL_ZEROS, RECORDING_DARK_GRAY_COLOR));
+            setSpeakButton(speakButton);
+        }
     }
 
     /**
@@ -308,16 +361,22 @@ public class VariableSetValueDialog extends SugiliteDialogManager implements Abs
 
     @Override
     public void initDialogManager() {
-        //TODO: initiate the dialog manager
-        askingForValueState.setPrompt("Do you want to use the parameter value \"" + firstVariableName + "\", or you can say something else?");
+        //initiate the dialog manager
+        askingForValueState.setPrompt(String.format("Do you want to use the parameter value \"%s\" for \"%s\", or you can say something else?", firstVariableDefaultValue, firstVariableName));
+
         //askingForValueState.setPrompt("What's the value for the parameter " + firstVariableName + "?");
         askingForValueState.setNoASRResultState(askingForValueState);
         askingForValueState.addNextStateUtteranceFilter(askingForValueConfirmationState, SugiliteDialogUtteranceFilter.getConstantFilter(true));
         askingForValueState.setOnInitiatedRunnable(new Runnable() {
             @Override
             public void run() {
-                if (!firstVariableEditText.getText().toString().equals(firstVariableName)) {
-                    firstVariableEditText.setText("");
+                if (!firstVariableEditText.getText().toString().equals(firstVariableDefaultValue)) {
+                    SugiliteData.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            firstVariableEditText.setText("");
+                        }
+                    });
                 }
             }
         });
@@ -326,7 +385,12 @@ public class VariableSetValueDialog extends SugiliteDialogManager implements Abs
             @Override
             public void run() {
                 if (askingForValueState.getASRResult() != null && (!askingForValueState.getASRResult().isEmpty())) {
-                    firstVariableEditText.setText(capitalize(askingForValueState.getASRResult().get(0)));
+                    SugiliteData.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            firstVariableEditText.setText(capitalize(askingForValueState.getASRResult().get(0)));
+                        }
+                    });
                 }
             }
         });
@@ -340,7 +404,12 @@ public class VariableSetValueDialog extends SugiliteDialogManager implements Abs
             public void run() {
                 if (dialog != null || dialog.getButton(DialogInterface.BUTTON_POSITIVE) != null) {
                     dialog.getButton(DialogInterface.BUTTON_POSITIVE).performClick();
-                    speak("Executing the task...", null);
+                    new Handler().postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            speak("Executing the task...", null);
+                        }
+                    }, 500);
                 }
             }
         });

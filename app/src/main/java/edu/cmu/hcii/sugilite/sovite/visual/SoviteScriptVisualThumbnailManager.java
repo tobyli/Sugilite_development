@@ -35,12 +35,15 @@ import edu.cmu.hcii.sugilite.model.block.SugiliteConditionBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.model.operation.binary.SugiliteGetProcedureOperation;
+import edu.cmu.hcii.sugilite.model.variable.Variable;
 import edu.cmu.hcii.sugilite.model.variable.VariableValue;
 import edu.cmu.hcii.sugilite.ontology.SerializableUISnapshot;
+import edu.cmu.hcii.sugilite.pumice.PumiceDemonstrationUtil;
 import edu.cmu.hcii.sugilite.pumice.dialog.PumiceDialogManager;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.util.NavigationBarUtil;
 
 import static edu.cmu.hcii.sugilite.Const.SQL_SCRIPT_DAO;
+import static edu.cmu.hcii.sugilite.pumice.PumiceDemonstrationUtil.getScaledDrawable;
 
 /**
  * @author toby
@@ -53,7 +56,7 @@ public class SoviteScriptVisualThumbnailManager {
     private SugiliteScriptDao sugiliteScriptDao;
     private Context context;
     private SoviteInteractiveVariableHighlightManager soviteInteractiveVariableHighlightManager;
-    final static double SCREENSHOT_SCALE = 1.5;
+    final static double SCREENSHOT_SCALE = 0.66;
 
     public SoviteScriptVisualThumbnailManager(Activity context) {
         this.sugiliteData = (SugiliteData) context.getApplication();
@@ -67,27 +70,27 @@ public class SoviteScriptVisualThumbnailManager {
     }
 
 
-    public List<View> getVisualThumbnailViewsForBlock(SugiliteBlock block, @Nullable PumiceDialogManager pumiceDialogManager) {
-        return getVisualThumbnailViewsForBlock (block, null, pumiceDialogManager, null);
+    public List<View> getVisualThumbnailViewsForBlock(SugiliteBlock block, String originalUtterance, @Nullable PumiceDialogManager pumiceDialogManager) {
+        return getVisualThumbnailViewsForBlock (block, null, originalUtterance, pumiceDialogManager, null);
     }
 
-    public List<View> getVisualThumbnailViewsForBlock(SugiliteBlock block, @Nullable SoviteVariableUpdateCallback soviteVariableUpdateCallback, @Nullable PumiceDialogManager pumiceDialogManager) {
-        return getVisualThumbnailViewsForBlock (block, soviteVariableUpdateCallback, pumiceDialogManager,null);
+    public List<View> getVisualThumbnailViewsForBlock(SugiliteBlock block, @Nullable SoviteVariableUpdateCallback soviteVariableUpdateCallback, String originalUtterance, @Nullable PumiceDialogManager pumiceDialogManager) {
+        return getVisualThumbnailViewsForBlock (block, soviteVariableUpdateCallback, originalUtterance, pumiceDialogManager,null);
     }
 
 
-    public List<View> getVisualThumbnailViewsForBlock(SugiliteBlock block, @Nullable SoviteVariableUpdateCallback soviteVariableUpdateCallback, @Nullable PumiceDialogManager pumiceDialogManager, @Nullable String onlyVariableNameToShow) {
+    public List<View> getVisualThumbnailViewsForBlock(SugiliteBlock block, @Nullable SoviteVariableUpdateCallback soviteVariableUpdateCallback, String originalUtterance, @Nullable PumiceDialogManager pumiceDialogManager, @Nullable String onlyVariableNameToShow) {
         List<View> viewList = new ArrayList<>();
         if (block instanceof SugiliteStartingBlock) {
-            //handle scripts
-            viewList.add(getPlainViewForDrawable(getVisualThumbnailForScript((SugiliteStartingBlock) block)));
+            //handle scripts -- return getVisualThumbnailForScript
+            viewList.add(getPlainViewForDrawable(getScaledDrawable(getVisualThumbnailForScript((SugiliteStartingBlock) block), SCREENSHOT_SCALE)));
             return viewList;
         }
 
         if (block instanceof SugiliteOperationBlock) {
             if (block.getScreenshot() != null) {
-                //return the screenshot for the operation if available
-                viewList.add(getPlainViewForDrawable(getDrawableFromFile(block.getScreenshot())));
+                //handle regular SugiliteOperationBlock return the screenshot for the operation if available
+                viewList.add(getPlainViewForDrawable(getScaledDrawable(getDrawableFromFile(block.getScreenshot()), SCREENSHOT_SCALE)));
                 return viewList;
             }
 
@@ -104,10 +107,21 @@ public class SoviteScriptVisualThumbnailManager {
                     String subScriptName = getProcedureOperation.evaluate(sugiliteData);
                     SugiliteStartingBlock subScript = sugiliteScriptDao.read(subScriptName);
                     Map<String, Set<VariableValue>> variableNameAlternativeValueMap = subScript.variableNameAlternativeValueMap;
+
                     for (VariableValue<String> variableValueFromGetProcedureOperation : variableValuesFromGetProcedureOperation) {
+                        Variable variableObject = subScript.variableNameVariableObjectMap.get(variableValueFromGetProcedureOperation.getVariableName());
                         if (variableNameAlternativeValueMap.containsKey(variableValueFromGetProcedureOperation.getVariableName())) {
+                            if (variableNameAlternativeValueMap.get(variableValueFromGetProcedureOperation.getVariableName()).size() == 0) {
+                                // empty alternative map -> SET_TEXT type parameter
+                                VariableValue<String> newVariableValue = new VariableValue<String>(variableValueFromGetProcedureOperation.getVariableName(), variableValueFromGetProcedureOperation.getVariableValue());
+                                if (variableObject != null && variableObject.getVariableContext() != null) {
+                                    newVariableValue.setVariableValueContext(variableObject.getVariableContext());
+                                }
+                                matchedVariableValuesFromTheScript.add(newVariableValue);
+                            }
                             for (VariableValue alternativeValue : variableNameAlternativeValueMap.get(variableValueFromGetProcedureOperation.getVariableName())) {
                                 if (alternativeValue.getVariableValue().equals(variableValueFromGetProcedureOperation.getVariableValue())) {
+                                    // use alternativeValue, because variableValueFromGetProcedureOperation does not have variableValueContext
                                     matchedVariableValuesFromTheScript.add(alternativeValue);
                                     break;
                                 }
@@ -116,6 +130,7 @@ public class SoviteScriptVisualThumbnailManager {
                     }
 
                     if (matchedVariableValuesFromTheScript != null && matchedVariableValuesFromTheScript.size() > 0) {
+                        // when found matched variables, show screenshots of these variables
                         /*
                         Drawable combinedVariableDrawable = getDrawableFromVariableList(variableValues);
                         if (combinedVariableDrawable != null) {
@@ -124,10 +139,10 @@ public class SoviteScriptVisualThumbnailManager {
                         */
                         for (VariableValue variableValue : matchedVariableValuesFromTheScript) {
                             if (onlyVariableNameToShow != null && (! onlyVariableNameToShow.equals(variableValue.getVariableName()))) {
-                                //skip if does NOT match the onlyVariableNameToShow
+                                //When onlyVariableNameToShow is set -> skip if does NOT match the onlyVariableNameToShow
                                 continue;
                             }
-                            View variableView = getViewFromVariable(variableValue, subScript, getProcedureOperation, soviteVariableUpdateCallback, pumiceDialogManager);
+                            View variableView = getViewFromVariable(variableValue, subScript, getProcedureOperation, soviteVariableUpdateCallback, originalUtterance, pumiceDialogManager);
                             if (variableView != null) {
                                 viewList.add(variableView);
                             }
@@ -135,6 +150,10 @@ public class SoviteScriptVisualThumbnailManager {
                         if (viewList != null && viewList.size() > 0) {
                             return viewList;
                         }
+                    } else {
+                        // return the screenshot of the subscript if can't find variables
+                        viewList.add(getPlainViewForDrawable(getScaledDrawable(getVisualThumbnailForScript(subScript), SCREENSHOT_SCALE)));
+                        return viewList;
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -144,7 +163,7 @@ public class SoviteScriptVisualThumbnailManager {
         try {
             //other situations
             File screenshotFile = getLastAvailableScreenshotInSubsequentScript(block, null);
-            viewList.add(getPlainViewForDrawable(getDrawableFromFile(screenshotFile)));
+            viewList.add(getPlainViewForDrawable(getScaledDrawable(getDrawableFromFile(screenshotFile), SCREENSHOT_SCALE)));
             return viewList;
         } catch (Exception e) {
             e.printStackTrace();
@@ -160,14 +179,14 @@ public class SoviteScriptVisualThumbnailManager {
         return imageView;
     }
 
-    private View getViewFromVariable(VariableValue<String> variableValue, SugiliteStartingBlock subScript, SugiliteGetProcedureOperation getProcedureOperation, SoviteVariableUpdateCallback soviteVariableUpdateCallback, PumiceDialogManager pumiceDialogManager) {
+    private View getViewFromVariable(VariableValue<String> variableValue, SugiliteStartingBlock subScript, SugiliteGetProcedureOperation getProcedureOperation, SoviteVariableUpdateCallback soviteVariableUpdateCallback, String originalUtterance, PumiceDialogManager pumiceDialogManager) {
             if (variableValue.getVariableValueContext() != null) {
                 if (variableValue.getVariableValueContext().getScreenshot() != null &&
                         variableValue.getVariableValueContext().getTargetNode() != null) {
                     File screenshotFile = variableValue.getVariableValueContext().getScreenshot();
                     Drawable screenshotDrawable = getDrawableFromFile(screenshotFile);
                     // add highlights of target node to the screenshot drawable
-                    View screenshotWithHighlightView = soviteInteractiveVariableHighlightManager.generateInteractiveViewForVariableValueAndScreenshotDrawable(variableValue, screenshotDrawable, subScript, getProcedureOperation, soviteVariableUpdateCallback, pumiceDialogManager);
+                    View screenshotWithHighlightView = soviteInteractiveVariableHighlightManager.generateInteractiveViewForVariableValueAndScreenshotDrawable(variableValue, screenshotDrawable, subScript, getProcedureOperation, soviteVariableUpdateCallback, originalUtterance, pumiceDialogManager);
                     return screenshotWithHighlightView;
                 }
             }

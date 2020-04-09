@@ -23,6 +23,7 @@ import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.model.operation.binary.SugiliteGetProcedureOperation;
+import edu.cmu.hcii.sugilite.model.variable.Variable;
 import edu.cmu.hcii.sugilite.model.variable.VariableValue;
 import edu.cmu.hcii.sugilite.pumice.communication.PumiceSemanticParsingResultPacket;
 import edu.cmu.hcii.sugilite.pumice.dialog.PumiceDialogManager;
@@ -35,6 +36,7 @@ import edu.cmu.hcii.sugilite.sovite.conversation.SoviteReturnValueCallbackInterf
 import edu.cmu.hcii.sugilite.sovite.conversation.intent_handler.SoviteIntentClassificationErrorForProceduralKnowledgeIntentHandler;
 import edu.cmu.hcii.sugilite.sovite.visual.SoviteVariableUpdateCallback;
 import edu.cmu.hcii.sugilite.sovite.visual.SoviteVisualVariableOnClickDialog;
+import edu.cmu.hcii.sugilite.sovite.visual.text_selection.SoviteSetTextParameterDialog;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.server_comm.SugiliteVerbalInstructionHTTPQueryInterface;
 import edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.parsing_confirmation.PumiceParsingResultWithResolveFnConfirmationHandler.HandleParsingResultPacket;
 
@@ -171,9 +173,9 @@ public class PumiceParsingResultNoResolveConfirmationHandler implements PumiceUt
         if (toSendImage) {
             List<View> views;
             if (block.getNextBlock() != null && block.getNextBlock() instanceof SugiliteOperationBlock && ((SugiliteOperationBlock) block.getNextBlock()).getOperation() instanceof SugiliteGetProcedureOperation) {
-                views = soviteScriptVisualThumbnailManager.getVisualThumbnailViewsForBlock(block.getNextBlock(), this, this.pumiceDialogManager);
+                views = soviteScriptVisualThumbnailManager.getVisualThumbnailViewsForBlock(block.getNextBlock(), this, parsingResultsToHandle.resultPacket.userUtterance, this.pumiceDialogManager);
             } else {
-                views = soviteScriptVisualThumbnailManager.getVisualThumbnailViewsForBlock(block, this, this.pumiceDialogManager);
+                views = soviteScriptVisualThumbnailManager.getVisualThumbnailViewsForBlock(block, this, parsingResultsToHandle.resultPacket.userUtterance, this.pumiceDialogManager);
             }
 
             if (views != null) {
@@ -209,11 +211,13 @@ public class PumiceParsingResultNoResolveConfirmationHandler implements PumiceUt
         String description = getProcedureOperation.getName();
         Map<String, VariableValue> identifiedParameterStringVariableValueMap = new HashMap<>();
 
+        // identify externally set variables
         for (VariableValue<String> stringVariable : getProcedureOperation.getVariableValues()) {
             description = description.replace("[" + stringVariable.getVariableName() + "]", "[" + stringVariable.getVariableValue() + "]");
             identifiedParameterStringVariableValueMap.put("[" + stringVariable.getVariableValue() + "]", stringVariable);
         }
 
+        // identify default variables
         SugiliteStartingBlock subScript = null;
         try {
             String subScriptName = getProcedureOperation.evaluate(sugiliteData);
@@ -230,32 +234,46 @@ public class PumiceParsingResultNoResolveConfirmationHandler implements PumiceUt
             e.printStackTrace();
         }
         final SugiliteStartingBlock finalSubScript = subScript;
-
         SpannableString spannableStringDescription = new SpannableString(description);
-        for (String identifiedParameterString : identifiedParameterStringVariableValueMap.keySet()) {
-            if (description.indexOf(identifiedParameterString) >= 0) {
-                spannableStringDescription.setSpan(new ClickableSpan() {
-                    @Override
-                    public void onClick(View widget) {
-                        TextView textView = (TextView) widget;
-                        Spanned span = (Spanned) textView.getText();
-                        int startIndex = span.getSpanStart(this);
-                        int endIndex = span.getSpanEnd(this);
-                        String selectedSpanString = span.subSequence(startIndex, endIndex).toString();
-                        VariableValue variableValue = identifiedParameterStringVariableValueMap.get(selectedSpanString);
-                        SoviteVisualVariableOnClickDialog soviteVisualVariableOnClickDialog = new SoviteVisualVariableOnClickDialog(context, variableValue, finalSubScript, getProcedureOperation, pumiceParsingResultNoResolveConfirmationHandler, null, true);
-                        soviteVisualVariableOnClickDialog.show();
-                        //stop listening and talking when showing the dialog
-                        pumiceDialogManager.stopListening();
-                        pumiceDialogManager.stopTalking();
 
-                        for (View visualView : existingVisualViews) {
-                            visualView.setVisibility(View.GONE);
+        if (finalSubScript != null) {
+            // adding clickable spans for variables in the description
+            for (String identifiedParameterString : identifiedParameterStringVariableValueMap.keySet()) {
+                if (description.contains(identifiedParameterString)) {
+                    spannableStringDescription.setSpan(new ClickableSpan() {
+                        @Override
+                        public void onClick(View widget) {
+                            TextView textView = (TextView) widget;
+                            Spanned span = (Spanned) textView.getText();
+                            int startIndex = span.getSpanStart(this);
+                            int endIndex = span.getSpanEnd(this);
+                            String selectedSpanString = span.subSequence(startIndex, endIndex).toString();
+                            VariableValue variableValue = identifiedParameterStringVariableValueMap.get(selectedSpanString);
+                            Set<VariableValue> alternativeValues = finalSubScript.variableNameAlternativeValueMap.get(variableValue.getVariableName());
+
+                            //check if the variable has any alternative values
+                            if (alternativeValues.size() > 0) {
+                                //show spinner type dialog
+                                SoviteVisualVariableOnClickDialog soviteVisualVariableOnClickDialog = new SoviteVisualVariableOnClickDialog(context, variableValue, finalSubScript, getProcedureOperation, pumiceParsingResultNoResolveConfirmationHandler, null, true);
+                                soviteVisualVariableOnClickDialog.show();
+                            } else {
+                                //show text selection dialog
+                                SoviteSetTextParameterDialog soviteSetTextParameterDialog = new SoviteSetTextParameterDialog(context, sugiliteData, variableValue, parsingResultsToHandle.resultPacket.userUtterance, getProcedureOperation, pumiceParsingResultNoResolveConfirmationHandler, null, true);
+                                soviteSetTextParameterDialog.show();
+                            }
+
+                            //stop listening and talking when showing the dialog
+                            pumiceDialogManager.stopListening();
+                            pumiceDialogManager.stopTalking();
+
+                            for (View visualView : existingVisualViews) {
+                                visualView.setVisibility(View.GONE);
+                            }
+                            //remove all existing visual views
+
                         }
-                        //remove all existing visual views
-
-                    }
-                }, description.indexOf(identifiedParameterString), description.indexOf(identifiedParameterString) + identifiedParameterString.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                    }, description.indexOf(identifiedParameterString), description.indexOf(identifiedParameterString) + identifiedParameterString.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                }
             }
         }
 
@@ -276,7 +294,7 @@ public class PumiceParsingResultNoResolveConfirmationHandler implements PumiceUt
 
         //2. show new image
         if (toShowNewScreenshot) {
-            List<View> views = soviteScriptVisualThumbnailManager.getVisualThumbnailViewsForBlock(operationBlock, this, this.pumiceDialogManager, changedNewVariableValue.getVariableName());
+            List<View> views = soviteScriptVisualThumbnailManager.getVisualThumbnailViewsForBlock(operationBlock, this, parsingResultsToHandle.resultPacket.userUtterance, this.pumiceDialogManager, changedNewVariableValue.getVariableName());
             if (views != null) {
                 for (View view : views) {
                     pumiceDialogManager.sendAgentViewMessage(view, "SCREENSHOT", false, false);

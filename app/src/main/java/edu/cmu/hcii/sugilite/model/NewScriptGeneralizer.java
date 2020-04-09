@@ -11,7 +11,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Pattern;
 
+import edu.cmu.hcii.sugilite.Const;
 import edu.cmu.hcii.sugilite.automation.AutomatorUtil;
 import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteBlockMetaInfo;
@@ -90,19 +92,37 @@ public class NewScriptGeneralizer {
 
             if (blockMetaInfo != null && blockMetaInfo.getUiSnapshot() != null && blockMetaInfo.getTargetEntity() != null) {
 
+                // skip variables on the home screen
+                boolean operationIsOnHomeScreen = false;
                 //ignore parameters found in the home screen
                 String packageName = blockMetaInfo.getUiSnapshot().getPackageName();
                 if (packageName != null && AutomatorUtil.isHomeScreenPackage(packageName)) {
+                    operationIsOnHomeScreen = true;
+                }
+
+                if (operationIsOnHomeScreen) {
                     continue;
                 }
 
+                for (String homeScreenPackageName : Const.HOME_SCREEN_PACKAGE_NAMES) {
+                    if (PumiceDemonstrationUtil.checkIfOntologyQueryContains(ontologyQuery, SugiliteRelation.HAS_PACKAGE_NAME, homeScreenPackageName)) {
+                        operationIsOnHomeScreen = true;
+                        break;
+                    }
+                }
+
+                if (operationIsOnHomeScreen) {
+                    continue;
+                }
+
+                // for parameters found in the data description queries
                 for (Pair<SugiliteRelation, String> sugiliteRelationTextLabelPair : allStringsUsedInTheDataDescriptionQuery) {
                     //TODO: support more complex matching method than exact string matching
 
                     SugiliteRelation relation = sugiliteRelationTextLabelPair.first;
                     String textLabel = sugiliteRelationTextLabelPair.second;
 
-                    if (userUtterance.contains(textLabel.toLowerCase())) {
+                    if (userUtterance.toLowerCase().contains(textLabel.toLowerCase())) {
                         //matched
                         int parameterNumber = parameterNumberCounter++;
                         System.out.printf("Found parameter %d: \"%s\" in the utterance was found in the operation %s\n", parameterNumber, textLabel, operationBlock.toString());
@@ -147,7 +167,7 @@ public class NewScriptGeneralizer {
                         operationBlock.setDescription(ontologyDescriptionGenerator.getSpannedDescriptionForOperation(operationBlock.getOperation(), operationBlock.getOperation().getDataDescriptionQueryIfAvailable()));
 
                         //replace the occurrence of parameter default values in the script name
-                        sugiliteStartingBlock.setScriptName(sugiliteStartingBlock.getScriptName().replace(textLabel.toLowerCase(), "[" + variableName + "]"));
+                        sugiliteStartingBlock.setScriptName(sugiliteStartingBlock.getScriptName().replace("(?i)" + Pattern.quote(textLabel.toLowerCase()), "[" + variableName + "]"));
 
                         //print out the found parameters and alternative values
                         List<String> alternativeTextLabels = new ArrayList<>();
@@ -171,7 +191,7 @@ public class NewScriptGeneralizer {
             SugiliteOperation operation = operationBlock.getOperation();
             if (operation instanceof SugiliteSetTextOperation || operation instanceof SugiliteReadoutConstOperation) {
                 String textParam = ((SugiliteSetTextOperation) operation).getParameter0();
-                if (userUtterance.contains(textParam.toLowerCase())) {
+                if (userUtterance.toLowerCase().contains(textParam.toLowerCase())) {
                     //matched
                     int parameterNumber = parameterNumberCounter++;
                     System.out.printf("Found parameter %d: \"%s\" in the utterance was found in the operation %s\n", parameterNumber, textParam, operationBlock.toString());
@@ -195,12 +215,14 @@ public class NewScriptGeneralizer {
                     //fill the results back to the SugiliteStartingBlock
                     sugiliteStartingBlock.variableNameDefaultValueMap.put(variableName, defaultVariableValue);
                     sugiliteStartingBlock.variableNameVariableObjectMap.put(variableName, variableObject);
+                    //should have an empty set of alternative values
+                    sugiliteStartingBlock.variableNameAlternativeValueMap.put(variableName, new HashSet<>());
 
                     //edit the original parameter in the SugiliteOperation to reflect the new parameters
                     ((SugiliteSetTextOperation) operation).setParameter0("[" + variableName + "]");
 
                     //replace the occurrence of parameter default values in the script name
-                    sugiliteStartingBlock.setScriptName(sugiliteStartingBlock.getScriptName().replace(textParam.toLowerCase(), "[" + variableName + "]"));
+                    sugiliteStartingBlock.setScriptName(sugiliteStartingBlock.getScriptName().replaceAll("(?i)" + Pattern.quote(textParam.toLowerCase()), "[" + variableName + "]"));
 
                     context.runOnUiThread(new Runnable() {
                         @Override

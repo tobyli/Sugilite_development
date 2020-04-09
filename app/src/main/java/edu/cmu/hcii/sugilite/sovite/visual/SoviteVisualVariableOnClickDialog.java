@@ -35,7 +35,6 @@ import edu.cmu.hcii.sugilite.pumice.PumiceDemonstrationUtil;
 import edu.cmu.hcii.sugilite.pumice.dialog.PumiceDialogManager;
 import edu.cmu.hcii.sugilite.recording.ReadableDescriptionGenerator;
 
-import static android.view.View.GONE;
 import static edu.cmu.hcii.sugilite.Const.OVERLAY_TYPE;
 
 /**
@@ -54,7 +53,7 @@ public class SoviteVisualVariableOnClickDialog {
     private Map<String, VariableValue> variableNameDefaultValueMap;
     private Map<String, Variable> variableNameVariableObjectMap;
     private Map<String, Set<VariableValue>> variableNameAlternativeValueMap;
-    private Map<String, View> variableSelectionViewMap;
+    private View variableSelectionView;
 
     private AlertDialog dialog;
     private boolean toUpdateEvenNoChange;
@@ -88,7 +87,6 @@ public class SoviteVisualVariableOnClickDialog {
         variableNameDefaultValueMap = subScript.variableNameDefaultValueMap;
         variableNameAlternativeValueMap = subScript.variableNameAlternativeValueMap;
         variableNameVariableObjectMap = subScript.variableNameVariableObjectMap;
-        variableSelectionViewMap = new HashMap<>();
 
         Variable variableObject = variableNameVariableObjectMap.get(variableName);
         LinearLayout selectionRowLayout = new LinearLayout(context);
@@ -120,22 +118,20 @@ public class SoviteVisualVariableOnClickDialog {
             alternativeValueSpinner.setLayoutParams(new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 2));
             selectionRowLayout.addView(alternativeValueSpinner);
             alternativeValueSpinner.setSelection(0);
-            variableSelectionViewMap.put(variableName, alternativeValueSpinner);
+            variableSelectionView = alternativeValueSpinner;
         } else {
             //has no alternative values stored - show edit text to prompt the user to enter value
             EditText variableValue = new EditText(context);
             variableValue.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT, 2));
             variableValue.setWidth(0);
-            /*
-            this part save the state of the last variable setting
-            if(variableNameVariableValueMap.containsKey(entry.getKey()) && variableNameVariableValueMap.get(entry.getKey()) instanceof StringVariable)
-                variableValue.setText(((StringVariable) variableNameVariableValueMap.get(entry.getKey())).getValue());
-            */
+
+
+            //save the state of the last variable setting
             if (currentlySelectedVariableValue.getVariableValue() instanceof String) {
                 variableValue.setText((String) currentlySelectedVariableValue.getVariableValue());
             }
             selectionRowLayout.addView(variableValue);
-            variableSelectionViewMap.put(variableName, variableValue);
+            variableSelectionView = variableValue;
         }
         mainLayout.addView(selectionRowLayout);
 
@@ -168,37 +164,39 @@ public class SoviteVisualVariableOnClickDialog {
                 @Override
                 public void onClick(View v) {
                     //replace the variable value in the getProcedureOperation
-                    for (Map.Entry<String, View> variableNameViewEntry : variableSelectionViewMap.entrySet()) {
-                        String variableName = variableNameViewEntry.getKey();
-                        String variableStringValue = null;
-                        boolean changeMade = false;
+                        String variableName = currentlySelectedVariableValue.getVariableName();
+                        String newVariableStringValue = null;
 
-                        if (variableNameViewEntry.getValue() instanceof EditText) {
-                            variableStringValue = ((EditText) variableNameViewEntry.getValue()).getText().toString();
+                        if (variableSelectionView instanceof EditText) {
+                            newVariableStringValue = ((EditText) variableSelectionView).getText().toString();
                         }
-                        if (variableNameViewEntry.getValue() instanceof Spinner) {
-                            variableStringValue = ((Spinner) variableNameViewEntry.getValue()).getSelectedItem().toString();
+                        if (variableSelectionView instanceof Spinner) {
+                            newVariableStringValue = ((Spinner) variableSelectionView).getSelectedItem().toString();
                         }
 
-                        if (variableStringValue != null) {
-                            VariableValue<String> newChangedVariableValue = new VariableValue<>(variableName, variableStringValue);
-                            if (! variableStringValue.equals(currentlySelectedVariableValue.getVariableValue())) {
-                                changeMade = true;
-                                getProcedureOperation.getVariableValues().removeIf(variableValue -> variableName.equals(variableValue.getVariableName()));
-                                getProcedureOperation.getVariableValues().add(new VariableValue<>(variableName, variableStringValue));
-                            }
-                            //return getProcedureOperation
-                            if ((changeMade || toUpdateEvenNoChange) && soviteVariableUpdateCallback != null) {
-                                if (originalScreenshotView != null && originalScreenshotView.getVisibility() == View.VISIBLE) {
-                                    originalScreenshotView.setVisibility(GONE);
-                                }
-                                soviteVariableUpdateCallback.onGetProcedureOperationUpdated(getProcedureOperation, newChangedVariableValue, true);
-                            }
-                            dialog.dismiss();
+                        if (newVariableStringValue != null) {
+                            updateVariableValue(getProcedureOperation, variableName, newVariableStringValue, currentlySelectedVariableValue.getVariableValue().toString(), soviteVariableUpdateCallback, originalScreenshotView, toUpdateEvenNoChange);
                         }
-                    }
+
+                    dialog.dismiss();
                 }
             });
+        }
+    }
+
+    public static void updateVariableValue(@Nullable SugiliteGetProcedureOperation getProcedureOperation, String variableName, String newVariableStringValue, String originalVariableStringValue, SoviteVariableUpdateCallback soviteVariableUpdateCallback, @Nullable View originalScreenshotView, boolean toUpdateEvenNoChange) {
+        boolean changeInVariableValueHasBeenMade = ! newVariableStringValue.equals(originalVariableStringValue);
+        VariableValue<String> newChangedVariableValue = new VariableValue<>(variableName, newVariableStringValue);
+        if (changeInVariableValueHasBeenMade && getProcedureOperation != null) {
+            getProcedureOperation.getVariableValues().removeIf(variableValue -> variableName.equals(variableValue.getVariableName()));
+            getProcedureOperation.getVariableValues().add(new VariableValue<>(variableName, newVariableStringValue));
+        }
+        //return getProcedureOperation
+        if ((changeInVariableValueHasBeenMade || toUpdateEvenNoChange) && soviteVariableUpdateCallback != null) {
+            if (originalScreenshotView != null && originalScreenshotView.getVisibility() == View.VISIBLE) {
+                originalScreenshotView.setVisibility(View.GONE);
+            }
+            soviteVariableUpdateCallback.onGetProcedureOperationUpdated(getProcedureOperation, newChangedVariableValue, true);
         }
     }
 

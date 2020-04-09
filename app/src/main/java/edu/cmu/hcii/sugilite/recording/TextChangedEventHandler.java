@@ -30,6 +30,7 @@ public class TextChangedEventHandler {
     private SugiliteData sugiliteData;
     private Context context;
     private SharedPreferences sharedPreferences;
+    private SugiliteScreenshotManager screenshotManager;
 
     private SugiliteAvailableFeaturePack aggregatedFeaturePack;
     private Set<Map.Entry<String, String>> lastAvailableAlternatives;
@@ -42,12 +43,14 @@ public class TextChangedEventHandler {
         this.context = context;
         this.sharedPreferences = sharedPreferences;
         this.uiThreadHandler = uiThreadHandler;
+        this.screenshotManager = SugiliteScreenshotManager.getInstance(sharedPreferences, sugiliteData);
     }
 
     public void handle(SugiliteAvailableFeaturePack featurePack, Set<Map.Entry<String, String>> availableAlternatives){
         //handle the VIEW_TEXT_CHANGED event
-        if(featurePack == null)
+        if(featurePack == null) {
             return;
+        }
         if(belongsToTheSameSession(aggregatedFeaturePack, featurePack)){
             //same session
             featurePack.afterText = featurePack.text;
@@ -57,11 +60,17 @@ public class TextChangedEventHandler {
                 featurePack.boundsInParent = aggregatedFeaturePack.boundsInParent;
                 featurePack.boundsInScreen = aggregatedFeaturePack.boundsInScreen;
                 featurePack.text = featurePack.beforeText;
+                featurePack.screenshot = aggregatedFeaturePack.screenshot;
+                featurePack.serializableUISnapshot = aggregatedFeaturePack.serializableUISnapshot;
+                featurePack.targetNodeEntity = aggregatedFeaturePack.targetNodeEntity;
             }
             aggregatedFeaturePack = featurePack;
+            if (aggregatedFeaturePack.screenshot == null) {
+                aggregatedFeaturePack.screenshot = screenshotManager.takeScreenshot(SugiliteScreenshotManager.DIRECTORY_PATH, screenshotManager.getFileNameFromDate(), 0);
+            }
             lastAvailableAlternatives = availableAlternatives;
         }
-        else if(featurePack != null){
+        else {
             //handle (and consume) the aggregatedFeaturePack and start the new one
             System.out.println("flush from an unmatched text changed event");
             Runnable flush = new Runnable() {
@@ -77,6 +86,9 @@ public class TextChangedEventHandler {
                 featurePack.text = featurePack.beforeText;
             }
             aggregatedFeaturePack = featurePack;
+            if (aggregatedFeaturePack.screenshot == null) {
+                aggregatedFeaturePack.screenshot = screenshotManager.takeScreenshot(SugiliteScreenshotManager.DIRECTORY_PATH, screenshotManager.getFileNameFromDate(), 0);
+            }
             lastAvailableAlternatives = availableAlternatives;
         }
 

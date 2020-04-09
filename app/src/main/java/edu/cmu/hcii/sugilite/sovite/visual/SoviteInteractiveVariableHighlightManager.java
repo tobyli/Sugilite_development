@@ -3,20 +3,25 @@ package edu.cmu.hcii.sugilite.sovite.visual;
 
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
+import android.graphics.Typeface;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.ShapeDrawable;
 import android.graphics.drawable.shapes.RectShape;
 import android.util.Pair;
+import android.util.TypedValue;
 import android.view.GestureDetector;
 import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.ScrollView;
+import android.widget.TextView;
 
 
 import java.util.ArrayList;
@@ -28,14 +33,16 @@ import java.util.Set;
 
 import javax.annotation.Nullable;
 
+import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.model.Node;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.model.operation.binary.SugiliteGetProcedureOperation;
 
 import edu.cmu.hcii.sugilite.model.variable.VariableValue;
 import edu.cmu.hcii.sugilite.pumice.dialog.PumiceDialogManager;
+import edu.cmu.hcii.sugilite.sovite.visual.text_selection.SoviteSetTextParameterDialog;
 
-import static android.view.View.GONE;
+import static edu.cmu.hcii.sugilite.pumice.PumiceDemonstrationUtil.getScaledDrawable;
 import static edu.cmu.hcii.sugilite.sovite.visual.SoviteScriptVisualThumbnailManager.SCREENSHOT_SCALE;
 
 /**
@@ -50,7 +57,7 @@ public class SoviteInteractiveVariableHighlightManager {
         this.context = context;
     }
 
-    public View generateInteractiveViewForVariableValueAndScreenshotDrawable(VariableValue variableValue, Drawable screenshot, SugiliteStartingBlock subScript, SugiliteGetProcedureOperation getProcedureOperation, SoviteVariableUpdateCallback soviteVariableUpdateCallback, PumiceDialogManager pumiceDialogManager) {
+    public View generateInteractiveViewForVariableValueAndScreenshotDrawable(VariableValue variableValue, Drawable screenshot, SugiliteStartingBlock subScript, SugiliteGetProcedureOperation getProcedureOperation, SoviteVariableUpdateCallback soviteVariableUpdateCallback, String originalUtterance, PumiceDialogManager pumiceDialogManager) {
         if (variableValue.getVariableValueContext() == null || variableValue.getVariableValueContext().getTargetNode() == null) {
             return null;
         }
@@ -74,10 +81,10 @@ public class SoviteInteractiveVariableHighlightManager {
         screenshotImageView.setForegroundGravity(Gravity.TOP | Gravity.LEFT);
         parentLayout.addView(screenshotImageView, imageViewParams);
 
-
+        //highlightLayout should contain the stroke view and the highlight view
         RelativeLayout highlightLayout = new RelativeLayout(context);
         highlightLayout.setGravity(Gravity.TOP | Gravity.LEFT);
-        RelativeLayout.LayoutParams highlightLayoutViewParams = new RelativeLayout.LayoutParams(screenBounding.width(), screenBounding.height());
+        RelativeLayout.LayoutParams highlightLayoutViewParams = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         highlightLayoutViewParams.setMargins(screenBounding.left, screenBounding.top, 0, 0);
         highlightLayoutViewParams.addRule(RelativeLayout.ALIGN_PARENT_LEFT, RelativeLayout.TRUE);
         highlightLayoutViewParams.addRule(RelativeLayout.ALIGN_PARENT_TOP, RelativeLayout.TRUE);
@@ -93,6 +100,7 @@ public class SoviteInteractiveVariableHighlightManager {
         strokeShapeDrawable.getPaint().setStrokeWidth(strokeWidth);
         ImageView strokeshapeView = new ImageView(context);
         strokeshapeView.setImageDrawable(strokeShapeDrawable);
+        strokeshapeView.setId(View.generateViewId());
         RelativeLayout.LayoutParams strokeShapeViewParams = new RelativeLayout.LayoutParams(strokeShapeDrawable.getIntrinsicWidth(), strokeShapeDrawable.getIntrinsicHeight());
         strokeShapeViewParams.setMargins(halfStrokeWidth, halfStrokeWidth, 0, 0);
         strokeShapeViewParams.alignWithParent = true;
@@ -110,6 +118,7 @@ public class SoviteInteractiveVariableHighlightManager {
         fillShapeDrawable.setIntrinsicWidth(screenBounding.width() - 2 * strokeWidth);
         ImageView fillShapeView = new ImageView(context);
         fillShapeView.setImageDrawable(fillShapeDrawable);
+        fillShapeView.setId(View.generateViewId());
         RelativeLayout.LayoutParams fillShapeViewParams = new RelativeLayout.LayoutParams(fillShapeDrawable.getIntrinsicWidth(), fillShapeDrawable.getIntrinsicHeight());
         fillShapeViewParams.setMargins(strokeWidth, strokeWidth, 0, 0);
         fillShapeViewParams.alignWithParent = true;
@@ -117,8 +126,42 @@ public class SoviteInteractiveVariableHighlightManager {
         fillShapeViewParams.addRule(RelativeLayout.ALIGN_PARENT_TOP, RelativeLayout.TRUE);
         highlightLayout.addView(fillShapeView, fillShapeViewParams);
 
+        //add the parameter label
+        TextView parameterLabelTextView = new TextView(context);
+        parameterLabelTextView.setTextColor(Color.DKGRAY);
+        parameterLabelTextView.setTypeface(Typeface.create("serif-monospace", Typeface.BOLD));
+        parameterLabelTextView.setText(variableValue.getVariableName());
+        parameterLabelTextView.setPadding(1, 1, 1, 1);
+        RelativeLayout.LayoutParams parameterLabelTextViewLayoutParams = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        parameterLabelTextViewLayoutParams.addRule(RelativeLayout.ALIGN_LEFT, strokeshapeView.getId());
+        parameterLabelTextViewLayoutParams.addRule(RelativeLayout.BELOW, strokeshapeView.getId());
+        highlightLayout.addView(parameterLabelTextView, parameterLabelTextViewLayoutParams);
+
+
+        //add text if the variable has no alternative values (EditText type of variable)
+        Set<VariableValue> alternativeValues = subScript.variableNameAlternativeValueMap.get(variableValue.getVariableName());
+        if (alternativeValues.size() == 0) {
+            TextView variableValueTextView = new TextView(context);
+            variableValueTextView.setTextColor(Color.BLACK);
+            variableValueTextView.setPadding(10, 10, 10, 10);
+            variableValueTextView.setText(variableValue.getVariableValue().toString());
+            variableValueTextView.setGravity(Gravity.LEFT | Gravity.TOP);
+            variableValueTextView.setMaxLines(1);
+            if (android.os.Build.VERSION.SDK_INT >= 26){
+                //allow the textview to auto resize
+                variableValueTextView.setAutoSizeTextTypeWithDefaults(TextView.AUTO_SIZE_TEXT_TYPE_UNIFORM);
+            }
+            RelativeLayout.LayoutParams variableValueTextViewLayoutParams = new RelativeLayout.LayoutParams(fillShapeDrawable.getIntrinsicWidth(), fillShapeDrawable.getIntrinsicHeight());
+            variableValueTextViewLayoutParams.addRule(RelativeLayout.ALIGN_LEFT, fillShapeView.getId());
+            highlightLayout.addView(variableValueTextView, variableValueTextViewLayoutParams);
+
+            //make the background non-transparent
+            fillShapeDrawable.getPaint().setColor(0xC0FFFF00);
+        }
+
+
         //add onClick listener for the highlight
-        addOnClickListenerForVariableHighlight(highlightLayout, variableValue, subScript, getProcedureOperation, soviteVariableUpdateCallback, pumiceDialogManager, parentLayout);
+        addOnClickListenerForVariableHighlight(highlightLayout, variableValue, subScript, getProcedureOperation, soviteVariableUpdateCallback, originalUtterance, pumiceDialogManager, parentLayout);
 
         //add onDrag listener for the highlight
         addOnDragListenerForVariableHighlight(highlightLayout, parentLayout, variableValue, subScript, getProcedureOperation, soviteVariableUpdateCallback, pumiceDialogManager, parentLayout);
@@ -127,7 +170,7 @@ public class SoviteInteractiveVariableHighlightManager {
         return parentLayout;
     }
 
-    private void addOnClickListenerForVariableHighlight (View highlightView, VariableValue variableValue, SugiliteStartingBlock subScript, SugiliteGetProcedureOperation getProcedureOperation, SoviteVariableUpdateCallback soviteVariableUpdateCallback, @Nullable PumiceDialogManager pumiceDialogManager, @Nullable View originalScreenshotView) {
+    private void addOnClickListenerForVariableHighlight (View highlightView, VariableValue variableValue, SugiliteStartingBlock subScript, SugiliteGetProcedureOperation getProcedureOperation, SoviteVariableUpdateCallback soviteVariableUpdateCallback, String originalUtterance, @Nullable PumiceDialogManager pumiceDialogManager, @Nullable View originalScreenshotView) {
         highlightView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -139,8 +182,20 @@ public class SoviteInteractiveVariableHighlightManager {
                     alternativeValues.forEach(alternativeVariableValue -> alternativeValueStrings.add(alternativeVariableValue.getVariableValue().toString()));
                 }
 
-                SoviteVisualVariableOnClickDialog soviteVisualVariableOnClickDialog = new SoviteVisualVariableOnClickDialog(context, variableValue, subScript, getProcedureOperation, soviteVariableUpdateCallback, originalScreenshotView, false);
-                soviteVisualVariableOnClickDialog.show();
+                //check if the variable has any alternative values
+                if (alternativeValues.size() > 0) {
+                    //show spinner type dialog
+                    SoviteVisualVariableOnClickDialog soviteVisualVariableOnClickDialog = new SoviteVisualVariableOnClickDialog(context, variableValue, subScript, getProcedureOperation, soviteVariableUpdateCallback, originalScreenshotView, false);
+                    soviteVisualVariableOnClickDialog.show();
+                } else {
+                    //show text selection dialog
+                    SoviteSetTextParameterDialog soviteSetTextParameterDialog = new SoviteSetTextParameterDialog(context, pumiceDialogManager.getSugiliteData(), variableValue, originalUtterance, getProcedureOperation, soviteVariableUpdateCallback, originalScreenshotView, false);
+                    soviteSetTextParameterDialog.show();
+                }
+
+
+
+
                 if (pumiceDialogManager != null) {
                     pumiceDialogManager.stopTalking();
                     pumiceDialogManager.stopListening();
@@ -149,18 +204,10 @@ public class SoviteInteractiveVariableHighlightManager {
         });
     }
 
-    private Drawable getScaledDrawable(Drawable drawable, int width, int height) {
-        //scale the drawable so it fits into the dialog
-        // Read your drawable from somewhere
-        Bitmap bitmap = ((BitmapDrawable) drawable).getBitmap();
-        // Scale it to 50 x 50
-        Drawable d = new BitmapDrawable(context.getResources(), Bitmap.createScaledBitmap(bitmap, width, height, true));
-        // Set your new, scaled drawable "d"
-        return d;
-    }
+
 
     private int getScaledCoordinate (int coordinate) {
-        return (int) (coordinate/SCREENSHOT_SCALE);
+        return (int) (coordinate * SCREENSHOT_SCALE);
     }
 
 
@@ -289,31 +336,35 @@ public class SoviteInteractiveVariableHighlightManager {
             Rect originalBoundsInScreen = Rect.unflattenFromString(variableValue.getVariableValueContext().getTargetNode().getBoundsInScreen());
             originalBoundsInScreen.set(getScaledCoordinate(originalBoundsInScreen.left), getScaledCoordinate(originalBoundsInScreen.top), getScaledCoordinate(originalBoundsInScreen.right), getScaledCoordinate(originalBoundsInScreen.bottom));
             boundsInParentVariableValueMap.put(originalBoundsInScreen, variableValue);
-            alternativeValueBoundsInParentOverlapList.add(new Pair<>(originalBoundsInScreen, getIntersectionArea(originalBoundsInScreen, currentViewBounds)));
+            alternativeValueBoundsInParentOverlapList.add(new Pair<>(originalBoundsInScreen, getIntersectionAreaBetweenTwoRects(originalBoundsInScreen, currentViewBounds)));
         }
+
+        //sort the alternative values by the area of intersections between their bounds and the current view bounds
         alternativeValueBoundsInParentOverlapList.sort(new Comparator<Pair<Rect, Integer>>() {
             @Override
             public int compare(Pair<Rect, Integer> o1, Pair<Rect, Integer> o2) {
                 return o2.second - o1.second;
             }
         });
+
         VariableValue matchedNewVariableValue = null;
         Rect matchedRect = null;
+
+        //check if we have any alternative value whose bounds intersects with the current view bounds
         if (alternativeValueBoundsInParentOverlapList.size() > 0 && alternativeValueBoundsInParentOverlapList.get(0).second > 0) {
             matchedNewVariableValue = boundsInParentVariableValueMap.get(alternativeValueBoundsInParentOverlapList.get(0).first);
             matchedRect = alternativeValueBoundsInParentOverlapList.get(0).first;
         } else {
+            //restore the view bounds to select the current selected variable value if no intersection
             matchedNewVariableValue = currentSelectedVariableValue;
             Rect currentSelectedVariableBoundsInScreen = Rect.unflattenFromString(currentSelectedVariableValue.getVariableValueContext().getTargetNode().getBoundsInScreen());
             currentSelectedVariableBoundsInScreen.set(getScaledCoordinate(currentSelectedVariableBoundsInScreen.left), getScaledCoordinate(currentSelectedVariableBoundsInScreen.top), getScaledCoordinate(currentSelectedVariableBoundsInScreen.right), getScaledCoordinate(currentSelectedVariableBoundsInScreen.bottom));
             matchedRect = currentSelectedVariableBoundsInScreen;
         }
         //update the current selected variable value
-
         variableHighlightOnTouchListener.setCurrentSelectedVariableValue(matchedNewVariableValue);
 
         //move the highlight view based on matchedNewVariableValue
-        RelativeLayout.LayoutParams newLayoutParams = (RelativeLayout.LayoutParams) variableHighlightView.getLayoutParams();
         layoutParams.leftMargin = matchedRect.left;
         layoutParams.topMargin = matchedRect.top;
         layoutParams.rightMargin = 0;
@@ -322,16 +373,18 @@ public class SoviteInteractiveVariableHighlightManager {
 
         VariableValue finalMatchedNewVariableValue = matchedNewVariableValue;
         if (matchedNewVariableValue != currentSelectedVariableValue) {
-            //change made
+            //when change has been made
 
             //update getProcedureOperation
             variableHighlightOnTouchListener.getProcedureOperation.getVariableValues().removeIf(variableValue -> finalMatchedNewVariableValue.getVariableName().equals(variableValue.getVariableName()));
             variableHighlightOnTouchListener.getProcedureOperation.getVariableValues().add(new VariableValue<>(finalMatchedNewVariableValue.getVariableName(), finalMatchedNewVariableValue.getVariableValue().toString()));
 
+            //hide the original screenshot
             if (variableHighlightOnTouchListener.originalScreenshotView != null && variableHighlightOnTouchListener.originalScreenshotView.getVisibility() == View.VISIBLE) {
-                variableHighlightOnTouchListener.originalScreenshotView.setVisibility(GONE);
+                variableHighlightOnTouchListener.originalScreenshotView.setVisibility(View.GONE);
             }
 
+            //call the callback (which will also generate a new screeshot based on the new selected variable)
             if (variableHighlightOnTouchListener.soviteVariableUpdateCallback != null) {
                 variableHighlightOnTouchListener.soviteVariableUpdateCallback.onGetProcedureOperationUpdated(variableHighlightOnTouchListener.getProcedureOperation, matchedNewVariableValue, true);
             }
@@ -339,7 +392,7 @@ public class SoviteInteractiveVariableHighlightManager {
 
     }
 
-    private int getIntersectionArea(Rect a, Rect b) {
+    private int getIntersectionAreaBetweenTwoRects(Rect a, Rect b) {
         int left = Math.max(a.left, b.left);
         int right = Math.min(a.right, b.right);
         int top = Math.max(a.top, b.top);

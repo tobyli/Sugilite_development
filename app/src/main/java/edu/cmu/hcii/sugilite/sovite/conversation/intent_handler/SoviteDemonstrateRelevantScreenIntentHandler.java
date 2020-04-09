@@ -89,7 +89,7 @@ public class SoviteDemonstrateRelevantScreenIntentHandler implements PumiceUtter
         //extract the last screen in the script
         appReferenceScript = script;
         //no variable here
-        List<View> scriptScreenshots = soviteScriptVisualThumbnailManager.getVisualThumbnailViewsForBlock(script, this.pumiceDialogManager);
+        List<View> scriptScreenshots = soviteScriptVisualThumbnailManager.getVisualThumbnailViewsForBlock(script, originalUtterance, this.pumiceDialogManager);
         SerializableUISnapshot lastScreenUISnapshot = soviteScriptVisualThumbnailManager.getLastAvailableUISnapshotInSubsequentScript(script, null);
         List<String> allAvailableScriptUtterances = pumiceDialogManager.getPumiceKnowledgeManager().getAllAvailableProcedureKnowledgeUtterances(false);
 

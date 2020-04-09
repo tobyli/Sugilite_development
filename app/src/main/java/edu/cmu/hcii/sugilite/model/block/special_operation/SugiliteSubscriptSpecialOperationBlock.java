@@ -85,17 +85,25 @@ public class SugiliteSubscriptSpecialOperationBlock extends SugiliteSpecialOpera
                     VariableSetValueDialog variableSetValueDialog = new VariableSetValueDialog(finalContext, sugiliteData, script, sharedPreferences, sugiliteData.getCurrentSystemState(), sugiliteData.pumiceDialogManager, false);
                     if (script.variableNameDefaultValueMap.size() > 0) {
                         //has variable
+
+                        //dump the default values into the active symbolic table first
                         sugiliteData.variableNameVariableValueMap.putAll(script.variableNameDefaultValueMap);
 
                         //process variableValues
-                        Map<String, VariableValue> alreadyLoadedStringVariableMap = new HashMap<>();
+                        Map<String, VariableValue> alreadyExternallyLoadedStringVariableMap = new HashMap<>();
 
                         //check if variableValue is among alternatives before adding to alreadyLoadedStringVariableMap
                         try {
                             for (VariableValue<String> stringVariable : variableValues) {
                                 //TODO: make sure the case matches in variable value
-                                if (script.variableNameAlternativeValueMap.containsKey(stringVariable.getVariableName()) && script.variableNameAlternativeValueMap.get(stringVariable.getVariableName()).contains(stringVariable)) {
-                                    alreadyLoadedStringVariableMap.put(stringVariable.getVariableName(), stringVariable);
+                                if (script.variableNameAlternativeValueMap.containsKey(stringVariable.getVariableName())){
+                                    if (script.variableNameAlternativeValueMap.get(stringVariable.getVariableName()).contains(stringVariable)) {
+                                        //the variable has alternative values (i.e., spinner type variable), and the alternative values contain the variable value
+                                        alreadyExternallyLoadedStringVariableMap.put(stringVariable.getVariableName(), stringVariable);
+                                    } else if (script.variableNameAlternativeValueMap.get(stringVariable.getVariableName()).isEmpty()) {
+                                        //the variable does not have alternative values (i.e., textbox type variable)
+                                        alreadyExternallyLoadedStringVariableMap.put(stringVariable.getVariableName(), stringVariable);
+                                    }
                                 } else {
                                     throw new Exception("Can't find the loaded variable in the script");
                                 }
@@ -104,17 +112,19 @@ public class SugiliteSubscriptSpecialOperationBlock extends SugiliteSpecialOpera
                             //TODO: better handle the exception
                             e.printStackTrace();
                         }
-                        sugiliteData.variableNameVariableValueMap.putAll(alreadyLoadedStringVariableMap);
+
+                        //dump the values from alreadyExternallyLoadedStringVariableMap into the active symbolic table
+                        sugiliteData.variableNameVariableValueMap.putAll(alreadyExternallyLoadedStringVariableMap);
 
                         boolean needUserInput = false;
                         for (Map.Entry<String, Variable> entry : script.variableNameVariableObjectMap.entrySet()) {
-                            if (entry.getValue().getVariableType() == Variable.USER_INPUT && (!alreadyLoadedStringVariableMap.containsKey(entry.getKey()))) {
+                            if (entry.getValue().getVariableType() == Variable.USER_INPUT && (!alreadyExternallyLoadedStringVariableMap.containsKey(entry.getKey()))) {
                                 needUserInput = true;
                                 break;
                             }
                         }
 
-                        variableSetValueDialog.setAlreadyLoadedVariableMap(alreadyLoadedStringVariableMap);
+                        variableSetValueDialog.setAlreadyLoadedVariableMap(alreadyExternallyLoadedStringVariableMap);
 
                         if (needUserInput) {
                             //show the dialog to obtain user input - run getNextBlockToRun() after finish executing the current one

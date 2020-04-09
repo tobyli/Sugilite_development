@@ -77,7 +77,7 @@
                 android:id="@+id/button_verbal_instruction_talk"
                 style="@style/Widget.AppCompat.ImageButton"
                 android:layout_width="0dp"
-                android:layout_height="50dp"
+                android:layout_height="48dp"
                 android:layout_weight="0.2"
                 android:adjustViewBounds="false"
                 android:cropToPadding="true"

@@ -19,8 +19,14 @@ import java.util.List;
 import edu.cmu.hcii.sugilite.Const;
 import edu.cmu.hcii.sugilite.R;
 import edu.cmu.hcii.sugilite.SugiliteData;
+import edu.cmu.hcii.sugilite.pumice.PumiceDemonstrationUtil;
 import edu.cmu.hcii.sugilite.pumice.dialog.PumiceDialogManager;
+import edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.PumiceUtteranceIntentHandler;
 import edu.cmu.hcii.sugilite.sovite.conversation.dialog.SoviteKnowledgeManagementDialog;
+import edu.cmu.hcii.sugilite.sovite.conversation_state.SoviteConversationState;
+import edu.cmu.hcii.sugilite.sovite.conversation_state.SoviteConversationStateGenerateDialog;
+import edu.cmu.hcii.sugilite.sovite.conversation_state.SoviteConversationStateLoadDialog;
+import edu.cmu.hcii.sugilite.sovite.conversation_state.SoviteSerializableRecoverableIntentHanlder;
 import edu.cmu.hcii.sugilite.sovite.study.SoviteStudyDumpGenerateDialog;
 import edu.cmu.hcii.sugilite.sovite.study.SoviteStudyDumpLoadDialog;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.speech.SugiliteAndroidAPIVoiceRecognitionListener;
@@ -217,6 +223,39 @@ public class PumiceDialogActivity extends AppCompatActivity implements SugiliteV
             //pumiceDialogManager.sendAgentMessage("Reverted to the last state", true, false);
             return true;
         }
+
+        if (id == R.id.dump_sovite_state) {
+            stopTTSandASR();
+            //dump a sovite conversation state
+            PumiceDialogManager.PumiceDialogState pumiceDialogState = pumiceDialogManager.getPumiceDialogState();
+            PumiceUtteranceIntentHandler currentHandler = pumiceDialogState.getPumiceUtteranceIntentHandlerInUse();
+            if (currentHandler instanceof SoviteSerializableRecoverableIntentHanlder) {
+                //the current handler is serializable
+                SoviteConversationState soviteConversationState = new SoviteConversationState();
+                soviteConversationState.setSoviteSerializableRecoverableIntentHanlder((SoviteSerializableRecoverableIntentHanlder) currentHandler);
+                soviteConversationState.setUtteranceHistory(pumiceDialogState.getUtteranceHistory());
+
+                //show a dialog that saves the conversation state
+                SoviteConversationStateGenerateDialog soviteConversationStateGenerateDialog = new SoviteConversationStateGenerateDialog(context, soviteConversationState);
+                soviteConversationStateGenerateDialog.show();
+            } else {
+                PumiceDemonstrationUtil.showSugiliteAlertDialog("The current conversation state is not serializable!");
+            }
+
+            return true;
+        }
+
+        if (id == R.id.load_sovite_state) {
+            stopTTSandASR();
+            //load a sovite state
+
+
+            SoviteConversationStateLoadDialog soviteConversationStateLoadDialog = new SoviteConversationStateLoadDialog(this, pumiceDialogManager);
+            soviteConversationStateLoadDialog.show();
+
+            return true;
+        }
+
 
 
         if (id == R.id.start_over_pumice) {

@@ -441,7 +441,7 @@ public class RecordingPopUpDialog implements AbstractSugiliteDialog {
         };
         if(view == null) {
             //the main panel is skipped
-            builder.setTitle("Save Operation Confirmation").setMessage((Spanned) TextUtils.concat("Are you sure you want to record the operation: ", readableDescriptionGenerator.generateReadableDescription(operationBlock)));
+            builder.setTitle("Save Operation Confirmation").setMessage((Spanned) TextUtils.concat("Are you sure you want to record the operation: ", readableDescriptionGenerator.generateReadableDescription(operationBlock), "?"));
             builder.setPositiveButton("Yes", onClickListener)
                     .setNegativeButton("Skip", new DialogInterface.OnClickListener() {
                         @Override

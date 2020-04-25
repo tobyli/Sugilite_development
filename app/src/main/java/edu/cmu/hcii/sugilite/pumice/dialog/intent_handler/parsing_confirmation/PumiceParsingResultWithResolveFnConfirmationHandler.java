@@ -4,6 +4,7 @@ import android.app.Activity;
 
 import org.apache.commons.lang3.StringUtils;
 
+import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -18,6 +19,7 @@ import edu.cmu.hcii.sugilite.model.value.SugiliteValue;
 import edu.cmu.hcii.sugilite.pumice.communication.PumiceInstructionPacket;
 import edu.cmu.hcii.sugilite.pumice.communication.PumiceSemanticParsingResultPacket;
 import edu.cmu.hcii.sugilite.pumice.dialog.PumiceDialogManager;
+import edu.cmu.hcii.sugilite.pumice.dialog.PumiceUtterance;
 import edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.PumiceDefaultUtteranceIntentHandler;
 import edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.PumiceUtteranceIntentHandler;
 import edu.cmu.hcii.sugilite.source_parsing.SugiliteScriptParser;
@@ -124,7 +126,7 @@ public class PumiceParsingResultWithResolveFnConfirmationHandler implements Pumi
      * @return
      */
     @Override
-    public PumiceIntent detectIntentFromUtterance(PumiceDialogManager.PumiceUtterance utterance) {
+    public PumiceIntent detectIntentFromUtterance(PumiceUtterance utterance) {
         String utteranceContent = utterance.getContent().toString();
         if (utteranceContent != null && (utteranceContent.toLowerCase().contains("yes") || utteranceContent.toLowerCase().toLowerCase().contains("ok") || utteranceContent.toLowerCase().contains("yeah"))){
             return PumiceIntent.PARSE_CONFIRM_POSITIVE;
@@ -136,7 +138,7 @@ public class PumiceParsingResultWithResolveFnConfirmationHandler implements Pumi
     }
 
     @Override
-    public void handleIntentWithUtterance(PumiceDialogManager dialogManager, PumiceIntent pumiceIntent, PumiceDialogManager.PumiceUtterance utterance) {
+    public void handleIntentWithUtterance(PumiceDialogManager dialogManager, PumiceIntent pumiceIntent, PumiceUtterance utterance) {
         if (pumiceIntent.equals(PumiceIntent.PARSE_CONFIRM_POSITIVE)) {
             // parse is correct
             try {

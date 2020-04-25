@@ -8,6 +8,7 @@ import java.util.concurrent.ExecutorService;
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.model.value.SugiliteValue;
 import edu.cmu.hcii.sugilite.pumice.dialog.PumiceDialogManager;
+import edu.cmu.hcii.sugilite.pumice.dialog.PumiceUtterance;
 import edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.PumiceDefaultUtteranceIntentHandler;
 import edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.PumiceUtteranceIntentHandler;
 import edu.cmu.hcii.sugilite.pumice.kb.PumiceBooleanExpKnowledge;
@@ -55,7 +56,7 @@ public class PumiceBooleanExpKnowledgeGeneralizationIntentHandler implements Pum
 
 
     @Override
-    public PumiceIntent detectIntentFromUtterance(PumiceDialogManager.PumiceUtterance utterance) {
+    public PumiceIntent detectIntentFromUtterance(PumiceUtterance utterance) {
         String utteranceContent = utterance.getContent().toString();
         if (utteranceContent != null && (utteranceContent.toLowerCase().contains("yes") || utteranceContent.toLowerCase().toLowerCase().contains("ok") || utteranceContent.toLowerCase().contains("yeah"))){
             return PumiceIntent.EXECUTION_CONFIRM_POSITIVE;
@@ -76,7 +77,7 @@ public class PumiceBooleanExpKnowledgeGeneralizationIntentHandler implements Pum
     }
 
     @Override
-    public void handleIntentWithUtterance(PumiceDialogManager dialogManager, PumiceIntent pumiceIntent, PumiceDialogManager.PumiceUtterance utterance) {
+    public void handleIntentWithUtterance(PumiceDialogManager dialogManager, PumiceIntent pumiceIntent, PumiceUtterance utterance) {
         if (pumiceIntent.equals(PumiceIntent.EXECUTION_CONFIRM_POSITIVE)) {
             //keep the same
             executorServiceForReturnningResults.execute(positiveRunnable);

@@ -106,20 +106,22 @@ public class SoviteDisambiguationDemonstrationDialog {
                         };
                         PumiceDemonstrationUtil.initiateDemonstration(context, serviceStatusManager, sharedPreferences, scriptName, sugiliteData, onFinishDemonstrationCallback, sugiliteScriptDao, verbalInstructionIconManager);
 
-                        //add a new LaunchApp block
-                        SugiliteLaunchAppOperation sugiliteLaunchAppOperation = new SugiliteLaunchAppOperation(appPackageName);
-                        SugiliteOperationBlock sugiliteOperationBlock = new SugiliteOperationBlock();
-                        sugiliteOperationBlock.setOperation(sugiliteLaunchAppOperation);
-                        sugiliteOperationBlock.setPreviousBlock(sugiliteData.getCurrentScriptBlock());
-                        sugiliteData.getCurrentScriptBlock().setNextBlock(sugiliteOperationBlock);
-                        sugiliteData.setCurrentScriptBlock(sugiliteOperationBlock);
+                        if (sugiliteData.getCurrentScriptBlock() != null) {
+                            //add a new LaunchApp block
+                            SugiliteLaunchAppOperation sugiliteLaunchAppOperation = new SugiliteLaunchAppOperation(appPackageName);
+                            SugiliteOperationBlock sugiliteOperationBlock = new SugiliteOperationBlock();
+                            sugiliteOperationBlock.setOperation(sugiliteLaunchAppOperation);
+                            sugiliteOperationBlock.setPreviousBlock(sugiliteData.getCurrentScriptBlock());
+                            sugiliteData.getCurrentScriptBlock().setNextBlock(sugiliteOperationBlock);
+                            sugiliteData.setCurrentScriptBlock(sugiliteOperationBlock);
 
-                        //launch the underlying app
-                        Intent launchIntent = context.getPackageManager().getLaunchIntentForPackage(appPackageName);
-                        if (launchIntent != null) {
-                            context.startActivity(launchIntent);
-                        } else {
-                            PumiceDemonstrationUtil.showSugiliteToast("There is no package available in android", Toast.LENGTH_SHORT);
+                            //launch the underlying app
+                            Intent launchIntent = context.getPackageManager().getLaunchIntentForPackage(appPackageName);
+                            if (launchIntent != null) {
+                                context.startActivity(launchIntent);
+                            } else {
+                                PumiceDemonstrationUtil.showSugiliteToast("There is no package available in android", Toast.LENGTH_SHORT);
+                            }
                         }
                     }
                 });

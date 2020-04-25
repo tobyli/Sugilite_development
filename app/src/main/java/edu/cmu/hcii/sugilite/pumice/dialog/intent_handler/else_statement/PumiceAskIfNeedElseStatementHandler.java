@@ -6,6 +6,7 @@ import edu.cmu.hcii.sugilite.Const;
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.model.block.SugiliteConditionBlock;
 import edu.cmu.hcii.sugilite.pumice.dialog.PumiceDialogManager;
+import edu.cmu.hcii.sugilite.pumice.dialog.PumiceUtterance;
 import edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.PumiceDefaultUtteranceIntentHandler;
 import edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.PumiceUtteranceIntentHandler;
 
@@ -35,7 +36,7 @@ public class PumiceAskIfNeedElseStatementHandler implements PumiceUtteranceInten
     }
 
     @Override
-    public void handleIntentWithUtterance(PumiceDialogManager dialogManager, PumiceIntent pumiceIntent, PumiceDialogManager.PumiceUtterance utterance) {
+    public void handleIntentWithUtterance(PumiceDialogManager dialogManager, PumiceIntent pumiceIntent, PumiceUtterance utterance) {
         if (pumiceIntent.equals(PumiceIntent.PARSE_CONFIRM_POSITIVE)) {
             // else statement needed
             PumiceUserExplainElseStatementIntentHandler pumiceUserExplainElseStatementIntentHandler = new PumiceUserExplainElseStatementIntentHandler(pumiceDialogManager, context, sugiliteData, originalConditionBlock, boolExpReadableName);
@@ -64,7 +65,7 @@ public class PumiceAskIfNeedElseStatementHandler implements PumiceUtteranceInten
     }
 
     @Override
-    public PumiceIntent detectIntentFromUtterance(PumiceDialogManager.PumiceUtterance utterance) {
+    public PumiceIntent detectIntentFromUtterance(PumiceUtterance utterance) {
         String utteranceContent = utterance.getContent().toString();
         if (utteranceContent != null && (utteranceContent.toLowerCase().contains("yes") || utteranceContent.toLowerCase().toLowerCase().contains("ok") || utteranceContent.toLowerCase().contains("yeah"))){
             return PumiceIntent.PARSE_CONFIRM_POSITIVE;

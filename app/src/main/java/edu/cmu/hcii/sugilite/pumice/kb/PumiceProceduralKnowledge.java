@@ -16,6 +16,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.automation.AutomatorUtil;
@@ -252,7 +253,9 @@ public class PumiceProceduralKnowledge implements Serializable {
             for (String parameterName : parameterNameParameterMap.keySet()) {
                 String parameterDefaultValue = parameterNameParameterDefaultValueMap.get(parameterName);
                 if (parameterDefaultValue != null) {
-                    parameterizedUtterance = parameterizedUtterance.toLowerCase().replace(parameterDefaultValue.toLowerCase(), "[" + parameterName + "]");
+                    if (Pattern.compile(String.format("[^\\[]+\"%s\"", parameterDefaultValue.toLowerCase())).matcher(parameterizedUtterance.toLowerCase()).find()) {
+                        parameterizedUtterance = parameterizedUtterance.toLowerCase().replace(parameterDefaultValue.toLowerCase(), "[" + parameterName + "]");
+                    }
                 }
             }
         }
@@ -298,6 +301,18 @@ public class PumiceProceduralKnowledge implements Serializable {
         public void addParameterAlternativeValues (T value){
             parameterAlternativeValues.add(value);
         }
+
+        public String getParameterName() {
+            return parameterName;
+        }
+
+        public T getParameterDefaultValue() {
+            return parameterDefaultValue;
+        }
+
+        public List<T> getParameterAlternativeValues() {
+            return parameterAlternativeValues;
+        }
     }
 
     @Override
@@ -321,4 +336,8 @@ public class PumiceProceduralKnowledge implements Serializable {
         return gson.toJson(this);
     }
 
+    @Nullable
+    public Map<String, PumiceProceduralKnowledgeParameter> getParameterNameParameterMap() {
+        return parameterNameParameterMap;
+    }
 }

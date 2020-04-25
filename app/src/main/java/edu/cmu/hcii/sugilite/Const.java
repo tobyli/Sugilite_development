@@ -79,7 +79,7 @@ public class Const {
     public static final String[] INPUT_METHOD_PACKAGE_NAMES = {"com.google.android.inputmethod.pinyin", "com.google.android.inputmethod.latin", "com.menny.android.anysoftkeyboard"};
 
     //App name to display
-    public static final String appName = "Sugilite";
+    public static final String appName = "Sovite";
     public static final String appNameUpperCase = appName.toUpperCase();
 
     //colors

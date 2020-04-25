@@ -17,6 +17,7 @@ import edu.cmu.hcii.sugilite.pumice.communication.PumiceInstructionPacket;
 import edu.cmu.hcii.sugilite.pumice.communication.PumiceSemanticParsingResultPacket;
 import edu.cmu.hcii.sugilite.pumice.communication.SkipPumiceJSONSerialization;
 import edu.cmu.hcii.sugilite.pumice.dialog.PumiceDialogManager;
+import edu.cmu.hcii.sugilite.pumice.dialog.PumiceUtterance;
 import edu.cmu.hcii.sugilite.pumice.dialog.demonstration.PumiceValueDemonstrationDialog;
 import edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.parsing_confirmation.PumiceParsingResultWithResolveFnConfirmationHandler;
 import edu.cmu.hcii.sugilite.pumice.kb.PumiceValueQueryKnowledge;
@@ -59,7 +60,7 @@ public class PumiceUserExplainValueIntentHandler implements PumiceUtteranceInten
     }
 
     @Override
-    public void handleIntentWithUtterance(PumiceDialogManager dialogManager, PumiceIntent pumiceIntent, PumiceDialogManager.PumiceUtterance utterance) {
+    public void handleIntentWithUtterance(PumiceDialogManager dialogManager, PumiceIntent pumiceIntent, PumiceUtterance utterance) {
         if (pumiceIntent.equals(PumiceIntent.DEFINE_VALUE_EXPLANATION)){
             //branch for situations such as e.g., redirection
             //dialogManager.sendAgentMessage("I have received your explanation: " + utterance.getTriggerContent(), true, false);
@@ -96,7 +97,7 @@ public class PumiceUserExplainValueIntentHandler implements PumiceUtteranceInten
     }
 
     @Override
-    public PumiceIntent detectIntentFromUtterance(PumiceDialogManager.PumiceUtterance utterance) {
+    public PumiceIntent detectIntentFromUtterance(PumiceUtterance utterance) {
         if (utterance.getContent().toString().contains("demonstrate")){
             return PumiceIntent.DEFINE_VALUE_DEMONSTRATION;
         } else {

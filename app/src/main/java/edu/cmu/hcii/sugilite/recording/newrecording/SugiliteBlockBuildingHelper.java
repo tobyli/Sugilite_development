@@ -402,7 +402,13 @@ public class SugiliteBlockBuildingHelper {
                 clonedQuery.addSubQuery(subQuery);
                 hasNonBoundingBoxFeature = true;
                 hasNonChildFeature = true;
-                queries.add(Pair.create(clonedQuery, 3.2));
+
+                if (targetEntity.getEntityValue().getEditable()) {
+                    //prioritize view id for text boxes
+                    queries.add(Pair.create(clonedQuery, 1.0));
+                } else {
+                    queries.add(Pair.create(clonedQuery, 3.2));
+                }
             }
         }
 

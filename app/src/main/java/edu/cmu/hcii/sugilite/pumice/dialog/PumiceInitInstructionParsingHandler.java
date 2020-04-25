@@ -469,7 +469,7 @@ public class PumiceInitInstructionParsingHandler {
                     pumiceDialogManager.savePumiceKnowledgeToDao();
                     pumiceDialogManager.sendAgentMessage("OK, I learned " + proceduralKnowledge.getProcedureDescription(pumiceDialogManager.getPumiceKnowledgeManager(), true).toLowerCase() + ".", true, false);
                 } else {
-                    pumiceDialogManager.sendAgentMessage(String.format("OK, I will invoke the existing script to %s.", proceduralKnowledge.getProcedureDescription(pumiceDialogManager.getPumiceKnowledgeManager(), false)), true, false);
+                    pumiceDialogManager.sendAgentMessage(String.format("OK, I will invoke the existing intent to %s.", proceduralKnowledge.getProcedureDescription(pumiceDialogManager.getPumiceKnowledgeManager(), false)), true, false);
                 }
 
                 //replace the orignal "resolve" call with a new "get" call
@@ -628,11 +628,11 @@ public class PumiceInitInstructionParsingHandler {
 
     private void printScript(SugiliteStartingBlock currentScript) {
 
-        pumiceDialogManager.sendAgentMessage(String.format("I've finished resolving all concepts"), true, false);
+        //pumiceDialogManager.sendAgentMessage(String.format("I've finished resolving all concepts"), true, false);
         //pumiceDialogManager.sendAgentMessage("Below is the current script after concept resolution: ", true, false);
         //pumiceDialogManager.sendAgentMessage(SugiliteScriptParser.scriptToString(currentScript), false, false);
-        pumiceDialogManager.sendAgentMessage("Below is the updated list of existing knowledge...", true, false);
-        pumiceDialogManager.sendAgentMessage(pumiceDialogManager.getPumiceKnowledgeManager().getKnowledgeInString(), false, false);
+        //pumiceDialogManager.sendAgentMessage("Below is the updated list of existing knowledge...", true, false);
+        //pumiceDialogManager.sendAgentMessage(pumiceDialogManager.getPumiceKnowledgeManager().getKnowledgeInString(), false, false);
     }
 
     private void storeScript(SugiliteStartingBlock currentScript, String scriptName) {

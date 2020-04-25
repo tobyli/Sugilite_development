@@ -16,7 +16,13 @@
     <item android:id="@+id/undo_pumice" android:title="Undo"
         android:orderInCategory="5" app:showAsAction="never" />
 
-    <item android:id="@+id/start_over_pumice" android:title="Start Over"
+    <item android:id="@+id/dump_sovite_state" android:title="Dump a Sovite Conversation State"
         android:orderInCategory="6" app:showAsAction="never" />
+
+    <item android:id="@+id/load_sovite_state" android:title="Load a Sovite Conversation State"
+        android:orderInCategory="7" app:showAsAction="never" />
+
+    <item android:id="@+id/start_over_pumice" android:title="Start Over"
+        android:orderInCategory="8" app:showAsAction="never" />
 
 </menu>

@@ -79,6 +79,10 @@ public class SugiliteGetProcedureOperation extends SugiliteGetOperation<String> 
         return variableValues;
     }
 
+    public void setVariableValues(List<VariableValue<String>> variableValues) {
+        this.variableValues = variableValues;
+    }
+
     @Override
     public String getPumiceUserReadableDecription() {
         List<String> parameterStringList = new ArrayList<>();

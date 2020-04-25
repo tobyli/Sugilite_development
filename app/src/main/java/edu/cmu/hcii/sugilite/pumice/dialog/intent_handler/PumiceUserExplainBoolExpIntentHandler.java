@@ -15,6 +15,7 @@ import edu.cmu.hcii.sugilite.pumice.communication.PumiceInstructionPacket;
 import edu.cmu.hcii.sugilite.pumice.communication.PumiceSemanticParsingResultPacket;
 import edu.cmu.hcii.sugilite.pumice.communication.SkipPumiceJSONSerialization;
 import edu.cmu.hcii.sugilite.pumice.dialog.PumiceDialogManager;
+import edu.cmu.hcii.sugilite.pumice.dialog.PumiceUtterance;
 import edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.parsing_confirmation.PumiceParsingResultWithResolveFnConfirmationHandler;
 import edu.cmu.hcii.sugilite.pumice.kb.PumiceBooleanExpKnowledge;
 import edu.cmu.hcii.sugilite.sovite.conversation.SoviteReturnValueCallbackInterface;
@@ -57,7 +58,7 @@ public class PumiceUserExplainBoolExpIntentHandler implements PumiceUtteranceInt
     }
 
     @Override
-    public void handleIntentWithUtterance(PumiceDialogManager dialogManager, PumiceIntent pumiceIntent, PumiceDialogManager.PumiceUtterance utterance) {
+    public void handleIntentWithUtterance(PumiceDialogManager dialogManager, PumiceIntent pumiceIntent, PumiceUtterance utterance) {
         if (pumiceIntent.equals(PumiceIntent.DEFINE_BOOL_EXPRESSION_INSTRUCTION)){
             //dialogManager.sendAgentMessage("I have received your explanation: " + utterance.getTriggerContent(), true, false);
 
@@ -80,7 +81,7 @@ public class PumiceUserExplainBoolExpIntentHandler implements PumiceUtteranceInt
     }
 
     @Override
-    public PumiceIntent detectIntentFromUtterance(PumiceDialogManager.PumiceUtterance utterance) {
+    public PumiceIntent detectIntentFromUtterance(PumiceUtterance utterance) {
         return PumiceIntent.DEFINE_BOOL_EXPRESSION_INSTRUCTION;
     }
 

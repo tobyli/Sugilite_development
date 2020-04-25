@@ -5,24 +5,21 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 import android.text.SpannableString;
-import android.text.Spanned;
 import android.view.View;
-import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
-import android.support.v7.app.AppCompatActivity;
-import android.widget.TextView;
 
 import com.google.gson.ExclusionStrategy;
 import com.google.gson.FieldAttributes;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
+import java.io.IOException;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -31,13 +28,8 @@ import edu.cmu.hcii.sugilite.R;
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.automation.ServiceStatusManager;
 
-import edu.cmu.hcii.sugilite.model.block.SugiliteConditionBlock;
-import edu.cmu.hcii.sugilite.model.block.booleanexp.SugiliteBooleanExpressionNew;
-import edu.cmu.hcii.sugilite.pumice.communication.PumiceSemanticParsingResultPacket;
 import edu.cmu.hcii.sugilite.pumice.communication.SkipPumiceJSONSerialization;
 import edu.cmu.hcii.sugilite.pumice.dao.PumiceKnowledgeDao;
-import edu.cmu.hcii.sugilite.pumice.dialog.PumiceInitInstructionParsingHandler;
-import edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.PumiceConditionalIntentHandler;
 
 import edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.PumiceDefaultUtteranceIntentHandler;
 
@@ -46,10 +38,12 @@ import edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.PumiceUtteranceIntentH
 import edu.cmu.hcii.sugilite.pumice.kb.PumiceKnowledgeManager;
 import edu.cmu.hcii.sugilite.pumice.ui.PumiceDialogActivity;
 import edu.cmu.hcii.sugilite.pumice.ui.util.PumiceDialogUIHelper;
-import edu.cmu.hcii.sugilite.verbal_instruction_demo.server_comm.SugiliteVerbalInstructionHTTPQueryInterface;
+import edu.cmu.hcii.sugilite.sovite.conversation_state.SoviteConversationState;
+import edu.cmu.hcii.sugilite.sovite.conversation_state.SoviteSerializableRecoverableIntentHanlder;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.server_comm.SugiliteVerbalInstructionHTTPQueryManager;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.speech.SugiliteVoiceRecognitionListener;
-import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
+
+import static edu.cmu.hcii.sugilite.pumice.dialog.PumiceDialogManager.Sender.USER;
 
 /**
  * @author toby
@@ -122,7 +116,7 @@ public class PumiceDialogManager{
         updateUtteranceIntentHandlerInANewState(pumiceUtteranceIntentHandler);
         // ** finished saving the current PumiceDialogState **
 
-        PumiceUtterance utterance = new PumiceUtterance(Sender.USER, message, Calendar.getInstance().getTimeInMillis(), true,false);
+        PumiceUtterance utterance = new PumiceUtterance(USER, message, Calendar.getInstance().getTimeInMillis(), true,false);
         pumiceDialogState.getUtteranceHistory().add(utterance);
         pumiceDialogView.addMessage(utterance);
 
@@ -150,20 +144,24 @@ public class PumiceDialogManager{
      * @param isSpokenMessage
      * @param requireUserResponse
      */
-    public void sendAgentViewMessage(View viewContent, String altText, boolean isSpokenMessage, boolean requireUserResponse){
+    public void sendAgentViewMessage(View viewContent, Sender sender, String altText, boolean isSpokenMessage, boolean requireUserResponse){
         runOnMainThread(new Runnable() {
             @Override
             public void run() {
                 if (context instanceof PumiceDialogActivity) {
                     ((PumiceDialogActivity) context).clearUserTextBox();
                 }
-                PumiceUtterance utterance = new PumiceUtterance(Sender.AGENT, "[CARD]" + altText, Calendar.getInstance().getTimeInMillis(), isSpokenMessage, requireUserResponse);
+                PumiceUtterance utterance = new PumiceUtterance(sender, "[CARD]" + altText, Calendar.getInstance().getTimeInMillis(), isSpokenMessage, requireUserResponse);
                 pumiceDialogState.getUtteranceHistory().add(utterance);
-                pumiceDialogView.addMessage(viewContent, Sender.AGENT);
+                pumiceDialogView.addMessage(viewContent, sender);
                 handleSpeakingAndUserResponse(altText, isSpokenMessage, requireUserResponse);
             }
         });
     }
+    public void sendAgentViewMessage(View viewContent, String altText, boolean isSpokenMessage, boolean requireUserResponse){
+        sendAgentViewMessage(viewContent, Sender.AGENT, altText, isSpokenMessage, requireUserResponse);
+    }
+
 
     /**
      * send a message from the agent that contains a string -- add the alttext to the utterance history
@@ -228,7 +226,7 @@ public class PumiceDialogManager{
 
     private PumiceUtterance getLastAgentPromptUtterance(List<PumiceUtterance> history){
         for (int i = history.size() - 1; i > 0 ; i --) {
-            if (history.get(i).getSender().equals(Sender.USER) && history.get(i - 1).getSender().equals(Sender.AGENT)) {
+            if (history.get(i).getSender().equals(USER) && history.get(i - 1).getSender().equals(Sender.AGENT)) {
                 return history.get(i - 1);
             }
         }
@@ -306,52 +304,7 @@ public class PumiceDialogManager{
         this.sugiliteVoiceRecognitionListener = sugiliteVoiceRecognitionListener;
     }
 
-    public class PumiceUtterance {
-        private Sender sender;
-        private CharSequence content;
-        private long timeStamp;
-        private boolean requireUserResponse;
-        private boolean isSpoken;
 
-        public CharSequence getContent() {
-            return content;
-        }
-
-        public Sender getSender() {
-            return sender;
-        }
-
-        public long getTimeStamp() {
-            return timeStamp;
-        }
-
-        public boolean isRequireUserResponse() {
-            return requireUserResponse;
-        }
-
-        public boolean isSpoken() {
-            return isSpoken;
-        }
-
-        //if set to true, this utterance will trigger a recording of user input
-
-        public PumiceUtterance(Sender sender, String content, long timeStamp, boolean isSpoken, boolean requireUserResponse){
-            this.sender = sender;
-            this.content = new SpannableString(content);
-            this.timeStamp = timeStamp;
-            this.isSpoken = isSpoken;
-            this.requireUserResponse = requireUserResponse;
-        }
-
-        public PumiceUtterance(Sender sender, CharSequence content, long timeStamp, boolean isSpoken, boolean requireUserResponse){
-            this.sender = sender;
-            this.content = content;
-            this.timeStamp = timeStamp;
-            this.isSpoken = isSpoken;
-            this.requireUserResponse = requireUserResponse;
-        }
-
-    }
 
     public class PumiceDialogView extends LinearLayout {
         public PumiceDialogView(Context context){
@@ -401,7 +354,7 @@ public class PumiceDialogManager{
         }
     }
 
-    public class PumiceDialogState {
+    public class PumiceDialogState implements Serializable {
         private List<PumiceUtterance> utteranceHistory;
         private transient PumiceUtteranceIntentHandler pumiceUtteranceIntentHandlerInUse;
         private PumiceKnowledgeManager pumiceKnowledgeManager;
@@ -537,6 +490,29 @@ public class PumiceDialogManager{
 
     public ScrollView getScrollView() {
         return (ScrollView) context.findViewById(R.id.pumice_dialog_scrollLayout);
+    }
+
+    public PumiceDialogState getPumiceDialogState() {
+        return pumiceDialogState;
+    }
+
+    public void loadSoviteConversationState(SoviteConversationState conversationState) {
+        List<PumiceUtterance> utterances = conversationState.getUtteranceHistory();
+        if (utterances.get(1) != null && utterances.get(1).getSender().equals(USER)) {
+            pumiceDialogView.addMessage(utterances.get(1));
+        }
+        SoviteSerializableRecoverableIntentHanlder intentHanlder = conversationState.getSoviteSerializableRecoverableIntentHanlder();
+        intentHanlder.inflateFromDeserializedInstance(context, this, sugiliteData, new PumiceDefaultUtteranceIntentHandler(this, context, sugiliteData));
+        this.updateUtteranceIntentHandlerInANewState(conversationState.getSoviteSerializableRecoverableIntentHanlder());
+        this.stateHistoryList.clear();
+
+        /*
+        for (PumiceUtterance utterance : utterances) {
+            //TODO: display those utterances
+            pumiceDialogView.addMessage(utterance);
+        }
+        */
+
     }
 
 

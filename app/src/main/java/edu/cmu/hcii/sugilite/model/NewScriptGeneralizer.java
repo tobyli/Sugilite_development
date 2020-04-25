@@ -300,7 +300,7 @@ public class NewScriptGeneralizer {
                 //trying going up in the UI tree
                 SugiliteSerializableEntity<Node> parentEntity = getParentNodeEntity(currentEntity, uiSnapshot);
                 topParentEntity = parentEntity;
-                List<SugiliteSerializableEntity<Node>> immediateChildNodeEntities = getAllChildNodeEntity(parentEntity, uiSnapshot, true, currentEntity);
+                List<SugiliteSerializableEntity<Node>> immediateChildNodeEntities = getAllChildNodeEntity(new HashSet<>(), parentEntity, uiSnapshot, true, currentEntity);
                 boolean foundAtThisLevel = false;
                 for (SugiliteSerializableEntity<Node> sibling : immediateChildNodeEntities) {
                     if (sibling.getEntityValue().getBoundsInScreen() != null && nodeEntity.getEntityValue().getBoundsInScreen() != null && sibling.getEntityValue().getBoundsInScreen().equals(nodeEntity.getEntityValue().getBoundsInScreen())) {
@@ -343,9 +343,11 @@ public class NewScriptGeneralizer {
     }
 
 
-    private List<SugiliteSerializableEntity<Node>> getAllChildNodeEntity(SugiliteSerializableEntity<Node> nodeEntity, SerializableUISnapshot uiSnapshot, boolean getAllDescendantRecursively, @Nullable SugiliteSerializableEntity<Node> currentEntityToAvoid) {
+    private List<SugiliteSerializableEntity<Node>> getAllChildNodeEntity(Set<SugiliteSerializableEntity<Node>> exploredSet, SugiliteSerializableEntity<Node> nodeEntity, SerializableUISnapshot uiSnapshot, boolean getAllDescendantRecursively, @Nullable SugiliteSerializableEntity<Node> currentEntityToAvoid) {
         List<SugiliteSerializableEntity<Node>> childNodes = new ArrayList<>();
         Set<SugiliteSerializableTriple> triples = uiSnapshot.getSubjectTriplesMap().get("@" + String.valueOf(nodeEntity.getEntityId()));
+        exploredSet.add(nodeEntity);
+
         for (SugiliteSerializableTriple triple : triples) {
             if (triple.getPredicateStringValue().equals(HAS_CHILD.getRelationName())){
                 String targetEntityId = triple.getObjectStringValue();
@@ -356,7 +358,9 @@ public class NewScriptGeneralizer {
                     SugiliteSerializableEntity<Node> childNode = uiSnapshot.getSugiliteEntityIdSugiliteEntityMap().get(targetEntityId);
                     childNodes.add(childNode);
                     if (getAllDescendantRecursively) {
-                        childNodes.addAll(getAllChildNodeEntity(childNode, uiSnapshot, true, currentEntityToAvoid));
+                        if (!exploredSet.contains(childNode)) {
+                            childNodes.addAll(getAllChildNodeEntity(exploredSet, childNode, uiSnapshot, true, currentEntityToAvoid));
+                        }
                     }
                 }
             }

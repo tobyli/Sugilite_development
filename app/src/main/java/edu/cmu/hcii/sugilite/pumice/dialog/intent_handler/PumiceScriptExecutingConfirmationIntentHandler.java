@@ -12,6 +12,7 @@ import edu.cmu.hcii.sugilite.model.block.SugiliteConditionBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.pumice.dialog.PumiceDialogManager;
 import edu.cmu.hcii.sugilite.pumice.PumiceDemonstrationUtil;
+import edu.cmu.hcii.sugilite.pumice.dialog.PumiceUtterance;
 
 /**
  * @author toby
@@ -41,7 +42,7 @@ public class PumiceScriptExecutingConfirmationIntentHandler implements PumiceUtt
     }
 
     @Override
-    public void handleIntentWithUtterance(PumiceDialogManager dialogManager, PumiceIntent pumiceIntent, PumiceDialogManager.PumiceUtterance utterance) {
+    public void handleIntentWithUtterance(PumiceDialogManager dialogManager, PumiceIntent pumiceIntent, PumiceUtterance utterance) {
 
         if (pumiceIntent.equals(PumiceIntent.EXECUTION_CONFIRM_POSITIVE)) {
             dialogManager.sendAgentMessage("Executing the script...", true, false);
@@ -106,7 +107,9 @@ public class PumiceScriptExecutingConfirmationIntentHandler implements PumiceUtt
                 currentScriptDescription = script.getPumiceUserReadableDecription();
             }
             pumiceDialogManager.getSugiliteVoiceRecognitionListener().setContextPhrases(Const.CONFIRM_CONTEXT_WORDS);
-            pumiceDialogManager.sendAgentMessage(String.format("I've understood your instruction: %s. Do you want me to execute it now?", currentScriptDescription), true, true);
+            //pumiceDialogManager.sendAgentMessage(String.format("I've understood your instruction: %s. Do you want me to execute it now?", currentScriptDescription), true, true);
+            pumiceDialogManager.sendAgentMessage(String.format("Do you want me to execute it now?"), true, true);
+
         } else {
             SugiliteData.runOnUiThread(new Runnable() {
                 @Override
@@ -124,7 +127,7 @@ public class PumiceScriptExecutingConfirmationIntentHandler implements PumiceUtt
     }
 
     @Override
-    public PumiceIntent detectIntentFromUtterance(PumiceDialogManager.PumiceUtterance utterance) {
+    public PumiceIntent detectIntentFromUtterance(PumiceUtterance utterance) {
         String utteranceContent = utterance.getContent().toString();
         if (utteranceContent != null && (utteranceContent.toLowerCase().contains("yes") || utteranceContent.toLowerCase().toLowerCase().contains("ok") || utteranceContent.toLowerCase().contains("yeah"))){
             return PumiceIntent.EXECUTION_CONFIRM_POSITIVE;

@@ -18,6 +18,8 @@ import android.widget.ImageView;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -137,16 +139,59 @@ public class SoviteScriptVisualThumbnailManager {
                             return combinedVariableDrawable;
                         }
                         */
+                        Map<String, List<VariableValue<String>>> screenActivityNameVariableValueMap = new HashMap<>();
                         for (VariableValue variableValue : matchedVariableValuesFromTheScript) {
                             if (onlyVariableNameToShow != null && (! onlyVariableNameToShow.equals(variableValue.getVariableName()))) {
                                 //When onlyVariableNameToShow is set -> skip if does NOT match the onlyVariableNameToShow
                                 continue;
                             }
-                            View variableView = getViewFromVariable(variableValue, subScript, getProcedureOperation, soviteVariableUpdateCallback, originalUtterance, pumiceDialogManager);
-                            if (variableView != null) {
-                                viewList.add(variableView);
+                            if (variableValue.getVariableValueContext() != null && variableValue.getVariableValueContext().getActivityName() != null) {
+                                if (! screenActivityNameVariableValueMap.containsKey(variableValue.getVariableValueContext().getActivityName())) {
+                                    screenActivityNameVariableValueMap.put(variableValue.getVariableValueContext().getActivityName(), new ArrayList<>());
+                                }
+                                screenActivityNameVariableValueMap.get(variableValue.getVariableValueContext().getActivityName()).add(variableValue);
                             }
                         }
+
+                        for (List<VariableValue<String>> variableValueWithTheSameActivityName : screenActivityNameVariableValueMap.values()) {
+                            if (variableValueWithTheSameActivityName.size() <= 1) {
+                                //activity with only one variable
+                                for (VariableValue<String> variableValue : variableValueWithTheSameActivityName) {
+                                    View variableView = getViewFromVariable(variableValue, new ArrayList<>(), subScript, getProcedureOperation, soviteVariableUpdateCallback, originalUtterance, pumiceDialogManager);
+                                    if (variableView != null) {
+                                        viewList.add(variableView);
+                                    }
+                                }
+                            } else {
+                                //activity with multiple variables
+                                //TODO: NEED TO CHECK IF THE VIEWS FOR THESE VARIABLES CAN ACTUALLY BE COMBINED (I.E., THEY ARE ON THE *SAME* SCREEN)
+                                View variableView = getViewFromVariable(variableValueWithTheSameActivityName.get(0), variableValueWithTheSameActivityName.subList(1, variableValueWithTheSameActivityName.size()), subScript, getProcedureOperation, soviteVariableUpdateCallback, originalUtterance, pumiceDialogManager);
+                                if (variableView != null) {
+                                    viewList.add(variableView);
+                                }
+                                /*
+                                if (viewsOnTheSameActivity.size() > 0) {
+                                    View combinedView = viewsOnTheSameActivity.get(0);
+                                    for (View additionalView : viewsOnTheSameActivity.subList(1, viewsOnTheSameActivity.size())) {
+                                        //TODO: add the highlights from additional view to combinedView
+                                        viewList.add(additionalView);
+                                    }
+                                    viewList.add(combinedView);
+                                }
+                                */
+                            }
+                        }
+
+
+                        for (VariableValue variableValue : matchedVariableValuesFromTheScript) {
+                            if (onlyVariableNameToShow != null && (! onlyVariableNameToShow.equals(variableValue.getVariableName()))) {
+                                //When onlyVariableNameToShow is set -> skip if does NOT match the onlyVariableNameToShow
+                                continue;
+                            }
+
+                        }
+
+
                         if (viewList != null && viewList.size() > 0) {
                             return viewList;
                         }
@@ -179,14 +224,14 @@ public class SoviteScriptVisualThumbnailManager {
         return imageView;
     }
 
-    private View getViewFromVariable(VariableValue<String> variableValue, SugiliteStartingBlock subScript, SugiliteGetProcedureOperation getProcedureOperation, SoviteVariableUpdateCallback soviteVariableUpdateCallback, String originalUtterance, PumiceDialogManager pumiceDialogManager) {
+    private View getViewFromVariable(VariableValue<String> variableValue, List<VariableValue<String>> additionalVariables, SugiliteStartingBlock subScript, SugiliteGetProcedureOperation getProcedureOperation, SoviteVariableUpdateCallback soviteVariableUpdateCallback, String originalUtterance, PumiceDialogManager pumiceDialogManager) {
             if (variableValue.getVariableValueContext() != null) {
                 if (variableValue.getVariableValueContext().getScreenshot() != null &&
                         variableValue.getVariableValueContext().getTargetNode() != null) {
                     File screenshotFile = variableValue.getVariableValueContext().getScreenshot();
                     Drawable screenshotDrawable = getDrawableFromFile(screenshotFile);
                     // add highlights of target node to the screenshot drawable
-                    View screenshotWithHighlightView = soviteInteractiveVariableHighlightManager.generateInteractiveViewForVariableValueAndScreenshotDrawable(variableValue, screenshotDrawable, subScript, getProcedureOperation, soviteVariableUpdateCallback, originalUtterance, pumiceDialogManager);
+                    View screenshotWithHighlightView = soviteInteractiveVariableHighlightManager.generateInteractiveViewForVariableValueAndScreenshotDrawable(variableValue, additionalVariables, screenshotDrawable, subScript, getProcedureOperation, soviteVariableUpdateCallback, originalUtterance, pumiceDialogManager);
                     return screenshotWithHighlightView;
                 }
             }

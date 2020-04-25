@@ -18,6 +18,7 @@ import edu.cmu.hcii.sugilite.pumice.communication.PumiceInstructionPacket;
 import edu.cmu.hcii.sugilite.pumice.communication.PumiceSemanticParsingResultPacket;
 import edu.cmu.hcii.sugilite.pumice.communication.SkipPumiceJSONSerialization;
 import edu.cmu.hcii.sugilite.pumice.dialog.PumiceDialogManager;
+import edu.cmu.hcii.sugilite.pumice.dialog.PumiceUtterance;
 import edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.parsing_confirmation.PumiceParsingResultNoResolveConfirmationHandler;
 import edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.parsing_confirmation.PumiceParsingResultWithResolveFnConfirmationHandler;
 import edu.cmu.hcii.sugilite.source_parsing.SugiliteScriptParser;
@@ -58,7 +59,7 @@ public class PumiceDefaultUtteranceIntentHandler implements PumiceUtteranceInten
      * @return
      */
     @Override
-    public PumiceIntent detectIntentFromUtterance(PumiceDialogManager.PumiceUtterance utterance){
+    public PumiceIntent detectIntentFromUtterance(PumiceUtterance utterance){
         String text = utterance.getContent().toString().toLowerCase();
 
         //**test***
@@ -95,7 +96,7 @@ public class PumiceDefaultUtteranceIntentHandler implements PumiceUtteranceInten
      * @param utterance
      */
     @Override
-    public void handleIntentWithUtterance(PumiceDialogManager dialogManager, PumiceIntent pumiceIntent, PumiceDialogManager.PumiceUtterance utterance) {
+    public void handleIntentWithUtterance(PumiceDialogManager dialogManager, PumiceIntent pumiceIntent, PumiceUtterance utterance) {
         switch (pumiceIntent) {
             case START_OVER:
                 dialogManager.sendAgentMessage("I understand you want to start over: " + utterance.getContent(), true, false);

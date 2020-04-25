@@ -1,5 +1,7 @@
 package edu.cmu.hcii.sugilite.sovite.visual;
 
+import java.util.List;
+
 import edu.cmu.hcii.sugilite.model.operation.binary.SugiliteGetProcedureOperation;
 import edu.cmu.hcii.sugilite.model.variable.VariableValue;
 
@@ -9,5 +11,5 @@ import edu.cmu.hcii.sugilite.model.variable.VariableValue;
  * @time 12:35 PM
  */
 public interface SoviteVariableUpdateCallback {
-    void onGetProcedureOperationUpdated (SugiliteGetProcedureOperation sugiliteGetProcedureOperation, VariableValue changedNewVariableValue, boolean toShowNewScreenshot);
+    void onGetProcedureOperationUpdated (SugiliteGetProcedureOperation sugiliteGetProcedureOperation, List<VariableValue> changedNewVariableValues, boolean toShowNewScreenshot);
 }

@@ -1,6 +1,7 @@
 package edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.parsing_confirmation;
 
 import android.app.Activity;
+import android.content.Context;
 import android.text.SpannableString;
 import android.text.Spanned;
 import android.text.TextUtils;
@@ -27,10 +28,13 @@ import edu.cmu.hcii.sugilite.model.variable.Variable;
 import edu.cmu.hcii.sugilite.model.variable.VariableValue;
 import edu.cmu.hcii.sugilite.pumice.communication.PumiceSemanticParsingResultPacket;
 import edu.cmu.hcii.sugilite.pumice.dialog.PumiceDialogManager;
+import edu.cmu.hcii.sugilite.pumice.dialog.PumiceUtterance;
 import edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.PumiceDefaultUtteranceIntentHandler;
+import edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.PumiceScriptExecutingConfirmationIntentHandler;
 import edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.PumiceUtteranceIntentHandler;
 import edu.cmu.hcii.sugilite.pumice.kb.PumiceProceduralKnowledge;
 import edu.cmu.hcii.sugilite.source_parsing.SugiliteScriptParser;
+import edu.cmu.hcii.sugilite.sovite.conversation_state.SoviteSerializableRecoverableIntentHanlder;
 import edu.cmu.hcii.sugilite.sovite.visual.SoviteScriptVisualThumbnailManager;
 import edu.cmu.hcii.sugilite.sovite.conversation.SoviteReturnValueCallbackInterface;
 import edu.cmu.hcii.sugilite.sovite.conversation.intent_handler.SoviteIntentClassificationErrorForProceduralKnowledgeIntentHandler;
@@ -49,20 +53,22 @@ import static edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.parsing_confirm
  * @date 2/18/19
  * @time 12:13 AM
  */
-public class PumiceParsingResultNoResolveConfirmationHandler implements PumiceUtteranceIntentHandler, SugiliteVerbalInstructionHTTPQueryInterface, SoviteReturnValueCallbackInterface<String>, SoviteVariableUpdateCallback {
+public class PumiceParsingResultNoResolveConfirmationHandler implements SoviteSerializableRecoverableIntentHanlder, PumiceUtteranceIntentHandler, SugiliteVerbalInstructionHTTPQueryInterface, SoviteReturnValueCallbackInterface<String>, SoviteVariableUpdateCallback {
     //takes in 1. the original parsing query, 2. the parsing result
-    private PumiceParsingResultNoResolveConfirmationHandler pumiceParsingResultNoResolveConfirmationHandler;
-    private Activity context;
-    private PumiceDialogManager pumiceDialogManager;
-    private PumiceParsingResultDescriptionGenerator pumiceParsingResultDescriptionGenerator;
-    private SugiliteScriptParser sugiliteScriptParser;
-    private SoviteScriptVisualThumbnailManager soviteScriptVisualThumbnailManager;
-    private SugiliteData sugiliteData;
-    private SugiliteScriptDao sugiliteScriptDao;
+    private transient PumiceParsingResultNoResolveConfirmationHandler pumiceParsingResultNoResolveConfirmationHandler;
+    private transient Activity context;
+    private transient PumiceDialogManager pumiceDialogManager;
+    private transient PumiceParsingResultDescriptionGenerator pumiceParsingResultDescriptionGenerator;
+    private transient SugiliteScriptParser sugiliteScriptParser;
+    private transient SoviteScriptVisualThumbnailManager soviteScriptVisualThumbnailManager;
+    private transient SugiliteData sugiliteData;
+    private transient SugiliteScriptDao sugiliteScriptDao;
 
-    private HandleParsingResultPacket parsingResultsToHandle;
+    private transient HandleParsingResultPacket parsingResultsToHandle;
+    private transient Set<View> existingVisualViews;
+
+    private PumiceSemanticParsingResultPacket semanticParsingResultPacket;
     private int failureCount = 0;
-    private Set<View> existingVisualViews;
 
     private String topFormula;
 
@@ -87,6 +93,60 @@ public class PumiceParsingResultNoResolveConfirmationHandler implements PumiceUt
         //this.parsingResultsToHandle = new Stack<>();
     }
 
+    @Override
+    public void inflateFromDeserializedInstance(Activity context, PumiceDialogManager pumiceDialogManager, SugiliteData sugiliteData, PumiceDefaultUtteranceIntentHandler pumiceDefaultUtteranceIntentHandler) {
+        this.pumiceParsingResultNoResolveConfirmationHandler = pumiceParsingResultNoResolveConfirmationHandler;
+        this.context = context;
+        this.pumiceDialogManager = pumiceDialogManager;
+        this.pumiceParsingResultDescriptionGenerator = new PumiceParsingResultDescriptionGenerator();
+        this.sugiliteScriptParser = new SugiliteScriptParser();
+        this.soviteScriptVisualThumbnailManager = new SoviteScriptVisualThumbnailManager(context);
+        this.existingVisualViews = new HashSet<>();
+
+        if (Const.DAO_TO_USE == SQL_SCRIPT_DAO) {
+            this.sugiliteScriptDao = new SugiliteScriptSQLDao(context);
+        } else {
+            this.sugiliteScriptDao = new SugiliteScriptFileDao(context, sugiliteData);
+        }
+
+        this.handleParsingResult(semanticParsingResultPacket, new Runnable() {
+            @Override
+            public void run() {
+                //runnable for retry
+                pumiceDialogManager.updateUtteranceIntentHandlerInANewState(pumiceDefaultUtteranceIntentHandler);
+                sendPromptForTheIntentHandler();
+
+            }
+        }, new PumiceParsingResultWithResolveFnConfirmationHandler.ConfirmedParseRunnable() {
+            @Override
+            public void run(String confirmedFormula) {
+                //runnable for confirmed parse
+                pumiceDialogManager.getExecutorService().submit(new Runnable() {
+                    @Override
+                    public void run() {
+                        //parse and process the server response
+                        SugiliteStartingBlock script = null;
+                        try {
+                            if (confirmedFormula.length() > 0) {
+                                script = sugiliteScriptParser.parseBlockFromString(confirmedFormula);
+                            } else {
+                                throw new RuntimeException("empty server result!");
+                            }
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+
+                        PumiceScriptExecutingConfirmationIntentHandler pumiceScriptExecutingConfirmationIntentHandler = new PumiceScriptExecutingConfirmationIntentHandler(pumiceDialogManager, context, sugiliteData, script, semanticParsingResultPacket.userUtterance, false);
+                        pumiceDialogManager.updateUtteranceIntentHandlerInANewState(pumiceScriptExecutingConfirmationIntentHandler);
+                        pumiceScriptExecutingConfirmationIntentHandler.sendPromptForTheIntentHandler();
+
+                    }
+                });
+            }
+        }, true);
+
+
+    }
 
     /**
      * should support:
@@ -98,6 +158,7 @@ public class PumiceParsingResultNoResolveConfirmationHandler implements PumiceUt
         if (resultPacket.queries != null && resultPacket.queries.size() > 0) {
             //set the parsingResultsToHandle
             parsingResultsToHandle = new HandleParsingResultPacket(resultPacket, runnableForRetry, runnableForConfirmedParse);
+            semanticParsingResultPacket = resultPacket;
             topFormula = getTopParsing(resultPacket).formula;
 
             if (toAskForConfirmation) {
@@ -125,7 +186,7 @@ public class PumiceParsingResultNoResolveConfirmationHandler implements PumiceUt
      * @return
      */
     @Override
-    public PumiceIntent detectIntentFromUtterance(PumiceDialogManager.PumiceUtterance utterance) {
+    public PumiceIntent detectIntentFromUtterance(PumiceUtterance utterance) {
         String utteranceContent = utterance.getContent().toString();
         if (utteranceContent != null && (utteranceContent.toLowerCase().contains("yes") || utteranceContent.toLowerCase().toLowerCase().contains("ok") || utteranceContent.toLowerCase().contains("yeah"))) {
             return PumiceIntent.PARSE_CONFIRM_POSITIVE;
@@ -137,7 +198,7 @@ public class PumiceParsingResultNoResolveConfirmationHandler implements PumiceUt
     }
 
     @Override
-    public void handleIntentWithUtterance(PumiceDialogManager dialogManager, PumiceIntent pumiceIntent, PumiceDialogManager.PumiceUtterance utterance) {
+    public void handleIntentWithUtterance(PumiceDialogManager dialogManager, PumiceIntent pumiceIntent, PumiceUtterance utterance) {
         if (pumiceIntent.equals(PumiceIntent.PARSE_CONFIRM_POSITIVE)) {
             // parse is correct
             try {
@@ -168,7 +229,31 @@ public class PumiceParsingResultNoResolveConfirmationHandler implements PumiceUt
 
     }
 
-    private void sendBestExecutionConfirmationForScript(SugiliteBlock block, boolean toSendImage) {
+    private void sendBestExecutionConfirmationForScript(SugiliteBlock block, boolean toSendImage, boolean toAskForConfirmation) {
+        //sending the text description for SugiliteGetProcedureOperation
+        SugiliteGetProcedureOperation getProcedureOperation = null;
+        if (block.getNextBlock() != null
+                && block.getNextBlock() instanceof SugiliteOperationBlock
+                && ((SugiliteOperationBlock) block.getNextBlock()).getOperation() instanceof SugiliteGetProcedureOperation) {
+            getProcedureOperation = (SugiliteGetProcedureOperation) ((SugiliteOperationBlock) block.getNextBlock()).getOperation();
+        }
+        if (block instanceof SugiliteOperationBlock && ((SugiliteOperationBlock) block).getOperation() instanceof SugiliteGetProcedureOperation) {
+            getProcedureOperation = (SugiliteGetProcedureOperation) ((SugiliteOperationBlock) block).getOperation();
+        }
+        if (getProcedureOperation != null) {
+            List<PumiceProceduralKnowledge> pumiceProceduralKnowledges = pumiceDialogManager.getPumiceKnowledgeManager().getPumiceProceduralKnowledges();
+            for (PumiceProceduralKnowledge pumiceProceduralKnowledge : pumiceProceduralKnowledges) {
+                if (pumiceProceduralKnowledge.getProcedureName().equals(getProcedureOperation.getName())) {
+                    //TODO: make the parameters clickable
+                    pumiceDialogManager.sendAgentMessage(TextUtils.concat("I will ", generateParameterClickableDescriptionForGetProcedureOperation(context, getProcedureOperation, sugiliteData, sugiliteScriptDao, pumiceDialogManager, existingVisualViews, this, parsingResultsToHandle.resultPacket.userUtterance), "."), true, false);
+
+                    if (toAskForConfirmation) {
+                        pumiceDialogManager.sendAgentMessage("Is this correct?", true, true);
+                    }
+                }
+            }
+        }
+
         //sending the thumbnail images
         if (toSendImage) {
             List<View> views;
@@ -185,29 +270,9 @@ public class PumiceParsingResultNoResolveConfirmationHandler implements PumiceUt
                 }
             }
         }
-
-        //sending the text description for SugiliteGetProcedureOperation
-        SugiliteGetProcedureOperation getProcedureOperation = null;
-        if (block.getNextBlock() != null
-                && block.getNextBlock() instanceof SugiliteOperationBlock
-                && ((SugiliteOperationBlock) block.getNextBlock()).getOperation() instanceof SugiliteGetProcedureOperation) {
-            getProcedureOperation = (SugiliteGetProcedureOperation) ((SugiliteOperationBlock) block.getNextBlock()).getOperation();
-        }
-        if (block instanceof SugiliteOperationBlock && ((SugiliteOperationBlock) block).getOperation() instanceof SugiliteGetProcedureOperation) {
-            getProcedureOperation = (SugiliteGetProcedureOperation) ((SugiliteOperationBlock) block).getOperation();
-        }
-        if (getProcedureOperation != null) {
-            List<PumiceProceduralKnowledge> pumiceProceduralKnowledges = pumiceDialogManager.getPumiceKnowledgeManager().getPumiceProceduralKnowledges();
-            for (PumiceProceduralKnowledge pumiceProceduralKnowledge : pumiceProceduralKnowledges) {
-                if (pumiceProceduralKnowledge.getProcedureName().equals(getProcedureOperation.getName())) {
-                    //TODO: make the parameters clickable
-                    pumiceDialogManager.sendAgentMessage(TextUtils.concat("I will ", generateParameterClickableDescriptionForGetProcedureOperation(getProcedureOperation)), true, false);
-                }
-            }
-        }
     }
 
-    private Spanned generateParameterClickableDescriptionForGetProcedureOperation (SugiliteGetProcedureOperation getProcedureOperation) {
+    public static Spanned generateParameterClickableDescriptionForGetProcedureOperation(Context context, SugiliteGetProcedureOperation getProcedureOperation, SugiliteData sugiliteData, SugiliteScriptDao sugiliteScriptDao, PumiceDialogManager pumiceDialogManager, Set<View> existingVisualViews, SoviteVariableUpdateCallback soviteVariableUpdateCallback, String userUtterance) {
         String description = getProcedureOperation.getName();
         Map<String, VariableValue> identifiedParameterStringVariableValueMap = new HashMap<>();
 
@@ -254,11 +319,11 @@ public class PumiceParsingResultNoResolveConfirmationHandler implements PumiceUt
                             //check if the variable has any alternative values
                             if (alternativeValues.size() > 0) {
                                 //show spinner type dialog
-                                SoviteVisualVariableOnClickDialog soviteVisualVariableOnClickDialog = new SoviteVisualVariableOnClickDialog(context, variableValue, finalSubScript, getProcedureOperation, pumiceParsingResultNoResolveConfirmationHandler, null, true);
+                                SoviteVisualVariableOnClickDialog soviteVisualVariableOnClickDialog = new SoviteVisualVariableOnClickDialog(context, variableValue, finalSubScript, getProcedureOperation, soviteVariableUpdateCallback, null, true);
                                 soviteVisualVariableOnClickDialog.show();
                             } else {
                                 //show text selection dialog
-                                SoviteSetTextParameterDialog soviteSetTextParameterDialog = new SoviteSetTextParameterDialog(context, sugiliteData, variableValue, parsingResultsToHandle.resultPacket.userUtterance, getProcedureOperation, pumiceParsingResultNoResolveConfirmationHandler, null, true);
+                                SoviteSetTextParameterDialog soviteSetTextParameterDialog = new SoviteSetTextParameterDialog(context, sugiliteData, variableValue, userUtterance, getProcedureOperation, soviteVariableUpdateCallback, null, true);
                                 soviteSetTextParameterDialog.show();
                             }
 
@@ -282,9 +347,8 @@ public class PumiceParsingResultNoResolveConfirmationHandler implements PumiceUt
     }
 
 
-
     @Override
-    public void onGetProcedureOperationUpdated(SugiliteGetProcedureOperation sugiliteGetProcedureOperation, VariableValue changedNewVariableValue, boolean toShowNewScreenshot) {
+    public void onGetProcedureOperationUpdated(SugiliteGetProcedureOperation sugiliteGetProcedureOperation, List<VariableValue> changedNewVariableValues, boolean toShowNewScreenshot) {
         //the get procedure operation is updated externally using the dialog -- need to reconfirm
 
         //1. update topFormula
@@ -292,9 +356,22 @@ public class PumiceParsingResultNoResolveConfirmationHandler implements PumiceUt
         SugiliteOperationBlock operationBlock = new SugiliteOperationBlock();
         operationBlock.setOperation(sugiliteGetProcedureOperation);
 
-        //2. show new image
+        //2. send out prompt
+        //make sure the intent handler is current
+        pumiceDialogManager.setPumiceUtteranceIntentHandlerInUse(this);
+        for (VariableValue changedNewVariableValue : changedNewVariableValues) {
+            pumiceDialogManager.sendAgentMessage(String.format("Updating the value of [%s] to \"%s\"...", changedNewVariableValue.getVariableName(), changedNewVariableValue.getVariableValue()), true, false);
+        }
+        sendBestExecutionConfirmationForScript(operationBlock, false, true);
+
+        //3. show new image
         if (toShowNewScreenshot) {
-            List<View> views = soviteScriptVisualThumbnailManager.getVisualThumbnailViewsForBlock(operationBlock, this, parsingResultsToHandle.resultPacket.userUtterance, this.pumiceDialogManager, changedNewVariableValue.getVariableName());
+            //hide all existing views
+            for (View view : existingVisualViews) {
+                if (view != null && view.getVisibility() == View.VISIBLE) {
+                    view.setVisibility(View.GONE);
+                }
+            }            List<View> views = soviteScriptVisualThumbnailManager.getVisualThumbnailViewsForBlock(operationBlock, this, parsingResultsToHandle.resultPacket.userUtterance, this.pumiceDialogManager, null);
             if (views != null) {
                 for (View view : views) {
                     pumiceDialogManager.sendAgentViewMessage(view, "SCREENSHOT", false, false);
@@ -303,12 +380,6 @@ public class PumiceParsingResultNoResolveConfirmationHandler implements PumiceUt
             }
         }
 
-        //3. send out prompt
-        //make sure the intent handler is current
-        pumiceDialogManager.setPumiceUtteranceIntentHandlerInUse(this);
-        pumiceDialogManager.sendAgentMessage(String.format("Updating the value of [%s] to \"%s\"...", changedNewVariableValue.getVariableName(), changedNewVariableValue.getVariableValue()), true, false);
-        sendBestExecutionConfirmationForScript(operationBlock, false);
-        pumiceDialogManager.sendAgentMessage("Is this correct?", true, true);
     }
 
     @Override
@@ -328,10 +399,11 @@ public class PumiceParsingResultNoResolveConfirmationHandler implements PumiceUt
         }
 
         String description = getDescriptionForFormula(topFormula, parsingResultsToHandle.resultPacket.utteranceType);
-        pumiceDialogManager.sendAgentMessage(String.format("Here is the parsing result: %s", description), true, false);
 
-        sendBestExecutionConfirmationForScript(script, true);
-        pumiceDialogManager.sendAgentMessage("Is this correct?", true, true);
+        //NOT repeat the parsing result now
+        // pumiceDialogManager.sendAgentMessage(String.format("Here is the parsing result: %s", description), true, false);
+
+        sendBestExecutionConfirmationForScript(script, true, true);
     }
 
 

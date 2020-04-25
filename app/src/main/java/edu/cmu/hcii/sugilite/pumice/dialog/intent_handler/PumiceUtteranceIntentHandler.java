@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Context;
 
 import edu.cmu.hcii.sugilite.pumice.dialog.PumiceDialogManager;
+import edu.cmu.hcii.sugilite.pumice.dialog.PumiceUtterance;
 
 /**
  * @author toby
@@ -70,8 +71,8 @@ public interface PumiceUtteranceIntentHandler {
      * @param utterance
      * @return
      */
-    PumiceIntent detectIntentFromUtterance(PumiceDialogManager.PumiceUtterance utterance);
-    void handleIntentWithUtterance(PumiceDialogManager dialogManager, PumiceIntent pumiceIntent, PumiceDialogManager.PumiceUtterance utterance);
+    PumiceIntent detectIntentFromUtterance(PumiceUtterance utterance);
+    void handleIntentWithUtterance(PumiceDialogManager dialogManager, PumiceIntent pumiceIntent, PumiceUtterance utterance);
     void setContext(Activity context);
     void sendPromptForTheIntentHandler();
 }

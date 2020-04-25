@@ -17,6 +17,7 @@ import com.daasuu.bl.BubbleLayout;
 
 import edu.cmu.hcii.sugilite.R;
 import edu.cmu.hcii.sugilite.pumice.dialog.PumiceDialogManager;
+import edu.cmu.hcii.sugilite.pumice.dialog.PumiceUtterance;
 
 /**
  * @author toby
@@ -34,7 +35,7 @@ public class PumiceDialogUIHelper {
         DisplayMetrics metrics = context.getResources().getDisplayMetrics();
         return (int) dp * (metrics.densityDpi / DisplayMetrics.DENSITY_DEFAULT);
     }
-    public View getDialogLayout(PumiceDialogManager.PumiceUtterance utterance) {
+    public View getDialogLayout(PumiceUtterance utterance) {
         return getDialogLayout(getBubbleLayout(utterance), utterance.getSender());
     }
 
@@ -100,7 +101,7 @@ public class PumiceDialogUIHelper {
 
 
 
-    public View getBubbleLayout(PumiceDialogManager.PumiceUtterance utterance) {
+    public View getBubbleLayout(PumiceUtterance utterance) {
         TextView textView = new TextView(context);
         textView.setText(utterance.getContent());
         textView.setTextSize(14);

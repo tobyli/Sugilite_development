@@ -15,6 +15,7 @@ import java.util.concurrent.Executors;
 import edu.cmu.hcii.sugilite.pumice.communication.PumiceSemanticParsingResultPacket;
 import edu.cmu.hcii.sugilite.pumice.communication.SkipPumiceJSONSerialization;
 import edu.cmu.hcii.sugilite.pumice.dialog.PumiceDialogManager;
+import edu.cmu.hcii.sugilite.pumice.dialog.PumiceUtterance;
 import edu.cmu.hcii.sugilite.ui.LocalScriptDetailActivity;
 import edu.cmu.hcii.sugilite.model.block.SugiliteConditionBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
@@ -30,7 +31,7 @@ public class PumiceConditionalIntentHandler implements PumiceUtteranceIntentHand
     private ExecutorService es;
     private Calendar calendar;
     private PumiceIntent lastIntent;
-    private PumiceDialogManager.PumiceUtterance lastUtterance;
+    private PumiceUtterance lastUtterance;
     private String s;
     private boolean moving;
     private SugiliteBlock storedBlock;
@@ -51,7 +52,7 @@ public class PumiceConditionalIntentHandler implements PumiceUtteranceIntentHand
     }
 
     @Override
-    public PumiceIntent detectIntentFromUtterance(PumiceDialogManager.PumiceUtterance utterance) {
+    public PumiceIntent detectIntentFromUtterance(PumiceUtterance utterance) {
         String text = utterance.getContent().toString().toLowerCase();
         System.out.println("last " + lastIntent);
         if(lastIntent == PumiceIntent.TELL_ELSE) {
@@ -120,13 +121,13 @@ public class PumiceConditionalIntentHandler implements PumiceUtteranceIntentHand
     }
 
     @Override
-    public void handleIntentWithUtterance(PumiceDialogManager dialogManager, PumiceIntent pumiceIntent, PumiceDialogManager.PumiceUtterance utterance) {
+    public void handleIntentWithUtterance(PumiceDialogManager dialogManager, PumiceIntent pumiceIntent, PumiceUtterance utterance) {
         //placeholder for compiling
     }
 
     /*
     @Override
-    public void handleIntentWithUtterance(PumiceDialogManager dialogManager, PumiceIntent pumiceIntent, PumiceDialogManager.PumiceUtterance utterance) {
+    public void handleIntentWithUtterance(PumiceDialogManager dialogManager, PumiceIntent pumiceIntent, PumiceUtterance utterance) {
 
         switch(pumiceIntent) {
             case FIX_SCOPE:

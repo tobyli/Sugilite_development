@@ -14,7 +14,7 @@ import edu.cmu.hcii.sugilite.ontology.helper.annotator.SugiliteTextParentAnnotat
  * @time 1:32 PM
  */
 public class PumiceSemanticParsingResultPacket implements Serializable {
-    public class QueryGroundingPair {
+    public class QueryGroundingPair implements Serializable {
         public int id;
         public String formula;
         public List<String> grounding;

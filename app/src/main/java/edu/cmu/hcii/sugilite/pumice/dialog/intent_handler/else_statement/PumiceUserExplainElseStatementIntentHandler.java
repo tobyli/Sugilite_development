@@ -20,6 +20,7 @@ import edu.cmu.hcii.sugilite.pumice.communication.PumiceInstructionPacket;
 import edu.cmu.hcii.sugilite.pumice.communication.PumiceSemanticParsingResultPacket;
 import edu.cmu.hcii.sugilite.pumice.communication.SkipPumiceJSONSerialization;
 import edu.cmu.hcii.sugilite.pumice.dialog.PumiceDialogManager;
+import edu.cmu.hcii.sugilite.pumice.dialog.PumiceUtterance;
 import edu.cmu.hcii.sugilite.pumice.dialog.demonstration.PumiceElseStatementDemonstrationDialog;
 import edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.PumiceDefaultUtteranceIntentHandler;
 import edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.PumiceUtteranceIntentHandler;
@@ -62,7 +63,7 @@ public class PumiceUserExplainElseStatementIntentHandler implements PumiceUttera
     }
 
     @Override
-    public void handleIntentWithUtterance(PumiceDialogManager dialogManager, PumiceIntent pumiceIntent, PumiceDialogManager.PumiceUtterance utterance) {
+    public void handleIntentWithUtterance(PumiceDialogManager dialogManager, PumiceIntent pumiceIntent, PumiceUtterance utterance) {
 
         if (pumiceIntent.equals(PumiceIntent.DEFINE_PROCEDURE_EXPLANATION)){
             //for situations e.g., redirection
@@ -98,7 +99,7 @@ public class PumiceUserExplainElseStatementIntentHandler implements PumiceUttera
     }
 
     @Override
-    public PumiceIntent detectIntentFromUtterance(PumiceDialogManager.PumiceUtterance utterance) {
+    public PumiceIntent detectIntentFromUtterance(PumiceUtterance utterance) {
         if (utterance.getContent().toString().contains("demonstrate")){
             return PumiceIntent.DEFINE_PROCEDURE_DEMONSTATION;
         } else {

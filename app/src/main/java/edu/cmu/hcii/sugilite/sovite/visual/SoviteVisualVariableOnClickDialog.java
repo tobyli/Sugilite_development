@@ -196,7 +196,9 @@ public class SoviteVisualVariableOnClickDialog {
             if (originalScreenshotView != null && originalScreenshotView.getVisibility() == View.VISIBLE) {
                 originalScreenshotView.setVisibility(View.GONE);
             }
-            soviteVariableUpdateCallback.onGetProcedureOperationUpdated(getProcedureOperation, newChangedVariableValue, true);
+            List<VariableValue> changedVariableValues = new ArrayList<>();
+            changedVariableValues.add(newChangedVariableValue);
+            soviteVariableUpdateCallback.onGetProcedureOperationUpdated(getProcedureOperation, changedVariableValues, true);
         }
     }
 

@@ -21,6 +21,7 @@ import edu.cmu.hcii.sugilite.pumice.communication.PumiceInstructionPacket;
 import edu.cmu.hcii.sugilite.pumice.communication.PumiceSemanticParsingResultPacket;
 import edu.cmu.hcii.sugilite.pumice.communication.SkipPumiceJSONSerialization;
 import edu.cmu.hcii.sugilite.pumice.dialog.PumiceDialogManager;
+import edu.cmu.hcii.sugilite.pumice.dialog.PumiceUtterance;
 import edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.PumiceUtteranceIntentHandler;
 import edu.cmu.hcii.sugilite.pumice.kb.PumiceKnowledgeManager;
 import edu.cmu.hcii.sugilite.pumice.kb.PumiceProceduralKnowledge;
@@ -66,7 +67,7 @@ public class SoviteIntentClassificationErrorForProceduralKnowledgeIntentHandler 
     }
 
     @Override
-    public void handleIntentWithUtterance(PumiceDialogManager dialogManager, PumiceIntent pumiceIntent, PumiceDialogManager.PumiceUtterance utterance) {
+    public void handleIntentWithUtterance(PumiceDialogManager dialogManager, PumiceIntent pumiceIntent, PumiceUtterance utterance) {
         //TODO: add speech recognition bias
         if (pumiceIntent.equals(PumiceIntent.APP_REFERENCE)) {
             // the user has provided an app name
@@ -93,7 +94,7 @@ public class SoviteIntentClassificationErrorForProceduralKnowledgeIntentHandler 
     }
 
     @Override
-    public PumiceIntent detectIntentFromUtterance(PumiceDialogManager.PumiceUtterance utterance) {
+    public PumiceIntent detectIntentFromUtterance(PumiceUtterance utterance) {
         //TODO: handle situations where the user can't provide an app name
         return PumiceIntent.APP_REFERENCE;
     }
@@ -119,10 +120,11 @@ public class SoviteIntentClassificationErrorForProceduralKnowledgeIntentHandler 
                                     ImageView imageView = new ImageView(context);
                                     imageView.setImageDrawable(icon);
                                     //send the icon of the selected app
-                                    pumiceDialogManager.sendAgentViewMessage(imageView, String.format("ICON: %s", appName), false, false);
+                                    pumiceDialogManager.sendAgentViewMessage(imageView, PumiceDialogManager.Sender.USER, String.format("ICON: %s", appName), false, false);
                                 }
 
                                 //1. check if we have other scripts that use this app
+                                pumiceDialogManager.sendAgentMessage(String.format("I'm searching for intents that use %s.", appName), true, false);
                                 PumiceKnowledgeManager knowledgeManager = pumiceDialogManager.getPumiceKnowledgeManager();
                                 List<PumiceProceduralKnowledge> pumiceProceduralKnowledges = knowledgeManager.getPumiceProceduralKnowledges();
                                 List<PumiceProceduralKnowledge> proceduralKnowledgesWithMatchedApps = new ArrayList<>();
@@ -144,14 +146,14 @@ public class SoviteIntentClassificationErrorForProceduralKnowledgeIntentHandler 
 
                                 } else {
                                     // unable to find other procedures that use this app
-                                    pumiceDialogManager.sendAgentMessage(String.format("I can't find other scripts that use %s.", appName), true, false);
+                                    pumiceDialogManager.sendAgentMessage(String.format("I can't find other intents that use %s.", appName), true, false);
                                     //2. check if we have other scripts that are similar to the embeddings of this app
                                     List<String> appPackageNames = new ArrayList<>();
                                     appPackageNames.add(packageName);
 
                                     // query for relevant utterances to the app
                                     SoviteAppResolutionQueryPacket soviteAppResolutionQueryPacket = new SoviteAppResolutionQueryPacket("playstore", RELEVANT_UTTERANCES_FOR_APPS, allAvailableScriptUtterances, appPackageNames);
-                                    pumiceDialogManager.sendAgentMessage(String.format("I will search for scripts that are relevant to %s.", appName), true, false);
+                                    pumiceDialogManager.sendAgentMessage(String.format("I will search for intents that are relevant to %s.", appName), true, false);
                                     pumiceDialogManager.getHttpQueryManager().sendSoviteAppResolutionPacketOnASeparateThread(soviteAppResolutionQueryPacket, caller);
                                     // pumiceDialogManager.sendAgentMessage(String.format("Here are scripts are are relevant to %s", appName), true, false);
                                 }
@@ -264,7 +266,7 @@ public class SoviteIntentClassificationErrorForProceduralKnowledgeIntentHandler 
             pumiceDialogManager.savePumiceKnowledgeToDao();
             pumiceDialogManager.sendAgentMessage("OK, I learned " + proceduralKnowledge.getProcedureDescription(pumiceDialogManager.getPumiceKnowledgeManager(), true).toLowerCase() + ".", true, false);
         } else {
-            pumiceDialogManager.sendAgentMessage(String.format("OK, I will invoke the existing script to %s.", proceduralKnowledge.getProcedureDescription(pumiceDialogManager.getPumiceKnowledgeManager(), false)), true, false);
+            pumiceDialogManager.sendAgentMessage(String.format("OK, I will invoke the existing intent to %s.", proceduralKnowledge.getProcedureDescription(pumiceDialogManager.getPumiceKnowledgeManager(), false)), true, false);
         }
 
         SugiliteOperationBlock operationBlock = new SugiliteOperationBlock();

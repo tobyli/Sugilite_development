@@ -17,12 +17,14 @@ import edu.cmu.hcii.sugilite.pumice.communication.PumiceInstructionPacket;
 import edu.cmu.hcii.sugilite.pumice.communication.PumiceSemanticParsingResultPacket;
 import edu.cmu.hcii.sugilite.pumice.communication.SkipPumiceJSONSerialization;
 import edu.cmu.hcii.sugilite.pumice.dialog.PumiceDialogManager;
+import edu.cmu.hcii.sugilite.pumice.dialog.PumiceUtterance;
 import edu.cmu.hcii.sugilite.pumice.dialog.demonstration.PumiceProcedureDemonstrationDialog;
 import edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.parsing_confirmation.PumiceParsingResultWithResolveFnConfirmationHandler;
 import edu.cmu.hcii.sugilite.pumice.kb.PumiceProceduralKnowledge;
 import edu.cmu.hcii.sugilite.sovite.SoviteAppNameAppInfoManager;
 import edu.cmu.hcii.sugilite.sovite.conversation.SoviteReturnValueCallbackInterface;
 import edu.cmu.hcii.sugilite.sovite.conversation.intent_handler.SoviteIntentClassificationErrorForProceduralKnowledgeIntentHandler;
+import edu.cmu.hcii.sugilite.sovite.conversation_state.SoviteSerializableRecoverableIntentHanlder;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.server_comm.SugiliteVerbalInstructionHTTPQueryInterface;
 
 import static edu.cmu.hcii.sugilite.sovite.conversation.intent_handler.SoviteIntentClassificationErrorForProceduralKnowledgeIntentHandler.RELEVANT_APPS_FOR_UTTERANCES;
@@ -35,17 +37,18 @@ import static edu.cmu.hcii.sugilite.sovite.conversation.intent_handler.SoviteInt
  */
 
 //class used for handle utterances when the user explain a PumiceProceduralKnowledge
-public class PumiceUserExplainProcedureIntentHandler implements PumiceUtteranceIntentHandler, SugiliteVerbalInstructionHTTPQueryInterface, SoviteReturnValueCallbackInterface<PumiceProceduralKnowledge> {
-    private Activity context;
-    private PumiceDialogManager pumiceDialogManager;
-    private String parentKnowledgeName;
-    private PumiceUserExplainProcedureIntentHandler pumiceUserExplainProcedureIntentHandler;
-    private SoviteAppNameAppInfoManager soviteAppNameAppInfoManager;
-    private SugiliteData sugiliteData;
+public class PumiceUserExplainProcedureIntentHandler implements SoviteSerializableRecoverableIntentHanlder, PumiceUtteranceIntentHandler, SugiliteVerbalInstructionHTTPQueryInterface, SoviteReturnValueCallbackInterface<PumiceProceduralKnowledge> {
+    private transient Activity context;
+    private transient PumiceDialogManager pumiceDialogManager;
+    private transient PumiceUserExplainProcedureIntentHandler pumiceUserExplainProcedureIntentHandler;
+    private transient SoviteAppNameAppInfoManager soviteAppNameAppInfoManager;
+    private transient SugiliteData sugiliteData;
+    private transient Calendar calendar;
 
+    private String parentKnowledgeName;
     //need to notify this lock when the procedure is resolved, and return the value through this object
     private PumiceProceduralKnowledge resolveProcedureLock;
-    Calendar calendar;
+
 
 
     public PumiceUserExplainProcedureIntentHandler(PumiceDialogManager pumiceDialogManager, Activity context, SugiliteData sugiliteData, PumiceProceduralKnowledge resolveProcedureLock, String parentKnowledgeName) {
@@ -66,7 +69,7 @@ public class PumiceUserExplainProcedureIntentHandler implements PumiceUtteranceI
     }
 
     @Override
-    public void handleIntentWithUtterance(PumiceDialogManager dialogManager, PumiceIntent pumiceIntent, PumiceDialogManager.PumiceUtterance utterance) {
+    public void handleIntentWithUtterance(PumiceDialogManager dialogManager, PumiceIntent pumiceIntent, PumiceUtterance utterance) {
 
         if (pumiceIntent.equals(PumiceIntent.DEFINE_PROCEDURE_EXPLANATION)) {
             //for situations e.g., redirection
@@ -100,7 +103,18 @@ public class PumiceUserExplainProcedureIntentHandler implements PumiceUtteranceI
     }
 
     @Override
-    public PumiceIntent detectIntentFromUtterance(PumiceDialogManager.PumiceUtterance utterance) {
+    public void inflateFromDeserializedInstance(Activity context, PumiceDialogManager pumiceDialogManager, SugiliteData sugiliteData, PumiceDefaultUtteranceIntentHandler pumiceDefaultUtteranceIntentHandler) {
+        this.context = context;
+        this.pumiceDialogManager = pumiceDialogManager;
+        this.sugiliteData = sugiliteData;
+        this.calendar = Calendar.getInstance();
+        this.pumiceUserExplainProcedureIntentHandler = this;
+        this.soviteAppNameAppInfoManager = SoviteAppNameAppInfoManager.getInstance(SugiliteData.getAppContext());
+        sendPromptForTheIntentHandler();
+    }
+
+    @Override
+    public PumiceIntent detectIntentFromUtterance(PumiceUtterance utterance) {
         if (utterance.getContent().toString().contains("demonstrate")) {
             return PumiceIntent.DEFINE_PROCEDURE_DEMONSTATION;
         } else {
@@ -222,7 +236,10 @@ public class PumiceUserExplainProcedureIntentHandler implements PumiceUtteranceI
     @Override
     public void sendPromptForTheIntentHandler() {
         pumiceDialogManager.getSugiliteVoiceRecognitionListener().setContextPhrases(Const.DEMONSTRATION_CONTEXT_WORDS);
-        pumiceDialogManager.sendAgentMessage("How do I " + parentKnowledgeName + "?" + " You can explain, or say \"demonstrate\" to demonstrate", true, true);
+
+        //pumiceDialogManager.sendAgentMessage("How do I " + parentKnowledgeName + "?" + " You can explain, or say \"demonstrate\" to demonstrate", true, true);
+        pumiceDialogManager.sendAgentMessage(String.format("I dont understand how to %s, can you tell me which app I can use?", parentKnowledgeName), true, true);
+        //pumiceDialogManager.sendAgentMessage("How do I " + parentKnowledgeName + "?" + " You can explain, or say \"demonstrate\" to demonstrate", true, true);
     }
 
 

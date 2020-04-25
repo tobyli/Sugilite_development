@@ -17,6 +17,7 @@ import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.ontology.SerializableUISnapshot;
 import edu.cmu.hcii.sugilite.pumice.communication.SkipPumiceJSONSerialization;
 import edu.cmu.hcii.sugilite.pumice.dialog.PumiceDialogManager;
+import edu.cmu.hcii.sugilite.pumice.dialog.PumiceUtterance;
 import edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.PumiceUtteranceIntentHandler;
 import edu.cmu.hcii.sugilite.pumice.kb.PumiceProceduralKnowledge;
 import edu.cmu.hcii.sugilite.sovite.visual.SoviteScriptVisualThumbnailManager;
@@ -72,7 +73,7 @@ public class SoviteDemonstrateRelevantScreenIntentHandler implements PumiceUtter
     }
 
     @Override
-    public void handleIntentWithUtterance(PumiceDialogManager dialogManager, PumiceIntent pumiceIntent, PumiceDialogManager.PumiceUtterance utterance) {
+    public void handleIntentWithUtterance(PumiceDialogManager dialogManager, PumiceIntent pumiceIntent, PumiceUtterance utterance) {
         //do nothing
         if (pumiceIntent == PumiceIntent.UNRECOGNIZED) {
             sendPromptForTheIntentHandler();
@@ -80,7 +81,7 @@ public class SoviteDemonstrateRelevantScreenIntentHandler implements PumiceUtter
     }
 
     @Override
-    public PumiceIntent detectIntentFromUtterance(PumiceDialogManager.PumiceUtterance utterance) {
+    public PumiceIntent detectIntentFromUtterance(PumiceUtterance utterance) {
         return PumiceIntent.UNRECOGNIZED;
     }
 
@@ -97,8 +98,8 @@ public class SoviteDemonstrateRelevantScreenIntentHandler implements PumiceUtter
         //prompt the user of the screen
         if (scriptScreenshots != null) {
             for (View scriptScreenshotView : scriptScreenshots) {
-                pumiceDialogManager.sendAgentMessage(String.format("I've learned about the relevant screen in %s", matchedAppReadableName), true, false);
-                pumiceDialogManager.sendAgentViewMessage(scriptScreenshotView, String.format("Relevant screen in %s", matchedAppReadableName), false, false);
+                pumiceDialogManager.sendAgentViewMessage(scriptScreenshotView, PumiceDialogManager.Sender.USER, String.format("Relevant screen in %s", matchedAppReadableName), false, false);
+                pumiceDialogManager.sendAgentMessage(String.format("OK, I saw this screen in %s", matchedAppReadableName), true, false);
             }
         }
 

@@ -227,36 +227,39 @@ public class SoviteScriptMatchedFromScreenIntentHandler implements PumiceUtteran
 
     public void onDemonstrationReady(SugiliteStartingBlock script) {
         //generalize the script
-        newScriptGeneralizer.extractParameters(script, PumiceDemonstrationUtil.removeScriptExtension(script.getScriptName()));
-
-        String parameterizedProcedureKnowledgeName = originalUtterance;
-        String parameterizedProcedureKnowledgeUtterance = originalUtterance;
-        for (VariableValue defaultVariable : script.variableNameDefaultValueMap.values()) {
-            if (defaultVariable.getVariableValue() instanceof String) {
-                String defaultVariableString = (String) defaultVariable.getVariableValue();
-                parameterizedProcedureKnowledgeName = parameterizedProcedureKnowledgeName.toLowerCase().replace(defaultVariableString.toLowerCase(), "[" + defaultVariable.getVariableName() + "]");
-                parameterizedProcedureKnowledgeUtterance = parameterizedProcedureKnowledgeName.toLowerCase().replace(defaultVariableString.toLowerCase(), " ");
-            }
-        }
-
-        final String finalParameterizedProcedureKnowledgeName = parameterizedProcedureKnowledgeName;
-        final String finalParameterizedProcedureKnowledgeUtterance = parameterizedProcedureKnowledgeUtterance;
-
-        try {
-            sugiliteScriptDao.save(script);
-            sugiliteScriptDao.commitSave(new Runnable() {
-                @Override
-                public void run() {
-                    //construct the procedure knowledge
-                    PumiceProceduralKnowledge newKnowledge = new PumiceProceduralKnowledge(context, finalParameterizedProcedureKnowledgeName, finalParameterizedProcedureKnowledgeUtterance, script);
-
-                    //run the returnResultCallback when the result if ready
-                    newKnowledge.isNewlyLearned = true;
-                    returnValueCallbackObject.callReturnValueCallback(newKnowledge);
+        newScriptGeneralizer.extractParameters(script, PumiceDemonstrationUtil.removeScriptExtension(script.getScriptName()), new Runnable() {
+            @Override
+            public void run() {
+                String parameterizedProcedureKnowledgeName = originalUtterance;
+                String parameterizedProcedureKnowledgeUtterance = originalUtterance;
+                for (VariableValue defaultVariable : script.variableNameDefaultValueMap.values()) {
+                    if (defaultVariable.getVariableValue() instanceof String) {
+                        String defaultVariableString = (String) defaultVariable.getVariableValue();
+                        parameterizedProcedureKnowledgeName = parameterizedProcedureKnowledgeName.toLowerCase().replace(defaultVariableString.toLowerCase(), "[" + defaultVariable.getVariableName() + "]");
+                        parameterizedProcedureKnowledgeUtterance = parameterizedProcedureKnowledgeName.toLowerCase().replace(defaultVariableString.toLowerCase(), " ");
+                    }
                 }
-            });
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+
+                final String finalParameterizedProcedureKnowledgeName = parameterizedProcedureKnowledgeName;
+                final String finalParameterizedProcedureKnowledgeUtterance = parameterizedProcedureKnowledgeUtterance;
+
+                try {
+                    sugiliteScriptDao.save(script);
+                    sugiliteScriptDao.commitSave(new Runnable() {
+                        @Override
+                        public void run() {
+                            //construct the procedure knowledge
+                            PumiceProceduralKnowledge newKnowledge = new PumiceProceduralKnowledge(context, finalParameterizedProcedureKnowledgeName, finalParameterizedProcedureKnowledgeUtterance, script);
+
+                            //run the returnResultCallback when the result if ready
+                            newKnowledge.isNewlyLearned = true;
+                            returnValueCallbackObject.callReturnValueCallback(newKnowledge);
+                        }
+                    });
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        });
     }
 }

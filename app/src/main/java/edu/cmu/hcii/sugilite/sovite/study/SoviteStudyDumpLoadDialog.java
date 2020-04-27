@@ -52,12 +52,13 @@ public class SoviteStudyDumpLoadDialog extends SoviteItemSelectionDialog{
                     listItemLabelRunnableList.add(new Pair<>(soviteStudyDumpPacket.getName(), new Runnable() {
                         @Override
                         public void run() {
+                            dismiss();
                             try {
                                 soviteStudyDumpManager.loadDump(soviteStudyDumpPacket);
                             } catch (Exception e) {
                                 e.printStackTrace();
                             }
-                            dismiss();
+
                         }
                     }));
                     listItemLabelIconRunnableMap.put(soviteStudyDumpPacket.getName(), new Runnable() {

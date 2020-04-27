@@ -22,6 +22,7 @@ import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
 import edu.cmu.hcii.sugilite.model.operation.binary.SugiliteGetProcedureOperation;
 import edu.cmu.hcii.sugilite.model.variable.Variable;
 import edu.cmu.hcii.sugilite.model.variable.VariableValue;
+import edu.cmu.hcii.sugilite.pumice.PumiceDemonstrationUtil;
 import edu.cmu.hcii.sugilite.pumice.dialog.PumiceDialogManager;
 import edu.cmu.hcii.sugilite.pumice.dialog.PumiceUtterance;
 import edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.PumiceUtteranceIntentHandler;
@@ -171,7 +172,7 @@ public class SoviteScriptRelevantToAppIntentHandler implements PumiceUtteranceIn
                 //pumiceDialogManager.sendAgentMessage(String.format("For the %s app, I know %s.", appReadableName, topMatchedKnowledge.getProcedureDescription(pumiceDialogManager.getPumiceKnowledgeManager(), true)), true, false);
                 pumiceDialogManager.sendAgentMessage(TextUtils.concat(String.format("For the %s app, I know how to ", appReadableName), getProcedureOperationParameterizedClickableDescription, "."), true, false);
             } else {
-                pumiceDialogManager.sendAgentMessage(TextUtils.concat(String.format("I don't know how to %s in %s, but I know how to", originalUtterance, appReadableName), getProcedureOperationParameterizedClickableDescription, "."), true, false);
+                pumiceDialogManager.sendAgentMessage(TextUtils.concat(String.format("I don't know how to %s in %s, but I know how to ", originalUtterance, appReadableName), getProcedureOperationParameterizedClickableDescription, String.format(" in %s.", PumiceDemonstrationUtil.joinListGrammatically(topMatchedKnowledge.getInvolvedAppNames(pumiceDialogManager.getPumiceKnowledgeManager()), "and"))), true, false);
             }
             // thumbnail image
 

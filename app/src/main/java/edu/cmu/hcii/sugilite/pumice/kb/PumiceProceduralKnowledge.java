@@ -152,6 +152,12 @@ public class PumiceProceduralKnowledge implements Serializable {
             addParameter(parameter);
         }
     }
+
+    public void setProcedureName(String procedureName) {
+        this.procedureName = procedureName;
+    }
+
+
     public String getTargetProcedureKnowledgeName(){
         return targetProcedureKnowledgeName;
     }
@@ -178,6 +184,31 @@ public class PumiceProceduralKnowledge implements Serializable {
     }
 
     /**
+     * used for changing the real targetScriptName for execution
+     * @param knowledgeManager
+     * @param newScriptName
+     * @return
+     */
+    public void changeTargetScriptName(PumiceKnowledgeManager knowledgeManager, String newScriptName) {
+        if (scriptName != null) {
+            this.scriptName = newScriptName;
+            return;
+        } else if (targetProcedureKnowledgeName != null && (!targetProcedureKnowledgeName.equals(procedureName))) {
+            //look up in PumiceKnowledgeManager
+            for(PumiceProceduralKnowledge proceduralKnowledge : knowledgeManager.getPumiceProceduralKnowledges()){
+                if (targetProcedureKnowledgeName.equals(proceduralKnowledge.procedureName)){
+                   proceduralKnowledge.changeTargetScriptName(knowledgeManager, newScriptName);
+                   return;
+                }
+            }
+        } else {
+            throw new RuntimeException("not valid scriptName or targetProcedureKnowledgeName");
+        }
+        throw new RuntimeException("can't find the target procedureKnowledge");
+    }
+
+
+    /**
      * used for getting the real involved app names for execution
      * @param knowledgeManager
      * @return
@@ -197,6 +228,7 @@ public class PumiceProceduralKnowledge implements Serializable {
         }
         throw new RuntimeException("can't find the target procedureKnowledge");
     }
+
 
     /**
      * used for getting the real parameters for execution
@@ -277,6 +309,7 @@ public class PumiceProceduralKnowledge implements Serializable {
         this.utterance = utterance;
     }
 
+
     public String getProcedureName() {
         return procedureName;
     }
@@ -304,6 +337,10 @@ public class PumiceProceduralKnowledge implements Serializable {
 
         public String getParameterName() {
             return parameterName;
+        }
+
+        public void setParameterName(String parameterName) {
+            this.parameterName = parameterName;
         }
 
         public T getParameterDefaultValue() {

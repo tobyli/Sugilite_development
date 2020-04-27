@@ -194,6 +194,9 @@ public class SugiliteScriptExpression<T> {
     }
 
     static public String addQuoteToTokenIfNeeded(String s) {
+        if (s == null || s.length() == 0) {
+            return "\"\"";
+        }
         if (!((s.startsWith("(") && s.endsWith(")")) || (s.startsWith("\"") && s.endsWith("\"")))) {
             if (s.contains(" ")) {
                 return "\"" + s + "\"";

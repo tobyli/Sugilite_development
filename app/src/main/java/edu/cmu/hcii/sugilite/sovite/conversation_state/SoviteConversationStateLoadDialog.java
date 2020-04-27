@@ -99,6 +99,8 @@ public class SoviteConversationStateLoadDialog {
 
         };
         conversationalStateListView.setAdapter(adapter);
+        conversationalStateListView.setPadding(15, 15, 15, 15);
+
         builder.setView(conversationalStateListView);
         builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
             @Override
@@ -106,6 +108,7 @@ public class SoviteConversationStateLoadDialog {
                 dialog.dismiss();
             }
         });
+
         builder.setNegativeButton("Clear the stored conversation states", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {

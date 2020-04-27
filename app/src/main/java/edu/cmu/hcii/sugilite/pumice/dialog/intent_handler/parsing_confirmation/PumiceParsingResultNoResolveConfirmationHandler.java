@@ -97,6 +97,7 @@ public class PumiceParsingResultNoResolveConfirmationHandler implements SoviteSe
     public void inflateFromDeserializedInstance(Activity context, PumiceDialogManager pumiceDialogManager, SugiliteData sugiliteData, PumiceDefaultUtteranceIntentHandler pumiceDefaultUtteranceIntentHandler) {
         this.pumiceParsingResultNoResolveConfirmationHandler = pumiceParsingResultNoResolveConfirmationHandler;
         this.context = context;
+        this.sugiliteData = sugiliteData;
         this.pumiceDialogManager = pumiceDialogManager;
         this.pumiceParsingResultDescriptionGenerator = new PumiceParsingResultDescriptionGenerator();
         this.sugiliteScriptParser = new SugiliteScriptParser();
@@ -362,6 +363,7 @@ public class PumiceParsingResultNoResolveConfirmationHandler implements SoviteSe
         for (VariableValue changedNewVariableValue : changedNewVariableValues) {
             pumiceDialogManager.sendAgentMessage(String.format("Updating the value of [%s] to \"%s\"...", changedNewVariableValue.getVariableName(), changedNewVariableValue.getVariableValue()), true, false);
         }
+
         sendBestExecutionConfirmationForScript(operationBlock, false, true);
 
         //3. show new image

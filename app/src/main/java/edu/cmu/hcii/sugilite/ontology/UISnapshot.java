@@ -701,7 +701,7 @@ public class UISnapshot {
             return null;
         }
         List<Node> list = new ArrayList<>();
-        Node node = new Node(parent, windowZIndex, parentNodeZIndexSequence, externalPackageName.equals(parent.getPackageName()) ? externalActivityName : null);
+        Node node = new Node(parent, windowZIndex, parentNodeZIndexSequence, externalPackageName != null && externalPackageName.equals(parent.getPackageName()) ? externalActivityName : null);
         if(toConstructNodeAccessibilityNodeInfoMap){
             nodeAccessibilityNodeInfoMap.put(node, parent);
         }

@@ -117,37 +117,40 @@ public class PumiceProcedureDemonstrationDialog {
         context.startActivityIfNeeded(resumeActivity, 0);
 
         PumiceDemonstrationUtil.showSugiliteToast("Demonstration Ready!", Toast.LENGTH_SHORT);
-        newScriptGeneralizer.extractParameters(script, PumiceDemonstrationUtil.removeScriptExtension(script.getScriptName()));
-
-        String parameterizedProcedureKnowledgeName = procedureKnowledgeName;
-        String parameterizedProcedureKnowledgeUtterance = procedureKnowledgeName;
-        for (VariableValue defaultVariable : script.variableNameDefaultValueMap.values()) {
-            if (defaultVariable.getVariableValue() instanceof String) {
-                String defaultVariableString = (String) defaultVariable.getVariableValue();
-                parameterizedProcedureKnowledgeName = parameterizedProcedureKnowledgeName.toLowerCase().replace(defaultVariableString.toLowerCase(), "[" + defaultVariable.getVariableName() + "]");
-                parameterizedProcedureKnowledgeUtterance = parameterizedProcedureKnowledgeUtterance.toLowerCase().replace(defaultVariableString.toLowerCase(), "something");
-            }
-        }
-
-        final String finalParameterizedProcedureKnowledgeName = parameterizedProcedureKnowledgeName;
-        final String finalParameterizedProcedureKnowledgeUtterance = parameterizedProcedureKnowledgeUtterance;
-
-        try {
-            sugiliteScriptDao.save(script);
-            sugiliteScriptDao.commitSave(new Runnable() {
-                @Override
-                public void run() {
-                    //construct the procedure knowledge
-                    PumiceProceduralKnowledge newKnowledge = new PumiceProceduralKnowledge(context, finalParameterizedProcedureKnowledgeName, finalParameterizedProcedureKnowledgeUtterance, script);
-
-                    //run the returnResultCallback when the result if ready
-                    newKnowledge.isNewlyLearned = true;
-                    parentIntentHandler.callReturnValueCallback(newKnowledge);
+        newScriptGeneralizer.extractParameters(script, PumiceDemonstrationUtil.removeScriptExtension(script.getScriptName()), new Runnable() {
+            @Override
+            public void run() {
+                String parameterizedProcedureKnowledgeName = procedureKnowledgeName;
+                String parameterizedProcedureKnowledgeUtterance = procedureKnowledgeName;
+                for (VariableValue defaultVariable : script.variableNameDefaultValueMap.values()) {
+                    if (defaultVariable.getVariableValue() instanceof String) {
+                        String defaultVariableString = (String) defaultVariable.getVariableValue();
+                        parameterizedProcedureKnowledgeName = parameterizedProcedureKnowledgeName.toLowerCase().replace(defaultVariableString.toLowerCase(), "[" + defaultVariable.getVariableName() + "]");
+                        parameterizedProcedureKnowledgeUtterance = parameterizedProcedureKnowledgeUtterance.toLowerCase().replace(defaultVariableString.toLowerCase(), "something");
+                    }
                 }
-            });
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+
+                final String finalParameterizedProcedureKnowledgeName = parameterizedProcedureKnowledgeName;
+                final String finalParameterizedProcedureKnowledgeUtterance = parameterizedProcedureKnowledgeUtterance;
+
+                try {
+                    sugiliteScriptDao.save(script);
+                    sugiliteScriptDao.commitSave(new Runnable() {
+                        @Override
+                        public void run() {
+                            //construct the procedure knowledge
+                            PumiceProceduralKnowledge newKnowledge = new PumiceProceduralKnowledge(context, finalParameterizedProcedureKnowledgeName, finalParameterizedProcedureKnowledgeUtterance, script);
+
+                            //run the returnResultCallback when the result if ready
+                            newKnowledge.isNewlyLearned = true;
+                            parentIntentHandler.callReturnValueCallback(newKnowledge);
+                        }
+                    });
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        });
     }
 
     //show the dialog

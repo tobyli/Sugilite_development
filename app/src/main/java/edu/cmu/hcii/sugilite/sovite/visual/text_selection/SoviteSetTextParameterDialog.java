@@ -156,8 +156,8 @@ public class SoviteSetTextParameterDialog extends SugiliteDialogManager {
             public void onClick(DialogInterface dialog, int which) {
                 //update the parameter value
                 String newVariableStringValue = variableValueEditText.getText().toString();
-                SoviteVisualVariableOnClickDialog.updateVariableValue(getProcedureOperation, currentlySelectedVariableValue.getVariableName(), newVariableStringValue, currentlySelectedVariableValue.getVariableValue().toString(), soviteVariableUpdateCallback, originalScreenshotView, toUpdateEvenNoChange);
                 dialog.dismiss();
+                SoviteVisualVariableOnClickDialog.updateVariableValue(getProcedureOperation, currentlySelectedVariableValue.getVariableName(), newVariableStringValue, currentlySelectedVariableValue.getVariableValue().toString(), soviteVariableUpdateCallback, originalScreenshotView, toUpdateEvenNoChange);
             }
         });
         builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {

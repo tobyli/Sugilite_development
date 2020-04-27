@@ -68,12 +68,12 @@ public class SugiliteSubscriptSpecialOperationBlock extends SugiliteSpecialOpera
 
         //send an agent message through pumiceDialogManager if one is available
         if (sugiliteData.pumiceDialogManager != null){
-            String ParameterizedProcedureName = PumiceDemonstrationUtil.removeScriptExtension(subscriptName).replace("Procedure_", "");
+            String parameterizedProcedureName = PumiceDemonstrationUtil.removeScriptExtension(subscriptName).replace("Procedure_", "");
             for (VariableValue<String> variable : variableValues) {
-                ParameterizedProcedureName = ParameterizedProcedureName.replace("[" + variable.getVariableName() + "]", "[" + variable.getVariableValue() + "]");
+                parameterizedProcedureName = parameterizedProcedureName.replace("[" + variable.getVariableName() + "]", "[" + variable.getVariableValue() + "]");
             }
 
-            sugiliteData.pumiceDialogManager.sendAgentMessage("Executing the procedure: " + ParameterizedProcedureName, true, false);
+            sugiliteData.pumiceDialogManager.sendAgentMessage("Executing the procedure: " + parameterizedProcedureName, true, false);
         }
 
         if (script != null) {

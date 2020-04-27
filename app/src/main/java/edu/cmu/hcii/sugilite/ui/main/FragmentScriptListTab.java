@@ -339,24 +339,32 @@ public class FragmentScriptListTab extends Fragment {
                         public void run() {
                             try {
                                 SugiliteStartingBlock script = sugiliteScriptDao.read(scriptName);
-                                newScriptGeneralizer.extractParameters(script, PumiceDemonstrationUtil.removeScriptExtension(scriptName));
-                                sugiliteScriptDao.save(script);
-                                sugiliteScriptDao.commitSave(new Runnable() {
+                                newScriptGeneralizer.extractParameters(script, PumiceDemonstrationUtil.removeScriptExtension(scriptName), new Runnable() {
                                     @Override
                                     public void run() {
-                                        SugiliteData.runOnUiThread(new Runnable() {
-                                            @Override
-                                            public void run() {
-                                                try {
-                                                    setUpScriptList();
-                                                } catch (Exception e) {
-                                                    e.printStackTrace();
+                                        try {
+                                            sugiliteScriptDao.save(script);
+                                            sugiliteScriptDao.commitSave(new Runnable() {
+                                                @Override
+                                                public void run() {
+                                                    SugiliteData.runOnUiThread(new Runnable() {
+                                                        @Override
+                                                        public void run() {
+                                                            try {
+                                                                setUpScriptList();
+                                                            } catch (Exception e) {
+                                                                e.printStackTrace();
+                                                            }
+                                                        }
+                                                    });
                                                 }
-                                            }
-                                        });
+                                            });
+                                        } catch (Exception e) {
+                                            e.printStackTrace();
+                                        }
+                                        PumiceDemonstrationUtil.showSugiliteAlertDialog(String.format("Successfully generalized the script \"%s\"!", removeScriptExtension(scriptName)));
                                     }
                                 });
-                                PumiceDemonstrationUtil.showSugiliteAlertDialog(String.format("Successfully generalized the script \"%s\"!", removeScriptExtension(scriptName)));
                             } catch (Exception e) {
                                 e.printStackTrace();
                             }

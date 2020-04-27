@@ -18,6 +18,7 @@ import java.util.List;
 
 import edu.cmu.hcii.sugilite.R;
 import edu.cmu.hcii.sugilite.SugiliteData;
+import edu.cmu.hcii.sugilite.pumice.PumiceDemonstrationUtil;
 import edu.cmu.hcii.sugilite.pumice.dao.PumiceKnowledgeDao;
 import edu.cmu.hcii.sugilite.pumice.dialog.PumiceDialogManager;
 import edu.cmu.hcii.sugilite.pumice.kb.PumiceBooleanExpKnowledge;
@@ -90,6 +91,15 @@ public class SoviteKnowledgeManagementDialog {
                 if (iv1 != null) {
                     iv1.setImageDrawable(context.getDrawable(R.mipmap.ic_delete_red));
                 }
+                tv1.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        PumiceProceduralKnowledge targetKnowledge = pumiceProceduralKnowledges.get(position);
+                        SoviteProcedureKnowledgeConfigureDialog soviteProcedureKnowledgeConfigureDialog = new SoviteProcedureKnowledgeConfigureDialog(context, targetKnowledge, pumiceKnowledgeManager, pumiceDialogManager, sugiliteData);
+                        soviteProcedureKnowledgeConfigureDialog.show();
+                    }
+                });
+
                 iv1.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {

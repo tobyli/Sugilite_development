@@ -238,7 +238,7 @@ public class PumiceUserExplainProcedureIntentHandler implements SoviteSerializab
         pumiceDialogManager.getSugiliteVoiceRecognitionListener().setContextPhrases(Const.DEMONSTRATION_CONTEXT_WORDS);
 
         //pumiceDialogManager.sendAgentMessage("How do I " + parentKnowledgeName + "?" + " You can explain, or say \"demonstrate\" to demonstrate", true, true);
-        pumiceDialogManager.sendAgentMessage(String.format("I dont understand how to %s, can you tell me which app I can use?", parentKnowledgeName), true, true);
+        pumiceDialogManager.sendAgentMessage(String.format("I don't understand how to %s, can you tell me which app I can use?", parentKnowledgeName), true, true);
         //pumiceDialogManager.sendAgentMessage("How do I " + parentKnowledgeName + "?" + " You can explain, or say \"demonstrate\" to demonstrate", true, true);
     }
 

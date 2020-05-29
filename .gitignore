@@ -48,6 +48,15 @@ captures/
 
 .DS_Store
 _config.yml
+logfile
+*.jar
+sugilite_screenshot/
+Android_TestKeys/
+*.swp
+*.zip
+temp_handler*/
+
+
 
 #key
 credential.json

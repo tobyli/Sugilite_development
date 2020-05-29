@@ -10,6 +10,7 @@ import com.google.gson.GsonBuilder;
 import java.util.ArrayList;
 import java.util.List;
 
+import edu.cmu.hcii.sugilite.R;
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.pumice.communication.SkipPumiceJSONSerialization;
 import edu.cmu.hcii.sugilite.pumice.dialog.PumiceDialogManager;
@@ -94,8 +95,8 @@ public class SoviteScriptsWithTheSameAppDisambiguationIntentHandler implements P
                 pumiceDialogManager.getHttpQueryManager().sendSoviteAppResolutionPacketOnASeparateThread(soviteAppResolutionQueryPacket, this);
 
             } catch (Exception e) {
-                pumiceDialogManager.sendAgentMessage("Can't read from the server response", true, false);
-                pumiceDialogManager.sendAgentMessage("OK. Let's try again.", true, false);
+                pumiceDialogManager.sendAgentMessage(context.getString(R.string.not_able_read_server_response), true, false);
+                pumiceDialogManager.sendAgentMessage(context.getString(R.string.try_again), true, false);
                 pumiceDialogManager.updateUtteranceIntentHandlerInANewState(this);
                 sendPromptForTheIntentHandler();
                 e.printStackTrace();
@@ -143,7 +144,7 @@ public class SoviteScriptsWithTheSameAppDisambiguationIntentHandler implements P
                 //prompt the user to confirm if the top script relevant to the app
                 SoviteIntentClassificationErrorForProceduralKnowledgeIntentHandler.handleRelevantUtterancesForAppsResponse(gson, result, sugiliteData, SoviteAppNameAppInfoManager.getInstance(context), originalUtterance, context, pumiceDialogManager, returnValueCallbackObject);
             } catch (Exception e) {
-                pumiceDialogManager.sendAgentMessage("Can't read from the server response", true, false);
+                pumiceDialogManager.sendAgentMessage(context.getString(R.string.not_able_read_server_response), true, false);
                 pumiceDialogManager.sendAgentMessage("OK. Let's try again.", true, false);
                 pumiceDialogManager.updateUtteranceIntentHandlerInANewState(this);
                 sendPromptForTheIntentHandler();

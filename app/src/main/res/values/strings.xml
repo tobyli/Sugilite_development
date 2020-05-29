@@ -79,7 +79,7 @@
     <string name="downloading_script_message">Downloading the script...\n</string>
     <string name="loading_remote_script_list_message">Loading the list from the server...\n</string>
     <string name="uploading_script_message">Uploading the script...\n</string>
-    <string name="executing_script_message">Preparing the script execution...\n</string>
+    <string name="prepareing_script_execution_message">Preparing the script execution...\n</string>
     <string name="processing_query_message">Processing the query...\n</string>
     <string name="filtering_personal_information_message">Filtering personal information...\n</string>
 

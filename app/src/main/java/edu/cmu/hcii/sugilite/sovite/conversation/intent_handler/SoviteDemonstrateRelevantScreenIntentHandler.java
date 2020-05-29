@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import edu.cmu.hcii.sugilite.R;
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
 import edu.cmu.hcii.sugilite.ontology.SerializableUISnapshot;
@@ -114,8 +115,8 @@ public class SoviteDemonstrateRelevantScreenIntentHandler implements PumiceUtter
         try {
             pumiceDialogManager.getHttpQueryManager().sendSoviteAppResolutionPacketOnASeparateThread(queryPacket, this);
         } catch (Exception e) {
-            pumiceDialogManager.sendAgentMessage("Can't read from the server response", true, false);
-            pumiceDialogManager.sendAgentMessage("OK. Let's try again.", true, false);
+            pumiceDialogManager.sendAgentMessage(context.getString(R.string.not_able_read_server_response), true, false);
+            pumiceDialogManager.sendAgentMessage(context.getString(R.string.try_again), true, false);
             pumiceDialogManager.updateUtteranceIntentHandlerInANewState(this);
             sendPromptForTheIntentHandler();
             e.printStackTrace();
@@ -163,7 +164,7 @@ public class SoviteDemonstrateRelevantScreenIntentHandler implements PumiceUtter
                 pumiceDialogManager.callSendPromptForTheIntentHandlerForCurrentIntentHandler();
 
             } catch (Exception e) {
-                pumiceDialogManager.sendAgentMessage("Can't read from the server response", true, false);
+                pumiceDialogManager.sendAgentMessage(context.getString(R.string.not_able_read_server_response), true, false);
                 pumiceDialogManager.sendAgentMessage("OK. Let's try again.", true, false);
                 pumiceDialogManager.updateUtteranceIntentHandlerInANewState(this);
                 sendPromptForTheIntentHandler();

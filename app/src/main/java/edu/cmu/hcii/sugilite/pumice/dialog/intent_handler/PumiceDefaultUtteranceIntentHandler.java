@@ -99,18 +99,18 @@ public class PumiceDefaultUtteranceIntentHandler implements PumiceUtteranceInten
     public void handleIntentWithUtterance(PumiceDialogManager dialogManager, PumiceIntent pumiceIntent, PumiceUtterance utterance) {
         switch (pumiceIntent) {
             case START_OVER:
-                dialogManager.sendAgentMessage("I understand you want to start over: " + utterance.getContent(), true, false);
+                dialogManager.sendAgentMessage(context.getString(R.string.understand_start_over, utterance.getContent()), true, false);
                 dialogManager.startOverState();
                 break;
             case UNDO_STEP:
-                dialogManager.sendAgentMessage("I understand you want to undo: " + utterance.getContent(), true, false);
+                dialogManager.sendAgentMessage(context.getString(R.string.understand_undo, utterance.getContent()), true, false);
                 dialogManager.revertToLastState();
                 break;
             case TEST_WEATHER:
                 ImageView imageView = new ImageView(context);
                 imageView.setImageDrawable(context.getResources().getDrawable(R.mipmap.demo_card));
-                dialogManager.sendAgentMessage("Here is the weather" + utterance.getContent(), false, false);
-                dialogManager.sendAgentViewMessage(imageView, "Here is the weather", false, false);
+                dialogManager.sendAgentMessage(context.getString(R.string.show_weather, utterance.getContent()), false, false);
+                dialogManager.sendAgentViewMessage(imageView, context.getString(R.string.show_weather, utterance.getContent()), false, false);
                 break;
             case USER_INIT_INSTRUCTION:
                 //dialogManager.sendAgentMessage("I have received your instruction: " + utterance.getTriggerContent(), true, false);
@@ -122,20 +122,20 @@ public class PumiceDefaultUtteranceIntentHandler implements PumiceUtteranceInten
                 } catch (Exception e){
                     //TODO: error handling
                     e.printStackTrace();
-                    pumiceDialogManager.sendAgentMessage("Failed to send the query", true, false);
+                    pumiceDialogManager.sendAgentMessage(context.getString(R.string.failed_sending_query), true, false);
                 }
                 System.out.println(pumiceInstructionPacket.toString());
                 break;
             case LIST_KNOWLEDGE:
-                dialogManager.sendAgentMessage("Below are the existing knowledge...", true, false);
+                dialogManager.sendAgentMessage(context.getString(R.string.show_existing_knowledge), true, false);
                 dialogManager.sendAgentMessage(dialogManager.getPumiceKnowledgeManager().getKnowledgeInString(), false, false);
                 break;
             case LIST_KNOWLEDGE_IN_RAW_FORM:
-                dialogManager.sendAgentMessage("Below are the raw knowledge..." + dialogManager.getPumiceKnowledgeManager().getRawKnowledgeInString(), true, false);
+                dialogManager.sendAgentMessage(context.getString(R.string.show_raw_knowledge) + dialogManager.getPumiceKnowledgeManager().getRawKnowledgeInString(), true, false);
                 dialogManager.sendAgentMessage(dialogManager.getPumiceKnowledgeManager().getRawKnowledgeInString(), false, false);
                 break;
             default:
-                dialogManager.sendAgentMessage("I don't understand this intent", true, false);
+                dialogManager.sendAgentMessage(context.getString(R.string.not_understand_intent), true, false);
                 break;
         }
     }
@@ -245,9 +245,9 @@ public class PumiceDefaultUtteranceIntentHandler implements PumiceUtteranceInten
             }
         } catch (Exception e){
             //TODO: error handling
-            pumiceDialogManager.sendAgentMessage("Can't read from the server response", true, false);
+            pumiceDialogManager.sendAgentMessage(context.getString(R.string.not_able_read_server_response), true, false);
 
-            pumiceDialogManager.sendAgentMessage("OK. Let's try again.", true, false);
+            pumiceDialogManager.sendAgentMessage(context.getString(R.string.try_again), true, false);
             pumiceDialogManager.updateUtteranceIntentHandlerInANewState(pumiceDefaultUtteranceIntentHandler);
             sendPromptForTheIntentHandler();
             e.printStackTrace();
@@ -257,7 +257,7 @@ public class PumiceDefaultUtteranceIntentHandler implements PumiceUtteranceInten
     @Override
     public void sendPromptForTheIntentHandler() {
         pumiceDialogManager.getSugiliteVoiceRecognitionListener().setContextPhrases(Const.INIT_INSTRUCTION_CONTEXT_WORDS);
-        pumiceDialogManager.sendAgentMessage(String.format("Hi I'm %s bot! How can I help you?", Const.appName), true, true);
+        pumiceDialogManager.sendAgentMessage(context.getString(R.string.welcome_msg, Const.appName), true, true);
     }
 
 }

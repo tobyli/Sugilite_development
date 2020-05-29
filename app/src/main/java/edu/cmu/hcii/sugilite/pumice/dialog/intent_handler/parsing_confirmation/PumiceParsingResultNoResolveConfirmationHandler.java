@@ -16,6 +16,7 @@ import java.util.Map;
 import java.util.Set;
 
 import edu.cmu.hcii.sugilite.Const;
+import edu.cmu.hcii.sugilite.R;
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptFileDao;
@@ -172,7 +173,7 @@ public class PumiceParsingResultNoResolveConfirmationHandler implements SoviteSe
             }
         } else {
             //empty result -- no candidate available
-            pumiceDialogManager.sendAgentMessage("Can't understand your utterance, please try again", true, false);
+            pumiceDialogManager.sendAgentMessage(context.getString(R.string.cant_understand_try_again), true, false);
             //execute the retry runnable
             runnableForRetry.run();
         }
@@ -223,7 +224,7 @@ public class PumiceParsingResultNoResolveConfirmationHandler implements SoviteSe
             // PumiceChooseParsingDialogNew pumiceChooseParsingDialog = new PumiceChooseParsingDialogNew(context, dialogManager, parsingResultPacket.resultPacket, parsingResultPacket.runnableForRetry, parsingResultPacket.runnableForConfirmedParse, failureCount);
             // pumiceChooseParsingDialog.show();
         } else if (pumiceIntent.equals(PumiceIntent.UNRECOGNIZED)) {
-            pumiceDialogManager.sendAgentMessage("Can't recognize your response. Please respond with \"Yes\" or \"No\".", true, false);
+            pumiceDialogManager.sendAgentMessage(context.getString(R.string.not_recognized_ask_for_binary), true, false);
             sendPromptForTheIntentHandler();
         }
 
@@ -249,7 +250,7 @@ public class PumiceParsingResultNoResolveConfirmationHandler implements SoviteSe
                     pumiceDialogManager.sendAgentMessage(TextUtils.concat("I will ", generateParameterClickableDescriptionForGetProcedureOperation(context, getProcedureOperation, sugiliteData, sugiliteScriptDao, pumiceDialogManager, existingVisualViews, this, parsingResultsToHandle.resultPacket.userUtterance), "."), true, false);
 
                     if (toAskForConfirmation) {
-                        pumiceDialogManager.sendAgentMessage("Is this correct?", true, true);
+                        pumiceDialogManager.sendAgentMessage(context.getString(R.string.confirm_question), true, true);
                     }
                 }
             }
@@ -361,7 +362,7 @@ public class PumiceParsingResultNoResolveConfirmationHandler implements SoviteSe
         //make sure the intent handler is current
         pumiceDialogManager.setPumiceUtteranceIntentHandlerInUse(this);
         for (VariableValue changedNewVariableValue : changedNewVariableValues) {
-            pumiceDialogManager.sendAgentMessage(String.format("Updating the value of [%s] to \"%s\"...", changedNewVariableValue.getVariableName(), changedNewVariableValue.getVariableValue()), true, false);
+            pumiceDialogManager.sendAgentMessage(context.getString(R.string.updating_param_value, changedNewVariableValue.getVariableName(), changedNewVariableValue.getVariableValue()), true, false);
         }
 
         sendBestExecutionConfirmationForScript(operationBlock, false, true);

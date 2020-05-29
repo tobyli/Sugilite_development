@@ -6,6 +6,7 @@ import android.content.DialogInterface;
 import android.content.SharedPreferences;
 
 import edu.cmu.hcii.sugilite.Const;
+import edu.cmu.hcii.sugilite.R;
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.automation.ServiceStatusManager;
 import edu.cmu.hcii.sugilite.model.block.SugiliteConditionBlock;
@@ -45,7 +46,7 @@ public class PumiceScriptExecutingConfirmationIntentHandler implements PumiceUtt
     public void handleIntentWithUtterance(PumiceDialogManager dialogManager, PumiceIntent pumiceIntent, PumiceUtterance utterance) {
 
         if (pumiceIntent.equals(PumiceIntent.EXECUTION_CONFIRM_POSITIVE)) {
-            dialogManager.sendAgentMessage("Executing the script...", true, false);
+            dialogManager.sendAgentMessage(context.getString(R.string.executing_script), true, false);
             ServiceStatusManager serviceStatusManager = dialogManager.getServiceStatusManager();
             SharedPreferences sharedPreferences = dialogManager.getSharedPreferences();
 
@@ -63,7 +64,7 @@ public class PumiceScriptExecutingConfirmationIntentHandler implements PumiceUtt
                                 @Override
                                 public void run() {
                                     //after execution runnable - notify the user that the script execution is completed
-                                    dialogManager.sendAgentMessage("The execution is completed!", true, false);
+                                    dialogManager.sendAgentMessage(context.getString(R.string.complete_executing_script), true, false);
                                 }
                             });
                         }
@@ -83,13 +84,13 @@ public class PumiceScriptExecutingConfirmationIntentHandler implements PumiceUtt
         }
 
         else if (pumiceIntent.equals(PumiceIntent.EXECUTION_CONFIRM_NEGATIVE)) {
-            dialogManager.sendAgentMessage("OK", true, false);
+            dialogManager.sendAgentMessage(context.getString(R.string.ok), true, false);
             dialogManager.updateUtteranceIntentHandlerInANewState(new PumiceDefaultUtteranceIntentHandler(dialogManager, context, sugiliteData));
             dialogManager.callSendPromptForTheIntentHandlerForCurrentIntentHandler();
         }
 
         else if (pumiceIntent.equals(PumiceIntent.UNRECOGNIZED)) {
-            pumiceDialogManager.sendAgentMessage("Can't recognize your response. Please respond with \"Yes\" or \"No\".", true, false);
+            pumiceDialogManager.sendAgentMessage(context.getString(R.string.not_recognized_ask_for_binary), true, false);
             sendPromptForTheIntentHandler();
         }
     }
@@ -108,7 +109,7 @@ public class PumiceScriptExecutingConfirmationIntentHandler implements PumiceUtt
             }
             pumiceDialogManager.getSugiliteVoiceRecognitionListener().setContextPhrases(Const.CONFIRM_CONTEXT_WORDS);
             //pumiceDialogManager.sendAgentMessage(String.format("I've understood your instruction: %s. Do you want me to execute it now?", currentScriptDescription), true, true);
-            pumiceDialogManager.sendAgentMessage(String.format("Do you want me to execute it now?"), true, true);
+            pumiceDialogManager.sendAgentMessage(context.getString(R.string.ask_execute_now), true, true);
 
         } else {
             SugiliteData.runOnUiThread(new Runnable() {

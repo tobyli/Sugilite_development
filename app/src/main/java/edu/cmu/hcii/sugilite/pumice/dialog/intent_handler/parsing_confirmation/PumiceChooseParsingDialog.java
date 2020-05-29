@@ -127,14 +127,14 @@ public class PumiceChooseParsingDialog implements AbstractSugiliteDialog {
                 dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
-                        PumiceDemonstrationUtil.showSugiliteToast("Please first choose the correct one that reflects your intention, or choose \"Try Again\" to give a different instruction.", Toast.LENGTH_SHORT);
-                        pumiceDialogManager.sendAgentMessage("Please choose the correct one that reflects your intention, or choose \"Try Again\" to give a different instruction.", true, false);
+                        PumiceDemonstrationUtil.showSugiliteToast(context.getString(R.string.choose_parsing_prompt), Toast.LENGTH_SHORT);
+                        pumiceDialogManager.sendAgentMessage(context.getString(R.string.choose_parsing_prompt), true, false);
                     }
                 });
                 dialog.getButton(AlertDialog.BUTTON_NEGATIVE).setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
-                        pumiceDialogManager.sendAgentMessage("OK. Let's try again. Please try to explain using information that can be found in mobile apps.", true, false);
+                        pumiceDialogManager.sendAgentMessage(context.getString(R.string.choose_parsing_try_again_prompt), true, false);
                         runnableForRetry.run();
                         dialog.dismiss();
                     }
@@ -154,7 +154,7 @@ public class PumiceChooseParsingDialog implements AbstractSugiliteDialog {
 
 
         //voice prompt
-        pumiceDialogManager.sendAgentMessage("Please choose the correct one that reflects your intention, or choose \"Try Again\" to give a different instruction.", true, false);
+        pumiceDialogManager.sendAgentMessage(context.getString(R.string.choose_parsing_prompt), true, false);
     }
 
 

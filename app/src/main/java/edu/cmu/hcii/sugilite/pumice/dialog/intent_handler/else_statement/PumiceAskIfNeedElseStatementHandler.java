@@ -3,6 +3,7 @@ package edu.cmu.hcii.sugilite.pumice.dialog.intent_handler.else_statement;
 import android.app.Activity;
 
 import edu.cmu.hcii.sugilite.Const;
+import edu.cmu.hcii.sugilite.R;
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.model.block.SugiliteConditionBlock;
 import edu.cmu.hcii.sugilite.pumice.dialog.PumiceDialogManager;
@@ -32,7 +33,7 @@ public class PumiceAskIfNeedElseStatementHandler implements PumiceUtteranceInten
     @Override
     public void sendPromptForTheIntentHandler() {
         pumiceDialogManager.getSugiliteVoiceRecognitionListener().setContextPhrases(Const.CONFIRM_CONTEXT_WORDS);
-        pumiceDialogManager.sendAgentMessage(String.format("Should I do anything if %s is not true?", boolExpReadableName.replace(" is true", "")), true, true);
+        pumiceDialogManager.sendAgentMessage(context.getString(R.string.ask_if_else_statement_needed, boolExpReadableName.replace(" is true", "")), true, true);
     }
 
     @Override
@@ -54,7 +55,7 @@ public class PumiceAskIfNeedElseStatementHandler implements PumiceUtteranceInten
         }
 
         else if (pumiceIntent.equals(PumiceIntent.UNRECOGNIZED)) {
-            pumiceDialogManager.sendAgentMessage("Can't recognize your response. Please respond with \"Yes\" or \"No\".", true, false);
+            pumiceDialogManager.sendAgentMessage(context.getString(R.string.not_recognized_ask_for_binary), true, false);
             sendPromptForTheIntentHandler();
         }
     }

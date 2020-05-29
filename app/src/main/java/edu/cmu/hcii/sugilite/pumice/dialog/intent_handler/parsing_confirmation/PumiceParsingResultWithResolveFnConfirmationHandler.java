@@ -8,6 +8,7 @@ import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
 
+import edu.cmu.hcii.sugilite.R;
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.model.block.SugiliteConditionBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
@@ -80,7 +81,7 @@ public class PumiceParsingResultWithResolveFnConfirmationHandler implements Pumi
 
         else {
             //empty result -- no candidate available
-            pumiceDialogManager.sendAgentMessage("I can't understand your utterance, please try again", true, false);
+            pumiceDialogManager.sendAgentMessage(context.getString(R.string.cant_understand_try_again), true, false);
             //execute the retry runnable
             runnableForRetry.run();
         }
@@ -164,7 +165,7 @@ public class PumiceParsingResultWithResolveFnConfirmationHandler implements Pumi
         }
 
         else if (pumiceIntent.equals(PumiceIntent.UNRECOGNIZED)) {
-            pumiceDialogManager.sendAgentMessage("I can't recognize your response. Please respond with \"Yes\" or \"No\".", true, false);
+            pumiceDialogManager.sendAgentMessage(context.getString(R.string.not_recognized_ask_for_binary), true, false);
             sendPromptForTheIntentHandler();
         }
 
@@ -193,9 +194,9 @@ public class PumiceParsingResultWithResolveFnConfirmationHandler implements Pumi
     public void sendPromptForTheIntentHandler() {
         PumiceSemanticParsingResultPacket.QueryGroundingPair topResult = parsingResultsToHandle.resultPacket.queries.get(0);
         String topFormula = topResult.formula;
-        pumiceDialogManager.sendAgentMessage("I think what you meant is: ", true, false);
+        pumiceDialogManager.sendAgentMessage(context.getString(R.string.show_guess), true, false);
         pumiceDialogManager.sendAgentMessage(getDescriptionForFormula(topFormula, parsingResultsToHandle.resultPacket.utteranceType), true, false);
-        pumiceDialogManager.sendAgentMessage("Is this correct?", true, true);
+        pumiceDialogManager.sendAgentMessage(context.getString(R.string.confirm_question), true, true);
     }
 
 

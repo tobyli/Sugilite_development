@@ -11,6 +11,7 @@ import com.google.gson.GsonBuilder;
 import java.util.Calendar;
 
 import edu.cmu.hcii.sugilite.Const;
+import edu.cmu.hcii.sugilite.R;
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.ontology.SugiliteRelation;
 import edu.cmu.hcii.sugilite.pumice.communication.PumiceInstructionPacket;
@@ -74,7 +75,7 @@ public class PumiceUserExplainValueIntentHandler implements PumiceUtteranceInten
             } catch (Exception e){
                 //TODO: error handling
                 e.printStackTrace();
-                pumiceDialogManager.sendAgentMessage("Failed to send the query", true, false);
+                pumiceDialogManager.sendAgentMessage(context.getString(R.string.failed_sending_query), true, false);
             }
         }
 
@@ -89,7 +90,7 @@ public class PumiceUserExplainValueIntentHandler implements PumiceUtteranceInten
                 }
             });
             //send out the prompt
-            dialogManager.sendAgentMessage("Please start demonstrating how to find out the value of " + parentKnowledgeName +  ". " + "Click OK to continue.",true, false);
+            dialogManager.sendAgentMessage(context.getString(R.string.value_start_demonstration, parentKnowledgeName),true, false);
         }
 
         //set the intent handler back to the default one
@@ -167,9 +168,9 @@ public class PumiceUserExplainValueIntentHandler implements PumiceUtteranceInten
             }
         } catch (Exception e){
             //TODO: error handling
-            pumiceDialogManager.sendAgentMessage("Can't read from the server response", true, false);
+            pumiceDialogManager.sendAgentMessage(context.getString(R.string.not_able_read_server_response), true, false);
 
-            pumiceDialogManager.sendAgentMessage("OK. Let's try again.", true, false);
+            pumiceDialogManager.sendAgentMessage(context.getString(R.string.try_again), true, false);
             pumiceDialogManager.updateUtteranceIntentHandlerInANewState(pumiceUserExplainValueIntentHandler);
             sendPromptForTheIntentHandler();
             e.printStackTrace();
@@ -181,7 +182,7 @@ public class PumiceUserExplainValueIntentHandler implements PumiceUtteranceInten
     @Override
     public void sendPromptForTheIntentHandler() {
         pumiceDialogManager.getSugiliteVoiceRecognitionListener().setContextPhrases(Const.DEMONSTRATION_CONTEXT_WORDS);
-        pumiceDialogManager.sendAgentMessage("How do I find out the value for " + parentKnowledgeName + "?" + " You can explain, or say \"demonstrate\" to demonstrate", true, true);
+        pumiceDialogManager.sendAgentMessage(context.getString(R.string.value_resolve, parentKnowledgeName), true, true);
     }
 
 

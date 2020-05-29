@@ -12,6 +12,7 @@ import java.util.Calendar;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import edu.cmu.hcii.sugilite.R;
 import edu.cmu.hcii.sugilite.pumice.communication.PumiceSemanticParsingResultPacket;
 import edu.cmu.hcii.sugilite.pumice.communication.SkipPumiceJSONSerialization;
 import edu.cmu.hcii.sugilite.pumice.dialog.PumiceDialogManager;
@@ -466,7 +467,7 @@ public class PumiceConditionalIntentHandler implements PumiceUtteranceIntentHand
                         }
                         break;
                     default:
-                        dialogManager.sendAgentMessage("Can't read from the server response", true, false);
+                        dialogManager.sendAgentMessage(context.getString(R.string.not_able_read_server_response), true, false);
                 }
             }
         } catch (Exception e) {

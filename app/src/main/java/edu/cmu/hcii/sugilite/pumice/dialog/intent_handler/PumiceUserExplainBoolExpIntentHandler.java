@@ -10,6 +10,7 @@ import com.google.gson.GsonBuilder;
 import java.util.Calendar;
 
 import edu.cmu.hcii.sugilite.Const;
+import edu.cmu.hcii.sugilite.R;
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.pumice.communication.PumiceInstructionPacket;
 import edu.cmu.hcii.sugilite.pumice.communication.PumiceSemanticParsingResultPacket;
@@ -71,7 +72,7 @@ public class PumiceUserExplainBoolExpIntentHandler implements PumiceUtteranceInt
             } catch (Exception e){
                 //TODO: error handling
                 e.printStackTrace();
-                pumiceDialogManager.sendAgentMessage("Failed to send the query", true, false);
+                pumiceDialogManager.sendAgentMessage(context.getString(R.string.failed_sending_query), true, false);
             }
             System.out.println(pumiceInstructionPacket.toString());
         }
@@ -130,7 +131,6 @@ public class PumiceUserExplainBoolExpIntentHandler implements PumiceUtteranceInt
                                                 @Override
                                                 public void run() {
                                                     //got the parse confirmed
-                                                    System.out.println("bool exp parse is confirmed");
                                                     pumiceUserExplainBoolExpIntentHandler.clearFailure();
 
                                                     //parse and process the server response
@@ -152,9 +152,9 @@ public class PumiceUserExplainBoolExpIntentHandler implements PumiceUtteranceInt
             }
         } catch (Exception e){
             //TODO: error handling
-            pumiceDialogManager.sendAgentMessage("Can't read from the server response", true, false);
+            pumiceDialogManager.sendAgentMessage(context.getString(R.string.not_able_read_server_response), true, false);
 
-            pumiceDialogManager.sendAgentMessage("OK. Let's try again.", true, false);
+            pumiceDialogManager.sendAgentMessage(context.getString(R.string.try_again), true, false);
             pumiceDialogManager.updateUtteranceIntentHandlerInANewState(pumiceUserExplainBoolExpIntentHandler);
             sendPromptForTheIntentHandler();
             e.printStackTrace();
@@ -172,7 +172,7 @@ public class PumiceUserExplainBoolExpIntentHandler implements PumiceUtteranceInt
     @Override
     public void sendPromptForTheIntentHandler() {
         pumiceDialogManager.getSugiliteVoiceRecognitionListener().setContextPhrases(Const.INIT_INSTRUCTION_CONTEXT_WORDS);
-        pumiceDialogManager.sendAgentMessage("How do I tell whether " + parentKnowledgeName + "?", true, true);
+        pumiceDialogManager.sendAgentMessage(context.getString(R.string.bool_resolve, parentKnowledgeName), true, true);
     }
 
 

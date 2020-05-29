@@ -214,13 +214,14 @@ public class VerbalInstructionIconManager implements SugiliteVoiceInterface {
 
         //NEEDED TO BE CONFIGURED AT APPS->SETTINGS-DRAW OVER OTHER APPS on API>=23
         int currentApiVersion = android.os.Build.VERSION.SDK_INT;
-        if(currentApiVersion >= 23){
-            checkDrawOverlayPermission();
-            windowManager.addView(statusIcon, iconParams);
-        }
-        else {
-            windowManager.addView(statusIcon, iconParams);
+        if (statusIcon.getParent() == null) {
+            if (currentApiVersion >= 23) {
+                checkDrawOverlayPermission();
+                windowManager.addView(statusIcon, iconParams);
+            } else {
+                windowManager.addView(statusIcon, iconParams);
 
+            }
         }
 
         //add timer service
@@ -264,8 +265,7 @@ public class VerbalInstructionIconManager implements SugiliteVoiceInterface {
         }, 0, INTERVAL_REFRESH_UI_SNAPSHOT);
 
         //hide the verbal instruction icon
-
-        //statusIcon.setVisibility(View.INVISIBLE);
+        statusIcon.setVisibility(View.INVISIBLE);
     }
 
     public void rotateStatusIcon(){

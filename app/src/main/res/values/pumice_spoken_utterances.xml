@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--PumiceDefaultUtteranceIntentHandler-->
+    <string name="welcome_msg">Hi I\'m %1$s bot! How can I help you?</string>
+    <string name="understand_start_over">I understand you want to start over: %1$s</string>
+    <string name="understand_undo">I understand you want to undo: %1$s</string>
+    <string name="show_weather">Here is the weather: %1$s</string>
+    <string name="failed_sending_query">Failed to send the query.</string>
+    <string name="show_existing_knowledge">Below are the existing knowledge…</string>
+    <string name="show_raw_knowledge">Below are the raw knowledge…</string>
+    <string name="not_understand_intent">I don\'t understand this intent.</string>
+    <string name="not_able_read_server_response">I can\'t read from the server response.</string>
+    <string name="try_again">OK. Let\'s try again.</string>
+
+    <!--PumiceScriptExecutingConfirmationIntentHandler-->
+    <string name="executing_script">Executing the script…</string>
+    <string name="complete_executing_script">The execution is completed!</string>
+    <string name="not_recognized_ask_for_binary">Can\'t recognize your response. Please respond with \"Yes\" or \"No\".</string>
+    <string name="ok">OK.</string>
+    <string name="ask_execute_now">Do you want me to execute it now?</string>
+
+    <!--PumiceUserExplainBoolExpIntentHandler-->
+    <string name="bool_resolve">How do I tell whether %1$s?</string>
+
+    <!--PumiceUserExplainProcedureIntentHandler-->
+    <string name="procedure_resolve">I don\'t understand how to %1$s, can you tell me which app I can use? You can also say \"demonstrate\" to teach this task by demonstration.</string>
+    <string name="procedure_start_demonstration">Please start demonstrating how to %1$s. Click OK to continue.</string>
+
+    <!--PumiceUserExplainValueIntentHandler-->
+    <string name="value_start_demonstration">Please start demonstrating how to find out the value of %1$s. Click OK to continue.</string>
+    <string name="value_resolve">How do I find out the value for %1$s? You can explain, or say \"demonstrate\" to teach this value by demonstration."</string>
+
+    <!--PumiceAskIfNeedElseStatementHandler-->
+    <string name="ask_if_else_statement_needed">Should I do anything if %1$s is not true?</string>
+
+    <!--PumiceUserExplainElseStatementIntentHandler-->
+    <string name="confirm_else_statement">OK, I know what to do when %1$s is not true.</string>
+    <string name="ask_else_statement_prompt">What should I do if %1$s is not true?</string>
+    <string name="else_statement_start_demonstration">Please start demonstrating what to do when %1$s is not true. Click OK to continue.</string>
+
+    <!--PumiceChooseParsingDialog-->
+    <string name="choose_parsing_prompt">Please choose the correct one that reflects your intention, or choose \"Try Again\" to give a different instruction.</string>
+    <string name="choose_parsing_try_again_prompt">OK. Let\'s try again. Please try to explain using information that can be found in mobile apps.</string>
+
+    <!--PumiceParsingResultNoResolveConfirmationHandler-->
+    <string name="cant_understand_try_again">I can\'t understand your utterance, please try again</string>
+    <string name="confirm_question">Is this correct?</string>
+    <string name="updating_param_value">Updating the value of [%1$s] to \"%2$s\"…</string>
+
+    <!--PumiceParsingResultWithResolveConfirmationHandler-->
+    <string name="show_guess">I think what you meant is: </string>
+
+</resources>

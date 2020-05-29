@@ -1,6 +1,7 @@
 package edu.cmu.hcii.sugilite.sovite.conversation.intent_handler;
 
 import android.app.Activity;
+import android.content.Context;
 import android.graphics.drawable.Drawable;
 import android.widget.ImageView;
 
@@ -14,6 +15,7 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.Map;
 
+import edu.cmu.hcii.sugilite.R;
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
 import edu.cmu.hcii.sugilite.model.operation.binary.SugiliteGetProcedureOperation;
@@ -137,6 +139,11 @@ public class SoviteIntentClassificationErrorForProceduralKnowledgeIntentHandler 
                                         proceduralKnowledgesWithMatchedApps.add(pumiceProceduralKnowledge);
                                     }
                                 }
+                                List<String> appPackageNames = new ArrayList<>();
+                                appPackageNames.add(packageName);
+                                SoviteAppResolutionQueryPacket soviteAppResolutionQueryPacket = new SoviteAppResolutionQueryPacket("playstore", RELEVANT_UTTERANCES_FOR_APPS, allAvailableScriptUtterances, appPackageNames);
+                                pumiceDialogManager.getHttpQueryManager().sendSoviteAppResolutionPacketOnASeparateThread(soviteAppResolutionQueryPacket, caller);
+                                /*
                                 if (proceduralKnowledgesWithMatchedApps.size() > 0) {
                                     // able to find other procedures that use this app
                                     //use a new handler to handle
@@ -157,6 +164,7 @@ public class SoviteIntentClassificationErrorForProceduralKnowledgeIntentHandler 
                                     pumiceDialogManager.getHttpQueryManager().sendSoviteAppResolutionPacketOnASeparateThread(soviteAppResolutionQueryPacket, caller);
                                     // pumiceDialogManager.sendAgentMessage(String.format("Here are scripts are are relevant to %s", appName), true, false);
                                 }
+                                */
 
                                 // retrieve the play store description and snapshots for packageName, and calculate the BERT vector
                                         /*
@@ -206,14 +214,14 @@ public class SoviteIntentClassificationErrorForProceduralKnowledgeIntentHandler 
         pumiceDialogManager.updateUtteranceIntentHandlerInANewState(soviteScriptRelevantToAppIntentHandler);
         pumiceDialogManager.callSendPromptForTheIntentHandlerForCurrentIntentHandler();
     }
-    public static void handleServerResponseError(Exception e, PumiceDialogManager pumiceDialogManager, PumiceUtteranceIntentHandler intentHandler) {
+    public static void handleServerResponseError(Context context, Exception e, PumiceDialogManager pumiceDialogManager, PumiceUtteranceIntentHandler intentHandler) {
         //error handling
         if (e.getMessage().contains("empty server result")) {
             pumiceDialogManager.sendAgentMessage("Empty server response", true, false);
         } else {
-            pumiceDialogManager.sendAgentMessage("Can't read from the server response", true, false);
+            pumiceDialogManager.sendAgentMessage(context.getString(R.string.not_able_read_server_response), true, false);
         }
-        pumiceDialogManager.sendAgentMessage("OK. Let's try again.", true, false);
+        pumiceDialogManager.sendAgentMessage(context.getString(R.string.try_again), true, false);
         pumiceDialogManager.updateUtteranceIntentHandlerInANewState(intentHandler);
         intentHandler.sendPromptForTheIntentHandler();
         e.printStackTrace();
@@ -239,21 +247,21 @@ public class SoviteIntentClassificationErrorForProceduralKnowledgeIntentHandler 
             try {
                 handleAppReferenceResponse(sugiliteData, gson, result, originalUtterance, soviteAppNameAppInfoManager, context, pumiceDialogManager, this, this);
             } catch (Exception e) {
-               handleServerResponseError(e, pumiceDialogManager, this);
+               handleServerResponseError(context, e, pumiceDialogManager, this);
             }
         } else if (result.contains(RELEVANT_APPS_FOR_UTTERANCES)) {
             //handle queries of getting relevant apps for utterances
             try {
                 handleRelevantAppsForUtterancesResponse(gson, result, pumiceDialogManager);
             } catch (Exception e) {
-                handleServerResponseError(e, pumiceDialogManager, this);
+                handleServerResponseError(context, e, pumiceDialogManager, this);
             }
         } else if (result.contains(RELEVANT_UTTERANCES_FOR_APPS)) {
             //handle queries of getting relevant utterances for apps
             try {
                handleRelevantUtterancesForAppsResponse(gson, result, sugiliteData, soviteAppNameAppInfoManager, originalUtterance, context, pumiceDialogManager, this);
             } catch (Exception e) {
-                handleServerResponseError(e, pumiceDialogManager, this);
+                handleServerResponseError(context, e, pumiceDialogManager, this);
             }
         }
     }

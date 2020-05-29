@@ -112,15 +112,15 @@ public class PumiceParsingDifferenceDialog<T> implements AbstractSugiliteDialog 
                         dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(new View.OnClickListener() {
                             @Override
                             public void onClick(View view) {
-                                PumiceDemonstrationUtil.showSugiliteToast("Please first choose the correct one that reflects your intention, or choose \"Try Again\" to give a different instruction.", Toast.LENGTH_SHORT);
+                                PumiceDemonstrationUtil.showSugiliteToast(context.getString(R.string.choose_parsing_prompt), Toast.LENGTH_SHORT);
 
-                                pumiceDialogManager.sendAgentMessage("Please choose the correct one that reflects your intention, or choose \"Try Again\" to give a different instruction.", true, false);
+                                pumiceDialogManager.sendAgentMessage(context.getString(R.string.choose_parsing_prompt), true, false);
                             }
                         });
                         dialog.getButton(AlertDialog.BUTTON_NEGATIVE).setOnClickListener(new View.OnClickListener() {
                             @Override
                             public void onClick(View view) {
-                                pumiceDialogManager.sendAgentMessage("OK. Let's try again.", true, false);
+                                pumiceDialogManager.sendAgentMessage(context.getString(R.string.try_again), true, false);
                                 dialog.dismiss();
                                 synchronized (returnObject) {
                                     returnObject.setObject(null);

@@ -56,7 +56,7 @@ public class SoviteScriptRelevantToAppIntentHandler implements PumiceUtteranceIn
     private PumiceProceduralKnowledge topMatchedKnowledge;
     private Map<String, VariableValue> variableNameVariableValueMap;
 
-
+    private static final boolean directlyAskForScreen = true;
 
     public SoviteScriptRelevantToAppIntentHandler(PumiceDialogManager pumiceDialogManager, Activity context, SugiliteData sugiliteData, String appPackageName, String appReadableName, String originalUtterance, List<PumiceProceduralKnowledge> relevantProceduralKnowledgesToTargetApp, SoviteReturnValueCallbackInterface<PumiceProceduralKnowledge> returnValueCallbackObject) {
         this.context = context;
@@ -140,8 +140,14 @@ public class SoviteScriptRelevantToAppIntentHandler implements PumiceUtteranceIn
         topMatchedKnowledge.setUtterance(utterance);
     }
 
+
     @Override
     public void sendPromptForTheIntentHandler() {
+        if (directlyAskForScreen) {
+            handleIntentWithUtterance(pumiceDialogManager, PumiceIntent.EXECUTION_CONFIRM_NEGATIVE, null);
+            return;
+        }
+
         if (topMatchedKnowledge != null) {
 
             //add parameter to topMatchedKnowledge if needed

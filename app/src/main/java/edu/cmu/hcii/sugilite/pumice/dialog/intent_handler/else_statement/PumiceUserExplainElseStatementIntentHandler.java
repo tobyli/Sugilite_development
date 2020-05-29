@@ -10,6 +10,7 @@ import com.google.gson.GsonBuilder;
 import java.util.Calendar;
 
 import edu.cmu.hcii.sugilite.Const;
+import edu.cmu.hcii.sugilite.R;
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteConditionBlock;
@@ -78,7 +79,7 @@ public class PumiceUserExplainElseStatementIntentHandler implements PumiceUttera
             } catch (Exception e){
                 //TODO: error handling
                 e.printStackTrace();
-                pumiceDialogManager.sendAgentMessage("Failed to send the query", true, false);
+                pumiceDialogManager.sendAgentMessage(context.getString(R.string.failed_sending_query), true, false);
             }
         }
 
@@ -92,7 +93,7 @@ public class PumiceUserExplainElseStatementIntentHandler implements PumiceUttera
                 }
             });
             //send out the prompt
-            dialogManager.sendAgentMessage("Please start demonstrating what to do when " + boolExpReadableName +  " is not true. " + "Click OK to continue.",true, false);
+            dialogManager.sendAgentMessage(context.getString(R.string.else_statement_start_demonstration, boolExpReadableName),true, false);
         }
         //set the intent handler back to the default one
         dialogManager.updateUtteranceIntentHandlerInANewState(new PumiceDefaultUtteranceIntentHandler(pumiceDialogManager, context, sugiliteData));
@@ -189,9 +190,9 @@ public class PumiceUserExplainElseStatementIntentHandler implements PumiceUttera
             }
         } catch (Exception e){
             //TODO: error handling
-            pumiceDialogManager.sendAgentMessage("Can't read from the server response", true, false);
+            pumiceDialogManager.sendAgentMessage(context.getString(R.string.not_able_read_server_response), true, false);
 
-            pumiceDialogManager.sendAgentMessage("OK. Let's try again.", true, false);
+            pumiceDialogManager.sendAgentMessage(context.getString(R.string.try_again), true, false);
             pumiceDialogManager.updateUtteranceIntentHandlerInANewState(pumiceUserExplainElseStatementIntentHandler);
             sendPromptForTheIntentHandler();
             e.printStackTrace();
@@ -201,7 +202,7 @@ public class PumiceUserExplainElseStatementIntentHandler implements PumiceUttera
     @Override
     public void sendPromptForTheIntentHandler() {
         pumiceDialogManager.getSugiliteVoiceRecognitionListener().setContextPhrases(Const.INIT_INSTRUCTION_CONTEXT_WORDS);
-        pumiceDialogManager.sendAgentMessage(String.format("What should I do if %s is not true?", boolExpReadableName.replace(" is true", "")), true, true);
+        pumiceDialogManager.sendAgentMessage(context.getString(R.string.ask_else_statement_prompt, boolExpReadableName.replace(" is true", "")), true, true);
     }
 
 
@@ -210,7 +211,7 @@ public class PumiceUserExplainElseStatementIntentHandler implements PumiceUttera
      * @param newBlock
      */
     public void returnUserExplainElseStatementResult(SugiliteBlock newBlock){
-        pumiceDialogManager.sendAgentMessage(String.format("OK, I know what to do when %s is not true.", boolExpReadableName.replace(" is true", "")), true, false);
+        pumiceDialogManager.sendAgentMessage(context.getString(R.string.confirm_else_statement, boolExpReadableName.replace(" is true", "")), true, false);
         synchronized (originalConditionBlock) {
             //add new block as the else block for the original condition block
             if (newBlock != null) {

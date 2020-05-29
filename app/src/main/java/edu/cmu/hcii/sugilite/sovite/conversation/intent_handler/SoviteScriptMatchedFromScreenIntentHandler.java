@@ -173,8 +173,9 @@ public class SoviteScriptMatchedFromScreenIntentHandler implements PumiceUtteran
             sugiliteOperationBlock.setOperation(sugiliteGetProcedureOperation);
             //test sending an image
 
+            String apps = PumiceDemonstrationUtil.joinListGrammatically(topMatchedKnowledge.getInvolvedAppNames(pumiceDialogManager.getPumiceKnowledgeManager()), "and");
             Spanned getProcedureOperationParameterizedClickableDescription = PumiceParsingResultNoResolveConfirmationHandler.generateParameterClickableDescriptionForGetProcedureOperation(context, sugiliteGetProcedureOperation, pumiceDialogManager.getSugiliteData(), sugiliteScriptDao, pumiceDialogManager, existingVisualViews, this, originalUtterance);
-            pumiceDialogManager.sendAgentMessage(TextUtils.concat("The most relevant intent I know to this screen is to ", getProcedureOperationParameterizedClickableDescription, "."), true, false);
+            pumiceDialogManager.sendAgentMessage(TextUtils.concat("The most relevant intent I know to this screen is to ", getProcedureOperationParameterizedClickableDescription, String.format(" in %s.", apps)), true, false);
 
             List<View> screenshotViews = soviteScriptVisualThumbnailManager.getVisualThumbnailViewsForBlock(sugiliteOperationBlock, this, originalUtterance, this.pumiceDialogManager);
             if (screenshotViews != null) {

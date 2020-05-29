@@ -12,6 +12,7 @@ import java.util.Calendar;
 import java.util.List;
 
 import edu.cmu.hcii.sugilite.Const;
+import edu.cmu.hcii.sugilite.R;
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.pumice.communication.PumiceInstructionPacket;
 import edu.cmu.hcii.sugilite.pumice.communication.PumiceSemanticParsingResultPacket;
@@ -84,7 +85,7 @@ public class PumiceUserExplainProcedureIntentHandler implements SoviteSerializab
             } catch (Exception e) {
                 //TODO: error handling
                 e.printStackTrace();
-                pumiceDialogManager.sendAgentMessage("Failed to send the query", true, false);
+                pumiceDialogManager.sendAgentMessage(context.getString(R.string.failed_sending_query), true, false);
             }
         } else if (pumiceIntent.equals(PumiceIntent.DEFINE_PROCEDURE_DEMONSTATION)) {
             PumiceProcedureDemonstrationDialog procedureDemonstrationDialog = new PumiceProcedureDemonstrationDialog(context, parentKnowledgeName, utterance.getContent().toString(), dialogManager.getSharedPreferences(), dialogManager.getSugiliteData(), dialogManager.getServiceStatusManager(), this);
@@ -96,7 +97,7 @@ public class PumiceUserExplainProcedureIntentHandler implements SoviteSerializab
                 }
             });
             //send out the prompt
-            dialogManager.sendAgentMessage("Please start demonstrating how to " + parentKnowledgeName + ". " + "Click OK to continue.", true, false);
+            dialogManager.sendAgentMessage(context.getString(R.string.procedure_start_demonstration, parentKnowledgeName), true, false);
         }
         //set the intent handler back to the default one
         dialogManager.updateUtteranceIntentHandlerInANewState(new PumiceDefaultUtteranceIntentHandler(pumiceDialogManager, context, sugiliteData));
@@ -149,7 +150,7 @@ public class PumiceUserExplainProcedureIntentHandler implements SoviteSerializab
             try {
                 SoviteIntentClassificationErrorForProceduralKnowledgeIntentHandler.handleAppReferenceResponse(sugiliteData, gson, result, parentKnowledgeName, soviteAppNameAppInfoManager, context, pumiceDialogManager, this, this);
             } catch (Exception e) {
-                SoviteIntentClassificationErrorForProceduralKnowledgeIntentHandler.handleServerResponseError(e, pumiceDialogManager, this);
+                SoviteIntentClassificationErrorForProceduralKnowledgeIntentHandler.handleServerResponseError(context, e, pumiceDialogManager, this);
             }
         } else if (result.contains(RELEVANT_APPS_FOR_UTTERANCES)) {
             //handle queries of getting relevant apps for utterances
@@ -157,14 +158,14 @@ public class PumiceUserExplainProcedureIntentHandler implements SoviteSerializab
                 SoviteIntentClassificationErrorForProceduralKnowledgeIntentHandler.handleRelevantAppsForUtterancesResponse(gson, result, pumiceDialogManager);
 
             } catch (Exception e) {
-                SoviteIntentClassificationErrorForProceduralKnowledgeIntentHandler.handleServerResponseError(e, pumiceDialogManager, this);
+                SoviteIntentClassificationErrorForProceduralKnowledgeIntentHandler.handleServerResponseError(context, e, pumiceDialogManager, this);
             }
         } else if (result.contains(RELEVANT_UTTERANCES_FOR_APPS)) {
             //handle queries of getting relevant utterances for apps
             try {
                 SoviteIntentClassificationErrorForProceduralKnowledgeIntentHandler.handleRelevantUtterancesForAppsResponse(gson, result, sugiliteData, soviteAppNameAppInfoManager, parentKnowledgeName, context, pumiceDialogManager, this);
             } catch (Exception e) {
-                SoviteIntentClassificationErrorForProceduralKnowledgeIntentHandler.handleServerResponseError(e, pumiceDialogManager, this);
+                SoviteIntentClassificationErrorForProceduralKnowledgeIntentHandler.handleServerResponseError(context, e, pumiceDialogManager, this);
             }
         } else {
             //handle PUMICE server response
@@ -223,9 +224,9 @@ public class PumiceUserExplainProcedureIntentHandler implements SoviteSerializab
                 }
             } catch (Exception e) {
                 //TODO: error handling
-                pumiceDialogManager.sendAgentMessage("Can't read from the server response", true, false);
+                pumiceDialogManager.sendAgentMessage(context.getString(R.string.not_able_read_server_response), true, false);
 
-                pumiceDialogManager.sendAgentMessage("OK. Let's try again.", true, false);
+                pumiceDialogManager.sendAgentMessage(context.getString(R.string.try_again), true, false);
                 pumiceDialogManager.updateUtteranceIntentHandlerInANewState(pumiceUserExplainProcedureIntentHandler);
                 sendPromptForTheIntentHandler();
                 e.printStackTrace();
@@ -238,7 +239,7 @@ public class PumiceUserExplainProcedureIntentHandler implements SoviteSerializab
         pumiceDialogManager.getSugiliteVoiceRecognitionListener().setContextPhrases(Const.DEMONSTRATION_CONTEXT_WORDS);
 
         //pumiceDialogManager.sendAgentMessage("How do I " + parentKnowledgeName + "?" + " You can explain, or say \"demonstrate\" to demonstrate", true, true);
-        pumiceDialogManager.sendAgentMessage(String.format("I don't understand how to %s, can you tell me which app I can use?", parentKnowledgeName), true, true);
+        pumiceDialogManager.sendAgentMessage(context.getString(R.string.procedure_resolve, parentKnowledgeName), true, true);
         //pumiceDialogManager.sendAgentMessage("How do I " + parentKnowledgeName + "?" + " You can explain, or say \"demonstrate\" to demonstrate", true, true);
     }
 

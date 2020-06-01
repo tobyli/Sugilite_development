@@ -23,6 +23,7 @@ public class SugiliteOperationBlock extends SugiliteBlock implements Serializabl
 
     public SugiliteOperationBlock(){
         super();
+        this.init();
         this.blockType = SugiliteBlock.REGULAR_OPERATION;
         this.setDescription("");
     }

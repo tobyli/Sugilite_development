@@ -20,20 +20,25 @@ public abstract class SugiliteBlock implements Serializable{
     private static final long serialVersionUID = 6174630121022335205L;
 
     public SugiliteBlock(){
+
+    }
+
+    public void init() {
         Random rand = new Random();
         blockId = rand.nextInt(Integer.MAX_VALUE);
         createdTime = Calendar.getInstance().getTimeInMillis();
     }
+    protected String classType = getClass().getName();
 
     public int blockType;
     public boolean inScope = false;
     public static int REGULAR_OPERATION = 1, CONDITION = 2, FOR_EACH_LOOP = 3, RETURN_VALUE = 4, END_BLOCK = 5, STARTING_BLOCK = 6, SPECIAL_OPERATION = 8;
 
     //each block can only have 1 previous block
-    protected SugiliteBlock previousBlock;
+    transient protected SugiliteBlock previousBlock;
 
     //for storing e.g., the parent condition block
-    protected SugiliteBlock parentBlock;
+    transient protected SugiliteBlock parentBlock;
 
     //not used for e.g. SugiliteConditionBlock
     protected SugiliteBlock nextBlock;
@@ -44,6 +49,7 @@ public abstract class SugiliteBlock implements Serializable{
     private File screenshot;
     private int blockId;
     private long createdTime;
+
 
     public long getCreatedTime(){
         return createdTime;
@@ -125,8 +131,7 @@ public abstract class SugiliteBlock implements Serializable{
         return result;
     }
 
-
-    public abstract String getPumiceUserReadableDecription();
+    abstract public String getPumiceUserReadableDecription();
 
     //each "run" method should execute the task wrapped in the block, and call the "run" method of the next block
 }

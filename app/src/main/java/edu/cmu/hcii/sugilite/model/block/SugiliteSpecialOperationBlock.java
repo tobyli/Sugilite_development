@@ -20,6 +20,7 @@ import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
 public abstract class SugiliteSpecialOperationBlock extends SugiliteBlock implements Serializable {
 
     public SugiliteSpecialOperationBlock(){
+        this.init();
         this.blockType = SPECIAL_OPERATION;
         this.setDescription("Special Operation");
     }

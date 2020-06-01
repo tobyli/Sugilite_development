@@ -40,6 +40,7 @@ public class SugiliteStartingBlock extends SugiliteBlock implements Serializable
 
     public SugiliteStartingBlock(){
         super();
+        this.init();
         relevantPackages = new HashSet<>();
         variableNameVariableObjectMap = new HashMap<>();
         variableNameDefaultValueMap = new HashMap<>();
@@ -54,6 +55,7 @@ public class SugiliteStartingBlock extends SugiliteBlock implements Serializable
     }
     public SugiliteStartingBlock(String scriptName){
         super();
+        this.init();
         relevantPackages = new HashSet<>();
         variableNameVariableObjectMap = new HashMap<>();
         variableNameDefaultValueMap = new HashMap<>();

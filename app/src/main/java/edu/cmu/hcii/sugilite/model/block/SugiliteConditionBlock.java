@@ -29,6 +29,7 @@ public class SugiliteConditionBlock extends SugiliteBlock implements Serializabl
 
     public SugiliteConditionBlock(SugiliteBlock thenBlock, SugiliteBlock elseBlock, SugiliteBooleanExpression sugiliteBooleanExpression, SugiliteBlock previousBlock) {
         super();
+        this.init();
         this.blockType = SugiliteBlock.CONDITION;
         this.setDescription("");
         this.setScreenshot(null);

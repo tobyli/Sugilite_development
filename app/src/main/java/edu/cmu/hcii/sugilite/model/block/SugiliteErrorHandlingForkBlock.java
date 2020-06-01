@@ -15,6 +15,7 @@ public class SugiliteErrorHandlingForkBlock extends SugiliteBlock implements Ser
 
     public SugiliteErrorHandlingForkBlock(){
         super();
+        this.init();
         this.blockType = SugiliteBlock.CONDITION;
         this.setDescription("ERROR HANDLING FORK");
         this.setScreenshot(null);
@@ -22,6 +23,7 @@ public class SugiliteErrorHandlingForkBlock extends SugiliteBlock implements Ser
 
     public SugiliteErrorHandlingForkBlock (SugiliteBlock originalNextBlock, SugiliteBlock alternativeNextBlock){
         super();
+        this.init();
         this.blockType = SugiliteBlock.CONDITION;
         this.setDescription("ERROR HANDLING FORK");
         this.setScreenshot(null);

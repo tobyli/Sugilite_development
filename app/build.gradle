@@ -79,6 +79,8 @@ dependencies {
     implementation 'com.opencsv:opencsv:3.9'
     implementation 'org.apache.commons:commons-lang3:3.4'
     //compile 'edu.stanford.nlp:stanford-corenlp:3.8.0'
+    //implementation("org.danilopianini:gson-extras:0.2.1")
+
 
     implementation files('libs/RootTools.jar')
     deployerJars "org.apache.maven.wagon:wagon-ssh:2.9"

@@ -132,7 +132,7 @@ public class FollowUpQuestionDialog extends SugiliteDialogManager implements Sug
     private AlertDialog dialog;
 
     public FollowUpQuestionDialog(Context context, TextToSpeech tts, OntologyQuery initialQuery, UISnapshot uiSnapshot, SugiliteEntity<Node> actualClickedNode, List<Node> matchedNodes, SugiliteAvailableFeaturePack featurePack, List<Pair<OntologyQuery, Double>> queryScoreList, SugiliteBlockBuildingHelper blockBuildingHelper, Runnable clickRunnable, SugiliteData sugiliteData, SharedPreferences sharedPreferences, int errorCount){
-        super(context, tts);
+        super(context, sugiliteData, tts);
         this.previousQuery = null;
         this.currentQuery = initialQuery;
         this.clickRunnable = clickRunnable;

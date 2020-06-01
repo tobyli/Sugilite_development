@@ -99,7 +99,7 @@ public class RecordingAmbiguousPopupDialog extends SugiliteDialogManager impleme
 
 
     public RecordingAmbiguousPopupDialog(Context context, List<Pair<OntologyQuery, Double>> queryScoreList, SugiliteAvailableFeaturePack featurePack, SugiliteBlockBuildingHelper blockBuildingHelper, Runnable clickRunnable, UISnapshot uiSnapshot, SugiliteEntity<Node> actualClickedNode, SugiliteData sugiliteData, SharedPreferences sharedPreferences, TextToSpeech tts, int errorCount) {
-        super(context, tts);
+        super(context, sugiliteData, tts);
         this.queryScoreList = queryScoreList;
         this.featurePack = featurePack;
         this.sugiliteVerbalInstructionHTTPQueryManager = SugiliteVerbalInstructionHTTPQueryManager.getInstance(context);

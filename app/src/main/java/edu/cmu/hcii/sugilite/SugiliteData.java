@@ -3,12 +3,15 @@ package edu.cmu.hcii.sugilite;
 import android.app.AlertDialog;
 import android.app.Application;
 import android.app.Dialog;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.media.projection.MediaProjectionManager;
 import android.os.Handler;
+import android.os.IBinder;
 import android.os.Looper;
 import android.os.StrictMode;
 import android.preference.PreferenceManager;
@@ -113,6 +116,9 @@ public class SugiliteData extends Application {
     public boolean testing = false;
     public boolean testRun = false;
 
+    //Google speech service
+    private GoogleCloudSpeechService mSpeechService;
+    public Object speechServiceLock = new Object();
 
     public String valueDemonstrationVariableName = "";
 
@@ -120,11 +126,6 @@ public class SugiliteData extends Application {
 
     //used to indicate the state of the sugilite system
     public static final int DEFAULT_STATE = 0, RECORDING_STATE = 1, RECORDING_FOR_ERROR_HANDLING_STATE = 2, EXECUTION_STATE = 3, REGULAR_DEBUG_STATE = 4, PAUSED_FOR_DUCK_MENU_IN_REGULAR_EXECUTION_STATE = 6, PAUSED_FOR_ERROR_HANDLING_STATE = 7, PAUSED_FOR_CRUCIAL_STEP_STATE = 8, PAUSED_FOR_BREAKPOINT_STATE = 9, PAUSED_FOR_DUCK_MENU_IN_DEBUG_MODE = 10;
-
-
-    //services for Google TTS
-    private GoogleVoiceRecorder mVoiceRecorder;
-    private GoogleCloudSpeechService mSpeechService;
 
 
     //for managing screenshots
@@ -147,6 +148,27 @@ public class SugiliteData extends Application {
             }
         });
         setTTS(tts);
+
+        //initiate ASR
+        ServiceConnection mServiceConnection = new ServiceConnection() {
+            @Override
+            public void onServiceConnected(ComponentName componentName, IBinder binder) {
+                // use a service ready callback to ensure that the service is ready
+                mSpeechService = GoogleCloudSpeechService.from(binder);
+                synchronized (speechServiceLock) {
+                    speechServiceLock.notifyAll();
+                }
+            }
+            @Override
+            public void onServiceDisconnected(ComponentName componentName) {
+                mSpeechService = null;
+            }
+        };
+        // Prepare Cloud Speech API
+        Intent bindIntent = new Intent(applicationContext, GoogleCloudSpeechService.class);
+        ComponentName serviceComponentName = applicationContext.startService(bindIntent);
+        applicationContext.bindService(bindIntent, mServiceConnection, BIND_AUTO_CREATE);
+
 
         //disable StrictMode for file access
         StrictMode.VmPolicy.Builder builder = new StrictMode.VmPolicy.Builder();
@@ -499,5 +521,9 @@ public class SugiliteData extends Application {
 
     public void setScreenshotMediaProjectionManager(MediaProjectionManager screenshotMediaProjectionManager) {
         this.screenshotMediaProjectionManager = screenshotMediaProjectionManager;
+    }
+
+    public GoogleCloudSpeechService getSpeechService() {
+        return mSpeechService;
     }
 }

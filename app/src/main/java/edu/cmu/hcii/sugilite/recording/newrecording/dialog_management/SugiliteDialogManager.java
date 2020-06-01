@@ -12,6 +12,7 @@ import java.util.List;
 
 import edu.cmu.hcii.sugilite.Const;
 import edu.cmu.hcii.sugilite.R;
+import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.speech.SugiliteAndroidAPIVoiceRecognitionListener;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.speech.SugiliteGoogleCloudVoiceRecognitionListener;
 import edu.cmu.hcii.sugilite.verbal_instruction_demo.speech.SugiliteVoiceInterface;
@@ -40,15 +41,15 @@ public abstract class SugiliteDialogManager implements SugiliteVoiceInterface {
     protected Drawable notListeningDrawable;
     protected ImageButton speakButton = null;
 
-    public SugiliteDialogManager(Context context, SugiliteVoiceRecognitionListener sugiliteVoiceRecognitionListener) {
-        this(context, sugiliteVoiceRecognitionListener.getTTS());
+    public SugiliteDialogManager(Context context, SugiliteData sugiliteData, SugiliteVoiceRecognitionListener sugiliteVoiceRecognitionListener) {
+        this(context, sugiliteData, sugiliteVoiceRecognitionListener.getTTS());
     }
-    public SugiliteDialogManager(Context context, TextToSpeech tts) {
+    public SugiliteDialogManager(Context context, SugiliteData sugiliteData, TextToSpeech tts) {
         this.context = context;
         if (Const.SELECTED_SPEECH_RECOGNITION_TYPE == Const.SpeechRecognitionType.ANDROID) {
             this.sugiliteVoiceRecognitionListener = new SugiliteAndroidAPIVoiceRecognitionListener(context, this, tts);
         } else if (Const.SELECTED_SPEECH_RECOGNITION_TYPE == Const.SpeechRecognitionType.GOOGLE_CLOUD) {
-            this.sugiliteVoiceRecognitionListener = new SugiliteGoogleCloudVoiceRecognitionListener(context, this, tts);
+            this.sugiliteVoiceRecognitionListener = new SugiliteGoogleCloudVoiceRecognitionListener(context, sugiliteData, this, tts);
         }
         initDrawables();
     }

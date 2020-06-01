@@ -44,13 +44,13 @@ public class SugiliteStudyHandler {
     private SugiliteVoiceRecognitionListener sugiliteVoiceRecognitionListener;
     private SugiliteStudyHandler sugiliteStudyHandler;
 
-    public SugiliteStudyHandler(Context context, SugiliteAccessibilityService accessibilityService, TextToSpeech tts){
+    public SugiliteStudyHandler(Context context, SugiliteData sugiliteData, SugiliteAccessibilityService accessibilityService, TextToSpeech tts){
         this.context = context;
         this.accessibilityService = accessibilityService;
         if (Const.SELECTED_SPEECH_RECOGNITION_TYPE == Const.SpeechRecognitionType.ANDROID) {
             this.sugiliteVoiceRecognitionListener = new SugiliteAndroidAPIVoiceRecognitionListener(context, null, tts);
         } else if (Const.SELECTED_SPEECH_RECOGNITION_TYPE == Const.SpeechRecognitionType.GOOGLE_CLOUD) {
-            this.sugiliteVoiceRecognitionListener = new SugiliteGoogleCloudVoiceRecognitionListener(context, null, tts);
+            this.sugiliteVoiceRecognitionListener = new SugiliteGoogleCloudVoiceRecognitionListener(context, sugiliteData, null, tts);
         }
         this.sugiliteStudyHandler = this;
         this.gson = new Gson();

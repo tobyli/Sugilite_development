@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.Map;
 
 import edu.cmu.hcii.sugilite.R;
+import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.pumice.dialog.PumiceDialogManager;
 import edu.cmu.hcii.sugilite.recording.newrecording.dialog_management.SugiliteDialogManager;
 import edu.cmu.hcii.sugilite.recording.newrecording.dialog_management.SugiliteDialogSimpleState;
@@ -45,7 +46,7 @@ public class SoviteItemSelectionDialog extends SugiliteDialogManager {
     private boolean toSkipIfOnlyOneItem = false;
 
     public SoviteItemSelectionDialog(Activity context, PumiceDialogManager pumiceDialogManager) {
-        super(context, pumiceDialogManager.getSugiliteVoiceRecognitionListener());
+        super(context, pumiceDialogManager.getSugiliteData(), pumiceDialogManager.getSugiliteVoiceRecognitionListener());
         this.layoutInflater = LayoutInflater.from(context);
     }
 

@@ -58,7 +58,7 @@ public class SoviteSetTextParameterDialog extends SugiliteDialogManager {
 
 
     public SoviteSetTextParameterDialog(Context context, SugiliteData sugiliteData, VariableValue currentlySelectedVariableValue, String userUtterance, @Nullable SugiliteGetProcedureOperation getProcedureOperation, @Nullable SoviteVariableUpdateCallback soviteVariableUpdateCallback, @Nullable View originalScreenshotView, boolean toUpdateEvenNoChange) {
-        super(context, sugiliteData.getTTS());
+        super(context, sugiliteData, sugiliteData.getTTS());
         this.context = context;
         this.currentlySelectedVariableValue = currentlySelectedVariableValue;
         this.originalResultString = currentlySelectedVariableValue.getVariableValue().toString();

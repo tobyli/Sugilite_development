@@ -72,7 +72,7 @@ public class SugiliteRecordingConfirmationDialog extends SugiliteDialogManager {
 
 
     public SugiliteRecordingConfirmationDialog(Context context, SugiliteOperationBlock block, SugiliteAvailableFeaturePack featurePack, List<Pair<OntologyQuery, Double>> queryScoreList, Runnable clickUnderlyingButtonRunnable, SugiliteBlockBuildingHelper blockBuildingHelper, UISnapshot uiSnapshot, SugiliteEntity<Node> actualClickedNode, SugiliteData sugiliteData, SharedPreferences sharedPreferences, TextToSpeech tts) {
-        super(context, tts);
+        super(context, sugiliteData, tts);
         this.context = context;
         this.block = block;
         this.featurePack = featurePack;

@@ -91,7 +91,7 @@ public class VariableSetValueDialog extends SugiliteDialogManager implements Abs
 
     public VariableSetValueDialog(final Context context, SugiliteData sugiliteData, SugiliteStartingBlock startingBlock, SharedPreferences sharedPreferences, int state, PumiceDialogManager pumiceDialogManager, boolean isForReconstructing) {
         //constructor for SugiliteDialogManager
-        super(context, sugiliteData.getTTS());
+        super(context, sugiliteData, sugiliteData.getTTS());
 
         this.context = context;
         this.sharedPreferences = sharedPreferences;

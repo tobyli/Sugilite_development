@@ -34,6 +34,7 @@ import static android.content.Context.BIND_AUTO_CREATE;
 public class SugiliteGoogleCloudVoiceRecognitionListener implements SugiliteVoiceRecognitionListener {
     private String LOG_TAG = "VoiceRecognition";
     private Context context;
+    private SugiliteData sugiliteData;
     private long lastStartListening = -1;
     private TextToSpeech tts;
     private static final int REQUEST_RECORD_AUDIO_PERMISSION = 1;
@@ -42,27 +43,8 @@ public class SugiliteGoogleCloudVoiceRecognitionListener implements SugiliteVoic
 
     //initiate voice recorder
     private GoogleVoiceRecorder mVoiceRecorder;
-    private GoogleCloudSpeechService mSpeechService;
-    private final ServiceConnection mServiceConnection = new ServiceConnection() {
+    private GoogleCloudSpeechService mSpeechService = null;
 
-        @Override
-        public void onServiceConnected(ComponentName componentName, IBinder binder) {
-            // use a service ready callback to ensure that the service is ready
-            mSpeechService = GoogleCloudSpeechService.from(binder);
-
-            //notify the wait for the service to be ready
-            synchronized (sugiliteGoogleCloudVoiceRecognitionListener) {
-                sugiliteGoogleCloudVoiceRecognitionListener.notifyAll();
-            }
-            // mStatus.setVisibility(View.VISIBLE);
-        }
-
-        @Override
-        public void onServiceDisconnected(ComponentName componentName) {
-            mSpeechService = null;
-        }
-
-    };
     private final GoogleVoiceRecorder.Callback mVoiceCallback = new GoogleVoiceRecorder.Callback() {
 
         @Override
@@ -136,16 +118,14 @@ public class SugiliteGoogleCloudVoiceRecognitionListener implements SugiliteVoic
                 }
             };
 
-    public SugiliteGoogleCloudVoiceRecognitionListener(Context context, SugiliteVoiceInterface voiceInterface, TextToSpeech tts) {
+    public SugiliteGoogleCloudVoiceRecognitionListener(Context context, SugiliteData sugiliteData, SugiliteVoiceInterface voiceInterface, TextToSpeech tts) {
         this.context = context;
+        this.sugiliteData = sugiliteData;
         this.sugiliteVoiceInterface = voiceInterface;
         this.tts = tts;
         this.sugiliteGoogleCloudVoiceRecognitionListener = this;
+        this.mSpeechService = sugiliteData.getSpeechService();
 
-        // Prepare Cloud Speech API
-        ComponentName service = context.startService(new Intent(context, GoogleCloudSpeechService.class));
-
-        context.bindService(new Intent(context, GoogleCloudSpeechService.class), mServiceConnection, BIND_AUTO_CREATE);
 
         // Check the permission for recording voices
         if (ActivityCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO)
@@ -182,7 +162,7 @@ public class SugiliteGoogleCloudVoiceRecognitionListener implements SugiliteVoic
                 synchronized (this) {
                     while (mSpeechService == null) {
                         try {
-                            this.wait();
+                            sugiliteData.speechServiceLock.wait();
                         } catch (InterruptedException e) {
                             e.printStackTrace();
                         }
@@ -374,9 +354,6 @@ public class SugiliteGoogleCloudVoiceRecognitionListener implements SugiliteVoic
             mSpeechService.removeListener(mSpeechServiceListener);
         }
 
-        if (mServiceConnection != null) {
-            context.unbindService(mServiceConnection);
-        }
 
         mSpeechService = null;
 

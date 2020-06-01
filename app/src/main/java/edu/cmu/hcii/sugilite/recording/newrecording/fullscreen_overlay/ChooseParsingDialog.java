@@ -66,7 +66,7 @@ public class ChooseParsingDialog extends SugiliteDialogManager {
     private SugiliteAvailableFeaturePack featurePack;
 
     public ChooseParsingDialog(Context context, List<Pair<OntologyQuery, List<Node>>> matchingQueriesMatchedNodesList, SugiliteBlockBuildingHelper blockBuildingHelper, Runnable clickRunnable, UISnapshot uiSnapshot, SugiliteEntity<Node> actualClickedNode, SugiliteData sugiliteData, SharedPreferences sharedPreferences, TextToSpeech tts, SugiliteAvailableFeaturePack featurePack, List<Pair<OntologyQuery, Double>> queryScoreList){
-        super(context, tts);
+        super(context, sugiliteData, tts);
         this.context = context;
         this.blockBuildingHelper = blockBuildingHelper;
         this.layoutInflater = LayoutInflater.from(context);

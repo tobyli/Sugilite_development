@@ -135,7 +135,7 @@ public class SugiliteAccessibilityService extends AccessibilityService {
         }
         AccessibilityManager accessibilityManager = (AccessibilityManager) this.getSystemService(Context.ACCESSIBILITY_SERVICE);
         context = this;
-        sugiliteStudyHandler = new SugiliteStudyHandler(context, this, sugiliteData.getTTS());
+        sugiliteStudyHandler = new SugiliteStudyHandler(context, sugiliteData, this, sugiliteData.getTTS());
         statusIconManager = new StatusIconManager(this, sugiliteData, sharedPreferences, accessibilityManager);
         recordingOverlayManager = new FullScreenRecordingOverlayManager(context, sugiliteData, sharedPreferences, this, sugiliteData.getTTS());
         verbalInstructionIconManager = new VerbalInstructionIconManager(this, sugiliteStudyHandler, sugiliteData, sharedPreferences, recordingOverlayManager, this, sugiliteData.getTTS());

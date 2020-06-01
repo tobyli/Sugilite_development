@@ -58,7 +58,7 @@ public class NewScriptDialog extends SugiliteDialogManager implements AbstractSu
 
     public NewScriptDialog(Context context, SugiliteScriptDao sugiliteScriptDao, ServiceStatusManager serviceStatusManager,
                            SharedPreferences sharedPreferences, SugiliteData sugiliteData, boolean isSystemAlert, final Dialog.OnClickListener positiveCallback, final Dialog.OnClickListener negativeCallback){
-        super(context, sugiliteData.getTTS());
+        super(context, sugiliteData, sugiliteData.getTTS());
         this.tts = sugiliteData.getTTS();
         this.context = context;
         this.sugiliteScriptDao = sugiliteScriptDao;

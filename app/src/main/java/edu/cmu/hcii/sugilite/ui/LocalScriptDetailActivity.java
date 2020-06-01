@@ -83,7 +83,7 @@ public class LocalScriptDetailActivity extends ScriptDetailActivity implements S
         if (Const.SELECTED_SPEECH_RECOGNITION_TYPE == Const.SpeechRecognitionType.ANDROID) {
             this.sugiliteVoiceRecognitionListener = new SugiliteAndroidAPIVoiceRecognitionListener(this, this, tts);
         } else if (Const.SELECTED_SPEECH_RECOGNITION_TYPE == Const.SpeechRecognitionType.GOOGLE_CLOUD) {
-            this.sugiliteVoiceRecognitionListener = new SugiliteGoogleCloudVoiceRecognitionListener(this, this, tts);
+            this.sugiliteVoiceRecognitionListener = new SugiliteGoogleCloudVoiceRecognitionListener(this, sugiliteData, this, tts);
         }
 
         //load the local script
@@ -1090,8 +1090,7 @@ public class LocalScriptDetailActivity extends ScriptDetailActivity implements S
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        if (sugiliteVoiceRecognitionListener != null) {
-            sugiliteVoiceRecognitionListener.stopAllAndEndASRService();
-        }
+        sugiliteVoiceRecognitionListener.stopListening();
+        sugiliteVoiceRecognitionListener.stopTTS();
     }
 }

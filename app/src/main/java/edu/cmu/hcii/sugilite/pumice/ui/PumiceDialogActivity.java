@@ -77,7 +77,7 @@ public class PumiceDialogActivity extends AppCompatActivity implements SugiliteV
         if (Const.SELECTED_SPEECH_RECOGNITION_TYPE == Const.SpeechRecognitionType.ANDROID) {
             this.sugiliteVoiceRecognitionListener = new SugiliteAndroidAPIVoiceRecognitionListener(this, this, tts);
         } else if (Const.SELECTED_SPEECH_RECOGNITION_TYPE == Const.SpeechRecognitionType.GOOGLE_CLOUD) {
-            this.sugiliteVoiceRecognitionListener = new SugiliteGoogleCloudVoiceRecognitionListener(this, this, tts);
+            this.sugiliteVoiceRecognitionListener = new SugiliteGoogleCloudVoiceRecognitionListener(this, sugiliteData, this, tts);
         }
 
         init();
@@ -334,17 +334,13 @@ public class PumiceDialogActivity extends AppCompatActivity implements SugiliteV
 
     @Override
     protected void onStop() {
-        if (tts != null) {
-            tts.stop();
-        }
         super.onStop();
+        sugiliteVoiceRecognitionListener.stopTTS();
     }
 
     @Override
     protected void onDestroy() {
-        if (sugiliteVoiceRecognitionListener != null) {
-            sugiliteVoiceRecognitionListener.stopAllAndEndASRService();
-        }
         super.onDestroy();
+        stopTTSandASR();
     }
 }

@@ -27,6 +27,6 @@ Toby Jia-Jun Li, Igor Labutov, Xiaohan Nancy Li, Xiaoyi Zhang, Wenze Shi, Wanlin
 
 Toby Jia-Jun Li, Marissa Radensky, Justin Jia, Kirielle Singarajah, Tom M. Mitchell, and Brad A. Myers. [PUMICE: A Multi-Modal Agent that Learns Concepts and Conditionals from Natural Language and Demonstrations.](http://toby.li/files/Li_Pumice_UIST19.pdf) Proceedings of the 32nd Annual ACM Symposium on User Interface Software and Technology (UIST 2019).
 
-Toby Jia-Jun Li, Tom Mitchell, and Brad A. Myers. [Interactive Task Learning from GUI-Grounded Natural Language Instructions and Demonstrations](http://toby.li/files/li-interactive-acl2020.pdf) Proceedings of the 58th Annual Meeting of the Association for Computational Linguistics (ACL 2020): System Demonstrations.
+Toby Jia-Jun Li, Tom Mitchell, and Brad A. Myers. [Interactive Task Learning from GUI-Grounded Natural Language Instructions and Demonstrations.](http://toby.li/files/li-interactive-acl2020.pdf) Proceedings of the 58th Annual Meeting of the Association for Computational Linguistics (ACL 2020): System Demonstrations.
 
-Toby Jia-Jun Li, Jingya Chen, Brandon Canfield, and Brad A. Myers. [Privacy-Preserving Script Sharing in GUI-based Programming-by-Demonstration Systems](http://toby.li/files/li-privacy-cscw2020.pdf) Proceedings of the ACM on Human-Computer Interaction (CSCW 2020).
+Toby Jia-Jun Li, Jingya Chen, Brandon Canfield, and Brad A. Myers. [Privacy-Preserving Script Sharing in GUI-based Programming-by-Demonstration Systems.](http://toby.li/files/li-privacy-cscw2020.pdf) Proceedings of the ACM on Human-Computer Interaction (CSCW 2020).

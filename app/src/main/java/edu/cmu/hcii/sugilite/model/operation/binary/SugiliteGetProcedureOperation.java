@@ -51,7 +51,7 @@ public class SugiliteGetProcedureOperation extends SugiliteGetOperation<String> 
     public String evaluate(@Nullable SugiliteData sugiliteData) {
         PumiceKnowledgeDao pumiceKnowledgeDao = new PumiceKnowledgeDao(SugiliteData.getAppContext(), sugiliteData);
         try {
-            PumiceKnowledgeManager pumiceKnowledgeManager = pumiceKnowledgeDao.getPumiceKnowledgeOrANewInstanceIfNotAvailable(false);
+            PumiceKnowledgeManager pumiceKnowledgeManager = pumiceKnowledgeDao.getPumiceKnowledgeOrANewInstanceIfNotAvailable(false, true);
             if (pumiceKnowledgeManager != null) {
                 for (PumiceProceduralKnowledge proceduralKnowledge : pumiceKnowledgeManager.getPumiceProceduralKnowledges()) {
                     if (getName().equals(proceduralKnowledge.getProcedureName())) {

@@ -80,6 +80,7 @@ dependencies {
     implementation 'org.apache.commons:commons-lang3:3.4'
     //compile 'edu.stanford.nlp:stanford-corenlp:3.8.0'
     //implementation("org.danilopianini:gson-extras:0.2.1")
+    implementation 'com.squareup.okhttp3:okhttp:4.7.2'
 
 
     implementation files('libs/RootTools.jar')

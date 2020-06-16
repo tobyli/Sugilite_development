@@ -85,7 +85,7 @@ public class PumiceDialogManager{
             // set "toAddDefaultContentForNewInstance" to true for testing purpose
             PumiceKnowledgeManager pumiceKnowledgeManager;
             if (toLoadKB) {
-                pumiceKnowledgeManager = pumiceKnowledgeDao.getPumiceKnowledgeOrANewInstanceIfNotAvailable(false);
+                pumiceKnowledgeManager = pumiceKnowledgeDao.getPumiceKnowledgeOrANewInstanceIfNotAvailable(false, true);
             } else {
                 pumiceKnowledgeManager = new PumiceKnowledgeManager();
             }

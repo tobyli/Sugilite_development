@@ -1,17 +1,14 @@
 package edu.cmu.hcii.sugilite.pumice.kb;
 
-import com.google.gson.annotations.Expose;
-
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
 import edu.cmu.hcii.sugilite.model.block.booleanexp.SugiliteBooleanExpressionNew;
 import edu.cmu.hcii.sugilite.model.value.SugiliteSimpleConstant;
+import edu.cmu.hcii.sugilite.pumice.kb.default_query.BuiltInValueQuery;
 
 /**
  * @author toby
@@ -70,6 +67,12 @@ public class PumiceKnowledgeManager implements Serializable {
         testBooleanExpKnowledge.getScenarioArg1Map().put(testProceduralKnowledge.getProcedureName(), testBooleanExpKnowledge.getArg1());
 
         addPumiceBooleanExpKnowledge(testBooleanExpKnowledge);
+    }
+
+    public void initWithBuiltInKnowledge() {
+        for (PumiceValueQueryKnowledge pumiceValueQueryKnowledge : BuiltInValueQuery.getAllBuiltInValues()) {
+            addPumiceValueQueryKnowledge(pumiceValueQueryKnowledge);
+        }
     }
 
     public String getKnowledgeInString() {

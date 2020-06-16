@@ -87,7 +87,7 @@ public class PumiceKnowledgeDao {
         }
     }
 
-    public PumiceKnowledgeManager getPumiceKnowledgeOrANewInstanceIfNotAvailable(boolean toAddDefaultContentForNewInstance) throws IOException, ClassNotFoundException {
+    public PumiceKnowledgeManager getPumiceKnowledgeOrANewInstanceIfNotAvailable(boolean toAddDefaultContentForNewInstance, boolean toAddBuiltInQueries) throws IOException, ClassNotFoundException {
         PumiceKnowledgeManager pumiceKnowledgeManager = getPumiceKnowledgeManagerFromFile();
         if (pumiceKnowledgeManager == null){
             pumiceKnowledgeManager = new PumiceKnowledgeManager();
@@ -95,6 +95,10 @@ public class PumiceKnowledgeDao {
             //add the default test content
             if (toAddDefaultContentForNewInstance) {
                 pumiceKnowledgeManager.initForTesting();
+            }
+
+            if (toAddBuiltInQueries) {
+                pumiceKnowledgeManager.initWithBuiltInKnowledge();
             }
         }
         return pumiceKnowledgeManager;

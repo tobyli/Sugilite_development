@@ -42,7 +42,7 @@ public class GoogleVoiceRecorder {
     private static final int ENCODING = AudioFormat.ENCODING_PCM_16BIT;
 
     private static final int AMPLITUDE_THRESHOLD = 500;
-    private static final int SPEECH_TIMEOUT_MILLIS = 1200;
+    private static final int SPEECH_TIMEOUT_MILLIS = 3000;
     private static final int MAX_SPEECH_LENGTH_MILLIS = 6 * 1000;
 
     private final MediaPlayer startListeningSoundMediaPlayer;

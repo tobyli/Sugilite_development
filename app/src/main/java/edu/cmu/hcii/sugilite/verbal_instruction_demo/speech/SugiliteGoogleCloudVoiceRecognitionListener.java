@@ -354,7 +354,6 @@ public class SugiliteGoogleCloudVoiceRecognitionListener implements SugiliteVoic
             mSpeechService.removeListener(mSpeechServiceListener);
         }
 
-
         mSpeechService = null;
 
     }

@@ -1,17 +1,22 @@
 package edu.cmu.hcii.sugilite.pumice;
 
+import android.Manifest;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
+import android.location.Location;
+import android.location.LocationManager;
 import android.speech.tts.TextToSpeech;
 import android.support.annotation.Nullable;
+import android.support.v4.app.ActivityCompat;
 import android.util.ArraySet;
 import android.widget.Toast;
 
@@ -374,5 +379,27 @@ public class PumiceDemonstrationUtil {
         }
 
         return false;
+    }
+
+    public static Location getBestLocation() {
+        LocationManager lm = (LocationManager) SugiliteData.getAppContext().getSystemService(Context.LOCATION_SERVICE);
+
+
+        if (ActivityCompat.checkSelfPermission(SugiliteData.getAppContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(SugiliteData.getAppContext(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            //TODO: handle when the permission is not granted
+        }
+        List<String> providers = lm.getProviders(true);
+        Location bestLocation = null;
+        for (String provider : providers) {
+            Location l = lm.getLastKnownLocation(provider);
+            if (l == null) {
+                continue;
+            }
+            if (bestLocation == null || l.getAccuracy() < bestLocation.getAccuracy()) {
+                // Found best last known location: %s", l);
+                bestLocation = l;
+            }
+        }
+        return bestLocation;
     }
 }

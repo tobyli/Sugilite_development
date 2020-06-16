@@ -1,5 +1,7 @@
 package edu.cmu.hcii.sugilite.model.block.booleanexp;
 
+import org.apache.commons.lang3.math.NumberUtils;
+
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.model.operation.binary.SugiliteGetBoolExpOperation;
 import edu.cmu.hcii.sugilite.model.operation.binary.SugiliteGetOperation;
@@ -10,9 +12,11 @@ import edu.cmu.hcii.sugilite.model.operation.unary.SugiliteResolveValueQueryOper
 import edu.cmu.hcii.sugilite.model.value.SugiliteSimpleConstant;
 import edu.cmu.hcii.sugilite.model.value.SugiliteValue;
 import edu.cmu.hcii.sugilite.ontology.helper.annotator.SugiliteTextParentAnnotator;
+import edu.cmu.hcii.sugilite.pumice.kb.default_query.BuiltInValueQuery;
 import edu.cmu.hcii.sugilite.source_parsing.SugiliteScriptExpression;
 
 import java.io.Serializable;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -23,11 +27,12 @@ import java.util.List;
 public class SugiliteBooleanExpressionNew implements SugiliteValue<Boolean>, Serializable {
     private String booleanExpression;
 
-    ;
+
     private transient SugiliteData sugiliteData;
     private BoolOperator boolOperator;
     private SugiliteValue arg0;
     private SugiliteValue arg1;
+
     //IF boolOperation is set, it will be used for evaluate() instead of the boolOperator, arg0 and arg1. It should be either a resolve_boolExp() operation or a boolExpName typed get() operation
     private SugiliteValue<Boolean> boolOperation;
 
@@ -35,11 +40,12 @@ public class SugiliteBooleanExpressionNew implements SugiliteValue<Boolean>, Ser
         this.sugiliteData = null;
         List<List<SugiliteScriptExpression>> argList = sugiliteScriptExpression.getArguments();
         if (sugiliteScriptExpression.getOperationName().equalsIgnoreCase("resolve_boolExp") && argList.get(0) != null) {
-            //resolve_boolExp query
+            //the expression is a resolve_boolExp query
             this.boolOperation = new SugiliteResolveBoolExpOperation();
             ((SugiliteResolveBoolExpOperation) boolOperation).setParameter0(parseSugiliteValueFromScriptExpression(argList.get(0).get(0)).evaluate(null).toString());
         } else if (sugiliteScriptExpression.getOperationName().equalsIgnoreCase("get") && argList.get(0) != null && argList.get(1) != null &&
                 argList.get(1).get(0).isConstant() && argList.get(1).get(0).getConstantValue().toString().contains("boolFunctionName")) {
+            //the expression is a get boolFunctionName query
             this.boolOperation = new SugiliteGetBoolExpOperation();
             ((SugiliteGetOperation) boolOperation).setName(parseSugiliteValueFromScriptExpression(argList.get(0).get(0)).evaluate(null).toString());
             ((SugiliteGetOperation) boolOperation).setType(parseSugiliteValueFromScriptExpression(argList.get(1).get(0)).evaluate(null).toString());
@@ -76,6 +82,10 @@ public class SugiliteBooleanExpressionNew implements SugiliteValue<Boolean>, Ser
             return !((Boolean) arg0Value);
         }
         if (arg0Value != null && arg1Value != null) {
+            //normalize the results
+            arg0Value = normalizeValue(arg0Value);
+            arg1Value = normalizeValue(arg1Value);
+
             if (arg0Value instanceof Comparable && arg1Value instanceof Comparable) {
                 //note: Boolean is also Comparable
 
@@ -97,6 +107,15 @@ public class SugiliteBooleanExpressionNew implements SugiliteValue<Boolean>, Ser
                 if (annotatingResult0 != null && annotatingResult1 != null) {
                     arg0Value = annotatingResult0;
                     arg1Value = annotatingResult1;
+                }
+
+                //turn strings into numbers if needed
+                if (arg0Value instanceof String && NumberUtils.isParsable((String)arg0Value)) {
+                    arg0Value = NumberUtils.createNumber((String)arg0Value);
+                }
+
+                if (arg1Value instanceof String && NumberUtils.isParsable((String)arg1Value)) {
+                    arg1Value = NumberUtils.createNumber((String)arg1Value);
                 }
 
                 //TODO: need to implement better comparison method
@@ -122,6 +141,19 @@ public class SugiliteBooleanExpressionNew implements SugiliteValue<Boolean>, Ser
         }
         throw new RuntimeException("failed to evaluate!");
     }
+
+    private static Object normalizeValue (Object argValue) {
+        if (argValue instanceof BuiltInValueQuery.WeatherResult) {
+            return ((BuiltInValueQuery.WeatherResult) argValue).temperature;
+        }
+
+        if (argValue instanceof Date) {
+            return ((Date) argValue).getTime();
+        }
+
+        return argValue;
+    }
+
 
     public BoolOperator getBoolOperator() {
         return boolOperator;
@@ -175,6 +207,7 @@ public class SugiliteBooleanExpressionNew implements SugiliteValue<Boolean>, Ser
     private SugiliteValue parseSugiliteValueFromScriptExpression(SugiliteScriptExpression scriptExpression) {
         if (scriptExpression.isConstant()) {
             if (scriptExpression.getConstantValue() instanceof SugiliteSimpleConstant) {
+                //is a constant
                 return (SugiliteSimpleConstant) scriptExpression.getConstantValue();
             } else {
                 throw new RuntimeException("unknown type of constant!");
@@ -187,6 +220,7 @@ public class SugiliteBooleanExpressionNew implements SugiliteValue<Boolean>, Ser
             } else if (scriptExpression.getArguments() != null) {
                 List<List<SugiliteScriptExpression>> argList = scriptExpression.getArguments();
                 if (scriptExpression.getOperationName().equals("resolve_boolExp") && scriptExpression.getArguments().size() == 1) {
+                    //is a resolve_boolExp expression
                     SugiliteResolveBoolExpOperation boolExpOperation = new SugiliteResolveBoolExpOperation();
                     String parameter0 = argList.get(0).get(0).getConstantValue().toString();
                     if (argList.get(0).get(0).getConstantValue() instanceof SugiliteSimpleConstant) {
@@ -196,6 +230,7 @@ public class SugiliteBooleanExpressionNew implements SugiliteValue<Boolean>, Ser
                     return boolExpOperation;
 
                 } else if (scriptExpression.getOperationName().equals("resolve_valueQuery") && scriptExpression.getArguments().size() == 1) {
+                    //is a resolve_valueQuery expression
                     SugiliteResolveValueQueryOperation valueQueryOperation = new SugiliteResolveValueQueryOperation();
                     String parameter0 = argList.get(0).get(0).getConstantValue().toString();
                     if (argList.get(0).get(0).getConstantValue() instanceof SugiliteSimpleConstant) {
@@ -205,6 +240,7 @@ public class SugiliteBooleanExpressionNew implements SugiliteValue<Boolean>, Ser
                     return valueQueryOperation;
 
                 } else if (scriptExpression.getOperationName().equals("get") && scriptExpression.getArguments().size() == 2) {
+                    //is a get expression
                     String parameter1 = argList.get(1).get(0).getConstantValue().toString();
                     if (argList.get(1).get(0).getConstantValue() instanceof SugiliteSimpleConstant) {
                         parameter1 = ((SugiliteSimpleConstant) argList.get(1).get(0).getConstantValue()).evaluate(null).toString();

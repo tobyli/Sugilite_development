@@ -11,7 +11,6 @@ import com.google.gson.GsonBuilder;
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -24,11 +23,11 @@ import edu.cmu.hcii.sugilite.model.operation.binary.SugiliteGetOperation;
 import edu.cmu.hcii.sugilite.model.operation.binary.SugiliteGetValueOperation;
 import edu.cmu.hcii.sugilite.model.value.SugiliteSimpleConstant;
 import edu.cmu.hcii.sugilite.model.value.SugiliteValue;
-import edu.cmu.hcii.sugilite.model.variable.Variable;
 import edu.cmu.hcii.sugilite.model.variable.VariableValue;
 import edu.cmu.hcii.sugilite.pumice.communication.SkipPumiceJSONSerialization;
 import edu.cmu.hcii.sugilite.pumice.dialog.PumiceDialogManager;
 import edu.cmu.hcii.sugilite.pumice.PumiceDemonstrationUtil;
+import edu.cmu.hcii.sugilite.pumice.kb.default_query.BuiltInValueQuery;
 import edu.cmu.hcii.sugilite.sovite.SoviteAppNameAppInfoManager;
 
 
@@ -121,14 +120,19 @@ public class PumiceValueQueryKnowledge<T> implements Serializable {
             if (sugiliteValue != null){
                 //if there is a sugiliteValue, simply return the result of evaluating it;
                 Object result = sugiliteValue.evaluate(sugiliteData);
+                if (sugiliteValue instanceof BuiltInValueQuery) {
+                    //say the result of BuiltInValue if the type of sugiliteValue is BuiltInValue
+                    pumiceDialogManager.sendAgentMessage(((BuiltInValueQuery) sugiliteValue).getFeedbackMessage(result), true, false);
+                }
                 try {
                     //result SHOULD be type T
-                    return (T)result;
+                    return (T) result;
                 } catch (Exception e){
                     throw new RuntimeException("error in processing the value query -- can't find the target value knowledge");
                 }
 
             } else {
+                //otherwise, retrieve the value by running the script
                 Activity context = pumiceDialogManager.getContext();
                 ServiceStatusManager serviceStatusManager = ServiceStatusManager.getInstance(context);
                 SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
@@ -171,7 +175,7 @@ public class PumiceValueQueryKnowledge<T> implements Serializable {
                     }
                 }
 
-                //return the value
+                //return the value extracted from the screen
                 pumiceDialogManager.sendAgentMessage("The value of " + valueName + " is " + returnValue.toString(), true, false);
                 try {
                     return (T) (returnValue.toString());
@@ -204,21 +208,21 @@ public class PumiceValueQueryKnowledge<T> implements Serializable {
     @Override
     public String toString() {
         Gson gson = new GsonBuilder()
-                .addSerializationExclusionStrategy(new ExclusionStrategy()
+            .addSerializationExclusionStrategy(new ExclusionStrategy()
+            {
+                @Override
+                public boolean shouldSkipField(FieldAttributes f)
                 {
-                    @Override
-                    public boolean shouldSkipField(FieldAttributes f)
-                    {
-                        return f.getAnnotation(SkipPumiceJSONSerialization.class) != null;
-                    }
+                    return f.getAnnotation(SkipPumiceJSONSerialization.class) != null;
+                }
 
-                    @Override
-                    public boolean shouldSkipClass(Class<?> clazz)
-                    {
-                        return false;
-                    }
-                })
-                .create();
+                @Override
+                public boolean shouldSkipClass(Class<?> clazz)
+                {
+                    return false;
+                }
+            })
+            .create();
         return gson.toJson(this);
     }
 

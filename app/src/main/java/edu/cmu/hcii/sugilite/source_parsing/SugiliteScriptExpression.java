@@ -5,9 +5,13 @@ import edu.cmu.hcii.sugilite.model.variable.VariableHelper;
 import edu.cmu.hcii.sugilite.model.variable.VariableValue;
 import edu.cmu.hcii.sugilite.ontology.*;
 import org.apache.commons.lang3.StringUtils;
+import org.joda.time.DateTimeZone;
 
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
+import java.util.TimeZone;
 
 import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
 import edu.cmu.hcii.sugilite.model.block.booleanexp.SugiliteBooleanExpression;
@@ -39,6 +43,7 @@ import edu.cmu.hcii.sugilite.model.operation.unary.SugiliteUnaryOperation;
 import edu.cmu.hcii.sugilite.model.value.SugiliteSimpleConstant;
 import edu.cmu.hcii.sugilite.model.variable.Variable;
 import edu.cmu.hcii.sugilite.ontology.description.OntologyDescriptionGenerator;
+import edu.stanford.nlp.time.SUTime;
 
 /**
  * @author toby
@@ -108,7 +113,17 @@ public class SugiliteScriptExpression<T> {
                 //string constant
                 result = new SugiliteScriptExpression<SugiliteSimpleConstant<String>>();
                 result.setConstantValue(new SugiliteSimpleConstant<>(node.getChildren().get(1).getValue()));
-            } else if (node.getChildren().size() == 2 && node.getChildren().get(0).getValue() != null && node.getChildren().get(1).getValue() != null && node.getChildren().get(0).getValue().equals("number")) {
+            } else if (node.getChildren().size() == 2 && node.getChildren().get(0).getValue() != null && node.getChildren().get(1).getValue() != null && node.getChildren().get(0).getValue().equals("time")) {
+                //time constant
+                result = new SugiliteScriptExpression<SugiliteSimpleConstant<String>>();
+                String isoTimeString = node.getChildren().get(1).getValue();
+                SUTime.Time timeSUTime = SUTime.parseDateTime(isoTimeString, true);
+                Calendar cal = Calendar.getInstance();
+                TimeZone tz = cal.getTimeZone();
+                Date time = new Date();
+                time.setTime(timeSUTime.getJodaTimeInstant().getMillis() - tz.getOffset(timeSUTime.getJodaTimeInstant().getMillis()));
+                result.setConstantValue(new SugiliteSimpleConstant<Date>(time));
+            }else if (node.getChildren().size() == 2 && node.getChildren().get(0).getValue() != null && node.getChildren().get(1).getValue() != null && node.getChildren().get(0).getValue().equals("number")) {
                 //number constant without unit
                 result = new SugiliteScriptExpression<SugiliteSimpleConstant<Number>>();
                 result.setConstantValue(new SugiliteSimpleConstant<>(node.getChildren().get(1).getValue()));

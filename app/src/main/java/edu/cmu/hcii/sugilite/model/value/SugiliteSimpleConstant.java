@@ -10,6 +10,7 @@ import java.util.List;
 import edu.cmu.hcii.sugilite.SugiliteData;
 import edu.cmu.hcii.sugilite.model.block.booleanexp.SugiliteBooleanExpressionNew;
 import edu.cmu.hcii.sugilite.ontology.helper.annotator.SugiliteTextParentAnnotator;
+import edu.stanford.nlp.time.SUTime;
 
 import static edu.cmu.hcii.sugilite.source_parsing.SugiliteScriptExpression.addQuoteToTokenIfNeeded;
 
@@ -59,6 +60,9 @@ public class SugiliteSimpleConstant<T> implements SugiliteValue<T>, Serializable
     @Override
     public String toString() {
         if (value != null) {
+            if (value instanceof SUTime.Time) {
+                return "(time " + ((SUTime.Time) value).toISOString() + ")";
+            }
             if (isNumeric(value.toString())) {
                 //when it's a number
                 try {

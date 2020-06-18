@@ -195,6 +195,10 @@ public class SugiliteScriptParser {
         }
     }
 
+    /**
+     * add <option name="delegatedBuild" value="false" /> to .idea/gradle.xml
+     * @param args
+     */
     public static void main(String[] args){
         //an interactive parser testing environment
         SugiliteScriptParser sugiliteScriptParser = new SugiliteScriptParser();

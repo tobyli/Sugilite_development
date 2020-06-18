@@ -40,7 +40,7 @@ public class PumiceValueQueryKnowledge<T> implements Serializable {
     public enum ValueType {NUMERICAL, STRING}
     private String valueName;
     private ValueType valueType;
-    private String userUtterance = "";
+    private String utterance;
 
     //holds the value -- can be a get query, a constant or a resolve query.
     @SkipPumiceJSONSerialization
@@ -62,18 +62,19 @@ public class PumiceValueQueryKnowledge<T> implements Serializable {
         this();
         this.valueName = valueName;
         this.valueType = valueType;
+        this.utterance = valueName;
     }
 
     public PumiceValueQueryKnowledge(String valueName, String userUtterance, ValueType valueType, SugiliteValue sugiliteValue){
         this(valueName, valueType);
         this.sugiliteValue = sugiliteValue;
-        this.userUtterance = userUtterance;
+        this.utterance = userUtterance;
     }
 
     public PumiceValueQueryKnowledge(Context context, String valueName, ValueType valueType, SugiliteStartingBlock sugiliteStartingBlock){
         this(valueName, valueType);
         this.sugiliteStartingBlock = sugiliteStartingBlock;
-        this.userUtterance = "demonstrate";
+        this.utterance = "demonstrate";
         //populate involvedAppNames
         Set<String> involvedAppPackageNames = new HashSet<>();
         for(String packageName : sugiliteStartingBlock.relevantPackages){
@@ -93,7 +94,7 @@ public class PumiceValueQueryKnowledge<T> implements Serializable {
         this.valueType = pumiceValueQueryKnowledge.valueType;
         this.sugiliteStartingBlock = pumiceValueQueryKnowledge.sugiliteStartingBlock;
         this.sugiliteValue = pumiceValueQueryKnowledge.sugiliteValue;
-        this.userUtterance = pumiceValueQueryKnowledge.userUtterance;
+        this.utterance = pumiceValueQueryKnowledge.utterance;
         this.involvedAppNames = pumiceValueQueryKnowledge.involvedAppNames;
     }
 
@@ -103,6 +104,10 @@ public class PumiceValueQueryKnowledge<T> implements Serializable {
 
     public ValueType getValueType() {
         return valueType;
+    }
+
+    public String getUtterance() {
+        return utterance;
     }
 
     public void setValueName(String valueName) {

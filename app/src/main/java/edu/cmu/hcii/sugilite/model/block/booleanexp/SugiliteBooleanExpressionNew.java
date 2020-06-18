@@ -14,6 +14,7 @@ import edu.cmu.hcii.sugilite.model.value.SugiliteValue;
 import edu.cmu.hcii.sugilite.ontology.helper.annotator.SugiliteTextParentAnnotator;
 import edu.cmu.hcii.sugilite.pumice.kb.default_query.BuiltInValueQuery;
 import edu.cmu.hcii.sugilite.source_parsing.SugiliteScriptExpression;
+import edu.stanford.nlp.time.SUTime;
 
 import java.io.Serializable;
 import java.util.Date;
@@ -91,14 +92,14 @@ public class SugiliteBooleanExpressionNew implements SugiliteValue<Boolean>, Ser
 
                 //normalize arg0Value and arg1Value using SugiliteTextAnnotator
                 SugiliteTextParentAnnotator.AnnotatingResult annotatingResult0 = null;
-                if (arg0 instanceof SugiliteSimpleConstant) {
+                if (arg0 instanceof SugiliteSimpleConstant && arg0Value instanceof Number) {
                     annotatingResult0 = ((SugiliteSimpleConstant) arg0).toAnnotatingResult();
                 } else if (arg0Value instanceof String) {
                     annotatingResult0 = SugiliteTextParentAnnotator.AnnotatingResult.fromString((String) arg0Value);
                 }
 
                 SugiliteTextParentAnnotator.AnnotatingResult annotatingResult1 = null;
-                if (arg1 instanceof SugiliteSimpleConstant) {
+                if (arg1 instanceof SugiliteSimpleConstant && arg1Value instanceof Number) {
                     annotatingResult1 = ((SugiliteSimpleConstant) arg1).toAnnotatingResult();
                 } else if (arg1Value instanceof String) {
                     annotatingResult1 = SugiliteTextParentAnnotator.AnnotatingResult.fromString((String) arg1Value);
@@ -107,15 +108,6 @@ public class SugiliteBooleanExpressionNew implements SugiliteValue<Boolean>, Ser
                 if (annotatingResult0 != null && annotatingResult1 != null) {
                     arg0Value = annotatingResult0;
                     arg1Value = annotatingResult1;
-                }
-
-                //turn strings into numbers if needed
-                if (arg0Value instanceof String && NumberUtils.isParsable((String)arg0Value)) {
-                    arg0Value = NumberUtils.createNumber((String)arg0Value);
-                }
-
-                if (arg1Value instanceof String && NumberUtils.isParsable((String)arg1Value)) {
-                    arg1Value = NumberUtils.createNumber((String)arg1Value);
                 }
 
                 //TODO: need to implement better comparison method
@@ -142,6 +134,7 @@ public class SugiliteBooleanExpressionNew implements SugiliteValue<Boolean>, Ser
         throw new RuntimeException("failed to evaluate!");
     }
 
+    //normalize the values for comparison
     private static Object normalizeValue (Object argValue) {
         if (argValue instanceof BuiltInValueQuery.WeatherResult) {
             return ((BuiltInValueQuery.WeatherResult) argValue).temperature;
@@ -149,6 +142,10 @@ public class SugiliteBooleanExpressionNew implements SugiliteValue<Boolean>, Ser
 
         if (argValue instanceof Date) {
             return ((Date) argValue).getTime();
+        }
+
+        if (argValue instanceof String && NumberUtils.isParsable((String)argValue)) {
+            return NumberUtils.createNumber((String)argValue);
         }
 
         return argValue;

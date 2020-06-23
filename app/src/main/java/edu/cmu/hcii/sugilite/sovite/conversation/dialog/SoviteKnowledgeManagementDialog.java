@@ -297,6 +297,8 @@ public class SoviteKnowledgeManagementDialog {
                     public void onClick(DialogInterface dialog, int which) {
                         try {
                             pumiceDialogManager.clearPumiceKnowledgeAndSaveToDao();
+                            pumiceDialogManager.getPumiceKnowledgeManager().initWithBuiltInKnowledge();
+                            pumiceDialogManager.savePumiceKnowledgeToDao();
                             dismiss();
                             //SoviteKnowledgeManagementDialog newSoviteKnowledgeManagementDialog = new SoviteKnowledgeManagementDialog(context, pumiceKnowledgeManager, pumiceDialogManager, sugiliteData);
                             //newSoviteKnowledgeManagementDialog.show();

@@ -94,7 +94,11 @@ public class SugiliteSimpleConstant<T> implements SugiliteValue<T>, Serializable
 
     @Override
     public String getReadableDescription() {
-        return value.toString() + " " + unit;
+        if (unit != null) {
+            return value.toString() + " " + unit;
+        } else{
+            return value.toString();
+        }
     }
 
     @Override

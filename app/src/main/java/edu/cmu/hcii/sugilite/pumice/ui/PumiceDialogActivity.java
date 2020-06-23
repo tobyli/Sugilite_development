@@ -213,6 +213,7 @@ public class PumiceDialogActivity extends AppCompatActivity implements SugiliteV
             stopTTSandASR();
             pumiceDialogManager.clearPumiceKnowledgeAndSaveToDao();
             pumiceDialogManager.getPumiceKnowledgeManager().initWithBuiltInKnowledge();
+            pumiceDialogManager.savePumiceKnowledgeToDao();
             pumiceDialogManager.sendAgentMessage("Current knowledge have been cleared", true, false);
             return true;
         }

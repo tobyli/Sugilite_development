@@ -57,7 +57,7 @@ public class SugiliteGetValueOperation<T> extends SugiliteGetOperation<T> implem
                 }
             }
         }
-        PumiceDemonstrationUtil.showSugiliteAlertDialog("Error when finding the value knowledge: " + getName());
+        PumiceDemonstrationUtil.showSugiliteAlertDialog("Can't find the value knowledge: " + getName());
         return null;
     }
 

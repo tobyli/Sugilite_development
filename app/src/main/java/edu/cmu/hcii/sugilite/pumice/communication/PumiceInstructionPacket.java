@@ -36,12 +36,14 @@ public class PumiceInstructionPacket implements Serializable {
     private List<String> availableAppNames;
 
     private String parentKnowledgeName;
+    private Long packetGeneratedTime;
 
     public PumiceInstructionPacket(){
-
+        this.packetGeneratedTime = System.currentTimeMillis();
     }
 
     public PumiceInstructionPacket(PumiceKnowledgeManager existingKnowledge, String utteranceType, Long queryId, String userInput, String parentKnowledgeName, List<List<String>> triples, String entityClassNameFilter, List<String> availableAppNames){
+        this.packetGeneratedTime = System.currentTimeMillis();
         this.mode = "USER_COMMAND";
         this.utteranceType = utteranceType;
         this.queryId = queryId;

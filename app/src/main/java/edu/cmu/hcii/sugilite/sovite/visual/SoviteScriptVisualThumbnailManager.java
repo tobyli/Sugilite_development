@@ -89,6 +89,10 @@ public class SoviteScriptVisualThumbnailManager {
             return viewList;
         }
 
+        if (block instanceof SugiliteConditionBlock) {
+            return getVisualThumbnailViewsForBlock(((SugiliteConditionBlock) block).getThenBlock(), soviteVariableUpdateCallback, originalUtterance, pumiceDialogManager, onlyVariableNameToShow);
+        }
+
         if (block instanceof SugiliteOperationBlock) {
             if (block.getScreenshot() != null) {
                 //handle regular SugiliteOperationBlock return the screenshot for the operation if available

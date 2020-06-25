@@ -22,8 +22,10 @@ import edu.cmu.hcii.sugilite.dao.SugiliteScriptDao;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptFileDao;
 import edu.cmu.hcii.sugilite.dao.SugiliteScriptSQLDao;
 import edu.cmu.hcii.sugilite.model.block.SugiliteBlock;
+import edu.cmu.hcii.sugilite.model.block.SugiliteConditionBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteOperationBlock;
 import edu.cmu.hcii.sugilite.model.block.SugiliteStartingBlock;
+import edu.cmu.hcii.sugilite.model.operation.SugiliteOperation;
 import edu.cmu.hcii.sugilite.model.operation.binary.SugiliteGetProcedureOperation;
 import edu.cmu.hcii.sugilite.model.variable.Variable;
 import edu.cmu.hcii.sugilite.model.variable.VariableValue;
@@ -234,20 +236,33 @@ public class PumiceParsingResultNoResolveConfirmationHandler implements SoviteSe
     private void sendBestExecutionConfirmationForScript(SugiliteBlock block, boolean toSendImage, boolean toAskForConfirmation) {
         //sending the text description for SugiliteGetProcedureOperation
         SugiliteGetProcedureOperation getProcedureOperation = null;
-        if (block.getNextBlock() != null
-                && block.getNextBlock() instanceof SugiliteOperationBlock
-                && ((SugiliteOperationBlock) block.getNextBlock()).getOperation() instanceof SugiliteGetProcedureOperation) {
-            getProcedureOperation = (SugiliteGetProcedureOperation) ((SugiliteOperationBlock) block.getNextBlock()).getOperation();
+        String conditionDescription = "";
+
+        if (block instanceof SugiliteStartingBlock &&
+                block.getNextBlock() != null) {
+            block = block.getNextBlock();
         }
-        if (block instanceof SugiliteOperationBlock && ((SugiliteOperationBlock) block).getOperation() instanceof SugiliteGetProcedureOperation) {
+
+        if (block instanceof SugiliteConditionBlock &&
+                ((SugiliteConditionBlock) block).getThenBlock() instanceof SugiliteOperationBlock &&
+                ((SugiliteOperationBlock) ((SugiliteConditionBlock) block).getThenBlock()).getOperation() instanceof SugiliteGetProcedureOperation) {
+            //block is a SugiliteConditionBlock
+            getProcedureOperation = (SugiliteGetProcedureOperation) ((SugiliteOperationBlock) ((SugiliteConditionBlock) block).getThenBlock()).getOperation();
+            conditionDescription = String.format("If %s, ", ((SugiliteConditionBlock) block).getSugiliteBooleanExpressionNew().getReadableDescription());
+        }
+
+        if (block instanceof SugiliteOperationBlock &&
+                ((SugiliteOperationBlock) block).getOperation() instanceof SugiliteGetProcedureOperation) {
+            //block is a SugiliteOperationBlock
             getProcedureOperation = (SugiliteGetProcedureOperation) ((SugiliteOperationBlock) block).getOperation();
         }
+
         if (getProcedureOperation != null) {
             List<PumiceProceduralKnowledge> pumiceProceduralKnowledges = pumiceDialogManager.getPumiceKnowledgeManager().getPumiceProceduralKnowledges();
             for (PumiceProceduralKnowledge pumiceProceduralKnowledge : pumiceProceduralKnowledges) {
                 if (pumiceProceduralKnowledge.getProcedureName().equals(getProcedureOperation.getName())) {
                     //TODO: make the parameters clickable
-                    pumiceDialogManager.sendAgentMessage(TextUtils.concat("I will ", generateParameterClickableDescriptionForGetProcedureOperation(context, getProcedureOperation, sugiliteData, sugiliteScriptDao, pumiceDialogManager, existingVisualViews, this, parsingResultsToHandle.resultPacket.userUtterance), "."), true, false);
+                    pumiceDialogManager.sendAgentMessage(TextUtils.concat(conditionDescription, "I will ", generateParameterClickableDescriptionForGetProcedureOperation(context, getProcedureOperation, sugiliteData, sugiliteScriptDao, pumiceDialogManager, existingVisualViews, this, parsingResultsToHandle.resultPacket.userUtterance), "."), true, false);
 
                     if (toAskForConfirmation) {
                         pumiceDialogManager.sendAgentMessage(context.getString(R.string.confirm_question), true, true);
@@ -259,11 +274,8 @@ public class PumiceParsingResultNoResolveConfirmationHandler implements SoviteSe
         //sending the thumbnail images
         if (toSendImage) {
             List<View> views;
-            if (block.getNextBlock() != null && block.getNextBlock() instanceof SugiliteOperationBlock && ((SugiliteOperationBlock) block.getNextBlock()).getOperation() instanceof SugiliteGetProcedureOperation) {
-                views = soviteScriptVisualThumbnailManager.getVisualThumbnailViewsForBlock(block.getNextBlock(), this, parsingResultsToHandle.resultPacket.userUtterance, this.pumiceDialogManager);
-            } else {
-                views = soviteScriptVisualThumbnailManager.getVisualThumbnailViewsForBlock(block, this, parsingResultsToHandle.resultPacket.userUtterance, this.pumiceDialogManager);
-            }
+            views = soviteScriptVisualThumbnailManager.getVisualThumbnailViewsForBlock(block, this, parsingResultsToHandle.resultPacket.userUtterance, this.pumiceDialogManager);
+
 
             if (views != null) {
                 for (View view : views) {

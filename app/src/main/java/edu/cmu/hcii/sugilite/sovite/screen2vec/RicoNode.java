@@ -113,7 +113,8 @@ public class RicoNode implements Serializable {
                 if (! processedNodes.contains(childNodeEntity.getEntityId())) {
                     ricoNode.children.add(RicoNode.fromSugiliteNode(childNodeEntity, uiSnapshot, processedNodes));
                 } else {
-                    Log.i(RicoNode.class.getName(), String.format("Found a loop at node %d!", nodeEntity.getEntityId()));
+                    String activityName = uiSnapshot.getActivityName() == null ? "NULL" : uiSnapshot.getActivityName();
+                    Log.i(RicoNode.class.getName(), String.format("Found a loop at node %d! of the activity %s", nodeEntity.getEntityId(), activityName));
                 }
             }
         }

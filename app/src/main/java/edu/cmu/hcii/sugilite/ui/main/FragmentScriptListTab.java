@@ -44,6 +44,7 @@ import edu.cmu.hcii.sugilite.sharing.SugiliteSharingScriptPreparer;
 import edu.cmu.hcii.sugilite.sharing.TempUserAccountNameManager;
 import edu.cmu.hcii.sugilite.sharing.imwut_study.StudyResultForScript;
 import edu.cmu.hcii.sugilite.sharing.imwut_study.StudyScriptProcessor;
+import edu.cmu.hcii.sugilite.sovite.screen2vec.RicoDataPreparer;
 import edu.cmu.hcii.sugilite.study.ScriptUsageLogManager;
 import edu.cmu.hcii.sugilite.ui.LocalScriptDetailActivity;
 import edu.cmu.hcii.sugilite.ui.ScriptDebuggingActivity;
@@ -174,6 +175,7 @@ public class FragmentScriptListTab extends Fragment {
     private static final int ITEM_DELETE = Menu.FIRST + 9;
     private static final int ITEM_DUPLICATE = Menu.FIRST + 10;
     private static final int ITEM_IMWUT_STUDY = Menu.FIRST + 11;
+    private static final int ITEM_RICO_STUDY = Menu.FIRST + 12;
 
     //context menu are the long-click menus for each script
     @Override
@@ -199,7 +201,7 @@ public class FragmentScriptListTab extends Fragment {
         menu.add(0, ITEM_DELETE, 0, "Delete");
         menu.add(0, ITEM_DUPLICATE, 0, "Duplicate");
         menu.add(0, ITEM_IMWUT_STUDY, 0, "Export IMWUT Study");
-
+        menu.add(0, ITEM_RICO_STUDY, 0, "Export RICO-Formatted Data");
     }
 
     @Override
@@ -418,6 +420,20 @@ public class FragmentScriptListTab extends Fragment {
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
+                case ITEM_RICO_STUDY:
+                    SugiliteStartingBlock script = sugiliteScriptDao.read(scriptName);
+                    RicoDataPreparer ricoDataPreparer = new RicoDataPreparer(activity);
+                    SugiliteData.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            try {
+                                ricoDataPreparer.exportRicoDataForScript(script);
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    });
+                    PumiceDemonstrationUtil.showSugiliteAlertDialog(String.format("Successfully exported the script \"%s\" to the RICO format!", removeScriptExtension(scriptName)));
             }
         } catch (Exception e) {
             e.printStackTrace();

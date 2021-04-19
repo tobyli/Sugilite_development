@@ -15,7 +15,7 @@ SUGILITE is a new programming-by-demonstration (PBD) system that enables users t
 
 5. Make sure that you can see a duck icon on the screen
 
-6. Set the address of the semantic parsing server  (Launch Sugilite -> open the top right menu -> Settings -> General -> Semantic Parsing Server Address) (a demo parsing server is running at http://35.211.149.88:4567/semparse)
+6. Set the address of the semantic parsing server  (Launch Sugilite -> open the top right menu -> Settings -> General -> Semantic Parsing Server Address) (~~a demo parsing server is running at http://35.211.149.88:4567/semparse~~)
 
 
 ## Reference:
@@ -30,3 +30,7 @@ Toby Jia-Jun Li, Marissa Radensky, Justin Jia, Kirielle Singarajah, Tom M. Mitch
 Toby Jia-Jun Li, Tom Mitchell, and Brad A. Myers. [Interactive Task Learning from GUI-Grounded Natural Language Instructions and Demonstrations.](http://toby.li/files/li-interactive-acl2020.pdf) Proceedings of the 58th Annual Meeting of the Association for Computational Linguistics (ACL 2020): System Demonstrations.
 
 Toby Jia-Jun Li, Jingya Chen, Brandon Canfield, and Brad A. Myers. [Privacy-Preserving Script Sharing in GUI-based Programming-by-Demonstration Systems.](http://toby.li/files/li-privacy-cscw2020.pdf) Proceedings of the ACM on Human-Computer Interaction (CSCW 2020).
+
+Toby Jia-Jun Li, Jingya Chen, Haijun Xia, Tom M. Mitchell, and Brad A. Myers. [Multi-Modal Repairs of Conversational Breakdowns in Task-Oriented Dialogs.](https://toby.li/files/Li_Sovite_Error_Handling_UIST2020.pdf) Proceedings of the ACM Symposium on User Interface Software and Technology (UIST 2020).
+
+
